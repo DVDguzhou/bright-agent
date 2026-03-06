@@ -1,0 +1,202 @@
+// 小黑平台 - 身份认证、交易授权、调用存证、纠纷仲裁
+// 按 buyandsell.md 设计：平台不执行 Agent，只做授权与存证
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum LicenseStatus {
+  ACTIVE
+  EXPIRED
+  SUSPENDED
+  REVOKED
+}
+
+enum InvocationTokenStatus {
+  ISSUED
+  USED
+  EXPIRED
+  CANCELLED
+}
+
+enum ExecutionReceiptStatus {
+  SUCCESS
+  FAILED
+  REJECTED
+}
+
+enum DisputeStatus {
+  OPEN
+  IN_REVIEW
+  RESOLVED
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String?
+  roleFlags Json?    @map("role_flags") // {is_buyer, is_seller}
+  createdAt DateTime @default(now()) @map("created_at")
+
+  userApiKeys   UserApiKey[]
+  ownedAgents   Agent[]       @relation("AgentOwner")
+  boughtLicenses License[]    @relation("LicenseBuyer")
+  soldLicenses   License[]    @relation("LicenseSeller")
+  invocationRequests InvocationRequest[]
+  disputesAsBuyer   Dispute[] @relation("DisputeBuyer")
+  disputesAsSeller  Dispute[] @relation("DisputeSeller")
+}
+
+model UserApiKey {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  keyHash   String   @map("key_hash")
+  keyPrefix String   @map("key_prefix")
+  name      String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, keyPrefix])
+}
+
+// 1. Agent - 小兰上架的 AgentB
+model Agent {
+  id              String   @id @default(uuid())
+  sellerId        String   @map("seller_id")
+  name            String
+  description     String?
+  baseUrl         String   @map("base_url")   // 小兰 API 地址；useTunnel 时可为占位
+  useTunnel       Boolean  @default(false) @map("use_tunnel") // 使用平台隧道，无需 ngrok
+  publicKey       String?  @map("public_key") // 公钥或 service_secret_id，用于验签
+  supportedScopes String[] @map("supported_scopes") // ["content.generate", "data.fetch"]
+  pricingConfig   Json?    @map("pricing_config") // {model, price, quota_per_unit}
+  status          String   @default("pending") // pending, approved, suspended
+  riskLevel       String?  @map("risk_level") // low, medium, high
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  seller User @relation("AgentOwner", fields: [sellerId], references: [id], onDelete: Cascade)
+  licenses License[]
+  invocationTokens InvocationToken[]
+  invocationRequests InvocationRequest[]
+  executionReceipts ExecutionReceipt[]
+}
+
+// 2. License - 小红买到的使用许可
+model License {
+  id          String        @id @default(uuid())
+  agentId     String        @map("agent_id")
+  buyerId     String        @map("buyer_id")
+  sellerId    String        @map("seller_id")
+  scope       String?       // 许可的 scope，如 "content.generate"
+  quotaTotal  Int           @map("quota_total") // 总次数
+  quotaUsed   Int           @default(0) @map("quota_used")
+  expiresAt   DateTime      @map("expires_at")
+  status      LicenseStatus @default(ACTIVE)
+  createdAt   DateTime      @default(now()) @map("created_at")
+
+  agent    Agent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  buyer    User  @relation("LicenseBuyer", fields: [buyerId], references: [id], onDelete: Cascade)
+  seller   User  @relation("LicenseSeller", fields: [sellerId], references: [id], onDelete: Cascade)
+  invocationTokens InvocationToken[]
+  invocationRequests InvocationRequest[]
+  executionReceipts ExecutionReceipt[]
+  disputes Dispute[]
+}
+
+// 3. InvocationToken - 平台签发的短期调用凭证
+model InvocationToken {
+  id          String               @id @default(uuid())
+  licenseId   String               @map("license_id")
+  agentId     String               @map("agent_id")
+  buyerId     String               @map("buyer_id")
+  sellerId    String               @map("seller_id")
+  requestId   String               @unique @map("request_id")
+  scope       String?
+  issuedAt    DateTime             @default(now()) @map("issued_at")
+  expiresAt   DateTime             @map("expires_at")
+  nonce       String               @unique // 防重放
+  signature   String?              // 平台签名
+  status      InvocationTokenStatus @default(ISSUED)
+  createdAt   DateTime             @default(now()) @map("created_at")
+
+  license  License  @relation(fields: [licenseId], references: [id], onDelete: Cascade)
+  agent    Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  invocationRequest InvocationRequest?
+}
+
+
+// 4. InvocationRequest - 小红本次提交的任务请求（平台登记）
+model InvocationRequest {
+  id             String   @id @default(uuid())
+  requestId      String   @unique @map("request_id")
+  licenseId      String   @map("license_id")
+  agentId        String   @map("agent_id")
+  buyerId        String   @map("buyer_id")
+  tokenId        String   @unique @map("token_id")
+  inputHash      String   @map("input_hash")
+  inputPreview   String?  @map("input_preview")
+  scope          String?
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  license  License           @relation(fields: [licenseId], references: [id], onDelete: Cascade)
+  agent    Agent             @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  buyer    User               @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+  token    InvocationToken    @relation(fields: [tokenId], references: [id], onDelete: Cascade)
+  receipt  ExecutionReceipt?
+  disputes Dispute[]
+}
+
+// 5. ExecutionReceipt - 小兰执行完成后回传的平台回执
+model ExecutionReceipt {
+  id               String                @id @default(uuid())
+  requestId        String                @map("request_id")
+  invocationReqId  String                @unique @map("invocation_request_id")
+  licenseId        String                @map("license_id")
+  agentId          String                @map("agent_id")
+  sellerId         String                @map("seller_id")
+  inputHash        String                @map("input_hash")
+  outputHash       String?               @map("output_hash")
+  outputPreview    String?               @map("output_preview")
+  startedAt        DateTime?             @map("started_at")
+  finishedAt       DateTime?             @map("finished_at")
+  agentVersion     String?               @map("agent_version")
+  toolUsageSummary String?               @map("tool_usage_summary")
+  sellerSignature  String?               @map("seller_signature")
+  status           ExecutionReceiptStatus
+  createdAt        DateTime              @default(now()) @map("created_at")
+
+  license  License            @relation(fields: [licenseId], references: [id], onDelete: Cascade)
+  agent    Agent              @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  request  InvocationRequest  @relation(fields: [invocationReqId], references: [id], onDelete: Cascade)
+  dispute  Dispute?
+}
+
+// 6. Dispute - 买卖双方纠纷记录
+model Dispute {
+  id           String       @id @default(uuid())
+  licenseId       String       @map("license_id")
+  invocationReqId String       @map("invocation_request_id")
+  receiptId       String?      @unique @map("receipt_id")
+  buyerId         String       @map("buyer_id")
+  sellerId     String       @map("seller_id")
+  reason       String?
+  evidenceRefs Json?        @map("evidence_refs")
+  status       DisputeStatus @default(OPEN)
+  resolution   String?
+  createdAt    DateTime     @default(now()) @map("created_at")
+  resolvedAt  DateTime?    @map("resolved_at")
+
+  license  License             @relation(fields: [licenseId], references: [id], onDelete: Cascade)
+  request  InvocationRequest   @relation(fields: [invocationReqId], references: [id], onDelete: Cascade)
+  receipt  ExecutionReceipt?   @relation(fields: [receiptId], references: [id])
+  buyer    User                @relation("DisputeBuyer", fields: [buyerId], references: [id], onDelete: Cascade)
+  seller   User     @relation("DisputeSeller", fields: [sellerId], references: [id], onDelete: Cascade)
+}
