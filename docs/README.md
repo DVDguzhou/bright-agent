@@ -15,3 +15,4 @@
 | [TEST_GUIDE.md](./TEST_GUIDE.md) | 测试说明 |
 | [VERTICAL_CASE_RESEARCH.md](./VERTICAL_CASE_RESEARCH.md) | 垂直案例调研：证明信任层 needed + 试验 Agent 开发规格 |
 | [whitepaper.md](./whitepaper.md) | 白皮书 |
+| [FRONTEND_BACKEND_SEPARATION.md](./FRONTEND_BACKEND_SEPARATION.md) | 前后端分离架构说明（Go + MySQL） |
