@@ -24,24 +24,26 @@ func LicensesList(cfg *config.Config) gin.HandlerFunc {
 			return
 		}
 
-		type licResp struct {
-			models.License
-			Agent  models.Agent `json:"agent"`
-			Buyer  interface{}  `json:"buyer"`
-			Seller interface{}  `json:"seller"`
-		}
-		var resp []licResp
+		var resp []gin.H
 		for _, l := range licenses {
 			var agent models.Agent
 			db.DB.Where("id = ?", l.AgentID).First(&agent)
 			var buyer, seller models.User
 			db.DB.Where("id = ?", l.BuyerID).First(&buyer)
 			db.DB.Where("id = ?", l.SellerID).First(&seller)
-			resp = append(resp, licResp{
-				License: l,
-				Agent:   agent,
-				Buyer:   gin.H{"name": buyer.Name},
-				Seller:  gin.H{"name": seller.Name},
+			resp = append(resp, gin.H{
+				"id":         l.ID,
+				"agentId":    l.AgentID,
+				"buyerId":    l.BuyerID,
+				"sellerId":   l.SellerID,
+				"scope":      l.Scope,
+				"quotaTotal": l.QuotaTotal,
+				"quotaUsed":  l.QuotaUsed,
+				"expiresAt":  l.ExpiresAt,
+				"status":     l.Status,
+				"agent":      gin.H{"id": agent.ID, "name": agent.Name, "baseUrl": agent.BaseURL},
+				"buyer":      gin.H{"name": buyer.Name},
+				"seller":     gin.H{"name": seller.Name},
 			})
 		}
 		c.JSON(http.StatusOK, resp)

@@ -13,9 +13,9 @@ export default function ApiKeysPage() {
   const [loading, setLoading] = useState(false);
 
   const load = () => {
-    fetch("/api/user-api-keys")
+    fetch("/api/user-api-keys", { credentials: "include" })
       .then((r) => (r.ok ? r.json() : []))
-      .then(setKeys)
+      .then((data) => setKeys(Array.isArray(data) ? data : []))
       .catch(() => setKeys([]));
   };
 
@@ -27,6 +27,7 @@ export default function ApiKeysPage() {
     const res = await fetch("/api/user-api-keys", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: "include",
       body: JSON.stringify({ name: name || "API Key" }),
     });
     const data = await res.json();
@@ -40,7 +41,7 @@ export default function ApiKeysPage() {
 
   const revoke = async (id: string) => {
     if (!confirm("确定吊销此 Key？")) return;
-    await fetch(`/api/user-api-keys/${id}`, { method: "DELETE" });
+    await fetch(`/api/user-api-keys/${id}`, { method: "DELETE", credentials: "include" });
     load();
   };
 

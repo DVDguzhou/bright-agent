@@ -19,11 +19,11 @@ export default function PurchaseLicensePage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch(`/api/agents/${id}`)
-      .then((r) => r.json())
-      .then((a) => setAgent(a))
+    fetch(`/api/agents/${id}`, { credentials: "include" })
+      .then((r) => r.json().then((d) => (r.ok && d?.id ? d : null)))
+      .then(setAgent)
       .catch(() => setAgent(null));
-    fetch("/api/auth/me")
+    fetch("/api/auth/me", { credentials: "include" })
       .then((r) => (r.ok ? r.json() : null))
       .then(setUser)
       .catch(() => setUser(null));
@@ -41,6 +41,7 @@ export default function PurchaseLicensePage() {
       const res = await fetch("/api/licenses", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           agentId: id,
           scope: scope || undefined,

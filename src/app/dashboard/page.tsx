@@ -14,18 +14,18 @@ export default function DashboardPage() {
   const [licenses, setLicenses] = useState<License[]>([]);
 
   useEffect(() => {
-    fetch("/api/auth/me")
+    fetch("/api/auth/me", { credentials: "include" })
       .then((r) => (r.ok ? r.json() : null))
       .then((u) => {
         setUser(u);
         if (u) {
-          fetch("/api/agents?owner=me")
+          fetch("/api/agents?owner=me", { credentials: "include" })
             .then((r) => r.json())
-            .then(setAgents)
+            .then((data) => setAgents(Array.isArray(data) ? data : []))
             .catch(() => setAgents([]));
-          fetch("/api/licenses?buyer=me")
+          fetch("/api/licenses", { credentials: "include" })
             .then((r) => r.json())
-            .then(setLicenses)
+            .then((data) => setLicenses(Array.isArray(data) ? data : []))
             .catch(() => setLicenses([]));
         }
       })
@@ -147,11 +147,11 @@ export default function DashboardPage() {
         </div>
         <div>
           <h2 className="font-semibold text-slate-800 mb-4">我的 License</h2>
-          {licenses.length === 0 ? (
+          {!Array.isArray(licenses) || licenses.length === 0 ? (
             <p className="text-slate-500">暂无 License</p>
           ) : (
             <ul className="space-y-2">
-              {licenses.slice(0, 5).map((lic, i) => (
+              {licenses.slice(0, 5).map((lic: License, i: number) => (
                 <motion.li
                   key={lic.id}
                   initial={{ opacity: 0, x: -10 }}
@@ -174,11 +174,11 @@ export default function DashboardPage() {
             </ul>
           )}
           <h2 className="font-semibold text-slate-800 mb-4 mt-8">我的 Agents</h2>
-          {agents.length === 0 ? (
+          {!Array.isArray(agents) || agents.length === 0 ? (
             <p className="text-slate-500">暂无 Agent</p>
           ) : (
             <ul className="space-y-2">
-              {agents.map((a, i) => (
+              {agents.map((a: Agent, i: number) => (
                 <motion.li
                   key={a.id}
                   initial={{ opacity: 0, x: -10 }}

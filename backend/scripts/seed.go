@@ -57,6 +57,10 @@ func main() {
 		PricePerQuestion: 990,
 		ExpertiseTags:    models.JSONArray{"大学生", "求职", "职业选择", "转行", "复盘"},
 		SampleQuestions:  models.JSONArray{"我现在不知道该考研还是工作", "连续面试失败后我该先调整什么", "想转行但没有底气第一步应该做什么"},
+		Education:        strPtr("本科"),
+		Income:           strPtr("年薪 30-50 万"),
+		Job:              strPtr("互联网产品经理"),
+		School:           strPtr("普通二本"),
 		Published:        true,
 	}
 	var exist models.LifeAgentProfile
@@ -82,7 +86,14 @@ func main() {
 		})
 		fmt.Println("created life agent 阿青学长")
 	} else {
-		fmt.Println("life agent already exists for seller")
+		// 更新已有记录的学历、收入、工作、学校
+		db.DB.Model(&exist).Updates(map[string]interface{}{
+			"education": "本科",
+			"income":    "年薪 30-50 万",
+			"job":       "互联网产品经理",
+			"school":    "普通二本",
+		})
+		fmt.Println("updated life agent 阿青学长 with 学历/收入/工作/学校")
 	}
 	fmt.Println("seed done. users: buyer@demo.com, seller@demo.com, password: password123")
 }

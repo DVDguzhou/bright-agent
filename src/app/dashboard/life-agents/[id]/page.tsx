@@ -23,6 +23,10 @@ type ManageData = {
     pricePerQuestion: number;
     expertiseTags: string[];
     sampleQuestions: string[];
+    education?: string;
+    income?: string;
+    job?: string;
+    school?: string;
     published: boolean;
     knowledgeEntries: Array<{
       id: string;
@@ -66,6 +70,10 @@ export default function LifeAgentManageDetailPage() {
     headline: "",
     shortBio: "",
     longBio: "",
+    education: "",
+    school: "",
+    job: "",
+    income: "",
     audience: "",
     welcomeMessage: "",
     pricePerQuestion: "990",
@@ -78,7 +86,7 @@ export default function LifeAgentManageDetailPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch(`/api/life-agents/${id}/manage`)
+    fetch(`/api/life-agents/${id}/manage`, { credentials: "include" })
       .then((r) => r.json())
       .then((d) => {
         setData(d);
@@ -89,6 +97,10 @@ export default function LifeAgentManageDetailPage() {
             headline: p.headline,
             shortBio: p.shortBio,
             longBio: p.longBio,
+            education: p.education ?? "",
+            school: p.school ?? "",
+            job: p.job ?? "",
+            income: p.income ?? "",
             audience: p.audience,
             welcomeMessage: p.welcomeMessage,
             pricePerQuestion: String(p.pricePerQuestion),
@@ -130,6 +142,10 @@ export default function LifeAgentManageDetailPage() {
 
     const payload = {
       ...form,
+      education: form.education || undefined,
+      school: form.school || undefined,
+      job: form.job || undefined,
+      income: form.income || undefined,
       pricePerQuestion: parseInt(form.pricePerQuestion, 10),
       expertiseTags: form.expertiseTags.split(/[,，\n]/).map((s) => s.trim()).filter(Boolean),
       sampleQuestions: form.sampleQuestions.split("\n").map((s) => s.trim()).filter(Boolean),
@@ -144,6 +160,7 @@ export default function LifeAgentManageDetailPage() {
     const res = await fetch(`/api/life-agents/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
+      credentials: "include",
       body: JSON.stringify(payload),
     });
     const resData = await res.json();
@@ -251,6 +268,42 @@ export default function LifeAgentManageDetailPage() {
                   value={form.shortBio}
                   onChange={(e) => setForm((prev) => ({ ...prev, shortBio: e.target.value }))}
                   required
+                />
+              </div>
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-700">学校</label>
+                <input
+                  className="input-shell"
+                  value={form.school}
+                  onChange={(e) => setForm((prev) => ({ ...prev, school: e.target.value }))}
+                  placeholder="例如：普通二本"
+                />
+              </div>
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-700">学历</label>
+                <input
+                  className="input-shell"
+                  value={form.education}
+                  onChange={(e) => setForm((prev) => ({ ...prev, education: e.target.value }))}
+                  placeholder="例如：本科、硕士"
+                />
+              </div>
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-700">工作</label>
+                <input
+                  className="input-shell"
+                  value={form.job}
+                  onChange={(e) => setForm((prev) => ({ ...prev, job: e.target.value }))}
+                  placeholder="例如：互联网产品经理"
+                />
+              </div>
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-700">收入</label>
+                <input
+                  className="input-shell"
+                  value={form.income}
+                  onChange={(e) => setForm((prev) => ({ ...prev, income: e.target.value }))}
+                  placeholder="例如：年薪 30-50 万"
                 />
               </div>
               <div className="md:col-span-2">

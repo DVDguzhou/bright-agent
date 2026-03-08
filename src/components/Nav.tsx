@@ -22,14 +22,14 @@ export function Nav() {
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    fetch("/api/auth/me")
+    fetch("/api/auth/me", { credentials: "include" })
       .then((r) => (r.ok ? r.json() : null))
       .then(setUser)
       .catch(() => setUser(null));
   }, [pathname]);
 
   const logout = async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
+    await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
     setUser(null);
     router.push("/");
     router.refresh();

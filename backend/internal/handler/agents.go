@@ -38,24 +38,21 @@ func AgentsList(cfg *config.Config) gin.HandlerFunc {
 			return
 		}
 
-		type agentResp struct {
-			models.Agent
-			Seller struct {
-				Name  *string `json:"name"`
-				Email string  `json:"email"`
-			} `json:"seller"`
-		}
-
-		var resp []agentResp
+		var resp []gin.H
 		for _, a := range agents {
 			var u models.User
 			db.DB.Where("id = ?", a.SellerID).First(&u)
-			resp = append(resp, agentResp{
-				Agent: a,
-				Seller: struct {
-					Name  *string `json:"name"`
-					Email string  `json:"email"`
-				}{Name: u.Name, Email: u.Email},
+			resp = append(resp, gin.H{
+				"id":               a.ID,
+				"name":             a.Name,
+				"description":      a.Description,
+				"baseUrl":          a.BaseURL,
+				"useTunnel":        a.UseTunnel,
+				"supportedScopes":  a.SupportedScopes,
+				"pricingConfig":    a.PricingConfig,
+				"status":           a.Status,
+				"riskLevel":        a.RiskLevel,
+				"seller":           gin.H{"id": u.ID, "name": u.Name, "email": u.Email},
 			})
 		}
 		c.JSON(http.StatusOK, resp)

@@ -14,6 +14,10 @@ type LifeAgentListItem = {
   pricePerQuestion: number;
   expertiseTags: string[];
   sampleQuestions: string[];
+  education?: string;
+  income?: string;
+  job?: string;
+  school?: string;
   knowledgeCount: number;
   soldQuestionPacks: number;
   sessionCount: number;
@@ -28,10 +32,10 @@ export default function LifeAgentsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/life-agents")
+    fetch("/api/life-agents", { credentials: "include" })
       .then((res) => res.json())
       .then((data) => {
-        setProfiles(data);
+        setProfiles(Array.isArray(data) ? data : []);
         setLoading(false);
       })
       .catch(() => {
@@ -102,13 +106,21 @@ export default function LifeAgentsPage() {
                       <div>
                         <div className="flex items-center gap-3">
                           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-100 text-lg font-semibold text-blue-700">
-                            {profile.displayName.slice(0, 1)}
+                            {(profile.displayName ?? "?").slice(0, 1)}
                           </div>
                           <div>
                             <h3 className="text-xl font-semibold text-slate-900">{profile.displayName}</h3>
                             <p className="text-sm text-slate-500">{profile.headline}</p>
                           </div>
                         </div>
+                        {(profile.education || profile.school || profile.job || profile.income) && (
+                          <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-sm text-slate-500">
+                            {profile.school && <span>🏫 {profile.school}</span>}
+                            {profile.education && <span>📜 {profile.education}</span>}
+                            {profile.job && <span>💼 {profile.job}</span>}
+                            {profile.income && <span>💰 {profile.income}</span>}
+                          </div>
+                        )}
                         <p className="mt-4 text-sm leading-6 text-slate-600">{profile.shortBio}</p>
                       </div>
                       <div className="rounded-2xl bg-sky-50 px-4 py-3 text-right">
@@ -120,7 +132,7 @@ export default function LifeAgentsPage() {
                     </div>
 
                     <div className="mt-5 flex flex-wrap gap-2">
-                      {profile.expertiseTags.slice(0, 5).map((tag) => (
+                      {(profile.expertiseTags ?? []).slice(0, 5).map((tag: string) => (
                         <span
                           key={tag}
                           className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700"
