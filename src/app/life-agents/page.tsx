@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { RatingStars } from "@/components/RatingStars";
 
 type LifeAgentListItem = {
   id: string;
@@ -21,6 +22,10 @@ type LifeAgentListItem = {
   knowledgeCount: number;
   soldQuestionPacks: number;
   sessionCount: number;
+  ratings?: {
+    averageScore: number;
+    raters: number;
+  };
   creator: {
     name: string | null;
     email: string;
@@ -49,11 +54,11 @@ export default function LifeAgentsPage() {
       <section className="rounded-3xl border border-slate-200 bg-white/90 p-8 shadow-sm">
         <div className="max-w-3xl">
           <p className="mb-3 inline-flex rounded-full bg-blue-50 px-4 py-1.5 text-sm font-medium text-blue-700">
-            人生经验展示面 + GPT 式聊天 + 按次咨询
+            专注本地的经验 Agent 市场 · 真实经历 · 按次咨询
           </p>
-          <h1 className="section-title">找到真正有经历的人生 Agent</h1>
+          <h1 className="section-title">找到有真实本地经验的人生 Agent</h1>
           <p className="section-subtitle mt-4">
-            创作者把自己的经验整理成知识库，用户先看背景和擅长领域，再决定是否购买提问次数进入聊天。
+            学长分享雅思、大妈分享菜市场、酒吧达人分享探店、创业者分享行业——创作者把本地经验整理成知识库，用户先看背景再决定是否购买提问次数进入聊天。
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link href="/life-agents/create" className="btn-primary">
@@ -122,6 +127,19 @@ export default function LifeAgentsPage() {
                           </div>
                         )}
                         <p className="mt-4 text-sm leading-6 text-slate-600">{profile.shortBio}</p>
+                        <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-slate-500">
+                          <span className="inline-flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1 text-amber-700">
+                            <RatingStars score={profile.ratings?.averageScore ?? 0} size="sm" />
+                            {profile.ratings && profile.ratings.raters > 0
+                              ? `${profile.ratings.averageScore.toFixed(1)} / 5`
+                              : "暂无评分"}
+                          </span>
+                          <span>
+                            {profile.ratings && profile.ratings.raters > 0
+                              ? `${profile.ratings.raters} 位用户已评分`
+                              : "还没有用户评分"}
+                          </span>
+                        </div>
                       </div>
                       <div className="rounded-2xl bg-sky-50 px-4 py-3 text-right">
                         <p className="text-xs text-slate-500">每次提问</p>

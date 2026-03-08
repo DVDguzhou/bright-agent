@@ -11,8 +11,81 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func ptrStr(s *string) string  { if s == nil { return "" }; return *s }
-func strOpt(v string) *string { if v == "" { return nil }; return &v }
+func ptrStr(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
+}
+func strOpt(v string) *string {
+	if v == "" {
+		return nil
+	}
+	return &v
+}
+
+func buildLifeAgentRatingState(profileID, buyerID string) gin.H {
+	var usedQuestions int
+	db.DB.Raw(
+		"SELECT COALESCE(SUM(questions_used), 0) FROM life_agent_question_packs WHERE profile_id = ? AND buyer_id = ? AND status = ?",
+		profileID, buyerID, "paid",
+	).Scan(&usedQuestions)
+
+	var rating models.LifeAgentRating
+	hasRating := db.DB.Where("profile_id = ? AND buyer_id = ?", profileID, buyerID).First(&rating).Error == nil
+
+	currentMilestone := (usedQuestions / 10) * 10
+	eligible := currentMilestone >= 10 && (usedQuestions%10 == 0 || (hasRating && rating.LastRatedMilestone == currentMilestone))
+	nextMilestone := 10
+	if currentMilestone >= 10 {
+		if eligible && (!hasRating || rating.LastRatedMilestone < currentMilestone) {
+			nextMilestone = currentMilestone
+		} else {
+			nextMilestone = currentMilestone + 10
+		}
+	}
+
+	state := gin.H{
+		"usedQuestions":      usedQuestions,
+		"eligible":           eligible,
+		"nextMilestone":      nextMilestone,
+		"currentMilestone":   currentMilestone,
+		"lastRatedMilestone": 0,
+		"currentScore":       nil,
+		"currentComment":     "",
+	}
+	if hasRating {
+		state["lastRatedMilestone"] = rating.LastRatedMilestone
+		state["currentScore"] = rating.Score
+		state["currentComment"] = ptrStr(rating.Comment)
+	}
+	return state
+}
+
+func buildLifeAgentRatingsSummary(profileID string, limit int) gin.H {
+	var average float64
+	var raters int64
+	db.DB.Model(&models.LifeAgentRating{}).Where("profile_id = ?", profileID).Count(&raters)
+	db.DB.Model(&models.LifeAgentRating{}).Where("profile_id = ?", profileID).Select("COALESCE(AVG(score),0)").Scan(&average)
+
+	var recent []models.LifeAgentRating
+	db.DB.Where("profile_id = ?", profileID).Order("updated_at DESC").Limit(limit).Find(&recent)
+	list := make([]gin.H, 0, len(recent))
+	for _, r := range recent {
+		list = append(list, gin.H{
+			"id":        r.ID,
+			"score":     r.Score,
+			"comment":   r.Comment,
+			"updatedAt": r.UpdatedAt.Format("2006-01-02 15:04"),
+		})
+	}
+
+	return gin.H{
+		"averageScore": average,
+		"raters":       raters,
+		"recent":       list,
+	}
+}
 
 func LifeAgentsList(cfg *config.Config) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -29,24 +102,26 @@ func LifeAgentsList(cfg *config.Config) gin.HandlerFunc {
 			db.DB.Model(&models.LifeAgentKnowledgeEntry{}).Where("profile_id = ?", p.ID).Count(&kCount)
 			db.DB.Model(&models.LifeAgentQuestionPack{}).Where("profile_id = ?", p.ID).Count(&qpCount)
 			db.DB.Model(&models.LifeAgentChatSession{}).Where("profile_id = ?", p.ID).Count(&sessCount)
+			ratingsSummary := buildLifeAgentRatingsSummary(p.ID, 0)
 			resp = append(resp, gin.H{
-				"id":               p.ID,
-				"displayName":      p.DisplayName,
-				"headline":         p.Headline,
-				"shortBio":         p.ShortBio,
-				"audience":         p.Audience,
-				"welcomeMessage":   p.WelcomeMessage,
-				"pricePerQuestion": p.PricePerQuestion,
-				"expertiseTags":    p.ExpertiseTags,
-				"sampleQuestions":  p.SampleQuestions,
-				"education":        ptrStr(p.Education),
-				"income":           ptrStr(p.Income),
-				"job":              ptrStr(p.Job),
-				"school":           ptrStr(p.School),
-				"creator":          gin.H{"id": u.ID, "name": u.Name, "email": u.Email},
-				"knowledgeCount":   kCount,
+				"id":                p.ID,
+				"displayName":       p.DisplayName,
+				"headline":          p.Headline,
+				"shortBio":          p.ShortBio,
+				"audience":          p.Audience,
+				"welcomeMessage":    p.WelcomeMessage,
+				"pricePerQuestion":  p.PricePerQuestion,
+				"expertiseTags":     p.ExpertiseTags,
+				"sampleQuestions":   p.SampleQuestions,
+				"education":         ptrStr(p.Education),
+				"income":            ptrStr(p.Income),
+				"job":               ptrStr(p.Job),
+				"school":            ptrStr(p.School),
+				"creator":           gin.H{"id": u.ID, "name": u.Name, "email": u.Email},
+				"knowledgeCount":    kCount,
 				"soldQuestionPacks": qpCount,
-				"sessionCount":     sessCount,
+				"sessionCount":      sessCount,
+				"ratings":           ratingsSummary,
 			})
 		}
 		c.JSON(http.StatusOK, resp)
@@ -63,26 +138,33 @@ func LifeAgentsCreate(cfg *config.Config) gin.HandlerFunc {
 		var body struct {
 			DisplayName      string   `json:"displayName" binding:"required,min=2"`
 			Headline         string   `json:"headline" binding:"required,min=4"`
-			ShortBio         string   `json:"shortBio" binding:"required,min=20,max=180"`
-			LongBio          string   `json:"longBio" binding:"required,min=60"`
-			Audience         string   `json:"audience" binding:"required,min=6"`
+			ShortBio         string   `json:"shortBio" binding:"required,min=10,max=180"`
+			LongBio          string   `json:"longBio" binding:"required,min=30"`
+			Audience         string   `json:"audience" binding:"required,min=3"`
 			WelcomeMessage   string   `json:"welcomeMessage" binding:"required,min=10"`
 			PricePerQuestion int      `json:"pricePerQuestion"`
-			Education        string  `json:"education"`
-			Income           string  `json:"income"`
-			Job              string  `json:"job"`
-			School           string  `json:"school"`
+			Education        string   `json:"education"`
+			Income           string   `json:"income"`
+			Job              string   `json:"job"`
+			School           string   `json:"school"`
+			MBTI             string   `json:"mbti"`
+			PersonaArchetype string   `json:"personaArchetype"`
+			ToneStyle        string   `json:"toneStyle"`
+			ResponseStyle    string   `json:"responseStyle"`
+			ForbiddenPhrases []string `json:"forbiddenPhrases" binding:"max=8,dive,min=1"`
+			ExampleReplies   []string `json:"exampleReplies" binding:"required,min=2,max=3,dive,min=10"`
 			ExpertiseTags    []string `json:"expertiseTags" binding:"required,min=1,max=8,dive,min=1"`
 			SampleQuestions  []string `json:"sampleQuestions" binding:"required,min=2,max=6,dive,min=3"`
+			NotSuitableFor   string   `json:"notSuitableFor"`
 			KnowledgeEntries []struct {
 				Category string   `json:"category" binding:"required"`
 				Title    string   `json:"title" binding:"required"`
 				Content  string   `json:"content" binding:"required,min=20"`
 				Tags     []string `json:"tags" binding:"required,min=1,dive,min=1"`
-			} `json:"knowledgeEntries" binding:"required,min=2,max=12,dive"`
+			} `json:"knowledgeEntries" binding:"required,min=2,max=30,dive"`
 		}
 		if err := c.ShouldBindJSON(&body); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "VALIDATION_ERROR"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "VALIDATION_ERROR", "detail": err.Error()})
 			return
 		}
 		if body.PricePerQuestion <= 0 {
@@ -106,6 +188,13 @@ func LifeAgentsCreate(cfg *config.Config) gin.HandlerFunc {
 			Income:           strOpt(body.Income),
 			Job:              strOpt(body.Job),
 			School:           strOpt(body.School),
+			MBTI:             strOpt(body.MBTI),
+			PersonaArchetype: strOpt(body.PersonaArchetype),
+			ToneStyle:        strOpt(body.ToneStyle),
+			ResponseStyle:    strOpt(body.ResponseStyle),
+			ForbiddenPhrases: models.JSONArray(body.ForbiddenPhrases),
+			ExampleReplies:   models.JSONArray(body.ExampleReplies),
+			NotSuitableFor:   strOpt(body.NotSuitableFor),
 			Published:        true,
 		}
 		if err := db.DB.Create(&p).Error; err != nil {
@@ -149,15 +238,126 @@ func LifeAgentsMine(cfg *config.Config) gin.HandlerFunc {
 			db.DB.Model(&models.LifeAgentQuestionPack{}).Where("profile_id = ? AND status = ?", p.ID, "paid").Select("COALESCE(SUM(amount_paid),0)").Scan(&revenue)
 			resp = append(resp, gin.H{
 				"id":               p.ID,
-				"displayName":     p.DisplayName,
-				"headline":        p.Headline,
-				"shortBio":        p.ShortBio,
+				"displayName":      p.DisplayName,
+				"headline":         p.Headline,
+				"shortBio":         p.ShortBio,
 				"pricePerQuestion": p.PricePerQuestion,
-				"published":       p.Published,
-				"knowledgeCount":  kCount,
-				"sessionCount":    sessCount,
-				"soldPacks":       qpCount,
-				"totalRevenue":    revenue,
+				"published":        p.Published,
+				"knowledgeCount":   kCount,
+				"sessionCount":     sessCount,
+				"soldPacks":        qpCount,
+				"totalRevenue":     revenue,
+			})
+		}
+		c.JSON(http.StatusOK, resp)
+	}
+}
+
+// LifeAgentsFeedbackAll 返回当前用户所有人生 Agent 的反馈汇总
+func LifeAgentsFeedbackAll(cfg *config.Config) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		user := middleware.MustGetUser(c)
+		if user == nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "UNAUTHORIZED"})
+			return
+		}
+		var profiles []models.LifeAgentProfile
+		db.DB.Where("user_id = ?", user.ID).Find(&profiles)
+		if len(profiles) == 0 {
+			c.JSON(http.StatusOK, gin.H{
+				"counts":  gin.H{"helpful": 0, "notSpecific": 0, "notSuitable": 0},
+				"ratings": gin.H{"averageScore": 0, "raters": 0, "recent": []gin.H{}},
+				"recent":  []gin.H{},
+			})
+			return
+		}
+		ids := make([]string, len(profiles))
+		profileMap := make(map[string]string)
+		for i, p := range profiles {
+			ids[i] = p.ID
+			profileMap[p.ID] = p.DisplayName
+		}
+		var helpful, notSpecific, notSuitable int64
+		db.DB.Model(&models.LifeAgentFeedback{}).Where("profile_id IN ? AND feedback_type = ?", ids, "helpful").Count(&helpful)
+		db.DB.Model(&models.LifeAgentFeedback{}).Where("profile_id IN ? AND feedback_type = ?", ids, "not_specific").Count(&notSpecific)
+		db.DB.Model(&models.LifeAgentFeedback{}).Where("profile_id IN ? AND feedback_type = ?", ids, "not_suitable").Count(&notSuitable)
+		var recent []models.LifeAgentFeedback
+		db.DB.Where("profile_id IN ?", ids).Order("created_at DESC").Limit(50).Find(&recent)
+		var recentRatings []models.LifeAgentRating
+		db.DB.Where("profile_id IN ?", ids).Order("updated_at DESC").Limit(20).Find(&recentRatings)
+		var list []gin.H
+		for _, f := range recent {
+			list = append(list, gin.H{
+				"id":               f.ID,
+				"profileId":        f.ProfileID,
+				"profileName":      profileMap[f.ProfileID],
+				"feedbackType":     f.FeedbackType,
+				"assistantExcerpt": f.AssistantExcerpt,
+				"comment":          f.Comment,
+				"createdAt":        f.CreatedAt.Format("2006-01-02 15:04"),
+			})
+		}
+		var average float64
+		var raters int64
+		db.DB.Model(&models.LifeAgentRating{}).Where("profile_id IN ?", ids).Count(&raters)
+		db.DB.Model(&models.LifeAgentRating{}).Where("profile_id IN ?", ids).Select("COALESCE(AVG(score),0)").Scan(&average)
+		var ratingList []gin.H
+		for _, r := range recentRatings {
+			ratingList = append(ratingList, gin.H{
+				"id":          r.ID,
+				"profileId":   r.ProfileID,
+				"profileName": profileMap[r.ProfileID],
+				"score":       r.Score,
+				"comment":     r.Comment,
+				"updatedAt":   r.UpdatedAt.Format("2006-01-02 15:04"),
+			})
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"counts": gin.H{
+				"helpful":     helpful,
+				"notSpecific": notSpecific,
+				"notSuitable": notSuitable,
+			},
+			"ratings": gin.H{
+				"averageScore": average,
+				"raters":       raters,
+				"recent":       ratingList,
+			},
+			"recent": list,
+		})
+	}
+}
+
+// LifeAgentsPurchased 返回当前用户购买过额度的人生 Agent（作为咨询者）
+func LifeAgentsPurchased(cfg *config.Config) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		user := middleware.MustGetUser(c)
+		if user == nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "UNAUTHORIZED"})
+			return
+		}
+		var packs []models.LifeAgentQuestionPack
+		db.DB.Where("buyer_id = ? AND status = ?", user.ID, "paid").Order("created_at DESC").Find(&packs)
+		seen := make(map[string]bool)
+		var resp []gin.H
+		for _, pk := range packs {
+			if seen[pk.ProfileID] {
+				continue
+			}
+			seen[pk.ProfileID] = true
+			var p models.LifeAgentProfile
+			if db.DB.Where("id = ?", pk.ProfileID).First(&p).Error != nil {
+				continue
+			}
+			var remaining int
+			db.DB.Raw("SELECT COALESCE(SUM(question_count - questions_used), 0) FROM life_agent_question_packs WHERE profile_id = ? AND buyer_id = ? AND status = ?",
+				pk.ProfileID, user.ID, "paid").Scan(&remaining)
+			resp = append(resp, gin.H{
+				"id":                 p.ID,
+				"displayName":        p.DisplayName,
+				"headline":           p.Headline,
+				"pricePerQuestion":   p.PricePerQuestion,
+				"remainingQuestions": remaining,
 			})
 		}
 		c.JSON(http.StatusOK, resp)
@@ -179,17 +379,20 @@ func LifeAgentsGet(cfg *config.Config) gin.HandlerFunc {
 
 		user := middleware.MustGetUser(c)
 		remaining := 0
+		var ratingState gin.H
 		if user != nil {
 			var packs []models.LifeAgentQuestionPack
 			db.DB.Where("profile_id = ? AND buyer_id = ? AND status = ?", id, user.ID, "paid").Find(&packs)
 			for _, pk := range packs {
 				remaining += pk.QuestionCount - pk.QuestionsUsed
 			}
+			ratingState = buildLifeAgentRatingState(id, user.ID)
 		}
 
 		var sessCount, qpCount int64
 		db.DB.Model(&models.LifeAgentChatSession{}).Where("profile_id = ?", id).Count(&sessCount)
 		db.DB.Model(&models.LifeAgentQuestionPack{}).Where("profile_id = ?", id).Count(&qpCount)
+		ratingsSummary := buildLifeAgentRatingsSummary(id, 5)
 
 		c.JSON(http.StatusOK, gin.H{
 			"id":               p.ID,
@@ -206,18 +409,27 @@ func LifeAgentsGet(cfg *config.Config) gin.HandlerFunc {
 			"income":           ptrStr(p.Income),
 			"job":              ptrStr(p.Job),
 			"school":           ptrStr(p.School),
+			"mbti":             ptrStr(p.MBTI),
+			"personaArchetype": ptrStr(p.PersonaArchetype),
+			"toneStyle":        ptrStr(p.ToneStyle),
+			"responseStyle":    ptrStr(p.ResponseStyle),
+			"forbiddenPhrases": p.ForbiddenPhrases,
+			"exampleReplies":   p.ExampleReplies,
+			"notSuitableFor":   ptrStr(p.NotSuitableFor),
 			"published":        p.Published,
 			"creator":          gin.H{"id": u.ID, "name": u.Name, "email": u.Email},
 			"knowledgeEntries": entries,
 			"stats": gin.H{
-				"sessionCount":     sessCount,
+				"sessionCount":      sessCount,
 				"soldQuestionPacks": qpCount,
-				"knowledgeCount":   len(entries),
+				"knowledgeCount":    len(entries),
 			},
+			"ratings": ratingsSummary,
 			"viewerState": gin.H{
 				"isLoggedIn":         user != nil,
 				"isOwner":            user != nil && user.ID == p.UserID,
 				"remainingQuestions": remaining,
+				"rating":             ratingState,
 			},
 		})
 	}
@@ -253,8 +465,15 @@ func LifeAgentsUpdate(cfg *config.Config) gin.HandlerFunc {
 			Income           *string  `json:"income"`
 			Job              *string  `json:"job"`
 			School           *string  `json:"school"`
+			MBTI             *string  `json:"mbti"`
+			PersonaArchetype *string  `json:"personaArchetype"`
+			ToneStyle        *string  `json:"toneStyle"`
+			ResponseStyle    *string  `json:"responseStyle"`
 			ExpertiseTags    []string `json:"expertiseTags"`
 			SampleQuestions  []string `json:"sampleQuestions"`
+			ForbiddenPhrases []string `json:"forbiddenPhrases"`
+			ExampleReplies   []string `json:"exampleReplies"`
+			NotSuitableFor   *string  `json:"notSuitableFor"`
 			KnowledgeEntries *[]struct {
 				Category string   `json:"category"`
 				Title    string   `json:"title"`
@@ -303,11 +522,32 @@ func LifeAgentsUpdate(cfg *config.Config) gin.HandlerFunc {
 		if body.School != nil {
 			upd.Update("school", *body.School)
 		}
+		if body.MBTI != nil {
+			upd.Update("mbti", *body.MBTI)
+		}
+		if body.PersonaArchetype != nil {
+			upd.Update("persona_archetype", *body.PersonaArchetype)
+		}
+		if body.ToneStyle != nil {
+			upd.Update("tone_style", *body.ToneStyle)
+		}
+		if body.ResponseStyle != nil {
+			upd.Update("response_style", *body.ResponseStyle)
+		}
+		if body.NotSuitableFor != nil {
+			upd.Update("not_suitable_for", *body.NotSuitableFor)
+		}
 		if len(body.ExpertiseTags) > 0 {
 			upd.Update("expertise_tags", models.JSONArray(body.ExpertiseTags))
 		}
 		if len(body.SampleQuestions) > 0 {
 			upd.Update("sample_questions", models.JSONArray(body.SampleQuestions))
+		}
+		if body.ForbiddenPhrases != nil {
+			upd.Update("forbidden_phrases", models.JSONArray(body.ForbiddenPhrases))
+		}
+		if body.ExampleReplies != nil {
+			upd.Update("example_replies", models.JSONArray(body.ExampleReplies))
 		}
 		if body.KnowledgeEntries != nil {
 			db.DB.Where("profile_id = ?", id).Delete(&models.LifeAgentKnowledgeEntry{})
@@ -325,7 +565,30 @@ func LifeAgentsUpdate(cfg *config.Config) gin.HandlerFunc {
 			}
 		}
 		db.DB.Where("id = ?", id).First(&p)
-		c.JSON(http.StatusOK, p)
+		c.JSON(http.StatusOK, gin.H{
+			"id":               p.ID,
+			"displayName":      p.DisplayName,
+			"headline":         p.Headline,
+			"shortBio":         p.ShortBio,
+			"longBio":          p.LongBio,
+			"audience":         p.Audience,
+			"welcomeMessage":   p.WelcomeMessage,
+			"pricePerQuestion": p.PricePerQuestion,
+			"expertiseTags":    p.ExpertiseTags,
+			"sampleQuestions":  p.SampleQuestions,
+			"education":        ptrStr(p.Education),
+			"income":           ptrStr(p.Income),
+			"job":              ptrStr(p.Job),
+			"school":           ptrStr(p.School),
+			"mbti":             ptrStr(p.MBTI),
+			"personaArchetype": ptrStr(p.PersonaArchetype),
+			"toneStyle":        ptrStr(p.ToneStyle),
+			"responseStyle":    ptrStr(p.ResponseStyle),
+			"forbiddenPhrases": p.ForbiddenPhrases,
+			"exampleReplies":   p.ExampleReplies,
+			"notSuitableFor":   ptrStr(p.NotSuitableFor),
+			"published":        p.Published,
+		})
 	}
 }
 
@@ -354,9 +617,31 @@ func LifeAgentsManage(cfg *config.Config) gin.HandlerFunc {
 		db.DB.Where("profile_id = ?", id).Order("updated_at DESC").Limit(50).Find(&sessions)
 		var totalRevenue int
 		var totalPacks, totalSess int64
+		var helpful, notSpecific, notSuitable int64
 		db.DB.Model(&models.LifeAgentQuestionPack{}).Where("profile_id = ? AND status = ?", id, "paid").Select("COALESCE(SUM(amount_paid),0)").Scan(&totalRevenue)
 		db.DB.Model(&models.LifeAgentQuestionPack{}).Where("profile_id = ?", id).Count(&totalPacks)
 		db.DB.Model(&models.LifeAgentChatSession{}).Where("profile_id = ?", id).Count(&totalSess)
+		db.DB.Model(&models.LifeAgentFeedback{}).Where("profile_id = ? AND feedback_type = ?", id, "helpful").Count(&helpful)
+		db.DB.Model(&models.LifeAgentFeedback{}).Where("profile_id = ? AND feedback_type = ?", id, "not_specific").Count(&notSpecific)
+		db.DB.Model(&models.LifeAgentFeedback{}).Where("profile_id = ? AND feedback_type = ?", id, "not_suitable").Count(&notSuitable)
+		var recentFb []models.LifeAgentFeedback
+		db.DB.Where("profile_id = ?", id).Order("created_at DESC").Limit(20).Find(&recentFb)
+		type fbResp struct {
+			ID               string  `json:"id"`
+			FeedbackType     string  `json:"feedbackType"`
+			AssistantExcerpt *string `json:"assistantExcerpt"`
+			Comment          *string `json:"comment"`
+			CreatedAt        string  `json:"createdAt"`
+		}
+		var fbList []fbResp
+		for _, f := range recentFb {
+			fbList = append(fbList, fbResp{
+				ID: f.ID, FeedbackType: f.FeedbackType,
+				AssistantExcerpt: f.AssistantExcerpt, Comment: f.Comment,
+				CreatedAt: f.CreatedAt.Format("2006-01-02 15:04"),
+			})
+		}
+		ratingsSummary := buildLifeAgentRatingsSummary(id, 20)
 
 		type packResp struct {
 			ID            string `json:"id"`
@@ -414,6 +699,13 @@ func LifeAgentsManage(cfg *config.Config) gin.HandlerFunc {
 				"income":           ptrStr(p.Income),
 				"job":              ptrStr(p.Job),
 				"school":           ptrStr(p.School),
+				"mbti":             ptrStr(p.MBTI),
+				"personaArchetype": ptrStr(p.PersonaArchetype),
+				"toneStyle":        ptrStr(p.ToneStyle),
+				"responseStyle":    ptrStr(p.ResponseStyle),
+				"forbiddenPhrases": p.ForbiddenPhrases,
+				"exampleReplies":   p.ExampleReplies,
+				"notSuitableFor":   ptrStr(p.NotSuitableFor),
 				"published":        p.Published,
 				"knowledgeEntries": entries,
 			},
@@ -421,6 +713,11 @@ func LifeAgentsManage(cfg *config.Config) gin.HandlerFunc {
 				"totalRevenue": totalRevenue,
 				"soldPacks":    totalPacks,
 				"sessionCount": totalSess,
+			},
+			"feedback": gin.H{
+				"counts":  gin.H{"helpful": helpful, "notSpecific": notSpecific, "notSuitable": notSuitable},
+				"recent":  fbList,
+				"ratings": ratingsSummary,
 			},
 			"questionPacks": packResps,
 			"chatSessions":  sessResps,
@@ -535,7 +832,7 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 		db.DB.Where("profile_id = ?", id).Order("sort_order").Find(&entries)
 		var hist []lifeagent.ChatMessageForAI
 		var msgs []models.LifeAgentChatMessage
-		db.DB.Where("session_id = ?", sessionID).Order("created_at ASC").Limit(12).Find(&msgs)
+		db.DB.Where("session_id = ?", sessionID).Order("created_at ASC").Limit(8).Find(&msgs)
 		for _, m := range msgs {
 			hist = append(hist, lifeagent.ChatMessageForAI{Role: m.Role, Content: m.Content})
 		}
@@ -546,10 +843,21 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 				Tags: []string(e.Tags),
 			}
 		}
-		content, refs := lifeagent.BuildReply(
+		content, refs, _ := lifeagent.BuildReplyWithLLM(
+			cfg.OpenAIApiKey, cfg.OpenAIModel, cfg.OpenAIBaseURL,
 			lifeagent.ProfileForAI{
-				DisplayName: p.DisplayName, Headline: p.Headline, Audience: p.Audience,
-				WelcomeMessage: p.WelcomeMessage, ExpertiseTags: []string(p.ExpertiseTags),
+				DisplayName:      p.DisplayName,
+				Headline:         p.Headline,
+				Audience:         p.Audience,
+				WelcomeMessage:   p.WelcomeMessage,
+				ExpertiseTags:    []string(p.ExpertiseTags),
+				MBTI:             ptrStr(p.MBTI),
+				PersonaArchetype: ptrStr(p.PersonaArchetype),
+				ToneStyle:        ptrStr(p.ToneStyle),
+				ResponseStyle:    ptrStr(p.ResponseStyle),
+				ForbiddenPhrases: []string(p.ForbiddenPhrases),
+				ExampleReplies:   []string(p.ExampleReplies),
+				NotSuitableFor:   ptrStr(p.NotSuitableFor),
 			},
 			entriesForAI, hist, body.Message,
 		)
@@ -565,13 +873,186 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 			refsAny = append(refsAny, m)
 		}
 		db.DB.Create(&models.LifeAgentChatMessage{ID: models.GenID(), SessionID: sessionID, Role: "user", Content: body.Message})
-		db.DB.Create(&models.LifeAgentChatMessage{ID: models.GenID(), SessionID: sessionID, Role: "assistant", Content: content, Refs: refsAny})
+		assistantMsgID := models.GenID()
+		db.DB.Create(&models.LifeAgentChatMessage{ID: assistantMsgID, SessionID: sessionID, Role: "assistant", Content: content, Refs: refsAny})
 		db.DB.Model(packToConsume).Update("questions_used", packToConsume.QuestionsUsed+1)
+		ratingState := buildLifeAgentRatingState(id, user.ID)
 		c.JSON(http.StatusOK, gin.H{
-			"sessionId":         sessionID,
-			"reply":             content,
-			"references":        refsMap,
+			"sessionId":          sessionID,
+			"messageId":          assistantMsgID,
+			"reply":              content,
+			"references":         refsMap,
 			"remainingQuestions": remaining - 1,
+			"rating":             ratingState,
+		})
+	}
+}
+
+func LifeAgentsChatFeedback(cfg *config.Config) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		user := middleware.MustGetUser(c)
+		if user == nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "UNAUTHORIZED"})
+			return
+		}
+		id := c.Param("id")
+		var body struct {
+			MessageID    string  `json:"messageId" binding:"required"`
+			SessionID    string  `json:"sessionId" binding:"required"`
+			FeedbackType string  `json:"feedbackType" binding:"required,oneof=helpful not_specific not_suitable"`
+			Comment      *string `json:"comment"`
+		}
+		if err := c.ShouldBindJSON(&body); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "VALIDATION_ERROR"})
+			return
+		}
+		var p models.LifeAgentProfile
+		if err := db.DB.Where("id = ?", id).First(&p).Error; err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "PROFILE_NOT_FOUND"})
+			return
+		}
+		var msg models.LifeAgentChatMessage
+		if err := db.DB.Where("id = ? AND session_id = ?", body.MessageID, body.SessionID).First(&msg).Error; err != nil || msg.Role != "assistant" {
+			c.JSON(http.StatusNotFound, gin.H{"error": "MESSAGE_NOT_FOUND"})
+			return
+		}
+		var sess models.LifeAgentChatSession
+		if err := db.DB.Where("id = ? AND profile_id = ? AND buyer_id = ?", body.SessionID, id, user.ID).First(&sess).Error; err != nil {
+			c.JSON(http.StatusForbidden, gin.H{"error": "FORBIDDEN"})
+			return
+		}
+		var prev models.LifeAgentFeedback
+		if db.DB.Where("message_id = ? AND buyer_id = ?", body.MessageID, user.ID).First(&prev).Error == nil {
+			db.DB.Model(&prev).Updates(map[string]interface{}{
+				"feedback_type": body.FeedbackType,
+				"comment":       body.Comment,
+			})
+			c.JSON(http.StatusOK, gin.H{"ok": true, "updated": true})
+			return
+		}
+		excerpt := msg.Content
+		if len(excerpt) > 400 {
+			excerpt = excerpt[:400] + "..."
+		}
+		var userQ string
+		var prevMsg models.LifeAgentChatMessage
+		if db.DB.Where("session_id = ? AND role = ? AND created_at < ?", body.SessionID, "user", msg.CreatedAt).Order("created_at DESC").First(&prevMsg).Error == nil {
+			userQ = prevMsg.Content
+		}
+		fb := models.LifeAgentFeedback{
+			ID:               models.GenID(),
+			ProfileID:        id,
+			MessageID:        body.MessageID,
+			SessionID:        body.SessionID,
+			BuyerID:          user.ID,
+			FeedbackType:     body.FeedbackType,
+			UserQuestion:     strOpt(userQ),
+			AssistantExcerpt: strOpt(excerpt),
+			Comment:          body.Comment,
+		}
+		db.DB.Create(&fb)
+		c.JSON(http.StatusOK, gin.H{"ok": true})
+	}
+}
+
+func LifeAgentsRate(cfg *config.Config) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		user := middleware.MustGetUser(c)
+		if user == nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "UNAUTHORIZED"})
+			return
+		}
+		id := c.Param("id")
+		var body struct {
+			Score   int     `json:"score" binding:"required,min=1,max=5"`
+			Comment *string `json:"comment"`
+		}
+		if err := c.ShouldBindJSON(&body); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "VALIDATION_ERROR"})
+			return
+		}
+		var p models.LifeAgentProfile
+		if err := db.DB.Where("id = ?", id).First(&p).Error; err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "PROFILE_NOT_FOUND"})
+			return
+		}
+
+		state := buildLifeAgentRatingState(id, user.ID)
+		currentMilestone, _ := state["currentMilestone"].(int)
+		eligible, _ := state["eligible"].(bool)
+		if !eligible || currentMilestone < 10 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "RATING_NOT_ELIGIBLE"})
+			return
+		}
+
+		var existing models.LifeAgentRating
+		if db.DB.Where("profile_id = ? AND buyer_id = ?", id, user.ID).First(&existing).Error == nil {
+			db.DB.Model(&existing).Updates(map[string]interface{}{
+				"score":                body.Score,
+				"comment":              body.Comment,
+				"last_rated_milestone": currentMilestone,
+			})
+		} else {
+			db.DB.Create(&models.LifeAgentRating{
+				ID:                 models.GenID(),
+				ProfileID:          id,
+				BuyerID:            user.ID,
+				Score:              body.Score,
+				Comment:            body.Comment,
+				LastRatedMilestone: currentMilestone,
+			})
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"ok":     true,
+			"rating": buildLifeAgentRatingState(id, user.ID),
+		})
+	}
+}
+
+func LifeAgentsFeedbackSummary(cfg *config.Config) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		user := middleware.MustGetUser(c)
+		if user == nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "UNAUTHORIZED"})
+			return
+		}
+		id := c.Param("id")
+		var p models.LifeAgentProfile
+		if err := db.DB.Where("id = ? AND user_id = ?", id, user.ID).First(&p).Error; err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "PROFILE_NOT_FOUND"})
+			return
+		}
+		var helpful, notSpecific, notSuitable int64
+		db.DB.Model(&models.LifeAgentFeedback{}).Where("profile_id = ? AND feedback_type = ?", id, "helpful").Count(&helpful)
+		db.DB.Model(&models.LifeAgentFeedback{}).Where("profile_id = ? AND feedback_type = ?", id, "not_specific").Count(&notSpecific)
+		db.DB.Model(&models.LifeAgentFeedback{}).Where("profile_id = ? AND feedback_type = ?", id, "not_suitable").Count(&notSuitable)
+		var recent []models.LifeAgentFeedback
+		db.DB.Where("profile_id = ?", id).Order("created_at DESC").Limit(30).Find(&recent)
+		type fbResp struct {
+			ID               string  `json:"id"`
+			FeedbackType     string  `json:"feedbackType"`
+			AssistantExcerpt *string `json:"assistantExcerpt"`
+			Comment          *string `json:"comment"`
+			CreatedAt        string  `json:"createdAt"`
+		}
+		var list []fbResp
+		for _, f := range recent {
+			list = append(list, fbResp{
+				ID: f.ID, FeedbackType: f.FeedbackType,
+				AssistantExcerpt: f.AssistantExcerpt, Comment: f.Comment,
+				CreatedAt: f.CreatedAt.Format("2006-01-02 15:04"),
+			})
+		}
+		ratingsSummary := buildLifeAgentRatingsSummary(id, 20)
+		c.JSON(http.StatusOK, gin.H{
+			"counts": gin.H{
+				"helpful":     helpful,
+				"notSpecific": notSpecific,
+				"notSuitable": notSuitable,
+			},
+			"ratings": ratingsSummary,
+			"recent":  list,
 		})
 	}
 }

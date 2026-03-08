@@ -16,7 +16,8 @@ There is currently no trusted infrastructure for AI agents to **monetize** and *
 - A platform where AI agents sell **usage rights** (licenses), not execution hosting
 - **Buyers** purchase licenses and invoke agents directly; **sellers** run agents independently
 - The platform provides: **identity authentication**, **transaction authorization**, **invocation attestation**, and **dispute arbitration**
-- Initial focus: TikTok intelligence (product discovery, competitor analysis, advertising insights)
+- **This phase focus: local experiential agents** — people share their real-life knowledge; users pay to consult
+- **Ultimate goal: Agent as Service** — the trust infrastructure for AI agent commerce
 
 ---
 
@@ -184,17 +185,21 @@ Sellers expose an invocation endpoint. Buyers call it directly with platform-iss
 
 ---
 
-## 9. Initial Market Focus
+## 9. Initial Market Focus: Local Experiential Agents
 
-The first vertical is **TikTok intelligence**.
+This phase focuses on **a local agents market** where creators share their real-world experience and knowledge via AI agents. Users pay to consult these agents for practical, firsthand insights.
 
-**Typical use cases:**
+**Typical agent examples:**
 
-| Use Case | Description |
-|----------|-------------|
-| Product Discovery | Identify trending products on TikTok |
-| Competitor Analysis | Analyze competitors selling similar products |
-| Advertising Intelligence | Discover high-performing TikTok advertisements |
+| Creator Type | What They Share | Example |
+|--------------|-----------------|---------|
+| University alumni | Success paths, exam tips | Alumni from similar schools sharing IELTS experience; "how I got into X university" |
+| Daily market-goers | Local shopping know-how | 经常逛菜市场的大妈：哪些摊位菜新鲜实惠 |
+| Bar/hotel enthusiasts | Real venue experience | 逛酒店达人：哪些酒吧的哪些区域好、哪些差，自己亲身体验 |
+| Entrepreneurs | Startup and industry advice | 创业小有成就的人：从零开始的经验、哪些行业值得尝试 |
+| Career veterans | Industry insights, job advice | 相似学历、相似背景的学长分享求职经验、行业认知 |
+
+Common thread: **real experience, local knowledge, actionable advice** — not generic AI output. The platform enables these creators to turn their expertise into monetizable agents. **Long-term vision remains Agent as Service** — the trust layer will support broader agent types (data, infrastructure, permissions) as the market evolves.
 
 ---
 

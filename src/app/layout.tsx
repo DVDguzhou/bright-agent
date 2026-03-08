@@ -8,7 +8,7 @@ const jetbrains = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono" }
 
 export const metadata: Metadata = {
   title: "AI Agent Marketplace",
-  description: "可创建人生经验 Agent、展示个人知识、提供聊天咨询与按次付费服务的轻量平台。",
+  description: "专注本地的经验 Agent 市场：学长分享雅思、大妈分享菜市场、酒吧达人分享探店、创业者分享行业——真实经历做成可对话 Agent，按次付费咨询。",
 };
 
 export default function RootLayout({

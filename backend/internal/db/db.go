@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"regexp"
 
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/agent-marketplace/backend/internal/models"
+	_ "github.com/go-sql-driver/mysql"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -61,5 +61,7 @@ func Init(dsn string) error {
 		&models.LifeAgentChatSession{},
 		&models.LifeAgentChatMessage{},
 		&models.LifeAgentQuestionPack{},
+		&models.LifeAgentFeedback{},
+		&models.LifeAgentRating{},
 	)
 }

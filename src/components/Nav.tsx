@@ -11,8 +11,7 @@ const navLinks = [
   { href: "/life-agents", label: "人生 Agent" },
   { href: "/agents", label: "Agents" },
   { href: "/workflow", label: "工作流" },
-  { href: "/demo/swarm", label: "Agent Swarm" },
-  { href: "/demo/video-pipeline", label: "视频流水线 Demo" },
+  { href: "/dashboard/messages", label: "消息" },
   { href: "/licenses", label: "我的 License" },
 ];
 
@@ -50,7 +49,7 @@ export function Nav() {
             Bright Agent Hub
           </motion.span>
           <span className="text-slate-500 group-hover:text-sky-600 transition-colors text-sm hidden sm:inline">
-            人生经验 · 对话咨询 · 轻量交易
+            本地经验 · 对话咨询 · Agent as Service
           </span>
         </Link>
 

@@ -1,0 +1,117 @@
+# 免费 AI 接入方案（人生 Agent 聊天）
+
+用于试验 AI 功能，无需付费。支持 OpenAI 兼容 API 的任一服务。
+
+---
+
+## 方案 1：Ollama 本地运行（推荐试验）
+
+**完全免费，无需账号，数据本地，支持中文模型。**
+
+### 1. 安装 Ollama
+
+- 下载：https://ollama.com
+- 安装后 Ollama 服务自动启动，监听 `http://localhost:11434`
+
+### 2. 拉取模型（选一个，中文建议 qwen2.5）
+
+```bash
+# 中文效果好，约 4GB
+ollama pull qwen2.5:7b
+
+# 或更小更快（约 2GB）
+ollama pull qwen2.5:3b
+
+# 英文也可
+ollama pull llama3.2
+```
+
+### 3. 配置 .env
+
+在**项目根目录**或 **backend/** 下创建 `.env` 文件（可复制 `.env.example` 修改），加入：
+
+```env
+OPENAI_BASE_URL="http://localhost:11434/v1"
+OPENAI_MODEL="qwen2.5:7b"
+OPENAI_API_KEY="ollama"
+```
+
+Go 后端启动时会自动加载 `.env`，无需手动设置环境变量。
+
+### 4. 启动后端
+
+```bash
+cd backend
+go run .
+```
+
+---
+
+## 方案 2：Groq 云端免费
+
+**免费额度：约 14,400 次/天，响应快，需注册账号。**
+
+### 1. 注册并获取 API Key
+
+- 打开 https://console.groq.com
+- 注册后创建 API Key
+
+### 2. 配置 .env
+
+```env
+OPENAI_BASE_URL="https://api.groq.com/openai/v1"
+OPENAI_MODEL="llama-3.3-70b-versatile"
+OPENAI_API_KEY="gsk_你的Groq_Key"
+```
+
+### 3. 启动后端
+
+```bash
+cd backend
+go run .
+```
+
+---
+
+## 方案 3：OpenAI 官方
+
+有付费账户时使用，不设置 `OPENAI_BASE_URL` 即可：
+
+```env
+OPENAI_MODEL="gpt-4o-mini"
+OPENAI_API_KEY="sk-xxx"
+```
+
+---
+
+## 环境变量汇总
+
+| 变量 | 说明 | 示例 |
+|------|------|------|
+| `OPENAI_BASE_URL` | 可选，非 OpenAI 时必填 | `http://localhost:11434/v1` |
+| `OPENAI_MODEL` | 模型名 | `qwen2.5:7b` |
+| `OPENAI_API_KEY` | API Key（Ollama 可填 `ollama`） | `ollama` / `gsk_xxx` / `sk_xxx` |
+
+未配置任何 AI 时，聊天将使用模板回复。
+
+---
+
+## 加快回答速度
+
+1. **换小模型（Ollama）**：`qwen2.5:3b` 比 `qwen2.5:7b` 快不少，质量略降
+2. **用 Groq**：云端推理极快，免费额度够用
+3. **后端已优化**：MaxTokens 1000、历史 8 条、检索 4 条，减少 token 量以提速
+4. **本地 GPU**：Ollama 用 GPU 会比 CPU 快很多
+
+---
+
+## 保证回答质量（尽量按用户经验回答）
+
+1. **提示词已强化**：系统会明确要求模型「只基于知识库」「无法回答时明确说明」「切勿编造」，并降低 Temperature 以减少发挥。
+
+2. **模型选择建议**（若仍发现编造或超范围）：
+   - Ollama：`qwen2.5:14b` 或 `qwen2.5:32b` 比 7b 更听话
+   - Groq：`llama-3.3-70b-versatile` 指令遵循较好
+   - 付费：`gpt-4o` 或 `gpt-4o-mini` 指令遵循能力较强
+
+3. **创作者侧**：知识库条目写得越具体、越有「可引用」的事实，模型越容易紧扣内容回答。
