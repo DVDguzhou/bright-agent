@@ -21,14 +21,14 @@ export default function LicensesPage() {
   const [user, setUser] = useState<{ id: string } | null>(null);
 
   useEffect(() => {
-    fetch("/api/auth/me")
+    fetch("/api/auth/me", { credentials: "include" })
       .then((r) => (r.ok ? r.json() : null))
       .then(setUser)
       .catch(() => setUser(null));
-    fetch("/api/licenses?buyer=me")
+    fetch("/api/licenses", { credentials: "include" })
       .then((r) => r.json())
       .then((data) => {
-        setLicenses(data);
+        setLicenses(Array.isArray(data) ? data : []);
         setLoading(false);
       })
       .catch(() => {
@@ -83,7 +83,7 @@ export default function LicensesPage() {
         </div>
       ) : (
         <div className="grid gap-6 md:grid-cols-2">
-          {licenses.map((lic) => (
+          {(Array.isArray(licenses) ? licenses : []).map((lic: License) => (
             <motion.div
               key={lic.id}
               initial={{ opacity: 0, y: 20 }}

@@ -11,6 +11,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func ptrStr(s *string) string  { if s == nil { return "" }; return *s }
+func strOpt(v string) *string { if v == "" { return nil }; return &v }
+
 func LifeAgentsList(cfg *config.Config) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var profiles []models.LifeAgentProfile
@@ -36,6 +39,10 @@ func LifeAgentsList(cfg *config.Config) gin.HandlerFunc {
 				"pricePerQuestion": p.PricePerQuestion,
 				"expertiseTags":    p.ExpertiseTags,
 				"sampleQuestions":  p.SampleQuestions,
+				"education":        ptrStr(p.Education),
+				"income":           ptrStr(p.Income),
+				"job":              ptrStr(p.Job),
+				"school":           ptrStr(p.School),
 				"creator":          gin.H{"id": u.ID, "name": u.Name, "email": u.Email},
 				"knowledgeCount":   kCount,
 				"soldQuestionPacks": qpCount,
@@ -54,13 +61,17 @@ func LifeAgentsCreate(cfg *config.Config) gin.HandlerFunc {
 			return
 		}
 		var body struct {
-			DisplayName      string `json:"displayName" binding:"required,min=2"`
-			Headline         string `json:"headline" binding:"required,min=4"`
-			ShortBio         string `json:"shortBio" binding:"required,min=20,max=180"`
-			LongBio          string `json:"longBio" binding:"required,min=60"`
-			Audience         string `json:"audience" binding:"required,min=6"`
-			WelcomeMessage   string `json:"welcomeMessage" binding:"required,min=10"`
-			PricePerQuestion int    `json:"pricePerQuestion"`
+			DisplayName      string   `json:"displayName" binding:"required,min=2"`
+			Headline         string   `json:"headline" binding:"required,min=4"`
+			ShortBio         string   `json:"shortBio" binding:"required,min=20,max=180"`
+			LongBio          string   `json:"longBio" binding:"required,min=60"`
+			Audience         string   `json:"audience" binding:"required,min=6"`
+			WelcomeMessage   string   `json:"welcomeMessage" binding:"required,min=10"`
+			PricePerQuestion int      `json:"pricePerQuestion"`
+			Education        string  `json:"education"`
+			Income           string  `json:"income"`
+			Job              string  `json:"job"`
+			School           string  `json:"school"`
 			ExpertiseTags    []string `json:"expertiseTags" binding:"required,min=1,max=8,dive,min=1"`
 			SampleQuestions  []string `json:"sampleQuestions" binding:"required,min=2,max=6,dive,min=3"`
 			KnowledgeEntries []struct {
@@ -91,6 +102,10 @@ func LifeAgentsCreate(cfg *config.Config) gin.HandlerFunc {
 			PricePerQuestion: body.PricePerQuestion,
 			ExpertiseTags:    models.JSONArray(body.ExpertiseTags),
 			SampleQuestions:  models.JSONArray(body.SampleQuestions),
+			Education:        strOpt(body.Education),
+			Income:           strOpt(body.Income),
+			Job:              strOpt(body.Job),
+			School:           strOpt(body.School),
 			Published:        true,
 		}
 		if err := db.DB.Create(&p).Error; err != nil {
@@ -187,6 +202,10 @@ func LifeAgentsGet(cfg *config.Config) gin.HandlerFunc {
 			"pricePerQuestion": p.PricePerQuestion,
 			"expertiseTags":    p.ExpertiseTags,
 			"sampleQuestions":  p.SampleQuestions,
+			"education":        ptrStr(p.Education),
+			"income":           ptrStr(p.Income),
+			"job":              ptrStr(p.Job),
+			"school":           ptrStr(p.School),
 			"published":        p.Published,
 			"creator":          gin.H{"id": u.ID, "name": u.Name, "email": u.Email},
 			"knowledgeEntries": entries,
@@ -230,6 +249,10 @@ func LifeAgentsUpdate(cfg *config.Config) gin.HandlerFunc {
 			WelcomeMessage   *string  `json:"welcomeMessage"`
 			PricePerQuestion *int     `json:"pricePerQuestion"`
 			Published        *bool    `json:"published"`
+			Education        *string  `json:"education"`
+			Income           *string  `json:"income"`
+			Job              *string  `json:"job"`
+			School           *string  `json:"school"`
 			ExpertiseTags    []string `json:"expertiseTags"`
 			SampleQuestions  []string `json:"sampleQuestions"`
 			KnowledgeEntries *[]struct {
@@ -267,6 +290,18 @@ func LifeAgentsUpdate(cfg *config.Config) gin.HandlerFunc {
 		}
 		if body.Published != nil {
 			upd.Update("published", *body.Published)
+		}
+		if body.Education != nil {
+			upd.Update("education", *body.Education)
+		}
+		if body.Income != nil {
+			upd.Update("income", *body.Income)
+		}
+		if body.Job != nil {
+			upd.Update("job", *body.Job)
+		}
+		if body.School != nil {
+			upd.Update("school", *body.School)
 		}
 		if len(body.ExpertiseTags) > 0 {
 			upd.Update("expertise_tags", models.JSONArray(body.ExpertiseTags))
@@ -375,6 +410,10 @@ func LifeAgentsManage(cfg *config.Config) gin.HandlerFunc {
 				"pricePerQuestion": p.PricePerQuestion,
 				"expertiseTags":    p.ExpertiseTags,
 				"sampleQuestions":  p.SampleQuestions,
+				"education":        ptrStr(p.Education),
+				"income":           ptrStr(p.Income),
+				"job":              ptrStr(p.Job),
+				"school":           ptrStr(p.School),
 				"published":        p.Published,
 				"knowledgeEntries": entries,
 			},

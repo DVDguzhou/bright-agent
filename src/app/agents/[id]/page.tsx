@@ -24,9 +24,12 @@ export default function AgentDetailPage() {
   const [agent, setAgent] = useState<AgentDetail | null>(null);
 
   useEffect(() => {
-    fetch(`/api/agents/${id}`)
-      .then((r) => r.json())
-      .then(setAgent)
+    fetch(`/api/agents/${id}`, { credentials: "include" })
+      .then((r) => r.json().then((data) => ({ ok: r.ok, data })))
+      .then(({ ok, data }) => {
+        if (ok && data?.id) setAgent(data);
+        else setAgent(null);
+      })
       .catch(() => setAgent(null));
   }, [id]);
 
@@ -47,7 +50,7 @@ export default function AgentDetailPage() {
       </Link>
       <h1 className="text-3xl font-bold text-slate-900">{agent.name}</h1>
       <div className="flex flex-wrap gap-2 mt-4">
-        {agent.supportedScopes.map((s) => (
+        {(agent.supportedScopes ?? []).map((s: string) => (
           <span
             key={s}
             className="px-3 py-1.5 rounded-xl text-sm font-medium border border-sky-200 text-sky-700 bg-sky-50"

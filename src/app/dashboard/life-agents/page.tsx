@@ -22,10 +22,10 @@ export default function LifeAgentsManagePage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/life-agents/mine")
+    fetch("/api/life-agents/mine", { credentials: "include" })
       .then((r) => (r.ok ? r.json() : []))
       .then((data) => {
-        setProfiles(data);
+        setProfiles(Array.isArray(data) ? data : []);
         setLoading(false);
       })
       .catch(() => {

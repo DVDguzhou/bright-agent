@@ -148,6 +148,10 @@ type LifeAgentProfile struct {
 	PricePerQuestion int      `gorm:"column:price_per_question;default:990"`
 	ExpertiseTags    JSONArray `gorm:"column:expertise_tags;type:json"`
 	SampleQuestions  JSONArray `gorm:"column:sample_questions;type:json"`
+	Education        *string   `gorm:"column:education;size:128"` // 学历
+	Income           *string   `gorm:"column:income;size:64"`     // 收入
+	Job              *string   `gorm:"column:job;size:255"`      // 工作
+	School           *string   `gorm:"column:school;size:255"`   // 学校
 	Published        bool     `gorm:"default:true"`
 	CreatedAt        time.Time `gorm:"column:created_at"`
 	UpdatedAt        time.Time `gorm:"column:updated_at"`
@@ -156,14 +160,14 @@ type LifeAgentProfile struct {
 func (LifeAgentProfile) TableName() string { return "life_agent_profiles" }
 
 type LifeAgentKnowledgeEntry struct {
-	ID        string    `gorm:"primaryKey;size:36"`
-	ProfileID string    `gorm:"column:profile_id;size:36;not null;index"`
-	Category  string    `gorm:"size:128;not null"`
-	Title     string    `gorm:"size:255;not null"`
-	Content   string    `gorm:"type:text;not null"`
-	Tags      JSONArray `gorm:"type:json"`
-	SortOrder int      `gorm:"column:sort_order;default:0"`
-	CreatedAt time.Time `gorm:"column:created_at"`
+	ID        string    `gorm:"primaryKey;size:36" json:"id"`
+	ProfileID string    `gorm:"column:profile_id;size:36;not null;index" json:"-"`
+	Category  string    `gorm:"size:128;not null" json:"category"`
+	Title     string    `gorm:"size:255;not null" json:"title"`
+	Content   string    `gorm:"type:text;not null" json:"content"`
+	Tags      JSONArray `gorm:"type:json" json:"tags"`
+	SortOrder int      `gorm:"column:sort_order;default:0" json:"sortOrder"`
+	CreatedAt time.Time `gorm:"column:created_at" json:"createdAt"`
 }
 
 func (LifeAgentKnowledgeEntry) TableName() string { return "life_agent_knowledge_entries" }

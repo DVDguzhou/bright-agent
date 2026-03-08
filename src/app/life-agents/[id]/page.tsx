@@ -10,6 +10,10 @@ type DetailData = {
   headline: string;
   shortBio: string;
   longBio: string;
+  education?: string;
+  income?: string;
+  job?: string;
+  school?: string;
   audience: string;
   welcomeMessage: string;
   pricePerQuestion: number;
@@ -44,15 +48,21 @@ export default function LifeAgentDetailPage() {
   const params = useParams();
   const id = params.id as string;
   const [profile, setProfile] = useState<DetailData | null>(null);
+  const [loaded, setLoaded] = useState(false);
   const [selectedPack, setSelectedPack] = useState(5);
   const [purchasing, setPurchasing] = useState(false);
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    fetch(`/api/life-agents/${id}`)
-      .then((res) => res.json())
-      .then(setProfile)
-      .catch(() => setProfile(null));
+    setLoaded(false);
+    fetch(`/api/life-agents/${id}`, { credentials: "include" })
+      .then((res) => res.json().then((data) => ({ ok: res.ok, data })))
+      .then(({ ok, data }) => {
+        if (ok && data?.displayName) setProfile(data);
+        else setProfile(null);
+      })
+      .catch(() => setProfile(null))
+      .finally(() => setLoaded(true));
   }, [id]);
 
   const totalPrice = useMemo(() => {
@@ -67,6 +77,7 @@ export default function LifeAgentDetailPage() {
     const res = await fetch(`/api/life-agents/${profile.id}/purchase`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: "include",
       body: JSON.stringify({
         questionCount: selectedPack,
         amountPaid: profile.pricePerQuestion * selectedPack,
@@ -91,8 +102,21 @@ export default function LifeAgentDetailPage() {
     setMessage(`购买成功，当前剩余 ${data.remainingQuestions} 次提问。`);
   };
 
-  if (!profile) {
+  if (!loaded) {
     return <div className="h-64 animate-pulse rounded-3xl bg-white shadow-sm" />;
+  }
+  if (!profile) {
+    return (
+      <div className="space-y-4">
+        <Link href="/life-agents" className="text-sm text-slate-500 hover:text-sky-700">
+          ← 返回人生 Agent 列表
+        </Link>
+        <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center">
+          <p className="text-lg font-medium text-slate-900">未找到该 Agent</p>
+          <p className="mt-2 text-slate-500">链接可能已失效，请从列表重新进入。</p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -106,10 +130,18 @@ export default function LifeAgentDetailPage() {
           <div className="flex flex-wrap items-start justify-between gap-5">
             <div className="max-w-2xl">
               <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-3xl bg-blue-100 text-2xl font-semibold text-blue-700">
-                {profile.displayName.slice(0, 1)}
+                {(profile.displayName ?? "?").slice(0, 1)}
               </div>
               <h1 className="section-title">{profile.displayName}</h1>
               <p className="mt-2 text-lg text-slate-600">{profile.headline}</p>
+              {(profile.education || profile.school || profile.job || profile.income) && (
+                <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-500">
+                  {profile.school && <span>🏫 {profile.school}</span>}
+                  {profile.education && <span>📜 {profile.education}</span>}
+                  {profile.job && <span>💼 {profile.job}</span>}
+                  {profile.income && <span>💰 {profile.income}</span>}
+                </div>
+              )}
               <p className="mt-5 text-base leading-7 text-slate-700">{profile.longBio}</p>
             </div>
 
@@ -123,7 +155,7 @@ export default function LifeAgentDetailPage() {
           </div>
 
           <div className="mt-6 flex flex-wrap gap-2">
-            {profile.expertiseTags.map((tag) => (
+            {(profile.expertiseTags ?? []).map((tag: string) => (
               <span key={tag} className="rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-700">
                 {tag}
               </span>
@@ -202,7 +234,7 @@ export default function LifeAgentDetailPage() {
 
           <h3 className="mt-8 text-lg font-semibold text-slate-900">你可以问这些问题</h3>
           <div className="mt-4 flex flex-wrap gap-3">
-            {profile.sampleQuestions.map((question) => (
+            {(profile.sampleQuestions ?? []).map((question: string) => (
               <span key={question} className="rounded-2xl bg-slate-100 px-4 py-3 text-sm text-slate-700">
                 {question}
               </span>
@@ -222,14 +254,14 @@ export default function LifeAgentDetailPage() {
       <section className="glass-card p-6">
         <h2 className="text-xl font-semibold text-slate-900">知识内容预览</h2>
         <div className="mt-5 grid gap-4 md:grid-cols-2">
-          {profile.knowledgeEntries.map((entry) => (
+          {(profile.knowledgeEntries ?? []).map((entry) => (
             <div key={entry.id} className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
               <div className="flex items-center justify-between gap-3">
                 <span className="rounded-full bg-white px-3 py-1 text-xs font-medium text-sky-700">
                   {entry.category}
                 </span>
                 <div className="flex flex-wrap justify-end gap-2">
-                  {entry.tags.slice(0, 3).map((tag) => (
+                  {(entry.tags ?? []).slice(0, 3).map((tag: string) => (
                     <span key={tag} className="text-xs text-slate-500">
                       #{tag}
                     </span>

@@ -22,9 +22,12 @@ export default function LicenseDetailPage() {
   const [license, setLicense] = useState<License | null>(null);
 
   useEffect(() => {
-    fetch("/api/licenses?buyer=me")
+    fetch("/api/licenses", { credentials: "include" })
       .then((r) => r.json())
-      .then((list: License[]) => list.find((l) => l.id === id) ?? null)
+      .then((list: License[] | { error?: string }) => {
+        const arr = Array.isArray(list) ? list : [];
+        return arr.find((l: License) => l.id === id) ?? null;
+      })
       .then(setLicense)
       .catch(() => setLicense(null));
   }, [id]);

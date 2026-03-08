@@ -21,10 +21,10 @@ export default function AgentsPage() {
   useEffect(() => {
     setLoading(true);
     const url = filter ? `/api/agents?scope=${filter}` : "/api/agents";
-    fetch(url)
+    fetch(url, { credentials: "include" })
       .then((r) => r.json())
       .then((data) => {
-        setAgents(data);
+        setAgents(Array.isArray(data) ? data : []);
         setLoading(false);
       })
       .catch(() => {

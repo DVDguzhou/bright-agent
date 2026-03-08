@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
@@ -216,6 +216,10 @@ model LifeAgentProfile {
   pricePerQuestion Int      @default(990) @map("price_per_question")
   expertiseTags    String[] @map("expertise_tags")
   sampleQuestions  String[] @map("sample_questions")
+  education        String?  @map("education")   // 学历
+  income           String?  @map("income")      // 收入
+  job              String?  @map("job")         // 工作
+  school           String?  @map("school")      // 学校
   published        Boolean  @default(true)
   createdAt        DateTime @default(now()) @map("created_at")
   updatedAt        DateTime @updatedAt @map("updated_at")

@@ -58,6 +58,8 @@ func getSessionUser(c *gin.Context, cfg *config.Config) *SessionUser {
 				RoleFlags: rf,
 			}
 		}
+		// 会话中的 user ID 在数据库中不存在（如切换 DB 后），清除无效 cookie
+		c.SetCookie(cfg.SessionCookie, "", -1, "/", "", false, true)
 	}
 	auth := c.GetHeader("Authorization")
 	if !strings.HasPrefix(auth, "Bearer ") {

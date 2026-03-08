@@ -38,7 +38,7 @@ export default function LifeAgentChatPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch(`/api/life-agents/${id}`)
+    fetch(`/api/life-agents/${id}`, { credentials: "include" })
       .then((res) => res.json())
       .then((data) => {
         setProfile(data);
@@ -73,6 +73,7 @@ export default function LifeAgentChatPage() {
     const res = await fetch(`/api/life-agents/${id}/chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: "include",
       body: JSON.stringify({
         sessionId: sessionId ?? undefined,
         message: text,
