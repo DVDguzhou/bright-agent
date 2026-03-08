@@ -1,0 +1,528 @@
+# 直:证轿层「t?要??
+
+
+
+> ?:揭碉拷一借。证?entity 使 agent 轿★拷?确?needed 侥达拷直证?
+
+
+
+---
+
+
+
+## ?筛选疥。?
+
+
+
+直同时姐。?
+
+
+
+|  | 说 |
+
+|------|------|
+
+| **?* | 皆革拷;也皆革拷津方筹拷 |
+
+| **缺实** | 双睫凤拷侥★拷?同?微群� |
+
+| **??* | 没叫达拷证时,阶★拷?(谁执?剿★拷?执叫凤拷围??效) |
+
+| **阶★拷??* | 角★拷?轿★拷??,角筹拷矫伙拷节★拷??|
+
+| **平台�** | 饺� + 证 + 劫★拷?杰侄谓剿的★拷?? |
+
+
+
+---
+
+
+
+## ?狡硷拷直:**B2B ? / 捷采硷拷 Agent 侥帮拷轿碉拷矫?*
+
+
+
+### 2.1 为什么?解。?
+
+
+
+角★拷?叫★拷?*?直证轿诧拷 needed** 侥达拷直,原铰★拷?
+
+
+
+#### 皆革拷
+
+
+
+- ?要:?模截★拷?皆★拷?站姐。?戒、街★拷??
+
+- 站结构?2? 杰变化,40?0% 捷★拷?失效,轿�
+
+-  credible 应教★拷?司 1?% ?,睫凤拷叫★拷? 100% 准确
+
+- 津方★拷?缴憋拷,节筹拷,阶达拷较★拷?竭
+
+
+
+#### 津方★拷?皆★拷?
+
+
+
+- ?要截讹拷站姐。?截讹拷街段★拷?截讹拷铰★拷??
+
+- ?目狡采★拷?愿脚★拷?
+
+- 皆★拷?角凤拷恕�???约时戒范围节★拷?睫凤拷介。?
+
+
+
+#### 缺实
+
+
+
+业?源(源:ScrapeHeroPromptCloudX-Byte 业?应侥碉拷)?
+
+
+
+| ? |  |  | 叫绞� |
+
+|----------|----------|----------|--------------|
+
+| **?执?** | 揭革拷钱,没 / 劫★拷?| ,? | 睫讹拷证,执??|
+
+| **时效** | 捷★拷?,约 | ?姐。?绞憋拷艿� | 时�,皆举★拷?|
+
+| **捷凤拷围** | 缺街段★拷?缺站姐、?绞诧拷 | 站陌娴硷拷�,窖撅拷 | ?scope 证,皆界。?|
+
+| **狡凤拷?** | ?10 狡凤拷,实只?8 ?| 教�?| ?request/receipt  |
+
+
+
+#### 叫筹拷轿★拷??
+
+
+
+- ** / 业**:? SLA专剿★拷接★拷?叫凤拷,缴憋拷竭★拷?脚硷拷
+
+- **??**: freelancer(Upwork/Fiverr)小,阶多。?平台叫★拷?
+
+- **Apify ?*:结供执叫伙拷,�?vs 轿★拷??,?诫交平台皆★拷?
+
+
+
+**缺**:缺一?*叫癸拷执叫★拷?只节★拷?+ 证 + 劫★拷?**叫硷拷�,?津方猴拷节彼★拷?届、皆称碉拷�,杰帮拷全阶★拷?
+
+
+
+---
+
+
+
+## ?竭★拷?Case 借。?:?Agent ? + 证
+
+
+
+### 3.1 色
+
+
+
+- **(小)**:拥某?(?TikTok 品捷★拷品桔革拷?夭�)
+
+- **(小?**:TikTok ??品揭★拷?投,?要轿伙拷节伙拷取?
+
+
+
+### 3.2 (平台模酵★拷?)
+
+
+
+1. 小平台注?Agent,围(scope)?桔★拷??效叫★拷?
+
+2. 小届。? License(? 100 轿碉拷?/ )
+
+3. 每?前,小平台疥。?InvocationToken,:`request_id``scope``input_hash`(?? URL时戒范围?街讹拷叫★拷?
+
+4. 小直接碉拷小?Agent,携?token
+
+5. 小校 token ?执? ?截� ?平台结。?ExecutionReceipt(:`request_id`执时摘要?饺★拷?
+
+6. 平台:request + token + receipt ?,桔硷拷 quota,证缴★拷?
+
+
+
+### 3.3 平台省�?
+
+
+
+| ?? | 平台 |
+
+|------|----------|
+
+| 缴★拷没杰★拷?| Receipt 证:某?request 节猴拷时絫,秸�要证 |
+
+| 缴★拷侥★拷?/ 围使矫★拷??| Token  scopeinput_hash,围睫合★拷?token |
+
+| 狡凤拷? | request / token / receipt ?一铰才★拷?quota,??|
+
+| 时效? | Receipt ?时�,缴讹拷约时戒范围 |
+
+| 轿界定 | 证录?劫诧拷,双头??|
+
+
+
+### 3.4 为什么双皆革拷狡对凤拷
+
+
+
+- ****:睫凤拷皆同饺★拷?模侥★拷??维藉。?
+
+- ****:睫凤拷?津方碉拷业今场撅拷教★拷?节诧拷系统?
+
+
+
+双要,愿露绞诧拷(源???业?),???*叫癸拷执?*轿层。?
+
+
+
+---
+
+
+
+## 侥★拷?直:TikTok 选品捷采癸拷
+
+
+
+### 4.1 叫筹拷状(源:KalodataFastMoss饺★拷?
+
+
+
+- ?源?统狡口撅拷?铰★拷?绞诧拷�?*捷诧拷一?*??
+
+- Kalodata 确:?实节★拷??*应佣恪�效?剿等高撅拷饺筹拷**
+
+- ??矫★拷劫凤拷?+ �??+ 剿癸拷介」�,说一源轿诧拷?
+
+
+
+### 4.2 缺
+
+
+
+| ?? | 状 | 平台桔★拷??|
+
+|------|------|----------|
+
+| 捷★拷?约时戒范围节革拷 | 竭革拷接★拷?0?2 届不,统?证 | Receipt 时街わ拷街达拷�?时 |
+
+| 捷凤拷围?较采癸拷约 | 统?节撅拷街段讹拷藉不透 | scope + input_hash ??|
+
+| 窖猴拷??| 缺酵★拷?秸憋拷准,阶★拷? | 证 + 劫★拷???scope 叫讹拷 |
+
+
+
+### 4.3 ?Case 侥关★拷?
+
+
+
+TikTok 选品**阶层。??? / 捷采硷拷**�:
+
+
+
+- **? Agent ?** ?阶层。?trust layer 
+
+- **TikTok 选品** ??缴★拷?? Agent较诧拷,同?节★拷?+ 证模
+
+
+
+??*?Case ?捷采硷拷 Agent,TikTok 选品为阶革拷爻�**?
+
+
+
+---
+
+
+
+## 藉。?矫的★拷?证?时结及?
+
+
+
+| 源 | 节★拷? | 矫★拷??|
+
+|------|------|------|
+
+| ScrapeHero | 站结构?2? 杰变化,40?0% 捷★拷?失效;credible 应教达拷? 1?% | 说皆革拷狡★拷皆憋拷?|
+
+| PromptCloud / X-Byte | 业?确 accuracycompletenessfreshness ?SLA | 说???要证侥存。?|
+
+| Kalodata | 捷达拷节★拷?,应节高撅拷饺姐场 | 说要轿边★拷?|
+
+|  / 业街★拷? | ??,?源证 | 说津方对碉拷?源轿诧拷?|
+
+| Vouched / TrustKernals | 0.5%?6%  AI agents;业缺?agent 为??| 说 agent 轿★拷?实借。?|
+
+| Upwork 阶帮拷 | /?目,平台叫★拷?| 说 freelance 叫筹拷轿伙拷狡诧拷 |
+
+
+
+---
+
+
+
+## ??绞伙拷??
+
+
+
+### 6.1 ?戒话
+
+
+
+> 饺达拷 **B2B ? / 捷采硷拷 Agent 侥帮拷轿碉拷矫?* ,证:睫凤拷皆?愿露实时?*权 + 证 + 劫★拷?** 轿层。?阶筹拷前结。?
+
+
+
+### 6.2 30 �
+
+
+
+> ??散节诧拷同脚讹拷,津方帮拷轿采★拷?睫凤拷证角凤拷恕�???约围节★拷?,也?絫矫★拷絫甩叫凤拷式?么?同酵凤拷,要么?freelancer 平台,缺**叫癸拷执叫的★拷?证**揭★拷?每轿碉拷矫碉拷权执?,双狡碉拷掳饺�阶★拷???借。截筹拷? TikTok 选品捷★拷?
+
+
+
+### 6.3 投剿匡拷追?
+
+
+
+| ?? | ?截达拷 |
+
+|------|----------|
+
+| 为什么?Apify?| Apify 叫★拷?执?,揭★拷?轿诧拷;?皆硷拷侥伙拷?施,揭★拷?权酵达拷证 |
+
+| ?叫筹拷叫★拷?? | 强???,强轿采★拷??缴硷拷 B2B ,TikTok 介报??叫筹拷?|
+
+| 谁摹�??? | ?要揭★拷?1? ???愿解。?平台皆★拷?结供?矫碉拷脚讹拷(?小教★拷??诫。?|
+
+| 谁摹�??? | TikTok ??品揭★拷?投,叫采癸拷捷★拷?,愿?酵�?应?|
+
+
+
+---
+
+
+
+## 竭★拷?铰★拷???
+
+
+
+1. ** 1? ??*:叫★拷?/,愿解尝皆★拷??平台轿碉拷矫★拷?脚讹拷
+
+2. ** 3? ??*:确捷采癸拷?,?阶★拷?TikTok ??
+
+3. **杰★拷??1 ??case**:接凤拷???? License ?洁。? ?证 ()??
+
+4. ** case study**:?谁?原?么?痛角★拷?么?平台巍街わ拷诰住�??轿凤拷?
+
+
+
+�?,绞诧拷写:揭★拷?一?直?证轿诧拷谋亍�?皆★拷???
+
+
+
+---
+
+
+
+## ??皆★拷?Agent ???
+
+
+
+证轿诧拷� TikTok 选品? Agent,铰癸拷�,絔??杰★拷?介。??
+
+
+
+### 8.1 绞�(input?
+
+
+
+每?时� `input` 结构?
+
+
+
+```json
+
+{
+
+  "category": "beauty",
+
+  "region": "US",
+
+  "records_target": 30,
+
+  "price_range": { "min": 10, "max": 40 }
+
+}
+
+```
+
+
+
+| 街★拷? |  |  | 说 |
+
+|------|------|------|------|
+
+| `category` | string | ?| 目:beauty / fashion / electronics / home ?|
+
+| `region` | string | ?| :US / UK / ID / TH ?|
+
+| `records_target` | number | ?| ?,默?30 |
+
+| `price_range` | object | ?| `{ min, max }` 桔革拷(元) |
+
+
+
+### 8.2 绞�(result?
+
+
+
+Agent 截革拷津方碉拷 `result` 结构?
+
+
+
+```json
+
+{
+
+  "products": [
+
+    {
+
+      "product_id": "p_xxx",
+
+      "title": "品",
+
+      "price_usd": 24.99,
+
+      "trend_score": 0.85,
+
+      "category": "beauty",
+
+      "source_url": "https://..."
+
+    }
+
+  ],
+
+  "report_md": "# 选品\n...",
+
+  "executed_at": "2026-03-07T12:00:00.000Z",
+
+  "record_count": 30
+
+}
+
+```
+
+
+
+| 街★拷? | 说 |
+
+|------|------|
+
+| `products` | 品叫憋拷,每筋含 titlepricetrend_score ?|
+
+| `report_md` | Markdown 式侥★拷?品 |
+
+| `executed_at` | 执?绞憋拷�(ISO 8601),证时效 |
+
+| `record_count` | 实绞凤拷,节★拷?? |
+
+
+
+### 8.3 平台协?(实)
+
+
+
+Agent 诫。?[AGENT_CREATION.md](./AGENT_CREATION.md) 实街★拷?
+
+
+
+1. ****:`POST /invoke`,Body ?`request_id``license_id``agent_id``scope``input``input_hash``invocation_token`
+
+2. **校 Token**:`POST {PLATFORM_URL}/api/invocation-tokens/verify`,校介。?执?
+
+3. **执?**:?input  products + report
+
+4. **结交执**:`POST {PLATFORM_URL}/api/receipts`,Header `Authorization: Bearer {SELLER_API_KEY}`,Body ?`requestId``licenseId``agentId``inputHash``status: "SUCCESS"`
+
+5. **截�**:?`{ request_id, status: "success", result: {...} }` ?
+
+
+
+### 8.4 scope 诫定桔?
+
+
+
+- **scope**:`data.fetch` ?`tiktok.product_discovery`
+
+- ****:轿★拷?,?1 轿碉拷?= 1 ?quota 桔硷拷
+
+
+
+### 8.5 住�?源
+
+
+
+住�??铰凤拷式之?,睫★拷?实? TikTok?
+
+
+
+- **模**:?`category``region``records_target` 缴结构?mock ,态接实?品�
+
+- **? API**:使矫的★拷? API(?街碉拷/品 API)为?
+
+- **? JSON**:???JSON 侥硷拷,筛??
+
+
+
+截点。?*杰★拷?节★拷??执? ?执 ?**全,证证??劫★拷??
+
+
+
+### 8.6 目结构?
+
+
+
+```
+
+agents/tiktok-crawler-agent/
+
+? server.mjs          # Agent ?
+
+? README.md           # 剿★拷?说注结。??
+
+? package.json        # ??,睫★拷?时??
+
+```
+
+
+
+实街参★拷?:[scripts/seller-agent-example.mjs](../scripts/seller-agent-example.mjs)[docs/AGENT_CREATION.md](./AGENT_CREATION.md)?
+
+
+
+### 8.7 注濉�?
+
+
+
+1. 平台?注 Agent,写:namebaseUrl(? `http://localhost:3334/invoke` ?ngrok 址)?supportedScopes: `["data.fetch"]`
+
+2. 平台酵�, API Key,戒。?`SELLER_API_KEY`
+
+3. ? Agent:`node agents/tiktok-crawler-agent/server.mjs`
+
+4. 津方★拷? License ,?`scripts/invoke-crawler-agent.mjs` 平台
+
+5. 平台?揭★拷?License介。?quota 桔硷拷,证证?
+
+
+

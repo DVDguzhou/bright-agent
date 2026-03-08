@@ -52,40 +52,40 @@ export default function SignupPage() {
       animate={{ opacity: 1, y: 0 }}
       className="max-w-md mx-auto py-16"
     >
-      <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent mb-2">
+      <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-sky-500 bg-clip-text text-transparent mb-2">
         注册
       </h1>
       <p className="text-slate-500 mb-8">创建你的 AI Agent Marketplace 账号</p>
-      <form onSubmit={submit} className="space-y-5">
+      <form onSubmit={submit} className="space-y-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}>
-          <label className="block text-sm font-medium text-slate-400 mb-2">邮箱</label>
+          <label className="block text-sm font-medium text-slate-700 mb-2">邮箱</label>
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="input-glow w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-cyan-500/50 outline-none transition-all"
+            className="input-shell"
             placeholder="you@example.com"
             required
           />
         </motion.div>
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15 }}>
-          <label className="block text-sm font-medium text-slate-400 mb-2">密码（至少6位）</label>
+          <label className="block text-sm font-medium text-slate-700 mb-2">密码（至少6位）</label>
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="input-glow w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-cyan-500/50 outline-none transition-all"
+            className="input-shell"
             minLength={6}
             required
           />
         </motion.div>
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
-          <label className="block text-sm font-medium text-slate-400 mb-2">用户名（可选）</label>
+          <label className="block text-sm font-medium text-slate-700 mb-2">用户名（可选）</label>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="input-glow w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-cyan-500/50 outline-none transition-all"
+            className="input-shell"
             placeholder="显示名称"
           />
         </motion.div>
@@ -100,18 +100,18 @@ export default function SignupPage() {
               type="checkbox"
               checked={isBuyer}
               onChange={(e) => setIsBuyer(e.target.checked)}
-              className="w-4 h-4 rounded border-white/20 bg-white/5 text-cyan-500 focus:ring-cyan-500/50"
+              className="w-4 h-4 rounded border-slate-300 bg-white text-sky-600 focus:ring-sky-500/40"
             />
-            <span className="text-sm text-slate-400 group-hover:text-slate-300">买方</span>
+            <span className="text-sm text-slate-600 group-hover:text-slate-900">买方</span>
           </label>
           <label className="flex items-center gap-3 cursor-pointer group">
             <input
               type="checkbox"
               checked={isSeller}
               onChange={(e) => setIsSeller(e.target.checked)}
-              className="w-4 h-4 rounded border-white/20 bg-white/5 text-cyan-500 focus:ring-cyan-500/50"
+              className="w-4 h-4 rounded border-slate-300 bg-white text-sky-600 focus:ring-sky-500/40"
             />
-            <span className="text-sm text-slate-400 group-hover:text-slate-300">卖方</span>
+            <span className="text-sm text-slate-600 group-hover:text-slate-900">卖方</span>
           </label>
         </motion.div>
         {error && (
@@ -131,7 +131,7 @@ export default function SignupPage() {
       </form>
       <p className="mt-6 text-slate-500 text-sm">
         已有账号？{" "}
-        <Link href="/login" className="text-cyan-400 hover:text-cyan-300 transition-colors">
+        <Link href="/login" className="text-sky-700 hover:text-sky-600 transition-colors">
           登录
         </Link>
       </p>

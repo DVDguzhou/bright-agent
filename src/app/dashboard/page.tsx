@@ -58,33 +58,68 @@ export default function DashboardPage() {
       <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent mb-2">
         控制台
       </h1>
-      <p className="text-slate-500 mb-8">管理你的 Agents 与 License</p>
+      <p className="text-slate-500 mb-8">管理你的 Agents、人生 Agent 与 License</p>
       <div className="grid md:grid-cols-2 gap-8">
         <div>
           <h2 className="font-semibold text-slate-300 mb-4">快捷操作</h2>
           <div className="space-y-3">
+            {user.roleFlags?.is_seller && (
+              <Link href="/life-agents/create">
+                <motion.div
+                  className="block p-5 rounded-2xl glass-card group"
+                  whileHover={{ y: -2 }}
+                >
+                  <span className="font-medium text-slate-800 group-hover:text-sky-700 transition-colors">
+                    创建人生 Agent
+                  </span>
+                  <span className="block text-slate-500 text-sm mt-0.5">输入你的经验知识，生成可聊天的咨询页</span>
+                </motion.div>
+              </Link>
+            )}
             {user.roleFlags?.is_seller && (
               <Link href="/agents/create">
                 <motion.div
                   className="block p-5 rounded-2xl glass-card group"
                   whileHover={{ y: -2 }}
                 >
-                  <span className="font-medium text-slate-200 group-hover:text-cyan-400 transition-colors">
+                  <span className="font-medium text-slate-800 group-hover:text-sky-700 transition-colors">
                     注册 Agent
                   </span>
-                  <span className="block text-slate-600 text-sm mt-0.5">上架你的 Agent 服务</span>
+                  <span className="block text-slate-500 text-sm mt-0.5">上架你的 Agent 服务</span>
                 </motion.div>
               </Link>
             )}
+            <Link href="/dashboard/life-agents">
+              <motion.div
+                className="block p-5 rounded-2xl glass-card group"
+                whileHover={{ y: -2 }}
+              >
+                <span className="font-medium text-slate-800 group-hover:text-sky-700 transition-colors">
+                  我的人生 Agent
+                </span>
+                <span className="block text-slate-500 text-sm mt-0.5">编辑资料、查看销量与聊天数据</span>
+              </motion.div>
+            </Link>
+            <Link href="/life-agents">
+              <motion.div
+                className="block p-5 rounded-2xl glass-card group"
+                whileHover={{ y: -2 }}
+              >
+                <span className="font-medium text-slate-800 group-hover:text-sky-700 transition-colors">
+                  浏览人生 Agent
+                </span>
+                <span className="block text-slate-500 text-sm mt-0.5">查看展示页、购买提问次数并进入聊天</span>
+              </motion.div>
+            </Link>
             <Link href="/agents">
               <motion.div
                 className="block p-5 rounded-2xl glass-card group"
                 whileHover={{ y: -2 }}
               >
-                <span className="font-medium text-slate-200 group-hover:text-cyan-400 transition-colors">
+                <span className="font-medium text-slate-800 group-hover:text-sky-700 transition-colors">
                   浏览 Agents
                 </span>
-                <span className="block text-slate-600 text-sm mt-0.5">购买 License 后持 Token 调用</span>
+                <span className="block text-slate-500 text-sm mt-0.5">购买 License 后持 Token 调用</span>
               </motion.div>
             </Link>
             <Link href="/licenses">
@@ -92,7 +127,7 @@ export default function DashboardPage() {
                 className="block p-5 rounded-2xl glass-card group"
                 whileHover={{ y: -2 }}
               >
-                <span className="font-medium text-slate-200 group-hover:text-cyan-400 transition-colors">
+                <span className="font-medium text-slate-800 group-hover:text-sky-700 transition-colors">
                   我的 License
                 </span>
               </motion.div>
@@ -102,16 +137,16 @@ export default function DashboardPage() {
                 className="block p-5 rounded-2xl glass-card group"
                 whileHover={{ y: -2 }}
               >
-                <span className="font-medium text-slate-200 group-hover:text-cyan-400 transition-colors">
+                <span className="font-medium text-slate-800 group-hover:text-sky-700 transition-colors">
                   平台 API Key
                 </span>
-                <span className="block text-slate-600 text-sm mt-0.5">持 Key 调用平台 API（申请 Token、购买 License 等）</span>
+                <span className="block text-slate-500 text-sm mt-0.5">持 Key 调用平台 API（申请 Token、购买 License 等）</span>
               </motion.div>
             </Link>
           </div>
         </div>
         <div>
-          <h2 className="font-semibold text-slate-300 mb-4">我的 License</h2>
+          <h2 className="font-semibold text-slate-800 mb-4">我的 License</h2>
           {licenses.length === 0 ? (
             <p className="text-slate-500">暂无 License</p>
           ) : (
@@ -125,9 +160,9 @@ export default function DashboardPage() {
                 >
                   <Link
                     href="/licenses"
-                    className="flex justify-between items-center py-2 px-3 rounded-xl hover:bg-white/5 transition-colors group"
+                    className="flex justify-between items-center py-2 px-3 rounded-xl hover:bg-slate-100 transition-colors group"
                   >
-                    <span className="text-slate-300 group-hover:text-cyan-400 truncate flex-1 mr-2">
+                    <span className="text-slate-700 group-hover:text-sky-700 truncate flex-1 mr-2">
                       {lic.agent.name}
                     </span>
                     <span className="text-slate-500 text-sm shrink-0">
@@ -138,7 +173,7 @@ export default function DashboardPage() {
               ))}
             </ul>
           )}
-          <h2 className="font-semibold text-slate-300 mb-4 mt-8">我的 Agents</h2>
+          <h2 className="font-semibold text-slate-800 mb-4 mt-8">我的 Agents</h2>
           {agents.length === 0 ? (
             <p className="text-slate-500">暂无 Agent</p>
           ) : (
@@ -152,7 +187,7 @@ export default function DashboardPage() {
                 >
                   <Link
                     href={`/agents/${a.id}`}
-                    className="block py-2 px-3 rounded-xl hover:bg-white/5 text-slate-300 hover:text-cyan-400 transition-colors"
+                    className="block py-2 px-3 rounded-xl hover:bg-slate-100 text-slate-700 hover:text-sky-700 transition-colors"
                   >
                     {a.name} · {a.status}
                   </Link>

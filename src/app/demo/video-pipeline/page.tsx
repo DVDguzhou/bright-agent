@@ -174,7 +174,7 @@ export default function VideoPipelineDemoPage() {
           animate={{ opacity: 1, y: 0 }}
           className="space-y-6"
         >
-          {result.script && (
+          {typeof result.script !== "undefined" && (
             <div className="p-6 rounded-2xl glass-card">
               <h3 className="font-semibold text-slate-300 mb-2">Script</h3>
               <pre className="whitespace-pre-wrap text-slate-400 text-sm font-mono">

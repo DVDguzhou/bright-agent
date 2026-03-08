@@ -17,7 +17,7 @@ const REQUEST_TTL_MS = 90 * 1000;
 
 function cleanup() {
   const now = Date.now();
-  for (const [rid, p] of pendingByRequestId) {
+  for (const [rid, p] of Array.from(pendingByRequestId.entries())) {
     if (now - p.createdAt > REQUEST_TTL_MS) {
       pendingByRequestId.delete(rid);
       p.reject(new Error("request_timeout"));

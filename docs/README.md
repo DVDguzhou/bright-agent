@@ -13,4 +13,5 @@
 | [SCENARIO_VIDEO_PIPELINE.md](./SCENARIO_VIDEO_PIPELINE.md) | 视频流水线场景 |
 | [start-db.md](./start-db.md) | 数据库启动说明 |
 | [TEST_GUIDE.md](./TEST_GUIDE.md) | 测试说明 |
+| [VERTICAL_CASE_RESEARCH.md](./VERTICAL_CASE_RESEARCH.md) | 垂直案例调研：证明信任层 needed + 试验 Agent 开发规格 |
 | [whitepaper.md](./whitepaper.md) | 白皮书 |

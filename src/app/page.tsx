@@ -18,21 +18,21 @@ const item = {
 
 const cards = [
   {
-    type: "身份认证",
-    color: "from-cyan-400 to-cyan-600",
-    desc: "注册用户与 Agent，平台签发调用凭证",
+    type: "展示你的经验",
+    color: "from-blue-500 to-sky-500",
+    desc: "把你的人生经验、职业方法、踩坑总结整理成可展示的 AI Agent 主页。",
     icon: "◇",
   },
   {
-    type: "交易授权",
-    color: "from-emerald-400 to-emerald-600",
-    desc: "购买 License，平台校验 quota 与 scope",
+    type: "像 GPT 一样聊天",
+    color: "from-sky-500 to-cyan-500",
+    desc: "用户可以进入聊天窗口，按问题向你的经验 Agent 提问，获得连续对话式建议。",
     icon: "▣",
   },
   {
-    type: "调用存证",
-    color: "from-teal-400 to-teal-600",
-    desc: "request + token + receipt 三者一致才算合法调用",
+    type: "按次付费咨询",
+    color: "from-indigo-500 to-blue-500",
+    desc: "支持购买提问次数包，降低使用门槛，也让创作者更容易开始提供服务。",
     icon: "◎",
   },
 ];
@@ -40,15 +40,14 @@ const cards = [
 export default function HomePage() {
   return (
     <div className="relative min-h-[calc(100vh-8rem)] flex flex-col items-center justify-center py-20 overflow-hidden">
-      {/* Ambient orbs */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <motion.div
-          className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-cyan-500/10 blur-3xl"
+          className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-blue-500/10 blur-3xl"
           animate={{ x: [0, 30, 0], y: [0, -20, 0] }}
           transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
         />
         <motion.div
-          className="absolute top-1/2 -right-40 w-80 h-80 rounded-full bg-emerald-500/10 blur-3xl"
+          className="absolute top-1/2 -right-40 w-80 h-80 rounded-full bg-sky-400/10 blur-3xl"
           animate={{ x: [0, -20, 0], y: [0, 30, 0] }}
           transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
         />
@@ -62,48 +61,48 @@ export default function HomePage() {
       >
         <motion.div variants={item} className="mb-6">
           <motion.span
-            className="inline-block px-4 py-1.5 rounded-full text-sm font-medium bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"
+            className="inline-block px-4 py-1.5 rounded-full text-sm font-medium bg-blue-50 text-blue-700 border border-blue-200"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.2 }}
           >
-            身份认证 · 交易授权 · 调用存证 · 纠纷仲裁
+            面向普通用户的人生经验 Agent 平台
           </motion.span>
         </motion.div>
 
         <motion.h1
           variants={item}
-          className="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight mb-6 bg-gradient-to-r from-cyan-400 via-emerald-400 to-cyan-400 bg-clip-text text-transparent"
+          className="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight mb-6 bg-gradient-to-r from-blue-600 via-sky-500 to-blue-600 bg-clip-text text-transparent"
         >
           AI Agent Marketplace
         </motion.h1>
 
         <motion.p
           variants={item}
-          className="text-xl text-slate-400 max-w-2xl mx-auto mb-12 leading-relaxed"
+          className="text-xl text-slate-600 max-w-3xl mx-auto mb-12 leading-relaxed"
         >
-          平台不做 Agent 执行，只负责：身份认证、交易授权、调用存证、纠纷仲裁。
-          <span className="text-slate-300">买方购买 License，持 Token 直接调用卖方 Agent；卖方校验后执行并回传回执。</span>
+          让每个人都能把自己的经历、方法论和专业认知做成一个可对话的 Agent。
+          <span className="text-slate-800"> 创作者负责输入真实经验，用户通过明亮、简单的聊天界面按次付费提问。</span>
         </motion.p>
 
         <motion.div variants={item} className="flex flex-wrap gap-4 justify-center mb-20">
-          <Link href="/agents">
+          <Link href="/life-agents">
             <motion.span
               className="btn-primary inline-flex items-center gap-2"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
-              浏览 Agents
+              浏览人生 Agent
               <span className="opacity-80">→</span>
             </motion.span>
           </Link>
-          <Link href="/signup">
+          <Link href="/life-agents/create">
             <motion.span
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold border border-white/10 bg-white/5 hover:bg-white/10 hover:border-cyan-500/30 text-slate-200 transition-all duration-300"
-              whileHover={{ scale: 1.02, borderColor: "rgba(6, 182, 212, 0.3)" }}
+              className="btn-secondary inline-flex items-center gap-2"
+              whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
-              注册 / 上架 Agent
+              创建我的 Agent
             </motion.span>
           </Link>
         </motion.div>
@@ -127,7 +126,7 @@ export default function HomePage() {
                 <h3 className={`mt-3 font-semibold text-lg bg-gradient-to-r ${card.color} bg-clip-text text-transparent`}>
                   {card.type}
                 </h3>
-                <p className="mt-2 text-slate-500 text-sm leading-relaxed">
+                <p className="mt-2 text-slate-600 text-sm leading-relaxed">
                   {card.desc}
                 </p>
               </div>

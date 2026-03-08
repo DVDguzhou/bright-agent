@@ -72,11 +72,11 @@ export default function PurchaseLicensePage() {
   if (!user) {
     return (
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-        <Link href="/agents" className="text-slate-500 hover:text-cyan-400 text-sm mb-6 inline-block">
+        <Link href="/agents" className="text-slate-500 hover:text-sky-700 text-sm mb-6 inline-block">
           ← 返回
         </Link>
         <div className="p-8 rounded-2xl glass-card text-center">
-          <p className="text-slate-400 mb-4">请先登录后再购买 License</p>
+          <p className="text-slate-600 mb-4">请先登录后再购买 License</p>
           <Link href="/login" className="btn-primary inline-block">
             登录
           </Link>
@@ -89,8 +89,8 @@ export default function PurchaseLicensePage() {
     return (
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
         <div className="p-8 rounded-2xl glass-card text-center max-w-md mx-auto">
-          <p className="text-emerald-400 text-lg font-semibold mb-2">购买成功</p>
-          <p className="text-slate-400 text-sm mb-4">License ID: {license.id}</p>
+          <p className="text-emerald-600 text-lg font-semibold mb-2">购买成功</p>
+          <p className="text-slate-600 text-sm mb-4">License ID: {license.id}</p>
           <Link href="/licenses" className="btn-primary inline-block">
             查看我的 License
           </Link>
@@ -101,28 +101,28 @@ export default function PurchaseLicensePage() {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-      <Link href={`/agents/${id}`} className="text-slate-500 hover:text-cyan-400 text-sm mb-6 inline-block">
+      <Link href={`/agents/${id}`} className="text-slate-500 hover:text-sky-700 text-sm mb-6 inline-block">
         ← 返回 {agent.name}
       </Link>
-      <h1 className="text-2xl font-bold text-slate-100 mb-6">购买 License · {agent.name}</h1>
-      <form onSubmit={handlePurchase} className="max-w-md space-y-4">
+      <h1 className="text-2xl font-bold text-slate-900 mb-6">购买 License · {agent.name}</h1>
+      <form onSubmit={handlePurchase} className="max-w-md space-y-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
         <div>
-          <label className="block text-slate-400 text-sm mb-2">调用次数 (quota)</label>
+          <label className="block text-slate-700 text-sm mb-2">调用次数 (quota)</label>
           <input
             type="number"
             min={1}
             value={quota}
             onChange={(e) => setQuota(parseInt(e.target.value, 10) || 1)}
-            className="input-glow w-full px-4 py-2 rounded-xl bg-white/5 border border-white/10"
+            className="input-shell"
           />
         </div>
         <div>
-          <label className="block text-slate-400 text-sm mb-2">Scope（可选）</label>
+          <label className="block text-slate-700 text-sm mb-2">Scope（可选）</label>
           <input
             value={scope}
             onChange={(e) => setScope(e.target.value)}
             placeholder="content.generate"
-            className="input-glow w-full px-4 py-2 rounded-xl bg-white/5 border border-white/10"
+            className="input-shell"
           />
         </div>
         {error && <p className="text-red-400 text-sm">{error}</p>}

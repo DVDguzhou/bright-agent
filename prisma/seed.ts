@@ -48,6 +48,71 @@ async function main() {
   const videoRenderUrl = `${base}/api/video-pipeline/render/invoke`;
   const videoComplianceUrl = `${base}/api/video-pipeline/compliance/invoke`;
 
+  const lifeAgent = await prisma.lifeAgentProfile.upsert({
+    where: { id: "10000000-0000-0000-0000-000000000001" },
+    create: {
+      id: "10000000-0000-0000-0000-000000000001",
+      userId: seller.id,
+      displayName: "阿青学长",
+      headline: "陪大学生和职场新人做方向选择的过来人",
+      shortBio: "经历过普通学校求职、转岗和低谷复盘，擅长把抽象焦虑拆成具体行动。",
+      longBio:
+        "我不是天赋型选手，走过弯路，也做过很多不成熟决定。后来我通过持续复盘，把找方向、找工作、转变节奏这几件事慢慢做顺了。这些经历让我更适合陪还在迷茫阶段的人把问题拆小，找到下一步能执行的动作。",
+      audience: "适合大学生、职场 1 到 3 年的新人、转行前焦虑的人，以及暂时找不到节奏的人。",
+      welcomeMessage: "你好，你可以把我当作一个走过弯路但持续复盘的人，直接告诉我你的困惑。",
+      pricePerQuestion: 990,
+      expertiseTags: ["大学生", "求职", "职业选择", "转行", "复盘"],
+      sampleQuestions: [
+        "我现在不知道该考研还是工作，怎么判断？",
+        "连续面试失败后，我该先调整什么？",
+        "想转行但没有底气，第一步应该做什么？",
+      ],
+      published: true,
+    },
+    update: {
+      displayName: "阿青学长",
+      headline: "陪大学生和职场新人做方向选择的过来人",
+      pricePerQuestion: 990,
+      published: true,
+    },
+  });
+
+  await prisma.lifeAgentKnowledgeEntry.deleteMany({
+    where: { profileId: lifeAgent.id },
+  });
+
+  await prisma.lifeAgentKnowledgeEntry.createMany({
+    data: [
+      {
+        profileId: lifeAgent.id,
+        category: "职业成长",
+        title: "我怎样从迷茫走到稳定成长",
+        content:
+          "我以前总想一次把未来想清楚，结果越想越焦虑。真正让我走出来的方法不是突然想通，而是先做最小验证：先投递、先访谈、先试一段时间，再决定是不是继续。很多时候不是没有答案，而是行动太少。",
+        tags: ["迷茫", "职业规划", "行动"],
+        sortOrder: 0,
+      },
+      {
+        profileId: lifeAgent.id,
+        category: "求职",
+        title: "连续面试失败之后我怎么复盘",
+        content:
+          "我会把失败拆成三层：表达问题、经历包装问题、岗位匹配问题。不要笼统地觉得自己不行，而是把每一次失败都变成下一次的准备清单。先改最容易改的，比如自我介绍、项目顺序和案例细节。",
+        tags: ["面试", "失败", "复盘"],
+        sortOrder: 1,
+      },
+      {
+        profileId: lifeAgent.id,
+        category: "转行",
+        title: "转行前先证明自己，不要先赌全部",
+        content:
+          "转行最怕的是情绪上头，一下子把退路全切断。我的建议一直是先做低成本验证，例如作品、兼职、小项目、信息访谈。你需要先确认自己真的能做、愿意做、市场也愿意买单，再决定是否全面转身。",
+        tags: ["转行", "验证", "低成本试错"],
+        sortOrder: 2,
+      },
+    ],
+  });
+
   const demoAgent = await prisma.agent.upsert({
     where: { id: "00000000-0000-0000-0000-000000000001" },
     create: {
@@ -299,6 +364,7 @@ async function main() {
   console.log("Report Builder License ID: 00000000-0000-0000-0000-000000000003");
   console.log("编排 Agent License ID: 00000000-0000-0000-0000-000000000004");
   console.log("视频流水线 License IDs: 005(脚本), 006(素材), 007(渲染), 008(合规)");
+  console.log("人生 Agent ID:", lifeAgent.id);
   console.log("Add to .env: PLATFORM_DEMO_SECRET=your-random-secret (for receipt submission)");
 }
 

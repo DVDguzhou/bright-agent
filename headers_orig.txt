@@ -1,0 +1,10 @@
+0 � U+FFFD
+1 � U+FFFD
+2 ? U+003F
+3 � U+FFFD
+4 � U+FFFD
+5 ɸ U+0278
+6 ѡ U+0461
+7 � U+FFFD
+8 ꡣ U+A863
+9 ? U+003F

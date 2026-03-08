@@ -8,9 +8,8 @@ import { verifyInvocationToken } from "@/lib/invocation";
 import crypto from "crypto";
 
 function extractText(html: string, regex: RegExp, maxItems = 20): string[] {
-  const matches = html.matchAll(regex);
   const results: string[] = [];
-  for (const m of matches) {
+  for (const m of Array.from(html.matchAll(regex))) {
     if (results.length >= maxItems) break;
     const text = (m[1] || m[0])
       .replace(/<[^>]+>/g, "")
@@ -65,9 +64,8 @@ async function analyzeUrl(url: string): Promise<{
     const description = descMatch ? descMatch[1].trim().slice(0, 500) : undefined;
 
     const headings = extractText(html, /<h[123][^>]*>([\s\S]*?)<\/h[123]>/gi, 15);
-    const linkMatches = html.matchAll(/<a[^>]+href=["']([^"']+)["']/gi);
     const links: string[] = [];
-    for (const m of linkMatches) {
+    for (const m of Array.from(html.matchAll(/<a[^>]+href=["']([^"']+)["']/gi))) {
       if (links.length >= 30) break;
       const href = m[1].trim();
       if (href.startsWith("http") && !links.includes(href)) links.push(href);

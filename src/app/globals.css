@@ -5,8 +5,8 @@
 :root {
   --font-sans: "Outfit", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", monospace;
-  --gradient-start: #06b6d4;
-  --gradient-end: #10b981;
+  --gradient-start: #2563eb;
+  --gradient-end: #0ea5e9;
 }
 
 * {
@@ -19,11 +19,12 @@ html {
 
 body {
   font-family: var(--font-sans);
-  background: #030712;
+  background: #f8fafc;
   background-image: 
-    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(6, 182, 212, 0.08), transparent),
-    radial-gradient(ellipse 60% 40% at 100% 0%, rgba(16, 185, 129, 0.06), transparent),
-    radial-gradient(ellipse 60% 40% at 0% 100%, rgba(6, 182, 212, 0.05), transparent);
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(59, 130, 246, 0.12), transparent),
+    radial-gradient(ellipse 60% 40% at 100% 0%, rgba(14, 165, 233, 0.09), transparent),
+    radial-gradient(ellipse 60% 40% at 0% 100%, rgba(125, 211, 252, 0.1), transparent);
+  color: #0f172a;
 }
 
 /* Custom scrollbar */
@@ -33,45 +34,44 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(15, 23, 42, 0.5);
+  background: rgba(148, 163, 184, 0.14);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(71, 85, 105, 0.5);
+  background: rgba(100, 116, 139, 0.35);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(100, 116, 139, 0.7);
+  background: rgba(100, 116, 139, 0.5);
 }
 
 /* Selection */
 ::selection {
-  background: rgba(6, 182, 212, 0.3);
+  background: rgba(59, 130, 246, 0.2);
   color: inherit;
 }
 
-/* Glass card base */
 @layer components {
   .glass-card {
-    @apply relative overflow-hidden rounded-2xl border border-white/5 bg-white/[0.02] backdrop-blur-xl;
-    background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+    @apply relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white/85 backdrop-blur-xl shadow-sm;
+    background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,250,252,0.92) 100%);
   }
 
   .glass-card:hover {
-    @apply border-cyan-500/20;
-    box-shadow: 0 0 30px -10px rgba(6, 182, 212, 0.2);
+    @apply border-sky-300/80;
+    box-shadow: 0 20px 45px -28px rgba(14, 165, 233, 0.28);
   }
 
   .btn-primary {
     @apply relative overflow-hidden rounded-xl px-6 py-3 font-semibold text-white transition-all duration-300;
-    background: linear-gradient(135deg, #06b6d4 0%, #10b981 100%);
-    box-shadow: 0 4px 20px -5px rgba(6, 182, 212, 0.4);
+    background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);
+    box-shadow: 0 14px 30px -18px rgba(37, 99, 235, 0.55);
   }
 
   .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 30px -5px rgba(6, 182, 212, 0.5);
+    box-shadow: 0 18px 35px -18px rgba(14, 165, 233, 0.45);
   }
 
   .btn-primary:active {
@@ -79,12 +79,28 @@ body {
   }
 
   .input-glow:focus {
-    box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.3);
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
   }
 
   .gradient-text {
     @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(135deg, #22d3ee 0%, #34d399 50%, #22d3ee 100%);
+    background-image: linear-gradient(135deg, #2563eb 0%, #0ea5e9 50%, #2563eb 100%);
     background-size: 200% auto;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-3 font-medium text-slate-700 transition-all duration-300 hover:border-sky-300 hover:text-sky-700 hover:shadow-sm;
+  }
+
+  .input-shell {
+    @apply input-glow w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-sky-400;
+  }
+
+  .section-title {
+    @apply text-3xl font-bold text-slate-900;
+  }
+
+  .section-subtitle {
+    @apply text-slate-600 leading-relaxed;
   }
 }

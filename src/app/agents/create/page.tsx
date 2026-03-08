@@ -58,62 +58,62 @@ export default function CreateAgentPage() {
       animate={{ opacity: 1, y: 0 }}
       className="max-w-xl"
     >
-      <Link href="/agents" className="text-slate-500 hover:text-cyan-400 text-sm mb-6 inline-block">
+      <Link href="/agents" className="text-slate-500 hover:text-sky-700 text-sm mb-6 inline-block">
         ← 返回 Agents
       </Link>
-      <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent mb-2">
+      <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-sky-500 bg-clip-text text-transparent mb-2">
         注册 Agent
       </h1>
       <p className="text-slate-500 mb-8">填写 Agent API 地址与能力范围，平台审核后上架</p>
-      <form onSubmit={submit} className="space-y-5">
+      <form onSubmit={submit} className="space-y-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
         <div>
-          <label className="block text-sm font-medium text-slate-400 mb-2">名称 *</label>
+          <label className="block text-sm font-medium text-slate-700 mb-2">名称 *</label>
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="input-glow w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-cyan-500/50 outline-none transition-all"
+            className="input-shell"
             placeholder="Agent 名称"
             required
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-400 mb-2">描述</label>
+          <label className="block text-sm font-medium text-slate-700 mb-2">描述</label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="input-glow w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-cyan-500/50 outline-none transition-all min-h-[100px] resize-none"
+            className="input-shell min-h-[100px] resize-none"
             placeholder="详细描述你的 Agent 能力..."
           />
         </div>
         <div className="flex items-center gap-3 mb-4">
-          <label className="flex items-center gap-2 cursor-pointer text-slate-300">
+          <label className="flex items-center gap-2 cursor-pointer text-slate-700">
             <input
               type="checkbox"
               checked={useTunnel}
               onChange={(e) => setUseTunnel(e.target.checked)}
-              className="rounded border-white/20 bg-white/5"
+              className="rounded border-slate-300 bg-white"
             />
             使用平台隧道（免 ngrok，本地 Agent 通过轮询接入）
           </label>
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-400 mb-2">API 地址 (baseUrl) *</label>
+          <label className="block text-sm font-medium text-slate-700 mb-2">API 地址 (baseUrl) *</label>
           <input
             type="url"
             value={baseUrl}
             onChange={(e) => setBaseUrl(e.target.value)}
-            className="input-glow w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-cyan-500/50 outline-none"
+            className="input-shell"
             placeholder={useTunnel ? "http://localhost:3333/invoke" : "https://your-agent.com/invoke"}
             required
           />
-          <p className="text-slate-600 text-xs mt-1">
+          <p className="text-slate-500 text-xs mt-1">
             {useTunnel
               ? "本地 Agent 地址，tunnel-client 将转发请求到此。无需公网可达。"
               : "买方将直接 POST 到此端点，需公网可达（或 ngrok）"}
           </p>
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-400 mb-3">支持的 Scope *（至少一种）</label>
+          <label className="block text-sm font-medium text-slate-700 mb-3">支持的 Scope *（至少一种）</label>
           <div className="flex flex-wrap gap-2">
             {scopeOptions.map((s) => (
               <motion.button
@@ -122,8 +122,8 @@ export default function CreateAgentPage() {
                 onClick={() => toggleScope(s)}
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-all ${
                   scopes.includes(s)
-                    ? "border-cyan-500/30 text-cyan-400 bg-cyan-500/10"
-                    : "border-white/10 text-slate-500 hover:border-white/20"
+                    ? "border-sky-300 text-sky-700 bg-sky-50"
+                    : "border-slate-200 text-slate-600 hover:border-slate-300"
                 }`}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}

@@ -17,7 +17,37 @@ const ORCHESTRATOR = {
   licenseId: "00000000-0000-0000-0000-000000000004",
 };
 
-function sha256Hex(str) {
+type SessionUser = { id: string } | null;
+
+type IssuedToken = {
+  request_id: string;
+  invocation_token: string;
+  agent_base_url: string;
+};
+
+type InvokeResponse = {
+  result?: {
+    report_md?: string;
+    analysis?: {
+      title?: string;
+      description?: string;
+      headings?: string[];
+      links?: string[];
+      wordCount?: number;
+    };
+  };
+};
+
+type AnalysisItem = {
+  url: string;
+  title?: string;
+  description?: string;
+  headings?: string[];
+  links?: string[];
+  wordCount?: number;
+};
+
+function sha256Hex(str: string) {
   return crypto.subtle
     .digest("SHA-256", new TextEncoder().encode(str))
     .then((b) => Array.from(new Uint8Array(b))
@@ -25,7 +55,7 @@ function sha256Hex(str) {
       .join(""));
 }
 
-async function issueToken(licenseId, agentId, scope, inputHash) {
+async function issueToken(licenseId: string, agentId: string, scope: string, inputHash: string): Promise<IssuedToken> {
   const res = await fetch("/api/invocations/issue-token", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -37,7 +67,16 @@ async function issueToken(licenseId, agentId, scope, inputHash) {
   return data;
 }
 
-async function invokeAgent(baseUrl, requestId, licenseId, agentId, scope, input, inputHash, invocationToken) {
+async function invokeAgent(
+  baseUrl: string,
+  requestId: string,
+  licenseId: string,
+  agentId: string,
+  scope: string,
+  input: unknown,
+  inputHash: string,
+  invocationToken: string
+): Promise<InvokeResponse> {
   const res = await fetch(baseUrl, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -57,7 +96,7 @@ async function invokeAgent(baseUrl, requestId, licenseId, agentId, scope, input,
 }
 
 export default function WorkflowPage() {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState<SessionUser>(null);
   const [urls, setUrls] = useState("https://example.com\nhttps://github.com");
   const [report, setReport] = useState("");
   const [loading, setLoading] = useState(false);
@@ -108,7 +147,7 @@ export default function WorkflowPage() {
         );
         setReport(finalResult.result?.report_md || "");
       } else {
-        const analyses = [];
+        const analyses: AnalysisItem[] = [];
         for (let i = 0; i < urlList.length; i++) {
           setStep(`分析 ${i + 1}/${urlList.length}: ${urlList[i]}`);
           const input = { url: urlList[i] };

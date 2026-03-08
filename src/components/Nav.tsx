@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 type User = { id: string; email: string; name: string | null };
 
 const navLinks = [
+  { href: "/life-agents", label: "人生 Agent" },
   { href: "/agents", label: "Agents" },
   { href: "/workflow", label: "工作流" },
   { href: "/demo/swarm", label: "Agent Swarm" },
@@ -38,18 +39,18 @@ export function Nav() {
     <motion.nav
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      className="sticky top-0 z-50 border-b border-white/5 bg-slate-950/80 backdrop-blur-xl"
+      className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/85 backdrop-blur-xl"
     >
       <div className="container mx-auto px-4 max-w-7xl flex items-center justify-between h-16">
         <Link href="/" className="flex items-center gap-2 group">
           <motion.span
-            className="text-xl font-bold bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent"
+            className="text-xl font-bold bg-gradient-to-r from-blue-600 to-sky-500 bg-clip-text text-transparent"
             whileHover={{ scale: 1.02 }}
           >
-            AI Agent Marketplace
+            Bright Agent Hub
           </motion.span>
-          <span className="text-slate-600 group-hover:text-cyan-400/80 transition-colors text-sm hidden sm:inline">
-            — 授权与存证
+          <span className="text-slate-500 group-hover:text-sky-600 transition-colors text-sm hidden sm:inline">
+            人生经验 · 对话咨询 · 轻量交易
           </span>
         </Link>
 
@@ -59,8 +60,8 @@ export function Nav() {
               <motion.span
                 className={`relative px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   pathname === link.href
-                    ? "text-cyan-400"
-                    : "text-slate-400 hover:text-slate-200"
+                    ? "text-sky-700"
+                    : "text-slate-600 hover:text-slate-900"
                 }`}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
@@ -69,7 +70,7 @@ export function Nav() {
                 {pathname === link.href && (
                   <motion.span
                     layoutId="nav-underline"
-                    className="absolute left-2 right-2 bottom-1 h-0.5 bg-cyan-500/50 rounded-full"
+                    className="absolute left-2 right-2 bottom-1 h-0.5 bg-sky-500/60 rounded-full"
                     transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                   />
                 )}
@@ -90,18 +91,18 @@ export function Nav() {
               >
                 <Link href="/dashboard">
                   <motion.span
-                    className="text-sm text-slate-400 hover:text-cyan-400 transition-colors"
+                    className="text-sm text-slate-600 hover:text-sky-700 transition-colors"
                     whileHover={{ scale: 1.02 }}
                   >
                     控制台
                   </motion.span>
                 </Link>
-                <span className="text-slate-600 text-sm hidden sm:inline truncate max-w-[120px]">
+                <span className="text-slate-500 text-sm hidden sm:inline truncate max-w-[120px]">
                   {user.email}
                 </span>
                 <motion.button
                   onClick={logout}
-                  className="text-sm text-slate-500 hover:text-red-400 transition-colors"
+                  className="text-sm text-slate-500 hover:text-rose-500 transition-colors"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
@@ -118,7 +119,7 @@ export function Nav() {
               >
                 <Link href="/login">
                   <motion.span
-                    className="text-sm text-slate-400 hover:text-slate-200 transition-colors"
+                    className="text-sm text-slate-600 hover:text-slate-900 transition-colors"
                     whileHover={{ scale: 1.02 }}
                   >
                     登录

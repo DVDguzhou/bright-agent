@@ -92,3 +92,47 @@ export const swarmInvokeSchema = z.object({
     })
     .optional(),
 });
+
+export const lifeAgentKnowledgeSchema = z.object({
+  category: z.string().min(1),
+  title: z.string().min(1),
+  content: z.string().min(20),
+  tags: z.array(z.string().min(1)).min(1),
+});
+
+export const lifeAgentCreateSchema = z.object({
+  displayName: z.string().min(2),
+  headline: z.string().min(4),
+  shortBio: z.string().min(20).max(180),
+  longBio: z.string().min(60),
+  audience: z.string().min(6),
+  welcomeMessage: z.string().min(10),
+  pricePerQuestion: z.number().int().positive().max(100000),
+  expertiseTags: z.array(z.string().min(1)).min(1).max(8),
+  sampleQuestions: z.array(z.string().min(3)).min(2).max(6),
+  knowledgeEntries: z.array(lifeAgentKnowledgeSchema).min(2).max(12),
+});
+
+export const lifeAgentPurchaseSchema = z.object({
+  questionCount: z.number().int().positive().max(500),
+  amountPaid: z.number().int().nonnegative(),
+});
+
+export const lifeAgentChatSchema = z.object({
+  sessionId: z.string().uuid().optional(),
+  message: z.string().min(2).max(2000),
+});
+
+export const lifeAgentUpdateSchema = z.object({
+  displayName: z.string().min(2).optional(),
+  headline: z.string().min(4).optional(),
+  shortBio: z.string().min(20).max(180).optional(),
+  longBio: z.string().min(60).optional(),
+  audience: z.string().min(6).optional(),
+  welcomeMessage: z.string().min(10).optional(),
+  pricePerQuestion: z.number().int().positive().max(100000).optional(),
+  published: z.boolean().optional(),
+  expertiseTags: z.array(z.string().min(1)).min(1).max(8).optional(),
+  sampleQuestions: z.array(z.string().min(3)).min(2).max(6).optional(),
+  knowledgeEntries: z.array(lifeAgentKnowledgeSchema).min(2).max(12).optional(),
+});

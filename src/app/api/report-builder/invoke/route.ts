@@ -8,6 +8,10 @@ import { prisma } from "@/lib/db";
 import { verifyInvocationToken } from "@/lib/invocation";
 import crypto from "crypto";
 
+function toRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" ? (value as Record<string, unknown>) : {};
+}
+
 function buildReport(analyses: unknown[], topic: string): string {
   const items = Array.isArray(analyses) ? analyses : [];
   const topicLabel = { 选品: "选品", 竞品: "竞品分析", 通用: "综合调研" }[topic] || "综合调研";
@@ -16,7 +20,8 @@ function buildReport(analyses: unknown[], topic: string): string {
   report += `生成时间: ${new Date().toISOString()}\n\n`;
   report += `## 数据来源\n共 ${items.length} 个页面/来源\n\n`;
 
-  items.forEach((a: Record<string, unknown>, i: number) => {
+  items.forEach((item, i: number) => {
+    const a = toRecord(item);
     const url = a.url ?? a.source ?? `来源 ${i + 1}`;
     report += `### ${i + 1}. ${typeof url === "string" ? url : "未知"}\n`;
     if (a.title) report += `- **标题**: ${a.title}\n`;
@@ -32,7 +37,7 @@ function buildReport(analyses: unknown[], topic: string): string {
   });
 
   report += `## 要点归纳\n`;
-  const titles = items.map((a: Record<string, unknown>) => a.title).filter(Boolean);
+  const titles = items.map((item) => toRecord(item).title).filter(Boolean);
   if (titles.length > 0) {
     report += `- 涉及主题: ${titles.join("、")}\n`;
   }

@@ -51,6 +51,9 @@ model User {
   invocationRequests InvocationRequest[]
   disputesAsBuyer   Dispute[] @relation("DisputeBuyer")
   disputesAsSeller  Dispute[] @relation("DisputeSeller")
+  lifeAgentProfiles LifeAgentProfile[]
+  lifeAgentChatSessions LifeAgentChatSession[]
+  lifeAgentQuestionPacks LifeAgentQuestionPack[]
 }
 
 model UserApiKey {
@@ -199,4 +202,78 @@ model Dispute {
   receipt  ExecutionReceipt?   @relation(fields: [receiptId], references: [id])
   buyer    User                @relation("DisputeBuyer", fields: [buyerId], references: [id], onDelete: Cascade)
   seller   User     @relation("DisputeSeller", fields: [sellerId], references: [id], onDelete: Cascade)
+}
+
+model LifeAgentProfile {
+  id               String   @id @default(uuid())
+  userId           String   @map("user_id")
+  displayName      String   @map("display_name")
+  headline         String
+  shortBio         String   @map("short_bio")
+  longBio          String   @map("long_bio")
+  audience         String
+  welcomeMessage   String   @map("welcome_message")
+  pricePerQuestion Int      @default(990) @map("price_per_question")
+  expertiseTags    String[] @map("expertise_tags")
+  sampleQuestions  String[] @map("sample_questions")
+  published        Boolean  @default(true)
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  user           User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  knowledgeEntries LifeAgentKnowledgeEntry[]
+  chatSessions   LifeAgentChatSession[]
+  questionPacks  LifeAgentQuestionPack[]
+}
+
+model LifeAgentKnowledgeEntry {
+  id        String   @id @default(uuid())
+  profileId String   @map("profile_id")
+  category  String
+  title     String
+  content   String
+  tags      String[]
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  profile LifeAgentProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+}
+
+model LifeAgentChatSession {
+  id        String   @id @default(uuid())
+  profileId String   @map("profile_id")
+  buyerId   String   @map("buyer_id")
+  title     String
+  status    String   @default("active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  profile  LifeAgentProfile       @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  buyer    User                   @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+  messages LifeAgentChatMessage[]
+}
+
+model LifeAgentChatMessage {
+  id        String   @id @default(uuid())
+  sessionId String   @map("session_id")
+  role      String
+  content   String
+  refs      Json?    @map("refs")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  session LifeAgentChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+}
+
+model LifeAgentQuestionPack {
+  id            String   @id @default(uuid())
+  profileId     String   @map("profile_id")
+  buyerId       String   @map("buyer_id")
+  questionCount Int      @map("question_count")
+  questionsUsed Int      @default(0) @map("questions_used")
+  amountPaid    Int      @map("amount_paid")
+  status        String   @default("paid")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  profile LifeAgentProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  buyer   User             @relation(fields: [buyerId], references: [id], onDelete: Cascade)
 }
