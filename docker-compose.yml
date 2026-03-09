@@ -1,6 +1,7 @@
 services:
   mysql:
-    image: mysql:8.0
+    # 使用国内镜像，避免 Docker Hub 拉取超时（海外可改回 mysql:8.0）
+    image: docker.m.daocloud.io/library/mysql:8.0
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-your_root_password}
