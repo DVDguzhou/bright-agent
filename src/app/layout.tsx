@@ -1,11 +1,7 @@
 import type { Metadata } from "next";
-import { JetBrains_Mono, Outfit } from "next/font/google";
 import "./globals.css";
 import { Nav } from "@/components/Nav";
 import { AuthProvider } from "@/contexts/AuthContext";
-
-const outfit = Outfit({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
-const jetbrains = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono", display: "swap" });
 
 export const metadata: Metadata = {
   title: "AI Agent Marketplace",
@@ -18,7 +14,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-CN" className={`${outfit.variable} ${jetbrains.variable}`}>
+    <html lang="zh-CN">
       <body className="min-h-screen bg-slate-50 text-slate-900 font-sans antialiased">
         <AuthProvider>
           <Nav />
