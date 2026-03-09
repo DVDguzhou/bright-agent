@@ -1,6 +1,8 @@
 # Go 后端（使用国内镜像）
 FROM docker.m.daocloud.io/library/golang:1.22-alpine AS builder
 WORKDIR /app
+# 使用国内 Go 模块代理，避免 proxy.golang.org 超时
+ENV GOPROXY=https://goproxy.cn,direct
 RUN apk add --no-cache git
 COPY go.mod go.sum ./
 RUN go mod download
