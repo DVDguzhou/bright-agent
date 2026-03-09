@@ -13,6 +13,7 @@ out/
 # Production
 build
 dist
+backend/backend.exe
 
 # Misc
 .DS_Store

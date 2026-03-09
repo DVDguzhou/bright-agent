@@ -4,6 +4,12 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { OFFICIAL_CONTACT } from "@/lib/official-contact";
+import {
+  COUNTRY_OPTIONS_FOR_CREATE,
+  getProvinceOptionsForCreate,
+  getCityOptionsForCreate,
+  getCountyOptionsForCreate,
+} from "@/lib/address-hierarchy";
 
 type KnowledgeEntry = {
   category: string;
@@ -90,7 +96,6 @@ const MBTI_OPTIONS = ["未设置", "INTJ", "INTP", "ENTJ", "ENTP", "INFJ", "INFP
 const PERSONA_OPTIONS = ["学长学姐型", "朋友陪聊型", "前辈导师型", "冷静分析型", "过来人型", "本地熟人型"];
 const TONE_OPTIONS = ["直接一点", "温柔一点", "理性克制", "接地气一点", "像朋友聊天", "稳重耐心"];
 const RESPONSE_STYLE_OPTIONS = ["先给判断再解释", "先理解处境再建议", "多举自己的例子", "短一点别太满", "先拆选项再给建议", "像微信聊天少分点"];
-const REGION_OPTIONS = ["温州", "杭州", "宁波", "台州", "绍兴", "上海", "北京", "深圳", "广州", "东京", "大阪", "新加坡"];
 
 export default function CreateLifeAgentPage() {
   const router = useRouter();
@@ -108,7 +113,6 @@ export default function CreateLifeAgentPage() {
     school: "",
     job: "",
     income: "",
-    regions: "",
     country: "",
     province: "",
     city: "",
@@ -146,20 +150,6 @@ export default function CreateLifeAgentPage() {
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatHistory]);
-
-  const selectedRegions = form.regions
-    .split(/[,，\n]/)
-    .map((item) => item.trim())
-    .filter(Boolean);
-
-  const toggleRegion = (region: string) => {
-    const next = selectedRegions.includes(region)
-      ? selectedRegions.filter((item) => item !== region)
-      : selectedRegions.length < 2
-      ? [...selectedRegions, region]
-      : selectedRegions;
-    setForm((prev) => ({ ...prev, regions: next.join(", ") }));
-  };
 
   const startKnowledgeChat = () => {
     const questions: { question: string; category: string; title: string }[] = [];
@@ -222,9 +212,9 @@ export default function CreateLifeAgentPage() {
     setError("");
     setLoading(true);
 
-    const validEntries = knowledgeEntries.filter((e) => e.content.trim().length >= 20);
+    const validEntries = knowledgeEntries.filter((e) => e.content.trim().length >= 1);
     if (validEntries.length < 2) {
-      setError("请至少完成 2 个问题的回答哦，每个回答至少 20 个字～");
+      setError("请至少完成 2 个问题的回答哦～");
       setLoading(false);
       return;
     }
@@ -237,11 +227,6 @@ export default function CreateLifeAgentPage() {
       .split("\n")
       .map((item) => item.trim())
       .filter(Boolean);
-    const regionsArr = form.regions
-      .split(/[,，\n]/)
-      .map((item) => item.trim())
-      .filter(Boolean);
-
     if (expertiseTagsArr.length < 1) {
       setError("请填写至少 1 个擅长标签");
       setLoading(false);
@@ -252,12 +237,6 @@ export default function CreateLifeAgentPage() {
       setLoading(false);
       return;
     }
-    if (regionsArr.length > 2) {
-      setError("地区最多填写 2 个");
-      setLoading(false);
-      return;
-    }
-
     const forbiddenPhrasesArr = form.forbiddenPhrases
       .split("\n")
       .map((item) => item.trim())
@@ -286,7 +265,11 @@ export default function CreateLifeAgentPage() {
       school: form.school,
       job: form.job,
       income: form.income,
-      regions: regionsArr.slice(0, 2),
+      country: form.country || "",
+      province: form.province || "",
+      city: form.city || "",
+      county: form.county || "",
+      regions: [],
       audience: form.audience,
       welcomeMessage: form.welcomeMessage,
       notSuitableFor: notSuitableFor.trim() || undefined,
@@ -432,70 +415,67 @@ export default function CreateLifeAgentPage() {
                   placeholder="例如：普通二本"
                 />
               </div>
-              <div>
-                <label className="mb-2 block text-sm font-medium text-slate-700">地区（选填）</label>
-                <div className="flex flex-wrap gap-2">
-                  {REGION_OPTIONS.map((region) => {
-                    const active = selectedRegions.includes(region);
-                    const disabled = !active && selectedRegions.length >= 2;
-                    return (
-                      <button
-                        key={region}
-                        type="button"
-                        onClick={() => toggleRegion(region)}
-                        disabled={disabled}
-                        className={`rounded-full px-3 py-2 text-sm transition ${
-                          active
-                            ? "bg-sky-600 text-white"
-                            : disabled
-                            ? "bg-slate-100 text-slate-300"
-                            : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                        }`}
-                      >
-                        {region}
-                      </button>
-                    );
-                  })}
+              <div className="md:col-span-2">
+                <label className="mb-2 block text-sm font-medium text-slate-700">详细地区（选填）</label>
+                <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                  <select
+                    className="input-shell"
+                    value={form.country}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setForm((prev) => ({ ...prev, country: v, province: "", city: "", county: "" }));
+                    }}
+                  >
+                    {COUNTRY_OPTIONS_FOR_CREATE.map((item) => (
+                      <option key={item || "_empty"} value={item}>
+                        {item === "" ? "不填" : item}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    className="input-shell"
+                    value={form.province}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setForm((prev) => ({ ...prev, province: v, city: "", county: "" }));
+                    }}
+                    disabled={!form.country}
+                  >
+                    {getProvinceOptionsForCreate(form.country).map((item) => (
+                      <option key={item || "_empty"} value={item}>
+                        {item === "" ? "不填" : item}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    className="input-shell"
+                    value={form.city}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setForm((prev) => ({ ...prev, city: v, county: "" }));
+                    }}
+                    disabled={!form.province}
+                  >
+                    {getCityOptionsForCreate(form.country, form.province).map((item) => (
+                      <option key={item || "_empty"} value={item}>
+                        {item === "" ? "不填" : item}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    className="input-shell"
+                    value={form.county}
+                    onChange={(e) => setForm((prev) => ({ ...prev, county: e.target.value }))}
+                    disabled={!form.city}
+                  >
+                    {getCountyOptionsForCreate(form.country, form.province, form.city).map((item) => (
+                      <option key={item || "_empty"} value={item}>
+                        {item === "" ? "不填" : item}
+                      </option>
+                    ))}
+                  </select>
                 </div>
-                <p className="mt-2 text-xs text-slate-500">
-                  最多选 2 个，当前已选：{selectedRegions.length > 0 ? selectedRegions.join(" / ") : "未选择"}
-                </p>
-              </div>
-              <div>
-                <label className="mb-2 block text-sm font-medium text-slate-700">国家 / 地区</label>
-                <input
-                  className="input-shell"
-                  value={form.country}
-                  onChange={(e) => setForm((prev) => ({ ...prev, country: e.target.value }))}
-                  placeholder="例如：中国、日本、美国、新加坡"
-                />
-              </div>
-              <div>
-                <label className="mb-2 block text-sm font-medium text-slate-700">省 / 州</label>
-                <input
-                  className="input-shell"
-                  value={form.province}
-                  onChange={(e) => setForm((prev) => ({ ...prev, province: e.target.value }))}
-                  placeholder="例如：河北省、加州、东京都"
-                />
-              </div>
-              <div>
-                <label className="mb-2 block text-sm font-medium text-slate-700">城市</label>
-                <input
-                  className="input-shell"
-                  value={form.city}
-                  onChange={(e) => setForm((prev) => ({ ...prev, city: e.target.value }))}
-                  placeholder="例如：石家庄市、东京、旧金山"
-                />
-              </div>
-              <div>
-                <label className="mb-2 block text-sm font-medium text-slate-700">区县 / 区域</label>
-                <input
-                  className="input-shell"
-                  value={form.county}
-                  onChange={(e) => setForm((prev) => ({ ...prev, county: e.target.value }))}
-                  placeholder="例如：正定县、涩谷区、Manhattan"
-                />
+                <p className="mt-2 text-xs text-slate-500">按国家→省/州→城市→区县逐级选择</p>
               </div>
               <div>
                 <label className="mb-2 block text-sm font-medium text-slate-700">学历</label>
@@ -780,7 +760,7 @@ export default function CreateLifeAgentPage() {
                 <ul className="mt-2 space-y-1 text-amber-800">
                   <li>• <strong>写具体</strong>：步骤、时间、数字比泛泛而谈更有用</li>
                   <li>• <strong>写过程</strong>：你做了什么、踩过什么坑、怎么解决的</li>
-                  <li>• 每条至少 20 字，AI 才能更好利用</li>
+                  <li>• 回答得越具体，AI 越能帮来访者解决真实问题</li>
                   <li>• 没有可写「暂无」跳过当前题</li>
                 </ul>
               </div>

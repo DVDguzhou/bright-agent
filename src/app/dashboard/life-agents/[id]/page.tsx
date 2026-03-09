@@ -105,7 +105,7 @@ export default function LifeAgentManageDetailPage() {
   const router = useRouter();
   const id = params.id as string;
   const [data, setData] = useState<ManageData | null>(null);
-  const [activeTab, setActiveTab] = useState<"edit" | "sales" | "sessions" | "feedback">("feedback");
+  const [activeTab, setActiveTab] = useState<"edit" | "modify" | "sales" | "sessions" | "feedback">("feedback");
   const [form, setForm] = useState({
     displayName: "",
     headline: "",
@@ -139,6 +139,9 @@ export default function LifeAgentManageDetailPage() {
   const [entries, setEntries] = useState<KnowledgeDraft[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [modifyChatHistory, setModifyChatHistory] = useState<{ role: "user" | "assistant"; content: string }[]>([]);
+  const [modifyInput, setModifyInput] = useState("");
+  const [modifyLoading, setModifyLoading] = useState(false);
 
   useEffect(() => {
     fetch(`/api/life-agents/${id}/manage`, { credentials: "include" })
@@ -348,7 +351,7 @@ export default function LifeAgentManageDetailPage() {
       </div>
 
       <div className="flex gap-2 border-b border-slate-200">
-        {(["feedback", "edit", "sales", "sessions"] as const).map((tab) => (
+        {(["feedback", "modify", "edit", "sales", "sessions"] as const).map((tab) => (
           <button
             key={tab}
             type="button"
@@ -359,10 +362,149 @@ export default function LifeAgentManageDetailPage() {
                 : "text-slate-500 hover:text-slate-800"
             }`}
           >
-            {tab === "edit" ? "编辑资料" : tab === "feedback" ? "消息" : tab === "sales" ? "销量记录" : "聊天记录"}
+            {tab === "edit" ? "编辑资料" : tab === "modify" ? "对话修改" : tab === "feedback" ? "消息" : tab === "sales" ? "销量记录" : "聊天记录"}
           </button>
         ))}
       </div>
+
+      {activeTab === "modify" && (
+        <div className="space-y-6">
+          <section className="rounded-2xl border border-slate-200 bg-slate-50/70 p-5">
+            <h2 className="text-lg font-semibold text-slate-900">当前 Agent 状态</h2>
+            <p className="mt-1 text-sm text-slate-600">修改后会实时更新，方便你确认当前配置。</p>
+            <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div>
+                <p className="text-xs font-medium text-slate-500">名称 / 介绍</p>
+                <p className="mt-1 text-sm text-slate-800">{data.profile.displayName}</p>
+                <p className="text-sm text-slate-600 line-clamp-1">{data.profile.headline}</p>
+              </div>
+              <div>
+                <p className="text-xs font-medium text-slate-500">擅长标签</p>
+                <p className="mt-1 text-sm text-slate-800">
+                  {(data.profile.expertiseTags ?? []).length > 0
+                    ? (data.profile.expertiseTags ?? []).join("、")
+                    : "未设置"}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs font-medium text-slate-500">知识条目</p>
+                <p className="mt-1 text-sm text-slate-800">{(data.profile.knowledgeEntries ?? []).length} 条</p>
+              </div>
+              <div>
+                <p className="text-xs font-medium text-slate-500">语气 / 风格</p>
+                <p className="mt-1 text-sm text-slate-800">
+                  {[data.profile.personaArchetype, data.profile.toneStyle, data.profile.responseStyle]
+                    .filter(Boolean)
+                    .join(" · ") || "未设置"}
+                </p>
+              </div>
+              <div className="sm:col-span-2">
+                <p className="text-xs font-medium text-slate-500">欢迎语</p>
+                <p className="mt-1 text-sm text-slate-800 line-clamp-2">{data.profile.welcomeMessage}</p>
+              </div>
+            </div>
+          </section>
+          <section className="glass-card p-6">
+            <h2 className="text-lg font-semibold text-slate-900">通过对话修改</h2>
+            <p className="mt-1 text-sm text-slate-600">
+              用自然语言说明你想怎么改，例如：「把擅长标签改成考研、转行」「添加一条关于面试技巧的经验：我当时面了5家公司…」「欢迎语改成更亲切一点」
+            </p>
+            <div className="mt-5 max-h-80 overflow-y-auto space-y-3 rounded-xl border border-slate-200 bg-white p-4">
+              {modifyChatHistory.length === 0 && (
+                <p className="text-sm text-slate-500">说一句你想怎么修改，AI 会帮你更新 Agent</p>
+              )}
+              {modifyChatHistory.map((m, i) => (
+                <div
+                  key={i}
+                  className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
+                >
+                  <div
+                    className={`max-w-[85%] rounded-2xl px-4 py-2 text-sm ${
+                      m.role === "user"
+                        ? "bg-sky-600 text-white"
+                        : "bg-slate-100 text-slate-800"
+                    }`}
+                  >
+                    {m.content}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <form
+              className="mt-4 flex gap-2"
+              onSubmit={async (e) => {
+                e.preventDefault();
+                const msg = modifyInput.trim();
+                if (!msg || modifyLoading) return;
+                setModifyInput("");
+                setModifyChatHistory((prev) => [...prev, { role: "user", content: msg }]);
+                setModifyLoading(true);
+                try {
+                  const res = await fetch(`/api/life-agents/${id}/modify-via-chat`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
+                    body: JSON.stringify({
+                      message: msg,
+                      chatHistory: modifyChatHistory.map((m) => ({ role: m.role, content: m.content })),
+                    }),
+                  });
+                  const d = await res.json();
+                  if (!res.ok) {
+                    setModifyChatHistory((prev) => [...prev, { role: "assistant", content: d.detail || "修改失败，请重试" }]);
+                    return;
+                  }
+                  setModifyChatHistory((prev) => [...prev, { role: "assistant", content: d.assistantMessage }]);
+                  if (d.profile) {
+                    setData((prev) => (prev ? { ...prev, profile: d.profile } : prev));
+                    const p = d.profile;
+                    setForm((f) => ({
+                      ...f,
+                      displayName: p.displayName ?? f.displayName,
+                      headline: p.headline ?? f.headline,
+                      shortBio: p.shortBio ?? f.shortBio,
+                      longBio: p.longBio ?? f.longBio,
+                      expertiseTags: Array.isArray(p.expertiseTags) ? p.expertiseTags.join(", ") : f.expertiseTags,
+                      sampleQuestions: Array.isArray(p.sampleQuestions) ? p.sampleQuestions.join("\n") : f.sampleQuestions,
+                      welcomeMessage: p.welcomeMessage ?? f.welcomeMessage,
+                      personaArchetype: p.personaArchetype ?? f.personaArchetype,
+                      toneStyle: p.toneStyle ?? f.toneStyle,
+                      responseStyle: p.responseStyle ?? f.responseStyle,
+                      forbiddenPhrases: Array.isArray(p.forbiddenPhrases) ? p.forbiddenPhrases.join("\n") : f.forbiddenPhrases,
+                      exampleReply1: Array.isArray(p.exampleReplies) ? (p.exampleReplies[0] ?? "") : f.exampleReply1,
+                      exampleReply2: Array.isArray(p.exampleReplies) ? (p.exampleReplies[1] ?? "") : f.exampleReply2,
+                      exampleReply3: Array.isArray(p.exampleReplies) ? (p.exampleReplies[2] ?? "") : f.exampleReply3,
+                    }));
+                    setEntries(
+                      (p.knowledgeEntries ?? []).map((e: { category: string; title: string; content: string; tags: string[] }) => ({
+                        category: e.category,
+                        title: e.title,
+                        content: e.content,
+                        tags: Array.isArray(e.tags) ? e.tags.join(", ") : "",
+                      }))
+                    );
+                  }
+                } catch {
+                  setModifyChatHistory((prev) => [...prev, { role: "assistant", content: "请求失败，请检查网络后重试" }]);
+                } finally {
+                  setModifyLoading(false);
+                }
+              }}
+            >
+              <input
+                className="input-shell flex-1"
+                value={modifyInput}
+                onChange={(e) => setModifyInput(e.target.value)}
+                placeholder="例如：把擅长标签改成考研、转行、找工作"
+                disabled={modifyLoading}
+              />
+              <button type="submit" className="btn-primary" disabled={modifyLoading}>
+                {modifyLoading ? "处理中…" : "发送"}
+              </button>
+            </form>
+          </section>
+        </div>
+      )}
 
       {activeTab === "edit" && (
         <form onSubmit={submit} className="space-y-6">
@@ -911,7 +1053,7 @@ export default function LifeAgentManageDetailPage() {
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-50">
                   <th className="px-6 py-3 text-left font-medium text-slate-600">咨询者</th>
-                  <th className="px-6 py-3 text-left font-medium text-slate-600">会话标题</th>
+                  <th className="px-6 py-3 text-left font-medium text-slate-600">隐私保护</th>
                   <th className="px-6 py-3 text-left font-medium text-slate-600">消息数</th>
                   <th className="px-6 py-3 text-left font-medium text-slate-600">最近更新</th>
                 </tr>
@@ -927,7 +1069,7 @@ export default function LifeAgentManageDetailPage() {
                   data.chatSessions.map((s) => (
                     <tr key={s.id} className="border-b border-slate-100">
                       <td className="px-6 py-4 text-slate-700">{s.buyer.name || s.buyer.email}</td>
-                      <td className="px-6 py-4 max-w-[200px] truncate">{s.title}</td>
+                      <td className="px-6 py-4 max-w-[240px] text-slate-500">{s.title}</td>
                       <td className="px-6 py-4">{s.messageCount}</td>
                       <td className="px-6 py-4 text-slate-500">
                         {new Date(s.updatedAt).toLocaleString("zh-CN")}

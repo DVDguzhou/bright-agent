@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import { JetBrains_Mono, Outfit } from "next/font/google";
 import "./globals.css";
 import { Nav } from "@/components/Nav";
+import { AuthProvider } from "@/contexts/AuthContext";
 
-const outfit = Outfit({ subsets: ["latin"], variable: "--font-sans" });
-const jetbrains = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono" });
+const outfit = Outfit({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
+const jetbrains = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono", display: "swap" });
 
 export const metadata: Metadata = {
   title: "AI Agent Marketplace",
@@ -19,8 +20,10 @@ export default function RootLayout({
   return (
     <html lang="zh-CN" className={`${outfit.variable} ${jetbrains.variable}`}>
       <body className="min-h-screen bg-slate-50 text-slate-900 font-sans antialiased">
-        <Nav />
-        <main className="container mx-auto px-4 py-8 max-w-7xl relative z-10">{children}</main>
+        <AuthProvider>
+          <Nav />
+          <main className="container mx-auto px-4 py-8 max-w-7xl relative z-10">{children}</main>
+        </AuthProvider>
       </body>
     </html>
   );

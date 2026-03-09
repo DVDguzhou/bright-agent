@@ -1,7 +1,7 @@
 "use client";
 
-import { FormEvent, useEffect, useRef, useState } from "react";
-import { useParams } from "next/navigation";
+import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 type Profile = {
@@ -41,12 +41,37 @@ type ChatMessage = {
   }>;
 };
 
+type SessionSummary = {
+  id: string;
+  title: string;
+  messageCount: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+function buildWelcomeMessage(welcomeMessage: string): ChatMessage {
+  return {
+    role: "assistant",
+    content: welcomeMessage,
+  };
+}
+
+function trimSessionTitle(title: string) {
+  return title.length > 18 ? `${title.slice(0, 18)}...` : title;
+}
+
 export default function LifeAgentChatPage() {
   const params = useParams();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const id = params.id as string;
+  const initialRequestedSessionIdRef = useRef(searchParams.get("sessionId"));
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [sessions, setSessions] = useState<SessionSummary[]>([]);
+  const [sessionsLoading, setSessionsLoading] = useState(false);
+  const [sessionLoading, setSessionLoading] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -60,25 +85,94 @@ export default function LifeAgentChatPage() {
     setRatingComment(rating?.currentComment ?? "");
   };
 
+  const resetToWelcome = useCallback((welcomeMessage: string) => {
+    setSessionId(null);
+    setMessages([buildWelcomeMessage(welcomeMessage)]);
+  }, []);
+
+  const loadSession = useCallback(async (targetSessionId: string, welcomeMessage: string) => {
+    setSessionLoading(true);
+    setError("");
+    try {
+      const res = await fetch(`/api/life-agents/${id}/chat/sessions/${targetSessionId}`, {
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error === "SESSION_NOT_FOUND" ? "会话不存在或无权查看。" : "加载聊天记录失败。");
+        resetToWelcome(welcomeMessage);
+        return;
+      }
+      setSessionId(targetSessionId);
+      router.replace(`/life-agents/${id}/chat?sessionId=${targetSessionId}`, { scroll: false });
+      setMessages(
+        Array.isArray(data.messages) && data.messages.length > 0
+          ? data.messages.map((message: any) => ({
+              role: message.role,
+              content: message.content,
+              messageId: message.role === "assistant" ? message.id : undefined,
+              sessionId: targetSessionId,
+              references: Array.isArray(message.references) ? message.references : undefined,
+            }))
+          : [buildWelcomeMessage(welcomeMessage)]
+      );
+    } catch {
+      setError("加载聊天记录失败。");
+      resetToWelcome(welcomeMessage);
+    } finally {
+      setSessionLoading(false);
+    }
+  }, [id, resetToWelcome, router]);
+
   useEffect(() => {
-    fetch(`/api/life-agents/${id}`, { credentials: "include" })
-      .then((res) => res.json())
-      .then((data) => {
+    let cancelled = false;
+
+    const fetchData = async () => {
+      try {
+        const res = await fetch(`/api/life-agents/${id}`, { credentials: "include" });
+        const data = await res.json();
+        if (cancelled) return;
+
         setProfile(data);
         syncRatingForm(data.viewerState?.rating);
-        setMessages([
-          {
-            role: "assistant",
-            content: data.welcomeMessage,
-          },
-        ]);
-      })
-      .catch(() => setProfile(null));
-  }, [id]);
+        resetToWelcome(data.welcomeMessage);
+        setSessions([]);
+
+        if (!data.viewerState?.isLoggedIn) return;
+
+        setSessionsLoading(true);
+        const sessionsRes = await fetch(`/api/life-agents/${id}/chat/sessions`, {
+          credentials: "include",
+        });
+        const sessionList = sessionsRes.ok ? await sessionsRes.json() : [];
+        if (cancelled) return;
+
+        const normalizedSessions = Array.isArray(sessionList) ? sessionList : [];
+        setSessions(normalizedSessions);
+
+        if (normalizedSessions.length > 0) {
+          const initialSession =
+            (initialRequestedSessionIdRef.current &&
+              normalizedSessions.find((session: SessionSummary) => session.id === initialRequestedSessionIdRef.current)) ||
+            normalizedSessions[0];
+          await loadSession(initialSession.id, data.welcomeMessage);
+        }
+      } catch {
+        if (!cancelled) setProfile(null);
+      } finally {
+        if (!cancelled) setSessionsLoading(false);
+      }
+    };
+
+    fetchData();
+    return () => {
+      cancelled = true;
+    };
+  }, [id, loadSession, resetToWelcome]);
 
   useEffect(() => {
     viewportRef.current?.scrollTo({ top: viewportRef.current.scrollHeight, behavior: "smooth" });
-  }, [messages, loading]);
+  }, [messages, loading, sessionLoading]);
 
   const sendMessage = async (e: FormEvent) => {
     e.preventDefault();
@@ -89,16 +183,17 @@ export default function LifeAgentChatPage() {
     }
 
     const text = input.trim();
+    const currentSessionId = sessionId;
+    const now = new Date().toISOString();
+
     setError("");
     setLoading(true);
     setMessages((prev) => [...prev, { role: "user", content: text }]);
     setInput("");
 
-    const currentSessionId = sessionId;
-
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 分钟超时
+      const timeoutId = setTimeout(() => controller.abort(), 120000);
 
       const res = await fetch(`/api/life-agents/${id}/chat`, {
         method: "POST",
@@ -121,7 +216,7 @@ export default function LifeAgentChatPage() {
             : data.error === "UNAUTHORIZED"
             ? "请先登录。"
             : data.error === "SESSION_NOT_FOUND"
-            ? "会话已失效，请刷新页面后重新开始聊天。"
+            ? "会话已失效，请重新选择历史会话或新建聊天。"
             : "发送失败，请稍后重试。"
         );
         setMessages((prev) => prev.slice(0, -1));
@@ -151,6 +246,30 @@ export default function LifeAgentChatPage() {
             }
           : prev
       );
+      setSessions((prev) => {
+        const nextTitle = data.sessionTitle || trimSessionTitle(text);
+        const existing = prev.find((session) => session.id === data.sessionId);
+        if (!existing) {
+          return [
+            {
+              id: data.sessionId,
+              title: nextTitle,
+              messageCount: 2,
+              createdAt: now,
+              updatedAt: now,
+            },
+            ...prev,
+          ];
+        }
+        return [
+          {
+            ...existing,
+            updatedAt: now,
+            messageCount: existing.messageCount + 2,
+          },
+          ...prev.filter((session) => session.id !== data.sessionId),
+        ];
+      });
       syncRatingForm(data.rating);
     } catch (err) {
       const msg =
@@ -183,6 +302,57 @@ export default function LifeAgentChatPage() {
             <p className="text-sm text-slate-500">剩余提问次数</p>
             <p className="mt-1 text-3xl font-semibold text-sky-700">{profile.viewerState.remainingQuestions}</p>
           </div>
+
+          {profile.viewerState.isLoggedIn && (
+            <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-600">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="font-medium text-slate-800">我的聊天记录</p>
+                  <p className="mt-1 text-xs text-slate-500">仅你自己可见，Agent 创建者看不到聊天正文。</p>
+                </div>
+                <button
+                  type="button"
+                  className="rounded-full bg-sky-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-sky-700"
+                  onClick={() => {
+                    setError("");
+                    resetToWelcome(profile.welcomeMessage);
+                    router.replace(`/life-agents/${id}/chat`, { scroll: false });
+                  }}
+                >
+                  新建聊天
+                </button>
+              </div>
+              <div className="mt-3 space-y-2">
+                {sessionsLoading ? (
+                  <p className="text-xs text-slate-500">正在加载聊天记录...</p>
+                ) : sessions.length === 0 ? (
+                  <p className="text-xs text-slate-500">还没有历史会话，发出第一条消息后会自动保存。</p>
+                ) : (
+                  sessions.map((session) => (
+                    <button
+                      key={session.id}
+                      type="button"
+                      onClick={() => loadSession(session.id, profile.welcomeMessage)}
+                      className={`w-full rounded-2xl border px-3 py-3 text-left transition ${
+                        session.id === sessionId
+                          ? "border-sky-300 bg-sky-50"
+                          : "border-slate-200 bg-slate-50 hover:border-slate-300 hover:bg-white"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-sm font-medium text-slate-800">{trimSessionTitle(session.title)}</p>
+                        <span className="text-[11px] text-slate-400">{session.messageCount} 条</span>
+                      </div>
+                      <p className="mt-1 text-[11px] text-slate-500">
+                        {new Date(session.updatedAt).toLocaleString("zh-CN")}
+                      </p>
+                    </button>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+
           {profile.viewerState.isLoggedIn && (
             <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-600">
               <p className="font-medium text-slate-800">Agent 评分</p>
@@ -272,6 +442,7 @@ export default function LifeAgentChatPage() {
               )}
             </div>
           )}
+
           <div className="mt-5 rounded-2xl bg-slate-50 p-4 text-sm text-slate-600">
             <p className="font-medium text-slate-700">💬 怎么聊更好？</p>
             <ul className="mt-2 space-y-1">
@@ -314,150 +485,156 @@ export default function LifeAgentChatPage() {
       <section className="glass-card flex min-h-[75vh] flex-col overflow-hidden">
         <div className="border-b border-slate-200 px-6 py-4">
           <h2 className="text-lg font-semibold text-slate-900">咨询聊天</h2>
-          <p className="mt-1 text-sm text-slate-600">描述你的具体处境和问题，TA 会结合真实经验给出可操作的建议。问得越具体，回答越有用。</p>
+          <p className="mt-1 text-sm text-slate-600">
+            描述你的具体处境和问题，TA 会结合真实经验给出可操作的建议。问得越具体，回答越有用。
+          </p>
         </div>
 
         <div ref={viewportRef} className="flex-1 space-y-5 overflow-y-auto px-6 py-6">
-          {messages.map((message, index) => (
-            <div
-              key={`${message.role}-${index}`}
-              className={message.role === "user" ? "flex justify-end" : "flex justify-start"}
-            >
+          {sessionLoading ? (
+            <div className="flex h-full items-center justify-center text-sm text-slate-500">正在加载历史会话...</div>
+          ) : (
+            messages.map((message, index) => (
               <div
-                className={`max-w-[85%] rounded-3xl px-5 py-4 text-sm leading-7 shadow-sm ${
-                  message.role === "user"
-                    ? "bg-blue-600 text-white"
-                    : "border border-slate-200 bg-white text-slate-800"
-                }`}
+                key={`${message.role}-${index}-${message.messageId ?? "draft"}`}
+                className={message.role === "user" ? "flex justify-end" : "flex justify-start"}
               >
-                <p className="whitespace-pre-wrap">{message.content}</p>
-                {message.references && message.references.length > 0 && (
-                  <div className="mt-4 space-y-2 rounded-2xl bg-slate-50 p-3 text-slate-600">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">回答依据的经验</p>
-                    {message.references.map((reference) => (
-                      <div key={reference.id} className="rounded-2xl bg-white p-3">
-                        <p className="text-sm font-medium text-slate-800">
-                          {reference.category} · {reference.title}
-                        </p>
-                        <p className="mt-1 text-xs leading-6 text-slate-500">{reference.excerpt}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {message.role === "assistant" && message.messageId && sessionId && profile?.viewerState.isLoggedIn && (
-                  <div className="mt-4 rounded-2xl bg-slate-50 p-3 text-xs text-slate-600">
-                    <p className="font-medium text-slate-700">这条回答感觉怎么样？</p>
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {(["helpful", "not_specific", "not_suitable"] as const).map((fb) => (
-                        <button
-                          key={fb}
-                          type="button"
-                          onClick={() => {
-                            if (message.feedback) return;
-                            setMessages((prev) =>
-                              prev.map((m) =>
-                                m.messageId === message.messageId
-                                  ? { ...m, feedbackDraftType: fb, feedbackComment: m.feedbackComment ?? "" }
-                                  : m
-                              )
-                            );
-                          }}
-                          disabled={!!message.feedback}
-                          className={`rounded-full px-3 py-1.5 transition ${
-                            message.feedback === fb || message.feedbackDraftType === fb
-                              ? fb === "helpful"
-                                ? "bg-green-100 text-green-700"
-                                : "bg-amber-100 text-amber-700"
-                              : "bg-white text-slate-600 hover:bg-slate-100 disabled:opacity-50"
-                          }`}
-                        >
-                          {fb === "helpful" ? "有帮助" : fb === "not_specific" ? "不够具体" : "不适合我"}
-                        </button>
+                <div
+                  className={`max-w-[85%] rounded-3xl px-5 py-4 text-sm leading-7 shadow-sm ${
+                    message.role === "user"
+                      ? "bg-blue-600 text-white"
+                      : "border border-slate-200 bg-white text-slate-800"
+                  }`}
+                >
+                  <p className="whitespace-pre-wrap">{message.content}</p>
+                  {message.references && message.references.length > 0 && (
+                    <div className="mt-4 space-y-2 rounded-2xl bg-slate-50 p-3 text-slate-600">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">回答依据的经验</p>
+                      {message.references.map((reference) => (
+                        <div key={reference.id} className="rounded-2xl bg-white p-3">
+                          <p className="text-sm font-medium text-slate-800">
+                            {reference.category} · {reference.title}
+                          </p>
+                          <p className="mt-1 text-xs leading-6 text-slate-500">{reference.excerpt}</p>
+                        </div>
                       ))}
                     </div>
-                    {!message.feedback && message.feedbackDraftType && (
-                      <div className="mt-3 space-y-2">
-                        <textarea
-                          className="input-shell min-h-20 bg-white"
-                          value={message.feedbackComment ?? ""}
-                          onChange={(e) =>
-                            setMessages((prev) =>
-                              prev.map((m) =>
-                                m.messageId === message.messageId
-                                  ? { ...m, feedbackComment: e.target.value }
-                                  : m
-                              )
-                            )
-                          }
-                          placeholder="可以直接描述这个 Agent 的问题，例如：太像 AI、回答绕、没抓住我的背景..."
-                        />
-                        <div className="flex gap-2">
+                  )}
+                  {message.role === "assistant" && message.messageId && sessionId && profile?.viewerState.isLoggedIn && (
+                    <div className="mt-4 rounded-2xl bg-slate-50 p-3 text-xs text-slate-600">
+                      <p className="font-medium text-slate-700">这条回答感觉怎么样？</p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {(["helpful", "not_specific", "not_suitable"] as const).map((fb) => (
                           <button
+                            key={fb}
                             type="button"
-                            className="btn-secondary"
-                            onClick={async () => {
-                              const target = messages.find((m) => m.messageId === message.messageId);
-                              if (!target?.feedbackDraftType) return;
-                              const res = await fetch(`/api/life-agents/${id}/chat/feedback`, {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                credentials: "include",
-                                body: JSON.stringify({
-                                  messageId: message.messageId,
-                                  sessionId,
-                                  feedbackType: target.feedbackDraftType,
-                                  comment: target.feedbackComment?.trim() || undefined,
-                                }),
-                              });
-                              if (!res.ok) {
-                                setError("反馈提交失败，请稍后重试。");
-                                return;
-                              }
+                            onClick={() => {
+                              if (message.feedback) return;
                               setMessages((prev) =>
                                 prev.map((m) =>
                                   m.messageId === message.messageId
-                                    ? {
-                                        ...m,
-                                        feedback: target.feedbackDraftType,
-                                        feedbackComment: target.feedbackComment,
-                                        feedbackDraftType: undefined,
-                                      }
+                                    ? { ...m, feedbackDraftType: fb, feedbackComment: m.feedbackComment ?? "" }
                                     : m
                                 )
                               );
                             }}
+                            disabled={!!message.feedback}
+                            className={`rounded-full px-3 py-1.5 transition ${
+                              message.feedback === fb || message.feedbackDraftType === fb
+                                ? fb === "helpful"
+                                  ? "bg-green-100 text-green-700"
+                                  : "bg-amber-100 text-amber-700"
+                                : "bg-white text-slate-600 hover:bg-slate-100 disabled:opacity-50"
+                            }`}
                           >
-                            提交反馈
+                            {fb === "helpful" ? "有帮助" : fb === "not_specific" ? "不够具体" : "不适合我"}
                           </button>
-                          <button
-                            type="button"
-                            className="rounded-full px-3 py-1.5 text-slate-500 hover:bg-slate-100"
-                            onClick={() =>
+                        ))}
+                      </div>
+                      {!message.feedback && message.feedbackDraftType && (
+                        <div className="mt-3 space-y-2">
+                          <textarea
+                            className="input-shell min-h-20 bg-white"
+                            value={message.feedbackComment ?? ""}
+                            onChange={(e) =>
                               setMessages((prev) =>
                                 prev.map((m) =>
                                   m.messageId === message.messageId
-                                    ? { ...m, feedbackDraftType: undefined, feedbackComment: "" }
+                                    ? { ...m, feedbackComment: e.target.value }
                                     : m
                                 )
                               )
                             }
-                          >
-                            取消
-                          </button>
+                            placeholder="可以直接描述这个 Agent 的问题，例如：太像 AI、回答绕、没抓住我的背景..."
+                          />
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              className="btn-secondary"
+                              onClick={async () => {
+                                const target = messages.find((m) => m.messageId === message.messageId);
+                                if (!target?.feedbackDraftType) return;
+                                const res = await fetch(`/api/life-agents/${id}/chat/feedback`, {
+                                  method: "POST",
+                                  headers: { "Content-Type": "application/json" },
+                                  credentials: "include",
+                                  body: JSON.stringify({
+                                    messageId: message.messageId,
+                                    sessionId,
+                                    feedbackType: target.feedbackDraftType,
+                                    comment: target.feedbackComment?.trim() || undefined,
+                                  }),
+                                });
+                                if (!res.ok) {
+                                  setError("反馈提交失败，请稍后重试。");
+                                  return;
+                                }
+                                setMessages((prev) =>
+                                  prev.map((m) =>
+                                    m.messageId === message.messageId
+                                      ? {
+                                          ...m,
+                                          feedback: target.feedbackDraftType,
+                                          feedbackComment: target.feedbackComment,
+                                          feedbackDraftType: undefined,
+                                        }
+                                      : m
+                                  )
+                                );
+                              }}
+                            >
+                              提交反馈
+                            </button>
+                            <button
+                              type="button"
+                              className="rounded-full px-3 py-1.5 text-slate-500 hover:bg-slate-100"
+                              onClick={() =>
+                                setMessages((prev) =>
+                                  prev.map((m) =>
+                                    m.messageId === message.messageId
+                                      ? { ...m, feedbackDraftType: undefined, feedbackComment: "" }
+                                      : m
+                                  )
+                                )
+                              }
+                            >
+                              取消
+                            </button>
+                          </div>
                         </div>
-                      </div>
-                    )}
-                    {message.feedback && (
-                      <p className="mt-2 text-slate-500">
-                        已提交反馈
-                        {message.feedbackComment ? `：${message.feedbackComment}` : ""}
-                      </p>
-                    )}
-                  </div>
-                )}
+                      )}
+                      {message.feedback && (
+                        <p className="mt-2 text-slate-500">
+                          已提交反馈
+                          {message.feedbackComment ? `：${message.feedbackComment}` : ""}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
 
           {loading && (
             <div className="flex justify-start">
@@ -482,7 +659,7 @@ export default function LifeAgentChatPage() {
             </div>
             <button
               type="submit"
-              disabled={loading || !input.trim()}
+              disabled={loading || sessionLoading || !input.trim()}
               className="btn-primary min-w-36 justify-center self-end disabled:opacity-60"
             >
               发送问题

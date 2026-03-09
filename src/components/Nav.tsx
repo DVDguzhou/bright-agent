@@ -2,10 +2,8 @@
 
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-
-type User = { id: string; email: string; name: string | null };
+import { useAuth } from "@/contexts/AuthContext";
 
 const navLinks = [
   { href: "/life-agents", label: "人生 Agent" },
@@ -16,18 +14,11 @@ const navLinks = [
 export function Nav() {
   const router = useRouter();
   const pathname = usePathname();
-  const [user, setUser] = useState<User | null>(null);
-
-  useEffect(() => {
-    fetch("/api/auth/me", { credentials: "include" })
-      .then((r) => (r.ok ? r.json() : null))
-      .then(setUser)
-      .catch(() => setUser(null));
-  }, [pathname]);
+  const { user, refetch } = useAuth();
 
   const logout = async () => {
     await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
-    setUser(null);
+    refetch();
     router.push("/");
     router.refresh();
   };

@@ -336,30 +336,6 @@ export default function LifeAgentDetailPage() {
           <p className="mt-4 text-sm leading-6 text-slate-600">{profile.shortBio}</p>
         </div>
       </section>
-
-      <section className="glass-card p-6">
-        <h2 className="text-xl font-semibold text-slate-900">知识内容预览</h2>
-        <div className="mt-5 grid gap-4 md:grid-cols-2">
-          {(profile.knowledgeEntries ?? []).map((entry) => (
-            <div key={entry.id} className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
-              <div className="flex items-center justify-between gap-3">
-                <span className="rounded-full bg-white px-3 py-1 text-xs font-medium text-sky-700">
-                  {entry.category}
-                </span>
-                <div className="flex flex-wrap justify-end gap-2">
-                  {(entry.tags ?? []).slice(0, 3).map((tag: string) => (
-                    <span key={tag} className="text-xs text-slate-500">
-                      #{tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-              <h3 className="mt-4 text-lg font-semibold text-slate-900">{entry.title}</h3>
-              <p className="mt-3 line-clamp-4 text-sm leading-6 text-slate-600">{entry.content}</p>
-            </div>
-          ))}
-        </div>
-      </section>
     </div>
   );
 }

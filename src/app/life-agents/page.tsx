@@ -5,6 +5,13 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { RatingStars } from "@/components/RatingStars";
 import { VerificationBadge } from "@/components/VerificationBadge";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  COUNTRY_OPTIONS_FOR_FILTER as COUNTRY_OPTIONS,
+  getCityOptionsForFilter as getCityOptions,
+  getCountyOptionsForFilter as getCountyOptions,
+  getProvinceOptionsForFilter as getProvinceOptions,
+} from "@/lib/address-hierarchy";
 
 type LifeAgentListItem = {
   id: string;
@@ -39,451 +46,63 @@ type LifeAgentListItem = {
   };
 };
 
-type User = {
-  id: string;
-  email: string;
-};
+const UI = {
+  all: "全部",
+  allOrAny: "全部 / 不限",
+  badge: "专注本地经验的对话式 Agent",
+  heroTitle: "浏览人生 Agent",
+  heroSubtitle:
+    "学长、大妈、酒吧达人、创业者，把真实经历做成可对话的 Agent，按次付费咨询。",
+  createAgent: "创建 Agent",
+  profileHome: "个人主页",
+  signup: "注册",
+  sectionTitle: "人生 Agent",
+  sectionSubtitle: "按经验领域、地区筛选",
+  loading: "加载中...",
+  countSuffix: "个",
+  keywordSearch: "关键词搜索",
+  searchPlaceholder:
+    "如：考研、求职、转行、职业规划...",
+  searchHint:
+    "支持多关键词，空格或逗号分隔；会自动扩展相关词，如搜“考研”会匹配“就业”“读研”等。",
+  region: "所在地区",
+  regionHint:
+    "可多级筛选，组合关键词与地区缩小范围",
+  emptyTitle: "还没有人生 Agent",
+  emptySubtitle:
+    "创建第一个，把你的经验变成可对话的咨询页",
+  school: "学校",
+  education: "学历",
+  job: "工作",
+  income: "收入",
+  area: "地区",
+  unrated: "暂无评分",
+  ratersSuffix: "人评分",
+  perQuestion: "每次提问",
+  knowledgeCount: "知识条目",
+  soldQuestionPacks: "已售提问包",
+  sessionCount: "聊天场次",
+  audience: "适合人群",
+  anonymous: "佚",
+} as const;
 
-const RELATED_TERM_GROUPS = [
-  ["考研", "读研", "研究生", "上岸", "保研"],
-  ["留学", "出国", "海外", "雅思", "托福", "申请学校"],
-  ["找工作", "求职", "面试", "校招", "社招", "找岗"],
-  ["转行", "换行业", "换赛道", "职业转型", "跳槽"],
-  ["产品经理", "产品", "pm"],
-  ["程序员", "开发", "工程师", "后端", "前端"],
-  ["创业", "开公司", "做生意", "副业", "个体经营"],
-  ["租房", "找房", "合租", "房租", "看房"],
-  ["买房", "购房", "置业"],
-  ["带娃", "育儿", "养娃", "亲子"],
-  ["相亲", "找对象", "恋爱", "婚恋"],
-  ["菜市场", "买菜", "生鲜", "本地采购"],
-  ["探店", "吃喝玩乐", "美食", "本地玩乐"],
-  ["签证", "出签", "办签证"],
-  ["移民", "定居", "海外落户"],
+const RELATED_TERM_GROUPS: string[][] = [
+  ["考研", "就业", "读研", "保研", "调剂"],
+  ["求职", "秋招", "春招", "面试", "简历"],
+  ["转行", "offer", "跳槽"],
+  ["职业规划", "副业", "创业"],
+  ["体制内", "考公", "考编"],
+  ["留学", "托福", "雅思", "申请", "文书"],
+  ["实习", "校招", "社招", "内推"],
+  ["产品", "运营", "开发", "设计"],
+  ["金融", "互联网", "咨询"],
+  ["北京", "上海", "广州", "深圳"],
+  ["杭州", "成都", "南京", "武汉"],
+  ["远程", "居家", "线下", "兼职"],
+  ["大厂", "初创", "外企"],
+  ["离职", "offer", "裸辞"],
+  ["涨薪", "晋升", "转岗"],
 ];
-
-const ADDRESS_HIERARCHY: Record<
-  string,
-  Record<string, Record<string, string[]>>
-> = {
-  中国: {
-    北京市: { 北京: ["东城区", "西城区", "朝阳区", "海淀区", "丰台区"] },
-    天津市: { 天津: ["和平区", "河西区", "南开区"] },
-    河北省: { 石家庄: ["长安区", "桥西区"], 唐山: ["路南区", "路北区"], 秦皇岛: [], 保定: [], 邯郸: [], 邢台: [], 张家口: [], 承德: [], 沧州: [], 廊坊: [], 衡水: [], 雄安新区: [] },
-    山西省: { 太原: ["迎泽区", "小店区"], 大同: [], 阳泉: [], 长治: [], 晋城: [], 朔州: [], 晋中: [], 运城: [], 忻州: [], 临汾: [], 吕梁: [] },
-    内蒙古自治区: { 呼和浩特: [], 包头: [], 乌海: [], 赤峰: [], 通辽: [], 鄂尔多斯: [], 呼伦贝尔: [], 巴彦淖尔: [], 乌兰察布: [] },
-    辽宁省: { 沈阳: ["和平区", "沈河区"], 大连: ["中山区", "西岗区"], 鞍山: [], 抚顺: [], 本溪: [], 丹东: [], 锦州: [], 营口: [], 阜新: [], 辽阳: [], 盘锦: [], 铁岭: [], 朝阳: [], 葫芦岛: [] },
-    吉林省: { 长春: ["朝阳区", "南关区"], 吉林: [], 四平: [], 辽源: [], 通化: [], 白山: [], 松原: [], 白城: [] },
-    黑龙江省: { 哈尔滨: ["南岗区", "道里区"], 齐齐哈尔: [], 鸡西: [], 鹤岗: [], 双鸭山: [], 大庆: [], 伊春: [], 佳木斯: [], 七台河: [], 牡丹江: [], 黑河: [], 绥化: [] },
-    上海市: { 上海: ["黄浦区", "静安区", "浦东新区", "徐汇区", "长宁区", "虹口区", "杨浦区"] },
-    江苏省: { 南京: ["玄武区", "秦淮区", "鼓楼区"], 无锡: [], 徐州: [], 常州: [], 苏州: ["姑苏区", "虎丘区", "工业园区"], 南通: [], 连云港: [], 淮安: [], 盐城: [], 扬州: [], 镇江: [], 泰州: [], 宿迁: [] },
-    浙江省: { 杭州: ["西湖区", "滨江区", "上城区"], 宁波: ["海曙区", "江北区", "鄞州区"], 温州: ["鹿城区", "龙湾区", "瓯海区", "乐清", "瑞安"], 嘉兴: [], 湖州: [], 绍兴: [], 金华: [], 衢州: [], 舟山: [], 台州: [], 丽水: [] },
-    安徽省: { 合肥: ["蜀山区", "包河区"], 芜湖: [], 蚌埠: [], 淮南: [], 马鞍山: [], 淮北: [], 铜陵: [], 安庆: [], 黄山: [], 滁州: [], 阜阳: [], 宿州: [], 六安: [], 亳州: [], 池州: [], 宣城: [] },
-    福建省: { 福州: ["鼓楼区", "台江区"], 厦门: ["思明区", "湖里区"], 莆田: [], 三明: [], 泉州: [], 漳州: [], 南平: [], 龙岩: [], 宁德: [] },
-    江西省: { 南昌: ["东湖区", "西湖区"], 景德镇: [], 萍乡: [], 九江: [], 新余: [], 鹰潭: [], 赣州: [], 吉安: [], 宜春: [], 抚州: [], 上饶: [] },
-    山东省: { 济南: ["历下区", "市中区"], 青岛: ["市南区", "市北区"], 淄博: [], 枣庄: [], 东营: [], 烟台: [], 潍坊: [], 济宁: [], 泰安: [], 威海: [], 日照: [], 临沂: [], 德州: [], 聊城: [], 滨州: [], 菏泽: [] },
-    河南省: { 郑州: ["金水区", "中原区"], 开封: [], 洛阳: [], 平顶山: [], 安阳: [], 鹤壁: [], 新乡: [], 焦作: [], 濮阳: [], 许昌: [], 漯河: [], 三门峡: [], 南阳: [], 商丘: [], 信阳: [], 周口: [], 驻马店: [] },
-    湖北省: { 武汉: ["江岸区", "武昌区"], 黄石: [], 十堰: [], 宜昌: [], 襄阳: [], 鄂州: [], 荆门: [], 孝感: [], 荆州: [], 黄冈: [], 咸宁: [], 随州: [], 恩施: [] },
-    湖南省: { 长沙: ["岳麓区", "芙蓉区"], 株洲: [], 湘潭: [], 衡阳: [], 邵阳: [], 岳阳: [], 常德: [], 张家界: [], 益阳: [], 郴州: [], 永州: [], 怀化: [], 娄底: [], 湘西: [] },
-    广东省: { 广州: ["天河区", "越秀区", "荔湾区"], 深圳: ["南山区", "福田区", "罗湖区"], 珠海: [], 汕头: [], 佛山: [], 韶关: [], 湛江: [], 肇庆: [], 江门: [], 茂名: [], 惠州: [], 梅州: [], 汕尾: [], 河源: [], 阳江: [], 清远: [], 东莞: [], 中山: [], 潮州: [], 揭阳: [], 云浮: [] },
-    广西壮族自治区: { 南宁: ["青秀区", "兴宁区"], 柳州: [], 桂林: [], 梧州: [], 北海: [], 防城港: [], 钦州: [], 贵港: [], 玉林: [], 百色: [], 贺州: [], 河池: [], 来宾: [], 崇左: [] },
-    海南省: { 海口: ["龙华区", "美兰区"], 三亚: [], 三沙: [], 儋州: [] },
-    重庆市: { 重庆: ["渝中区", "江北区", "南岸区", "九龙坡区"] },
-    四川省: { 成都: ["锦江区", "武侯区", "青羊区"], 自贡: [], 攀枝花: [], 泸州: [], 德阳: [], 绵阳: [], 广元: [], 遂宁: [], 内江: [], 乐山: [], 南充: [], 眉山: [], 宜宾: [], 广安: [], 达州: [], 雅安: [], 巴中: [], 资阳: [], 阿坝: [], 甘孜: [], 凉山: [] },
-    贵州省: { 贵阳: ["云岩区", "南明区"], 六盘水: [], 遵义: [], 安顺: [], 毕节: [], 铜仁: [], 黔西南: [], 黔东南: [], 黔南: [] },
-    云南省: { 昆明: ["五华区", "盘龙区"], 曲靖: [], 玉溪: [], 保山: [], 昭通: [], 丽江: [], 普洱: [], 临沧: [], 楚雄: [], 红河: [], 文山: [], 西双版纳: [], 大理: [], 德宏: [], 怒江: [], 迪庆: [] },
-    西藏自治区: { 拉萨: ["城关区"], 日喀则: [], 昌都: [], 林芝: [], 山南: [], 那曲: [], 阿里: [] },
-    陕西省: { 西安: ["雁塔区", "碑林区", "未央区"], 铜川: [], 宝鸡: [], 咸阳: [], 渭南: [], 延安: [], 汉中: [], 榆林: [], 安康: [], 商洛: [] },
-    甘肃省: { 兰州: ["城关区", "七里河区"], 嘉峪关: [], 金昌: [], 白银: [], 天水: [], 武威: [], 张掖: [], 平凉: [], 酒泉: [], 庆阳: [], 定西: [], 陇南: [], 临夏: [], 甘南: [] },
-    青海省: { 西宁: ["城东区", "城西区"], 海东: [], 海北: [], 黄南: [], 海南: [], 果洛: [], 玉树: [], 海西: [] },
-    宁夏回族自治区: { 银川: ["兴庆区", "金凤区"], 石嘴山: [], 吴忠: [], 固原: [], 中卫: [] },
-    新疆维吾尔自治区: { 乌鲁木齐: ["天山区", "沙依巴克区"], 克拉玛依: [], 吐鲁番: [], 哈密: [], 昌吉: [], 博尔塔拉: [], 巴音郭楞: [], 阿克苏: [], 克孜勒苏: [], 喀什: [], 和田: [], 伊犁: [], 塔城: [], 阿勒泰: [] },
-    香港特别行政区: { 香港: ["香港岛", "九龙", "新界"] },
-    澳门特别行政区: { 澳门: ["澳门半岛", "氹仔", "路环"] },
-    台湾省: { 台北: ["中正区", "大安区"], 新北: [], 桃园: [], 台中: [], 台南: [], 高雄: [] },
-  },
-  日本: {
-    北海道: { 札幌: ["中央区", "北区"], 旭川: [], 函馆: [] },
-    青森县: { 青森: [], 弘前: [] },
-    岩手县: { 盛冈: [], 釜石: [] },
-    宫城县: { 仙台: ["青叶区", "宫城野区"], 石卷: [] },
-    秋田县: { 秋田: [], 大馆: [] },
-    山形县: { 山形: [], 米泽: [] },
-    福岛县: { 福岛: [], 会津若松: [], 郡山: [] },
-    茨城县: { 水户: [], 筑波: [] },
-    栃木县: { 宇都宫: [], 日光: [] },
-    群马县: { 前桥: [], 高崎: [] },
-    埼玉县: { 埼玉: [], 川口: [], 浦和: [], 所泽: [] },
-    千叶县: { 千叶: ["中央区"], 市川: [], 船桥: [], 柏: [] },
-    东京都: { 东京: ["涩谷区", "新宿区", "港区", "品川区", "目黑区", "大田区", "世田谷区", "中野区", "杉并区", "丰岛区", "北区", "荒川区", "板桥区", "练马区", "足立区", "葛饰区", "江户川区"], 八王子: [], 立川: [] },
-    神奈川县: { 横滨: ["中区", "西区", "港北区"], 川崎: [], 相模原: [], 镰仓: [], 藤泽: [] },
-    新潟县: { 新潟: [], 长冈: [] },
-    富山县: { 富山: [], 高冈: [] },
-    石川县: { 金泽: [], 加贺: [] },
-    福井县: { 福井: [], 敦贺: [] },
-    山梨县: { 甲府: [], 富士吉田: [] },
-    长野县: { 长野: [], 松本: [], 轻井泽: [] },
-    岐阜县: { 岐阜: [], 高山: [] },
-    静冈县: { 静冈: [], 滨松: [], 富士: [], 热海: [] },
-    爱知县: { 名古屋: ["中区", "东区", "中村区"], 丰田: [], 冈崎: [] },
-    三重县: { 津: [], 伊势: [], 松阪: [] },
-    滋贺县: { 大津: [], 彦根: [] },
-    京都府: { 京都: ["东山区", "中京区", "下京区", "伏见区"], 宇治: [], 舞鹤: [] },
-    大阪府: { 大阪: ["北区", "中央区", "西区", "天王寺区", "浪速区", "淀川区"], 堺: [], 岸和田: [], 高石: [] },
-    兵库县: { 神户: ["中央区", "滩区"], 姬路: [], 尼崎: [], 西宫: [] },
-    奈良县: { 奈良: [], 大和高田: [] },
-    和歌山县: { 和歌山: [], 田边: [] },
-    鸟取县: { 鸟取: [], 米子: [] },
-    岛根县: { 松江: [], 出云: [] },
-    冈山县: { 冈山: [], 仓敷: [] },
-    广岛县: { 广岛: ["中区", "西区"], 福山: [], 吴: [] },
-    山口县: { 山口: [], 下关: [], 宇部: [] },
-    德岛县: { 德岛: [], 鸣门: [] },
-    香川县: { 高松: [], 丸龟: [] },
-    爱媛县: { 松山: [], 今治: [] },
-    高知县: { 高知: [], 室户: [] },
-    福冈县: { 福冈: ["博多区", "中央区", "南区"], 北九州: [], 久留米: [], 筑丰: [] },
-    佐贺县: { 佐贺: [], 唐津: [] },
-    长崎县: { 长崎: [], 佐世保: [] },
-    熊本县: { 熊本: [], 八代: [] },
-    大分县: { 大分: [], 别府: [] },
-    宫崎县: { 宫崎: [], 延冈: [] },
-    鹿儿岛县: { 鹿儿岛: [], 雾岛: [] },
-    冲绳县: { 那霸: [], 冲绳: [], 名护: [] },
-  },
-  美国: {
-    华盛顿哥伦比亚特区: { 华盛顿: ["Georgetown", "Downtown"] },
-    阿拉巴马州: { 伯明翰: [], 蒙哥马利: [], 亨茨维尔: [] },
-    阿拉斯加州: { 安克雷奇: [], 费尔班克斯: [], 朱诺: [] },
-    亚利桑那州: { 凤凰城: [], 图森: [], 斯科茨代尔: [], 梅萨: [] },
-    阿肯色州: { 小石城: [], 史密斯堡: [] },
-    加利福尼亚州: { 洛杉矶: ["Downtown", "Hollywood", "Santa Monica"], 旧金山: ["Downtown", "Mission", "SOMA"], 圣何塞: [], 圣地亚哥: [], 奥克兰: [], 萨克拉门托: [], 弗雷斯诺: [], 长滩: [], 伯克利: [], 帕洛阿尔托: [] },
-    科罗拉多州: { 丹佛: [], 博尔德: [], 科罗拉多斯普林斯: [], 阿斯彭: [] },
-    康涅狄格州: { 哈特福德: [], 纽黑文: [], 斯坦福: [] },
-    特拉华州: { 威尔明顿: [], 多佛: [] },
-    佛罗里达州: { 迈阿密: [], 奥兰多: [], 坦帕: [], 杰克逊维尔: [], 劳德代尔堡: [], 西棕榈滩: [] },
-    佐治亚州: { 亚特兰大: [], 萨凡纳: [], 奥古斯塔: [] },
-    夏威夷州: { 火奴鲁鲁: [], 希洛: [], 卡瓦伊: [] },
-    爱达荷州: { 博伊西: [], 科达伦: [] },
-    伊利诺伊州: { 芝加哥: ["Downtown", "Lincoln Park", "Wicker Park"], 斯普林菲尔德: [], 罗克福德: [], 内珀维尔: [] },
-    印第安纳州: { 印第安纳波利斯: [], 韦恩堡: [], 南本德: [] },
-    艾奥瓦州: { 得梅因: [], 锡达拉皮兹: [], 艾奥瓦城: [] },
-    堪萨斯州: { 威奇托: [], 堪萨斯城: [], 奥弗兰帕克: [] },
-    肯塔基州: { 路易维尔: [], 列克星敦: [], 法兰克福: [] },
-    路易斯安那州: { 新奥尔良: [], 巴吞鲁日: [], 什里夫波特: [] },
-    缅因州: { 波特兰: [], 奥古斯塔: [], 班戈: [] },
-    马里兰州: { 巴尔的摩: [], 银泉: [], 罗克维尔: [], 贝塞斯达: [] },
-    马萨诸塞州: { 波士顿: ["Downtown", "Back Bay", "Cambridge"], 伍斯特: [], 斯普林菲尔德: [] },
-    密歇根州: { 底特律: [], 安娜堡: [], 大急流城: [], 兰辛: [] },
-    明尼苏达州: { 明尼阿波利斯: [], 圣保罗: [], 罗切斯特: [], 杜鲁斯: [] },
-    密西西比州: { 杰克逊: [], 格尔夫波特: [] },
-    密苏里州: { 堪萨斯城: [], 圣路易斯: [], 斯普林菲尔德: [], 哥伦比亚: [] },
-    蒙大拿州: { 比灵斯: [], 米苏拉: [], 博兹曼: [], 海伦娜: [] },
-    内布拉斯加州: { 奥马哈: [], 林肯: [] },
-    内华达州: { 拉斯维加斯: [], 里诺: [], 亨德森: [] },
-    新罕布什尔州: { 曼彻斯特: [], 纳舒厄: [], 康科德: [] },
-    新泽西州: { 纽瓦克: [], 泽西城: [], 帕特森: [], 埃迪逊: [], 霍博肯: [], 普林斯顿: [] },
-    新墨西哥州: { 阿尔伯克基: [], 圣达菲: [], 拉斯克鲁塞斯: [] },
-    纽约州: { 纽约: ["Manhattan", "Queens", "Brooklyn", "Bronx", "Staten Island"], 布法罗: [], 罗切斯特: [], 奥尔巴尼: [], 锡拉丘兹: [], 怀特普莱恩斯: [] },
-    北卡罗来纳州: { 夏洛特: [], 罗利: [], 格林斯伯勒: [], 达勒姆: [], 阿什维尔: [] },
-    北达科他州: { 法戈: [], 俾斯麦: [], 大福克斯: [] },
-    俄亥俄州: { 哥伦布: [], 克利夫兰: [], 辛辛那提: [], 托莱多: [], 阿克伦: [] },
-    俄克拉荷马州: { 俄克拉荷马城: [], 塔尔萨: [], 诺曼: [] },
-    俄勒冈州: { 波特兰: [], 塞勒姆: [], 尤金: [], 本德: [] },
-    宾夕法尼亚州: { 费城: [], 匹兹堡: [], 阿伦敦: [], 哈里斯堡: [], 斯克兰顿: [] },
-    罗得岛州: { 普罗维登斯: [], 沃里克: [], 纽波特: [] },
-    南卡罗来纳州: { 查尔斯顿: [], 哥伦比亚: [], 格林维尔: [], 默特尔比奇: [] },
-    南达科他州: { 苏福尔斯: [], 拉皮德城: [], 阿伯丁: [] },
-    田纳西州: { 纳什维尔: [], 孟菲斯: [], 诺克斯维尔: [], 查塔努加: [], 加特林堡: [] },
-    得克萨斯州: { 休斯顿: [], 达拉斯: [], 奥斯汀: [], 圣安东尼奥: [], 沃斯堡: [], 埃尔帕索: [], 普莱诺: [] },
-    犹他州: { 盐湖城: [], 普罗沃: [], 奥格登: [], 帕克城: [] },
-    佛蒙特州: { 伯灵顿: [], 蒙彼利埃: [], 拉特兰: [] },
-    弗吉尼亚州: { 里士满: [], 弗吉尼亚海滩: [], 诺福克: [], 阿灵顿: [], 亚历山大: [], 夏洛茨维尔: [] },
-    华盛顿州: { 西雅图: [], 斯波坎: [], 塔科马: [], 贝尔维尤: [], 温哥华: [] },
-    西弗吉尼亚州: { 查尔斯顿: [], 亨廷顿: [], 摩根城: [] },
-    威斯康星州: { 密尔沃基: [], 麦迪逊: [], 绿湾: [], 基诺沙: [] },
-    怀俄明州: { 夏延: [], 卡斯珀: [], 杰克逊: [] },
-  },
-  英国: {
-    英格兰: { 伦敦: ["Westminster", "Camden", "Kensington", "City of London"], 伯明翰: [], 曼彻斯特: [], 利物浦: [], 利兹: [], 谢菲尔德: [], 布里斯托: [], 纽卡斯尔: [], 诺丁汉: [], 南安普敦: [], 布莱顿: [], 剑桥: [], 牛津: [], 约克: [], 巴斯: [] },
-    苏格兰: { 爱丁堡: ["City of Edinburgh", "Old Town"], 格拉斯哥: [], 阿伯丁: [], 邓迪: [], 因弗内斯: [] },
-    威尔士: { 加的夫: [], 斯旺西: [], 纽波特: [], 班戈: [] },
-    北爱尔兰: { 贝尔法斯特: [], 德里: [], 利斯本: [] },
-  },
-  加拿大: {
-    艾伯塔省: { 卡尔加里: [], 埃德蒙顿: [], 红鹿: [] },
-    不列颠哥伦比亚省: { 温哥华: ["Downtown", "Kitsilano", "Richmond"], 维多利亚: [], 基洛纳: [], 坎卢普斯: [], 纳奈莫: [] },
-    曼尼托巴省: { 温尼伯: [], 布兰登: [] },
-    新不伦瑞克省: { 弗雷德里克顿: [], 圣约翰: [], 蒙克顿: [] },
-    纽芬兰与拉布拉多省: { 圣约翰斯: [], 科纳布鲁克: [] },
-    新斯科舍省: { 哈利法克斯: [], 达特茅斯: [], 悉尼: [] },
-    安大略省: { 多伦多: ["Downtown", "Scarborough", "North York", "Mississauga"], 渥太华: [], 汉密尔顿: [], 伦敦: [], 基奇纳: [], 温莎: [], 金斯顿: [], "尼亚加拉瀑布": [] },
-    爱德华王子岛省: { 夏洛特敦: [], 萨默赛德: [] },
-    魁北克省: { 蒙特利尔: [], 魁北克城: [], 拉瓦尔: [], 加蒂诺: [], 舍布鲁克: [] },
-    萨斯喀彻温省: { 里贾纳: [], 萨斯卡通: [], 穆斯乔: [] },
-    西北地区: { 耶洛奈夫: [], 伊努维克: [] },
-    育空地区: { 怀特霍斯: [], 道森: [] },
-    努纳武特地区: { 伊魁特: [], 兰金因莱特: [] },
-  },
-  澳大利亚: {
-    新南威尔士州: { 悉尼: ["Sydney CBD", "North Sydney", "Eastern Suburbs"], 纽卡斯尔: [], 伍伦贡: [], 中央海岸: [] },
-    维多利亚州: { 墨尔本: ["Melbourne CBD", "Richmond", "Fitzroy"], 吉朗: [], 本迪戈: [], 巴拉瑞特: [] },
-    昆士兰州: { 布里斯班: [], 黄金海岸: [], 阳光海岸: [], 凯恩斯: [], 汤斯维尔: [] },
-    西澳大利亚州: { 珀斯: [], 弗里曼特尔: [], 曼哲拉: [] },
-    南澳大利亚州: { 阿德莱德: [], 芒特甘比尔: [] },
-    塔斯马尼亚州: { 霍巴特: [], 朗塞斯顿: [], 德文波特: [] },
-    首都领地: { 堪培拉: [] },
-    北领地: { 达尔文: [], 艾丽斯泉: [] },
-  },
-  新加坡: { 新加坡: { 新加坡: ["中区", "东北区", "西北区", "东南区", "西南区"] } },
-  韩国: {
-    首尔特别市: { 首尔: ["江南区", "弘大", "明洞", "梨泰院"] },
-    釜山广域市: { 釜山: ["海云台", "西面"] },
-    大邱广域市: { 大邱: [] },
-    仁川广域市: { 仁川: [] },
-    光州广域市: { 光州: [] },
-    大田广域市: { 大田: [] },
-    蔚山广域市: { 蔚山: [] },
-    世宗特别自治市: { 世宗: [] },
-    京畿道: { 水原: [], 城南: [], 高阳: [], 龙仁: [], 安山: [], 富川: [] },
-    江原道: { 春川: [], 江陵: [], 束草: [] },
-    忠清北道: { 清州: [], 忠州: [] },
-    忠清南道: { 天安: [], 公州: [] },
-    全罗北道: { 全州: [], 群山: [] },
-    全罗南道: { 光阳: [], 木浦: [] },
-    庆尚北道: { 浦项: [], 庆州: [], 龟尾: [] },
-    庆尚南道: { 昌原: [], 釜山: [] },
-    济州特别自治道: { 济州: [], 西归浦: [] },
-  },
-  马来西亚: {
-    柔佛: { 新山: [], 古来: [] },
-    吉打: { 亚罗士打: [], 双溪大年: [] },
-    吉兰丹: { 哥打巴鲁: [] },
-    马六甲: { 马六甲: [], 亚罗牙也: [] },
-    森美兰: { 芙蓉: [], 波德申: [] },
-    彭亨: { 关丹: [], 金马仑: [] },
-    槟城: { 乔治市: [], 北海: [] },
-    霹雳: { 怡保: [], 太平: [] },
-    玻璃市: { 加央: [] },
-    雪兰莪: { 莎阿南: [], 八打灵: [], 巴生: [] },
-    登嘉楼: { 瓜拉登嘉楼: [] },
-    沙巴: { 亚庇: [], 山打根: [] },
-    砂拉越: { 古晋: [], 美里: [] },
-    吉隆坡: { 吉隆坡: [] },
-    纳闽: { 纳闽: [] },
-    布城: { 布城: [] },
-  },
-  泰国: {
-    曼谷: { 曼谷: ["Sukhumvit", "Silom", "Siam"] },
-    清迈府: { 清迈: [] },
-    普吉府: { 普吉: [] },
-    春武里府: { 芭堤雅: [], 春武里: [] },
-    北碧府: { 北碧: [] },
-    呵叻府: { 呵叻: [] },
-    清莱府: { 清莱: [] },
-  },
-  越南: {
-    河内市: { 河内: [] },
-    胡志明市: { 胡志明: [] },
-    岘港市: { 岘港: [] },
-    芹苴市: { 芹苴: [] },
-    海防市: { 海防: [] },
-    广宁省: { 下龙: [] },
-    庆和省: { 芽庄: [] },
-  },
-  新西兰: {
-    奥克兰: { 奥克兰: [] },
-    惠灵顿: { 惠灵顿: [] },
-    坎特伯雷: { 基督城: [] },
-    怀卡托: { 汉密尔顿: [] },
-    奥塔哥: { 但尼丁: [], 皇后镇: [] },
-  },
-  法国: {
-    法兰西岛: { 巴黎: ["1区", "2区", "玛黑区", "蒙马特"], 凡尔赛: [], 马恩河谷: [] },
-    "普罗旺斯-阿尔卑斯-蔚蓝海岸": { 马赛: [], 尼斯: [], 戛纳: [], 艾克斯: [] },
-    "奥弗涅-罗讷-阿尔卑斯": { 里昂: [], 格勒诺布尔: [], 圣埃蒂安: [] },
-    新阿基坦: { 波尔多: [], 拉罗谢尔: [], 利摩日: [] },
-    奥克西塔尼: { 图卢兹: [], 蒙彼利埃: [], 尼姆: [] },
-    大东部: { 斯特拉斯堡: [], 兰斯: [], 梅斯: [], 南锡: [] },
-    上法兰西: { 里尔: [], 亚眠: [], 加来: [] },
-    诺曼底: { 鲁昂: [], 勒阿弗尔: [], 卡昂: [] },
-    布列塔尼: { 雷恩: [], 布雷斯特: [], 南特: [] },
-    卢瓦尔河谷: { 图尔: [], 昂热: [], 勒芒: [] },
-  },
-  德国: {
-    巴伐利亚: { 慕尼黑: ["老城", "施瓦宾"], 纽伦堡: [], 奥格斯堡: [], 维尔茨堡: [] },
-    "北莱茵-威斯特法伦": { 科隆: [], 杜塞尔多夫: [], 多特蒙德: [], 埃森: [], 波恩: [] },
-    "巴登-符腾堡": { 斯图加特: [], 曼海姆: [], 海德堡: [], 弗莱堡: [] },
-    柏林: { 柏林: ["米特", "夏洛滕堡", "克罗伊茨贝格", "普伦茨劳贝格"] },
-    汉堡: { 汉堡: ["阿尔托纳", "圣保利", "易北河畔"] },
-    黑森: { 法兰克福: [], 威斯巴登: [], 卡塞尔: [] },
-    萨克森: { 德累斯顿: [], 莱比锡: [], 开姆尼茨: [] },
-    下萨克森: { 汉诺威: [], 不莱梅: [], 布伦瑞克: [] },
-    "石勒苏益格-荷尔斯泰因": { 基尔: [], 吕贝克: [], 弗伦斯堡: [] },
-    "莱茵兰-普法尔茨": { 美因茨: [], 路德维希港: [], 科布伦茨: [] },
-  },
-  意大利: {
-    拉齐奥: { 罗马: ["古城", "梵蒂冈周边", "特拉斯提弗列"], 拉蒂纳: [] },
-    伦巴第: { 米兰: ["Centro", "Navigli", "Brera"], 布雷西亚: [], 贝加莫: [], 科莫: [] },
-    威内托: { 威尼斯: [], 维罗纳: [], 帕多瓦: [] },
-    坎帕尼亚: { 那不勒斯: [], 萨勒诺: [], 卡普里: [] },
-    托斯卡纳: { 佛罗伦萨: [], 比萨: [], 锡耶纳: [] },
-    皮埃蒙特: { 都灵: [], 诺瓦拉: [] },
-    "艾米利亚-罗马涅": { 博洛尼亚: [], 帕尔马: [], 摩德纳: [], 费拉拉: [] },
-    西西里: { 巴勒莫: [], 卡塔尼亚: [], 墨西拿: [], 锡拉库萨: [] },
-    撒丁: { 卡利亚里: [], 萨萨里: [], 奥尔比亚: [] },
-    利古里亚: { 热那亚: [], 拉斯佩齐亚: [] },
-  },
-  西班牙: {
-    马德里: { 马德里: ["Centro", "Salamanca", "Chamberí"], 阿尔卡拉: [] },
-    加泰罗尼亚: { 巴塞罗那: ["Ciutat Vella", "Eixample", "Gràcia"], 赫罗纳: [], 塔拉戈纳: [] },
-    安达卢西亚: { 塞维利亚: [], 马拉加: [], 格拉纳达: [], 科尔多瓦: [], 加的斯: [] },
-    瓦伦西亚: { 瓦伦西亚: [], 阿利坎特: [], 卡斯特利翁: [] },
-    巴斯克: { 毕尔巴鄂: [], 圣塞巴斯蒂安: [], 维多利亚: [] },
-    加利西亚: { 圣地亚哥: [], 维戈: [], 拉科鲁尼亚: [] },
-    "卡斯蒂利亚-莱昂": { 巴利亚多利德: [], 萨拉曼卡: [], 莱昂: [] },
-    加那利群岛: { 拉斯帕尔马斯: [], 圣克鲁斯: [] },
-    巴利阿里群岛: { 帕尔马: [], 伊维萨: [], 马略卡: [] },
-    纳瓦拉: { 潘普洛纳: [] },
-  },
-  荷兰: {
-    北荷兰: { 阿姆斯特丹: ["Centrum", "Jordaan", "De Pijp"], 哈勒姆: [], 赞丹: [] },
-    南荷兰: { 海牙: [], 鹿特丹: [], 莱顿: [], 代尔夫特: [], 多德雷赫特: [] },
-    乌得勒支: { 乌得勒支: [], 阿默斯福特: [] },
-    北布拉邦: { 埃因霍温: [], 布雷达: [], 蒂尔堡: [] },
-    林堡: { 马斯特里赫特: [], 芬洛: [] },
-    格罗宁根: { 格罗宁根: [], 格罗宁根港: [] },
-    上艾瑟尔: { 恩斯赫德: [], 兹沃勒: [] },
-    弗里斯兰: { 吕伐登: [] },
-    泽兰: { 米德尔堡: [] },
-  },
-  爱尔兰: {
-    伦斯特: { 都柏林: ["市中心", "Temple Bar", "Docklands"], 科克: [], 基尔肯尼: [], 韦克斯福德: [] },
-    芒斯特: { 科克: [], 利默里克: [], 沃特福德: [], 克里: [] },
-    康诺特: { 戈尔韦: [], 斯莱戈: [], 梅奥: [] },
-    阿尔斯特: { 贝尔法斯特: [], 德里: [], 多尼戈尔: [] },
-  },
-  瑞士: {
-    苏黎世: { 苏黎世: ["老城", "西区", "苏黎世湖"], 温特图尔: [] },
-    伯尔尼: { 伯尔尼: [], 因特拉肯: [], 图恩: [] },
-    日内瓦: { 日内瓦: [] },
-    沃州: { 洛桑: [], 蒙特勒: [], 沃韦: [] },
-    提契诺: { 卢加诺: [], 洛迦诺: [], 贝林佐纳: [] },
-    巴塞尔: { 巴塞尔: [], 巴塞尔乡村: [] },
-    格劳宾登: { 圣莫里茨: [], 达沃斯: [], 库尔: [] },
-    瓦莱: { 采尔马特: [], 韦尔比耶: [], 锡永: [] },
-  },
-  葡萄牙: {
-    里斯本: { 里斯本: ["阿尔法玛", "贝伦", "拜萨"], 辛特拉: [], 卡斯凯斯: [] },
-    北部: { 波尔图: [], 布拉加: [], 吉马良斯: [], 维亚纳: [] },
-    中部: { 科英布拉: [], 法蒂玛: [], 阿威罗: [] },
-    阿连特茹: { 埃武拉: [], 贝雅: [] },
-    阿尔加维: { 法罗: [], 拉各斯: [], 阿尔布费拉: [] },
-    马德拉: { 丰沙尔: [], 马德拉: [] },
-    亚速尔: { 蓬塔德尔加达: [], 奥尔塔: [] },
-  },
-  俄罗斯: {
-    莫斯科: { 莫斯科: ["市中心", "阿尔巴特", "特维尔"], 莫斯科州: [] },
-    圣彼得堡: { 圣彼得堡: ["市中心", "瓦西里岛", "彼得格勒"], 加特契纳: [] },
-    克拉斯诺达尔: { 索契: [], 克拉斯诺达尔: [], 新罗西斯克: [] },
-    鞑靼斯坦: { 喀山: [], 纳贝列日尼切尔内: [] },
-    斯维尔德洛夫斯克: { 叶卡捷琳堡: [], 彼尔姆: [] },
-    新西伯利亚: { 新西伯利亚: [], 巴尔瑙尔: [] },
-    滨海边疆区: { 符拉迪沃斯托克: [], 纳霍德卡: [] },
-    克拉斯诺亚尔斯克: { 克拉斯诺亚尔斯克: [], 诺里尔斯克: [] },
-  },
-  印度: {
-    马哈拉施特拉: { 孟买: ["南孟买", "班德拉", "安德赫里"], 浦那: [], 那格浦尔: [] },
-    德里: { 新德里: [], 古尔冈: [], 诺伊达: [], 法里达巴德: [] },
-    卡纳塔克: { 班加罗尔: [], 迈索尔: [], 芒格洛尔: [] },
-    泰米尔纳德: { 钦奈: [], 哥印拜陀: [], 马杜赖: [] },
-    西孟加拉: { 加尔各答: [], 豪拉: [], 大吉岭: [] },
-    拉贾斯坦: { 斋浦尔: [], 乌代布尔: [], 焦特布尔: [], 杰伊瑟尔梅尔: [] },
-    北方邦: { 勒克瑙: [], 阿格拉: [], 瓦拉纳西: [] },
-    古吉拉特: { 艾哈迈达巴德: [], 苏拉特: [], 瓦多达拉: [] },
-    喀拉拉: { 科钦: [], 特里凡得琅: [], 卡利卡特: [] },
-    特兰甘纳: { 海得拉巴: [] },
-  },
-  菲律宾: {
-    大马尼拉: { 马尼拉: ["Intramuros", "Makati", "BGC"], 奎松市: [], 帕赛: [], 曼达卢永: [] },
-    中央吕宋: { 安赫莱斯: [], 圣费尔南多: [] },
-    甲拉巴松: { 八打雁: [], 拉古纳: [], 卡维特: [] },
-    比科尔: { 那牙: [], 黎牙实比: [] },
-    米沙鄢: { 宿务: [], 伊洛伊洛: [], 巴科洛德: [] },
-    棉兰老: { 达沃: [], 卡加延德奥罗: [], 三宝颜: [] },
-    卡加延河谷: { 土格加劳: [] },
-  },
-  印度尼西亚: {
-    雅加达: { 雅加达: ["中区", "南雅加达", "北雅加达"], 丹格朗: [], 勿加泗: [] },
-    西爪哇: { 万隆: [], 茂物: [], 井里汶: [] },
-    中爪哇: { 三宝垄: [], 日惹: [], 梭罗: [] },
-    东爪哇: { 泗水: [], 玛琅: [], 巴厘岛: [] },
-    巴厘: { 登巴萨: [], 乌布: [], 库塔: [], 努沙杜瓦: [] },
-    苏门答腊: { 棉兰: [], 巨港: [], 巴淡: [] },
-    苏拉威西: { 望加锡: [], 万鸦老: [] },
-  },
-  墨西哥: {
-    墨西哥城: { 墨西哥城: ["Polanco", "Roma", "Condesa"] },
-    哈利斯科: { 瓜达拉哈拉: [], 普拉亚德尔卡门: [] },
-    下加利福尼亚: { 蒂华纳: [], 墨西卡利: [], 拉巴斯: [] },
-    金塔纳罗奥: { 坎昆: [], 普拉亚德尔卡门: [], 图卢姆: [] },
-    新莱昂: { 蒙特雷: [], 圣尼古拉斯: [] },
-    尤卡坦: { 梅里达: [], 奇琴伊察: [] },
-    瓦哈卡: { 瓦哈卡: [], 圣克里斯托瓦尔: [] },
-    恰帕斯: { 圣克里斯托瓦尔: [], 帕伦克: [] },
-  },
-  巴西: {
-    圣保罗: { 圣保罗: ["Centro", "Pinheiros", "Jardins"], 坎皮纳斯: [], 桑托斯: [] },
-    里约热内卢: { 里约: ["科帕卡巴纳", "伊帕内玛", "市中心"], 尼泰罗伊: [] },
-    米纳斯吉拉斯: { 贝洛奥里藏特: [], 乌贝拉巴: [] },
-    巴伊亚: { 萨尔瓦多: [], 伊塔卡雷: [] },
-    伯南布哥: { 累西腓: [], 奥林达: [] },
-    南里奥格兰德: { 阿雷格里港: [], 格拉玛杜: [] },
-    巴拉那: { 库里蒂巴: [], 福斯杜伊瓜苏: [] },
-    联邦区: { 巴西利亚: [] },
-  },
-  阿联酋: {
-    迪拜: { 迪拜: ["Downtown", "Marina", "JBR", "Deira"], 杰贝阿里: [] },
-    阿布扎比: { 阿布扎比: [], 亚斯岛: [] },
-    沙迦: { 沙迦: [] },
-    拉斯海玛: { 拉斯海玛: [] },
-    阿治曼: { 阿治曼: [] },
-    富查伊拉: { 富查伊拉: [] },
-    乌姆盖万: { 乌姆盖万: [] },
-  },
-};
-
-const COUNTRY_OPTIONS = [
-  "全部", "中国", "日本", "美国", "英国", "加拿大", "澳大利亚", "新加坡", "韩国", "马来西亚", "泰国", "越南", "新西兰",
-  "法国", "德国", "意大利", "西班牙", "荷兰", "爱尔兰", "瑞士", "葡萄牙", "俄罗斯", "印度", "菲律宾", "印度尼西亚", "墨西哥", "巴西", "阿联酋",
-];
-
-function getProvinceOptions(country: string): string[] {
-  if (!country || country === "全部") return ["全部"];
-  const map = ADDRESS_HIERARCHY[country];
-  if (!map) return ["全部"];
-  return ["全部", ...Object.keys(map)];
-}
-
-function getCityOptions(country: string, province: string): string[] {
-  if (!country || country === "全部" || !province || province === "全部") return ["全部"];
-  const map = ADDRESS_HIERARCHY[country];
-  if (!map) return ["全部"];
-  const cities = map[province];
-  if (!cities) return ["全部"];
-  return ["全部", ...Object.keys(cities)];
-}
-
-function getCountyOptions(country: string, province: string, city: string): string[] {
-  if (!country || country === "全部" || !province || province === "全部" || !city || city === "全部") return ["全部"];
-  const map = ADDRESS_HIERARCHY[country];
-  if (!map) return ["全部"];
-  const cities = map[province];
-  if (!cities) return ["全部"];
-  const counties = cities[city];
-  if (!counties || counties.length === 0) return ["全部"];
-  return ["全部", ...counties];
-}
 
 function normalizeSearchText(value: string) {
   return value.trim().toLowerCase();
@@ -491,7 +110,7 @@ function normalizeSearchText(value: string) {
 
 function splitKeywords(input: string) {
   return input
-    .split(/[\s,，。；;、/]+/)
+    .split(/[\s,\u3001\uFF0C;\/]+/)
     .map((item) => normalizeSearchText(item))
     .filter(Boolean);
 }
@@ -585,37 +204,46 @@ function searchScore(profile: LifeAgentListItem, rawQuery: string) {
 export default function LifeAgentsPage() {
   const [profiles, setProfiles] = useState<LifeAgentListItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<User | null>(null);
   const [query, setQuery] = useState("");
-  const [selectedCountry, setSelectedCountry] = useState("全部");
-  const [selectedProvince, setSelectedProvince] = useState("全部");
-  const [selectedCity, setSelectedCity] = useState("全部");
-  const [selectedCounty, setSelectedCounty] = useState("全部");
+  const [selectedCountry, setSelectedCountry] = useState<string>(UI.all);
+  const [selectedProvince, setSelectedProvince] = useState<string>(UI.all);
+  const [selectedCity, setSelectedCity] = useState<string>(UI.all);
+  const [selectedCounty, setSelectedCounty] = useState<string>(UI.all);
+
+  const { user } = useAuth();
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/api/life-agents", { credentials: "include" })
+    setLoadError(null);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 秒超时
+
+    fetch("/api/life-agents", { credentials: "include", signal: controller.signal })
       .then((res) => res.json())
       .then((data) => {
         setProfiles(Array.isArray(data) ? data : []);
-        setLoading(false);
+        setLoadError(null);
       })
-      .catch(() => {
+      .catch((err) => {
         setProfiles([]);
+        setLoadError(
+          err.name === "AbortError"
+            ? "请求超时，请检查后端是否启动或稍后重试"
+            : "加载失败，请刷新页面重试"
+        );
+      })
+      .finally(() => {
+        clearTimeout(timeoutId);
         setLoading(false);
       });
-
-    fetch("/api/auth/me", { credentials: "include" })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => setUser(data))
-      .catch(() => setUser(null));
   }, []);
 
   const filteredProfiles = useMemo(() => {
     return [...profiles]
-      .filter((profile) => (selectedCountry === "全部" ? true : profile.country?.includes(selectedCountry)))
-      .filter((profile) => (selectedProvince === "全部" ? true : profile.province?.includes(selectedProvince)))
-      .filter((profile) => (selectedCity === "全部" ? true : profile.city?.includes(selectedCity)))
-      .filter((profile) => (selectedCounty === "全部" ? true : profile.county?.includes(selectedCounty)))
+      .filter((profile) => (selectedCountry === UI.all ? true : profile.country?.includes(selectedCountry)))
+      .filter((profile) => (selectedProvince === UI.all ? true : profile.province?.includes(selectedProvince)))
+      .filter((profile) => (selectedCity === UI.all ? true : profile.city?.includes(selectedCity)))
+      .filter((profile) => (selectedCounty === UI.all ? true : profile.county?.includes(selectedCounty)))
       .map((profile) => ({ profile, score: searchScore(profile, query) }))
       .filter(({ score }) => score > 0)
       .sort((a, b) => {
@@ -630,18 +258,16 @@ export default function LifeAgentsPage() {
       <section className="rounded-3xl border border-slate-200 bg-white/90 p-8 shadow-sm">
         <div className="max-w-3xl">
           <p className="mb-3 inline-flex rounded-full bg-blue-50 px-4 py-1.5 text-sm font-medium text-blue-700">
-            专注本地的经验 Agent 市场 · 真实经历 · 按次咨询
+            {UI.badge}
           </p>
-          <h1 className="section-title">找到有真实本地经验的人生 Agent</h1>
-          <p className="section-subtitle mt-4">
-            学长分享雅思、大妈分享菜市场、酒吧达人分享探店、创业者分享行业——创作者把本地经验整理成知识库，用户先看背景再决定是否购买提问次数进入聊天。
-          </p>
+          <h1 className="section-title">{UI.heroTitle}</h1>
+          <p className="section-subtitle mt-4">{UI.heroSubtitle}</p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link href="/life-agents/create" className="btn-primary">
-              创建我的 Agent
+              {UI.createAgent}
             </Link>
             <Link href={user ? "/dashboard" : "/signup"} className="btn-secondary">
-              {user ? "进入个人主页" : "注册后开始使用"}
+              {user ? UI.profileHome : UI.signup}
             </Link>
           </div>
         </div>
@@ -650,43 +276,41 @@ export default function LifeAgentsPage() {
       <section>
         <div className="mb-5 flex items-center justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-semibold text-slate-900">推荐 Agent</h2>
-            <p className="mt-1 text-sm text-slate-500">按需求直接匹配，支持国内外地址精确筛选。</p>
+            <h2 className="text-2xl font-semibold text-slate-900">{UI.sectionTitle}</h2>
+            <p className="mt-1 text-sm text-slate-500">{UI.sectionSubtitle}</p>
           </div>
           <span className="rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-600">
-            {loading ? "加载中..." : `${filteredProfiles.length} / ${profiles.length} 位创作者`}
+            {loading ? UI.loading : filteredProfiles.length + " / " + profiles.length + " " + UI.countSuffix}
           </span>
         </div>
 
         <div className="mb-6 space-y-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
           <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700">搜索相似需求</label>
+            <label className="mb-2 block text-sm font-medium text-slate-700">{UI.keywordSearch}</label>
             <input
               className="input-shell"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="例如：考研英语、转行产品经理、雅思口语、本地买菜避坑"
+              placeholder={UI.searchPlaceholder}
             />
-            <p className="mt-2 text-xs text-slate-500">
-              直接命中会优先排前，同时会参考意思相近的词一起推荐，比如“留学”和“出国”、“转行”和“换赛道”。
-            </p>
+            <p className="mt-2 text-xs text-slate-500">{UI.searchHint}</p>
           </div>
           <div>
-            <p className="mb-2 text-sm font-medium text-slate-700">按地区筛选</p>
+            <p className="mb-2 text-sm font-medium text-slate-700">{UI.region}</p>
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
               <select
                 className="input-shell"
                 value={selectedCountry}
                 onChange={(e) => {
                   setSelectedCountry(e.target.value);
-                  setSelectedProvince("全部");
-                  setSelectedCity("全部");
-                  setSelectedCounty("全部");
+                  setSelectedProvince(UI.all);
+                  setSelectedCity(UI.all);
+                  setSelectedCounty(UI.all);
                 }}
               >
                 {COUNTRY_OPTIONS.map((item) => (
                   <option key={item} value={item}>
-                    {item === "全部" ? "全部国家 / 地区" : item}
+                    {item === UI.all ? UI.allOrAny : item}
                   </option>
                 ))}
               </select>
@@ -695,13 +319,13 @@ export default function LifeAgentsPage() {
                 value={selectedProvince}
                 onChange={(e) => {
                   setSelectedProvince(e.target.value);
-                  setSelectedCity("全部");
-                  setSelectedCounty("全部");
+                  setSelectedCity(UI.all);
+                  setSelectedCounty(UI.all);
                 }}
               >
                 {getProvinceOptions(selectedCountry).map((item) => (
                   <option key={item} value={item}>
-                    {item === "全部" ? "全部省 / 州" : item}
+                    {item === UI.all ? UI.all : item}
                   </option>
                 ))}
               </select>
@@ -710,12 +334,12 @@ export default function LifeAgentsPage() {
                 value={selectedCity}
                 onChange={(e) => {
                   setSelectedCity(e.target.value);
-                  setSelectedCounty("全部");
+                  setSelectedCounty(UI.all);
                 }}
               >
                 {getCityOptions(selectedCountry, selectedProvince).map((item) => (
                   <option key={item} value={item}>
-                    {item === "全部" ? "全部城市" : item}
+                    {item === UI.all ? UI.all : item}
                   </option>
                 ))}
               </select>
@@ -726,15 +350,27 @@ export default function LifeAgentsPage() {
               >
                 {getCountyOptions(selectedCountry, selectedProvince, selectedCity).map((item) => (
                   <option key={item} value={item}>
-                    {item === "全部" ? "全部区县 / 区域" : item}
+                    {item === UI.all ? UI.allOrAny : item}
                   </option>
                 ))}
               </select>
             </div>
-            <p className="mt-2 text-xs text-slate-500">按国家→省/州→城市→区县逐级选择；没有匹配结果时显示“还没有”。</p>
+            <p className="mt-2 text-xs text-slate-500">{UI.regionHint}</p>
           </div>
         </div>
 
+        {loadError && (
+          <div className="mb-6 rounded-2xl bg-amber-50 border border-amber-200 px-4 py-3 text-amber-800">
+            {loadError}
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="ml-3 text-sm font-medium text-amber-700 underline hover:no-underline"
+            >
+              刷新页面
+            </button>
+          </div>
+        )}
         {loading ? (
           <div className="grid gap-5 lg:grid-cols-2">
             {[1, 2, 3, 4].map((item) => (
@@ -743,8 +379,12 @@ export default function LifeAgentsPage() {
           </div>
         ) : filteredProfiles.length === 0 ? (
           <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-10 text-center">
-            <p className="text-lg font-medium text-slate-900">没有找到符合条件的 Agent</p>
-            <p className="mt-2 text-slate-500">换一个更直接的需求词，或者切换国家、州省、城市和区县试试。</p>
+            <p className="text-lg font-medium text-slate-900">
+              {loadError ? "加载失败" : UI.emptyTitle}
+            </p>
+            <p className="mt-2 text-slate-500">
+              {loadError ? "请确认 Go 后端已启动（默认端口 8080），或刷新页面重试" : UI.emptySubtitle}
+            </p>
           </div>
         ) : (
           <div className="grid gap-5 lg:grid-cols-2">
@@ -755,13 +395,13 @@ export default function LifeAgentsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
               >
-                <Link href={`/life-agents/${profile.id}`} className="block h-full">
+                <Link href={"/life-agents/" + profile.id} className="block h-full">
                   <div className="glass-card h-full p-6">
                     <div className="flex items-start justify-between gap-4">
                       <div>
                         <div className="flex items-center gap-3">
                           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-100 text-lg font-semibold text-blue-700">
-                            {(profile.displayName ?? "?").slice(0, 1)}
+                            {(profile.displayName ?? UI.anonymous).slice(0, 1)}
                           </div>
                           <div>
                             <div className="flex items-center gap-1.5">
@@ -773,22 +413,22 @@ export default function LifeAgentsPage() {
                         </div>
                         {(profile.education || profile.school || profile.job || profile.income) && (
                           <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-sm text-slate-500">
-                            {profile.school && <span>🏫 {profile.school}</span>}
-                            {profile.education && <span>📜 {profile.education}</span>}
-                            {profile.job && <span>💼 {profile.job}</span>}
-                            {profile.income && <span>💰 {profile.income}</span>}
+                            {profile.school && <span>{UI.school} {profile.school}</span>}
+                            {profile.education && <span>{UI.education} {profile.education}</span>}
+                            {profile.job && <span>{UI.job} {profile.job}</span>}
+                            {profile.income && <span>{UI.income} {profile.income}</span>}
                           </div>
                         )}
                         {(profile.country || profile.province || profile.city || profile.county) && (
                           <p className="mt-3 text-sm text-slate-500">
-                            📍 {[profile.country, profile.province, profile.city, profile.county].filter(Boolean).join(" / ")}
+                            {UI.area} {[profile.country, profile.province, profile.city, profile.county].filter(Boolean).join(" / ")}
                           </p>
                         )}
                         {Array.isArray(profile.regions) && profile.regions.length > 0 && (
                           <div className="mt-3 flex flex-wrap gap-2">
                             {profile.regions.map((region) => (
                               <span
-                                key={`${profile.id}-${region}`}
+                                key={profile.id + "-" + region}
                                 className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700"
                               >
                                 {region}
@@ -801,20 +441,21 @@ export default function LifeAgentsPage() {
                           <span className="inline-flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1 text-amber-700">
                             <RatingStars score={profile.ratings?.averageScore ?? 0} size="sm" />
                             {profile.ratings && profile.ratings.raters > 0
-                              ? `${profile.ratings.averageScore.toFixed(1)} / 5`
-                              : "暂无评分"}
+                              ? profile.ratings.averageScore.toFixed(1) + " / 5"
+                              : UI.unrated}
                           </span>
                           <span>
                             {profile.ratings && profile.ratings.raters > 0
-                              ? `${profile.ratings.raters} 位用户已评分`
-                              : "还没有用户评分"}
+                              ? profile.ratings.raters + " " + UI.ratersSuffix
+                              : UI.unrated}
                           </span>
                         </div>
                       </div>
                       <div className="rounded-2xl bg-sky-50 px-4 py-3 text-right">
-                        <p className="text-xs text-slate-500">每次提问</p>
+                        <p className="text-xs text-slate-500">{UI.perQuestion}</p>
                         <p className="text-lg font-semibold text-sky-700">
-                          ¥{(profile.pricePerQuestion / 100).toFixed(2)}
+                          {"¥"}
+                          {(profile.pricePerQuestion / 100).toFixed(2)}
                         </p>
                       </div>
                     </div>
@@ -832,21 +473,21 @@ export default function LifeAgentsPage() {
 
                     <div className="mt-5 grid grid-cols-3 gap-3 text-sm">
                       <div className="rounded-2xl bg-slate-50 p-3">
-                        <p className="text-slate-500">知识条目</p>
+                        <p className="text-slate-500">{UI.knowledgeCount}</p>
                         <p className="mt-1 font-semibold text-slate-900">{profile.knowledgeCount}</p>
                       </div>
                       <div className="rounded-2xl bg-slate-50 p-3">
-                        <p className="text-slate-500">已购次数包</p>
+                        <p className="text-slate-500">{UI.soldQuestionPacks}</p>
                         <p className="mt-1 font-semibold text-slate-900">{profile.soldQuestionPacks}</p>
                       </div>
                       <div className="rounded-2xl bg-slate-50 p-3">
-                        <p className="text-slate-500">聊天会话</p>
+                        <p className="text-slate-500">{UI.sessionCount}</p>
                         <p className="mt-1 font-semibold text-slate-900">{profile.sessionCount}</p>
                       </div>
                     </div>
 
                     <div className="mt-5 rounded-2xl bg-blue-50 p-4">
-                      <p className="text-sm font-medium text-slate-900">适合询问</p>
+                      <p className="text-sm font-medium text-slate-900">{UI.audience}</p>
                       <p className="mt-1 text-sm leading-6 text-slate-600">{profile.audience}</p>
                     </div>
                   </div>

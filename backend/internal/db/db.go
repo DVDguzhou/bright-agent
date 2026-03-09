@@ -2,12 +2,16 @@ package db
 
 import (
 	"database/sql"
+	"log"
+	"os"
 	"regexp"
+	"time"
 
 	"github.com/agent-marketplace/backend/internal/models"
 	_ "github.com/go-sql-driver/mysql"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 var DB *gorm.DB
@@ -38,15 +42,42 @@ func ensureDB(dsn string) error {
 	return err
 }
 
+// dropAllForeignKeys 在 AutoMigrate 前移除当前库所有外键，
+// 否则 MySQL 会拒绝修改被引用表的列（Error 1833）。
+func dropAllForeignKeys(db *gorm.DB) {
+	type fkRow struct {
+		TableName      string `gorm:"column:TABLE_NAME"`
+		ConstraintName string `gorm:"column:CONSTRAINT_NAME"`
+	}
+	var rows []fkRow
+	if err := db.Raw(`
+		SELECT TABLE_NAME, CONSTRAINT_NAME
+		FROM information_schema.KEY_COLUMN_USAGE
+		WHERE TABLE_SCHEMA = DATABASE()
+		  AND REFERENCED_TABLE_NAME IS NOT NULL
+		GROUP BY TABLE_NAME, CONSTRAINT_NAME
+	`).Scan(&rows).Error; err != nil {
+		return
+	}
+	for _, r := range rows {
+		_ = db.Exec("ALTER TABLE `" + r.TableName + "` DROP FOREIGN KEY `" + r.ConstraintName + "`").Error
+	}
+}
+
 func Init(dsn string) error {
 	if err := ensureDB(dsn); err != nil {
 		return err
 	}
+	newLogger := logger.New(log.New(os.Stdout, "\r\n", log.LstdFlags), logger.Config{
+		SlowThreshold: 500 * time.Millisecond,
+		LogLevel:      logger.Info,
+	})
 	var err error
-	DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{Logger: newLogger})
 	if err != nil {
 		return err
 	}
+	dropAllForeignKeys(DB)
 	return DB.AutoMigrate(
 		&models.User{},
 		&models.UserApiKey{},

@@ -1,0 +1,55 @@
+services:
+  mysql:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-your_root_password}
+      MYSQL_DATABASE: agent_marketplace
+      MYSQL_CHARSET: utf8mb4
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      DATABASE_URL: root:${MYSQL_ROOT_PASSWORD:-your_root_password}@tcp(mysql:3306)/agent_marketplace?charset=utf8mb4&parseTime=True
+      SESSION_SECRET: ${SESSION_SECRET:-change-me-in-production}
+      SESSION_COOKIE: ${SESSION_COOKIE:-agent_fiverr_session}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-}
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # 构建时传入，用于 next.config.js rewrites
+        API_BACKEND_URL: http://backend:8080
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      API_BACKEND_URL: http://backend:8080
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+    depends_on:
+      - backend
+
+volumes:
+  mysql_data:

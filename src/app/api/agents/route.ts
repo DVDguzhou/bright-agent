@@ -8,8 +8,7 @@ export async function GET(req: Request) {
   const scope = searchParams.get("scope");
   const ownerMe = searchParams.get("owner") === "me";
 
-  const where: { supportedScopes?: { has: string }; sellerId?: string; status?: string } = {};
-  if (scope) where.supportedScopes = { has: scope };
+  const where: { sellerId?: string; status?: string } = {};
   if (ownerMe) {
     try {
       const user = await requireAuth();
@@ -21,11 +20,19 @@ export async function GET(req: Request) {
     where.status = "approved";
   }
 
-  const agents = await prisma.agent.findMany({
+  let agents = await prisma.agent.findMany({
     where,
     include: { seller: { select: { name: true, email: true } } },
     orderBy: { createdAt: "desc" },
   });
+
+  if (scope) {
+    agents = agents.filter((a) => {
+      const scopes = Array.isArray(a.supportedScopes) ? (a.supportedScopes as string[]) : [];
+      return scopes.includes(scope);
+    });
+  }
+
   return NextResponse.json(agents);
 }
 

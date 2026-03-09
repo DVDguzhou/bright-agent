@@ -66,7 +66,7 @@ export default function HomePage() {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.2 }}
           >
-            专注本地的经验 Agent 市场 · 最终目标 Agent as Service
+            专注本地的经验 Agent 市场 · 训练你的私人AI化身帮你赚钱
           </motion.span>
         </motion.div>
 
@@ -74,7 +74,7 @@ export default function HomePage() {
           variants={item}
           className="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight mb-6 bg-gradient-to-r from-blue-600 via-sky-500 to-blue-600 bg-clip-text text-transparent"
         >
-          AI Agent Marketplace
+          Bright Agent Hub
         </motion.h1>
 
         <motion.p

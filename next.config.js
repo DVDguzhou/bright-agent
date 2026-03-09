@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: "standalone", // Docker 部署需要
   // 前后端分离：/api 请求代理到 Go 后端
   async rewrites() {
     const apiTarget = process.env.API_BACKEND_URL || "http://localhost:8080";
