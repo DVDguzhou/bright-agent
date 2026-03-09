@@ -40,10 +40,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func application(_ application: UIApplication, continue userActivity: NSUserActivity, restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void) -> Bool {
-        // Called when the app was launched with an activity, including Universal Links.
-        // Feel free to add additional processing here, but if you want the App API to support
-        // tracking app url opens, make sure to keep this call
-        return ApplicationDelegateProxy.shared.application(application, continue: userActivity, restorationHandler: restorationHandler)
+        // Handle Universal Links - capacitor-swift-pm's ApplicationDelegateProxy may not expose this API
+        if userActivity.activityType == NSUserActivityTypeBrowsingWeb,
+           let url = userActivity.webpageURL {
+            NotificationCenter.default.post(
+                name: Notification.Name("capacitorOpenUniversalLink"),
+                object: ["url": url]
+            )
+            restorationHandler([])
+            return true
+        }
+        restorationHandler(nil)
+        return false
     }
 
 }
