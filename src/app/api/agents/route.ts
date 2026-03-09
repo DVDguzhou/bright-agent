@@ -27,7 +27,7 @@ export async function GET(req: Request) {
   });
 
   if (scope) {
-    agents = agents.filter((a) => {
+    agents = agents.filter((a: { supportedScopes: unknown }) => {
       const scopes = Array.isArray(a.supportedScopes) ? (a.supportedScopes as string[]) : [];
       return scopes.includes(scope);
     });
