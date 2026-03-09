@@ -25,7 +25,6 @@
     "@capacitor/ios": "^8.2.0",
     "@capacitor/keyboard": "^8.0.1",
     "@capacitor/splash-screen": "^8.0.1",
-    "@capacitor/status-bar": "^8.0.1",
     "@prisma/client": "^5.22.0",
     "bcryptjs": "^2.4.3",
     "framer-motion": "^12.35.0",

@@ -38,10 +38,6 @@ const config: CapacitorConfig = {
       resize: 'body',
       resizeOnFullScreen: true,
     },
-    StatusBar: {
-      style: 'dark',
-      backgroundColor: '#0ea5e9',
-    },
   },
 };
 
