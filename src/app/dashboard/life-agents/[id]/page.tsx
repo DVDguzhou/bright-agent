@@ -29,6 +29,11 @@ type ManageData = {
     income?: string;
     job?: string;
     school?: string;
+    country?: string;
+    province?: string;
+    city?: string;
+    county?: string;
+    regions?: string[];
     mbti?: string;
     personaArchetype?: string;
     toneStyle?: string;
@@ -91,6 +96,7 @@ const MBTI_OPTIONS = ["", "INTJ", "INTP", "ENTJ", "ENTP", "INFJ", "INFP", "ENFJ"
 const PERSONA_OPTIONS = ["学长学姐型", "朋友陪聊型", "前辈导师型", "冷静分析型", "过来人型", "本地熟人型"];
 const TONE_OPTIONS = ["直接一点", "温柔一点", "理性克制", "接地气一点", "像朋友聊天", "稳重耐心"];
 const RESPONSE_STYLE_OPTIONS = ["先给判断再解释", "先理解处境再建议", "多举自己的例子", "短一点别太满", "先拆选项再给建议", "像微信聊天少分点"];
+const REGION_OPTIONS = ["温州", "杭州", "宁波", "台州", "绍兴", "上海", "北京", "深圳", "广州", "东京", "大阪", "新加坡"];
 
 export default function LifeAgentManageDetailPage() {
   const params = useParams();
@@ -107,6 +113,11 @@ export default function LifeAgentManageDetailPage() {
     school: "",
     job: "",
     income: "",
+    regions: "",
+    country: "",
+    province: "",
+    city: "",
+    county: "",
     audience: "",
     welcomeMessage: "",
     notSuitableFor: "",
@@ -143,6 +154,11 @@ export default function LifeAgentManageDetailPage() {
             school: p.school ?? "",
             job: p.job ?? "",
             income: p.income ?? "",
+            regions: Array.isArray(p.regions) ? p.regions.join(", ") : "",
+            country: p.country ?? "",
+            province: p.province ?? "",
+            city: p.city ?? "",
+            county: p.county ?? "",
             audience: p.audience,
             welcomeMessage: p.welcomeMessage,
             notSuitableFor: p.notSuitableFor ?? "",
@@ -172,6 +188,20 @@ export default function LifeAgentManageDetailPage() {
       .catch(() => setData(null));
   }, [id]);
 
+  const selectedRegions = form.regions
+    .split(/[,，\n]/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+  const toggleRegion = (region: string) => {
+    const next = selectedRegions.includes(region)
+      ? selectedRegions.filter((item) => item !== region)
+      : selectedRegions.length < 2
+      ? [...selectedRegions, region]
+      : selectedRegions;
+    setForm((prev) => ({ ...prev, regions: next.join(", ") }));
+  };
+
 
   const updateEntry = (index: number, key: keyof KnowledgeDraft, value: string) => {
     setEntries((prev) => prev.map((entry, idx) => (idx === index ? { ...entry, [key]: value } : entry)));
@@ -199,12 +229,24 @@ export default function LifeAgentManageDetailPage() {
       return;
     }
 
+    const regions = form.regions.split(/[,，\n]/).map((s) => s.trim()).filter(Boolean);
+    if (regions.length > 2) {
+      setError("地区最多保留 2 个");
+      setLoading(false);
+      return;
+    }
+
     const payload = {
       ...form,
       education: form.education || undefined,
       school: form.school || undefined,
       job: form.job || undefined,
       income: form.income || undefined,
+      regions,
+      country: form.country || undefined,
+      province: form.province || undefined,
+      city: form.city || undefined,
+      county: form.county || undefined,
       pricePerQuestion: parseInt(form.pricePerQuestion, 10),
       mbti: form.mbti || undefined,
       expertiseTags: form.expertiseTags.split(/[,，\n]/).map((s) => s.trim()).filter(Boolean),
@@ -359,6 +401,71 @@ export default function LifeAgentManageDetailPage() {
                   value={form.school}
                   onChange={(e) => setForm((prev) => ({ ...prev, school: e.target.value }))}
                   placeholder="例如：普通二本"
+                />
+              </div>
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-700">地区（选填）</label>
+                <div className="flex flex-wrap gap-2">
+                  {REGION_OPTIONS.map((region) => {
+                    const active = selectedRegions.includes(region);
+                    const disabled = !active && selectedRegions.length >= 2;
+                    return (
+                      <button
+                        key={region}
+                        type="button"
+                        onClick={() => toggleRegion(region)}
+                        disabled={disabled}
+                        className={`rounded-full px-3 py-2 text-sm transition ${
+                          active
+                            ? "bg-sky-600 text-white"
+                            : disabled
+                            ? "bg-slate-100 text-slate-300"
+                            : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                        }`}
+                      >
+                        {region}
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="mt-2 text-xs text-slate-500">
+                  最多选 2 个，当前已选：{selectedRegions.length > 0 ? selectedRegions.join(" / ") : "未选择"}
+                </p>
+              </div>
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-700">国家 / 地区</label>
+                <input
+                  className="input-shell"
+                  value={form.country}
+                  onChange={(e) => setForm((prev) => ({ ...prev, country: e.target.value }))}
+                  placeholder="例如：中国、日本、美国、新加坡"
+                />
+              </div>
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-700">省 / 州</label>
+                <input
+                  className="input-shell"
+                  value={form.province}
+                  onChange={(e) => setForm((prev) => ({ ...prev, province: e.target.value }))}
+                  placeholder="例如：河北省、加州、东京都"
+                />
+              </div>
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-700">城市</label>
+                <input
+                  className="input-shell"
+                  value={form.city}
+                  onChange={(e) => setForm((prev) => ({ ...prev, city: e.target.value }))}
+                  placeholder="例如：石家庄市、东京、旧金山"
+                />
+              </div>
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-700">区县 / 区域</label>
+                <input
+                  className="input-shell"
+                  value={form.county}
+                  onChange={(e) => setForm((prev) => ({ ...prev, county: e.target.value }))}
+                  placeholder="例如：正定县、涩谷区、Manhattan"
                 />
               </div>
               <div>

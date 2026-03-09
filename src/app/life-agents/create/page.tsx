@@ -89,6 +89,7 @@ const MBTI_OPTIONS = ["未设置", "INTJ", "INTP", "ENTJ", "ENTP", "INFJ", "INFP
 const PERSONA_OPTIONS = ["学长学姐型", "朋友陪聊型", "前辈导师型", "冷静分析型", "过来人型", "本地熟人型"];
 const TONE_OPTIONS = ["直接一点", "温柔一点", "理性克制", "接地气一点", "像朋友聊天", "稳重耐心"];
 const RESPONSE_STYLE_OPTIONS = ["先给判断再解释", "先理解处境再建议", "多举自己的例子", "短一点别太满", "先拆选项再给建议", "像微信聊天少分点"];
+const REGION_OPTIONS = ["温州", "杭州", "宁波", "台州", "绍兴", "上海", "北京", "深圳", "广州", "东京", "大阪", "新加坡"];
 
 export default function CreateLifeAgentPage() {
   const router = useRouter();
@@ -106,6 +107,11 @@ export default function CreateLifeAgentPage() {
     school: "",
     job: "",
     income: "",
+    regions: "",
+    country: "",
+    province: "",
+    city: "",
+    county: "",
     audience: "",
     welcomeMessage: "你好，我是基于本地真实经验的顾问，你可以问我关于我亲身经历的问题。",
     pricePerQuestion: "990",
@@ -139,6 +145,20 @@ export default function CreateLifeAgentPage() {
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatHistory]);
+
+  const selectedRegions = form.regions
+    .split(/[,，\n]/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+  const toggleRegion = (region: string) => {
+    const next = selectedRegions.includes(region)
+      ? selectedRegions.filter((item) => item !== region)
+      : selectedRegions.length < 2
+      ? [...selectedRegions, region]
+      : selectedRegions;
+    setForm((prev) => ({ ...prev, regions: next.join(", ") }));
+  };
 
   const startKnowledgeChat = () => {
     const questions: { question: string; category: string; title: string }[] = [];
@@ -216,6 +236,10 @@ export default function CreateLifeAgentPage() {
       .split("\n")
       .map((item) => item.trim())
       .filter(Boolean);
+    const regionsArr = form.regions
+      .split(/[,，\n]/)
+      .map((item) => item.trim())
+      .filter(Boolean);
 
     if (expertiseTagsArr.length < 1) {
       setError("请填写至少 1 个擅长标签");
@@ -224,6 +248,11 @@ export default function CreateLifeAgentPage() {
     }
     if (sampleQuestionsArr.length < 2) {
       setError("请填写至少 2 个示例问题");
+      setLoading(false);
+      return;
+    }
+    if (regionsArr.length > 2) {
+      setError("地区最多填写 2 个");
       setLoading(false);
       return;
     }
@@ -256,6 +285,7 @@ export default function CreateLifeAgentPage() {
       school: form.school,
       job: form.job,
       income: form.income,
+      regions: regionsArr.slice(0, 2),
       audience: form.audience,
       welcomeMessage: form.welcomeMessage,
       notSuitableFor: notSuitableFor.trim() || undefined,
@@ -358,7 +388,7 @@ export default function CreateLifeAgentPage() {
               <ul className="mt-2 space-y-1">
                 <li>• 信息越真实具体，用户越愿意信任你</li>
                 <li>• 学历、工作、收入选填，但会提高可信度</li>
-                <li>• 简短介绍 10–180 字，详细背景至少 30 字</li>
+                <li>• 简短介绍、详细背景和适合人群写清楚即可，不限字数</li>
               </ul>
             </div>
             <div className="mt-5 grid gap-5 md:grid-cols-2">
@@ -388,9 +418,8 @@ export default function CreateLifeAgentPage() {
                   className="input-shell min-h-24"
                   value={form.shortBio}
                   onChange={(e) => setForm((prev) => ({ ...prev, shortBio: e.target.value }))}
-                  placeholder="用 2 到 3 句话介绍你是谁、经历了什么、适合帮助谁。（至少 10 字）"
+                  placeholder="用 2 到 3 句话介绍你是谁、经历了什么、适合帮助谁。"
                   required
-                  minLength={10}
                 />
               </div>
               <div>
@@ -400,6 +429,71 @@ export default function CreateLifeAgentPage() {
                   value={form.school}
                   onChange={(e) => setForm((prev) => ({ ...prev, school: e.target.value }))}
                   placeholder="例如：普通二本"
+                />
+              </div>
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-700">地区（选填）</label>
+                <div className="flex flex-wrap gap-2">
+                  {REGION_OPTIONS.map((region) => {
+                    const active = selectedRegions.includes(region);
+                    const disabled = !active && selectedRegions.length >= 2;
+                    return (
+                      <button
+                        key={region}
+                        type="button"
+                        onClick={() => toggleRegion(region)}
+                        disabled={disabled}
+                        className={`rounded-full px-3 py-2 text-sm transition ${
+                          active
+                            ? "bg-sky-600 text-white"
+                            : disabled
+                            ? "bg-slate-100 text-slate-300"
+                            : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                        }`}
+                      >
+                        {region}
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="mt-2 text-xs text-slate-500">
+                  最多选 2 个，当前已选：{selectedRegions.length > 0 ? selectedRegions.join(" / ") : "未选择"}
+                </p>
+              </div>
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-700">国家 / 地区</label>
+                <input
+                  className="input-shell"
+                  value={form.country}
+                  onChange={(e) => setForm((prev) => ({ ...prev, country: e.target.value }))}
+                  placeholder="例如：中国、日本、美国、新加坡"
+                />
+              </div>
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-700">省 / 州</label>
+                <input
+                  className="input-shell"
+                  value={form.province}
+                  onChange={(e) => setForm((prev) => ({ ...prev, province: e.target.value }))}
+                  placeholder="例如：河北省、加州、东京都"
+                />
+              </div>
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-700">城市</label>
+                <input
+                  className="input-shell"
+                  value={form.city}
+                  onChange={(e) => setForm((prev) => ({ ...prev, city: e.target.value }))}
+                  placeholder="例如：石家庄市、东京、旧金山"
+                />
+              </div>
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-700">区县 / 区域</label>
+                <input
+                  className="input-shell"
+                  value={form.county}
+                  onChange={(e) => setForm((prev) => ({ ...prev, county: e.target.value }))}
+                  placeholder="例如：正定县、涩谷区、Manhattan"
                 />
               </div>
               <div>
@@ -435,9 +529,8 @@ export default function CreateLifeAgentPage() {
                   className="input-shell min-h-32"
                   value={form.longBio}
                   onChange={(e) => setForm((prev) => ({ ...prev, longBio: e.target.value }))}
-                  placeholder="例如：二本毕业，先后在 X 公司做产品、Y 公司带团队，经历过考研失败、转行、裸辞，现在年薪 xx。擅长帮大学生做职业规划和转行决策。（至少 30 字）"
+                  placeholder="例如：二本毕业，先后在 X 公司做产品、Y 公司带团队，经历过考研失败、转行、裸辞，现在年薪 xx。擅长帮大学生做职业规划和转行决策。"
                   required
-                  minLength={30}
                 />
               </div>
               <div className="md:col-span-2">
@@ -446,9 +539,8 @@ export default function CreateLifeAgentPage() {
                   className="input-shell min-h-20"
                   value={form.audience}
                   onChange={(e) => setForm((prev) => ({ ...prev, audience: e.target.value }))}
-                  placeholder="例如：大学生、转行的人、刚进入社会的人。（至少 3 字）"
+                  placeholder="例如：大学生、转行的人、刚进入社会的人。"
                   required
-                  minLength={3}
                 />
               </div>
               <div className="md:col-span-2">

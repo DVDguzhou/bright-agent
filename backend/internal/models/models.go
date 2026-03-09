@@ -152,6 +152,11 @@ type LifeAgentProfile struct {
 	Income           *string   `gorm:"column:income;size:64"`     // 收入
 	Job              *string   `gorm:"column:job;size:255"`       // 工作
 	School           *string   `gorm:"column:school;size:255"`    // 学校
+	Country          *string   `gorm:"column:country;size:64"`
+	Province         *string   `gorm:"column:province;size:64"`
+	City             *string   `gorm:"column:city;size:64"`
+	County           *string   `gorm:"column:county;size:64"`
+	Regions          JSONArray `gorm:"column:regions;type:json"`
 	MBTI             *string   `gorm:"column:mbti;size:8"`
 	PersonaArchetype *string   `gorm:"column:persona_archetype;size:64"`
 	ToneStyle        *string   `gorm:"column:tone_style;size:64"`

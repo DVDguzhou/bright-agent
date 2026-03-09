@@ -15,6 +15,11 @@ type DetailData = {
   income?: string;
   job?: string;
   school?: string;
+  regions?: string[];
+  country?: string;
+  province?: string;
+  city?: string;
+  county?: string;
   mbti?: string;
   personaArchetype?: string;
   toneStyle?: string;
@@ -170,6 +175,14 @@ export default function LifeAgentDetailPage() {
                   {profile.job && <span>💼 {profile.job}</span>}
                   {profile.income && <span>💰 {profile.income}</span>}
                 </div>
+              )}
+              {(profile.country || profile.province || profile.city || profile.county) && (
+                <p className="mt-3 text-sm text-slate-500">
+                  📍 {[profile.country, profile.province, profile.city, profile.county].filter(Boolean).join(" / ")}
+                </p>
+              )}
+              {Array.isArray(profile.regions) && profile.regions.length > 0 && (
+                <p className="mt-2 text-sm text-slate-500">地区：{profile.regions.join(" / ")}</p>
               )}
               <p className="mt-5 text-base leading-7 text-slate-700">{profile.longBio}</p>
             </div>

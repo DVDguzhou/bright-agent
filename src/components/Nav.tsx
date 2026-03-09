@@ -9,7 +9,6 @@ type User = { id: string; email: string; name: string | null };
 
 const navLinks = [
   { href: "/life-agents", label: "人生 Agent" },
-  { href: "/agents", label: "Agents" },
   { href: "/workflow", label: "工作流" },
   { href: "/dashboard/messages", label: "消息" },
   { href: "/licenses", label: "我的 License" },

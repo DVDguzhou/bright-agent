@@ -117,6 +117,11 @@ func LifeAgentsList(cfg *config.Config) gin.HandlerFunc {
 				"income":            ptrStr(p.Income),
 				"job":               ptrStr(p.Job),
 				"school":            ptrStr(p.School),
+				"country":           ptrStr(p.Country),
+				"province":          ptrStr(p.Province),
+				"city":              ptrStr(p.City),
+				"county":            ptrStr(p.County),
+				"regions":           p.Regions,
 				"creator":           gin.H{"id": u.ID, "name": u.Name, "email": u.Email},
 				"knowledgeCount":    kCount,
 				"soldQuestionPacks": qpCount,
@@ -138,15 +143,20 @@ func LifeAgentsCreate(cfg *config.Config) gin.HandlerFunc {
 		var body struct {
 			DisplayName      string   `json:"displayName" binding:"required,min=2"`
 			Headline         string   `json:"headline" binding:"required,min=4"`
-			ShortBio         string   `json:"shortBio" binding:"required,min=10,max=180"`
-			LongBio          string   `json:"longBio" binding:"required,min=30"`
-			Audience         string   `json:"audience" binding:"required,min=3"`
+			ShortBio         string   `json:"shortBio" binding:"required"`
+			LongBio          string   `json:"longBio" binding:"required"`
+			Audience         string   `json:"audience" binding:"required"`
 			WelcomeMessage   string   `json:"welcomeMessage" binding:"required,min=10"`
 			PricePerQuestion int      `json:"pricePerQuestion"`
 			Education        string   `json:"education"`
 			Income           string   `json:"income"`
 			Job              string   `json:"job"`
 			School           string   `json:"school"`
+			Country          string   `json:"country"`
+			Province         string   `json:"province"`
+			City             string   `json:"city"`
+			County           string   `json:"county"`
+			Regions          []string `json:"regions" binding:"max=2,dive,min=1"`
 			MBTI             string   `json:"mbti"`
 			PersonaArchetype string   `json:"personaArchetype"`
 			ToneStyle        string   `json:"toneStyle"`
@@ -188,6 +198,11 @@ func LifeAgentsCreate(cfg *config.Config) gin.HandlerFunc {
 			Income:           strOpt(body.Income),
 			Job:              strOpt(body.Job),
 			School:           strOpt(body.School),
+			Country:          strOpt(body.Country),
+			Province:         strOpt(body.Province),
+			City:             strOpt(body.City),
+			County:           strOpt(body.County),
+			Regions:          models.JSONArray(body.Regions),
 			MBTI:             strOpt(body.MBTI),
 			PersonaArchetype: strOpt(body.PersonaArchetype),
 			ToneStyle:        strOpt(body.ToneStyle),
@@ -242,6 +257,11 @@ func LifeAgentsMine(cfg *config.Config) gin.HandlerFunc {
 				"headline":         p.Headline,
 				"shortBio":         p.ShortBio,
 				"pricePerQuestion": p.PricePerQuestion,
+				"country":          ptrStr(p.Country),
+				"province":         ptrStr(p.Province),
+				"city":             ptrStr(p.City),
+				"county":           ptrStr(p.County),
+				"regions":          p.Regions,
 				"published":        p.Published,
 				"knowledgeCount":   kCount,
 				"sessionCount":     sessCount,
@@ -409,6 +429,11 @@ func LifeAgentsGet(cfg *config.Config) gin.HandlerFunc {
 			"income":           ptrStr(p.Income),
 			"job":              ptrStr(p.Job),
 			"school":           ptrStr(p.School),
+			"country":          ptrStr(p.Country),
+			"province":         ptrStr(p.Province),
+			"city":             ptrStr(p.City),
+			"county":           ptrStr(p.County),
+			"regions":          p.Regions,
 			"mbti":             ptrStr(p.MBTI),
 			"personaArchetype": ptrStr(p.PersonaArchetype),
 			"toneStyle":        ptrStr(p.ToneStyle),
@@ -453,27 +478,32 @@ func LifeAgentsUpdate(cfg *config.Config) gin.HandlerFunc {
 			return
 		}
 		var body struct {
-			DisplayName      *string  `json:"displayName"`
-			Headline         *string  `json:"headline"`
-			ShortBio         *string  `json:"shortBio"`
-			LongBio          *string  `json:"longBio"`
-			Audience         *string  `json:"audience"`
-			WelcomeMessage   *string  `json:"welcomeMessage"`
-			PricePerQuestion *int     `json:"pricePerQuestion"`
-			Published        *bool    `json:"published"`
-			Education        *string  `json:"education"`
-			Income           *string  `json:"income"`
-			Job              *string  `json:"job"`
-			School           *string  `json:"school"`
-			MBTI             *string  `json:"mbti"`
-			PersonaArchetype *string  `json:"personaArchetype"`
-			ToneStyle        *string  `json:"toneStyle"`
-			ResponseStyle    *string  `json:"responseStyle"`
-			ExpertiseTags    []string `json:"expertiseTags"`
-			SampleQuestions  []string `json:"sampleQuestions"`
-			ForbiddenPhrases []string `json:"forbiddenPhrases"`
-			ExampleReplies   []string `json:"exampleReplies"`
-			NotSuitableFor   *string  `json:"notSuitableFor"`
+			DisplayName      *string   `json:"displayName"`
+			Headline         *string   `json:"headline"`
+			ShortBio         *string   `json:"shortBio"`
+			LongBio          *string   `json:"longBio"`
+			Audience         *string   `json:"audience"`
+			WelcomeMessage   *string   `json:"welcomeMessage"`
+			PricePerQuestion *int      `json:"pricePerQuestion"`
+			Published        *bool     `json:"published"`
+			Education        *string   `json:"education"`
+			Income           *string   `json:"income"`
+			Job              *string   `json:"job"`
+			School           *string   `json:"school"`
+			Country          *string   `json:"country"`
+			Province         *string   `json:"province"`
+			City             *string   `json:"city"`
+			County           *string   `json:"county"`
+			Regions          *[]string `json:"regions" binding:"omitempty,max=2,dive,min=1"`
+			MBTI             *string   `json:"mbti"`
+			PersonaArchetype *string   `json:"personaArchetype"`
+			ToneStyle        *string   `json:"toneStyle"`
+			ResponseStyle    *string   `json:"responseStyle"`
+			ExpertiseTags    []string  `json:"expertiseTags"`
+			SampleQuestions  []string  `json:"sampleQuestions"`
+			ForbiddenPhrases []string  `json:"forbiddenPhrases"`
+			ExampleReplies   []string  `json:"exampleReplies"`
+			NotSuitableFor   *string   `json:"notSuitableFor"`
 			KnowledgeEntries *[]struct {
 				Category string   `json:"category"`
 				Title    string   `json:"title"`
@@ -521,6 +551,21 @@ func LifeAgentsUpdate(cfg *config.Config) gin.HandlerFunc {
 		}
 		if body.School != nil {
 			upd.Update("school", *body.School)
+		}
+		if body.Country != nil {
+			upd.Update("country", *body.Country)
+		}
+		if body.Province != nil {
+			upd.Update("province", *body.Province)
+		}
+		if body.City != nil {
+			upd.Update("city", *body.City)
+		}
+		if body.County != nil {
+			upd.Update("county", *body.County)
+		}
+		if body.Regions != nil {
+			upd.Update("regions", models.JSONArray(*body.Regions))
 		}
 		if body.MBTI != nil {
 			upd.Update("mbti", *body.MBTI)
@@ -580,6 +625,11 @@ func LifeAgentsUpdate(cfg *config.Config) gin.HandlerFunc {
 			"income":           ptrStr(p.Income),
 			"job":              ptrStr(p.Job),
 			"school":           ptrStr(p.School),
+			"country":          ptrStr(p.Country),
+			"province":         ptrStr(p.Province),
+			"city":             ptrStr(p.City),
+			"county":           ptrStr(p.County),
+			"regions":          p.Regions,
 			"mbti":             ptrStr(p.MBTI),
 			"personaArchetype": ptrStr(p.PersonaArchetype),
 			"toneStyle":        ptrStr(p.ToneStyle),
@@ -699,6 +749,11 @@ func LifeAgentsManage(cfg *config.Config) gin.HandlerFunc {
 				"income":           ptrStr(p.Income),
 				"job":              ptrStr(p.Job),
 				"school":           ptrStr(p.School),
+				"country":          ptrStr(p.Country),
+				"province":         ptrStr(p.Province),
+				"city":             ptrStr(p.City),
+				"county":           ptrStr(p.County),
+				"regions":          p.Regions,
 				"mbti":             ptrStr(p.MBTI),
 				"personaArchetype": ptrStr(p.PersonaArchetype),
 				"toneStyle":        ptrStr(p.ToneStyle),

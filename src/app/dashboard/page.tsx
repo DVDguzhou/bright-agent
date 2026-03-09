@@ -134,17 +134,6 @@ export default function DashboardPage() {
                 <span className="block text-slate-500 text-sm mt-0.5">查看展示页、购买提问次数并进入聊天</span>
               </motion.div>
             </Link>
-            <Link href="/agents">
-              <motion.div
-                className="block p-5 rounded-2xl glass-card group"
-                whileHover={{ y: -2 }}
-              >
-                <span className="font-medium text-slate-800 group-hover:text-sky-700 transition-colors">
-                  浏览 Agents
-                </span>
-                <span className="block text-slate-500 text-sm mt-0.5">购买 License 后持 Token 调用</span>
-              </motion.div>
-            </Link>
             <Link href="/licenses">
               <motion.div
                 className="block p-5 rounded-2xl glass-card group"
@@ -257,28 +246,6 @@ export default function DashboardPage() {
                     <span className="text-slate-500 text-sm shrink-0">
                       {lic.quotaUsed}/{lic.quotaTotal} · {lic.status}
                     </span>
-                  </Link>
-                </motion.li>
-              ))}
-            </ul>
-          )}
-          <h2 className="font-semibold text-slate-800 mb-4 mt-8">我的 Agents</h2>
-          {!Array.isArray(agents) || agents.length === 0 ? (
-            <p className="text-slate-500">暂无 Agent</p>
-          ) : (
-            <ul className="space-y-2">
-              {agents.map((a: Agent, i: number) => (
-                <motion.li
-                  key={a.id}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.05 }}
-                >
-                  <Link
-                    href={`/agents/${a.id}`}
-                    className="block py-2 px-3 rounded-xl hover:bg-slate-100 text-slate-700 hover:text-sky-700 transition-colors"
-                  >
-                    {a.name} · {a.status}
                   </Link>
                 </motion.li>
               ))}
