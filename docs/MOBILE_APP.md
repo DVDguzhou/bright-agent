@@ -104,6 +104,7 @@ npm run mobile:android
 
 **Variables**（Settings → Secrets and variables → Actions → Variables）：
 - `MOBILE_APP_URL`：你的网站地址（如 `https://你的域名.com`），不配置则使用默认 `http://8.136.119.234:3000`
+- `BUILD_IPA_ENABLED`：设为 `true` 时启用 IPA 构建（需已配置下方证书 Secrets）
 
 **Secrets**（Settings → Secrets and variables → Actions → Secrets）：
 
