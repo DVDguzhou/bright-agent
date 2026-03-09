@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { RatingStars } from "@/components/RatingStars";
+import { OFFICIAL_CONTACT } from "@/lib/official-contact";
 
 type KnowledgeDraft = {
   category: string;
@@ -34,6 +35,7 @@ type ManageData = {
     city?: string;
     county?: string;
     regions?: string[];
+    verificationStatus?: string;
     mbti?: string;
     personaArchetype?: string;
     toneStyle?: string;
@@ -494,6 +496,26 @@ export default function LifeAgentManageDetailPage() {
                   onChange={(e) => setForm((prev) => ({ ...prev, income: e.target.value }))}
                   placeholder="例如：年薪 30-50 万"
                 />
+              </div>
+              <div className="md:col-span-2 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <p className="font-medium text-slate-700">
+                  {data?.profile?.verificationStatus === "verified"
+                    ? "已认证"
+                    : "申请官方认证"}
+                </p>
+                {data?.profile?.verificationStatus === "verified" ? (
+                  <p className="mt-1 text-sm text-green-600">该 Agent 已完成官方认证。</p>
+                ) : (
+                  <>
+                    <p className="mt-1 text-sm text-slate-600">平台会核实你的经历真实性，认证后显示认证标识。</p>
+                    <p className="mt-2 text-sm text-slate-700">
+                      {OFFICIAL_CONTACT.description}：{" "}
+                      <a href={`mailto:${OFFICIAL_CONTACT.email}`} className="text-sky-600 hover:text-sky-700 underline">
+                        {OFFICIAL_CONTACT.email}
+                      </a>
+                    </p>
+                  </>
+                )}
               </div>
               <div className="md:col-span-2">
                 <label className="mb-2 block text-sm font-medium text-slate-700">详细背景</label>

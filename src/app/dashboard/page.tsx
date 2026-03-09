@@ -68,7 +68,7 @@ export default function DashboardPage() {
       transition={{ duration: 0.4 }}
     >
       <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent mb-2">
-        控制台
+        个人主页
       </h1>
       <p className="text-slate-500 mb-8">管理你的 Agents、人生 Agent 与 License</p>
       <div className="grid md:grid-cols-2 gap-8">

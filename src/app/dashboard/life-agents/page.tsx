@@ -43,7 +43,7 @@ export default function LifeAgentsManagePage() {
     <div className="space-y-8">
       <div>
         <Link href="/dashboard" className="text-sm text-slate-500 hover:text-sky-700">
-          ← 返回控制台
+          ← 返回个人主页
         </Link>
         <h1 className="section-title mt-3">我的人生 Agent</h1>
         <p className="section-subtitle mt-2">

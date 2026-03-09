@@ -164,6 +164,7 @@ type LifeAgentProfile struct {
 	ForbiddenPhrases JSONArray `gorm:"column:forbidden_phrases;type:json"`
 	ExampleReplies   JSONArray `gorm:"column:example_replies;type:json"`
 	NotSuitableFor   *string   `gorm:"column:not_suitable_for;type:text"` // 不能/不想回答的问题
+	VerificationStatus string  `gorm:"column:verification_status;size:32;default:none"` // none=未申请, pending=申请待认证, verified=已认证
 	Published        bool      `gorm:"default:true"`
 	CreatedAt        time.Time `gorm:"column:created_at"`
 	UpdatedAt        time.Time `gorm:"column:updated_at"`

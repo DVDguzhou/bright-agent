@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { RatingStars } from "@/components/RatingStars";
+import { VerificationBadge } from "@/components/VerificationBadge";
 
 type DetailData = {
   id: string;
@@ -36,6 +37,7 @@ type DetailData = {
     content: string;
     tags: string[];
   }>;
+  verificationStatus?: string;
   creator: {
     name: string | null;
     email: string;
@@ -153,7 +155,13 @@ export default function LifeAgentDetailPage() {
               <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-3xl bg-blue-100 text-2xl font-semibold text-blue-700">
                 {(profile.displayName ?? "?").slice(0, 1)}
               </div>
-              <h1 className="section-title">{profile.displayName}</h1>
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="section-title">{profile.displayName}</h1>
+                <VerificationBadge status={profile.verificationStatus ?? "none"} size="md" />
+                {profile.verificationStatus === "pending" && (
+                  <span className="text-sm text-amber-600">请联系我们完成认证</span>
+                )}
+              </div>
               <p className="mt-2 text-lg text-slate-600">{profile.headline}</p>
               <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-slate-500">
                 <span className="inline-flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1 text-amber-700">

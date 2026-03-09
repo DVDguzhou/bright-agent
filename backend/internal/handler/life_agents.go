@@ -24,6 +24,15 @@ func strOpt(v string) *string {
 	return &v
 }
 
+func coalesceVerificationStatus(v string) string {
+	switch v {
+	case "verified", "pending":
+		return v
+	default:
+		return "none"
+	}
+}
+
 func buildLifeAgentRatingState(profileID, buyerID string) gin.H {
 	var usedQuestions int
 	db.DB.Raw(
@@ -94,39 +103,93 @@ func LifeAgentsList(cfg *config.Config) gin.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "INTERNAL_ERROR"})
 			return
 		}
+		if len(profiles) == 0 {
+			c.JSON(http.StatusOK, []gin.H{})
+			return
+		}
+		ids := make([]string, len(profiles))
+		userIDs := make(map[string]bool)
+		for i, p := range profiles {
+			ids[i] = p.ID
+			userIDs[p.UserID] = true
+		}
+		uniqueUserIDs := make([]string, 0, len(userIDs))
+		for uid := range userIDs {
+			uniqueUserIDs = append(uniqueUserIDs, uid)
+		}
+		var users []models.User
+		db.DB.Where("id IN ?", uniqueUserIDs).Find(&users)
+		userMap := make(map[string]models.User)
+		for _, u := range users {
+			userMap[u.ID] = u
+		}
+		type aggRow struct {
+			ProfileID string `gorm:"column:profile_id"`
+			Cnt       int64  `gorm:"column:cnt"`
+		}
+		kMap := make(map[string]int64)
+		var kRows []aggRow
+		db.DB.Raw("SELECT profile_id, COUNT(*) AS cnt FROM life_agent_knowledge_entries WHERE profile_id IN ? GROUP BY profile_id", ids).Scan(&kRows)
+		for _, r := range kRows {
+			kMap[r.ProfileID] = r.Cnt
+		}
+		qpMap := make(map[string]int64)
+		var qpRows []aggRow
+		db.DB.Raw("SELECT profile_id, COUNT(*) AS cnt FROM life_agent_question_packs WHERE profile_id IN ? GROUP BY profile_id", ids).Scan(&qpRows)
+		for _, r := range qpRows {
+			qpMap[r.ProfileID] = r.Cnt
+		}
+		sessMap := make(map[string]int64)
+		var sessRows []aggRow
+		db.DB.Raw("SELECT profile_id, COUNT(*) AS cnt FROM life_agent_chat_sessions WHERE profile_id IN ? GROUP BY profile_id", ids).Scan(&sessRows)
+		for _, r := range sessRows {
+			sessMap[r.ProfileID] = r.Cnt
+		}
+		type ratingAgg struct {
+			ProfileID string  `gorm:"column:profile_id"`
+			Raters    int64  `gorm:"column:raters"`
+			Avg       float64 `gorm:"column:avg"`
+		}
+		ratingMap := make(map[string]gin.H)
+		var ratingRows []ratingAgg
+		db.DB.Raw("SELECT profile_id, COUNT(*) AS raters, COALESCE(AVG(score),0) AS avg FROM life_agent_ratings WHERE profile_id IN ? GROUP BY profile_id", ids).Scan(&ratingRows)
+		for _, r := range ratingRows {
+			ratingMap[r.ProfileID] = gin.H{"averageScore": r.Avg, "raters": r.Raters, "recent": []gin.H{}}
+		}
+		for _, id := range ids {
+			if _, ok := ratingMap[id]; !ok {
+				ratingMap[id] = gin.H{"averageScore": 0.0, "raters": 0, "recent": []gin.H{}}
+			}
+		}
 		var resp []gin.H
 		for _, p := range profiles {
-			var u models.User
-			db.DB.Where("id = ?", p.UserID).First(&u)
-			var kCount, qpCount, sessCount int64
-			db.DB.Model(&models.LifeAgentKnowledgeEntry{}).Where("profile_id = ?", p.ID).Count(&kCount)
-			db.DB.Model(&models.LifeAgentQuestionPack{}).Where("profile_id = ?", p.ID).Count(&qpCount)
-			db.DB.Model(&models.LifeAgentChatSession{}).Where("profile_id = ?", p.ID).Count(&sessCount)
-			ratingsSummary := buildLifeAgentRatingsSummary(p.ID, 0)
+			u := userMap[p.UserID]
+			ratingsSummary := ratingMap[p.ID]
 			resp = append(resp, gin.H{
-				"id":                p.ID,
-				"displayName":       p.DisplayName,
-				"headline":          p.Headline,
-				"shortBio":          p.ShortBio,
-				"audience":          p.Audience,
-				"welcomeMessage":    p.WelcomeMessage,
-				"pricePerQuestion":  p.PricePerQuestion,
-				"expertiseTags":     p.ExpertiseTags,
-				"sampleQuestions":   p.SampleQuestions,
-				"education":         ptrStr(p.Education),
-				"income":            ptrStr(p.Income),
-				"job":               ptrStr(p.Job),
-				"school":            ptrStr(p.School),
-				"country":           ptrStr(p.Country),
-				"province":          ptrStr(p.Province),
-				"city":              ptrStr(p.City),
-				"county":            ptrStr(p.County),
-				"regions":           p.Regions,
-				"creator":           gin.H{"id": u.ID, "name": u.Name, "email": u.Email},
-				"knowledgeCount":    kCount,
-				"soldQuestionPacks": qpCount,
-				"sessionCount":      sessCount,
-				"ratings":           ratingsSummary,
+				"id":                 p.ID,
+				"displayName":        p.DisplayName,
+				"headline":           p.Headline,
+				"shortBio":           p.ShortBio,
+				"audience":           p.Audience,
+				"welcomeMessage":     p.WelcomeMessage,
+				"pricePerQuestion":   p.PricePerQuestion,
+				"expertiseTags":      p.ExpertiseTags,
+				"sampleQuestions":    p.SampleQuestions,
+				"education":          ptrStr(p.Education),
+				"income":             ptrStr(p.Income),
+				"job":                ptrStr(p.Job),
+				"school":             ptrStr(p.School),
+				"country":            ptrStr(p.Country),
+				"province":           ptrStr(p.Province),
+				"city":               ptrStr(p.City),
+				"county":             ptrStr(p.County),
+				"regions":            p.Regions,
+				"verificationStatus": coalesceVerificationStatus(p.VerificationStatus),
+				"creator":            gin.H{"id": u.ID, "name": u.Name, "email": u.Email},
+				"knowledgeCount":     kMap[p.ID],
+				"soldQuestionPacks":  qpMap[p.ID],
+				"sessionCount":       sessMap[p.ID],
+				"ratings":            ratingsSummary,
 			})
 		}
 		c.JSON(http.StatusOK, resp)
@@ -166,6 +229,7 @@ func LifeAgentsCreate(cfg *config.Config) gin.HandlerFunc {
 			ExpertiseTags    []string `json:"expertiseTags" binding:"required,min=1,max=8,dive,min=1"`
 			SampleQuestions  []string `json:"sampleQuestions" binding:"required,min=2,max=6,dive,min=3"`
 			NotSuitableFor   string   `json:"notSuitableFor"`
+			VerificationStatus string `json:"verificationStatus"` // none, pending, verified
 			KnowledgeEntries []struct {
 				Category string   `json:"category" binding:"required"`
 				Title    string   `json:"title" binding:"required"`
@@ -210,6 +274,7 @@ func LifeAgentsCreate(cfg *config.Config) gin.HandlerFunc {
 			ForbiddenPhrases: models.JSONArray(body.ForbiddenPhrases),
 			ExampleReplies:   models.JSONArray(body.ExampleReplies),
 			NotSuitableFor:   strOpt(body.NotSuitableFor),
+			VerificationStatus: coalesceVerificationStatus(body.VerificationStatus),
 			Published:        true,
 		}
 		if err := db.DB.Create(&p).Error; err != nil {
@@ -252,21 +317,22 @@ func LifeAgentsMine(cfg *config.Config) gin.HandlerFunc {
 			db.DB.Model(&models.LifeAgentChatSession{}).Where("profile_id = ?", p.ID).Count(&sessCount)
 			db.DB.Model(&models.LifeAgentQuestionPack{}).Where("profile_id = ? AND status = ?", p.ID, "paid").Select("COALESCE(SUM(amount_paid),0)").Scan(&revenue)
 			resp = append(resp, gin.H{
-				"id":               p.ID,
-				"displayName":      p.DisplayName,
-				"headline":         p.Headline,
-				"shortBio":         p.ShortBio,
-				"pricePerQuestion": p.PricePerQuestion,
-				"country":          ptrStr(p.Country),
-				"province":         ptrStr(p.Province),
-				"city":             ptrStr(p.City),
+				"id":                 p.ID,
+				"displayName":        p.DisplayName,
+				"headline":           p.Headline,
+				"shortBio":          p.ShortBio,
+				"pricePerQuestion":  p.PricePerQuestion,
+				"country":           ptrStr(p.Country),
+				"province":          ptrStr(p.Province),
+				"city":              ptrStr(p.City),
 				"county":           ptrStr(p.County),
-				"regions":          p.Regions,
-				"published":        p.Published,
-				"knowledgeCount":   kCount,
-				"sessionCount":     sessCount,
-				"soldPacks":        qpCount,
-				"totalRevenue":     revenue,
+				"regions":           p.Regions,
+				"verificationStatus": coalesceVerificationStatus(p.VerificationStatus),
+				"published":         p.Published,
+				"knowledgeCount":    kCount,
+				"sessionCount":      sessCount,
+				"soldPacks":         qpCount,
+				"totalRevenue":      revenue,
 			})
 		}
 		c.JSON(http.StatusOK, resp)
@@ -378,6 +444,7 @@ func LifeAgentsPurchased(cfg *config.Config) gin.HandlerFunc {
 				"headline":           p.Headline,
 				"pricePerQuestion":   p.PricePerQuestion,
 				"remainingQuestions": remaining,
+				"verificationStatus": coalesceVerificationStatus(p.VerificationStatus),
 			})
 		}
 		c.JSON(http.StatusOK, resp)
@@ -433,7 +500,8 @@ func LifeAgentsGet(cfg *config.Config) gin.HandlerFunc {
 			"province":         ptrStr(p.Province),
 			"city":             ptrStr(p.City),
 			"county":           ptrStr(p.County),
-			"regions":          p.Regions,
+			"regions":            p.Regions,
+			"verificationStatus": coalesceVerificationStatus(p.VerificationStatus),
 			"mbti":             ptrStr(p.MBTI),
 			"personaArchetype": ptrStr(p.PersonaArchetype),
 			"toneStyle":        ptrStr(p.ToneStyle),
@@ -494,8 +562,9 @@ func LifeAgentsUpdate(cfg *config.Config) gin.HandlerFunc {
 			Province         *string   `json:"province"`
 			City             *string   `json:"city"`
 			County           *string   `json:"county"`
-			Regions          *[]string `json:"regions" binding:"omitempty,max=2,dive,min=1"`
-			MBTI             *string   `json:"mbti"`
+			Regions            *[]string `json:"regions" binding:"omitempty,max=2,dive,min=1"`
+			VerificationStatus *string   `json:"verificationStatus"`
+			MBTI               *string   `json:"mbti"`
 			PersonaArchetype *string   `json:"personaArchetype"`
 			ToneStyle        *string   `json:"toneStyle"`
 			ResponseStyle    *string   `json:"responseStyle"`
@@ -566,6 +635,9 @@ func LifeAgentsUpdate(cfg *config.Config) gin.HandlerFunc {
 		}
 		if body.Regions != nil {
 			upd.Update("regions", models.JSONArray(*body.Regions))
+		}
+		if body.VerificationStatus != nil {
+			upd.Update("verification_status", coalesceVerificationStatus(*body.VerificationStatus))
 		}
 		if body.MBTI != nil {
 			upd.Update("mbti", *body.MBTI)
@@ -753,7 +825,8 @@ func LifeAgentsManage(cfg *config.Config) gin.HandlerFunc {
 				"province":         ptrStr(p.Province),
 				"city":             ptrStr(p.City),
 				"county":           ptrStr(p.County),
-				"regions":          p.Regions,
+				"regions":            p.Regions,
+				"verificationStatus": coalesceVerificationStatus(p.VerificationStatus),
 				"mbti":             ptrStr(p.MBTI),
 				"personaArchetype": ptrStr(p.PersonaArchetype),
 				"toneStyle":        ptrStr(p.ToneStyle),

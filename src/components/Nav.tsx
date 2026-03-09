@@ -9,7 +9,6 @@ type User = { id: string; email: string; name: string | null };
 
 const navLinks = [
   { href: "/life-agents", label: "人生 Agent" },
-  { href: "/workflow", label: "工作流" },
   { href: "/dashboard/messages", label: "消息" },
   { href: "/licenses", label: "我的 License" },
 ];
@@ -92,7 +91,7 @@ export function Nav() {
                     className="text-sm text-slate-600 hover:text-sky-700 transition-colors"
                     whileHover={{ scale: 1.02 }}
                   >
-                    控制台
+                    个人主页
                   </motion.span>
                 </Link>
                 <span className="text-slate-500 text-sm hidden sm:inline truncate max-w-[120px]">

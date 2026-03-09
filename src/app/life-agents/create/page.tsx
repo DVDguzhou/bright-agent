@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { OFFICIAL_CONTACT } from "@/lib/official-contact";
 
 type KnowledgeEntry = {
   category: string;
@@ -522,6 +523,18 @@ export default function CreateLifeAgentPage() {
                   onChange={(e) => setForm((prev) => ({ ...prev, income: e.target.value }))}
                   placeholder="例如：年薪 30-50 万"
                 />
+              </div>
+              <div className="md:col-span-2 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <p className="font-medium text-slate-700">申请官方认证</p>
+                <p className="mt-1 text-sm text-slate-600">
+                  平台会核实你的经历真实性（如考研院校、本地菜市场等），认证后显示认证标识。
+                </p>
+                <p className="mt-2 text-sm text-slate-700">
+                  {OFFICIAL_CONTACT.description}：{" "}
+                  <a href={`mailto:${OFFICIAL_CONTACT.email}`} className="text-sky-600 hover:text-sky-700 underline">
+                    {OFFICIAL_CONTACT.email}
+                  </a>
+                </p>
               </div>
               <div className="md:col-span-2">
                 <label className="mb-2 block text-sm font-medium text-slate-700">详细背景</label>

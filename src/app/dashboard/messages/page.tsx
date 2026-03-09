@@ -74,7 +74,7 @@ export default function DashboardMessagesPage() {
     return (
       <div className="space-y-8">
         <Link href="/dashboard" className="text-sm text-slate-500 hover:text-sky-700">
-          ← 返回控制台
+          ← 返回个人主页
         </Link>
         <div className="h-64 animate-pulse rounded-3xl bg-white shadow-sm" />
       </div>
@@ -90,7 +90,7 @@ export default function DashboardMessagesPage() {
     <div className="space-y-8">
       <div>
         <Link href="/dashboard" className="text-sm text-slate-500 hover:text-sky-700">
-          ← 返回控制台
+          ← 返回个人主页
         </Link>
         <h1 className="section-title mt-3">消息 · 用户反馈</h1>
         <p className="section-subtitle mt-2">

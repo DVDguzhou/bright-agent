@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { RatingStars } from "@/components/RatingStars";
+import { VerificationBadge } from "@/components/VerificationBadge";
 
 type LifeAgentListItem = {
   id: string;
@@ -24,6 +25,7 @@ type LifeAgentListItem = {
   province?: string;
   city?: string;
   county?: string;
+  verificationStatus?: string;
   knowledgeCount: number;
   soldQuestionPacks: number;
   sessionCount: number;
@@ -639,7 +641,7 @@ export default function LifeAgentsPage() {
               创建我的 Agent
             </Link>
             <Link href={user ? "/dashboard" : "/signup"} className="btn-secondary">
-              {user ? "进入控制台" : "注册后开始使用"}
+              {user ? "进入个人主页" : "注册后开始使用"}
             </Link>
           </div>
         </div>
@@ -762,7 +764,10 @@ export default function LifeAgentsPage() {
                             {(profile.displayName ?? "?").slice(0, 1)}
                           </div>
                           <div>
-                            <h3 className="text-xl font-semibold text-slate-900">{profile.displayName}</h3>
+                            <div className="flex items-center gap-1.5">
+                              <h3 className="text-xl font-semibold text-slate-900">{profile.displayName}</h3>
+                              <VerificationBadge status={profile.verificationStatus ?? "none"} size="sm" />
+                            </div>
                             <p className="text-sm text-slate-500">{profile.headline}</p>
                           </div>
                         </div>

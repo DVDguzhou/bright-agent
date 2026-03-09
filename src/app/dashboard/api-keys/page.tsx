@@ -48,7 +48,7 @@ export default function ApiKeysPage() {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-2xl">
       <Link href="/dashboard" className="text-slate-500 hover:text-cyan-400 text-sm mb-6 inline-block">
-        ← 返回控制台
+        ← 返回个人主页
       </Link>
       <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent mb-2">
         平台 API Key
