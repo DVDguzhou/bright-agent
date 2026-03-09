@@ -27,13 +27,6 @@ const config: CapacitorConfig = {
     },
   }),
   plugins: {
-    SplashScreen: {
-      launchShowDuration: 2000,
-      launchAutoHide: true,
-      androidScaleType: 'CENTER_CROP',
-      splashFullScreen: true,
-      splashImmersive: true,
-    },
     Keyboard: {
       resize: 'body',
       resizeOnFullScreen: true,
