@@ -170,6 +170,11 @@ npm run mobile:ios
 - Android: 替换 `android/app/src/main/res/mipmap-*/ic_launcher.png`
 - iOS: 替换 `ios/App/App/Assets.xcassets/AppIcon.appiconset/` 中的图标
 
+### Q: iOS 构建失败，提示 "CAPPluginCall has no member 'reject'"？
+
+- 此为 Capacitor 8.2 与 @capacitor/app 8.0.1 的 Swift API 不兼容。项目已固定使用 Capacitor 8.0.1。
+- 升级 @capacitor/core、@capacitor/ios 等时，请确保所有 @capacitor/* 插件版本匹配。
+
 ---
 
 ## 七、项目结构
