@@ -90,7 +90,48 @@ npm run mobile:android
 
 ---
 
-## 四、iOS 打包（需 macOS）
+## 四、GitHub Actions 自动构建 iOS（无需 Mac）
+
+项目已配置 `.github/workflows/ios-build.yml`，推送到 GitHub 后可在云端自动构建 iOS App。
+
+### 4.1 模拟器构建（无需证书）
+
+推送代码到 `main` 或 `master` 分支后，工作流自动运行，生成 **模拟器版 .app**。在 Actions 页面下载 `ios-simulator-app` 产物即可验证构建是否成功。
+
+### 4.2 IPA 构建（需 Apple 开发者账号）
+
+要生成可安装到真机的 **.ipa**，需先配置：
+
+**Variables**（Settings → Secrets and variables → Actions → Variables）：
+- `MOBILE_APP_URL`：你的网站地址（如 `https://你的域名.com`），不配置则使用默认 `http://8.136.119.234:3000`
+
+**Secrets**（Settings → Secrets and variables → Actions → Secrets）：
+
+| Secret | 说明 |
+|--------|------|
+| `BUILD_CERTIFICATE_BASE64` | Apple Distribution 证书 .p12 的 Base64 编码 |
+| `P12_PASSWORD` | 导出 .p12 时设置的密码 |
+| `BUILD_PROVISION_PROFILE_BASE64` | 描述文件 .mobileprovision 的 Base64 编码 |
+| `KEYCHAIN_PASSWORD` | 临时密钥链密码（任意字符串） |
+| `APPLE_PROFILE_NAME` | （可选）描述文件名称，默认 "Agent 市场" |
+
+**获取证书和描述文件**（需在 Mac 或云 Mac 上操作一次）：
+
+1. **证书**：Xcode → Settings → Accounts → Manage certificates → + → Apple Distribution，导出为 .p12
+2. **描述文件**：打开 [Apple Developer Profiles](https://developer.apple.com/account/resources/profiles/list) → 新建 App Store 描述文件 → 选择 App ID 和证书 → 下载 .mobileprovision
+
+**Base64 编码**（在 Mac 终端执行）：
+
+```bash
+base64 -i 你的证书.p12 | pbcopy    # 粘贴到 BUILD_CERTIFICATE_BASE64
+base64 -i 你的描述文件.mobileprovision | pbcopy   # 粘贴到 BUILD_PROVISION_PROFILE_BASE64
+```
+
+配置完成并推送到 GitHub 后，在 Actions 中下载 `ios-ipa` 产物，即可得到可安装的 .ipa 文件。
+
+---
+
+## 五、iOS 本地打包（需 Mac）
 
 在 Mac 上执行：
 
@@ -108,7 +149,7 @@ npm run mobile:ios
 
 ---
 
-## 五、常见问题
+## 六、常见问题
 
 ### Q: 打开 App 显示空白？
 
@@ -130,7 +171,7 @@ npm run mobile:ios
 
 ---
 
-## 六、项目结构
+## 七、项目结构
 
 ```
 regr/
