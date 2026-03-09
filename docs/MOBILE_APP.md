@@ -172,8 +172,9 @@ npm run mobile:ios
 
 ### Q: iOS 构建失败，提示 "CAPPluginCall has no member 'reject'"？
 
-- 此为 Capacitor 8.2 与 @capacitor/app 8.0.1 的 Swift API 不兼容。项目已固定使用 Capacitor 8.0.1。
-- 升级 @capacitor/core、@capacitor/ios 等时，请确保所有 @capacitor/* 插件版本匹配。
+- capacitor-swift-pm（SPM）的 `CAPPluginCall` 不提供 `reject` 方法，与 @capacitor/app 不兼容。
+- 项目已通过 `patches/@capacitor+app+8.0.1.patch` 修复：将 `call.reject()` 替换为返回空值的 `call.resolve()`。
+- 升级 @capacitor/app 时需检查 patch 是否仍适用，必要时重新生成：修改后执行 `npx patch-package @capacitor/app`。
 
 ---
 
