@@ -17,30 +17,35 @@ export default function SignupPage() {
     e.preventDefault();
     setError("");
     setLoading(true);
-    const res = await fetch("/api/auth/signup", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({
-        email,
-        password,
-        name: name.trim(),
-      }),
-    });
-    const data = await res.json();
-    setLoading(false);
-    if (!res.ok) {
-      setError(
-        data.error === "EMAIL_EXISTS"
-          ? "该邮箱已被注册"
-          : data.error === "VALIDATION_ERROR"
-          ? "请检查输入"
-          : "注册失败"
-      );
-      return;
+    try {
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          email,
+          password,
+          name: name.trim(),
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(
+          data.error === "EMAIL_EXISTS"
+            ? "该邮箱已被注册"
+            : data.error === "VALIDATION_ERROR"
+            ? "请检查输入"
+            : "注册失败"
+        );
+        return;
+      }
+      router.push("/dashboard");
+      router.refresh();
+    } catch {
+      setError("网络错误，请检查连接后重试");
+    } finally {
+      setLoading(false);
     }
-    router.push("/dashboard");
-    router.refresh();
   };
 
   return (

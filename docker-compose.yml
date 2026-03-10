@@ -29,6 +29,8 @@ services:
       DATABASE_URL: root:${MYSQL_ROOT_PASSWORD:-your_root_password}@tcp(mysql:3306)/agent_marketplace?charset=utf8mb4&parseTime=True
       SESSION_SECRET: ${SESSION_SECRET:-change-me-in-production}
       SESSION_COOKIE: ${SESSION_COOKIE:-agent_fiverr_session}
+      # 部署后必填，与 NEXTAUTH_URL 保持一致（含端口），如 http://8.136.119.234:3000
+      CORS_ORIGINS: ${CORS_ORIGINS:-}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
       OPENAI_BASE_URL: ${OPENAI_BASE_URL:-}

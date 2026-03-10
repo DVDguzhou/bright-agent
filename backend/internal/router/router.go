@@ -9,7 +9,7 @@ import (
 
 func Setup(cfg *config.Config) *gin.Engine {
 	r := gin.Default()
-	r.Use(middleware.CORS())
+	r.Use(middleware.CORS(cfg))
 
 	api := r.Group("/api")
 	{
