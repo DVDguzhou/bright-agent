@@ -4,9 +4,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { refetch } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -22,12 +24,13 @@ export default function LoginPage() {
       credentials: "include",
       body: JSON.stringify({ email, password }),
     });
-    const data = await res.json();
+    const data = await res.json().catch(() => ({}));
     setLoading(false);
     if (!res.ok) {
       setError(data.error === "INVALID_CREDENTIALS" ? "邮箱或密码错误" : "登录失败");
       return;
     }
+    await refetch(); // 刷新登录状态后再跳转
     router.push("/dashboard");
     router.refresh();
   };
