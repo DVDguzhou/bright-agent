@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { OFFICIAL_CONTACT } from "@/lib/official-contact";
 
 type License = {
   id: string;
@@ -71,6 +72,11 @@ $env:AGENT_ID="${license.agentId}"
 # 运行脚本
 node scripts/local-invoke-example.mjs`}
         </pre>
+        <p className="pt-2 text-sm text-slate-500">
+          <a href={`mailto:${OFFICIAL_CONTACT.email}`} className="text-cyan-400 hover:text-cyan-300">
+            联系官方
+          </a>
+        </p>
       </div>
     </motion.div>
   );

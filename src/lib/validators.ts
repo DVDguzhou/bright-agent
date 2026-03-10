@@ -5,9 +5,7 @@ import { z } from "zod";
 export const signupSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
-  name: z.string().optional(),
-  isBuyer: z.boolean().optional().default(true),
-  isSeller: z.boolean().optional().default(false),
+  name: z.string().min(2, "用户名至少 2 位").max(32, "用户名最多 32 位"),
 });
 
 export const loginSchema = z.object({

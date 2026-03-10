@@ -16,6 +16,9 @@ DATABASE_URL=root:password@tcp(localhost:3306)/agent_marketplace?charset=utf8mb4
 SESSION_SECRET=your-secret-key
 SESSION_COOKIE=agent_fiverr_session
 PORT=8080
+# 可选：人生 Agent 聊天 AI
+OPENAI_API_KEY=sk-xxx
+OPENAI_MODEL=gpt-4o-mini
 ```
 
 ## 数据库

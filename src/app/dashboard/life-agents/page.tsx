@@ -10,6 +10,11 @@ type ProfileItem = {
   headline: string;
   shortBio: string;
   pricePerQuestion: number;
+  regions?: string[];
+  country?: string;
+  province?: string;
+  city?: string;
+  county?: string;
   published: boolean;
   knowledgeCount: number;
   sessionCount: number;
@@ -38,7 +43,7 @@ export default function LifeAgentsManagePage() {
     <div className="space-y-8">
       <div>
         <Link href="/dashboard" className="text-sm text-slate-500 hover:text-sky-700">
-          ← 返回控制台
+          ← 返回个人主页
         </Link>
         <h1 className="section-title mt-3">我的人生 Agent</h1>
         <p className="section-subtitle mt-2">
@@ -83,6 +88,14 @@ export default function LifeAgentsManagePage() {
                     <div>
                       <h3 className="text-xl font-semibold text-slate-900">{profile.displayName}</h3>
                       <p className="mt-1 text-sm text-slate-600">{profile.headline}</p>
+                      {Array.isArray(profile.regions) && profile.regions.length > 0 && (
+                        <p className="mt-2 text-sm text-slate-500">地区：{profile.regions.join(" / ")}</p>
+                      )}
+                      {(profile.country || profile.province || profile.city || profile.county) && (
+                        <p className="mt-2 text-sm text-slate-500">
+                          📍 {[profile.country, profile.province, profile.city, profile.county].filter(Boolean).join(" / ")}
+                        </p>
+                      )}
                       <p className="mt-3 line-clamp-2 text-sm text-slate-500">{profile.shortBio}</p>
                     </div>
                     <span

@@ -7,7 +7,8 @@ generator client {
 
 datasource db {
   provider = "mysql"
-  url      = env("DATABASE_URL")
+  // Prisma 需要 mysql:// 格式；Go 后端用 DATABASE_URL 的 tcp DSN 格式
+  url      = env("DATABASE_PRISMA_URL")
 }
 
 enum LicenseStatus {
@@ -54,6 +55,8 @@ model User {
   lifeAgentProfiles LifeAgentProfile[]
   lifeAgentChatSessions LifeAgentChatSession[]
   lifeAgentQuestionPacks LifeAgentQuestionPack[]
+
+  @@map("users")
 }
 
 model UserApiKey {
@@ -67,6 +70,7 @@ model UserApiKey {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, keyPrefix])
+  @@map("user_api_keys")
 }
 
 // 1. Agent - 小兰上架的 AgentB
@@ -78,7 +82,7 @@ model Agent {
   baseUrl         String   @map("base_url")   // 小兰 API 地址；useTunnel 时可为占位
   useTunnel       Boolean  @default(false) @map("use_tunnel") // 使用平台隧道，无需 ngrok
   publicKey       String?  @map("public_key") // 公钥或 service_secret_id，用于验签
-  supportedScopes String[] @map("supported_scopes") // ["content.generate", "data.fetch"]
+  supportedScopes Json    @map("supported_scopes") // ["content.generate", "data.fetch"]，MySQL 用 JSON 存储
   pricingConfig   Json?    @map("pricing_config") // {model, price, quota_per_unit}
   status          String   @default("pending") // pending, approved, suspended
   riskLevel       String?  @map("risk_level") // low, medium, high
@@ -90,6 +94,8 @@ model Agent {
   invocationTokens InvocationToken[]
   invocationRequests InvocationRequest[]
   executionReceipts ExecutionReceipt[]
+
+  @@map("agents")
 }
 
 // 2. License - 小红买到的使用许可
@@ -112,6 +118,8 @@ model License {
   invocationRequests InvocationRequest[]
   executionReceipts ExecutionReceipt[]
   disputes Dispute[]
+
+  @@map("licenses")
 }
 
 // 3. InvocationToken - 平台签发的短期调用凭证
@@ -133,6 +141,8 @@ model InvocationToken {
   license  License  @relation(fields: [licenseId], references: [id], onDelete: Cascade)
   agent    Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
   invocationRequest InvocationRequest?
+
+  @@map("invocation_tokens")
 }
 
 
@@ -155,6 +165,8 @@ model InvocationRequest {
   token    InvocationToken    @relation(fields: [tokenId], references: [id], onDelete: Cascade)
   receipt  ExecutionReceipt?
   disputes Dispute[]
+
+  @@map("invocation_requests")
 }
 
 // 5. ExecutionReceipt - 小兰执行完成后回传的平台回执
@@ -180,6 +192,8 @@ model ExecutionReceipt {
   agent    Agent              @relation(fields: [agentId], references: [id], onDelete: Cascade)
   request  InvocationRequest  @relation(fields: [invocationReqId], references: [id], onDelete: Cascade)
   dispute  Dispute?
+
+  @@map("execution_receipts")
 }
 
 // 6. Dispute - 买卖双方纠纷记录
@@ -202,6 +216,8 @@ model Dispute {
   receipt  ExecutionReceipt?   @relation(fields: [receiptId], references: [id])
   buyer    User                @relation("DisputeBuyer", fields: [buyerId], references: [id], onDelete: Cascade)
   seller   User     @relation("DisputeSeller", fields: [sellerId], references: [id], onDelete: Cascade)
+
+  @@map("disputes")
 }
 
 model LifeAgentProfile {
@@ -214,8 +230,8 @@ model LifeAgentProfile {
   audience         String
   welcomeMessage   String   @map("welcome_message")
   pricePerQuestion Int      @default(990) @map("price_per_question")
-  expertiseTags    String[] @map("expertise_tags")
-  sampleQuestions  String[] @map("sample_questions")
+  expertiseTags    Json     @map("expertise_tags")
+  sampleQuestions  Json     @map("sample_questions")
   education        String?  @map("education")   // 学历
   income           String?  @map("income")      // 收入
   job              String?  @map("job")         // 工作
@@ -228,6 +244,8 @@ model LifeAgentProfile {
   knowledgeEntries LifeAgentKnowledgeEntry[]
   chatSessions   LifeAgentChatSession[]
   questionPacks  LifeAgentQuestionPack[]
+
+  @@map("life_agent_profiles")
 }
 
 model LifeAgentKnowledgeEntry {
@@ -236,11 +254,13 @@ model LifeAgentKnowledgeEntry {
   category  String
   title     String
   content   String
-  tags      String[]
+  tags      Json
   sortOrder Int      @default(0) @map("sort_order")
   createdAt DateTime @default(now()) @map("created_at")
 
   profile LifeAgentProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@map("life_agent_knowledge_entries")
 }
 
 model LifeAgentChatSession {
@@ -255,6 +275,8 @@ model LifeAgentChatSession {
   profile  LifeAgentProfile       @relation(fields: [profileId], references: [id], onDelete: Cascade)
   buyer    User                   @relation(fields: [buyerId], references: [id], onDelete: Cascade)
   messages LifeAgentChatMessage[]
+
+  @@map("life_agent_chat_sessions")
 }
 
 model LifeAgentChatMessage {
@@ -266,6 +288,8 @@ model LifeAgentChatMessage {
   createdAt DateTime @default(now()) @map("created_at")
 
   session LifeAgentChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@map("life_agent_chat_messages")
 }
 
 model LifeAgentQuestionPack {
@@ -280,4 +304,6 @@ model LifeAgentQuestionPack {
 
   profile LifeAgentProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
   buyer   User             @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+
+  @@map("life_agent_question_packs")
 }

@@ -4,14 +4,14 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function SignupPage() {
   const router = useRouter();
+  const { refetch } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
-  const [isBuyer, setIsBuyer] = useState(true);
-  const [isSeller, setIsSeller] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -19,32 +19,36 @@ export default function SignupPage() {
     e.preventDefault();
     setError("");
     setLoading(true);
-    const res = await fetch("/api/auth/signup", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({
-        email,
-        password,
-        name: name || undefined,
-        isBuyer,
-        isSeller,
-      }),
-    });
-    const data = await res.json();
-    setLoading(false);
-    if (!res.ok) {
-      setError(
-        data.error === "EMAIL_EXISTS"
-          ? "该邮箱已被注册"
-          : data.error === "VALIDATION_ERROR"
-          ? "请检查输入"
-          : "注册失败"
-      );
-      return;
+    try {
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          email,
+          password,
+          name: name.trim(),
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(
+          data.error === "EMAIL_EXISTS"
+            ? "该邮箱已被注册"
+            : data.error === "VALIDATION_ERROR"
+            ? "请检查输入"
+            : "注册失败"
+        );
+        return;
+      }
+      await refetch(); // 刷新登录状态后再跳转
+      router.push("/dashboard");
+      router.refresh();
+    } catch {
+      setError("网络错误，请检查连接后重试");
+    } finally {
+      setLoading(false);
     }
-    router.push("/dashboard");
-    router.refresh();
   };
 
   return (
@@ -70,6 +74,19 @@ export default function SignupPage() {
           />
         </motion.div>
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15 }}>
+          <label className="block text-sm font-medium text-slate-700 mb-2">用户名</label>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="input-shell"
+            placeholder="2-32 位，用于展示"
+            minLength={2}
+            maxLength={32}
+            required
+          />
+        </motion.div>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
           <label className="block text-sm font-medium text-slate-700 mb-2">密码（至少6位）</label>
           <input
             type="password"
@@ -79,41 +96,6 @@ export default function SignupPage() {
             minLength={6}
             required
           />
-        </motion.div>
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
-          <label className="block text-sm font-medium text-slate-700 mb-2">用户名（可选）</label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="input-shell"
-            placeholder="显示名称"
-          />
-        </motion.div>
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.25 }}
-          className="flex gap-6"
-        >
-          <label className="flex items-center gap-3 cursor-pointer group">
-            <input
-              type="checkbox"
-              checked={isBuyer}
-              onChange={(e) => setIsBuyer(e.target.checked)}
-              className="w-4 h-4 rounded border-slate-300 bg-white text-sky-600 focus:ring-sky-500/40"
-            />
-            <span className="text-sm text-slate-600 group-hover:text-slate-900">买方</span>
-          </label>
-          <label className="flex items-center gap-3 cursor-pointer group">
-            <input
-              type="checkbox"
-              checked={isSeller}
-              onChange={(e) => setIsSeller(e.target.checked)}
-              className="w-4 h-4 rounded border-slate-300 bg-white text-sky-600 focus:ring-sky-500/40"
-            />
-            <span className="text-sm text-slate-600 group-hover:text-slate-900">卖方</span>
-          </label>
         </motion.div>
         {error && (
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-red-400 text-sm">

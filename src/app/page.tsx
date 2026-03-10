@@ -18,21 +18,21 @@ const item = {
 
 const cards = [
   {
-    type: "展示你的经验",
+    type: "分享本地经验",
     color: "from-blue-500 to-sky-500",
-    desc: "把你的人生经验、职业方法、踩坑总结整理成可展示的 AI Agent 主页。",
+    desc: "菜市场、酒吧、大学、创业——你的真实经历、踩坑总结和本地知识，做成可展示的 Agent 主页。",
     icon: "◇",
   },
   {
     type: "像 GPT 一样聊天",
     color: "from-sky-500 to-cyan-500",
-    desc: "用户可以进入聊天窗口，按问题向你的经验 Agent 提问，获得连续对话式建议。",
+    desc: "用户进入聊天窗口，按问题向你提问，获得基于你亲身经验的连续对话式建议。",
     icon: "▣",
   },
   {
     type: "按次付费咨询",
     color: "from-indigo-500 to-blue-500",
-    desc: "支持购买提问次数包，降低使用门槛，也让创作者更容易开始提供服务。",
+    desc: "购买提问次数包，降低使用门槛，让创作者把本地经验转化为可 monetize 的服务。",
     icon: "◎",
   },
 ];
@@ -66,7 +66,7 @@ export default function HomePage() {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.2 }}
           >
-            面向普通用户的人生经验 Agent 平台
+            专注本地的经验 Agent 市场 · 训练你的私人AI化身帮你赚钱
           </motion.span>
         </motion.div>
 
@@ -74,15 +74,14 @@ export default function HomePage() {
           variants={item}
           className="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight mb-6 bg-gradient-to-r from-blue-600 via-sky-500 to-blue-600 bg-clip-text text-transparent"
         >
-          AI Agent Marketplace
+          Bright Agent Hub
         </motion.h1>
 
         <motion.p
           variants={item}
           className="text-xl text-slate-600 max-w-3xl mx-auto mb-12 leading-relaxed"
         >
-          让每个人都能把自己的经历、方法论和专业认知做成一个可对话的 Agent。
-          <span className="text-slate-800"> 创作者负责输入真实经验，用户通过明亮、简单的聊天界面按次付费提问。</span>
+          学长分享雅思经验、菜市场大妈说哪些摊位新鲜实惠、酒吧达人告诉你哪家好哪家差、创业者说哪些行业值得一试——把真实本地经验做成可对话的 Agent，用户按次付费咨询。
         </motion.p>
 
         <motion.div variants={item} className="flex flex-wrap gap-4 justify-center mb-20">

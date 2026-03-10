@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/agent-marketplace/backend/internal/config"
 	"github.com/agent-marketplace/backend/internal/db"
@@ -45,11 +46,9 @@ func Login(cfg *config.Config) gin.HandlerFunc {
 func Signup(cfg *config.Config) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var body struct {
-			Email    string  `json:"email" binding:"required,email"`
-			Password string  `json:"password" binding:"required,min=6"`
-			Name     string  `json:"name"`
-			IsBuyer  *bool   `json:"isBuyer"`
-			IsSeller *bool   `json:"isSeller"`
+			Email    string `json:"email" binding:"required,email"`
+			Password string `json:"password" binding:"required,min=6"`
+			Name     string `json:"name" binding:"required,min=2,max=32"`
 		}
 		if err := c.ShouldBindJSON(&body); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "VALIDATION_ERROR"})
@@ -65,22 +64,12 @@ func Signup(cfg *config.Config) gin.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "INTERNAL_ERROR"})
 			return
 		}
-		isBuyer, isSeller := true, false
-		if body.IsBuyer != nil {
-			isBuyer = *body.IsBuyer
-		}
-		if body.IsSeller != nil {
-			isSeller = *body.IsSeller
-		}
 		u := models.User{
 			ID:        models.GenID(),
 			Email:     body.Email,
 			Password:  string(hash),
-			Name:      ptr(body.Name),
-			RoleFlags: models.JSONMap{"is_buyer": isBuyer, "is_seller": isSeller},
-		}
-		if u.Name != nil && *u.Name == "" {
-			u.Name = nil
+			Name:      ptr(strings.TrimSpace(body.Name)),
+			RoleFlags: nil,
 		}
 		if err := db.DB.Create(&u).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "INTERNAL_ERROR"})

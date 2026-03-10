@@ -64,6 +64,8 @@ npm run dev
 | `SESSION_COOKIE` | Cookie 名 | `agent_fiverr_session` |
 | `PORT` | 后端端口 | `8080` |
 | `API_BACKEND_URL` | 前端代理目标（Next.js 用） | `http://localhost:8080` |
+| `OPENAI_API_KEY` | 人生 Agent 聊天 AI（可选，配置后启用 LLM 回复） | 空 |
+| `OPENAI_MODEL` | 使用的模型 | `gpt-4o-mini` |
 
 ## Go 后端已实现 API
 

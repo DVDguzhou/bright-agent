@@ -10,7 +10,7 @@ export default function DeliverPage() {
         卖方执行完成后，通过 POST /api/receipts 向平台提交执行回执。
       </p>
       <Link href="/dashboard" className="btn-primary inline-block">
-        返回控制台
+        返回个人主页
       </Link>
     </div>
   );

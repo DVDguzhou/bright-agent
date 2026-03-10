@@ -6,11 +6,18 @@ import (
 )
 
 type ProfileForAI struct {
-	DisplayName   string
-	Headline      string
-	Audience      string
-	WelcomeMessage string
-	ExpertiseTags []string
+	DisplayName      string
+	Headline         string
+	Audience         string
+	WelcomeMessage   string
+	ExpertiseTags    []string
+	MBTI             string
+	PersonaArchetype string
+	ToneStyle        string
+	ResponseStyle    string
+	ForbiddenPhrases []string
+	ExampleReplies   []string
+	NotSuitableFor   string // 不能/不想回答的问题，供 AI 参考
 }
 
 type KnowledgeEntryForAI struct {
@@ -70,29 +77,27 @@ func BuildReply(profile ProfileForAI, entries []KnowledgeEntryForAI, history []C
 		}
 	}
 
-	intro := "结合 " + profile.DisplayName + " 过往分享里最相关的几段经验，我建议你先把问题拆小。"
+	intro := "按我自己的经历看，你这个问题先别一下想太大，先抓最关键的一步。"
 	if len(topEntries) == 0 {
-		intro = profile.DisplayName + " 目前没有完全对应的现成经验，我先基于他的整体经历给你一个稳妥建议。"
+		intro = "这个问题我手上没有完全对应的经历，硬说会有点假，我只能给你一个比较稳妥的方向。"
 	}
 
-	reflection := "先想清楚你现在最想解决的是结果、路径，还是情绪压力，这会决定下一步动作。"
+	reflection := "你先想清楚，你现在最卡的是结果、方法，还是心态，不然很容易什么都想做一点。"
 	if lastUserContent != "" && lastUserContent != message {
 		ref := firstSentence(lastUserContent, 24)
-		reflection = "你这次的问题和上一轮提到的\"" + ref + "\"是连着的，所以先保持同一目标，不要一次改太多变量。"
+		reflection = "你这次问的和上一轮提到的\"" + ref + "\"其实是一条线上的，先别来回换方向。"
 	}
 
-	var bullets []string
-	for i, e := range selectedEntries {
-		n := string(rune('1' + i))
-		bullets = append(bullets, n+". "+e.Title+"："+firstSentence(e.Content, 90))
+	var snippets []string
+	for _, e := range selectedEntries {
+		snippets = append(snippets, e.Title+"这块，我自己的经验是："+firstSentence(e.Content, 90))
 	}
-	bulletsStr := strings.Join(bullets, "\n")
+	snippetsStr := strings.Join(snippets, "\n\n")
 
-	closing := "如果你愿意，我下一轮可以继续按「现状分析 / 选项比较 / 具体行动」三步陪你往下拆。"
+	closing := "你要是愿意，也可以把你现在的具体情况再说细一点，我能按我的经历继续帮你往下拆。"
 
-	content = "你好，我会尽量用 " + profile.DisplayName + " 的经验视角来回答你。\n\n" +
-		intro + "\n\n" + reflection + "\n\n" +
-		"你可以重点参考这几条：\n" + bulletsStr + "\n\n" + closing
+	content = intro + "\n\n" + reflection + "\n\n" +
+		"如果按我自己踩坑后的做法，我会先这样想。\n\n" + snippetsStr + "\n\n" + closing
 
 	references = make([]map[string]string, len(selectedEntries))
 	for i, e := range selectedEntries {

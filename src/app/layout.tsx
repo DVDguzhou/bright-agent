@@ -1,14 +1,17 @@
 import type { Metadata } from "next";
-import { JetBrains_Mono, Outfit } from "next/font/google";
 import "./globals.css";
 import { Nav } from "@/components/Nav";
-
-const outfit = Outfit({ subsets: ["latin"], variable: "--font-sans" });
-const jetbrains = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono" });
+import { AuthProvider } from "@/contexts/AuthContext";
+import { InstallPWA } from "@/components/InstallPWA";
+import { RegisterSW } from "@/components/RegisterSW";
 
 export const metadata: Metadata = {
   title: "AI Agent Marketplace",
-  description: "可创建人生经验 Agent、展示个人知识、提供聊天咨询与按次付费服务的轻量平台。",
+  description: "专注本地的经验 Agent 市场：学长分享雅思、大妈分享菜市场、酒吧达人分享探店、创业者分享行业——真实经历做成可对话 Agent，按次付费咨询。",
+  manifest: "/manifest.json",
+  themeColor: "#0ea5e9",
+  appleWebApp: { capable: true, title: "Agent 市场" },
+  icons: { icon: "/icon.svg", apple: "/icon.svg" },
 };
 
 export default function RootLayout({
@@ -17,10 +20,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-CN" className={`${outfit.variable} ${jetbrains.variable}`}>
+    <html lang="zh-CN">
       <body className="min-h-screen bg-slate-50 text-slate-900 font-sans antialiased">
-        <Nav />
-        <main className="container mx-auto px-4 py-8 max-w-7xl relative z-10">{children}</main>
+        <AuthProvider>
+          <Nav />
+          <main className="container mx-auto px-4 py-8 max-w-7xl relative z-10">{children}</main>
+          <RegisterSW />
+          <InstallPWA />
+        </AuthProvider>
       </body>
     </html>
   );

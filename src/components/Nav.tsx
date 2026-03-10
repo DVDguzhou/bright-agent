@@ -2,35 +2,23 @@
 
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-
-type User = { id: string; email: string; name: string | null };
+import { useAuth } from "@/contexts/AuthContext";
 
 const navLinks = [
   { href: "/life-agents", label: "人生 Agent" },
-  { href: "/agents", label: "Agents" },
-  { href: "/workflow", label: "工作流" },
-  { href: "/demo/swarm", label: "Agent Swarm" },
-  { href: "/demo/video-pipeline", label: "视频流水线 Demo" },
+  { href: "/dashboard/messages", label: "消息" },
   { href: "/licenses", label: "我的 License" },
 ];
 
 export function Nav() {
   const router = useRouter();
   const pathname = usePathname();
-  const [user, setUser] = useState<User | null>(null);
-
-  useEffect(() => {
-    fetch("/api/auth/me", { credentials: "include" })
-      .then((r) => (r.ok ? r.json() : null))
-      .then(setUser)
-      .catch(() => setUser(null));
-  }, [pathname]);
+  const { user, refetch } = useAuth();
 
   const logout = async () => {
     await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
-    setUser(null);
+    refetch();
     router.push("/");
     router.refresh();
   };
@@ -50,7 +38,7 @@ export function Nav() {
             Bright Agent Hub
           </motion.span>
           <span className="text-slate-500 group-hover:text-sky-600 transition-colors text-sm hidden sm:inline">
-            人生经验 · 对话咨询 · 轻量交易
+            本地经验 · 对话咨询 · Agent as Service
           </span>
         </Link>
 
@@ -94,7 +82,7 @@ export function Nav() {
                     className="text-sm text-slate-600 hover:text-sky-700 transition-colors"
                     whileHover={{ scale: 1.02 }}
                   >
-                    控制台
+                    个人主页
                   </motion.span>
                 </Link>
                 <span className="text-slate-500 text-sm hidden sm:inline truncate max-w-[120px]">

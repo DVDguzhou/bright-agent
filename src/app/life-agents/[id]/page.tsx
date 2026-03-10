@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import { RatingStars } from "@/components/RatingStars";
+import { VerificationBadge } from "@/components/VerificationBadge";
 
 type DetailData = {
   id: string;
@@ -14,6 +16,15 @@ type DetailData = {
   income?: string;
   job?: string;
   school?: string;
+  regions?: string[];
+  country?: string;
+  province?: string;
+  city?: string;
+  county?: string;
+  mbti?: string;
+  personaArchetype?: string;
+  toneStyle?: string;
+  responseStyle?: string;
   audience: string;
   welcomeMessage: string;
   pricePerQuestion: number;
@@ -26,6 +37,7 @@ type DetailData = {
     content: string;
     tags: string[];
   }>;
+  verificationStatus?: string;
   creator: {
     name: string | null;
     email: string;
@@ -34,6 +46,16 @@ type DetailData = {
     sessionCount: number;
     soldQuestionPacks: number;
     knowledgeCount: number;
+  };
+  ratings?: {
+    averageScore: number;
+    raters: number;
+    recent: Array<{
+      id: string;
+      score: number;
+      comment?: string | null;
+      updatedAt: string;
+    }>;
   };
   viewerState: {
     isLoggedIn: boolean;
@@ -69,6 +91,7 @@ export default function LifeAgentDetailPage() {
     if (!profile) return 0;
     return (profile.pricePerQuestion * selectedPack) / 100;
   }, [profile, selectedPack]);
+  const averageScore = profile?.ratings?.averageScore ?? 0;
 
   const purchase = async () => {
     if (!profile) return;
@@ -132,8 +155,27 @@ export default function LifeAgentDetailPage() {
               <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-3xl bg-blue-100 text-2xl font-semibold text-blue-700">
                 {(profile.displayName ?? "?").slice(0, 1)}
               </div>
-              <h1 className="section-title">{profile.displayName}</h1>
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="section-title">{profile.displayName}</h1>
+                <VerificationBadge status={profile.verificationStatus ?? "none"} size="md" />
+                {profile.verificationStatus === "pending" && (
+                  <span className="text-sm text-amber-600">请联系我们完成认证</span>
+                )}
+              </div>
               <p className="mt-2 text-lg text-slate-600">{profile.headline}</p>
+              <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-slate-500">
+                <span className="inline-flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1 text-amber-700">
+                  <RatingStars score={averageScore} size="md" />
+                  {profile.ratings && profile.ratings.raters > 0
+                    ? `${profile.ratings.averageScore.toFixed(1)} / 5 分`
+                    : "暂无评分"}
+                </span>
+                <span>
+                  {profile.ratings && profile.ratings.raters > 0
+                    ? `${profile.ratings.raters} 位用户已评分`
+                    : "满 10 次提问后用户可评分"}
+                </span>
+              </div>
               {(profile.education || profile.school || profile.job || profile.income) && (
                 <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-500">
                   {profile.school && <span>🏫 {profile.school}</span>}
@@ -141,6 +183,14 @@ export default function LifeAgentDetailPage() {
                   {profile.job && <span>💼 {profile.job}</span>}
                   {profile.income && <span>💰 {profile.income}</span>}
                 </div>
+              )}
+              {(profile.country || profile.province || profile.city || profile.county) && (
+                <p className="mt-3 text-sm text-slate-500">
+                  📍 {[profile.country, profile.province, profile.city, profile.county].filter(Boolean).join(" / ")}
+                </p>
+              )}
+              {Array.isArray(profile.regions) && profile.regions.length > 0 && (
+                <p className="mt-2 text-sm text-slate-500">地区：{profile.regions.join(" / ")}</p>
               )}
               <p className="mt-5 text-base leading-7 text-slate-700">{profile.longBio}</p>
             </div>
@@ -155,6 +205,26 @@ export default function LifeAgentDetailPage() {
           </div>
 
           <div className="mt-6 flex flex-wrap gap-2">
+            {profile.personaArchetype && (
+              <span className="rounded-full bg-sky-100 px-3 py-1 text-sm text-sky-700">
+                {profile.personaArchetype}
+              </span>
+            )}
+            {profile.toneStyle && (
+              <span className="rounded-full bg-amber-100 px-3 py-1 text-sm text-amber-700">
+                {profile.toneStyle}
+              </span>
+            )}
+            {profile.responseStyle && (
+              <span className="rounded-full bg-emerald-100 px-3 py-1 text-sm text-emerald-700">
+                {profile.responseStyle}
+              </span>
+            )}
+            {profile.mbti && (
+              <span className="rounded-full bg-violet-100 px-3 py-1 text-sm text-violet-700">
+                {profile.mbti}
+              </span>
+            )}
             {(profile.expertiseTags ?? []).map((tag: string) => (
               <span key={tag} className="rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-700">
                 {tag}
@@ -184,6 +254,22 @@ export default function LifeAgentDetailPage() {
             <p className="mt-3 rounded-2xl bg-blue-50 p-4 text-sm leading-6 text-slate-700">
               {profile.welcomeMessage}
             </p>
+            <div className="mt-4 rounded-2xl bg-slate-50 p-4">
+              <p className="text-sm text-slate-500">用户评分</p>
+              <div className="mt-2 flex items-center gap-2">
+                <RatingStars score={averageScore} size="lg" />
+                <p className="text-2xl font-semibold text-slate-900">
+                  {profile.ratings && profile.ratings.raters > 0
+                    ? profile.ratings.averageScore.toFixed(1)
+                    : "--"}
+                </p>
+              </div>
+              <p className="mt-1 text-xs text-slate-500">
+                {profile.ratings && profile.ratings.raters > 0
+                  ? `${profile.ratings.raters} 位用户已评分`
+                  : "还没有用户评分"}
+              </p>
+            </div>
             <div className="mt-5 flex flex-wrap gap-3">
               <Link href={`/life-agents/${profile.id}/chat`} className="btn-primary">
                 进入聊天页
@@ -248,30 +334,6 @@ export default function LifeAgentDetailPage() {
             发布者：{profile.creator.name || "未设置昵称"} · {profile.creator.email}
           </p>
           <p className="mt-4 text-sm leading-6 text-slate-600">{profile.shortBio}</p>
-        </div>
-      </section>
-
-      <section className="glass-card p-6">
-        <h2 className="text-xl font-semibold text-slate-900">知识内容预览</h2>
-        <div className="mt-5 grid gap-4 md:grid-cols-2">
-          {(profile.knowledgeEntries ?? []).map((entry) => (
-            <div key={entry.id} className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
-              <div className="flex items-center justify-between gap-3">
-                <span className="rounded-full bg-white px-3 py-1 text-xs font-medium text-sky-700">
-                  {entry.category}
-                </span>
-                <div className="flex flex-wrap justify-end gap-2">
-                  {(entry.tags ?? []).slice(0, 3).map((tag: string) => (
-                    <span key={tag} className="text-xs text-slate-500">
-                      #{tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-              <h3 className="mt-4 text-lg font-semibold text-slate-900">{entry.title}</h3>
-              <p className="mt-3 line-clamp-4 text-sm leading-6 text-slate-600">{entry.content}</p>
-            </div>
-          ))}
         </div>
       </section>
     </div>
