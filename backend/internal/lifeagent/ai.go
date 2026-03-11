@@ -61,60 +61,41 @@ func BuildReply(profile ProfileForAI, entries []KnowledgeEntryForAI, history []C
 			}
 		}
 	}
-	var selectedEntries []KnowledgeEntryForAI
-	if len(topEntries) > 0 {
-		selectedEntries = topEntries
-	} else if len(entries) >= 2 {
-		selectedEntries = entries[:2]
-	} else if len(entries) > 0 {
-		selectedEntries = entries
-	}
 
-	var lastUserContent string
-	for i := len(history) - 1; i >= 0; i-- {
-		if history[i].Role == "user" {
-			lastUserContent = history[i].Content
-			break
-		}
-	}
-
-	intro := "你这个问题问得很实在，我先按我自己走过的路给你一个稳一点的判断。"
+	// 没有任何匹配的知识条目 → 直接说不知道
 	if len(topEntries) == 0 {
-		intro = "这个问题我手上没有完全一模一样的经历，硬说会有点假，我只能给你一个我觉得更稳妥的方向。"
-	}
-	if profile.Headline != "" {
-		intro += "我平时主要在「" + firstSentence(profile.Headline, 28) + "」这块积累经验。"
-	}
-
-	reflection := "你先想清楚，你现在最卡的是结果、方法，还是执行节奏，不然很容易每样都碰一点但推进不动。"
-	if lastUserContent != "" && lastUserContent != message {
-		ref := firstSentence(lastUserContent, 24)
-		reflection = "你这次问的和上一轮提到的\"" + ref + "\"其实是一条线上的，先别来回换方向。"
+		content = fmt.Sprintf("这个问题我的经验里没有涉及，我不太清楚，不敢乱说。你可以问问我擅长的方向，比如「%s」相关的问题。",
+			firstSentence(profile.Headline, 30))
+		return content, nil
 	}
 
-	var snippets []string
-	for _, e := range selectedEntries {
-		tip := normalizeSnippet(firstSentence(e.Content, 90))
-		if tip == "" {
-			tip = "这块我建议先做一次小范围验证，再根据反馈继续调整。"
+	// 有匹配的知识条目 → 直接把知识内容作为回答呈现
+	var parts []string
+	for _, e := range topEntries {
+		snippet := strings.TrimSpace(e.Content)
+		if snippet == "" {
+			continue
 		}
-		snippets = append(snippets, fmt.Sprintf("拿「%s」来说，我踩过坑后的做法是：%s", e.Title, tip))
+		parts = append(parts, snippet)
 	}
-	snippetsStr := strings.Join(snippets, "\n\n")
 
-	closing := "你要是愿意，可以把你现在的具体情况再说细一点，我按我的经历继续帮你往下拆。"
-
-	content = intro + "\n\n" + reflection
-	if snippetsStr != "" {
-		content += "\n\n" + snippetsStr
+	if len(parts) == 0 {
+		content = "这个问题我暂时答不上来，我的知识库里还没有这方面的内容。"
+		return content, nil
 	}
-	content += "\n\n" + closing
 
-	references = make([]map[string]string, len(selectedEntries))
-	for i, e := range selectedEntries {
+	content = strings.Join(parts, "\n\n")
+
+	// 如果有多条，加一句简短收尾
+	if len(parts) > 1 {
+		content += "\n\n你要是还想了解更细的，可以接着问。"
+	}
+
+	references = make([]map[string]string, len(topEntries))
+	for i, e := range topEntries {
 		excerpt := normalizeSnippet(firstSentence(e.Content, 80))
 		if excerpt == "" {
-			excerpt = "基于已有经历给到的一条可执行建议。"
+			excerpt = "来自知识库的相关内容。"
 		}
 		references[i] = map[string]string{
 			"id": e.ID, "category": e.Category, "title": e.Title,
