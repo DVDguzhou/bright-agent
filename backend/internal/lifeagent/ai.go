@@ -1,6 +1,7 @@
 package lifeagent
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 )
@@ -77,12 +78,15 @@ func BuildReply(profile ProfileForAI, entries []KnowledgeEntryForAI, history []C
 		}
 	}
 
-	intro := "按我自己的经历看，你这个问题先别一下想太大，先抓最关键的一步。"
+	intro := "你这个问题问得很实在，我先按我自己走过的路给你一个稳一点的判断。"
 	if len(topEntries) == 0 {
-		intro = "这个问题我手上没有完全对应的经历，硬说会有点假，我只能给你一个比较稳妥的方向。"
+		intro = "这个问题我手上没有完全一模一样的经历，硬说会有点假，我只能给你一个我觉得更稳妥的方向。"
+	}
+	if profile.Headline != "" {
+		intro += "我平时主要在「" + firstSentence(profile.Headline, 28) + "」这块积累经验。"
 	}
 
-	reflection := "你先想清楚，你现在最卡的是结果、方法，还是心态，不然很容易什么都想做一点。"
+	reflection := "你先想清楚，你现在最卡的是结果、方法，还是执行节奏，不然很容易每样都碰一点但推进不动。"
 	if lastUserContent != "" && lastUserContent != message {
 		ref := firstSentence(lastUserContent, 24)
 		reflection = "你这次问的和上一轮提到的\"" + ref + "\"其实是一条线上的，先别来回换方向。"
@@ -90,20 +94,31 @@ func BuildReply(profile ProfileForAI, entries []KnowledgeEntryForAI, history []C
 
 	var snippets []string
 	for _, e := range selectedEntries {
-		snippets = append(snippets, e.Title+"这块，我自己的经验是："+firstSentence(e.Content, 90))
+		tip := normalizeSnippet(firstSentence(e.Content, 90))
+		if tip == "" {
+			tip = "这块我建议先做一次小范围验证，再根据反馈继续调整。"
+		}
+		snippets = append(snippets, fmt.Sprintf("拿「%s」来说，我踩过坑后的做法是：%s", e.Title, tip))
 	}
 	snippetsStr := strings.Join(snippets, "\n\n")
 
-	closing := "你要是愿意，也可以把你现在的具体情况再说细一点，我能按我的经历继续帮你往下拆。"
+	closing := "你要是愿意，可以把你现在的具体情况再说细一点，我按我的经历继续帮你往下拆。"
 
-	content = intro + "\n\n" + reflection + "\n\n" +
-		"如果按我自己踩坑后的做法，我会先这样想。\n\n" + snippetsStr + "\n\n" + closing
+	content = intro + "\n\n" + reflection
+	if snippetsStr != "" {
+		content += "\n\n" + snippetsStr
+	}
+	content += "\n\n" + closing
 
 	references = make([]map[string]string, len(selectedEntries))
 	for i, e := range selectedEntries {
+		excerpt := normalizeSnippet(firstSentence(e.Content, 80))
+		if excerpt == "" {
+			excerpt = "基于已有经历给到的一条可执行建议。"
+		}
 		references[i] = map[string]string{
 			"id": e.ID, "category": e.Category, "title": e.Title,
-			"excerpt": firstSentence(e.Content, 80),
+			"excerpt": excerpt,
 		}
 	}
 	return content, references
@@ -120,6 +135,17 @@ func firstSentence(s string, maxLen int) string {
 		return strings.TrimSpace(m[:maxLen]) + "..."
 	}
 	return m
+}
+
+func normalizeSnippet(s string) string {
+	s = strings.TrimSpace(s)
+	if s == "" {
+		return ""
+	}
+	// 去掉常见口头语开头，避免回退模板里显得突兀
+	re := regexp.MustCompile(`^(哎呀|哎|唉|嗯|额|那个|其实|怎么说呢)[，,\s]*`)
+	s = re.ReplaceAllString(s, "")
+	return strings.TrimSpace(s)
 }
 
 func scoreEntry(message string, entry KnowledgeEntryForAI) int {

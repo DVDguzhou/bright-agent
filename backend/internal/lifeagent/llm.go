@@ -51,9 +51,13 @@ func BuildReplyWithLLM(apiKey, model, baseURL string, profile ProfileForAI, entr
 	content = humanizeReply(strings.TrimSpace(resp.Choices[0].Message.Content))
 	references = make([]map[string]string, len(selectedEntries))
 	for i, e := range selectedEntries {
+		excerpt := normalizeSnippet(firstSentence(e.Content, 80))
+		if excerpt == "" {
+			excerpt = "基于已有经历给到的一条可执行建议。"
+		}
 		references[i] = map[string]string{
 			"id": e.ID, "category": e.Category, "title": e.Title,
-			"excerpt": firstSentence(e.Content, 80),
+			"excerpt": excerpt,
 		}
 	}
 	return content, references, nil
