@@ -69,14 +69,16 @@ func BuildReply(profile ProfileForAI, entries []KnowledgeEntryForAI, history []C
 		return content, nil
 	}
 
-	// 有匹配的知识条目 → 直接把知识内容作为回答呈现
+	// 有匹配的知识条目 → 用人设语气自然地呈现知识内容
 	var parts []string
 	for _, e := range topEntries {
 		snippet := strings.TrimSpace(e.Content)
 		if snippet == "" {
 			continue
 		}
-		parts = append(parts, snippet)
+		// 用知识条目标题做轻量引导，保持自然
+		lead := fmt.Sprintf("关于「%s」，", e.Title)
+		parts = append(parts, lead+snippet)
 	}
 
 	if len(parts) == 0 {
@@ -84,12 +86,18 @@ func BuildReply(profile ProfileForAI, entries []KnowledgeEntryForAI, history []C
 		return content, nil
 	}
 
-	content = strings.Join(parts, "\n\n")
-
-	// 如果有多条，加一句简短收尾
-	if len(parts) > 1 {
-		content += "\n\n你要是还想了解更细的，可以接着问。"
+	// 单条直接说，多条之间自然衔接
+	if len(parts) == 1 {
+		content = parts[0]
+	} else {
+		content = parts[0]
+		for i := 1; i < len(parts); i++ {
+			content += "\n\n另外，" + parts[i]
+		}
 	}
+
+	// 加一句简短的收尾，保持对话感
+	content += "\n\n还有啥想问的你接着说。"
 
 	references = make([]map[string]string, len(topEntries))
 	for i, e := range topEntries {
