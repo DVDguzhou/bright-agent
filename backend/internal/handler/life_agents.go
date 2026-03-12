@@ -240,7 +240,7 @@ func LifeAgentsCreate(cfg *config.Config) gin.HandlerFunc {
 			ShortBio           string   `json:"shortBio" binding:"required"`
 			LongBio            string   `json:"longBio" binding:"required"`
 			Audience           string   `json:"audience" binding:"required"`
-			WelcomeMessage     string   `json:"welcomeMessage" binding:"required,min=10"`
+			WelcomeMessage     string   `json:"welcomeMessage" binding:"required,min=1"`
 			PricePerQuestion   int      `json:"pricePerQuestion"`
 			Education          string   `json:"education"`
 			Income             string   `json:"income"`
@@ -1387,24 +1387,32 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 				Tags: []string(e.Tags),
 			}
 		}
-		content, refs, _ := lifeagent.BuildReplyWithLLM(
-			cfg.OpenAIApiKey, cfg.OpenAIModel, cfg.OpenAIBaseURL,
-			lifeagent.ProfileForAI{
-				DisplayName:      p.DisplayName,
-				Headline:         p.Headline,
-				Audience:         p.Audience,
-				WelcomeMessage:   p.WelcomeMessage,
-				ExpertiseTags:    []string(p.ExpertiseTags),
-				MBTI:             ptrStr(p.MBTI),
-				PersonaArchetype: ptrStr(p.PersonaArchetype),
-				ToneStyle:        ptrStr(p.ToneStyle),
-				ResponseStyle:    ptrStr(p.ResponseStyle),
-				ForbiddenPhrases: []string(p.ForbiddenPhrases),
-				ExampleReplies:   []string(p.ExampleReplies),
-				NotSuitableFor:   ptrStr(p.NotSuitableFor),
-			},
-			entriesForAI, hist, body.Message,
-		)
+		profileForAI := lifeagent.ProfileForAI{
+			DisplayName:      p.DisplayName,
+			Headline:         p.Headline,
+			ShortBio:         p.ShortBio,
+			Audience:         p.Audience,
+			WelcomeMessage:   p.WelcomeMessage,
+			ExpertiseTags:    []string(p.ExpertiseTags),
+			MBTI:             ptrStr(p.MBTI),
+			PersonaArchetype: ptrStr(p.PersonaArchetype),
+			ToneStyle:        ptrStr(p.ToneStyle),
+			ResponseStyle:    ptrStr(p.ResponseStyle),
+			ForbiddenPhrases: []string(p.ForbiddenPhrases),
+			ExampleReplies:   []string(p.ExampleReplies),
+			NotSuitableFor:   ptrStr(p.NotSuitableFor),
+		}
+		var content string
+		var refs []map[string]string
+		if lifeagent.ClassifyQuestionIntent(cfg.OpenAIApiKey, cfg.OpenAIModel, cfg.OpenAIBaseURL, body.Message) {
+			content = lifeagent.BuildIdentityReply(profileForAI)
+		} else {
+			content, refs, _ = lifeagent.BuildReplyWithLLM(
+				cfg.OpenAIApiKey, cfg.OpenAIModel, cfg.OpenAIBaseURL,
+				profileForAI,
+				entriesForAI, hist, body.Message,
+			)
+		}
 		refsMap := make([]map[string]interface{}, len(refs))
 		for i, r := range refs {
 			refsMap[i] = make(map[string]interface{})
