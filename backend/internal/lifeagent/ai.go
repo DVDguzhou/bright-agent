@@ -9,6 +9,7 @@ import (
 type ProfileForAI struct {
 	DisplayName      string
 	Headline         string
+	ShortBio         string
 	Audience         string
 	WelcomeMessage   string
 	ExpertiseTags    []string
@@ -70,15 +71,26 @@ func BuildReply(profile ProfileForAI, entries []KnowledgeEntryForAI, history []C
 	}
 
 	// 有匹配的知识条目 → 用人设语气自然地呈现知识内容
+	// 若用户问「叫什么」类简单事实，优先给简短直接回答，不堆砌条目标题
+	if isAskingName(message) && len(topEntries) > 0 {
+		if name := extractNameFromContent(topEntries[0].Content, message); name != "" {
+			content = fmt.Sprintf("叫%s。", name)
+			references = make([]map[string]string, 1)
+			references[0] = map[string]string{
+				"id": topEntries[0].ID, "category": topEntries[0].Category,
+				"title": topEntries[0].Title, "excerpt": firstSentence(topEntries[0].Content, 80),
+			}
+			return content, references
+		}
+	}
+
 	var parts []string
 	for _, e := range topEntries {
 		snippet := strings.TrimSpace(e.Content)
 		if snippet == "" {
 			continue
 		}
-		// 用知识条目标题做轻量引导，保持自然
-		lead := fmt.Sprintf("关于「%s」，", e.Title)
-		parts = append(parts, lead+snippet)
+		parts = append(parts, snippet)
 	}
 
 	if len(parts) == 0 {
@@ -111,6 +123,38 @@ func BuildReply(profile ProfileForAI, entries []KnowledgeEntryForAI, history []C
 		}
 	}
 	return content, references
+}
+
+// isAskingName 判断是否为「叫什么」类简单事实问题
+func isAskingName(msg string) bool {
+	norm := strings.ToLower(strings.TrimSpace(msg))
+	norm = regexp.MustCompile(`\s+`).ReplaceAllString(norm, "")
+	return strings.Contains(norm, "叫什么") || strings.Contains(norm, "叫什么名字") ||
+		strings.Contains(norm, "是什么名字") || strings.Contains(norm, "叫什么名")
+}
+
+// extractNameFromContent 从知识库内容中抽取「叫什么」的答案，如：参加北京创业大赛 → 北京创业大赛
+func extractNameFromContent(content, _ string) string {
+	content = strings.TrimSpace(content)
+	if content == "" {
+		return ""
+	}
+	// 参加 XXX大赛/比赛/活动 → 捕获包含大赛/比赛/活动的完整名称
+	patterns := []*regexp.Regexp{
+		regexp.MustCompile(`参加([^，。]+?(?:大赛|比赛|活动))`),
+		regexp.MustCompile(`参加([^，。]+?)(?:，|。)`),
+		regexp.MustCompile(`在([^，。]+?)(?:工作|实习|参赛|比赛)`),
+	}
+	for _, re := range patterns {
+		m := re.FindStringSubmatch(content)
+		if len(m) >= 2 {
+			name := strings.TrimSpace(m[1])
+			if len(name) >= 2 && len(name) <= 20 {
+				return name
+			}
+		}
+	}
+	return ""
 }
 
 func firstSentence(s string, maxLen int) string {

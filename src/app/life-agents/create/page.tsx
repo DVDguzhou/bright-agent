@@ -18,79 +18,7 @@ type KnowledgeEntry = {
   tags: string[];
 };
 
-const TOPIC_OPTIONS: { id: string; label: string; questions: { question: string; category: string; title: string }[] }[] = [
-  {
-    id: "yasi",
-    label: "雅思 / 英语备考",
-    questions: [
-      { question: "你的英语基础如何？备考前大概什么水平？用了多久、怎么考到的目标分数？", category: "备考经历", title: "基础与备考周期" },
-      { question: "听力/阅读/写作/口语，你哪部分提升最明显？具体用了什么方法、每天练多久？", category: "方法经验", title: "各科提升方法" },
-      { question: "备考过程中踩过什么坑？哪些方法试过但效果不好？", category: "踩坑总结", title: "踩坑与无效方法" },
-    ],
-  },
-  {
-    id: "qiuzhi",
-    label: "求职 / 面试",
-    questions: [
-      { question: "你印象最深的一次面试是怎样的？当时问了你什么、你怎么答的、结果如何？", category: "面试经历", title: "印象深刻的面试" },
-      { question: "你觉得面试中最重要的是什么？你有什么具体技巧或话术？", category: "面试技巧", title: "面试技巧与话术" },
-      { question: "你收到过哪些反馈（通过/没通过）？你后来怎么调整的？", category: "复盘调整", title: "反馈与调整" },
-    ],
-  },
-  {
-    id: "zhive",
-    label: "职业发展 / 转行",
-    questions: [
-      { question: "请分享你从迷茫到找到方向的经历。当时做了什么、踩过什么坑、最后怎么走出来的？", category: "职业成长", title: "从迷茫到方向" },
-      { question: "你转行或换岗的经历？怎么准备的、花了多久、有哪些关键节点？", category: "转行经历", title: "转行/换岗经历" },
-      { question: "你有什么反复验证过、觉得确实有效的方法？可以写步骤、时间线或具体数字。", category: "方法论", title: "验证有效的方法" },
-    ],
-  },
-  {
-    id: "kaoyan",
-    label: "考研",
-    questions: [
-      { question: "你考研的目标院校、专业？当时的基础和备考周期？", category: "备考背景", title: "考研目标与周期" },
-      { question: "各科你是怎么复习的？时间安排、资料选择、重点突破？", category: "复习方法", title: "各科复习方法" },
-      { question: "考研过程中踩过什么坑？心态上怎么调整的？", category: "踩坑心态", title: "踩坑与心态" },
-    ],
-  },
-  {
-    id: "liuxue",
-    label: "留学",
-    questions: [
-      { question: "你的留学背景？去的哪里、学什么、什么时候去的？", category: "留学背景", title: "留学背景" },
-      { question: "申请过程中你做了哪些准备？选校、文书、语言、时间线？", category: "申请经验", title: "申请准备" },
-      { question: "有什么你当时希望早点知道的事？给后来人的建议？", category: "建议", title: "给后来人的建议" },
-    ],
-  },
-  {
-    id: "chuangye",
-    label: "创业 / 副业",
-    questions: [
-      { question: "你的创业或副业经历？从想法到落地的过程？", category: "创业经历", title: "创业/副业经历" },
-      { question: "你觉得哪些行业或方向值得尝试？你的判断依据是什么？", category: "方向建议", title: "值得尝试的方向" },
-      { question: "从零开始你建议怎么做？有什么具体的步骤或避坑点？", category: "实操建议", title: "从零开始的建议" },
-    ],
-  },
-  {
-    id: "bendi",
-    label: "本地生活（菜市场、酒吧、探店等）",
-    questions: [
-      { question: "你经常逛/体验什么地方？能具体说说哪些摊位/店铺/区域好、哪些不好？", category: "本地经验", title: "具体推荐与避坑" },
-      { question: "你是怎么判断好坏、性价比的？有什么挑选技巧？", category: "挑选技巧", title: "挑选技巧" },
-      { question: "还有什么想补充的实用信息？比如时段、价格区间、注意事项？", category: "补充信息", title: "补充信息" },
-    ],
-  },
-  {
-    id: "qita",
-    label: "其他经验",
-    questions: [
-      { question: "你最擅长帮助哪类人解决什么问题？可以举一个具体例子。", category: "擅长领域", title: "最擅长的帮助" },
-      { question: "如果还有想补充的经验或教训，可以直接写在这里。没有可写「暂无」跳过～", category: "补充经验", title: "其他补充" },
-    ],
-  },
-];
+const FIRST_QUESTION = "你希望分享什么样的经验或信息？可以简单说说你擅长的领域或想帮别人解决什么问题。";
 
 const MBTI_OPTIONS = ["未设置", "INTJ", "INTP", "ENTJ", "ENTP", "INFJ", "INFP", "ENFJ", "ENFP", "ISTJ", "ISFJ", "ESTJ", "ESFJ", "ISTP", "ISFP", "ESTP", "ESFP"];
 const PERSONA_OPTIONS = ["学长学姐型", "朋友陪聊型", "前辈导师型", "冷静分析型", "过来人型", "本地熟人型"];
@@ -121,24 +49,23 @@ export default function CreateLifeAgentPage() {
     welcomeMessage: "你好，我是基于本地真实经验的顾问，你可以问我关于我亲身经历的问题。",
     pricePerQuestion: "990",
     expertiseTags: "大学生成长, 职业选择, 个人规划",
-    sampleQuestions: "我适合考研还是就业？\n刚毕业找不到方向怎么办？\n转行之前应该先准备什么？",
     mbti: "",
     personaArchetype: "过来人型",
     toneStyle: "像朋友聊天",
     responseStyle: "先理解处境再建议",
-    forbiddenPhrases: "希望这些对你有帮助\n首先其次最后\n保持积极心态",
-    exampleReply1: "如果按我自己的经历看，你现在最该先判断是不是要把主要精力放在英语上。我当时不是一上来就全科平均推进，而是先把最拖后腿的那块补起来，不然每天很忙但分数其实不怎么动。",
-    exampleReply2: "这个问题我不太会给特别标准的答案，我只能说按我当时踩过的坑来看，先别急着追求完美计划，先把最关键的一步跑通，后面再慢慢修。",
+    forbiddenPhrases: "",
+    exampleReply1: "",
+    exampleReply2: "",
     exampleReply3: "",
   });
-  const [step2Phase, setStep2Phase] = useState<"topics" | "chat">("topics");
-  const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
   const [notSuitableFor, setNotSuitableFor] = useState("");
   const [knowledgeEntries, setKnowledgeEntries] = useState<KnowledgeEntry[]>([]);
   const [chatHistory, setChatHistory] = useState<{ role: "assistant" | "user"; content: string }[]>([]);
-  const [dynamicQuestions, setDynamicQuestions] = useState<{ question: string; category: string; title: string }[]>([]);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [chatInput, setChatInput] = useState("");
+  const [chatDone, setChatDone] = useState(false);
+  const [chatLoading, setChatLoading] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [sampleQuestionsList, setSampleQuestionsList] = useState<string[]>(["", ""]);
 
   useEffect(() => {
     fetch("/api/auth/me", { credentials: "include" })
@@ -152,58 +79,96 @@ export default function CreateLifeAgentPage() {
   }, [chatHistory]);
 
   const startKnowledgeChat = () => {
-    const questions: { question: string; category: string; title: string }[] = [];
-    for (const tid of selectedTopics) {
-      const topic = TOPIC_OPTIONS.find((t) => t.id === tid);
-      if (topic) questions.push(...topic.questions);
-    }
-    setDynamicQuestions(questions);
-    if (questions.length > 0) {
-      setChatHistory([{ role: "assistant", content: questions[0].question }]);
-    }
-    setCurrentQuestionIndex(0);
+    setChatHistory([{ role: "assistant", content: FIRST_QUESTION }]);
+    setChatDone(false);
   };
 
-  const toggleTopic = (id: string) => {
-    setSelectedTopics((prev) =>
-      prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id]
-    );
-  };
-
-  const submitChatAnswer = (e: React.FormEvent) => {
+  const submitChatAnswer = async (e: React.FormEvent) => {
     e.preventDefault();
     const answer = chatInput.trim();
     if (!answer) return;
-    if (currentQuestionIndex >= dynamicQuestions.length) return;
+    if (chatDone || chatLoading) return;
 
-    const q = dynamicQuestions[currentQuestionIndex];
-    const extracted = answer.slice(0, 80).match(/[\u4e00-\u9fa5a-zA-Z]{2,}/g)?.slice(0, 3) ?? [];
-    const tagsFromContent = extracted.length > 0 ? extracted : [q.category];
-
-    setChatHistory((prev) => [...prev, { role: "user", content: answer }]);
     setChatInput("");
-    if (!/^暂无$|^无$|^没有$/i.test(answer.trim())) {
-      setKnowledgeEntries((prev) => [
-        ...prev,
-        {
-          category: q.category,
-          title: q.title,
-          content: answer,
-          tags: tagsFromContent,
-        },
-      ]);
+    setChatLoading(true);
+    setError("");
+
+    const updatedHistory = [...chatHistory, { role: "user" as const, content: answer }];
+    setChatHistory(updatedHistory);
+
+    let updatedEntries = knowledgeEntries;
+    if (!/^暂无$|^无$|^没有$/i.test(answer)) {
+      const extracted = answer.slice(0, 80).match(/[\u4e00-\u9fa5a-zA-Z]{2,}/g)?.slice(0, 3) ?? [];
+      const newEntry: KnowledgeEntry = {
+        category: "经验",
+        title: answer.length > 20 ? answer.slice(0, 20) + "…" : answer,
+        content: answer,
+        tags: extracted.length > 0 ? extracted : ["经验"],
+      };
+      updatedEntries = [...knowledgeEntries, newEntry];
+      setKnowledgeEntries(updatedEntries);
     }
 
-    if (currentQuestionIndex + 1 < dynamicQuestions.length) {
-      const next = dynamicQuestions[currentQuestionIndex + 1];
-      setChatHistory((prev) => [...prev, { role: "assistant", content: next.question }]);
-      setCurrentQuestionIndex((i) => i + 1);
-    } else {
-      setCurrentQuestionIndex(dynamicQuestions.length);
-      setChatHistory((prev) => [
-        ...prev,
-        { role: "assistant", content: "很好！你的经验已经记录下来，AI 会基于这些内容来回答来访者。点击下方「下一步」设置收费即可～" },
-      ]);
+    try {
+      const res = await fetch("/api/life-agents/create/next-question", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          basicInfo: { displayName: form.displayName, headline: form.headline, shortBio: form.shortBio },
+          chatHistory: updatedHistory,
+          knowledgeEntries: updatedEntries.map((e) => ({ category: e.category, title: e.title, content: e.content })),
+        }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.detail || "生成下一问失败，请重试");
+        setChatHistory((prev) => [...prev, { role: "assistant", content: "出了点小问题，你可以继续补充回答，或点击「下一步」看看是否已有足够经验。" }]);
+        return;
+      }
+
+      // 应用 AI 学习到的语气风格（悄悄写入 form）
+      if (data.extractedTone) {
+        const t = data.extractedTone;
+        setForm((prev) => ({
+          ...prev,
+          ...(t.personaArchetype && { personaArchetype: t.personaArchetype }),
+          ...(t.toneStyle && { toneStyle: t.toneStyle }),
+          ...(t.responseStyle && { responseStyle: t.responseStyle }),
+        }));
+      }
+      if (data.suggestedTags?.length) {
+        setForm((prev) => {
+          const existing = prev.expertiseTags.split(/[,，\n]/).map((x) => x.trim()).filter(Boolean);
+          const merged = Array.from(new Set([...existing, ...data.suggestedTags])).slice(0, 8);
+          return { ...prev, expertiseTags: merged.join(", ") };
+        });
+      }
+      if (data.knowledgeAdd?.length) {
+        setKnowledgeEntries((prev) => {
+          const existing = prev.map((e) => e.content);
+          const added = data.knowledgeAdd.filter((a: { content: string }) => a.content && !existing.includes(a.content));
+          return [...prev, ...added.map((a: { category: string; title: string; content: string; tags?: string[] }) => ({
+            category: a.category || "经验",
+            title: a.title || a.content.slice(0, 20),
+            content: a.content,
+            tags: a.tags?.length ? a.tags : [a.category || "经验"],
+          }))];
+        });
+      }
+
+      if (data.done) {
+        setChatHistory((prev) => [...prev, { role: "assistant", content: data.summaryMessage || "很好！你的经验已经记录下来，AI 会基于这些内容来回答来访者。点击下方「下一步」设置收费即可～" }]);
+        setChatDone(true);
+      } else {
+        setChatHistory((prev) => [...prev, { role: "assistant", content: data.nextQuestion || "还能补充一些具体经历吗？" }]);
+      }
+    } catch {
+      setError("网络错误，请重试");
+      setChatHistory((prev) => [...prev, { role: "assistant", content: "出了点小问题，你可以继续补充回答，或点击「下一步」看看是否已有足够经验。" }]);
+    } finally {
+      setChatLoading(false);
     }
   };
 
@@ -223,8 +188,7 @@ export default function CreateLifeAgentPage() {
       .split(/[,，\n]/)
       .map((item) => item.trim())
       .filter(Boolean);
-    const sampleQuestionsArr = form.sampleQuestions
-      .split("\n")
+    const sampleQuestionsArr = sampleQuestionsList
       .map((item) => item.trim())
       .filter(Boolean);
     if (expertiseTagsArr.length < 1) {
@@ -247,11 +211,6 @@ export default function CreateLifeAgentPage() {
 
     if (!form.personaArchetype || !form.toneStyle || !form.responseStyle) {
       setError("请先把 Agent 的角色、语气和回答习惯设置好");
-      setLoading(false);
-      return;
-    }
-    if (exampleRepliesArr.length < 2) {
-      setError("请至少填写 2 条示范回答，这样 AI 才更像你本人");
       setLoading(false);
       return;
     }
@@ -358,7 +317,7 @@ export default function CreateLifeAgentPage() {
           onSubmit={(e) => {
             e.preventDefault();
             setStep(2);
-            setStep2Phase("topics");
+            startKnowledgeChat();
           }}
           className="space-y-6"
         >
@@ -559,14 +518,43 @@ export default function CreateLifeAgentPage() {
               </div>
               <div>
                 <label className="mb-2 block text-sm font-medium text-slate-700">示例问题</label>
-                <textarea
-                  className="input-shell min-h-20"
-                  value={form.sampleQuestions}
-                  onChange={(e) => setForm((prev) => ({ ...prev, sampleQuestions: e.target.value }))}
-                  placeholder="每行一个，用户可点击快速提问。至少 2 个，例如：我适合考研还是就业？转行之前应该先准备什么？"
-                  required
-                />
-                <p className="mt-1 text-xs text-slate-500">至少 2 个，每行一个，会展示在聊天页供用户参考</p>
+                <p className="mb-2 text-xs text-slate-500">用户可点击快速提问，至少 2 个，最多 6 个</p>
+                <div className="space-y-2">
+                  {sampleQuestionsList.map((q, i) => (
+                    <div key={i} className="flex gap-2">
+                      <input
+                        className="input-shell flex-1"
+                        value={q}
+                        onChange={(e) => {
+                          const next = [...sampleQuestionsList];
+                          next[i] = e.target.value;
+                          setSampleQuestionsList(next);
+                        }}
+                        placeholder={`示例问题 ${i + 1}，如：我适合考研还是就业？`}
+                        required={i < 2}
+                      />
+                      {sampleQuestionsList.length > 2 && (
+                        <button
+                          type="button"
+                          onClick={() => setSampleQuestionsList((prev) => prev.filter((_, j) => j !== i))}
+                          className="rounded-lg border border-slate-200 px-3 text-slate-500 hover:bg-slate-50 hover:text-slate-700"
+                          title="删除"
+                        >
+                          删除
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  {sampleQuestionsList.length < 6 && (
+                    <button
+                      type="button"
+                      onClick={() => setSampleQuestionsList((prev) => [...prev, ""])}
+                      className="rounded-lg border border-dashed border-slate-300 px-4 py-2 text-sm text-slate-600 hover:border-sky-400 hover:bg-sky-50/50 hover:text-sky-700"
+                    >
+                      + 添加示例问题
+                    </button>
+                  )}
+                </div>
               </div>
               <div className="md:col-span-2 rounded-2xl border border-slate-200 bg-slate-50/70 p-5">
                 <h3 className="text-base font-semibold text-slate-900">让回答更像你本人</h3>
@@ -635,43 +623,57 @@ export default function CreateLifeAgentPage() {
                     </select>
                   </div>
                   <div className="md:col-span-2">
-                    <label className="mb-2 block text-sm font-medium text-slate-700">你最讨厌的 AI 套话</label>
-                    <textarea
-                      className="input-shell min-h-20"
-                      value={form.forbiddenPhrases}
-                      onChange={(e) => setForm((prev) => ({ ...prev, forbiddenPhrases: e.target.value }))}
-                      placeholder={"每行一个，例如：\n希望这些对你有帮助\n首先其次最后\n保持积极心态"}
-                    />
-                    <p className="mt-1 text-xs text-slate-500">这些话会尽量避免出现在最终回答里</p>
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="mb-2 block text-sm font-medium text-slate-700">示范回答 1</label>
-                    <textarea
-                      className="input-shell min-h-24"
-                      value={form.exampleReply1}
-                      onChange={(e) => setForm((prev) => ({ ...prev, exampleReply1: e.target.value }))}
-                      placeholder="写一段你自己平时真的会怎么回复用户的话。越像你本人越好。"
-                      required
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="mb-2 block text-sm font-medium text-slate-700">示范回答 2</label>
-                    <textarea
-                      className="input-shell min-h-24"
-                      value={form.exampleReply2}
-                      onChange={(e) => setForm((prev) => ({ ...prev, exampleReply2: e.target.value }))}
-                      placeholder="再写一段不同场景下的回复，比如安慰、劝退、给建议。"
-                      required
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="mb-2 block text-sm font-medium text-slate-700">示范回答 3（选填）</label>
-                    <textarea
-                      className="input-shell min-h-24"
-                      value={form.exampleReply3}
-                      onChange={(e) => setForm((prev) => ({ ...prev, exampleReply3: e.target.value }))}
-                      placeholder="如果你还有更有代表性的说话方式，可以再补一条。"
-                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowAdvanced((v) => !v)}
+                      className="flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900"
+                    >
+                      {showAdvanced ? "▼" : "▶"} 高级选项：示范回答、禁止套话
+                      {showAdvanced && (
+                        <span className="text-xs font-normal text-slate-500">（不设置则默认无）</span>
+                      )}
+                    </button>
+                    {showAdvanced && (
+                      <div className="mt-4 space-y-4 rounded-xl border border-slate-200 bg-white p-4">
+                        <div>
+                          <label className="mb-2 block text-sm font-medium text-slate-700">你最讨厌的 AI 套话</label>
+                          <textarea
+                            className="input-shell min-h-16"
+                            value={form.forbiddenPhrases}
+                            onChange={(e) => setForm((prev) => ({ ...prev, forbiddenPhrases: e.target.value }))}
+                            placeholder="每行一个，例如：希望这些对你有帮助、首先其次最后、保持积极心态"
+                          />
+                          <p className="mt-1 text-xs text-slate-500">这些话会尽量避免出现在最终回答里</p>
+                        </div>
+                        <div>
+                          <label className="mb-2 block text-sm font-medium text-slate-700">示范回答 1</label>
+                          <textarea
+                            className="input-shell min-h-24"
+                            value={form.exampleReply1}
+                            onChange={(e) => setForm((prev) => ({ ...prev, exampleReply1: e.target.value }))}
+                            placeholder="写一段你自己平时真的会怎么回复用户的话。越像你本人越好。"
+                          />
+                        </div>
+                        <div>
+                          <label className="mb-2 block text-sm font-medium text-slate-700">示范回答 2</label>
+                          <textarea
+                            className="input-shell min-h-24"
+                            value={form.exampleReply2}
+                            onChange={(e) => setForm((prev) => ({ ...prev, exampleReply2: e.target.value }))}
+                            placeholder="再写一段不同场景下的回复，比如安慰、劝退、给建议。"
+                          />
+                        </div>
+                        <div>
+                          <label className="mb-2 block text-sm font-medium text-slate-700">示范回答 3（选填）</label>
+                          <textarea
+                            className="input-shell min-h-24"
+                            value={form.exampleReply3}
+                            onChange={(e) => setForm((prev) => ({ ...prev, exampleReply3: e.target.value }))}
+                            placeholder="如果你还有更有代表性的说话方式，可以再补一条。"
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -685,75 +687,13 @@ export default function CreateLifeAgentPage() {
         </form>
       )}
 
-      {step === 2 && step2Phase === "topics" && (
-        <div className="space-y-6">
-          <section className="glass-card p-6">
-            <h2 className="text-xl font-semibold text-slate-900">你能提供哪方面的经验信息？</h2>
-            <p className="mt-2 text-slate-600">
-              多选你真正有经历、能具体分享的主题，我们会根据你的选择逐步引导你丰富信息。
-            </p>
-            <div className="mt-6 flex flex-wrap gap-3">
-              {TOPIC_OPTIONS.map((t) => (
-                <button
-                  key={t.id}
-                  type="button"
-                  onClick={() => toggleTopic(t.id)}
-                  className={`rounded-2xl border-2 px-5 py-3 text-sm font-medium transition ${
-                    selectedTopics.includes(t.id)
-                      ? "border-sky-500 bg-sky-50 text-sky-700"
-                      : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
-                  }`}
-                >
-                  {t.label}
-                </button>
-              ))}
-            </div>
-            <div className="mt-8">
-              <label className="mb-2 block text-sm font-medium text-slate-700">
-                有什么你不能回答或不想回答的问题？（选填）
-              </label>
-              <textarea
-                className="input-shell min-h-20"
-                value={notSuitableFor}
-                onChange={(e) => setNotSuitableFor(e.target.value)}
-                placeholder="例如：投资理财、医疗建议、超出我行业的问题..."
-              />
-              <p className="mt-1 text-xs text-slate-500">用户提问到这类问题时，AI 会明确说明无法回答</p>
-            </div>
-          </section>
-          <div className="flex justify-between">
-            <button type="button" onClick={() => setStep(1)} className="btn-secondary">
-              上一步
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                if (selectedTopics.length === 0) {
-                  setError("请至少选择 1 个经验主题");
-                  return;
-                }
-                setError("");
-                setStep2Phase("chat");
-                startKnowledgeChat();
-              }}
-              className="btn-primary"
-            >
-              开始记录经验
-            </button>
-          </div>
-        </div>
-      )}
-
-      {step === 2 && step2Phase === "chat" && (
+      {step === 2 && (
         <div className="space-y-6">
           <section className="glass-card overflow-hidden">
             <div className="border-b border-slate-200 bg-slate-50/80 px-6 py-5">
               <h2 className="text-xl font-semibold text-slate-900">逐步丰富你的经验</h2>
               <p className="mt-2 text-slate-600">
-                根据你选择的主题，我们会依次问你一些问题。回答得越具体，AI 越能帮来访者解决真实问题。至少完成 2 题。
-              </p>
-              <p className="mt-1 text-sm text-slate-500">
-                已选主题：{TOPIC_OPTIONS.filter((t) => selectedTopics.includes(t.id)).map((t) => t.label).join("、")}
+                我会根据你的回答继续追问，直到收集到全面、具体的经验信息。回答得越具体，AI 越能帮来访者解决真实问题。至少完成 2 题。
               </p>
               <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50/80 p-4 text-sm">
                 <p className="font-medium text-amber-900">✨ 回答技巧</p>
@@ -785,18 +725,19 @@ export default function CreateLifeAgentPage() {
                 ))}
                 <div ref={chatEndRef} />
               </div>
-              {currentQuestionIndex < dynamicQuestions.length && (
+              {!chatDone && (
                 <form onSubmit={submitChatAnswer} className="border-t border-slate-200 bg-white p-4">
                   <div className="flex gap-3">
                     <textarea
                       className="input-shell min-h-[80px] flex-1 resize-none"
                       value={chatInput}
                       onChange={(e) => setChatInput(e.target.value)}
-                      placeholder="输入你的回答，写得越具体 AI 越能帮你回答来访者..."
+                      placeholder={chatLoading ? "AI 正在思考下一问…" : "输入你的回答，写得越具体 AI 越能帮你回答来访者…"}
                       required
+                      disabled={chatLoading}
                     />
-                    <button type="submit" className="btn-primary self-end">
-                      发送
+                    <button type="submit" className="btn-primary self-end disabled:opacity-60" disabled={chatLoading}>
+                      {chatLoading ? "生成中…" : "发送"}
                     </button>
                   </div>
                 </form>
@@ -815,11 +756,10 @@ export default function CreateLifeAgentPage() {
             <button
               type="button"
               onClick={() => {
-                setStep2Phase("topics");
+                setStep(1);
                 setChatHistory([]);
                 setKnowledgeEntries([]);
-                setDynamicQuestions([]);
-                setCurrentQuestionIndex(0);
+                setChatDone(false);
               }}
               className="btn-secondary"
             >
@@ -864,6 +804,19 @@ export default function CreateLifeAgentPage() {
               </p>
             </div>
           </section>
+
+          <div className="glass-card p-6">
+            <label className="mb-2 block text-sm font-medium text-slate-700">
+              有什么你不能回答或不想回答的问题？（选填）
+            </label>
+            <textarea
+              className="input-shell min-h-20"
+              value={notSuitableFor}
+              onChange={(e) => setNotSuitableFor(e.target.value)}
+              placeholder="例如：投资理财、医疗建议、超出我行业的问题..."
+            />
+            <p className="mt-1 text-xs text-slate-500">用户提问到这类问题时，AI 会明确说明无法回答</p>
+          </div>
 
           <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-5">
             <h3 className="font-medium text-slate-900">已记录的经验预览</h3>
