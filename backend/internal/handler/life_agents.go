@@ -256,7 +256,7 @@ func LifeAgentsCreate(cfg *config.Config) gin.HandlerFunc {
 			ToneStyle          string   `json:"toneStyle"`
 			ResponseStyle      string   `json:"responseStyle"`
 			ForbiddenPhrases   []string `json:"forbiddenPhrases" binding:"max=8,dive,min=1"`
-			ExampleReplies     []string `json:"exampleReplies" binding:"required,min=2,max=3,dive,min=10"`
+			ExampleReplies     []string `json:"exampleReplies" binding:"omitempty,max=3,dive,min=10"`
 			ExpertiseTags      []string `json:"expertiseTags" binding:"required,min=1,max=8,dive,min=1"`
 			SampleQuestions    []string `json:"sampleQuestions" binding:"required,min=2,max=6,dive,min=3"`
 			NotSuitableFor     string   `json:"notSuitableFor"`
@@ -327,6 +327,34 @@ func LifeAgentsCreate(cfg *config.Config) gin.HandlerFunc {
 		var entries []models.LifeAgentKnowledgeEntry
 		db.DB.Where("profile_id = ?", profileID).Order("sort_order").Find(&entries)
 		c.JSON(http.StatusOK, gin.H{"id": profileID, "knowledgeEntries": entries})
+	}
+}
+
+func LifeAgentsCreateNextQuestion(cfg *config.Config) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		_ = middleware.MustGetUser(c)
+		var body lifeagent.CreateQuestionInput
+		if err := c.ShouldBindJSON(&body); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "VALIDATION_ERROR", "detail": err.Error()})
+			return
+		}
+		out, err := lifeagent.GenerateNextCreateQuestion(
+			cfg.OpenAIApiKey, cfg.OpenAIModel, cfg.OpenAIBaseURL,
+			&body,
+		)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "LLM_ERROR", "detail": err.Error()})
+			return
+		}
+		resp := gin.H{
+			"done": out.Done,
+			"nextQuestion":   out.NextQuestion,
+			"summaryMessage": out.SummaryMessage,
+			"extractedTone":  out.ExtractedTone,
+			"suggestedTags":  out.SuggestedTags,
+			"knowledgeAdd":   out.KnowledgeAdd,
+		}
+		c.JSON(http.StatusOK, resp)
 	}
 }
 

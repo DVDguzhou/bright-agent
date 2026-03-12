@@ -39,6 +39,7 @@ func Setup(cfg *config.Config) *gin.Engine {
 		{
 			lifeAgents.GET("", handler.LifeAgentsList(cfg))
 			lifeAgents.POST("", middleware.RequireAuth(cfg), handler.LifeAgentsCreate(cfg))
+			lifeAgents.POST("/create/next-question", middleware.RequireAuth(cfg), handler.LifeAgentsCreateNextQuestion(cfg))
 			lifeAgents.GET("/chat-sessions", middleware.RequireAuth(cfg), handler.LifeAgentsBuyerChatSessions(cfg))
 			lifeAgents.GET("/mine", middleware.RequireAuth(cfg), handler.LifeAgentsMine(cfg))
 			lifeAgents.GET("/purchased", middleware.RequireAuth(cfg), handler.LifeAgentsPurchased(cfg))
