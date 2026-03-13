@@ -145,3 +145,27 @@ func AgentsUpdate(cfg *config.Config) gin.HandlerFunc {
 		c.JSON(http.StatusNotImplemented, gin.H{"error": "not implemented"})
 	}
 }
+
+func AgentsDelete(cfg *config.Config) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		user := middleware.MustGetUser(c)
+		if user == nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "UNAUTHORIZED"})
+			return
+		}
+
+		id := c.Param("id")
+		var agent models.Agent
+		if err := db.DB.Where("id = ? AND seller_id = ?", id, user.ID).First(&agent).Error; err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "NOT_FOUND"})
+			return
+		}
+
+		if err := db.DB.Delete(&agent).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "INTERNAL_ERROR"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"ok": true})
+	}
+}

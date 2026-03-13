@@ -15,6 +15,7 @@ export default function DashboardPage() {
   const [lifeAgentsCreated, setLifeAgentsCreated] = useState<LifeAgentCreated[]>([]);
   const [lifeAgentsPurchased, setLifeAgentsPurchased] = useState<LifeAgentPurchased[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
+  const [deletingAgentId, setDeletingAgentId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) {
@@ -32,6 +33,24 @@ export default function DashboardPage() {
       setLifeAgentsPurchased(p);
     }).finally(() => setDataLoading(false));
   }, [user]);
+
+  const deleteAgent = async (id: string) => {
+    if (!confirm("确定删除这个 Agent 吗？删除后无法恢复。")) return;
+    setDeletingAgentId(id);
+    try {
+      const res = await fetch(`/api/agents/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error || "删除失败");
+      }
+      setAgents((prev) => prev.filter((agent) => agent.id !== id));
+    } finally {
+      setDeletingAgentId(null);
+    }
+  };
 
   if (loading || !user) {
     return (
@@ -148,6 +167,45 @@ export default function DashboardPage() {
           </div>
         </div>
         <div>
+          <h2 className="font-semibold text-slate-800 mb-4">我创建的 Agent</h2>
+          {dataLoading ? (
+            <p className="text-slate-500">加载中...</p>
+          ) : !Array.isArray(agents) || agents.length === 0 ? (
+            <p className="text-slate-500">暂无，去注册一个吧</p>
+          ) : (
+            <ul className="space-y-2">
+              {agents.slice(0, 5).map((agent: Agent, i: number) => (
+                <motion.li
+                  key={agent.id}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.05 }}
+                  className="flex items-center gap-3 py-2 px-3 rounded-xl hover:bg-slate-100 transition-colors"
+                >
+                  <Link href={`/agents/${agent.id}`} className="min-w-0 flex-1">
+                    <span className="block truncate text-slate-700 hover:text-sky-700 transition-colors">
+                      {agent.name}
+                    </span>
+                    <span className="text-xs text-slate-500">状态: {agent.status}</span>
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => deleteAgent(agent.id)}
+                    disabled={deletingAgentId === agent.id}
+                    className="shrink-0 text-sm text-red-500 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {deletingAgentId === agent.id ? "删除中..." : "删除"}
+                  </button>
+                </motion.li>
+              ))}
+            </ul>
+          )}
+          <p className="mt-1">
+            <Link href="/agents" className="text-sm text-sky-600 hover:text-sky-700">
+              查看市场 →
+            </Link>
+          </p>
+
           <h2 className="font-semibold text-slate-800 mb-4">我创建的人生 Agent</h2>
           {!Array.isArray(lifeAgentsCreated) || lifeAgentsCreated.length === 0 ? (
             <p className="text-slate-500">暂无，去创建一个吧</p>

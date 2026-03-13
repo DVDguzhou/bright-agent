@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { useAuth } from "@/contexts/AuthContext";
 
 type AgentDetail = {
   id: string;
@@ -20,8 +21,11 @@ type AgentDetail = {
 
 export default function AgentDetailPage() {
   const params = useParams();
+  const router = useRouter();
+  const { user } = useAuth();
   const id = params.id as string;
   const [agent, setAgent] = useState<AgentDetail | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     fetch(`/api/agents/${id}`, { credentials: "include" })
@@ -42,6 +46,26 @@ export default function AgentDetailPage() {
     );
 
   const price = (agent.pricingConfig as { price?: number })?.price ?? 0;
+  const isOwner = user?.id === agent.seller.id;
+
+  const deleteAgent = async () => {
+    if (!confirm("确定删除这个 Agent 吗？删除后无法恢复。")) return;
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/agents/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error || "删除失败");
+      }
+      router.push("/dashboard");
+      router.refresh();
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
@@ -65,6 +89,18 @@ export default function AgentDetailPage() {
           <span className="ml-2 px-2 py-0.5 rounded text-amber-700 bg-amber-100 text-xs">平台隧道</span>
         )}
       </p>
+      {isOwner ? (
+        <div className="mt-4">
+          <button
+            type="button"
+            onClick={deleteAgent}
+            disabled={deleting}
+            className="rounded-xl border border-red-200 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {deleting ? "删除中..." : "删除我的 Agent"}
+          </button>
+        </div>
+      ) : null}
       {agent.useTunnel && (
         <div className="mt-4 p-4 rounded-xl bg-amber-50 border border-amber-200 text-sm">
           <p className="text-amber-800 font-medium mb-2">隧道 Agent · 免 ngrok</p>
@@ -76,16 +112,18 @@ export default function AgentDetailPage() {
           </code>
         </div>
       )}
-      <Link href={`/agents/${id}/purchase`} className="mt-6 inline-block">
-        <motion.span
-          className="btn-primary inline-flex items-center gap-2"
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          购买 License
-          <span className="text-xs opacity-80">获得调用许可后持 Token 直接调用</span>
-        </motion.span>
-      </Link>
+      {!isOwner ? (
+        <Link href={`/agents/${id}/purchase`} className="mt-6 inline-block">
+          <motion.span
+            className="btn-primary inline-flex items-center gap-2"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            购买 License
+            <span className="text-xs opacity-80">获得调用许可后持 Token 直接调用</span>
+          </motion.span>
+        </Link>
+      ) : null}
       {agent.description && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}

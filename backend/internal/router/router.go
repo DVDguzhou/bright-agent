@@ -27,6 +27,7 @@ func Setup(cfg *config.Config) *gin.Engine {
 			agents.POST("", middleware.RequireAuth(cfg), handler.AgentsCreate(cfg))
 			agents.GET("/:id", handler.AgentsGet(cfg))
 			agents.PATCH("/:id", middleware.RequireAuth(cfg), handler.AgentsUpdate(cfg))
+			agents.DELETE("/:id", middleware.RequireAuth(cfg), handler.AgentsDelete(cfg))
 		}
 
 		licenses := api.Group("/licenses")

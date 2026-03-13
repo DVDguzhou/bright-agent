@@ -63,10 +63,13 @@ func BuildReply(profile ProfileForAI, entries []KnowledgeEntryForAI, history []C
 		}
 	}
 
-	// 没有任何匹配的知识条目 → 直接说不知道
+	// 没有任何匹配的知识条目：低风险问题先尝试带保留地推测，高风险具体事实才拒答
 	if len(topEntries) == 0 {
-		content = fmt.Sprintf("这个问题我的经验里没有涉及，我不太清楚，不敢乱说。你可以问问我擅长的方向，比如「%s」相关的问题。",
-			firstSentence(profile.Headline, 30))
+		if isHighRiskFactQuestion(message) {
+			content = "这个我不敢瞎猜，得有更明确的依据才行。你要是愿意多给我一点背景，我可以帮你一起推一推。"
+			return content, nil
+		}
+		content = buildSpeculativeReply(profile, message)
 		return content, nil
 	}
 
@@ -155,6 +158,39 @@ func extractNameFromContent(content, _ string) string {
 		}
 	}
 	return ""
+}
+
+func isHighRiskFactQuestion(msg string) bool {
+	norm := normalize(msg)
+	patterns := []string{
+		"叫什么名字", "真名", "本名", "妈妈叫什么", "爸爸叫什么",
+		"几月几号", "具体哪天", "生日", "几岁", "年龄",
+		"住哪", "住哪里", "地址", "电话", "手机号", "微信", "身份证", "银行卡",
+	}
+	for _, p := range patterns {
+		if strings.Contains(norm, p) {
+			return true
+		}
+	}
+	return false
+}
+
+func buildSpeculativeReply(profile ProfileForAI, message string) string {
+	norm := normalize(message)
+	switch {
+	case strings.Contains(norm, "最近") && (strings.Contains(norm, "瓜") || strings.Contains(norm, "八卦")):
+		return "如果按常见情况看，最近风声一般不会少，只是很多还在传，没到能拍板的时候。大概率都是先小范围发酵，后面才会慢慢有更多细节出来。"
+	case strings.Contains(norm, "是真的吗") || strings.Contains(norm, "真假") || strings.Contains(norm, "是不是"):
+		return "这个我没法百分百给你拍死，不过按常见情况看，能反复传开的往往不是完全空穴来风，只是细节经常会被越传越夸张。"
+	case strings.Contains(norm, "怎么") || strings.Contains(norm, "怎么办"):
+		return "如果按常见情况看，先别急着下结论，先把关键信息对一遍，再看最可能的原因和后手，这样通常比一上来硬判断靠谱。"
+	default:
+		focus := firstSentence(profile.Headline, 30)
+		if focus == "" {
+			focus = "我比较熟的方向"
+		}
+		return fmt.Sprintf("这个我没法百分百确定，不过如果按常见情况看，大概率和「%s」这类情况有点像。你要是再多给我一点背景，我可以继续帮你往下推。", focus)
+	}
 }
 
 func firstSentence(s string, maxLen int) string {

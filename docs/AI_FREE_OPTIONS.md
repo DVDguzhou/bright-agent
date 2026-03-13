@@ -13,14 +13,14 @@
 - 下载：https://ollama.com
 - 安装后 Ollama 服务自动启动，监听 `http://localhost:11434`
 
-### 2. 拉取模型（选一个，中文建议 qwen2.5）
+### 2. 拉取模型（选一个，中文建议 qwen3.5）
 
 ```bash
-# 中文效果好，约 4GB
-ollama pull qwen2.5:7b
+# 中文效果好，约 3.4GB（8GB 显存推荐）
+ollama pull qwen3.5:4b
 
-# 或更小更快（约 2GB）
-ollama pull qwen2.5:3b
+# 或更小更快（约 2.7GB）
+ollama pull qwen3.5:2b
 
 # 英文也可
 ollama pull llama3.2
@@ -32,7 +32,7 @@ ollama pull llama3.2
 
 ```env
 OPENAI_BASE_URL="http://localhost:11434/v1"
-OPENAI_MODEL="qwen2.5:7b"
+OPENAI_MODEL="qwen3.5:4b"
 OPENAI_API_KEY="ollama"
 ```
 
@@ -89,7 +89,7 @@ OPENAI_API_KEY="sk-xxx"
 | 变量 | 说明 | 示例 |
 |------|------|------|
 | `OPENAI_BASE_URL` | 可选，非 OpenAI 时必填 | `http://localhost:11434/v1` |
-| `OPENAI_MODEL` | 模型名 | `qwen2.5:7b` |
+| `OPENAI_MODEL` | 模型名 | `qwen3.5:4b` |
 | `OPENAI_API_KEY` | API Key（Ollama 可填 `ollama`） | `ollama` / `gsk_xxx` / `sk_xxx` |
 
 未配置任何 AI 时，聊天将使用模板回复。
@@ -98,7 +98,7 @@ OPENAI_API_KEY="sk-xxx"
 
 ## 加快回答速度
 
-1. **换小模型（Ollama）**：`qwen2.5:3b` 比 `qwen2.5:7b` 快不少，质量略降
+1. **换小模型（Ollama）**：`qwen3.5:2b` 比 `qwen3.5:4b` 快不少，质量略降
 2. **用 Groq**：云端推理极快，免费额度够用
 3. **后端已优化**：MaxTokens 1000、历史 8 条、检索 4 条，减少 token 量以提速
 4. **本地 GPU**：Ollama 用 GPU 会比 CPU 快很多
@@ -110,7 +110,7 @@ OPENAI_API_KEY="sk-xxx"
 1. **提示词已强化**：系统会明确要求模型「只基于知识库」「无法回答时明确说明」「切勿编造」，并降低 Temperature 以减少发挥。
 
 2. **模型选择建议**（若仍发现编造或超范围）：
-   - Ollama：`qwen2.5:14b` 或 `qwen2.5:32b` 比 7b 更听话
+   - Ollama：`qwen3.5:9b` 或 `qwen3.5:27b` 比 4b 更听话
    - Groq：`llama-3.3-70b-versatile` 指令遵循较好
    - 付费：`gpt-4o` 或 `gpt-4o-mini` 指令遵循能力较强
 
