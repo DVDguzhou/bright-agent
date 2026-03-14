@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { OFFICIAL_CONTACT } from "@/lib/official-contact";
+import { translateLifeAgentValidationError } from "@/lib/life-agent-validation-i18n";
 import {
   COUNTRY_OPTIONS_FOR_CREATE,
   getProvinceOptionsForCreate,
@@ -262,7 +263,12 @@ export default function CreateLifeAgentPage() {
     setLoading(false);
 
     if (!res.ok) {
-      const msg = data.error === "UNAUTHORIZED" ? "请先登录后再创建" : data.detail ? `验证失败：${data.detail}` : "创建失败，请检查输入内容";
+      const msg =
+        data.error === "UNAUTHORIZED"
+          ? "请先登录后再创建"
+          : data.detail
+            ? translateLifeAgentValidationError(String(data.detail))
+            : "创建失败，请检查输入内容";
       setError(msg);
       return;
     }
@@ -693,7 +699,10 @@ export default function CreateLifeAgentPage() {
             <div className="border-b border-slate-200 bg-slate-50/80 px-6 py-5">
               <h2 className="text-xl font-semibold text-slate-900">逐步丰富你的经验</h2>
               <p className="mt-2 text-slate-600">
-                我会根据你的回答继续追问，直到收集到全面、具体的经验信息。回答得越具体，AI 越能帮来访者解决真实问题。至少完成 2 题。
+                我会根据你的回答继续追问，直到收集到全面、具体的经验信息。回答得越具体，AI 越能帮来访者解决真实问题。
+              </p>
+              <p className="mt-3 rounded-xl bg-sky-100 px-4 py-3 text-sm font-medium text-sky-900">
+                ⚠️ 请至少与 AI 进行 <strong>两轮对话</strong>（回答 2 个问题以上），再进入下一步。当前已记录 {knowledgeEntries.length} 轮。
               </p>
               <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50/80 p-4 text-sm">
                 <p className="font-medium text-amber-900">✨ 回答技巧</p>
@@ -747,7 +756,16 @@ export default function CreateLifeAgentPage() {
               <div className="border-t border-slate-200 bg-slate-50/50 px-6 py-4">
                 <p className="text-sm text-slate-600">
                   已记录 {knowledgeEntries.length} 条经验
-                  {knowledgeEntries.length >= 2 && " · 可以继续回答或进入下一步"}
+                  {knowledgeEntries.length >= 2 ? (
+                    " · 可以继续回答或进入下一步"
+                  ) : (
+                    <>
+                      {" · "}
+                      <span className="font-medium text-amber-700">
+                        还需 {2 - knowledgeEntries.length} 轮对话，请继续在下方回答
+                      </span>
+                    </>
+                  )}
                 </p>
               </div>
             )}
@@ -769,7 +787,9 @@ export default function CreateLifeAgentPage() {
               type="button"
               onClick={() => {
                 if (knowledgeEntries.length < 2) {
-                  setError("请至少完成 2 个问题的回答才能继续哦～");
+                  setError(
+                    `请至少完成 2 轮对话才能继续。你已记录 ${knowledgeEntries.length} 轮，还需至少 ${2 - knowledgeEntries.length} 轮。请在下方输入框继续回答 AI 的问题。`
+                  );
                   return;
                 }
                 setStep(3);
