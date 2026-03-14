@@ -59,11 +59,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: 生成 ExportOptions.plist
-        run: |
-          PROFILE_NAME="${{ secrets.APPLE_PROFILE_NAME || 'Agent 市场' }}"
-          sed "s|PROFILE_NAME_PLACEHOLDER|$PROFILE_NAME|g" .github/ExportOptions.plist.example > .github/ExportOptions.plist
-
       - name: 导入证书和描述文件
         env:
           BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
@@ -96,6 +91,13 @@ jobs:
             exit 1
           fi
 
+          PP_UUID=$(security cms -D -i "$PP_PATH" | plutil -extract UUID raw -)
+          if [ -z "$PP_UUID" ]; then
+            echo "::error::Could not extract UUID from provisioning profile"
+            exit 1
+          fi
+          echo "PP_UUID=$PP_UUID" >> $GITHUB_ENV
+
           security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
           security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
@@ -104,7 +106,11 @@ jobs:
           security list-keychain -d user -s $KEYCHAIN_PATH
 
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles
+          cp "$PP_PATH" ~/Library/MobileDevice/Provisioning\ Profiles/"$PP_UUID.mobileprovision"
+
+      - name: 生成 ExportOptions.plist
+        run: |
+          sed "s|PROFILE_NAME_PLACEHOLDER|${{ env.PP_UUID }}|g" .github/ExportOptions.plist.example > .github/ExportOptions.plist
 
       - name: 设置 Node.js
         uses: actions/setup-node@v4
@@ -122,7 +128,6 @@ jobs:
 
       - name: 构建 Archive
         run: |
-          PROFILE_NAME="${{ secrets.APPLE_PROFILE_NAME || 'Agent 市场' }}"
           xcodebuild -project ios/App/App.xcodeproj \
             -scheme App \
             -destination 'generic/platform=iOS' \
@@ -130,7 +135,7 @@ jobs:
             CODE_SIGN_STYLE=Manual \
             DEVELOPMENT_TEAM="${{ secrets.APPLE_TEAM_ID }}" \
             CODE_SIGN_IDENTITY="Apple Distribution" \
-            PROVISIONING_PROFILE_SPECIFIER="$PROFILE_NAME" \
+            PROVISIONING_PROFILE_SPECIFIER="${{ env.PP_UUID }}" \
             archive
 
       - name: 导出 IPA
