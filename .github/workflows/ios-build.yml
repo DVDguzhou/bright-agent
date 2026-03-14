@@ -17,6 +17,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: 选择 Xcode 16
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '16.2'
+
       - name: 设置 Node.js
         uses: actions/setup-node@v4
         with:
@@ -58,6 +63,11 @@ jobs:
     if: vars.BUILD_IPA_ENABLED == 'true'
     steps:
       - uses: actions/checkout@v4
+
+      - name: 选择 Xcode 16
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '16.2'
 
       - name: 导入证书和描述文件
         env:
