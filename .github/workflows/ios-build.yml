@@ -83,6 +83,10 @@ jobs:
             echo "::error::P12_PASSWORD secret is not set"
             exit 1
           fi
+          if [ -z "$BUILD_PROVISION_PROFILE_BASE64" ]; then
+            echo "::error::BUILD_PROVISION_PROFILE_BASE64 secret is not set"
+            exit 1
+          fi
 
           echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode > $CERTIFICATE_PATH
           echo -n "$BUILD_PROVISION_PROFILE_BASE64" | base64 --decode > $PP_PATH
@@ -118,14 +122,15 @@ jobs:
 
       - name: 构建 Archive
         run: |
+          PROFILE_NAME="${{ secrets.APPLE_PROFILE_NAME || 'Agent 市场' }}"
           xcodebuild -project ios/App/App.xcodeproj \
             -scheme App \
             -destination 'generic/platform=iOS' \
             -archivePath App.xcarchive \
             CODE_SIGN_STYLE=Manual \
             DEVELOPMENT_TEAM="${{ secrets.APPLE_TEAM_ID }}" \
-            CODE_SIGN_IDENTITY="iPhone Distribution" \
-            PROVISIONING_PROFILE_SPECIFIER="" \
+            CODE_SIGN_IDENTITY="Apple Distribution" \
+            PROVISIONING_PROFILE_SPECIFIER="$PROFILE_NAME" \
             archive
 
       - name: 导出 IPA
