@@ -15,7 +15,7 @@ loadEnv({ path: '.env.local', override: true });
 const appUrl = process.env.MOBILE_APP_URL;
 
 const config: CapacitorConfig = {
-  appId: 'com.agent.marketplace',
+  appId: 'com.yourname.agentmarketplace',
   appName: 'Agent 市场',
   // 快速模式(有 MOBILE_APP_URL)用 public；完整模式用静态导出的 out
   webDir: appUrl ? 'public' : 'out',

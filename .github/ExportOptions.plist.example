@@ -8,7 +8,7 @@
     <string>manual</string>
     <key>provisioningProfiles</key>
     <dict>
-        <key>com.agent.marketplace</key>
+        <key>com.yourname.agentmarketplace</key>
         <string>PROFILE_NAME_PLACEHOLDER</string>
     </dict>
 </dict>
