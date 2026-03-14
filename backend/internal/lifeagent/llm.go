@@ -44,14 +44,18 @@ func BuildReplyWithLLM(apiKey, model, baseURL string, profile ProfileForAI, entr
 	if err != nil {
 		log.Printf("[LLM] call failed: %v (model=%s, baseURL=%s)", err, model, baseURL)
 		content, references = BuildReply(profile, entries, history, message)
+		log.Printf("[LLM] FALLBACK(err): content=%q", content)
 		return content, references, nil
 	}
 
 	if len(resp.Choices) == 0 || resp.Choices[0].Message.Content == "" {
+		log.Printf("[LLM] empty response, choices=%d", len(resp.Choices))
 		content, references = BuildReply(profile, entries, history, message)
+		log.Printf("[LLM] FALLBACK(empty): content=%q", content)
 		return content, references, nil
 	}
 
+	log.Printf("[LLM] SUCCESS: raw=%q", resp.Choices[0].Message.Content[:min(len(resp.Choices[0].Message.Content), 200)])
 	content = humanizeReply(strings.TrimSpace(resp.Choices[0].Message.Content))
 	references = make([]map[string]string, len(selectedEntries))
 	for i, e := range selectedEntries {
