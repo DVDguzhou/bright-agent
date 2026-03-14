@@ -3,6 +3,7 @@ package lifeagent
 import (
 	"context"
 	"fmt"
+	"log"
 	"regexp"
 	"strings"
 
@@ -13,7 +14,9 @@ import (
 // baseURL 可选：Ollama 用 http://localhost:11434/v1，Groq 用 https://api.groq.com/openai/v1
 func BuildReplyWithLLM(apiKey, model, baseURL string, profile ProfileForAI, entries []KnowledgeEntryForAI, history []ChatMessageForAI, message string) (content string, references []map[string]string, err error) {
 	useLLM := (apiKey != "" || baseURL != "") && model != ""
+	log.Printf("[LLM] BuildReplyWithLLM called: apiKey=%q, model=%q, baseURL=%q, useLLM=%v", apiKey, model, baseURL, useLLM)
 	if !useLLM {
+		log.Printf("[LLM] skipping LLM, falling back to BuildReply")
 		content, references = BuildReply(profile, entries, history, message)
 		return content, references, nil
 	}
@@ -36,9 +39,10 @@ func BuildReplyWithLLM(apiKey, model, baseURL string, profile ProfileForAI, entr
 		Model:       model,
 		Messages:    messages,
 		Temperature: 0.4,
-		MaxTokens:   1000, // 降低可加快生成，一般 500-800 字足够
+		MaxTokens:   4096, // qwen3 思考模式需要更多 tokens（思考 + 回答）
 	})
 	if err != nil {
+		log.Printf("[LLM] call failed: %v (model=%s, baseURL=%s)", err, model, baseURL)
 		content, references = BuildReply(profile, entries, history, message)
 		return content, references, nil
 	}
@@ -140,7 +144,7 @@ func ClassifyQuestionIntent(apiKey, model, baseURL, message string) (isIdentity 
 		Model:       model,
 		Messages:    []openai.ChatCompletionMessage{{Role: openai.ChatMessageRoleUser, Content: prompt}},
 		Temperature: 0.1,
-		MaxTokens:   20,
+		MaxTokens:   150, // qwen3 思考模式需要更多 tokens
 	})
 	if err != nil || len(resp.Choices) == 0 {
 		return IsIdentityQuestion(message)

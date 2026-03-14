@@ -193,7 +193,7 @@ export default function LifeAgentChatPage() {
 
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 120000);
+      const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 分钟，兼容本地大模型思考模式
 
       const res = await fetch(`/api/life-agents/${id}/chat`, {
         method: "POST",
