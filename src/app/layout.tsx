@@ -21,7 +21,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN">
-      <body className="min-h-screen bg-slate-50 text-slate-900 font-sans antialiased">
+      <body className="min-h-screen bg-slate-50 text-slate-900 font-sans antialiased overflow-x-hidden">
         <AuthProvider>
           <Nav />
           <main className="container mx-auto px-4 py-8 max-w-7xl relative z-10">{children}</main>

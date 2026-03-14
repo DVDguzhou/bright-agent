@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
+import { fetchWithTimeout } from "@/lib/fetchWithTimeout";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -20,16 +21,20 @@ export default function SignupPage() {
     setError("");
     setLoading(true);
     try {
-      const res = await fetch("/api/auth/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          email,
-          password,
-          name: name.trim(),
-        }),
-      });
+      const res = await fetchWithTimeout(
+        "/api/auth/signup",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            email,
+            password,
+            name: name.trim(),
+          }),
+        },
+        20000
+      );
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setError(
@@ -44,8 +49,12 @@ export default function SignupPage() {
       await refetch(); // 刷新登录状态后再跳转
       router.push("/dashboard");
       router.refresh();
-    } catch {
-      setError("网络错误，请检查连接后重试");
+    } catch (e) {
+      const msg =
+        e instanceof Error && e.name === "AbortError"
+          ? "请求超时，请检查网络后重试"
+          : "网络错误，请检查连接后重试";
+      setError(msg);
     } finally {
       setLoading(false);
     }
