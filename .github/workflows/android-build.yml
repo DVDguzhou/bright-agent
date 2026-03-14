@@ -1,0 +1,52 @@
+name: 构建 Android APK
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+env:
+  MOBILE_APP_URL: ${{ vars.MOBILE_APP_URL || 'http://8.136.119.234:3000' }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: 设置 Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: 设置 Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: tools platform-tools platforms;android-36 build-tools;36.0.0
+
+      - name: 安装依赖
+        run: npm ci
+
+      - name: Capacitor 同步
+        run: npx cap sync
+        env:
+          MOBILE_APP_URL: ${{ env.MOBILE_APP_URL }}
+
+      - name: 构建 APK
+        run: |
+          cd android
+          ./gradlew assembleDebug --no-daemon
+
+      - name: 上传 APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 30
