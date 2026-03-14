@@ -41,6 +41,7 @@ jobs:
 
       - name: 构建 APK
         run: |
+          chmod +x android/gradlew
           cd android
           ./gradlew assembleDebug --no-daemon
 
