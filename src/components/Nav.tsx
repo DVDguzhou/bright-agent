@@ -146,63 +146,64 @@ export function Nav() {
     );
 
   return (
-    <motion.nav
-      initial={{ y: -20, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/85 backdrop-blur-xl overflow-x-hidden"
-    >
-      <div className="container mx-auto px-3 sm:px-4 max-w-7xl flex items-center justify-between min-h-[56px] sm:h-16">
-        <Link href="/" className="flex items-center gap-2 group shrink-0 min-w-0" title="Bright Agent Hub">
-          <Image
-            src="/bright-agent-icon.png"
-            alt="Bright Agent Hub"
-            width={36}
-            height={36}
-            className="shrink-0 rounded-lg object-contain"
-          />
-          <span className="hidden md:inline xl:inline text-base 2xl:text-xl font-bold bg-gradient-to-r from-blue-600 to-sky-500 bg-clip-text text-transparent truncate whitespace-nowrap">
-            Bright Agent Hub
-          </span>
-          <span className="hidden 2xl:inline text-slate-500 group-hover:text-sky-600 transition-colors text-sm truncate whitespace-nowrap">
-            本地经验 · 对话咨询 · Agent as Service
-          </span>
-        </Link>
+    <>
+      <motion.nav
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/85 backdrop-blur-xl overflow-x-hidden"
+      >
+        <div className="container mx-auto px-3 sm:px-4 max-w-7xl flex items-center justify-between min-h-[56px] sm:h-16">
+          <Link href="/" className="flex items-center gap-2 group shrink-0 min-w-0" title="Bright Agent Hub">
+            <Image
+              src="/bright-agent-icon.png"
+              alt="Bright Agent Hub"
+              width={36}
+              height={36}
+              className="shrink-0 rounded-lg object-contain"
+            />
+            <span className="hidden md:inline xl:inline text-base 2xl:text-xl font-bold bg-gradient-to-r from-blue-600 to-sky-500 bg-clip-text text-transparent truncate whitespace-nowrap">
+              Bright Agent Hub
+            </span>
+            <span className="hidden 2xl:inline text-slate-500 group-hover:text-sky-600 transition-colors text-sm truncate whitespace-nowrap">
+              本地经验 · 对话咨询 · Agent as Service
+            </span>
+          </Link>
 
-        {/* Desktop nav: 仅电脑端(lg+) 显示，手机平板用底部导航 */}
-        <div className="hidden lg:flex items-center gap-1 xl:gap-2 2xl:gap-4 shrink-0">
-          {navLinks.map((link) => {
-            const Icon = link.Icon;
-            return (
-              <Link key={link.href} href={link.href} title={link.label}>
-                <motion.span
-                  className={`relative flex items-center gap-1.5 xl:gap-2 px-2 xl:px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
-                    pathname === link.href
-                      ? "text-sky-700"
-                      : "text-slate-600 hover:text-slate-900"
-                  }`}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <Icon className="w-5 h-5 shrink-0" />
-                  <span className="hidden xl:inline">{link.label}</span>
-                  {pathname === link.href && (
-                    <motion.span
-                      layoutId="nav-underline"
-                      className="absolute left-2 right-2 bottom-1 h-0.5 bg-sky-500/60 rounded-full"
-                      transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
-                    />
-                  )}
-                </motion.span>
-              </Link>
-            );
-          })}
+          {/* Desktop nav: 仅电脑端(lg+) 显示，手机平板用底部导航 */}
+          <div className="hidden lg:flex items-center gap-1 xl:gap-2 2xl:gap-4 shrink-0">
+            {navLinks.map((link) => {
+              const Icon = link.Icon;
+              return (
+                <Link key={link.href} href={link.href} title={link.label}>
+                  <motion.span
+                    className={`relative flex items-center gap-1.5 xl:gap-2 px-2 xl:px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
+                      pathname === link.href
+                        ? "text-sky-700"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <Icon className="w-5 h-5 shrink-0" />
+                    <span className="hidden xl:inline">{link.label}</span>
+                    {pathname === link.href && (
+                      <motion.span
+                        layoutId="nav-underline"
+                        className="absolute left-2 right-2 bottom-1 h-0.5 bg-sky-500/60 rounded-full"
+                        transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
+                      />
+                    )}
+                  </motion.span>
+                </Link>
+              );
+            })}
+          </div>
+
+          <div className="hidden lg:flex items-center gap-1 xl:gap-2 2xl:gap-4 shrink-0">
+            <AnimatePresence mode="wait">{AuthLinks({})}</AnimatePresence>
+          </div>
         </div>
-
-        <div className="hidden lg:flex items-center gap-1 xl:gap-2 2xl:gap-4 shrink-0">
-          <AnimatePresence mode="wait">{AuthLinks({})}</AnimatePresence>
-        </div>
-
-      </div>
+      </motion.nav>
 
       {/* 手机+平板：底部导航栏；电脑端不显示 */}
       <div className="fixed bottom-0 left-0 right-0 z-50 flex lg:hidden items-center justify-around border-t border-slate-200/90 bg-white/95 backdrop-blur-xl pb-[env(safe-area-inset-bottom)] pt-2">
@@ -244,6 +245,6 @@ export function Nav() {
           </Link>
         )}
       </div>
-    </motion.nav>
+    </>
   );
 }
