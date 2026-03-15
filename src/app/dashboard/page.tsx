@@ -214,7 +214,7 @@ export default function DashboardPage() {
             </div>
           </section>
 
-          <section className="glass-card p-6">
+          {/* <section className="glass-card p-6">
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-xl font-semibold text-slate-900">我创建的 Agent</h2>
@@ -258,7 +258,7 @@ export default function DashboardPage() {
               ))}
             </ul>
           )}
-          </section>
+          </section> */}
         </div>
 
         <div className="space-y-6">
