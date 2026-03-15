@@ -339,7 +339,7 @@ export default function LifeAgentManageDetailPage() {
             <h1 className="section-title break-words">{data.profile.displayName}</h1>
             <p className="section-subtitle mt-1">{data.profile.headline}</p>
           </div>
-          <div className="grid w-full grid-cols-2 gap-3 sm:w-auto sm:grid-cols-3 lg:flex lg:flex-none lg:flex-wrap lg:justify-end lg:pl-6">
+          <div className="grid w-full grid-cols-2 gap-3 sm:w-auto sm:grid-cols-2 lg:flex lg:flex-none lg:flex-wrap lg:justify-end lg:pl-6">
             <Link
               href={`/life-agents/${id}`}
               className="btn-secondary min-h-[48px] px-4 text-center whitespace-nowrap touch-manipulation"
@@ -352,20 +352,6 @@ export default function LifeAgentManageDetailPage() {
             >
               进入聊天
             </Link>
-            <button
-              type="button"
-              onClick={deleteAgent}
-              disabled={deleting}
-              className="col-span-2 sm:col-span-1 min-h-[48px] rounded-xl border border-red-200 bg-white px-4 py-3 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 active:bg-red-100 touch-manipulation whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-50"
-              aria-label="删除此人生 Agent"
-            >
-              {deleting ? "删除中..." : (
-                <>
-                  <span className="sm:hidden">删除</span>
-                  <span className="hidden sm:inline">删除人生 Agent</span>
-                </>
-              )}
-            </button>
           </div>
         </div>
       </div>
@@ -1147,6 +1133,24 @@ export default function LifeAgentManageDetailPage() {
           </div>
         </div>
       )}
+
+      <section className="rounded-3xl border border-red-200 bg-red-50/70 p-6">
+        <h2 className="text-lg font-semibold text-red-700">危险操作</h2>
+        <p className="mt-2 text-sm leading-6 text-red-600">
+          删除人生 Agent 后，相关知识、聊天记录、反馈和销量记录都将无法恢复。请确认你不再需要它时再执行。
+        </p>
+        <div className="mt-5">
+          <button
+            type="button"
+            onClick={deleteAgent}
+            disabled={deleting}
+            className="min-h-[48px] rounded-xl border border-red-300 bg-white px-5 py-3 text-sm font-medium text-red-600 transition-colors hover:bg-red-100 active:bg-red-200 touch-manipulation disabled:cursor-not-allowed disabled:opacity-50"
+            aria-label="删除此人生 Agent"
+          >
+            {deleting ? "删除中..." : "删除人生 Agent"}
+          </button>
+        </div>
+      </section>
     </div>
   );
 }

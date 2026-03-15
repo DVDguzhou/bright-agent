@@ -17,7 +17,6 @@ export default function DashboardPage() {
   const [lifeAgentsPurchased, setLifeAgentsPurchased] = useState<LifeAgentPurchased[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
   const [deletingAgentId, setDeletingAgentId] = useState<string | null>(null);
-  const [deletingLifeAgentId, setDeletingLifeAgentId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) {
@@ -51,26 +50,6 @@ export default function DashboardPage() {
       setAgents((prev) => prev.filter((agent) => agent.id !== id));
     } finally {
       setDeletingAgentId(null);
-    }
-  };
-
-  const deleteLifeAgent = async (lifeAgentId: string, e?: React.MouseEvent) => {
-    e?.preventDefault();
-    e?.stopPropagation();
-    if (!confirm("确定删除这个人生 Agent 吗？删除后无法恢复，包括知识、聊天记录等。")) return;
-    setDeletingLifeAgentId(lifeAgentId);
-    try {
-      const res = await fetch(`/api/life-agents/${lifeAgentId}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => null);
-        throw new Error(data?.error || "删除失败");
-      }
-      setLifeAgentsCreated((prev) => prev.filter((la) => la.id !== lifeAgentId));
-    } finally {
-      setDeletingLifeAgentId(null);
     }
   };
 
@@ -302,11 +281,11 @@ export default function DashboardPage() {
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: i * 0.05 }}
-                  className="flex items-center gap-2 sm:gap-3 py-2.5 sm:py-2 px-3 rounded-xl hover:bg-slate-100 transition-colors group"
+                  className="py-2.5 sm:py-2 px-3 rounded-xl hover:bg-slate-100 transition-colors group"
                 >
                   <Link
                     href={`/dashboard/life-agents/${la.id}`}
-                    className="min-w-0 flex-1 flex justify-between items-center py-1 -my-1"
+                    className="min-w-0 flex justify-between items-center py-1 -my-1 touch-manipulation"
                   >
                     <span className="text-slate-700 group-hover:text-sky-700 truncate mr-2">
                       {la.displayName}
@@ -315,15 +294,6 @@ export default function DashboardPage() {
                       {la.soldPacks} 售出
                     </span>
                   </Link>
-                  <button
-                    type="button"
-                    onClick={(e) => deleteLifeAgent(la.id, e)}
-                    disabled={deletingLifeAgentId === la.id}
-                    className="shrink-0 min-h-[44px] min-w-[44px] sm:min-w-0 sm:min-h-0 flex items-center justify-center py-2 px-3 -my-1 rounded-lg text-sm text-red-500 hover:text-red-600 hover:bg-red-50 active:bg-red-100 active:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 touch-manipulation"
-                    aria-label={`删除 ${la.displayName}`}
-                  >
-                    {deletingLifeAgentId === la.id ? "删除中..." : "删除"}
-                  </button>
                 </motion.li>
               ))}
             </ul>
