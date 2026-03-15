@@ -169,6 +169,19 @@ export function Nav() {
             </span>
           </Link>
 
+          {/* 手机/平板：顶部保留账户入口，避免找不到登录状态和退出 */}
+          <div className="flex lg:hidden items-center gap-2 shrink-0">
+            {user ? (
+              <button
+                type="button"
+                onClick={logout}
+                className="inline-flex items-center rounded-full bg-rose-50 px-3 py-1.5 text-xs font-medium text-rose-600"
+              >
+                退出
+              </button>
+            ) : null}
+          </div>
+
           {/* Desktop nav: 仅电脑端(lg+) 显示，手机平板用底部导航 */}
           <div className="hidden lg:flex items-center gap-1 xl:gap-2 2xl:gap-4 shrink-0">
             {navLinks.map((link) => {
