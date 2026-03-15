@@ -199,7 +199,7 @@ export function Nav() {
         </div>
 
         <div className="hidden md:flex items-center gap-1 lg:gap-2 xl:gap-4 shrink-0">
-          <AnimatePresence mode="wait">{AuthLinks()}</AnimatePresence>
+          <AnimatePresence mode="wait">{AuthLinks({})}</AnimatePresence>
         </div>
 
       </div>
