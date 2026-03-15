@@ -711,35 +711,36 @@ export default function CreateLifeAgentPage() {
 
       {step === 2 && (
         <div className="mx-auto max-w-3xl space-y-5">
-          <section className="relative overflow-hidden rounded-[32px] border border-white/80 bg-white/80 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.28)] backdrop-blur-2xl">
+          <section className="relative overflow-hidden rounded-[32px] border border-white/70 bg-[rgba(255,248,244,0.66)] shadow-[0_24px_80px_-40px_rgba(15,23,42,0.22)] backdrop-blur-3xl">
             <div className="pointer-events-none absolute inset-0 overflow-hidden">
-              <div className="absolute left-[8%] top-[24%] h-40 w-40 rounded-full bg-sky-200/35 blur-3xl" />
-              <div className="absolute bottom-[18%] right-[10%] h-44 w-44 rounded-full bg-orange-200/35 blur-3xl" />
-              <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.92)_0%,rgba(255,255,255,0.82)_100%)]" />
+              <div className="absolute left-[8%] top-[24%] h-44 w-44 rounded-full bg-sky-200/28 blur-3xl" />
+              <div className="absolute bottom-[18%] right-[10%] h-48 w-48 rounded-full bg-amber-200/34 blur-3xl" />
+              <div className="absolute left-[45%] top-[10%] h-32 w-32 rounded-full bg-rose-100/22 blur-3xl" />
+              <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,252,249,0.72)_0%,rgba(255,245,238,0.56)_100%)]" />
             </div>
 
             <div className="relative flex min-h-[72vh] flex-col px-4 pb-4 pt-4 sm:px-6 sm:pb-6 sm:pt-5">
               <div className="flex items-center justify-between gap-3 px-1">
                 <div className="w-10 shrink-0" />
                 <div className="text-center">
-                  <p className="text-base font-semibold tracking-[0.08em] text-slate-800">记忆微调</p>
+                  <p className="text-base font-semibold tracking-[0.08em] text-slate-800">记忆经验</p>
                   <p className="mt-1 text-xs text-slate-500">在这里随时调教你的分身</p>
                 </div>
-                <span className="inline-flex h-10 min-w-10 items-center justify-center rounded-full bg-white/80 px-3 text-xs font-medium text-slate-500 shadow-sm ring-1 ring-slate-200/70">
+                <span className="inline-flex h-10 min-w-10 items-center justify-center rounded-full bg-white/72 px-3 text-xs font-medium text-slate-500 shadow-sm ring-1 ring-white/80 backdrop-blur">
                   第 2 步
                 </span>
               </div>
 
               <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-                <span className="rounded-full bg-sky-100/90 px-3 py-1 text-xs font-medium text-sky-700">
+                <span className="rounded-full bg-sky-100/75 px-3 py-1 text-xs font-medium text-sky-700 backdrop-blur">
                   已记录 {knowledgeEntries.length} 轮
                 </span>
-                <span className="rounded-full bg-white/85 px-3 py-1 text-xs text-slate-500 ring-1 ring-slate-200/80">
+                <span className="rounded-full bg-white/65 px-3 py-1 text-xs text-slate-500 ring-1 ring-white/80 backdrop-blur">
                   至少完成 2 轮才能继续
                 </span>
               </div>
 
-              <div className="mt-5 rounded-3xl border border-white/80 bg-white/55 p-4 text-sm text-slate-600 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] sm:p-5">
+              <div className="mt-5 rounded-3xl border border-white/75 bg-[rgba(255,255,255,0.42)] p-4 text-sm text-slate-600 shadow-[inset_0_1px_0_rgba(255,255,255,0.78)] backdrop-blur-xl sm:p-5">
                 <p className="font-medium text-slate-800">轻松聊就行，越具体越好。</p>
                 <p className="mt-2 leading-7">
                   我会根据你的回答继续追问，帮你把真实经历整理成可复用的经验。可以写过程、踩坑、转折、结果，也可以直接说“暂无”先跳过。
@@ -757,7 +758,7 @@ export default function CreateLifeAgentPage() {
                         className={`max-w-[88%] rounded-[24px] px-4 py-3 text-sm leading-7 shadow-sm sm:px-5 ${
                           msg.role === "user"
                             ? "bg-gradient-to-br from-sky-500 to-cyan-400 text-white shadow-sky-200/70"
-                            : "border border-white/90 bg-white/88 text-slate-700"
+                            : "border border-white/80 bg-[rgba(255,255,255,0.6)] text-slate-700 backdrop-blur-xl"
                         }`}
                       >
                         <p className="whitespace-pre-wrap">{msg.content}</p>
@@ -769,24 +770,24 @@ export default function CreateLifeAgentPage() {
               </div>
 
               {error ? (
-                <div className="mx-1 mb-3 rounded-2xl border border-rose-200 bg-rose-50/95 px-4 py-3 text-sm text-rose-600">
+                <div className="mx-1 mb-3 rounded-2xl border border-rose-200/80 bg-rose-50/80 px-4 py-3 text-sm text-rose-600 backdrop-blur">
                   {error}
                 </div>
               ) : null}
 
               {!chatDone ? (
-                <form onSubmit={submitChatAnswer} className="mx-1 rounded-[28px] border border-white/85 bg-white/90 p-3 shadow-[0_18px_45px_-28px_rgba(15,23,42,0.28)] backdrop-blur">
+                <form onSubmit={submitChatAnswer} className="mx-1 rounded-[28px] border border-white/80 bg-[rgba(255,250,246,0.7)] p-3 shadow-[0_18px_45px_-28px_rgba(15,23,42,0.22)] backdrop-blur-2xl">
                   <div className="flex flex-col gap-3">
                     <textarea
                       className="min-h-[88px] w-full resize-none rounded-2xl border-0 bg-transparent px-2 py-2 text-sm text-slate-800 outline-none placeholder:text-slate-400"
                       value={chatInput}
                       onChange={(e) => setChatInput(e.target.value)}
-                      placeholder={chatLoading ? "AI 正在思考下一问…" : "发消息或直接按住说话前，先把你的经历随手说出来..."}
+                      placeholder={chatLoading ? "AI 正在思考下一问…" : "说出你需要分享的经验和信息"}
                       required
                       disabled={chatLoading}
                     />
                     <div className="flex items-center justify-between gap-3">
-                      <p className="text-xs text-slate-400">回答越具体，后面的分身越像你。</p>
+                      <p className="text-xs text-slate-400">回答越具体，Agent 更聪明。</p>
                       <button type="submit" className="btn-primary min-w-[96px] px-5 py-2.5 text-sm disabled:opacity-60" disabled={chatLoading}>
                         {chatLoading ? "生成中…" : "发送"}
                       </button>
@@ -794,7 +795,7 @@ export default function CreateLifeAgentPage() {
                   </div>
                 </form>
               ) : (
-                <div className="mx-1 rounded-[28px] border border-emerald-200 bg-emerald-50/90 px-5 py-4 text-sm text-emerald-700 shadow-sm">
+                <div className="mx-1 rounded-[28px] border border-emerald-200/80 bg-emerald-50/80 px-5 py-4 text-sm text-emerald-700 shadow-sm backdrop-blur">
                   经验记录得差不多了，可以继续补充，也可以进入下一步设置收费。
                 </div>
               )}
@@ -844,7 +845,6 @@ export default function CreateLifeAgentPage() {
             </div>
             <div className="relative">
             <h2 className="text-xl font-semibold text-slate-900">设置收费</h2>
-            <p className="mt-1 text-slate-600">用户每次提问会消耗 1 次额度，你按此单价获得收入。可以先设低一点，等有人用再慢慢调。</p>
             <div className="mt-5 max-w-sm">
               <label className="mb-2 block text-sm font-medium text-slate-700">每次提问价格（元）</label>
               <input
@@ -856,9 +856,6 @@ export default function CreateLifeAgentPage() {
                 onChange={(e) => setForm((prev) => ({ ...prev, pricePerQuestion: e.target.value }))}
                 required
               />
-              <p className="mt-2 text-sm text-slate-500">
-                直接填写元即可，例如 3 表示 3 元，9.9 表示 9.9 元。不能免费，但不限制最高金额。
-              </p>
             </div>
             </div>
           </section>
