@@ -302,22 +302,27 @@ export default function CreateLifeAgentPage() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl space-y-8">
-      <div>
+    <div className="mx-auto max-w-5xl space-y-8">
+      <div className="rounded-[28px] border border-white/80 bg-white/70 px-5 py-5 shadow-[0_22px_60px_-36px_rgba(15,23,42,0.24)] backdrop-blur-xl sm:px-6">
         <Link href="/life-agents" className="text-sm text-slate-500 hover:text-sky-700">
           ← 返回人生 Agent 列表
         </Link>
-        <div className="mt-3 flex items-center gap-3">
-          <h1 className="section-title">创建你的本地经验 Agent</h1>
-          <span className="rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-600">
+        <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="section-title">创建你的本地经验 Agent</h1>
+            <p className="mt-2 text-sm leading-6 text-slate-500">
+              用统一、柔和的三步流程，把你的经历整理成一个更像你本人的分身。
+            </p>
+          </div>
+          <span className="inline-flex w-fit items-center rounded-full bg-sky-100/90 px-4 py-2 text-sm font-medium text-sky-700">
             第 {step} / 3 步
           </span>
         </div>
-        <div className="mt-2 flex gap-2">
+        <div className="mt-4 flex gap-2">
           {[1, 2, 3].map((s) => (
             <div
               key={s}
-              className={`h-1.5 flex-1 rounded-full ${s <= step ? "bg-sky-500" : "bg-slate-200"}`}
+              className={`h-2 flex-1 rounded-full transition-colors ${s <= step ? "bg-gradient-to-r from-sky-500 to-cyan-400" : "bg-slate-200"}`}
             />
           ))}
         </div>
@@ -330,16 +335,21 @@ export default function CreateLifeAgentPage() {
             setStep(2);
             startKnowledgeChat();
           }}
-          className="space-y-6"
+          className="mx-auto max-w-4xl space-y-5"
         >
-          <section className="glass-card p-6">
+          <section className="relative overflow-hidden rounded-[32px] border border-white/80 bg-white/80 px-5 py-6 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.28)] backdrop-blur-2xl sm:px-6">
+            <div className="pointer-events-none absolute inset-0 overflow-hidden">
+              <div className="absolute left-[6%] top-[8%] h-36 w-36 rounded-full bg-sky-200/25 blur-3xl" />
+              <div className="absolute bottom-[10%] right-[8%] h-40 w-40 rounded-full bg-orange-200/20 blur-3xl" />
+            </div>
+            <div className="relative">
             <h2 className="text-xl font-semibold text-slate-900">基本展示信息</h2>
             <p className="mt-1 text-slate-600">
               填写你的名字、背景和擅长领域，让来访者第一眼就能了解你是谁、能帮什么忙。
             </p>
-            <div className="mt-4 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm text-slate-600">
-              <p className="font-medium text-sky-800">💡 填写提示</p>
-              <ul className="mt-2 space-y-1">
+            <div className="mt-4 rounded-3xl border border-white/80 bg-white/60 p-4 text-sm text-slate-600 shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]">
+              <p className="font-medium text-sky-800">填写提示</p>
+              <ul className="mt-2 space-y-1.5">
                 <li>• 信息越真实具体，用户越愿意信任你</li>
                 <li>• 学历、工作、收入选填，但会提高可信度</li>
                 <li>• 简短介绍、详细背景和适合人群写清楚即可，不限字数</li>
@@ -684,9 +694,15 @@ export default function CreateLifeAgentPage() {
                 </div>
               </div>
             </div>
+            </div>
           </section>
+          {error ? (
+            <p className="rounded-2xl border border-rose-200 bg-rose-50/95 px-4 py-3 text-sm text-rose-600">
+              {error}
+            </p>
+          ) : null}
           <div className="flex justify-end">
-            <button type="submit" className="btn-primary">
+            <button type="submit" className="btn-primary min-h-[48px] w-full sm:w-auto">
               下一步：记录经验
             </button>
           </div>
@@ -694,83 +710,98 @@ export default function CreateLifeAgentPage() {
       )}
 
       {step === 2 && (
-        <div className="space-y-6">
-          <section className="glass-card overflow-hidden">
-            <div className="border-b border-slate-200 bg-slate-50/80 px-6 py-5">
-              <h2 className="text-xl font-semibold text-slate-900">逐步丰富你的经验</h2>
-              <p className="mt-2 text-slate-600">
-                我会根据你的回答继续追问，直到收集到全面、具体的经验信息。回答得越具体，AI 越能帮来访者解决真实问题。
-              </p>
-              <p className="mt-3 rounded-xl bg-sky-100 px-4 py-3 text-sm font-medium text-sky-900">
-                ⚠️ 请至少与 AI 进行 <strong>两轮对话</strong>（回答 2 个问题以上），再进入下一步。当前已记录 {knowledgeEntries.length} 轮。
-              </p>
-              <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50/80 p-4 text-sm">
-                <p className="font-medium text-amber-900">✨ 回答技巧</p>
-                <ul className="mt-2 space-y-1 text-amber-800">
-                  <li>• <strong>写具体</strong>：步骤、时间、数字比泛泛而谈更有用</li>
-                  <li>• <strong>写过程</strong>：你做了什么、踩过什么坑、怎么解决的</li>
-                  <li>• 回答得越具体，AI 越能帮来访者解决真实问题</li>
-                  <li>• 没有可写「暂无」跳过当前题</li>
-                </ul>
-              </div>
+        <div className="mx-auto max-w-3xl space-y-5">
+          <section className="relative overflow-hidden rounded-[32px] border border-white/80 bg-white/80 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.28)] backdrop-blur-2xl">
+            <div className="pointer-events-none absolute inset-0 overflow-hidden">
+              <div className="absolute left-[8%] top-[24%] h-40 w-40 rounded-full bg-sky-200/35 blur-3xl" />
+              <div className="absolute bottom-[18%] right-[10%] h-44 w-44 rounded-full bg-orange-200/35 blur-3xl" />
+              <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.92)_0%,rgba(255,255,255,0.82)_100%)]" />
             </div>
-            <div className="flex min-h-[400px] flex-col">
-              <div className="flex-1 space-y-5 overflow-y-auto p-6">
-                {chatHistory.map((msg, i) => (
-                  <div
-                    key={i}
-                    className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-                  >
-                    <div
-                      className={`max-w-[85%] rounded-2xl px-5 py-4 text-sm leading-7 ${
-                        msg.role === "user"
-                          ? "bg-sky-600 text-white"
-                          : "border border-slate-200 bg-white text-slate-800"
-                      }`}
-                    >
-                      <p className="whitespace-pre-wrap">{msg.content}</p>
-                    </div>
-                  </div>
-                ))}
-                <div ref={chatEndRef} />
+
+            <div className="relative flex min-h-[72vh] flex-col px-4 pb-4 pt-4 sm:px-6 sm:pb-6 sm:pt-5">
+              <div className="flex items-center justify-between gap-3 px-1">
+                <div className="w-10 shrink-0" />
+                <div className="text-center">
+                  <p className="text-base font-semibold tracking-[0.08em] text-slate-800">记忆微调</p>
+                  <p className="mt-1 text-xs text-slate-500">在这里随时调教你的分身</p>
+                </div>
+                <span className="inline-flex h-10 min-w-10 items-center justify-center rounded-full bg-white/80 px-3 text-xs font-medium text-slate-500 shadow-sm ring-1 ring-slate-200/70">
+                  第 2 步
+                </span>
               </div>
-              {!chatDone && (
-                <form onSubmit={submitChatAnswer} className="border-t border-slate-200 bg-white p-4">
-                  <div className="flex gap-3">
+
+              <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+                <span className="rounded-full bg-sky-100/90 px-3 py-1 text-xs font-medium text-sky-700">
+                  已记录 {knowledgeEntries.length} 轮
+                </span>
+                <span className="rounded-full bg-white/85 px-3 py-1 text-xs text-slate-500 ring-1 ring-slate-200/80">
+                  至少完成 2 轮才能继续
+                </span>
+              </div>
+
+              <div className="mt-5 rounded-3xl border border-white/80 bg-white/55 p-4 text-sm text-slate-600 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] sm:p-5">
+                <p className="font-medium text-slate-800">轻松聊就行，越具体越好。</p>
+                <p className="mt-2 leading-7">
+                  我会根据你的回答继续追问，帮你把真实经历整理成可复用的经验。可以写过程、踩坑、转折、结果，也可以直接说“暂无”先跳过。
+                </p>
+              </div>
+
+              <div className="mt-5 flex-1 overflow-y-auto px-1 pb-4 pt-2">
+                <div className="space-y-4">
+                  {chatHistory.map((msg, i) => (
+                    <div
+                      key={i}
+                      className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+                    >
+                      <div
+                        className={`max-w-[88%] rounded-[24px] px-4 py-3 text-sm leading-7 shadow-sm sm:px-5 ${
+                          msg.role === "user"
+                            ? "bg-gradient-to-br from-sky-500 to-cyan-400 text-white shadow-sky-200/70"
+                            : "border border-white/90 bg-white/88 text-slate-700"
+                        }`}
+                      >
+                        <p className="whitespace-pre-wrap">{msg.content}</p>
+                      </div>
+                    </div>
+                  ))}
+                  <div ref={chatEndRef} />
+                </div>
+              </div>
+
+              {error ? (
+                <div className="mx-1 mb-3 rounded-2xl border border-rose-200 bg-rose-50/95 px-4 py-3 text-sm text-rose-600">
+                  {error}
+                </div>
+              ) : null}
+
+              {!chatDone ? (
+                <form onSubmit={submitChatAnswer} className="mx-1 rounded-[28px] border border-white/85 bg-white/90 p-3 shadow-[0_18px_45px_-28px_rgba(15,23,42,0.28)] backdrop-blur">
+                  <div className="flex flex-col gap-3">
                     <textarea
-                      className="input-shell min-h-[80px] flex-1 resize-none"
+                      className="min-h-[88px] w-full resize-none rounded-2xl border-0 bg-transparent px-2 py-2 text-sm text-slate-800 outline-none placeholder:text-slate-400"
                       value={chatInput}
                       onChange={(e) => setChatInput(e.target.value)}
-                      placeholder={chatLoading ? "AI 正在思考下一问…" : "输入你的回答，写得越具体 AI 越能帮你回答来访者…"}
+                      placeholder={chatLoading ? "AI 正在思考下一问…" : "发消息或直接按住说话前，先把你的经历随手说出来..."}
                       required
                       disabled={chatLoading}
                     />
-                    <button type="submit" className="btn-primary self-end disabled:opacity-60" disabled={chatLoading}>
-                      {chatLoading ? "生成中…" : "发送"}
-                    </button>
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-xs text-slate-400">回答越具体，后面的分身越像你。</p>
+                      <button type="submit" className="btn-primary min-w-[96px] px-5 py-2.5 text-sm disabled:opacity-60" disabled={chatLoading}>
+                        {chatLoading ? "生成中…" : "发送"}
+                      </button>
+                    </div>
                   </div>
                 </form>
+              ) : (
+                <div className="mx-1 rounded-[28px] border border-emerald-200 bg-emerald-50/90 px-5 py-4 text-sm text-emerald-700 shadow-sm">
+                  经验记录得差不多了，可以继续补充，也可以进入下一步设置收费。
+                </div>
               )}
             </div>
-            {knowledgeEntries.length > 0 && (
-              <div className="border-t border-slate-200 bg-slate-50/50 px-6 py-4">
-                <p className="text-sm text-slate-600">
-                  已记录 {knowledgeEntries.length} 条经验
-                  {knowledgeEntries.length >= 2 ? (
-                    " · 可以继续回答或进入下一步"
-                  ) : (
-                    <>
-                      {" · "}
-                      <span className="font-medium text-amber-700">
-                        还需 {2 - knowledgeEntries.length} 轮对话，请继续在下方回答
-                      </span>
-                    </>
-                  )}
-                </p>
-              </div>
-            )}
           </section>
-          <div className="flex justify-between">
+
+          <div className="flex flex-col gap-3 sm:flex-row sm:justify-between">
             <button
               type="button"
               onClick={() => {
@@ -778,8 +809,9 @@ export default function CreateLifeAgentPage() {
                 setChatHistory([]);
                 setKnowledgeEntries([]);
                 setChatDone(false);
+                setError("");
               }}
-              className="btn-secondary"
+              className="btn-secondary min-h-[48px] w-full sm:w-auto"
             >
               上一步
             </button>
@@ -788,14 +820,14 @@ export default function CreateLifeAgentPage() {
               onClick={() => {
                 if (knowledgeEntries.length < 2) {
                   setError(
-                    `请至少完成 2 轮对话才能继续。你已记录 ${knowledgeEntries.length} 轮，还需至少 ${2 - knowledgeEntries.length} 轮。请在下方输入框继续回答 AI 的问题。`
+                    `请至少完成 2 轮对话才能继续。你已记录 ${knowledgeEntries.length} 轮，还需至少 ${2 - knowledgeEntries.length} 轮。`
                   );
                   return;
                 }
                 setStep(3);
                 setError("");
               }}
-              className="btn-primary"
+              className="btn-primary min-h-[48px] w-full sm:w-auto"
             >
               下一步：设置收费
             </button>
@@ -804,8 +836,13 @@ export default function CreateLifeAgentPage() {
       )}
 
       {step === 3 && (
-        <form onSubmit={submit} className="space-y-6">
-          <section className="glass-card p-6">
+        <form onSubmit={submit} className="mx-auto max-w-3xl space-y-5">
+          <section className="relative overflow-hidden rounded-[32px] border border-white/80 bg-white/80 px-5 py-6 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.28)] backdrop-blur-2xl sm:px-6">
+            <div className="pointer-events-none absolute inset-0 overflow-hidden">
+              <div className="absolute left-[8%] top-[12%] h-32 w-32 rounded-full bg-sky-200/25 blur-3xl" />
+              <div className="absolute bottom-[12%] right-[8%] h-36 w-36 rounded-full bg-emerald-200/20 blur-3xl" />
+            </div>
+            <div className="relative">
             <h2 className="text-xl font-semibold text-slate-900">设置收费</h2>
             <p className="mt-1 text-slate-600">用户每次提问会消耗 1 次额度，你按此单价获得收入。可以先设低一点，等有人用再慢慢调。</p>
             <div className="mt-5 max-w-sm">
@@ -823,9 +860,10 @@ export default function CreateLifeAgentPage() {
                 直接填写元即可，例如 3 表示 3 元，9.9 表示 9.9 元。不能免费，但不限制最高金额。
               </p>
             </div>
+            </div>
           </section>
 
-          <div className="glass-card p-6">
+          <div className="rounded-[32px] border border-white/80 bg-white/80 px-5 py-6 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.22)] backdrop-blur-2xl sm:px-6">
             <label className="mb-2 block text-sm font-medium text-slate-700">
               有什么你不能回答或不想回答的问题？（选填）
             </label>
@@ -838,7 +876,7 @@ export default function CreateLifeAgentPage() {
             <p className="mt-1 text-xs text-slate-500">用户提问到这类问题时，AI 会明确说明无法回答</p>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-5">
+          <div className="rounded-[32px] border border-white/80 bg-white/75 p-5 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.2)] backdrop-blur-2xl">
             <h3 className="font-medium text-slate-900">已记录的经验预览</h3>
             <ul className="mt-3 space-y-2 text-sm text-slate-600">
               {knowledgeEntries.slice(0, 5).map((e, i) => (
@@ -854,18 +892,18 @@ export default function CreateLifeAgentPage() {
           </div>
 
           {error && (
-            <p className="rounded-2xl bg-rose-50 px-4 py-3 text-sm text-rose-600">{error}</p>
+            <p className="rounded-2xl border border-rose-200 bg-rose-50/95 px-4 py-3 text-sm text-rose-600">{error}</p>
           )}
 
-          <div className="flex justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:justify-between">
             <button
               type="button"
               onClick={() => setStep(2)}
-              className="btn-secondary"
+              className="btn-secondary min-h-[48px] w-full sm:w-auto"
             >
               上一步
             </button>
-            <button type="submit" disabled={loading} className="btn-primary disabled:opacity-60">
+            <button type="submit" disabled={loading} className="btn-primary min-h-[48px] w-full sm:w-auto disabled:opacity-60">
               {loading ? "创建中..." : "发布我的 Agent"}
             </button>
           </div>

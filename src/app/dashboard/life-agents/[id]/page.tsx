@@ -7,13 +7,6 @@ import { RatingStars } from "@/components/RatingStars";
 import { OFFICIAL_CONTACT } from "@/lib/official-contact";
 import { centsToYuanInput, yuanInputToCents } from "@/lib/price";
 
-type KnowledgeDraft = {
-  category: string;
-  title: string;
-  content: string;
-  tags: string;
-};
-
 type ManageData = {
     profile: {
     id: string;
@@ -137,7 +130,6 @@ export default function LifeAgentManageDetailPage() {
     exampleReply3: "",
     published: true,
   });
-  const [entries, setEntries] = useState<KnowledgeDraft[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [modifyChatHistory, setModifyChatHistory] = useState<{ role: "user" | "assistant"; content: string }[]>([]);
@@ -182,14 +174,6 @@ export default function LifeAgentManageDetailPage() {
             exampleReply3: Array.isArray(p.exampleReplies) ? p.exampleReplies[2] ?? "" : "",
             published: p.published,
           });
-          setEntries(
-            (p.knowledgeEntries || []).map((e: { category: string; title: string; content: string; tags: string[] }) => ({
-              category: e.category,
-              title: e.title,
-              content: e.content,
-              tags: Array.isArray(e.tags) ? e.tags.join(", ") : "",
-            }))
-          );
         }
       })
       .catch(() => setData(null));
@@ -228,25 +212,10 @@ export default function LifeAgentManageDetailPage() {
     setForm((prev) => ({ ...prev, regions: next.join(", ") }));
   };
 
-
-  const updateEntry = (index: number, key: keyof KnowledgeDraft, value: string) => {
-    setEntries((prev) => prev.map((entry, idx) => (idx === index ? { ...entry, [key]: value } : entry)));
-  };
-
-  const addEntry = () => {
-    setEntries((prev) => [...prev, { category: "经验主题", title: "", content: "", tags: "经验, 建议" }]);
-  };
-
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
-
-    if (entries.length < 2) {
-      setError("至少保留 2 条经验知识");
-      setLoading(false);
-      return;
-    }
 
     const exampleReplies = [form.exampleReply1, form.exampleReply2, form.exampleReply3].map((s) => s.trim()).filter(Boolean);
     if (exampleReplies.length < 2) {
@@ -295,12 +264,6 @@ export default function LifeAgentManageDetailPage() {
       sampleQuestions: form.sampleQuestions.split("\n").map((s) => s.trim()).filter(Boolean),
       forbiddenPhrases: form.forbiddenPhrases.split("\n").map((s) => s.trim()).filter(Boolean),
       exampleReplies,
-      knowledgeEntries: entries.map((entry) => ({
-        category: entry.category,
-        title: entry.title,
-        content: entry.content,
-        tags: entry.tags.split(/[,，]/).map((s) => s.trim()).filter(Boolean),
-      })),
     };
 
     const res = await fetch(`/api/life-agents/${id}`, {
@@ -518,14 +481,6 @@ export default function LifeAgentManageDetailPage() {
                       exampleReply2: Array.isArray(p.exampleReplies) ? (p.exampleReplies[1] ?? "") : f.exampleReply2,
                       exampleReply3: Array.isArray(p.exampleReplies) ? (p.exampleReplies[2] ?? "") : f.exampleReply3,
                     }));
-                    setEntries(
-                      (p.knowledgeEntries ?? []).map((e: { category: string; title: string; content: string; tags: string[] }) => ({
-                        category: e.category,
-                        title: e.title,
-                        content: e.content,
-                        tags: Array.isArray(e.tags) ? e.tags.join(", ") : "",
-                      }))
-                    );
                   }
                 } catch {
                   setModifyChatHistory((prev) => [...prev, { role: "assistant", content: "请求失败，请检查网络后重试" }]);
@@ -887,59 +842,6 @@ export default function LifeAgentManageDetailPage() {
                   </div>
                 </div>
               </div>
-            </div>
-          </section>
-
-          <section className="glass-card p-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-slate-900">经验知识</h2>
-              <button type="button" onClick={addEntry} className="btn-secondary">
-                新增一条
-              </button>
-            </div>
-            <div className="mt-5 space-y-4">
-              {entries.map((entry, index) => (
-                <div key={index} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div>
-                      <label className="mb-1 block text-xs font-medium text-slate-600">分类</label>
-                      <input
-                        className="input-shell"
-                        value={entry.category}
-                        onChange={(e) => updateEntry(index, "category", e.target.value)}
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="mb-1 block text-xs font-medium text-slate-600">标题</label>
-                      <input
-                        className="input-shell"
-                        value={entry.title}
-                        onChange={(e) => updateEntry(index, "title", e.target.value)}
-                        required
-                      />
-                    </div>
-                    <div className="md:col-span-2">
-                      <label className="mb-1 block text-xs font-medium text-slate-600">内容</label>
-                      <textarea
-                        className="input-shell min-h-28"
-                        value={entry.content}
-                        onChange={(e) => updateEntry(index, "content", e.target.value)}
-                        required
-                      />
-                    </div>
-                    <div className="md:col-span-2">
-                      <label className="mb-1 block text-xs font-medium text-slate-600">标签</label>
-                      <input
-                        className="input-shell"
-                        value={entry.tags}
-                        onChange={(e) => updateEntry(index, "tags", e.target.value)}
-                        required
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
             </div>
           </section>
 
