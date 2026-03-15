@@ -160,7 +160,7 @@ export function Nav() {
             height={36}
             className="shrink-0 rounded-lg object-contain"
           />
-          <span className="hidden md:inline xl:inline text-base 2xl:text-xl font-bold bg-gradient-to-r from-blue-600 to-sky-500 bg-clip-text text-transparent truncate whitespace-nowrap">
+          <span className="hidden lg:inline text-base 2xl:text-xl font-bold bg-gradient-to-r from-blue-600 to-sky-500 bg-clip-text text-transparent truncate whitespace-nowrap">
             Bright Agent Hub
           </span>
           <span className="hidden 2xl:inline text-slate-500 group-hover:text-sky-600 transition-colors text-sm truncate whitespace-nowrap">
@@ -168,8 +168,8 @@ export function Nav() {
           </span>
         </Link>
 
-        {/* Desktop nav: xl 以下仅图标，避免中等宽度挤压换行 */}
-        <div className="hidden md:flex items-center gap-1 lg:gap-2 xl:gap-4 shrink-0">
+        {/* Desktop nav: 仅电脑端 lg+ 显示，手机/平板用底部导航 */}
+        <div className="hidden lg:flex items-center gap-1 lg:gap-2 xl:gap-4 shrink-0">
           {navLinks.map((link) => {
             const Icon = link.Icon;
             return (
@@ -198,14 +198,14 @@ export function Nav() {
           })}
         </div>
 
-        <div className="hidden md:flex items-center gap-1 lg:gap-2 xl:gap-4 shrink-0">
+        <div className="hidden lg:flex items-center gap-1 lg:gap-2 xl:gap-4 shrink-0">
           <AnimatePresence mode="wait">{AuthLinks()}</AnimatePresence>
         </div>
 
       </div>
 
-      {/* Mobile: 底部导航栏 */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 flex md:hidden items-center justify-around border-t border-slate-200/90 bg-white/95 backdrop-blur-xl pb-[env(safe-area-inset-bottom)] pt-2">
+      {/* 手机/平板: 底部导航栏；电脑端 lg+ 不显示 */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 flex lg:hidden items-center justify-around border-t border-slate-200/90 bg-white/95 backdrop-blur-xl pb-[env(safe-area-inset-bottom)] pt-2">
         {navLinks.map((link) => {
           const Icon = link.Icon;
           const active = pathname === link.href;
