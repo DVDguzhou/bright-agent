@@ -56,18 +56,18 @@ func Signup(cfg *config.Config) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "VALIDATION_ERROR"})
 			return
 		}
-		var exists models.User
-		if db.DB.Where("email = ?", body.Email).First(&exists).Error == nil {
+		var existingUser models.User
+		if db.DB.Where("email = ?", body.Email).First(&existingUser).Error == nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "EMAIL_EXISTS"})
 			return
 		}
 		cleanName := strings.TrimSpace(body.Name)
-		exists, err := ensureUniqueUserName(cleanName, "")
+		nameExists, err := ensureUniqueUserName(cleanName, "")
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "INTERNAL_ERROR"})
 			return
 		}
-		if exists {
+		if nameExists {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "NAME_EXISTS"})
 			return
 		}
