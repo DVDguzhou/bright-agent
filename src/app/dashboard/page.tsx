@@ -11,23 +11,18 @@ type LifeAgentCreated = { id: string; displayName: string; headline: string; kno
 type LifeAgentPurchased = { id: string; displayName: string; headline: string; pricePerQuestion: number; remainingQuestions: number };
 
 export default function DashboardPage() {
-  const { user, loading, refetch } = useAuth();
+  const { user, loading } = useAuth();
   const [agents, setAgents] = useState<Agent[]>([]);
   const [lifeAgentsCreated, setLifeAgentsCreated] = useState<LifeAgentCreated[]>([]);
   const [lifeAgentsPurchased, setLifeAgentsPurchased] = useState<LifeAgentPurchased[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
   const [deletingAgentId, setDeletingAgentId] = useState<string | null>(null);
-  const [profileName, setProfileName] = useState("");
-  const [profileSaving, setProfileSaving] = useState(false);
-  const [profileError, setProfileError] = useState("");
-  const [profileSuccess, setProfileSuccess] = useState("");
 
   useEffect(() => {
     if (!user) {
       setDataLoading(false);
       return;
     }
-    setProfileName(user.name || "");
     // 并行请求，避免瀑布式等待
     Promise.all([
       fetch("/api/agents?owner=me", { credentials: "include" }).then((r) => r.json()).then((d) => (Array.isArray(d) ? d : [])).catch(() => []),
@@ -55,39 +50,6 @@ export default function DashboardPage() {
       setAgents((prev) => prev.filter((agent) => agent.id !== id));
     } finally {
       setDeletingAgentId(null);
-    }
-  };
-
-  const saveProfile = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setProfileError("");
-    setProfileSuccess("");
-    setProfileSaving(true);
-    try {
-      const res = await fetch("/api/auth/profile", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          name: profileName.trim(),
-          avatarUrl: user?.avatarUrl || undefined,
-        }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setProfileError(
-          data.error === "NAME_EXISTS"
-            ? "这个用户名已经有人使用了，请换一个。"
-            : data.error === "VALIDATION_ERROR"
-            ? "用户名需要 2-32 个字符。"
-            : "保存失败，请稍后重试。"
-        );
-        return;
-      }
-      await refetch();
-      setProfileSuccess("个人信息已更新。");
-    } finally {
-      setProfileSaving(false);
     }
   };
 
@@ -159,28 +121,6 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <form onSubmit={saveProfile} className="mt-6 rounded-3xl border border-white/70 bg-white/80 p-4 shadow-sm">
-            <div className="flex flex-col gap-3 lg:flex-row lg:items-end">
-              <div className="flex-1">
-                <label className="mb-2 block text-sm font-medium text-slate-700">用户名</label>
-                <input
-                  value={profileName}
-                  onChange={(e) => setProfileName(e.target.value)}
-                  className="input-shell"
-                  minLength={2}
-                  maxLength={32}
-                  placeholder="设置一个独特的用户名"
-                  required
-                />
-                <p className="mt-2 text-xs text-slate-500">用户名全站唯一，修改后会同步显示在你的个人主页和登录态资料中。</p>
-              </div>
-              <button type="submit" disabled={profileSaving} className="btn-primary min-w-[120px] disabled:opacity-60">
-                {profileSaving ? "保存中..." : "保存用户名"}
-              </button>
-            </div>
-            {profileError && <p className="mt-3 text-sm text-rose-600">{profileError}</p>}
-            {profileSuccess && <p className="mt-3 text-sm text-emerald-600">{profileSuccess}</p>}
-          </form>
         </div>
       </section>
 

@@ -101,61 +101,6 @@ func Signup(cfg *config.Config) gin.HandlerFunc {
 	}
 }
 
-func UpdateProfile(cfg *config.Config) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		user := middleware.MustGetUser(c)
-		if user == nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "UNAUTHORIZED"})
-			return
-		}
-
-		var body struct {
-			Name      string  `json:"name" binding:"required,min=2,max=32"`
-			AvatarURL *string `json:"avatarUrl"`
-		}
-		if err := c.ShouldBindJSON(&body); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "VALIDATION_ERROR"})
-			return
-		}
-
-		cleanName := strings.TrimSpace(body.Name)
-		exists, err := ensureUniqueUserName(cleanName, user.ID)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "INTERNAL_ERROR"})
-			return
-		}
-		if exists {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "NAME_EXISTS"})
-			return
-		}
-
-		updates := map[string]interface{}{
-			"name":       cleanName,
-			"avatar_url": normalizeOptionalText(body.AvatarURL),
-		}
-		if err := db.DB.Model(&models.User{}).Where("id = ?", user.ID).Updates(updates).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "INTERNAL_ERROR"})
-			return
-		}
-
-		var updated models.User
-		if err := db.DB.Where("id = ?", user.ID).First(&updated).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "INTERNAL_ERROR"})
-			return
-		}
-
-		c.JSON(http.StatusOK, gin.H{
-			"user": gin.H{
-				"id":        updated.ID,
-				"email":     updated.Email,
-				"name":      updated.Name,
-				"avatarUrl": updated.AvatarURL,
-				"roleFlags": updated.RoleFlags,
-			},
-		})
-	}
-}
-
 func Me(cfg *config.Config) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		user := middleware.MustGetUser(c)

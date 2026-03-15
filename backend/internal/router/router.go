@@ -19,7 +19,6 @@ func Setup(cfg *config.Config) *gin.Engine {
 			auth.POST("/signup", handler.Signup(cfg))
 			auth.POST("/logout", handler.Logout(cfg))
 			auth.GET("/me", middleware.RequireAuth(cfg), handler.Me(cfg))
-			auth.PATCH("/profile", middleware.RequireAuth(cfg), handler.UpdateProfile(cfg))
 		}
 
 		agents := api.Group("/agents")
