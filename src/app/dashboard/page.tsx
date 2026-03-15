@@ -268,9 +268,6 @@ export default function DashboardPage() {
                 <h2 className="text-xl font-semibold text-slate-900">我创建的人生 Agent</h2>
                 <p className="mt-1 text-sm text-slate-500">查看你的个人经验分身、销量和后续管理入口。</p>
               </div>
-              <Link href="/dashboard/life-agents" className="text-sm font-medium text-sky-600 hover:text-sky-700">
-                管理全部
-              </Link>
             </div>
           {!Array.isArray(lifeAgentsCreated) || lifeAgentsCreated.length === 0 ? (
             <p className="mt-5 rounded-2xl border border-dashed border-slate-200 bg-slate-50/80 px-4 py-5 text-slate-500">
@@ -308,9 +305,6 @@ export default function DashboardPage() {
                 <h2 className="text-xl font-semibold text-slate-900">我购买额度的人生 Agent</h2>
                 <p className="mt-1 text-sm text-slate-500">继续咨询你已经购买过的顾问，直接进入聊天即可。</p>
               </div>
-              <Link href="/life-agents" className="text-sm font-medium text-sky-600 hover:text-sky-700">
-                浏览更多
-              </Link>
             </div>
           {!Array.isArray(lifeAgentsPurchased) || lifeAgentsPurchased.length === 0 ? (
             <p className="mt-5 rounded-2xl border border-dashed border-slate-200 bg-slate-50/80 px-4 py-5 text-slate-500">
