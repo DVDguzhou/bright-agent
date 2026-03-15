@@ -64,7 +64,7 @@ func GenerateProfileCreateSummary(apiKey, model, baseURL string, input *ProfileS
 
 输出必须是严格 JSON，不要 markdown，不要额外解释：
 {
-  "summaryMessage": "我已经帮你整理好基础资料，可以进入下一步继续完善 Agent 的个性。",
+  "summaryMessage": "我已经帮你整理好基础资料，下一步继续补充你的真实经历和经验。",
   "profile": {
     "displayName": "",
     "headline": "",
@@ -152,7 +152,7 @@ func GenerateProfileCreateSummary(apiKey, model, baseURL string, input *ProfileS
 
 func fallbackProfileSummary(input *ProfileSummaryInput) *ProfileSummaryOutput {
 	out := &ProfileSummaryOutput{
-		SummaryMessage: "我已经帮你整理好基础资料，可以进入下一步继续完善 Agent 的个性。",
+		SummaryMessage: "我已经帮你整理好基础资料，下一步继续补充你的真实经历和经验。",
 	}
 	out.Profile.DisplayName = truncateRunes(strings.TrimSpace(input.DisplayName), 10)
 	out.Profile.Headline = strings.TrimSpace(input.Headline)
@@ -172,7 +172,7 @@ func fallbackProfileSummary(input *ProfileSummaryInput) *ProfileSummaryOutput {
 
 func normalizeProfileSummary(out *ProfileSummaryOutput, input *ProfileSummaryInput) {
 	if out.SummaryMessage == "" {
-		out.SummaryMessage = "我已经帮你整理好基础资料，可以进入下一步继续完善 Agent 的个性。"
+		out.SummaryMessage = "我已经帮你整理好基础资料，下一步继续补充你的真实经历和经验。"
 	}
 	out.Profile.DisplayName = truncateRunes(strings.TrimSpace(firstNonEmpty(out.Profile.DisplayName, input.DisplayName)), 10)
 	out.Profile.Headline = strings.TrimSpace(firstNonEmpty(out.Profile.Headline, input.Headline))

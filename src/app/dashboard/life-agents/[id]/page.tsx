@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { RatingStars } from "@/components/RatingStars";
@@ -93,10 +93,18 @@ const PERSONA_OPTIONS = ["学长学姐型", "朋友陪聊型", "前辈导师型"
 const TONE_OPTIONS = ["直接一点", "温柔一点", "理性克制", "接地气一点", "像朋友聊天", "稳重耐心"];
 const RESPONSE_STYLE_OPTIONS = ["先给判断再解释", "先理解处境再建议", "多举自己的例子", "短一点别太满", "先拆选项再给建议", "像微信聊天少分点"];
 const REGION_OPTIONS = ["温州", "杭州", "宁波", "台州", "绍兴", "上海", "北京", "深圳", "广州", "东京", "大阪", "新加坡"];
+const TAB_ITEMS = [
+  { id: "feedback", label: "消息", hint: "看用户反馈" },
+  { id: "modify", label: "对话修改", hint: "像聊天一样改" },
+  { id: "edit", label: "编辑资料", hint: "手动调整资料" },
+  { id: "sales", label: "销量记录", hint: "看购买情况" },
+  { id: "sessions", label: "聊天记录", hint: "看会话列表" },
+] as const;
 
 export default function LifeAgentManageDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const modifyChatEndRef = useRef<HTMLDivElement>(null);
   const id = params.id as string;
   const [data, setData] = useState<ManageData | null>(null);
   const [activeTab, setActiveTab] = useState<"edit" | "modify" | "sales" | "sessions" | "feedback">("feedback");
@@ -178,6 +186,10 @@ export default function LifeAgentManageDetailPage() {
       })
       .catch(() => setData(null));
   }, [id]);
+
+  useEffect(() => {
+    modifyChatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [modifyChatHistory]);
 
   const deleteAgent = async () => {
     if (!confirm("确定删除这个人生 Agent 吗？删除后无法恢复，包括知识、聊天记录等。")) return;
@@ -356,26 +368,35 @@ export default function LifeAgentManageDetailPage() {
         </div>
       </div>
 
-      <div className="flex gap-2 border-b border-slate-200">
-        {(["feedback", "modify", "edit", "sales", "sessions"] as const).map((tab) => (
+      <div className="rounded-[28px] border border-white/80 bg-white/75 p-2 shadow-[0_18px_50px_-36px_rgba(15,23,42,0.32)] backdrop-blur-xl">
+        <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-5">
+        {TAB_ITEMS.map((tab) => (
           <button
-            key={tab}
+            key={tab.id}
             type="button"
-            onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 text-sm font-medium transition ${
-              activeTab === tab
-                ? "border-b-2 border-sky-500 text-sky-700"
-                : "text-slate-500 hover:text-slate-800"
+            onClick={() => setActiveTab(tab.id)}
+            className={`group min-h-[64px] rounded-2xl px-4 py-3 text-left transition-all ${
+              activeTab === tab.id
+                ? "bg-gradient-to-br from-sky-500 to-cyan-400 text-white shadow-[0_18px_40px_-24px_rgba(14,165,233,0.8)]"
+                : "bg-white/80 text-slate-600 ring-1 ring-slate-200/80 hover:bg-sky-50/80 hover:text-sky-700 hover:ring-sky-200"
             }`}
           >
-            {tab === "edit" ? "编辑资料" : tab === "modify" ? "对话修改" : tab === "feedback" ? "消息" : tab === "sales" ? "销量记录" : "聊天记录"}
+            <span className="block text-sm font-semibold">{tab.label}</span>
+            <span
+              className={`mt-1 block text-xs ${
+                activeTab === tab.id ? "text-white/80" : "text-slate-400 group-hover:text-sky-500"
+              }`}
+            >
+              {tab.hint}
+            </span>
           </button>
         ))}
+        </div>
       </div>
 
       {activeTab === "modify" && (
         <div className="space-y-6">
-          <section className="rounded-2xl border border-slate-200 bg-slate-50/70 p-5">
+          <section className="rounded-[28px] border border-white/80 bg-white/75 p-5 shadow-[0_18px_50px_-36px_rgba(15,23,42,0.3)] backdrop-blur-xl">
             <h2 className="text-lg font-semibold text-slate-900">当前 Agent 状态</h2>
             <p className="mt-1 text-sm text-slate-600">修改后会实时更新，方便你确认当前配置。</p>
             <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -410,34 +431,68 @@ export default function LifeAgentManageDetailPage() {
               </div>
             </div>
           </section>
-          <section className="glass-card p-6">
-            <h2 className="text-lg font-semibold text-slate-900">通过对话修改</h2>
-            <p className="mt-1 text-sm text-slate-600">
-              用自然语言说明你想怎么改，例如：「把擅长标签改成考研、转行」「添加一条关于面试技巧的经验：我当时面了5家公司…」「欢迎语改成更亲切一点」
-            </p>
-            <div className="mt-5 max-h-80 overflow-y-auto space-y-3 rounded-xl border border-slate-200 bg-white p-4">
-              {modifyChatHistory.length === 0 && (
-                <p className="text-sm text-slate-500">说一句你想怎么修改，AI 会帮你更新 Agent</p>
-              )}
-              {modifyChatHistory.map((m, i) => (
-                <div
-                  key={i}
-                  className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
-                >
-                  <div
-                    className={`max-w-[85%] rounded-2xl px-4 py-2 text-sm ${
-                      m.role === "user"
-                        ? "bg-sky-600 text-white"
-                        : "bg-slate-100 text-slate-800"
-                    }`}
-                  >
-                    {m.content}
-                  </div>
-                </div>
-              ))}
+          <section className="relative overflow-hidden rounded-[32px] border border-white/80 bg-white/80 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.28)] backdrop-blur-3xl">
+            <div className="pointer-events-none absolute inset-0 overflow-hidden">
+              <div className="absolute left-[8%] top-[24%] h-40 w-40 rounded-full bg-sky-200/35 blur-3xl" />
+              <div className="absolute bottom-[18%] right-[10%] h-44 w-44 rounded-full bg-orange-200/25 blur-3xl" />
+              <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.93)_0%,rgba(255,255,255,0.84)_100%)]" />
             </div>
+            <div className="relative flex min-h-[70vh] flex-col px-4 pb-4 pt-4 sm:px-6 sm:pb-6 sm:pt-5">
+              <div className="flex items-center justify-between gap-3 px-1">
+                <div className="w-10 shrink-0" />
+                <div className="text-center">
+                  <p className="text-base font-semibold tracking-[0.08em] text-slate-800">对话修改</p>
+                  <p className="mt-1 text-xs text-slate-500">像聊天一样说，你想改什么我帮你处理</p>
+                </div>
+                <span className="inline-flex h-10 min-w-10 items-center justify-center rounded-full bg-white/80 px-3 text-xs font-medium text-slate-500 shadow-sm ring-1 ring-slate-200/70 backdrop-blur">
+                  AI
+                </span>
+              </div>
+
+              <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+                <span className="rounded-full bg-sky-100/90 px-3 py-1 text-xs font-medium text-sky-700 backdrop-blur">
+                  已处理 {modifyChatHistory.filter((item) => item.role === "user").length} 次修改
+                </span>
+                <span className="rounded-full bg-white/85 px-3 py-1 text-xs text-slate-500 ring-1 ring-slate-200/80 backdrop-blur">
+                  支持改文案、标签、欢迎语、风格和知识内容
+                </span>
+              </div>
+
+              <div className="mt-5 rounded-3xl border border-white/80 bg-white/55 p-4 text-sm text-slate-600 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] backdrop-blur-xl sm:p-5">
+                <p className="font-medium text-slate-800">直接说你的修改需求就行。</p>
+                <p className="mt-2 leading-7">
+              用自然语言说明你想怎么改，例如：「把擅长标签改成考研、转行」「添加一条关于面试技巧的经验：我当时面了5家公司…」「欢迎语改成更亲切一点」
+                </p>
+              </div>
+
+              <div className="mt-5 flex-1 overflow-y-auto px-1 pb-4 pt-2">
+                <div className="space-y-4">
+                  {modifyChatHistory.length === 0 && (
+                    <div className="flex justify-start">
+                      <div className="max-w-[88%] rounded-[24px] border border-white/90 bg-white/88 px-4 py-3 text-sm leading-7 text-slate-700 shadow-sm backdrop-blur-xl sm:px-5">
+                        说一句你想怎么修改，AI 会帮你更新 Agent。
+                      </div>
+                    </div>
+                  )}
+                  {modifyChatHistory.map((m, i) => (
+                    <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+                      <div
+                        className={`max-w-[88%] rounded-[24px] px-4 py-3 text-sm leading-7 shadow-sm sm:px-5 ${
+                          m.role === "user"
+                            ? "bg-gradient-to-br from-sky-500 to-cyan-400 text-white shadow-sky-200/70"
+                            : "border border-white/90 bg-white/88 text-slate-700 backdrop-blur-xl"
+                        }`}
+                      >
+                        <p className="whitespace-pre-wrap">{m.content}</p>
+                      </div>
+                    </div>
+                  ))}
+                  <div ref={modifyChatEndRef} />
+                </div>
+              </div>
+
             <form
-              className="mt-4 flex gap-2"
+              className="mx-1 mt-2 rounded-[28px] border border-white/85 bg-white/90 p-3 shadow-[0_18px_45px_-28px_rgba(15,23,42,0.28)] backdrop-blur-2xl"
               onSubmit={async (e) => {
                 e.preventDefault();
                 const msg = modifyInput.trim();
@@ -489,17 +544,23 @@ export default function LifeAgentManageDetailPage() {
                 }
               }}
             >
-              <input
-                className="input-shell flex-1"
-                value={modifyInput}
-                onChange={(e) => setModifyInput(e.target.value)}
-                placeholder="例如：把擅长标签改成考研、转行、找工作"
-                disabled={modifyLoading}
-              />
-              <button type="submit" className="btn-primary" disabled={modifyLoading}>
-                {modifyLoading ? "处理中…" : "发送"}
-              </button>
+              <div className="flex flex-col gap-3">
+                <textarea
+                  className="min-h-[88px] w-full resize-none rounded-2xl border-0 bg-transparent px-2 py-2 text-sm text-slate-800 outline-none placeholder:text-slate-400"
+                  value={modifyInput}
+                  onChange={(e) => setModifyInput(e.target.value)}
+                  placeholder={modifyLoading ? "AI 正在处理这次修改…" : "例如：把擅长标签改成考研、转行、找工作"}
+                  disabled={modifyLoading}
+                />
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-xs text-slate-400">用自然语言说清楚你想改什么就行。</p>
+                  <button type="submit" className="btn-primary min-w-[96px] px-5 py-2.5 text-sm disabled:opacity-60" disabled={modifyLoading}>
+                    {modifyLoading ? "处理中…" : "发送"}
+                  </button>
+                </div>
+              </div>
             </form>
+            </div>
           </section>
         </div>
       )}
