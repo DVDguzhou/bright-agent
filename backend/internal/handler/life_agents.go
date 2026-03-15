@@ -353,7 +353,7 @@ func LifeAgentsCreateNextQuestion(cfg *config.Config) gin.HandlerFunc {
 			return
 		}
 		resp := gin.H{
-			"done": out.Done,
+			"done":           out.Done,
 			"nextQuestion":   out.NextQuestion,
 			"summaryMessage": out.SummaryMessage,
 			"extractedTone":  out.ExtractedTone,
@@ -361,6 +361,30 @@ func LifeAgentsCreateNextQuestion(cfg *config.Config) gin.HandlerFunc {
 			"knowledgeAdd":   out.KnowledgeAdd,
 		}
 		c.JSON(http.StatusOK, resp)
+	}
+}
+
+func LifeAgentsCreateProfileSummary(cfg *config.Config) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		_ = middleware.MustGetUser(c)
+		var body lifeagent.ProfileSummaryInput
+		if err := c.ShouldBindJSON(&body); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "VALIDATION_ERROR", "detail": err.Error()})
+			return
+		}
+		out, err := lifeagent.GenerateProfileCreateSummary(
+			cfg.OpenAIApiKey, cfg.OpenAIModel, cfg.OpenAIBaseURL,
+			&body,
+		)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "LLM_ERROR", "detail": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"summaryMessage":   out.SummaryMessage,
+			"profile":          out.Profile,
+			"knowledgeEntries": out.KnowledgeEntries,
+		})
 	}
 }
 

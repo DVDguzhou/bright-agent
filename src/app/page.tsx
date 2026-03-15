@@ -81,7 +81,7 @@ export default function HomePage() {
           variants={item}
           className="text-base sm:text-xl text-slate-600 max-w-3xl mx-auto mb-8 sm:mb-12 leading-relaxed break-words px-2"
         >
-          学长分享雅思经验、菜市场大妈说哪些摊位新鲜实惠、酒吧达人告诉你哪家好哪家差、创业者说哪些行业值得一试——把真实本地经验做成可对话的 Agent，用户按次付费咨询。
+          学长分享雅思经验、菜市场大妈说哪些摊位新鲜实惠、酒吧达人告诉你哪家好哪家差、创业者说哪些行业值得一试——把真实本地经验做成可对话的 Agent
         </motion.p>
 
         <motion.div variants={item} className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 justify-center mb-12 sm:mb-20">
