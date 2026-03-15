@@ -62,7 +62,7 @@ export function translateLifeAgentValidationError(detail: string): string {
     }
   }
 
-  const unique = [...new Set(messages)];
+  const unique = Array.from(new Set(messages));
   if (unique.length === 0) return "请检查输入内容是否符合要求";
   return unique.join(" ");
 }
