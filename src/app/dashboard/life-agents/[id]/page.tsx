@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { RatingStars } from "@/components/RatingStars";
 import { OFFICIAL_CONTACT } from "@/lib/official-contact";
+import { centsToYuanInput, yuanInputToCents } from "@/lib/price";
 
 type KnowledgeDraft = {
   category: string;
@@ -123,7 +124,7 @@ export default function LifeAgentManageDetailPage() {
     audience: "",
     welcomeMessage: "",
     notSuitableFor: "",
-    pricePerQuestion: "990",
+    pricePerQuestion: "9.9",
     expertiseTags: "",
     sampleQuestions: "",
     mbti: "",
@@ -142,6 +143,7 @@ export default function LifeAgentManageDetailPage() {
   const [modifyChatHistory, setModifyChatHistory] = useState<{ role: "user" | "assistant"; content: string }[]>([]);
   const [modifyInput, setModifyInput] = useState("");
   const [modifyLoading, setModifyLoading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     fetch(`/api/life-agents/${id}/manage`, { credentials: "include" })
@@ -167,7 +169,7 @@ export default function LifeAgentManageDetailPage() {
             audience: p.audience,
             welcomeMessage: p.welcomeMessage,
             notSuitableFor: p.notSuitableFor ?? "",
-            pricePerQuestion: String(p.pricePerQuestion),
+            pricePerQuestion: centsToYuanInput(p.pricePerQuestion),
             expertiseTags: Array.isArray(p.expertiseTags) ? p.expertiseTags.join(", ") : "",
             sampleQuestions: Array.isArray(p.sampleQuestions) ? p.sampleQuestions.join("\n") : "",
             mbti: p.mbti ?? "",
@@ -192,6 +194,25 @@ export default function LifeAgentManageDetailPage() {
       })
       .catch(() => setData(null));
   }, [id]);
+
+  const deleteAgent = async () => {
+    if (!confirm("确定删除这个人生 Agent 吗？删除后无法恢复，包括知识、聊天记录等。")) return;
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/life-agents/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error || "删除失败");
+      }
+      router.push("/dashboard");
+      router.refresh();
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const selectedRegions = form.regions
     .split(/[,，\n]/)
@@ -234,6 +255,13 @@ export default function LifeAgentManageDetailPage() {
       return;
     }
 
+    const displayName = form.displayName.trim();
+    if (displayName.length < 1 || displayName.length > 10) {
+      setError("Agent 名称长度需为 1 到 10 个字");
+      setLoading(false);
+      return;
+    }
+
     const regions = form.regions.split(/[,，\n]/).map((s) => s.trim()).filter(Boolean);
     if (regions.length > 2) {
       setError("地区最多保留 2 个");
@@ -241,8 +269,17 @@ export default function LifeAgentManageDetailPage() {
       return;
     }
 
+    const pricePerQuestion = yuanInputToCents(form.pricePerQuestion);
+    if (pricePerQuestion === null) {
+      setError("请填写大于 0 的金额，单位是元，最多保留 2 位小数");
+      setLoading(false);
+      return;
+    }
+
     const payload = {
       ...form,
+      displayName,
+      headline: form.headline.trim(),
       education: form.education || undefined,
       school: form.school || undefined,
       job: form.job || undefined,
@@ -252,7 +289,7 @@ export default function LifeAgentManageDetailPage() {
       province: form.province || undefined,
       city: form.city || undefined,
       county: form.county || undefined,
-      pricePerQuestion: parseInt(form.pricePerQuestion, 10),
+      pricePerQuestion,
       mbti: form.mbti || undefined,
       expertiseTags: form.expertiseTags.split(/[,，\n]/).map((s) => s.trim()).filter(Boolean),
       sampleQuestions: form.sampleQuestions.split("\n").map((s) => s.trim()).filter(Boolean),
@@ -297,18 +334,38 @@ export default function LifeAgentManageDetailPage() {
         <Link href="/dashboard/life-agents" className="text-sm text-slate-500 hover:text-sky-700">
           ← 返回我的人生 Agent
         </Link>
-        <div className="mt-3 flex items-center justify-between gap-4">
-          <div>
-            <h1 className="section-title">{data.profile.displayName}</h1>
+        <div className="mt-3 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div className="min-w-0 lg:flex-1">
+            <h1 className="section-title break-words">{data.profile.displayName}</h1>
             <p className="section-subtitle mt-1">{data.profile.headline}</p>
           </div>
-          <div className="flex gap-3">
-            <Link href={`/life-agents/${id}`} className="btn-secondary">
+          <div className="grid w-full grid-cols-2 gap-3 sm:w-auto sm:grid-cols-3 lg:flex lg:flex-none lg:flex-wrap lg:justify-end lg:pl-6">
+            <Link
+              href={`/life-agents/${id}`}
+              className="btn-secondary min-h-[48px] px-4 text-center whitespace-nowrap touch-manipulation"
+            >
               查看展示页
             </Link>
-            <Link href={`/life-agents/${id}/chat`} className="btn-primary">
+            <Link
+              href={`/life-agents/${id}/chat`}
+              className="btn-primary min-h-[48px] px-4 text-center whitespace-nowrap touch-manipulation"
+            >
               进入聊天
             </Link>
+            <button
+              type="button"
+              onClick={deleteAgent}
+              disabled={deleting}
+              className="col-span-2 sm:col-span-1 min-h-[48px] rounded-xl border border-red-200 bg-white px-4 py-3 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 active:bg-red-100 touch-manipulation whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-50"
+              aria-label="删除此人生 Agent"
+            >
+              {deleting ? "删除中..." : (
+                <>
+                  <span className="sm:hidden">删除</span>
+                  <span className="hidden sm:inline">删除人生 Agent</span>
+                </>
+              )}
+            </button>
           </div>
         </div>
       </div>
@@ -517,8 +574,10 @@ export default function LifeAgentManageDetailPage() {
                   className="input-shell"
                   value={form.displayName}
                   onChange={(e) => setForm((prev) => ({ ...prev, displayName: e.target.value }))}
+                  maxLength={10}
                   required
                 />
+                <p className="mt-1 text-xs text-slate-500">必填，1 到 10 个字</p>
               </div>
               <div>
                 <label className="mb-2 block text-sm font-medium text-slate-700">一句话介绍</label>
@@ -526,16 +585,17 @@ export default function LifeAgentManageDetailPage() {
                   className="input-shell"
                   value={form.headline}
                   onChange={(e) => setForm((prev) => ({ ...prev, headline: e.target.value }))}
-                  required
+                  placeholder="可以不填"
                 />
+                <p className="mt-1 text-xs text-slate-500">选填，可以留空</p>
               </div>
               <div className="md:col-span-2">
-                <label className="mb-2 block text-sm font-medium text-slate-700">简短介绍</label>
+                <label className="mb-2 block text-sm font-medium text-slate-700">简短介绍（选填）</label>
                 <textarea
                   className="input-shell min-h-24"
                   value={form.shortBio}
                   onChange={(e) => setForm((prev) => ({ ...prev, shortBio: e.target.value }))}
-                  required
+                  placeholder="可以不填"
                 />
               </div>
               <div>
@@ -660,12 +720,12 @@ export default function LifeAgentManageDetailPage() {
                 )}
               </div>
               <div className="md:col-span-2">
-                <label className="mb-2 block text-sm font-medium text-slate-700">详细背景</label>
+                <label className="mb-2 block text-sm font-medium text-slate-700">详细背景（选填）</label>
                 <textarea
                   className="input-shell min-h-36"
                   value={form.longBio}
                   onChange={(e) => setForm((prev) => ({ ...prev, longBio: e.target.value }))}
-                  required
+                  placeholder="可以不填"
                 />
               </div>
             </div>
@@ -675,12 +735,12 @@ export default function LifeAgentManageDetailPage() {
             <h2 className="text-xl font-semibold text-slate-900">聊天与收费设置</h2>
             <div className="mt-5 grid gap-5 md:grid-cols-2">
               <div>
-                <label className="mb-2 block text-sm font-medium text-slate-700">适合帮助的人群</label>
+                <label className="mb-2 block text-sm font-medium text-slate-700">适合帮助的人群（选填）</label>
                 <textarea
                   className="input-shell min-h-24"
                   value={form.audience}
                   onChange={(e) => setForm((prev) => ({ ...prev, audience: e.target.value }))}
-                  required
+                  placeholder="可以不填"
                 />
               </div>
               <div>
@@ -693,14 +753,18 @@ export default function LifeAgentManageDetailPage() {
                 />
               </div>
               <div>
-                <label className="mb-2 block text-sm font-medium text-slate-700">每次提问价格（分）</label>
+                <label className="mb-2 block text-sm font-medium text-slate-700">每次提问价格（元）</label>
                 <input
                   type="number"
-                  min={100}
+                  min="0.01"
+                  step="0.01"
                   className="input-shell"
                   value={form.pricePerQuestion}
                   onChange={(e) => setForm((prev) => ({ ...prev, pricePerQuestion: e.target.value }))}
                 />
+                <p className="mt-2 text-sm text-slate-500">
+                  直接填写元即可，例如 3 表示 3 元，9.9 表示 9.9 元。不能免费，但不限制最高金额。
+                </p>
               </div>
               <div className="flex items-center gap-3">
                 <label className="flex cursor-pointer items-center gap-2">
@@ -737,8 +801,9 @@ export default function LifeAgentManageDetailPage() {
                   className="input-shell min-h-24"
                   value={form.sampleQuestions}
                   onChange={(e) => setForm((prev) => ({ ...prev, sampleQuestions: e.target.value }))}
-                  placeholder="每行一个"
+                  placeholder="选填，每行一个"
                 />
+                <p className="mt-1 text-xs text-slate-500">可以留空，字数不限制</p>
               </div>
               <div className="md:col-span-2 rounded-2xl border border-slate-200 bg-slate-50/70 p-5">
                 <h3 className="text-base font-semibold text-slate-900">人设与语气</h3>

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { OFFICIAL_CONTACT } from "@/lib/official-contact";
 import { translateLifeAgentValidationError } from "@/lib/life-agent-validation-i18n";
+import { yuanInputToCents } from "@/lib/price";
 import {
   COUNTRY_OPTIONS_FOR_CREATE,
   getProvinceOptionsForCreate,
@@ -48,7 +49,7 @@ export default function CreateLifeAgentPage() {
     county: "",
     audience: "",
     welcomeMessage: "你好，我是基于本地真实经验的顾问，你可以问我关于我亲身经历的问题。",
-    pricePerQuestion: "990",
+    pricePerQuestion: "9.9",
     expertiseTags: "大学生成长, 职业选择, 个人规划",
     mbti: "",
     personaArchetype: "过来人型",
@@ -66,7 +67,7 @@ export default function CreateLifeAgentPage() {
   const [chatDone, setChatDone] = useState(false);
   const [chatLoading, setChatLoading] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [sampleQuestionsList, setSampleQuestionsList] = useState<string[]>(["", ""]);
+  const [sampleQuestionsList, setSampleQuestionsList] = useState<string[]>([]);
 
   useEffect(() => {
     fetch("/api/auth/me", { credentials: "include" })
@@ -185,6 +186,13 @@ export default function CreateLifeAgentPage() {
       return;
     }
 
+    const displayName = form.displayName.trim();
+    if (displayName.length < 1 || displayName.length > 10) {
+      setError("Agent 名称长度需为 1 到 10 个字");
+      setLoading(false);
+      return;
+    }
+
     const expertiseTagsArr = form.expertiseTags
       .split(/[,，\n]/)
       .map((item) => item.trim())
@@ -192,16 +200,6 @@ export default function CreateLifeAgentPage() {
     const sampleQuestionsArr = sampleQuestionsList
       .map((item) => item.trim())
       .filter(Boolean);
-    if (expertiseTagsArr.length < 1) {
-      setError("请填写至少 1 个擅长标签");
-      setLoading(false);
-      return;
-    }
-    if (sampleQuestionsArr.length < 2) {
-      setError("请填写至少 2 个示例问题");
-      setLoading(false);
-      return;
-    }
     const forbiddenPhrasesArr = form.forbiddenPhrases
       .split("\n")
       .map((item) => item.trim())
@@ -216,9 +214,16 @@ export default function CreateLifeAgentPage() {
       return;
     }
 
+    const pricePerQuestion = yuanInputToCents(form.pricePerQuestion);
+    if (pricePerQuestion === null) {
+      setError("请填写大于 0 的金额，单位是元，最多保留 2 位小数");
+      setLoading(false);
+      return;
+    }
+
     const payload = {
-      displayName: form.displayName,
-      headline: form.headline,
+      displayName,
+      headline: form.headline.trim(),
       shortBio: form.shortBio,
       longBio: form.longBio,
       education: form.education,
@@ -233,7 +238,7 @@ export default function CreateLifeAgentPage() {
       audience: form.audience,
       welcomeMessage: form.welcomeMessage,
       notSuitableFor: notSuitableFor.trim() || undefined,
-      pricePerQuestion: parseInt(form.pricePerQuestion, 10) || 990,
+      pricePerQuestion,
       mbti: form.mbti || undefined,
       personaArchetype: form.personaArchetype,
       toneStyle: form.toneStyle,
@@ -241,7 +246,7 @@ export default function CreateLifeAgentPage() {
       forbiddenPhrases: forbiddenPhrasesArr.slice(0, 8),
       exampleReplies: exampleRepliesArr.slice(0, 3),
       expertiseTags: expertiseTagsArr.slice(0, 8),
-      sampleQuestions: sampleQuestionsArr.slice(0, 6),
+      sampleQuestions: sampleQuestionsArr,
       knowledgeEntries: validEntries.map((e) => {
         const tags = Array.isArray(e.tags) ? e.tags.filter((t) => t && String(t).trim()) : [];
         return {
@@ -348,8 +353,10 @@ export default function CreateLifeAgentPage() {
                   value={form.displayName}
                   onChange={(e) => setForm((prev) => ({ ...prev, displayName: e.target.value }))}
                   placeholder="例如：阿青学长"
+                  maxLength={10}
                   required
                 />
+                <p className="mt-1 text-xs text-slate-500">必填，1 到 10 个字</p>
               </div>
               <div>
                 <label className="mb-2 block text-sm font-medium text-slate-700">一句话介绍</label>
@@ -357,18 +364,17 @@ export default function CreateLifeAgentPage() {
                   className="input-shell"
                   value={form.headline}
                   onChange={(e) => setForm((prev) => ({ ...prev, headline: e.target.value }))}
-                  placeholder="例如：陪大学生做职业选择的过来人"
-                  required
+                  placeholder="可以不填"
                 />
+                <p className="mt-1 text-xs text-slate-500">选填，可以留空</p>
               </div>
               <div className="md:col-span-2">
-                <label className="mb-2 block text-sm font-medium text-slate-700">简短介绍</label>
+                <label className="mb-2 block text-sm font-medium text-slate-700">简短介绍（选填）</label>
                 <textarea
                   className="input-shell min-h-24"
                   value={form.shortBio}
                   onChange={(e) => setForm((prev) => ({ ...prev, shortBio: e.target.value }))}
                   placeholder="用 2 到 3 句话介绍你是谁、经历了什么、适合帮助谁。"
-                  required
                 />
               </div>
               <div>
@@ -487,8 +493,7 @@ export default function CreateLifeAgentPage() {
                   className="input-shell min-h-32"
                   value={form.longBio}
                   onChange={(e) => setForm((prev) => ({ ...prev, longBio: e.target.value }))}
-                  placeholder="例如：二本毕业，先后在 X 公司做产品、Y 公司带团队，经历过考研失败、转行、裸辞，现在年薪 xx。擅长帮大学生做职业规划和转行决策。"
-                  required
+                  placeholder="例如：二本毕业，先后在 X 公司做产品、Y 公司带团队，经历过考研失败、转行、裸辞。可不填"
                 />
               </div>
               <div className="md:col-span-2">
@@ -497,8 +502,7 @@ export default function CreateLifeAgentPage() {
                   className="input-shell min-h-20"
                   value={form.audience}
                   onChange={(e) => setForm((prev) => ({ ...prev, audience: e.target.value }))}
-                  placeholder="例如：大学生、转行的人、刚进入社会的人。"
-                  required
+                  placeholder="例如：大学生、转行的人、刚进入社会的人。可不填"
                 />
               </div>
               <div className="md:col-span-2">
@@ -517,14 +521,13 @@ export default function CreateLifeAgentPage() {
                   className="input-shell"
                   value={form.expertiseTags}
                   onChange={(e) => setForm((prev) => ({ ...prev, expertiseTags: e.target.value }))}
-                  placeholder="用逗号分隔，例如：考研, 转行, 找工作"
-                  required
+                  placeholder="用逗号分隔，例如：考研, 转行, 找工作。可不填"
                 />
-                <p className="mt-1 text-xs text-slate-500">至少 1 个，最多 8 个</p>
+                <p className="mt-1 text-xs text-slate-500">选填，最多 8 个</p>
               </div>
               <div>
                 <label className="mb-2 block text-sm font-medium text-slate-700">示例问题</label>
-                <p className="mb-2 text-xs text-slate-500">用户可点击快速提问，至少 2 个，最多 6 个</p>
+                <p className="mb-2 text-xs text-slate-500">选填，用户可点击快速提问，不填也可以</p>
                 <div className="space-y-2">
                   {sampleQuestionsList.map((q, i) => (
                     <div key={i} className="flex gap-2">
@@ -537,9 +540,8 @@ export default function CreateLifeAgentPage() {
                           setSampleQuestionsList(next);
                         }}
                         placeholder={`示例问题 ${i + 1}，如：我适合考研还是就业？`}
-                        required={i < 2}
                       />
-                      {sampleQuestionsList.length > 2 && (
+                      {sampleQuestionsList.length > 0 && (
                         <button
                           type="button"
                           onClick={() => setSampleQuestionsList((prev) => prev.filter((_, j) => j !== i))}
@@ -551,15 +553,13 @@ export default function CreateLifeAgentPage() {
                       )}
                     </div>
                   ))}
-                  {sampleQuestionsList.length < 6 && (
-                    <button
-                      type="button"
-                      onClick={() => setSampleQuestionsList((prev) => [...prev, ""])}
-                      className="rounded-lg border border-dashed border-slate-300 px-4 py-2 text-sm text-slate-600 hover:border-sky-400 hover:bg-sky-50/50 hover:text-sky-700"
-                    >
-                      + 添加示例问题
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    onClick={() => setSampleQuestionsList((prev) => [...prev, ""])}
+                    className="rounded-lg border border-dashed border-slate-300 px-4 py-2 text-sm text-slate-600 hover:border-sky-400 hover:bg-sky-50/50 hover:text-sky-700"
+                  >
+                    + 添加示例问题
+                  </button>
                 </div>
               </div>
               <div className="md:col-span-2 rounded-2xl border border-slate-200 bg-slate-50/70 p-5">
@@ -809,18 +809,18 @@ export default function CreateLifeAgentPage() {
             <h2 className="text-xl font-semibold text-slate-900">设置收费</h2>
             <p className="mt-1 text-slate-600">用户每次提问会消耗 1 次额度，你按此单价获得收入。可以先设低一点，等有人用再慢慢调。</p>
             <div className="mt-5 max-w-sm">
-              <label className="mb-2 block text-sm font-medium text-slate-700">每次提问价格（分）</label>
+              <label className="mb-2 block text-sm font-medium text-slate-700">每次提问价格（元）</label>
               <input
                 type="number"
-                min={100}
-                step={100}
+                min="0.01"
+                step="0.01"
                 className="input-shell"
                 value={form.pricePerQuestion}
                 onChange={(e) => setForm((prev) => ({ ...prev, pricePerQuestion: e.target.value }))}
                 required
               />
               <p className="mt-2 text-sm text-slate-500">
-                单位是「分」：990 = 9.9 元/次，500 = 5 元/次。新手建议 500～990 试试水。
+                直接填写元即可，例如 3 表示 3 元，9.9 表示 9.9 元。不能免费，但不限制最高金额。
               </p>
             </div>
           </section>

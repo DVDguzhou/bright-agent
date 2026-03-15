@@ -47,6 +47,7 @@ func Setup(cfg *config.Config) *gin.Engine {
 			lifeAgents.GET("/feedback/all", middleware.RequireAuth(cfg), handler.LifeAgentsFeedbackAll(cfg))
 			lifeAgents.GET("/:id", middleware.Auth(cfg), handler.LifeAgentsGet(cfg))
 			lifeAgents.PATCH("/:id", middleware.RequireAuth(cfg), handler.LifeAgentsUpdate(cfg))
+			lifeAgents.DELETE("/:id", middleware.RequireAuth(cfg), handler.LifeAgentsDelete(cfg))
 			lifeAgents.GET("/:id/manage", middleware.RequireAuth(cfg), handler.LifeAgentsManage(cfg))
 			lifeAgents.POST("/:id/modify-via-chat", middleware.RequireAuth(cfg), handler.LifeAgentsModifyViaChat(cfg))
 			lifeAgents.POST("/:id/purchase", middleware.RequireAuth(cfg), handler.LifeAgentsPurchase(cfg))
