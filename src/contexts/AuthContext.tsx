@@ -2,7 +2,13 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 
-type User = { id: string; email: string; name?: string | null; roleFlags?: { is_buyer?: boolean; is_seller?: boolean } | null };
+type User = {
+  id: string;
+  email: string;
+  name?: string | null;
+  avatarUrl?: string | null;
+  roleFlags?: { is_buyer?: boolean; is_seller?: boolean } | null;
+};
 
 const AuthContext = createContext<{ user: User | null; loading: boolean; refetch: () => void }>({
   user: null,

@@ -16,6 +16,7 @@ type SessionUser struct {
 	ID        string
 	Email     string
 	Name      *string
+	AvatarURL *string
 	RoleFlags map[string]interface{}
 }
 
@@ -55,6 +56,7 @@ func getSessionUser(c *gin.Context, cfg *config.Config) *SessionUser {
 				ID:        u.ID,
 				Email:     u.Email,
 				Name:      u.Name,
+				AvatarURL: u.AvatarURL,
 				RoleFlags: rf,
 			}
 		}
@@ -87,6 +89,7 @@ func getSessionUser(c *gin.Context, cfg *config.Config) *SessionUser {
 		ID:        u.ID,
 		Email:     u.Email,
 		Name:      u.Name,
+		AvatarURL: u.AvatarURL,
 		RoleFlags: rf,
 	}
 }
