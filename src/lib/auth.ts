@@ -11,6 +11,7 @@ export type SessionUser = {
   id: string;
   email: string;
   name: string | null;
+  avatarUrl?: string | null;
   roleFlags: { is_buyer?: boolean; is_seller?: boolean } | null;
 };
 
@@ -40,7 +41,7 @@ export async function getSession(): Promise<SessionUser | null> {
 
   const user = await prisma.user.findUnique({
     where: { id: sessionId },
-    select: { id: true, email: true, name: true, roleFlags: true },
+    select: { id: true, email: true, name: true, avatarUrl: true, roleFlags: true },
   });
   if (!user) return null;
 
@@ -48,6 +49,7 @@ export async function getSession(): Promise<SessionUser | null> {
     id: user.id,
     email: user.email,
     name: user.name,
+    avatarUrl: user.avatarUrl,
     roleFlags: user.roleFlags as SessionUser["roleFlags"],
   };
 }
@@ -77,13 +79,14 @@ export async function getAuthFromRequest(req: Request): Promise<SessionUser | nu
     const hashed = hashKey(bearer);
     const key = await prisma.userApiKey.findFirst({
       where: { keyHash: hashed },
-      include: { user: { select: { id: true, email: true, name: true, roleFlags: true } } },
+      include: { user: { select: { id: true, email: true, name: true, avatarUrl: true, roleFlags: true } } },
     });
     if (!key) return null;
     return {
       id: key.user.id,
       email: key.user.email,
       name: key.user.name,
+      avatarUrl: key.user.avatarUrl,
       roleFlags: key.user.roleFlags as SessionUser["roleFlags"],
     };
   }

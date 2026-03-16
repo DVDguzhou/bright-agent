@@ -1,17 +1,11 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { RatingStars } from "@/components/RatingStars";
 import { OFFICIAL_CONTACT } from "@/lib/official-contact";
-
-type KnowledgeDraft = {
-  category: string;
-  title: string;
-  content: string;
-  tags: string;
-};
+import { centsToYuanInput, yuanInputToCents } from "@/lib/price";
 
 type ManageData = {
     profile: {
@@ -99,10 +93,18 @@ const PERSONA_OPTIONS = ["学长学姐型", "朋友陪聊型", "前辈导师型"
 const TONE_OPTIONS = ["直接一点", "温柔一点", "理性克制", "接地气一点", "像朋友聊天", "稳重耐心"];
 const RESPONSE_STYLE_OPTIONS = ["先给判断再解释", "先理解处境再建议", "多举自己的例子", "短一点别太满", "先拆选项再给建议", "像微信聊天少分点"];
 const REGION_OPTIONS = ["温州", "杭州", "宁波", "台州", "绍兴", "上海", "北京", "深圳", "广州", "东京", "大阪", "新加坡"];
+const TAB_ITEMS = [
+  { id: "feedback", label: "消息", hint: "看用户反馈" },
+  { id: "modify", label: "对话修改", hint: "像聊天一样改" },
+  { id: "edit", label: "编辑资料", hint: "手动调整资料" },
+  { id: "sales", label: "销量记录", hint: "看购买情况" },
+  { id: "sessions", label: "聊天记录", hint: "看会话列表" },
+] as const;
 
 export default function LifeAgentManageDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const modifyChatEndRef = useRef<HTMLDivElement>(null);
   const id = params.id as string;
   const [data, setData] = useState<ManageData | null>(null);
   const [activeTab, setActiveTab] = useState<"edit" | "modify" | "sales" | "sessions" | "feedback">("feedback");
@@ -123,7 +125,7 @@ export default function LifeAgentManageDetailPage() {
     audience: "",
     welcomeMessage: "",
     notSuitableFor: "",
-    pricePerQuestion: "990",
+    pricePerQuestion: "9.9",
     expertiseTags: "",
     sampleQuestions: "",
     mbti: "",
@@ -136,12 +138,12 @@ export default function LifeAgentManageDetailPage() {
     exampleReply3: "",
     published: true,
   });
-  const [entries, setEntries] = useState<KnowledgeDraft[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [modifyChatHistory, setModifyChatHistory] = useState<{ role: "user" | "assistant"; content: string }[]>([]);
   const [modifyInput, setModifyInput] = useState("");
   const [modifyLoading, setModifyLoading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     fetch(`/api/life-agents/${id}/manage`, { credentials: "include" })
@@ -167,7 +169,7 @@ export default function LifeAgentManageDetailPage() {
             audience: p.audience,
             welcomeMessage: p.welcomeMessage,
             notSuitableFor: p.notSuitableFor ?? "",
-            pricePerQuestion: String(p.pricePerQuestion),
+            pricePerQuestion: centsToYuanInput(p.pricePerQuestion),
             expertiseTags: Array.isArray(p.expertiseTags) ? p.expertiseTags.join(", ") : "",
             sampleQuestions: Array.isArray(p.sampleQuestions) ? p.sampleQuestions.join("\n") : "",
             mbti: p.mbti ?? "",
@@ -180,18 +182,33 @@ export default function LifeAgentManageDetailPage() {
             exampleReply3: Array.isArray(p.exampleReplies) ? p.exampleReplies[2] ?? "" : "",
             published: p.published,
           });
-          setEntries(
-            (p.knowledgeEntries || []).map((e: { category: string; title: string; content: string; tags: string[] }) => ({
-              category: e.category,
-              title: e.title,
-              content: e.content,
-              tags: Array.isArray(e.tags) ? e.tags.join(", ") : "",
-            }))
-          );
         }
       })
       .catch(() => setData(null));
   }, [id]);
+
+  useEffect(() => {
+    modifyChatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [modifyChatHistory]);
+
+  const deleteAgent = async () => {
+    if (!confirm("确定删除这个人生 Agent 吗？删除后无法恢复，包括知识、聊天记录等。")) return;
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/life-agents/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error || "删除失败");
+      }
+      router.push("/dashboard");
+      router.refresh();
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const selectedRegions = form.regions
     .split(/[,，\n]/)
@@ -207,29 +224,21 @@ export default function LifeAgentManageDetailPage() {
     setForm((prev) => ({ ...prev, regions: next.join(", ") }));
   };
 
-
-  const updateEntry = (index: number, key: keyof KnowledgeDraft, value: string) => {
-    setEntries((prev) => prev.map((entry, idx) => (idx === index ? { ...entry, [key]: value } : entry)));
-  };
-
-  const addEntry = () => {
-    setEntries((prev) => [...prev, { category: "经验主题", title: "", content: "", tags: "经验, 建议" }]);
-  };
-
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
 
-    if (entries.length < 2) {
-      setError("至少保留 2 条经验知识");
+    const exampleReplies = [form.exampleReply1, form.exampleReply2, form.exampleReply3].map((s) => s.trim()).filter(Boolean);
+    if (exampleReplies.length < 2) {
+      setError("请至少保留 2 条示范回答，聊天才会更像你本人");
       setLoading(false);
       return;
     }
 
-    const exampleReplies = [form.exampleReply1, form.exampleReply2, form.exampleReply3].map((s) => s.trim()).filter(Boolean);
-    if (exampleReplies.length < 2) {
-      setError("请至少保留 2 条示范回答，聊天才会更像你本人");
+    const displayName = form.displayName.trim();
+    if (displayName.length < 1 || displayName.length > 10) {
+      setError("Agent 名称长度需为 1 到 10 个字");
       setLoading(false);
       return;
     }
@@ -241,8 +250,17 @@ export default function LifeAgentManageDetailPage() {
       return;
     }
 
+    const pricePerQuestion = yuanInputToCents(form.pricePerQuestion);
+    if (pricePerQuestion === null) {
+      setError("请填写大于 0 的金额，单位是元，最多保留 2 位小数");
+      setLoading(false);
+      return;
+    }
+
     const payload = {
       ...form,
+      displayName,
+      headline: form.headline.trim(),
       education: form.education || undefined,
       school: form.school || undefined,
       job: form.job || undefined,
@@ -252,18 +270,12 @@ export default function LifeAgentManageDetailPage() {
       province: form.province || undefined,
       city: form.city || undefined,
       county: form.county || undefined,
-      pricePerQuestion: parseInt(form.pricePerQuestion, 10),
+      pricePerQuestion,
       mbti: form.mbti || undefined,
       expertiseTags: form.expertiseTags.split(/[,，\n]/).map((s) => s.trim()).filter(Boolean),
       sampleQuestions: form.sampleQuestions.split("\n").map((s) => s.trim()).filter(Boolean),
       forbiddenPhrases: form.forbiddenPhrases.split("\n").map((s) => s.trim()).filter(Boolean),
       exampleReplies,
-      knowledgeEntries: entries.map((entry) => ({
-        category: entry.category,
-        title: entry.title,
-        content: entry.content,
-        tags: entry.tags.split(/[,，]/).map((s) => s.trim()).filter(Boolean),
-      })),
     };
 
     const res = await fetch(`/api/life-agents/${id}`, {
@@ -297,16 +309,22 @@ export default function LifeAgentManageDetailPage() {
         <Link href="/dashboard/life-agents" className="text-sm text-slate-500 hover:text-sky-700">
           ← 返回我的人生 Agent
         </Link>
-        <div className="mt-3 flex items-center justify-between gap-4">
-          <div>
-            <h1 className="section-title">{data.profile.displayName}</h1>
+        <div className="mt-3 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div className="min-w-0 lg:flex-1">
+            <h1 className="section-title break-words">{data.profile.displayName}</h1>
             <p className="section-subtitle mt-1">{data.profile.headline}</p>
           </div>
-          <div className="flex gap-3">
-            <Link href={`/life-agents/${id}`} className="btn-secondary">
+          <div className="grid w-full grid-cols-2 gap-3 sm:w-auto sm:grid-cols-2 lg:flex lg:flex-none lg:flex-wrap lg:justify-end lg:pl-6">
+            <Link
+              href={`/life-agents/${id}`}
+              className="btn-secondary min-h-[48px] px-4 text-center whitespace-nowrap touch-manipulation"
+            >
               查看展示页
             </Link>
-            <Link href={`/life-agents/${id}/chat`} className="btn-primary">
+            <Link
+              href={`/life-agents/${id}/chat`}
+              className="btn-primary min-h-[48px] px-4 text-center whitespace-nowrap touch-manipulation"
+            >
               进入聊天
             </Link>
           </div>
@@ -350,26 +368,35 @@ export default function LifeAgentManageDetailPage() {
         </div>
       </div>
 
-      <div className="flex gap-2 border-b border-slate-200">
-        {(["feedback", "modify", "edit", "sales", "sessions"] as const).map((tab) => (
+      <div className="rounded-[28px] border border-white/80 bg-white/75 p-2 shadow-[0_18px_50px_-36px_rgba(15,23,42,0.32)] backdrop-blur-xl">
+        <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-5">
+        {TAB_ITEMS.map((tab) => (
           <button
-            key={tab}
+            key={tab.id}
             type="button"
-            onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 text-sm font-medium transition ${
-              activeTab === tab
-                ? "border-b-2 border-sky-500 text-sky-700"
-                : "text-slate-500 hover:text-slate-800"
+            onClick={() => setActiveTab(tab.id)}
+            className={`group min-h-[64px] rounded-2xl px-4 py-3 text-left transition-all ${
+              activeTab === tab.id
+                ? "bg-gradient-to-br from-sky-500 to-cyan-400 text-white shadow-[0_18px_40px_-24px_rgba(14,165,233,0.8)]"
+                : "bg-white/80 text-slate-600 ring-1 ring-slate-200/80 hover:bg-sky-50/80 hover:text-sky-700 hover:ring-sky-200"
             }`}
           >
-            {tab === "edit" ? "编辑资料" : tab === "modify" ? "对话修改" : tab === "feedback" ? "消息" : tab === "sales" ? "销量记录" : "聊天记录"}
+            <span className="block text-sm font-semibold">{tab.label}</span>
+            <span
+              className={`mt-1 block text-xs ${
+                activeTab === tab.id ? "text-white/80" : "text-slate-400 group-hover:text-sky-500"
+              }`}
+            >
+              {tab.hint}
+            </span>
           </button>
         ))}
+        </div>
       </div>
 
       {activeTab === "modify" && (
         <div className="space-y-6">
-          <section className="rounded-2xl border border-slate-200 bg-slate-50/70 p-5">
+          <section className="rounded-[28px] border border-white/80 bg-white/75 p-5 shadow-[0_18px_50px_-36px_rgba(15,23,42,0.3)] backdrop-blur-xl">
             <h2 className="text-lg font-semibold text-slate-900">当前 Agent 状态</h2>
             <p className="mt-1 text-sm text-slate-600">修改后会实时更新，方便你确认当前配置。</p>
             <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -404,34 +431,68 @@ export default function LifeAgentManageDetailPage() {
               </div>
             </div>
           </section>
-          <section className="glass-card p-6">
-            <h2 className="text-lg font-semibold text-slate-900">通过对话修改</h2>
-            <p className="mt-1 text-sm text-slate-600">
-              用自然语言说明你想怎么改，例如：「把擅长标签改成考研、转行」「添加一条关于面试技巧的经验：我当时面了5家公司…」「欢迎语改成更亲切一点」
-            </p>
-            <div className="mt-5 max-h-80 overflow-y-auto space-y-3 rounded-xl border border-slate-200 bg-white p-4">
-              {modifyChatHistory.length === 0 && (
-                <p className="text-sm text-slate-500">说一句你想怎么修改，AI 会帮你更新 Agent</p>
-              )}
-              {modifyChatHistory.map((m, i) => (
-                <div
-                  key={i}
-                  className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
-                >
-                  <div
-                    className={`max-w-[85%] rounded-2xl px-4 py-2 text-sm ${
-                      m.role === "user"
-                        ? "bg-sky-600 text-white"
-                        : "bg-slate-100 text-slate-800"
-                    }`}
-                  >
-                    {m.content}
-                  </div>
-                </div>
-              ))}
+          <section className="relative overflow-hidden rounded-[32px] border border-white/80 bg-white/80 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.28)] backdrop-blur-3xl">
+            <div className="pointer-events-none absolute inset-0 overflow-hidden">
+              <div className="absolute left-[8%] top-[24%] h-40 w-40 rounded-full bg-sky-200/35 blur-3xl" />
+              <div className="absolute bottom-[18%] right-[10%] h-44 w-44 rounded-full bg-orange-200/25 blur-3xl" />
+              <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.93)_0%,rgba(255,255,255,0.84)_100%)]" />
             </div>
+            <div className="relative flex min-h-[70vh] flex-col px-4 pb-4 pt-4 sm:px-6 sm:pb-6 sm:pt-5">
+              <div className="flex items-center justify-between gap-3 px-1">
+                <div className="w-10 shrink-0" />
+                <div className="text-center">
+                  <p className="text-base font-semibold tracking-[0.08em] text-slate-800">对话修改</p>
+                  <p className="mt-1 text-xs text-slate-500">像聊天一样说，你想改什么我帮你处理</p>
+                </div>
+                <span className="inline-flex h-10 min-w-10 items-center justify-center rounded-full bg-white/80 px-3 text-xs font-medium text-slate-500 shadow-sm ring-1 ring-slate-200/70 backdrop-blur">
+                  AI
+                </span>
+              </div>
+
+              <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+                <span className="rounded-full bg-sky-100/90 px-3 py-1 text-xs font-medium text-sky-700 backdrop-blur">
+                  已处理 {modifyChatHistory.filter((item) => item.role === "user").length} 次修改
+                </span>
+                <span className="rounded-full bg-white/85 px-3 py-1 text-xs text-slate-500 ring-1 ring-slate-200/80 backdrop-blur">
+                  支持改文案、标签、欢迎语、风格和知识内容
+                </span>
+              </div>
+
+              <div className="mt-5 rounded-3xl border border-white/80 bg-white/55 p-4 text-sm text-slate-600 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] backdrop-blur-xl sm:p-5">
+                <p className="font-medium text-slate-800">直接说你的修改需求就行。</p>
+                <p className="mt-2 leading-7">
+              用自然语言说明你想怎么改，例如：「把擅长标签改成考研、转行」「添加一条关于面试技巧的经验：我当时面了5家公司…」「欢迎语改成更亲切一点」
+                </p>
+              </div>
+
+              <div className="mt-5 flex-1 overflow-y-auto px-1 pb-4 pt-2">
+                <div className="space-y-4">
+                  {modifyChatHistory.length === 0 && (
+                    <div className="flex justify-start">
+                      <div className="max-w-[88%] rounded-[24px] border border-white/90 bg-white/88 px-4 py-3 text-sm leading-7 text-slate-700 shadow-sm backdrop-blur-xl sm:px-5">
+                        说一句你想怎么修改，AI 会帮你更新 Agent。
+                      </div>
+                    </div>
+                  )}
+                  {modifyChatHistory.map((m, i) => (
+                    <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+                      <div
+                        className={`max-w-[88%] rounded-[24px] px-4 py-3 text-sm leading-7 shadow-sm sm:px-5 ${
+                          m.role === "user"
+                            ? "bg-gradient-to-br from-sky-500 to-cyan-400 text-white shadow-sky-200/70"
+                            : "border border-white/90 bg-white/88 text-slate-700 backdrop-blur-xl"
+                        }`}
+                      >
+                        <p className="whitespace-pre-wrap">{m.content}</p>
+                      </div>
+                    </div>
+                  ))}
+                  <div ref={modifyChatEndRef} />
+                </div>
+              </div>
+
             <form
-              className="mt-4 flex gap-2"
+              className="mx-1 mt-2 rounded-[28px] border border-white/85 bg-white/90 p-3 shadow-[0_18px_45px_-28px_rgba(15,23,42,0.28)] backdrop-blur-2xl"
               onSubmit={async (e) => {
                 e.preventDefault();
                 const msg = modifyInput.trim();
@@ -475,14 +536,6 @@ export default function LifeAgentManageDetailPage() {
                       exampleReply2: Array.isArray(p.exampleReplies) ? (p.exampleReplies[1] ?? "") : f.exampleReply2,
                       exampleReply3: Array.isArray(p.exampleReplies) ? (p.exampleReplies[2] ?? "") : f.exampleReply3,
                     }));
-                    setEntries(
-                      (p.knowledgeEntries ?? []).map((e: { category: string; title: string; content: string; tags: string[] }) => ({
-                        category: e.category,
-                        title: e.title,
-                        content: e.content,
-                        tags: Array.isArray(e.tags) ? e.tags.join(", ") : "",
-                      }))
-                    );
                   }
                 } catch {
                   setModifyChatHistory((prev) => [...prev, { role: "assistant", content: "请求失败，请检查网络后重试" }]);
@@ -491,17 +544,23 @@ export default function LifeAgentManageDetailPage() {
                 }
               }}
             >
-              <input
-                className="input-shell flex-1"
-                value={modifyInput}
-                onChange={(e) => setModifyInput(e.target.value)}
-                placeholder="例如：把擅长标签改成考研、转行、找工作"
-                disabled={modifyLoading}
-              />
-              <button type="submit" className="btn-primary" disabled={modifyLoading}>
-                {modifyLoading ? "处理中…" : "发送"}
-              </button>
+              <div className="flex flex-col gap-3">
+                <textarea
+                  className="min-h-[88px] w-full resize-none rounded-2xl border-0 bg-transparent px-2 py-2 text-sm text-slate-800 outline-none placeholder:text-slate-400"
+                  value={modifyInput}
+                  onChange={(e) => setModifyInput(e.target.value)}
+                  placeholder={modifyLoading ? "AI 正在处理这次修改…" : "例如：把擅长标签改成考研、转行、找工作"}
+                  disabled={modifyLoading}
+                />
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-xs text-slate-400">用自然语言说清楚你想改什么就行。</p>
+                  <button type="submit" className="btn-primary min-w-[96px] px-5 py-2.5 text-sm disabled:opacity-60" disabled={modifyLoading}>
+                    {modifyLoading ? "处理中…" : "发送"}
+                  </button>
+                </div>
+              </div>
             </form>
+            </div>
           </section>
         </div>
       )}
@@ -517,8 +576,10 @@ export default function LifeAgentManageDetailPage() {
                   className="input-shell"
                   value={form.displayName}
                   onChange={(e) => setForm((prev) => ({ ...prev, displayName: e.target.value }))}
+                  maxLength={10}
                   required
                 />
+                <p className="mt-1 text-xs text-slate-500">必填，1 到 10 个字</p>
               </div>
               <div>
                 <label className="mb-2 block text-sm font-medium text-slate-700">一句话介绍</label>
@@ -526,16 +587,17 @@ export default function LifeAgentManageDetailPage() {
                   className="input-shell"
                   value={form.headline}
                   onChange={(e) => setForm((prev) => ({ ...prev, headline: e.target.value }))}
-                  required
+                  placeholder="可以不填"
                 />
+                <p className="mt-1 text-xs text-slate-500">选填，可以留空</p>
               </div>
               <div className="md:col-span-2">
-                <label className="mb-2 block text-sm font-medium text-slate-700">简短介绍</label>
+                <label className="mb-2 block text-sm font-medium text-slate-700">简短介绍（选填）</label>
                 <textarea
                   className="input-shell min-h-24"
                   value={form.shortBio}
                   onChange={(e) => setForm((prev) => ({ ...prev, shortBio: e.target.value }))}
-                  required
+                  placeholder="可以不填"
                 />
               </div>
               <div>
@@ -660,12 +722,12 @@ export default function LifeAgentManageDetailPage() {
                 )}
               </div>
               <div className="md:col-span-2">
-                <label className="mb-2 block text-sm font-medium text-slate-700">详细背景</label>
+                <label className="mb-2 block text-sm font-medium text-slate-700">详细背景（选填）</label>
                 <textarea
                   className="input-shell min-h-36"
                   value={form.longBio}
                   onChange={(e) => setForm((prev) => ({ ...prev, longBio: e.target.value }))}
-                  required
+                  placeholder="可以不填"
                 />
               </div>
             </div>
@@ -675,12 +737,12 @@ export default function LifeAgentManageDetailPage() {
             <h2 className="text-xl font-semibold text-slate-900">聊天与收费设置</h2>
             <div className="mt-5 grid gap-5 md:grid-cols-2">
               <div>
-                <label className="mb-2 block text-sm font-medium text-slate-700">适合帮助的人群</label>
+                <label className="mb-2 block text-sm font-medium text-slate-700">适合帮助的人群（选填）</label>
                 <textarea
                   className="input-shell min-h-24"
                   value={form.audience}
                   onChange={(e) => setForm((prev) => ({ ...prev, audience: e.target.value }))}
-                  required
+                  placeholder="可以不填"
                 />
               </div>
               <div>
@@ -693,14 +755,18 @@ export default function LifeAgentManageDetailPage() {
                 />
               </div>
               <div>
-                <label className="mb-2 block text-sm font-medium text-slate-700">每次提问价格（分）</label>
+                <label className="mb-2 block text-sm font-medium text-slate-700">每次提问价格（元）</label>
                 <input
                   type="number"
-                  min={100}
+                  min="0.01"
+                  step="0.01"
                   className="input-shell"
                   value={form.pricePerQuestion}
                   onChange={(e) => setForm((prev) => ({ ...prev, pricePerQuestion: e.target.value }))}
                 />
+                <p className="mt-2 text-sm text-slate-500">
+                  直接填写元即可，例如 3 表示 3 元，9.9 表示 9.9 元。不能免费，但不限制最高金额。
+                </p>
               </div>
               <div className="flex items-center gap-3">
                 <label className="flex cursor-pointer items-center gap-2">
@@ -737,8 +803,9 @@ export default function LifeAgentManageDetailPage() {
                   className="input-shell min-h-24"
                   value={form.sampleQuestions}
                   onChange={(e) => setForm((prev) => ({ ...prev, sampleQuestions: e.target.value }))}
-                  placeholder="每行一个"
+                  placeholder="选填，每行一个"
                 />
+                <p className="mt-1 text-xs text-slate-500">可以留空，字数不限制</p>
               </div>
               <div className="md:col-span-2 rounded-2xl border border-slate-200 bg-slate-50/70 p-5">
                 <h3 className="text-base font-semibold text-slate-900">人设与语气</h3>
@@ -836,59 +903,6 @@ export default function LifeAgentManageDetailPage() {
                   </div>
                 </div>
               </div>
-            </div>
-          </section>
-
-          <section className="glass-card p-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-slate-900">经验知识</h2>
-              <button type="button" onClick={addEntry} className="btn-secondary">
-                新增一条
-              </button>
-            </div>
-            <div className="mt-5 space-y-4">
-              {entries.map((entry, index) => (
-                <div key={index} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div>
-                      <label className="mb-1 block text-xs font-medium text-slate-600">分类</label>
-                      <input
-                        className="input-shell"
-                        value={entry.category}
-                        onChange={(e) => updateEntry(index, "category", e.target.value)}
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="mb-1 block text-xs font-medium text-slate-600">标题</label>
-                      <input
-                        className="input-shell"
-                        value={entry.title}
-                        onChange={(e) => updateEntry(index, "title", e.target.value)}
-                        required
-                      />
-                    </div>
-                    <div className="md:col-span-2">
-                      <label className="mb-1 block text-xs font-medium text-slate-600">内容</label>
-                      <textarea
-                        className="input-shell min-h-28"
-                        value={entry.content}
-                        onChange={(e) => updateEntry(index, "content", e.target.value)}
-                        required
-                      />
-                    </div>
-                    <div className="md:col-span-2">
-                      <label className="mb-1 block text-xs font-medium text-slate-600">标签</label>
-                      <input
-                        className="input-shell"
-                        value={entry.tags}
-                        onChange={(e) => updateEntry(index, "tags", e.target.value)}
-                        required
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
             </div>
           </section>
 
@@ -1082,6 +1096,24 @@ export default function LifeAgentManageDetailPage() {
           </div>
         </div>
       )}
+
+      <section className="rounded-3xl border border-red-200 bg-red-50/70 p-6">
+        <h2 className="text-lg font-semibold text-red-700">危险操作</h2>
+        <p className="mt-2 text-sm leading-6 text-red-600">
+          删除人生 Agent 后，相关知识、聊天记录、反馈和销量记录都将无法恢复。请确认你不再需要它时再执行。
+        </p>
+        <div className="mt-5">
+          <button
+            type="button"
+            onClick={deleteAgent}
+            disabled={deleting}
+            className="min-h-[48px] rounded-xl border border-red-300 bg-white px-5 py-3 text-sm font-medium text-red-600 transition-colors hover:bg-red-100 active:bg-red-200 touch-manipulation disabled:cursor-not-allowed disabled:opacity-50"
+            aria-label="删除此人生 Agent"
+          >
+            {deleting ? "删除中..." : "删除人生 Agent"}
+          </button>
+        </div>
+      </section>
     </div>
   );
 }

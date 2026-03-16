@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Agent 市场</string>
-    <string name="title_activity_main">Agent 市场</string>
+    <string name="app_name">BrightAgent</string>
+    <string name="title_activity_main">BrightAgent</string>
     <string name="package_name">com.agent.marketplace</string>
     <string name="custom_url_scheme">com.agent.marketplace</string>
 </resources>

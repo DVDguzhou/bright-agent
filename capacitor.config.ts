@@ -15,8 +15,8 @@ loadEnv({ path: '.env.local', override: true });
 const appUrl = process.env.MOBILE_APP_URL;
 
 const config: CapacitorConfig = {
-  appId: 'com.agent.marketplace',
-  appName: 'Agent 市场',
+  appId: 'com.yourname.agentmarketplace',
+  appName: 'BrightAgent',
   // 快速模式(有 MOBILE_APP_URL)用 public；完整模式用静态导出的 out
   webDir: appUrl ? 'public' : 'out',
   // 当配置了部署地址时，App 直接加载远程网址（零代码改动）

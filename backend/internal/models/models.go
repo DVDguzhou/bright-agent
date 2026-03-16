@@ -13,6 +13,7 @@ type User struct {
 	Email     string    `gorm:"uniqueIndex;size:255;not null"`
 	Password  string    `gorm:"size:255;not null"`
 	Name      *string   `gorm:"size:255"`
+	AvatarURL *string   `gorm:"column:avatar_url;type:text"`
 	RoleFlags JSONMap   `gorm:"column:role_flags;type:json"`
 	CreatedAt time.Time `gorm:"column:created_at"`
 

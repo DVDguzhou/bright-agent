@@ -42,6 +42,7 @@ model User {
   email     String   @unique
   password  String
   name      String?
+  avatarUrl String?  @map("avatar_url") @db.Text
   roleFlags Json?    @map("role_flags") // {is_buyer, is_seller}
   createdAt DateTime @default(now()) @map("created_at")
 

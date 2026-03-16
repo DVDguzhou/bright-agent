@@ -235,11 +235,11 @@ func LifeAgentsCreate(cfg *config.Config) gin.HandlerFunc {
 			return
 		}
 		var body struct {
-			DisplayName        string   `json:"displayName" binding:"required,min=2"`
-			Headline           string   `json:"headline" binding:"required,min=4"`
-			ShortBio           string   `json:"shortBio" binding:"required"`
-			LongBio            string   `json:"longBio" binding:"required"`
-			Audience           string   `json:"audience" binding:"required"`
+			DisplayName        string   `json:"displayName" binding:"required,min=1,max=10"`
+			Headline           string   `json:"headline"`
+			ShortBio           string   `json:"shortBio"`
+			LongBio            string   `json:"longBio"`
+			Audience           string   `json:"audience"`
 			WelcomeMessage     string   `json:"welcomeMessage" binding:"required,min=1"`
 			PricePerQuestion   int      `json:"pricePerQuestion"`
 			Education          string   `json:"education"`
@@ -257,8 +257,8 @@ func LifeAgentsCreate(cfg *config.Config) gin.HandlerFunc {
 			ResponseStyle      string   `json:"responseStyle"`
 			ForbiddenPhrases   []string `json:"forbiddenPhrases" binding:"max=8,dive,min=1"`
 			ExampleReplies     []string `json:"exampleReplies" binding:"omitempty,max=3,dive,min=10"`
-			ExpertiseTags      []string `json:"expertiseTags" binding:"required,min=1,max=8,dive,min=1"`
-			SampleQuestions    []string `json:"sampleQuestions" binding:"required,min=2,max=6,dive,min=3"`
+			ExpertiseTags      []string `json:"expertiseTags" binding:"omitempty,max=8,dive,min=1"`
+			SampleQuestions    []string `json:"sampleQuestions"`
 			NotSuitableFor     string   `json:"notSuitableFor"`
 			VerificationStatus string   `json:"verificationStatus"` // none, pending, verified
 			KnowledgeEntries   []struct {
@@ -270,6 +270,12 @@ func LifeAgentsCreate(cfg *config.Config) gin.HandlerFunc {
 		}
 		if err := c.ShouldBindJSON(&body); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "VALIDATION_ERROR", "detail": err.Error()})
+			return
+		}
+		body.DisplayName = strings.TrimSpace(body.DisplayName)
+		body.Headline = strings.TrimSpace(body.Headline)
+		if len([]rune(body.DisplayName)) < 1 || len([]rune(body.DisplayName)) > 10 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "VALIDATION_ERROR", "detail": "displayName length must be between 1 and 10"})
 			return
 		}
 		if body.PricePerQuestion <= 0 {
@@ -347,7 +353,7 @@ func LifeAgentsCreateNextQuestion(cfg *config.Config) gin.HandlerFunc {
 			return
 		}
 		resp := gin.H{
-			"done": out.Done,
+			"done":           out.Done,
 			"nextQuestion":   out.NextQuestion,
 			"summaryMessage": out.SummaryMessage,
 			"extractedTone":  out.ExtractedTone,
@@ -355,6 +361,30 @@ func LifeAgentsCreateNextQuestion(cfg *config.Config) gin.HandlerFunc {
 			"knowledgeAdd":   out.KnowledgeAdd,
 		}
 		c.JSON(http.StatusOK, resp)
+	}
+}
+
+func LifeAgentsCreateProfileSummary(cfg *config.Config) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		_ = middleware.MustGetUser(c)
+		var body lifeagent.ProfileSummaryInput
+		if err := c.ShouldBindJSON(&body); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "VALIDATION_ERROR", "detail": err.Error()})
+			return
+		}
+		out, err := lifeagent.GenerateProfileCreateSummary(
+			cfg.OpenAIApiKey, cfg.OpenAIModel, cfg.OpenAIBaseURL,
+			&body,
+		)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "LLM_ERROR", "detail": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"summaryMessage":   out.SummaryMessage,
+			"profile":          out.Profile,
+			"knowledgeEntries": out.KnowledgeEntries,
+		})
 	}
 }
 
@@ -395,6 +425,39 @@ func LifeAgentsMine(cfg *config.Config) gin.HandlerFunc {
 			})
 		}
 		c.JSON(http.StatusOK, resp)
+	}
+}
+
+// LifeAgentsDelete 删除当前用户创建的人生 Agent（级联删除关联数据）
+func LifeAgentsDelete(cfg *config.Config) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		user := middleware.MustGetUser(c)
+		if user == nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "UNAUTHORIZED"})
+			return
+		}
+		id := c.Param("id")
+		var p models.LifeAgentProfile
+		if err := db.DB.Where("id = ? AND user_id = ?", id, user.ID).First(&p).Error; err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "NOT_FOUND"})
+			return
+		}
+		// 按外键依赖顺序删除
+		db.DB.Where("profile_id = ?", id).Delete(&models.LifeAgentFeedback{})
+		var sessionIDs []string
+		db.DB.Model(&models.LifeAgentChatSession{}).Where("profile_id = ?", id).Pluck("id", &sessionIDs)
+		if len(sessionIDs) > 0 {
+			db.DB.Where("session_id IN ?", sessionIDs).Delete(&models.LifeAgentChatMessage{})
+		}
+		db.DB.Where("profile_id = ?", id).Delete(&models.LifeAgentChatSession{})
+		db.DB.Where("profile_id = ?", id).Delete(&models.LifeAgentKnowledgeEntry{})
+		db.DB.Where("profile_id = ?", id).Delete(&models.LifeAgentQuestionPack{})
+		db.DB.Where("profile_id = ?", id).Delete(&models.LifeAgentRating{})
+		if err := db.DB.Delete(&p).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "INTERNAL_ERROR"})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"ok": true})
 	}
 }
 
@@ -645,10 +708,15 @@ func LifeAgentsUpdate(cfg *config.Config) gin.HandlerFunc {
 		}
 		upd := db.DB.Model(&p)
 		if body.DisplayName != nil {
-			upd.Update("display_name", *body.DisplayName)
+			name := strings.TrimSpace(*body.DisplayName)
+			if len([]rune(name)) < 1 || len([]rune(name)) > 10 {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "VALIDATION_ERROR"})
+				return
+			}
+			upd.Update("display_name", name)
 		}
 		if body.Headline != nil {
-			upd.Update("headline", *body.Headline)
+			upd.Update("headline", strings.TrimSpace(*body.Headline))
 		}
 		if body.ShortBio != nil {
 			upd.Update("short_bio", *body.ShortBio)
@@ -713,10 +781,10 @@ func LifeAgentsUpdate(cfg *config.Config) gin.HandlerFunc {
 		if body.NotSuitableFor != nil {
 			upd.Update("not_suitable_for", *body.NotSuitableFor)
 		}
-		if len(body.ExpertiseTags) > 0 {
+		if body.ExpertiseTags != nil {
 			upd.Update("expertise_tags", models.JSONArray(body.ExpertiseTags))
 		}
-		if len(body.SampleQuestions) > 0 {
+		if body.SampleQuestions != nil {
 			upd.Update("sample_questions", models.JSONArray(body.SampleQuestions))
 		}
 		if body.ForbiddenPhrases != nil {

@@ -27,12 +27,12 @@ type CreateQuestionInput struct {
 
 // CreateQuestionOutput 生成结果：下一问、或完成信号，以及暗中提取的语气风格
 type CreateQuestionOutput struct {
-	Done             bool     `json:"done"`                       // 是否已收集足够信息
-	NextQuestion     string   `json:"nextQuestion,omitempty"`      // 下一个问题（done=false 时）
-	SummaryMessage   string   `json:"summaryMessage,omitempty"`    // 完成时的收尾话（done=true 时）
-	KnowledgeAdd     []KEntry `json:"knowledgeAdd,omitempty"`       // 本轮回答可提炼的知识条目（AI 可选返回）
-	ExtractedTone    *ToneHints `json:"extractedTone,omitempty"`  // 从用户回复中学习的语气风格
-	SuggestedTags    []string `json:"suggestedTags,omitempty"`    // 建议的擅长标签
+	Done           bool       `json:"done"`                     // 是否已收集足够信息
+	NextQuestion   string     `json:"nextQuestion,omitempty"`   // 下一个问题（done=false 时）
+	SummaryMessage string     `json:"summaryMessage,omitempty"` // 完成时的收尾话（done=true 时）
+	KnowledgeAdd   []KEntry   `json:"knowledgeAdd,omitempty"`   // 本轮回答可提炼的知识条目（AI 可选返回）
+	ExtractedTone  *ToneHints `json:"extractedTone,omitempty"`  // 从用户回复中学习的语气风格
+	SuggestedTags  []string   `json:"suggestedTags,omitempty"`  // 建议的擅长标签
 }
 
 type KEntry struct {
@@ -83,7 +83,7 @@ func GenerateNextCreateQuestion(apiKey, model, baseURL string, input *CreateQues
 当 done=true 时：
 {
   "done": true,
-  "summaryMessage": "很好！你的经验已经记录下来，AI 会基于这些内容来回答来访者。点击下方「下一步」设置收费即可～",
+  "summaryMessage": "很好！你的经验已经记录下来，AI 会基于这些内容来回答来访者。点击下方「下一步」继续设置 Agent 的回答风格即可～",
   "extractedTone": { ... },
   "suggestedTags": [ ... ]
 }
@@ -162,7 +162,7 @@ func GenerateNextCreateQuestion(apiKey, model, baseURL string, input *CreateQues
 
 	// 若 AI 未返回 summaryMessage，给默认
 	if out.Done && out.SummaryMessage == "" {
-		out.SummaryMessage = "很好！你的经验已经记录下来，AI 会基于这些内容来回答来访者。点击下方「下一步」设置收费即可～"
+		out.SummaryMessage = "很好！你的经验已经记录下来，AI 会基于这些内容来回答来访者。点击下方「下一步」继续设置 Agent 的回答风格即可～"
 	}
 
 	return &out, nil
@@ -208,7 +208,7 @@ func fallbackNextQuestion(input *CreateQuestionInput) *CreateQuestionOutput {
 	if entries >= 2 && turns >= 4 {
 		return &CreateQuestionOutput{
 			Done:           true,
-			SummaryMessage: "很好！你的经验已经记录下来，AI 会基于这些内容来回答来访者。点击下方「下一步」设置收费即可～",
+			SummaryMessage: "很好！你的经验已经记录下来，AI 会基于这些内容来回答来访者。点击下方「下一步」继续设置 Agent 的回答风格即可～",
 		}
 	}
 	// 否则给一个通用追问

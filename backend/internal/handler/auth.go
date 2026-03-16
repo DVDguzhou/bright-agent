@@ -37,6 +37,7 @@ func Login(cfg *config.Config) gin.HandlerFunc {
 				"id":        u.ID,
 				"email":     u.Email,
 				"name":      u.Name,
+				"avatarUrl": u.AvatarURL,
 				"roleFlags": u.RoleFlags,
 			},
 		})
@@ -46,17 +47,28 @@ func Login(cfg *config.Config) gin.HandlerFunc {
 func Signup(cfg *config.Config) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var body struct {
-			Email    string `json:"email" binding:"required,email"`
-			Password string `json:"password" binding:"required,min=6"`
-			Name     string `json:"name" binding:"required,min=2,max=32"`
+			Email     string  `json:"email" binding:"required,email"`
+			Password  string  `json:"password" binding:"required,min=6"`
+			Name      string  `json:"name" binding:"required,min=2,max=32"`
+			AvatarURL *string `json:"avatarUrl"`
 		}
 		if err := c.ShouldBindJSON(&body); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "VALIDATION_ERROR"})
 			return
 		}
-		var exists models.User
-		if db.DB.Where("email = ?", body.Email).First(&exists).Error == nil {
+		var existingUser models.User
+		if db.DB.Where("email = ?", body.Email).First(&existingUser).Error == nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "EMAIL_EXISTS"})
+			return
+		}
+		cleanName := strings.TrimSpace(body.Name)
+		nameExists, err := ensureUniqueUserName(cleanName, "")
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "INTERNAL_ERROR"})
+			return
+		}
+		if nameExists {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "NAME_EXISTS"})
 			return
 		}
 		hash, err := bcrypt.GenerateFromPassword([]byte(body.Password), 12)
@@ -68,7 +80,8 @@ func Signup(cfg *config.Config) gin.HandlerFunc {
 			ID:        models.GenID(),
 			Email:     body.Email,
 			Password:  string(hash),
-			Name:      ptr(strings.TrimSpace(body.Name)),
+			Name:      ptr(cleanName),
+			AvatarURL: normalizeOptionalText(body.AvatarURL),
 			RoleFlags: nil,
 		}
 		if err := db.DB.Create(&u).Error; err != nil {
@@ -81,6 +94,7 @@ func Signup(cfg *config.Config) gin.HandlerFunc {
 				"id":        u.ID,
 				"email":     u.Email,
 				"name":      u.Name,
+				"avatarUrl": u.AvatarURL,
 				"roleFlags": u.RoleFlags,
 			},
 		})
@@ -98,6 +112,7 @@ func Me(cfg *config.Config) gin.HandlerFunc {
 			"id":        user.ID,
 			"email":     user.Email,
 			"name":      user.Name,
+			"avatarUrl": user.AvatarURL,
 			"roleFlags": user.RoleFlags,
 		})
 	}
@@ -120,4 +135,27 @@ func ptr(s string) *string {
 		return nil
 	}
 	return &s
+}
+
+func normalizeOptionalText(s *string) *string {
+	if s == nil {
+		return nil
+	}
+	trimmed := strings.TrimSpace(*s)
+	if trimmed == "" {
+		return nil
+	}
+	return &trimmed
+}
+
+func ensureUniqueUserName(name string, excludeUserID string) (bool, error) {
+	var count int64
+	query := db.DB.Model(&models.User{}).Where("name = ?", name)
+	if excludeUserID != "" {
+		query = query.Where("id <> ?", excludeUserID)
+	}
+	if err := query.Count(&count).Error; err != nil {
+		return false, err
+	}
+	return count > 0, nil
 }

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
+import { fetchWithTimeout } from "@/lib/fetchWithTimeout";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -18,21 +19,34 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
     setLoading(true);
-    const res = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({ email, password }),
-    });
-    const data = await res.json().catch(() => ({}));
-    setLoading(false);
-    if (!res.ok) {
-      setError(data.error === "INVALID_CREDENTIALS" ? "邮箱或密码错误" : "登录失败");
-      return;
+    try {
+      const res = await fetchWithTimeout(
+        "/api/auth/login",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ email, password }),
+        },
+        20000
+      );
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data.error === "INVALID_CREDENTIALS" ? "邮箱或密码错误" : "登录失败");
+        return;
+      }
+      await refetch();
+      router.push("/dashboard");
+      router.refresh();
+    } catch (e) {
+      const msg =
+        e instanceof Error && e.name === "AbortError"
+          ? "请求超时，请检查网络后重试"
+          : "网络错误，请检查连接后重试";
+      setError(msg);
+    } finally {
+      setLoading(false);
     }
-    await refetch(); // 刷新登录状态后再跳转
-    router.push("/dashboard");
-    router.refresh();
   };
 
   return (

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
+import { getDisplayAvatar } from "@/lib/avatar";
 
 type Agent = { id: string; name: string; status: string };
 type LifeAgentCreated = { id: string; displayName: string; headline: string; knowledgeCount: number; sessionCount: number; soldPacks: number; totalRevenue: number };
@@ -52,6 +53,13 @@ export default function DashboardPage() {
     }
   };
 
+  const stats = [
+    { label: "已创建 Agent", value: agents.length, accent: "from-sky-500 to-cyan-400" },
+    { label: "人生 Agent", value: lifeAgentsCreated.length, accent: "from-violet-500 to-fuchsia-400" },
+    { label: "已购咨询额度", value: lifeAgentsPurchased.reduce((sum, item) => sum + item.remainingQuestions, 0), accent: "from-amber-500 to-orange-400" },
+    { label: "累计售出", value: lifeAgentsCreated.reduce((sum, item) => sum + item.soldPacks, 0), accent: "from-emerald-500 to-teal-400" },
+  ];
+
   if (loading || !user) {
     return (
       <motion.div
@@ -78,15 +86,54 @@ export default function DashboardPage() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4 }}
+      className="space-y-8"
     >
-      <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent mb-2">
-        个人主页
-      </h1>
-      <p className="text-slate-500 mb-8">管理你的 Agents 与人生 Agent</p>
-      <div className="grid md:grid-cols-2 gap-8">
-        <div>
-          <h2 className="font-semibold text-slate-300 mb-4">快捷操作</h2>
-          <div className="space-y-3">
+      <section className="glass-card overflow-hidden">
+        <div className="bg-gradient-to-r from-sky-500/10 via-white to-violet-500/10 p-6 md:p-8">
+          <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-center gap-4">
+              <img
+                src={getDisplayAvatar({ avatarUrl: user.avatarUrl, name: user.name, email: user.email })}
+                alt={user.name || user.email}
+                className="h-20 w-20 rounded-3xl border border-white/70 object-cover shadow-lg shadow-sky-100"
+              />
+              <div>
+                <p className="text-sm font-medium text-sky-700">欢迎回来</p>
+                <h1 className="mt-1 text-3xl font-bold bg-gradient-to-r from-blue-600 to-sky-500 bg-clip-text text-transparent">
+                  {user.name || "你好，创作者"}
+                </h1>
+                <p className="mt-2 text-sm text-slate-500">{user.email}</p>
+                <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
+                  在这里管理你的 Agent、人生 Agent 与咨询记录。把你的经验整理得更完整，用户会更容易信任你、找到你。
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 md:min-w-[360px]">
+              {stats.map((item) => (
+                <div key={item.label} className="rounded-2xl border border-white/70 bg-white/80 p-4 shadow-sm">
+                  <div className={`inline-flex rounded-full bg-gradient-to-r ${item.accent} px-2.5 py-1 text-xs font-semibold text-white`}>
+                    {item.label}
+                  </div>
+                  <p className="mt-3 text-2xl font-bold text-slate-900">{item.value}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <div className="grid gap-8 xl:grid-cols-[1.05fr_0.95fr]">
+        <div className="space-y-6">
+          <section className="glass-card p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-semibold text-slate-900">快捷操作</h2>
+                <p className="mt-1 text-sm text-slate-500">把最常用的入口放在一起，创建、管理和查看反馈都更顺手。</p>
+              </div>
+            </div>
+            <div className="mt-5 space-y-3">
             <Link href="/life-agents/create">
               <motion.div
                 className="block p-5 rounded-2xl glass-card group"
@@ -164,16 +211,27 @@ export default function DashboardPage() {
                 <span className="block text-slate-500 text-sm mt-0.5">持 Key 调用平台 API（申请 Token、购买 License 等）</span>
               </motion.div>
             </Link>
-          </div>
-        </div>
-        <div>
-          <h2 className="font-semibold text-slate-800 mb-4">我创建的 Agent</h2>
+            </div>
+          </section>
+
+          {/* <section className="glass-card p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-semibold text-slate-900">我创建的 Agent</h2>
+                <p className="mt-1 text-sm text-slate-500">面向市场上架的 Agent 服务，支持查看状态和快速删除。</p>
+              </div>
+              <Link href="/agents" className="text-sm font-medium text-sky-600 hover:text-sky-700">
+                查看市场
+              </Link>
+            </div>
           {dataLoading ? (
-            <p className="text-slate-500">加载中...</p>
+            <p className="mt-5 text-slate-500">加载中...</p>
           ) : !Array.isArray(agents) || agents.length === 0 ? (
-            <p className="text-slate-500">暂无，去注册一个吧</p>
+            <p className="mt-5 rounded-2xl border border-dashed border-slate-200 bg-slate-50/80 px-4 py-5 text-slate-500">
+              还没有创建公开 Agent，去注册一个试试吧。
+            </p>
           ) : (
-            <ul className="space-y-2">
+            <ul className="mt-5 space-y-2">
               {agents.slice(0, 5).map((agent: Agent, i: number) => (
                 <motion.li
                   key={agent.id}
@@ -200,29 +258,36 @@ export default function DashboardPage() {
               ))}
             </ul>
           )}
-          <p className="mt-1">
-            <Link href="/agents" className="text-sm text-sky-600 hover:text-sky-700">
-              查看市场 →
-            </Link>
-          </p>
+          </section> */}
+        </div>
 
-          <h2 className="font-semibold text-slate-800 mb-4">我创建的人生 Agent</h2>
+        <div className="space-y-6">
+          <section className="glass-card p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-semibold text-slate-900">我创建的人生 Agent</h2>
+                <p className="mt-1 text-sm text-slate-500">查看你的个人经验分身、销量和后续管理入口。</p>
+              </div>
+            </div>
           {!Array.isArray(lifeAgentsCreated) || lifeAgentsCreated.length === 0 ? (
-            <p className="text-slate-500">暂无，去创建一个吧</p>
+            <p className="mt-5 rounded-2xl border border-dashed border-slate-200 bg-slate-50/80 px-4 py-5 text-slate-500">
+              还没有人生 Agent，去创建一个，把你的经验变成可咨询主页。
+            </p>
           ) : (
-            <ul className="space-y-2">
+            <ul className="mt-5 space-y-2">
               {lifeAgentsCreated.slice(0, 5).map((la: LifeAgentCreated, i: number) => (
                 <motion.li
                   key={la.id}
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: i * 0.05 }}
+                  className="py-2.5 sm:py-2 px-3 rounded-xl hover:bg-slate-100 transition-colors group"
                 >
                   <Link
                     href={`/dashboard/life-agents/${la.id}`}
-                    className="flex justify-between items-center py-2 px-3 rounded-xl hover:bg-slate-100 transition-colors group"
+                    className="min-w-0 flex justify-between items-center py-1 -my-1 touch-manipulation"
                   >
-                    <span className="text-slate-700 group-hover:text-sky-700 truncate flex-1 mr-2">
+                    <span className="text-slate-700 group-hover:text-sky-700 truncate mr-2">
                       {la.displayName}
                     </span>
                     <span className="text-slate-500 text-sm shrink-0">
@@ -233,17 +298,21 @@ export default function DashboardPage() {
               ))}
             </ul>
           )}
-          <p className="mt-1">
-            <Link href="/dashboard/life-agents" className="text-sm text-sky-600 hover:text-sky-700">
-              管理全部 →
-            </Link>
-          </p>
+          </section>
 
-          <h2 className="font-semibold text-slate-800 mb-4 mt-6">我购买额度的人生 Agent</h2>
+          <section className="glass-card p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-semibold text-slate-900">我购买额度的人生 Agent</h2>
+                <p className="mt-1 text-sm text-slate-500">继续咨询你已经购买过的顾问，直接进入聊天即可。</p>
+              </div>
+            </div>
           {!Array.isArray(lifeAgentsPurchased) || lifeAgentsPurchased.length === 0 ? (
-            <p className="text-slate-500">暂无，去购买后开始咨询</p>
+            <p className="mt-5 rounded-2xl border border-dashed border-slate-200 bg-slate-50/80 px-4 py-5 text-slate-500">
+              还没有已购咨询额度，去逛逛人生 Agent 市场吧。
+            </p>
           ) : (
-            <ul className="space-y-2">
+            <ul className="mt-5 space-y-2">
               {lifeAgentsPurchased.slice(0, 5).map((la: LifeAgentPurchased, i: number) => (
                 <motion.li
                   key={la.id}
@@ -266,12 +335,7 @@ export default function DashboardPage() {
               ))}
             </ul>
           )}
-          <p className="mt-1">
-            <Link href="/life-agents" className="text-sm text-sky-600 hover:text-sky-700">
-              浏览更多 →
-            </Link>
-          </p>
-
+          </section>
         </div>
       </div>
     </motion.div>

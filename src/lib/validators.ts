@@ -99,15 +99,15 @@ export const lifeAgentKnowledgeSchema = z.object({
 });
 
 export const lifeAgentCreateSchema = z.object({
-  displayName: z.string().min(2),
-  headline: z.string().min(4),
-  shortBio: z.string().min(20).max(180),
-  longBio: z.string().min(60),
-  audience: z.string().min(6),
+  displayName: z.string().min(1).max(10),
+  headline: z.string().optional().default(""),
+  shortBio: z.string().min(0).optional().default(""),
+  longBio: z.string().min(0).optional().default(""),
+  audience: z.string().min(0).optional().default(""),
   welcomeMessage: z.string().min(10),
-  pricePerQuestion: z.number().int().positive().max(100000),
-  expertiseTags: z.array(z.string().min(1)).min(1).max(8),
-  sampleQuestions: z.array(z.string().min(3)).min(2).max(6),
+  pricePerQuestion: z.number().int().positive(),
+  expertiseTags: z.array(z.string().min(1)).min(0).max(8).optional().default([]),
+  sampleQuestions: z.array(z.string()).optional().default([]),
   knowledgeEntries: z.array(lifeAgentKnowledgeSchema).min(2).max(12),
 });
 
@@ -122,15 +122,15 @@ export const lifeAgentChatSchema = z.object({
 });
 
 export const lifeAgentUpdateSchema = z.object({
-  displayName: z.string().min(2).optional(),
-  headline: z.string().min(4).optional(),
-  shortBio: z.string().min(20).max(180).optional(),
-  longBio: z.string().min(60).optional(),
-  audience: z.string().min(6).optional(),
+  displayName: z.string().min(1).max(10).optional(),
+  headline: z.string().optional(),
+  shortBio: z.string().min(0).optional(),
+  longBio: z.string().min(0).optional(),
+  audience: z.string().min(0).optional(),
   welcomeMessage: z.string().min(10).optional(),
-  pricePerQuestion: z.number().int().positive().max(100000).optional(),
+  pricePerQuestion: z.number().int().positive().optional(),
   published: z.boolean().optional(),
-  expertiseTags: z.array(z.string().min(1)).min(1).max(8).optional(),
-  sampleQuestions: z.array(z.string().min(3)).min(2).max(6).optional(),
+  expertiseTags: z.array(z.string().min(1)).min(0).max(8).optional(),
+  sampleQuestions: z.array(z.string()).optional(),
   knowledgeEntries: z.array(lifeAgentKnowledgeSchema).min(2).max(12).optional(),
 });
