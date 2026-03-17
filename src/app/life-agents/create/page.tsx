@@ -12,6 +12,7 @@ import {
   getCityOptionsForCreate,
   getCountyOptionsForCreate,
 } from "@/lib/address-hierarchy";
+import { ChatVirtualKeyboard } from "@/components/ChatVirtualKeyboard";
 
 type KnowledgeEntry = {
   category: string;
@@ -144,43 +145,6 @@ function getProfileQuickReplies(field: ProfileChatField): QuickReply[] {
   return quickReplies;
 }
 
-function autoResizeTextarea(textarea: HTMLTextAreaElement | null) {
-  if (!textarea) return;
-  textarea.style.height = "0px";
-  textarea.style.height = `${Math.min(textarea.scrollHeight, 160)}px`;
-}
-
-function ComposerActionButton({
-  type = "button",
-  onClick,
-  disabled,
-  children,
-  title,
-  tone = "neutral",
-}: {
-  type?: "button" | "submit";
-  onClick?: () => void;
-  disabled?: boolean;
-  children: React.ReactNode;
-  title?: string;
-  tone?: "neutral" | "primary";
-}) {
-  return (
-    <button
-      type={type}
-      onClick={onClick}
-      disabled={disabled}
-      title={title}
-      className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-[18px] border text-sm font-medium transition sm:h-11 sm:w-11 sm:rounded-full disabled:cursor-not-allowed disabled:opacity-50 ${
-        tone === "primary"
-          ? "border-sky-400/80 bg-gradient-to-br from-sky-500 via-sky-500 to-cyan-400 text-white shadow-[0_16px_30px_-16px_rgba(14,165,233,0.95)] hover:brightness-[1.05]"
-          : "border-white/70 bg-white/60 text-slate-600 shadow-[0_14px_28px_-18px_rgba(15,23,42,0.28)] backdrop-blur-xl hover:bg-white/72"
-      }`}
-    >
-      {children}
-    </button>
-  );
-}
 const PROFILE_CHAT_FIELDS: readonly ProfileChatField[] = [
   {
     key: "displayName",
@@ -250,8 +214,8 @@ export default function CreateLifeAgentPage() {
   const router = useRouter();
   const profileChatEndRef = useRef<HTMLDivElement>(null);
   const experienceChatEndRef = useRef<HTMLDivElement>(null);
-  const profileInputRef = useRef<HTMLTextAreaElement>(null);
-  const experienceInputRef = useRef<HTMLTextAreaElement>(null);
+  const profileFormRef = useRef<HTMLFormElement>(null);
+  const experienceFormRef = useRef<HTMLFormElement>(null);
   const [user, setUser] = useState<{ id: string } | null>(null);
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -312,13 +276,6 @@ export default function CreateLifeAgentPage() {
     experienceChatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [experienceHistory]);
 
-  useEffect(() => {
-    autoResizeTextarea(profileInputRef.current);
-  }, [chatInput, step]);
-
-  useEffect(() => {
-    autoResizeTextarea(experienceInputRef.current);
-  }, [experienceInput, step]);
 
   useEffect(() => {
     if (step === 1 && chatHistory.length === 0) {
@@ -746,10 +703,7 @@ export default function CreateLifeAgentPage() {
     router.refresh();
   };
 
-  const fillProfileInput = (value: string) => {
-    setChatInput(value);
-    requestAnimationFrame(() => profileInputRef.current?.focus());
-  };
+  const fillProfileInput = (value: string) => setChatInput(value);
 
   const fillExperienceInput = (value: string) => {
     setExperienceInput((prev) => {
@@ -757,7 +711,6 @@ export default function CreateLifeAgentPage() {
       const needsBreak = prev.endsWith("\n") ? "" : "\n";
       return `${prev}${needsBreak}${value}`;
     });
-    requestAnimationFrame(() => experienceInputRef.current?.focus());
   };
 
   if (!user) {
@@ -869,78 +822,21 @@ export default function CreateLifeAgentPage() {
 
               {!chatDone ? (
                 <form
+                  ref={profileFormRef}
                   onSubmit={submitChatAnswer}
-                  className="sticky bottom-2 z-10 mx-0 rounded-[28px] border border-white/65 bg-white/42 p-2 shadow-[0_28px_70px_-30px_rgba(15,23,42,0.42),0_10px_24px_-18px_rgba(255,255,255,0.9)_inset] ring-1 ring-white/35 backdrop-blur-[22px] sm:bottom-0 sm:mx-1 sm:rounded-[32px] sm:p-2.5"
+                  className="sticky bottom-2 z-10 mx-0 sm:mx-1"
                   style={{ paddingBottom: "max(0.5rem, calc(env(safe-area-inset-bottom) + 0.125rem))" }}
                 >
-                  <div className="pointer-events-none absolute inset-x-3 top-0 h-px bg-gradient-to-r from-transparent via-white/95 to-transparent" />
-                  <div className="pointer-events-none absolute inset-x-6 top-1 h-10 rounded-full bg-white/18 blur-2xl" />
-                  <div className="relative flex gap-1.5 overflow-x-auto px-1 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:gap-2">
-                    {currentProfileQuickReplies.map((item) => (
-                      <button
-                        key={`${currentChatField.key}-${item.label}`}
-                        type="button"
-                        onClick={() => fillProfileInput(item.value)}
-                        disabled={chatLoading}
-                        className="shrink-0 rounded-full border border-white/75 bg-white/58 px-2.5 py-1.5 text-[11px] font-medium text-slate-600 shadow-[0_10px_24px_-18px_rgba(15,23,42,0.35)] backdrop-blur-md transition hover:border-sky-200/80 hover:bg-white/72 hover:text-sky-700 disabled:opacity-50 sm:px-3 sm:text-xs"
-                      >
-                        {item.label}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="relative flex items-end gap-1.5 sm:gap-2">
-                    <ComposerActionButton
-                      onClick={() => fillProfileInput(currentChatField.required ? getPlaceholderExample(currentChatField.placeholder) : "跳过")}
-                      disabled={chatLoading}
-                      title={currentChatField.required ? "填入示例" : "跳过这一项"}
-                    >
-                      <span className="text-xs font-semibold">{currentChatField.required ? "例" : "跳"}</span>
-                    </ComposerActionButton>
-                    <div className="flex-1 rounded-[22px] border border-white/55 bg-white/52 px-3.5 py-2.5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.55),inset_0_-1px_3px_rgba(15,23,42,0.04)] backdrop-blur-xl sm:rounded-[26px] sm:px-4">
-                      <textarea
-                        ref={profileInputRef}
-                        className="max-h-40 min-h-[24px] w-full resize-none border-0 bg-transparent text-[14px] leading-6 text-slate-800 outline-none placeholder:text-slate-400 sm:text-[15px]"
-                        value={chatInput}
-                        onChange={(e) => {
-                          setChatInput(e.target.value);
-                          autoResizeTextarea(e.target);
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
-                            e.preventDefault();
-                            e.currentTarget.form?.requestSubmit();
-                          }
-                        }}
-                        placeholder={chatLoading ? "AI 正在整理资料…" : currentChatField.placeholder}
-                        required={Boolean(currentChatField.required)}
-                        disabled={chatLoading}
-                        rows={1}
-                        enterKeyHint="send"
-                      />
-                      <div className="mt-1 flex items-center justify-between gap-2">
-                        <p className="truncate text-[10px] text-slate-400 sm:text-[11px]">
-                          {currentChatField.required ? "这一项建议认真填，AI 才更像你" : "不会的可跳过，后面还能回来改"}
-                        </p>
-                        <button
-                          type="button"
-                          onClick={() => fillProfileInput(getPlaceholderExample(currentChatField.placeholder))}
-                          disabled={chatLoading}
-                          className="shrink-0 rounded-full border border-white/60 bg-white/65 px-2.5 py-1 text-[10px] font-medium text-slate-500 shadow-[0_10px_20px_-16px_rgba(15,23,42,0.35)] transition hover:text-sky-700 disabled:opacity-50 sm:text-[11px]"
-                        >
-                          示例
-                        </button>
-                      </div>
-                    </div>
-                    <ComposerActionButton type="submit" disabled={chatLoading} title="发送" tone="primary">
-                      {chatLoading ? (
-                        <span className="text-xs">...</span>
-                      ) : (
-                        <svg viewBox="0 0 20 20" className="h-4 w-4 fill-current" aria-hidden="true">
-                          <path d="M3.72 2.94a.75.75 0 0 1 .8-.12l11.5 5.5a.75.75 0 0 1 0 1.36l-11.5 5.5A.75.75 0 0 1 3.45 14.5l1.34-4.05H9.5a.75.75 0 0 0 0-1.5H4.8L3.45 4.9a.75.75 0 0 1 .27-.96Z" />
-                        </svg>
-                      )}
-                    </ComposerActionButton>
-                  </div>
+                  <ChatVirtualKeyboard
+                    value={chatInput}
+                    onChange={setChatInput}
+                    onSubmit={() => profileFormRef.current?.requestSubmit()}
+                    suggestions={currentProfileQuickReplies.map((item) => ({ label: item.label, value: item.value }))}
+                    onSuggestionClick={fillProfileInput}
+                    disabled={chatLoading}
+                    placeholder={chatLoading ? "AI 正在整理资料…" : currentChatField.placeholder}
+                    inputLabel={currentChatField.required ? "这一项建议认真填" : "可回复 跳过"}
+                  />
                 </form>
               ) : (
                 <div className="mx-1 space-y-3">
@@ -1054,76 +950,21 @@ export default function CreateLifeAgentPage() {
 
               {!experienceDone ? (
                 <form
+                  ref={experienceFormRef}
                   onSubmit={submitExperienceAnswer}
                   className="sticky bottom-2 z-10 mx-0 rounded-[28px] border border-white/65 bg-white/42 p-2 shadow-[0_28px_70px_-30px_rgba(15,23,42,0.42),0_10px_24px_-18px_rgba(255,255,255,0.9)_inset] ring-1 ring-white/35 backdrop-blur-[22px] sm:bottom-0 sm:mx-1 sm:rounded-[32px] sm:p-2.5"
                   style={{ paddingBottom: "max(0.5rem, calc(env(safe-area-inset-bottom) + 0.125rem))" }}
                 >
-                  <div className="pointer-events-none absolute inset-x-3 top-0 h-px bg-gradient-to-r from-transparent via-white/95 to-transparent" />
-                  <div className="pointer-events-none absolute inset-x-6 top-1 h-10 rounded-full bg-white/18 blur-2xl" />
-                  <div className="relative flex gap-1.5 overflow-x-auto px-1 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:gap-2">
-                    {EXPERIENCE_QUICK_REPLIES.map((item) => (
-                      <button
-                        key={item.label}
-                        type="button"
-                        onClick={() => fillExperienceInput(item.value)}
-                        disabled={experienceLoading}
-                        className="shrink-0 rounded-full border border-white/75 bg-white/58 px-2.5 py-1.5 text-[11px] font-medium text-slate-600 shadow-[0_10px_24px_-18px_rgba(15,23,42,0.35)] backdrop-blur-md transition hover:border-sky-200/80 hover:bg-white/72 hover:text-sky-700 disabled:opacity-50 sm:px-3 sm:text-xs"
-                      >
-                        {item.label}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="relative flex items-end gap-1.5 sm:gap-2">
-                    <ComposerActionButton
-                      onClick={() => fillExperienceInput("我最想分享的一段真实经历是：")}
-                      disabled={experienceLoading}
-                      title="插入回答开头"
-                    >
-                      <span className="text-xs font-semibold">起</span>
-                    </ComposerActionButton>
-                    <div className="flex-1 rounded-[22px] border border-white/55 bg-white/52 px-3.5 py-2.5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.55),inset_0_-1px_3px_rgba(15,23,42,0.04)] backdrop-blur-xl sm:rounded-[26px] sm:px-4">
-                      <textarea
-                        ref={experienceInputRef}
-                        className="max-h-40 min-h-[24px] w-full resize-none border-0 bg-transparent text-[14px] leading-6 text-slate-800 outline-none placeholder:text-slate-400 sm:text-[15px]"
-                        value={experienceInput}
-                        onChange={(e) => {
-                          setExperienceInput(e.target.value);
-                          autoResizeTextarea(e.target);
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
-                            e.preventDefault();
-                            e.currentTarget.form?.requestSubmit();
-                          }
-                        }}
-                        placeholder={experienceLoading ? "AI 正在思考下一问…" : "说出你需要分享的经验和信息"}
-                        required
-                        disabled={experienceLoading}
-                        rows={1}
-                        enterKeyHint="send"
-                      />
-                      <div className="mt-1 flex items-center justify-between gap-2">
-                        <p className="truncate text-[10px] text-slate-400 sm:text-[11px]">尽量写真实细节，比如时间、转折、踩坑和结果</p>
-                        <button
-                          type="button"
-                          onClick={() => fillExperienceInput("最让我后悔的一次选择是：")}
-                          disabled={experienceLoading}
-                          className="shrink-0 rounded-full border border-white/60 bg-white/65 px-2.5 py-1 text-[10px] font-medium text-slate-500 shadow-[0_10px_20px_-16px_rgba(15,23,42,0.35)] transition hover:text-sky-700 disabled:opacity-50 sm:text-[11px]"
-                        >
-                          灵感
-                        </button>
-                      </div>
-                    </div>
-                    <ComposerActionButton type="submit" disabled={experienceLoading} title="发送" tone="primary">
-                      {experienceLoading ? (
-                        <span className="text-xs">...</span>
-                      ) : (
-                        <svg viewBox="0 0 20 20" className="h-4 w-4 fill-current" aria-hidden="true">
-                          <path d="M3.72 2.94a.75.75 0 0 1 .8-.12l11.5 5.5a.75.75 0 0 1 0 1.36l-11.5 5.5A.75.75 0 0 1 3.45 14.5l1.34-4.05H9.5a.75.75 0 0 0 0-1.5H4.8L3.45 4.9a.75.75 0 0 1 .27-.96Z" />
-                        </svg>
-                      )}
-                    </ComposerActionButton>
-                  </div>
+                  <ChatVirtualKeyboard
+                    value={experienceInput}
+                    onChange={setExperienceInput}
+                    onSubmit={() => experienceFormRef.current?.requestSubmit()}
+                    suggestions={EXPERIENCE_QUICK_REPLIES.map((item) => ({ label: item.label, value: item.value }))}
+                    onSuggestionClick={fillExperienceInput}
+                    disabled={experienceLoading}
+                    placeholder={experienceLoading ? "AI 正在思考下一问…" : "说出你需要分享的经验和信息"}
+                    inputLabel="尽量写真实细节，比如时间、转折、踩坑和结果"
+                  />
                 </form>
               ) : (
                 <div className="mx-1 rounded-[28px] border border-emerald-200 bg-emerald-50/90 px-5 py-4 text-sm text-emerald-700 shadow-sm backdrop-blur">
