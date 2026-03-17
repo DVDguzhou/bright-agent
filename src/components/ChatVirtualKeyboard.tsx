@@ -93,19 +93,15 @@ export function ChatVirtualKeyboard({
 
   return (
     <div className="flex flex-col gap-1.5 rounded-[24px] border border-white/60 bg-white/35 p-2 shadow-[0_24px_60px_-28px_rgba(15,23,42,0.35)] backdrop-blur-2xl sm:gap-2 sm:rounded-[28px] sm:p-3">
-      {/* 输入框 */}
+      {/* 输入框：用 div 展示，避免触发系统键盘 */}
       <div className="rounded-[20px] border border-white/55 bg-white/55 px-4 py-3 shadow-[inset_0_1px_2px_rgba(15,23,42,0.06)] backdrop-blur-xl sm:rounded-[22px]">
-        <input
-          type="text"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          disabled={disabled}
-          readOnly={false}
-          inputMode="none"
-          autoComplete="off"
-          className="w-full border-0 bg-transparent text-[15px] leading-6 text-slate-800 outline-none placeholder:text-slate-400"
-        />
+        <div
+          role="textbox"
+          aria-label={placeholder}
+          className="min-h-[24px] w-full whitespace-pre-wrap break-words text-[15px] leading-6 text-slate-800"
+        >
+          {value || <span className="text-slate-400">{placeholder}</span>}
+        </div>
         {inputLabel && (
           <p className="mt-1 text-[10px] text-slate-400 sm:text-[11px]">{inputLabel}</p>
         )}
