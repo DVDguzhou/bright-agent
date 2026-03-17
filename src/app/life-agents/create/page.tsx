@@ -774,13 +774,6 @@ export default function CreateLifeAgentPage() {
                 style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
               >
                 <div className="flex items-end gap-2">
-                  <ComposerActionButton
-                    onClick={() => fillProfileInput(currentChatField.required ? getPlaceholderExample(currentChatField.placeholder) : "跳过")}
-                    disabled={chatLoading}
-                    title={currentChatField.required ? "填入示例" : "跳过这一项"}
-                  >
-                    <span className="text-xs font-semibold">{currentChatField.required ? "例" : "跳"}</span>
-                  </ComposerActionButton>
                   <div className="flex-1 min-w-0 rounded-2xl bg-slate-100 px-4 py-2.5">
                     <textarea
                       ref={profileInputRef}
@@ -814,17 +807,6 @@ export default function CreateLifeAgentPage() {
                     )}
                   </ComposerActionButton>
                 </div>
-                <p className="mt-1.5 truncate px-1 text-[11px] text-slate-400">
-                  {currentChatField.required ? "建议认真填" : "可跳过"}
-                  <button
-                    type="button"
-                    onClick={() => fillProfileInput(getPlaceholderExample(currentChatField.placeholder))}
-                    disabled={chatLoading}
-                    className="ml-2 text-sky-600 hover:text-sky-700 disabled:opacity-50"
-                  >
-                    示例
-                  </button>
-                </p>
               </form>
             ) : (
               <div className="shrink-0 space-y-3 border-t border-slate-200/80 bg-slate-50/50 py-4">
