@@ -60,6 +60,12 @@ function trimSessionTitle(title: string) {
   return title.length > 18 ? `${title.slice(0, 18)}...` : title;
 }
 
+function autoResizeTextarea(textarea: HTMLTextAreaElement | null) {
+  if (!textarea) return;
+  textarea.style.height = "0px";
+  textarea.style.height = `${Math.min(textarea.scrollHeight, 160)}px`;
+}
+
 export default function LifeAgentChatPage() {
   const params = useParams();
   const router = useRouter();
@@ -452,23 +458,6 @@ export default function LifeAgentChatPage() {
               <li>• 每次提问扣 1 次额度</li>
             </ul>
           </div>
-          {profile.sampleQuestions && profile.sampleQuestions.length > 0 && (
-            <div className="mt-4">
-              <p className="mb-2 text-xs font-medium text-slate-500">可参考的提问示例</p>
-              <div className="flex flex-wrap gap-2">
-                {(profile.sampleQuestions as string[]).slice(0, 4).map((q, i) => (
-                  <button
-                    key={i}
-                    type="button"
-                    onClick={() => setInput(q)}
-                    className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600 hover:border-sky-300 hover:bg-sky-50 hover:text-sky-700"
-                  >
-                    {q.length > 24 ? q.slice(0, 24) + "…" : q}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
           <div className="mt-6 flex flex-wrap gap-3">
             <Link href={`/life-agents/${id}`} className="btn-secondary">
               去购买次数
@@ -482,7 +471,7 @@ export default function LifeAgentChatPage() {
         </div>
       </aside>
 
-      <section className="glass-card flex min-h-[75vh] flex-col overflow-hidden">
+      <section className="glass-card flex min-h-[75dvh] flex-col overflow-hidden">
         <div className="border-b border-slate-200 px-6 py-4">
           <h2 className="text-lg font-semibold text-slate-900">咨询聊天</h2>
           <p className="mt-1 text-sm text-slate-600">
@@ -645,24 +634,43 @@ export default function LifeAgentChatPage() {
           )}
         </div>
 
-        <form onSubmit={sendMessage} className="border-t border-slate-200 bg-white/70 px-6 py-5">
+        <form
+          onSubmit={sendMessage}
+          className="mx-4 rounded-[28px] border border-white/65 bg-white/42 p-2 shadow-[0_28px_70px_-30px_rgba(15,23,42,0.42),0_10px_24px_-18px_rgba(255,255,255,0.9)_inset] ring-1 ring-white/35 backdrop-blur-[22px] sm:mx-6 sm:rounded-[32px] sm:p-2.5"
+          style={{ paddingBottom: "max(0.5rem, calc(env(safe-area-inset-bottom) + 0.125rem))" }}
+        >
           {error && <p className="mb-3 rounded-2xl bg-rose-50 px-4 py-3 text-sm text-rose-600">{error}</p>}
-          <div className="flex flex-col gap-3 md:flex-row">
-            <div className="flex flex-1 flex-col">
+          <div className="relative flex items-end gap-1.5 sm:gap-2">
+            <div className="flex-1 rounded-[22px] border border-white/55 bg-white/52 px-3.5 py-2.5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.55),inset_0_-1px_3px_rgba(15,23,42,0.04)] backdrop-blur-xl sm:rounded-[26px] sm:px-4">
               <textarea
-                className="input-shell min-h-28 w-full resize-none"
+                className="max-h-40 min-h-[24px] w-full resize-none scroll-mb-[35vh] border-0 bg-transparent text-[14px] leading-6 text-slate-800 outline-none placeholder:text-slate-400 sm:text-[15px]"
                 value={input}
-                onChange={(e) => setInput(e.target.value)}
+                onChange={(e) => {
+                  setInput(e.target.value);
+                  autoResizeTextarea(e.target);
+                }}
+                onFocus={(e) => e.target.scrollIntoView({ behavior: "smooth", block: "nearest" })}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+                    e.preventDefault();
+                    e.currentTarget.form?.requestSubmit();
+                  }
+                }}
                 placeholder="描述你的处境 + 具体问题，例如：我二本大三，在纠结考研还是就业，家里经济一般..."
+                disabled={loading || sessionLoading}
+                rows={1}
+                enterKeyHint="send"
               />
-              <p className="mt-1 text-xs text-slate-400">写得越具体，回答越有用</p>
+              <p className="mt-1 text-[10px] text-slate-400 sm:text-[11px]">写得越具体，回答越有用</p>
             </div>
             <button
               type="submit"
               disabled={loading || sessionLoading || !input.trim()}
-              className="btn-primary min-w-36 justify-center self-end disabled:opacity-60"
+              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-[18px] border border-sky-400/80 bg-gradient-to-br from-sky-500 via-sky-500 to-cyan-400 text-white shadow-[0_16px_30px_-16px_rgba(14,165,233,0.95)] transition hover:brightness-[1.05] disabled:cursor-not-allowed disabled:opacity-50 sm:h-11 sm:w-11 sm:rounded-full"
             >
-              发送问题
+              <svg viewBox="0 0 20 20" className="h-4 w-4 fill-current" aria-hidden="true">
+                <path d="M3.72 2.94a.75.75 0 0 1 .8-.12l11.5 5.5a.75.75 0 0 1 0 1.36l-11.5 5.5A.75.75 0 0 1 3.45 14.5l1.34-4.05H9.5a.75.75 0 0 0 0-1.5H4.8L3.45 4.9a.75.75 0 0 1 .27-.96Z" />
+              </svg>
             </button>
           </div>
         </form>

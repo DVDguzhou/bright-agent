@@ -63,85 +63,15 @@ type ProfileSummaryResponse = {
   knowledgeEntries?: KnowledgeEntry[];
 };
 
-type QuickReply = {
-  label: string;
-  value: string;
-};
-
 const FIRST_QUESTION = "你希望分享什么样的经验或信息？可以简单说说你擅长的领域，或你最想帮助用户解决什么问题。";
 const MBTI_OPTIONS = ["未设置", "INTJ", "INTP", "ENTJ", "ENTP", "INFJ", "INFP", "ENFJ", "ENFP", "ISTJ", "ISFJ", "ESTJ", "ESFJ", "ISTP", "ISFP", "ESTP", "ESFP"];
 const PERSONA_OPTIONS = ["学长学姐型", "朋友陪聊型", "前辈导师型", "冷静分析型", "过来人型", "本地熟人型"];
 const TONE_OPTIONS = ["直接一点", "温柔一点", "理性克制", "接地气一点", "像朋友聊天", "稳重耐心"];
 const RESPONSE_STYLE_OPTIONS = ["先给判断再解释", "先理解处境再建议", "多举自己的例子", "短一点别太满", "先拆选项再给建议", "像微信聊天少分点"];
 const OPTIONAL_SKIP_RE = /^(跳过|不填|先空着|暂无|没有|无)$/;
-const EXPERIENCE_QUICK_REPLIES: QuickReply[] = [
-  { label: "我踩过的坑", value: "我当时踩过的最大坑是：" },
-  { label: "最有用的方法", value: "后来真正有用的方法是：" },
-  { label: "如果重来一次", value: "如果让我重新来一次，我会：" },
-  { label: "不建议这样做", value: "我不太建议你这样做，因为：" },
-  { label: "适合什么人", value: "这套经验更适合这样的人：" },
-];
 
 function getPlaceholderExample(placeholder: string) {
   return placeholder.replace(/^例如[:：]\s*/, "").trim();
-}
-
-function getProfileQuickReplies(field: ProfileChatField): QuickReply[] {
-  const example = getPlaceholderExample(field.placeholder);
-  const map: Partial<Record<ProfileChatField["key"], QuickReply[]>> = {
-    displayName: [
-      { label: "阿青学长", value: "阿青学长" },
-      { label: "转行过来人", value: "转行过来人" },
-      { label: "本地求职前辈", value: "本地求职前辈" },
-    ],
-    headline: [
-      { label: "帮大学生做选择", value: "帮大学生做职业选择的过来人" },
-      { label: "本地经验顾问", value: "分享本地真实经验和避坑建议" },
-    ],
-    shortBio: [{ label: "朋友式介绍", value: "我是一个会结合真实经历，陪你一起想清楚选择的人。" }],
-    school: [
-      { label: "普通二本", value: "普通二本" },
-      { label: "985", value: "985" },
-      { label: "海外本科", value: "海外本科" },
-    ],
-    education: [
-      { label: "本科", value: "本科" },
-      { label: "硕士", value: "硕士" },
-      { label: "博士", value: "博士" },
-    ],
-    job: [
-      { label: "互联网产品", value: "互联网产品经理" },
-      { label: "教师", value: "教师" },
-      { label: "无", value: "无" },
-    ],
-    income: [
-      { label: "月入 1-2 万", value: "月入 1-2 万" },
-      { label: "年薪 30-50 万", value: "年薪 30-50 万" },
-      { label: "无", value: "无" },
-    ],
-    longBio: [{ label: "经历转折", value: "我经历过迷茫、试错和转弯，后来才慢慢找到适合自己的路。" }],
-    audience: [
-      { label: "大学生", value: "大学生" },
-      { label: "转行的人", value: "转行的人" },
-      { label: "刚进社会的人", value: "刚进社会的人" },
-    ],
-    welcomeMessage: [{ label: "像微信聊天", value: "你好，你可以把你的情况直接告诉我，我会结合自己的真实经历陪你一起想清楚。" }],
-    expertiseTags: [
-      { label: "考研求职", value: "考研、求职、职业规划" },
-      { label: "转行成长", value: "转行、成长选择、简历面试" },
-    ],
-    sampleQuestions: [
-      { label: "考研 or 就业", value: "我适合考研还是直接就业？" },
-      { label: "转行方向", value: "我现在转行还来得及吗？" },
-      { label: "城市选择", value: "留在本地还是去大城市更适合我？" },
-    ],
-  };
-
-  const quickReplies = map[field.key] ?? [];
-  if (example && !quickReplies.some((item) => item.value === example)) {
-    return [{ label: "用示例", value: example }, ...quickReplies];
-  }
-  return quickReplies;
 }
 
 function autoResizeTextarea(textarea: HTMLTextAreaElement | null) {
@@ -335,7 +265,6 @@ export default function CreateLifeAgentPage() {
 
   const currentChatField = PROFILE_CHAT_FIELDS[Math.min(chatFieldIndex, PROFILE_CHAT_FIELDS.length - 1)];
   const completedChatCount = chatDone ? PROFILE_CHAT_FIELDS.length : chatFieldIndex;
-  const currentProfileQuickReplies = getProfileQuickReplies(currentChatField);
 
   const setChatFieldValue = (key: ProfileChatField["key"], value: string) => {
     switch (key) {
@@ -806,7 +735,7 @@ export default function CreateLifeAgentPage() {
               <div className="absolute bottom-[18%] right-[10%] h-44 w-44 rounded-full bg-orange-200/35 blur-3xl" />
               <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.92)_0%,rgba(255,255,255,0.82)_100%)]" />
             </div>
-            <div className="relative flex min-h-[72vh] flex-col px-4 pb-4 pt-4 sm:px-6 sm:pb-6 sm:pt-5">
+            <div className="relative flex min-h-[72dvh] flex-col px-4 pb-4 pt-4 sm:px-6 sm:pb-6 sm:pt-5">
               <div className="flex items-center justify-between gap-3 px-1">
                 <div className="w-10 shrink-0" />
                 <div className="text-center">
@@ -867,19 +796,6 @@ export default function CreateLifeAgentPage() {
                   style={{ paddingBottom: "max(0.5rem, calc(env(safe-area-inset-bottom) + 0.125rem))" }}
                 >
                   <div className="pointer-events-none absolute inset-x-3 top-0 h-px bg-gradient-to-r from-transparent via-white/95 to-transparent" />
-                  <div className="relative flex gap-1.5 overflow-x-auto px-1 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:gap-2">
-                    {currentProfileQuickReplies.map((item) => (
-                      <button
-                        key={`${currentChatField.key}-${item.label}`}
-                        type="button"
-                        onClick={() => fillProfileInput(item.value)}
-                        disabled={chatLoading}
-                        className="shrink-0 rounded-full border border-white/75 bg-white/58 px-2.5 py-1.5 text-[11px] font-medium text-slate-600 shadow-[0_10px_24px_-18px_rgba(15,23,42,0.35)] backdrop-blur-md transition hover:border-sky-200/80 hover:bg-white/72 hover:text-sky-700 disabled:opacity-50 sm:px-3 sm:text-xs"
-                      >
-                        {item.label}
-                      </button>
-                    ))}
-                  </div>
                   <div className="relative flex items-end gap-1.5 sm:gap-2">
                     <ComposerActionButton
                       onClick={() => fillProfileInput(currentChatField.required ? getPlaceholderExample(currentChatField.placeholder) : "跳过")}
@@ -992,7 +908,7 @@ export default function CreateLifeAgentPage() {
               <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.92)_0%,rgba(255,255,255,0.82)_100%)]" />
             </div>
 
-            <div className="relative flex min-h-[72vh] flex-col px-4 pb-4 pt-4 sm:px-6 sm:pb-6 sm:pt-5">
+            <div className="relative flex min-h-[72dvh] flex-col px-4 pb-4 pt-4 sm:px-6 sm:pb-6 sm:pt-5">
               <div className="flex items-center justify-between gap-3 px-1">
                 <div className="w-10 shrink-0" />
                 <div className="text-center">
@@ -1053,27 +969,7 @@ export default function CreateLifeAgentPage() {
                   style={{ paddingBottom: "max(0.5rem, calc(env(safe-area-inset-bottom) + 0.125rem))" }}
                 >
                   <div className="pointer-events-none absolute inset-x-3 top-0 h-px bg-gradient-to-r from-transparent via-white/95 to-transparent" />
-                  <div className="relative flex gap-1.5 overflow-x-auto px-1 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:gap-2">
-                    {EXPERIENCE_QUICK_REPLIES.map((item) => (
-                      <button
-                        key={item.label}
-                        type="button"
-                        onClick={() => fillExperienceInput(item.value)}
-                        disabled={experienceLoading}
-                        className="shrink-0 rounded-full border border-white/75 bg-white/58 px-2.5 py-1.5 text-[11px] font-medium text-slate-600 shadow-[0_10px_24px_-18px_rgba(15,23,42,0.35)] backdrop-blur-md transition hover:border-sky-200/80 hover:bg-white/72 hover:text-sky-700 disabled:opacity-50 sm:px-3 sm:text-xs"
-                      >
-                        {item.label}
-                      </button>
-                    ))}
-                  </div>
                   <div className="relative flex items-end gap-1.5 sm:gap-2">
-                    <ComposerActionButton
-                      onClick={() => fillExperienceInput("我最想分享的一段真实经历是：")}
-                      disabled={experienceLoading}
-                      title="插入回答开头"
-                    >
-                      <span className="text-xs font-semibold">起</span>
-                    </ComposerActionButton>
                     <div className="flex-1 rounded-[22px] border border-white/55 bg-white/52 px-3.5 py-2.5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.55),inset_0_-1px_3px_rgba(15,23,42,0.04)] backdrop-blur-xl sm:rounded-[26px] sm:px-4">
                       <textarea
                         ref={experienceInputRef}
