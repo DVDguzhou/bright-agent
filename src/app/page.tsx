@@ -39,7 +39,7 @@ const cards = [
 
 export default function HomePage() {
   return (
-    <div className="relative min-h-[calc(100vh-6rem)] sm:min-h-[calc(100vh-8rem)] flex flex-col items-center justify-center py-8 sm:py-20 overflow-x-hidden">
+    <div className="relative min-h-[calc(100vh-6rem)] sm:min-h-[calc(100vh-8rem)] flex flex-col items-center justify-center py-4 sm:py-20 overflow-x-hidden">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-blue-500/10 blur-3xl animate-float-a" />
         <div className="absolute top-1/2 -right-40 w-80 h-80 rounded-full bg-sky-400/10 blur-3xl animate-float-b" />

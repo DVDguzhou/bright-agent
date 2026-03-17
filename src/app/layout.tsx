@@ -1,9 +1,15 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Nav } from "@/components/Nav";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { InstallPWA } from "@/components/InstallPWA";
 import { RegisterSW } from "@/components/RegisterSW";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
 
 export const metadata: Metadata = {
   title: "BrightAgent",
@@ -30,7 +36,7 @@ export default function RootLayout({
       <body className="min-h-screen bg-slate-50 text-slate-900 font-sans antialiased overflow-x-hidden">
         <AuthProvider>
           <Nav />
-          <main className="container mx-auto px-4 py-8 max-w-7xl relative z-10 pb-20 lg:pb-8">{children}</main>
+          <main className="container mx-auto px-4 py-3 sm:py-8 max-w-7xl relative z-10 pb-20 lg:pb-8">{children}</main>
           <RegisterSW />
           <InstallPWA />
         </AuthProvider>

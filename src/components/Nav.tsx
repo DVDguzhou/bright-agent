@@ -1,4 +1,4 @@
-"use client";
+·"use client";
 
 import Link from "next/link";
 import Image from "next/image";
@@ -150,16 +150,16 @@ export function Nav() {
       <motion.nav
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="sticky top-0 z-50 border-b border-slate-200/80 bg-white supports-[backdrop-filter]:bg-white/85 supports-[backdrop-filter]:backdrop-blur-xl overflow-x-hidden"
+        className="sticky top-0 z-50 border-b border-slate-200/80 bg-white supports-[backdrop-filter]:bg-white/85 supports-[backdrop-filter]:backdrop-blur-xl overflow-x-hidden pt-[env(safe-area-inset-top)]"
       >
-        <div className="container mx-auto px-3 sm:px-4 max-w-7xl flex items-center justify-between min-h-[56px] sm:h-16">
+        <div className="container mx-auto px-3 sm:px-4 max-w-7xl flex items-center justify-between min-h-[44px] sm:h-16">
           <Link href="/" className="flex items-center gap-2 group shrink-0 min-w-0" title="Bright Agent Hub">
             <Image
               src="/bright-agent-icon.png"
               alt="Bright Agent Hub"
               width={36}
               height={36}
-              className="shrink-0 rounded-lg object-contain"
+              className="shrink-0 rounded-lg object-contain w-7 h-7 sm:w-9 sm:h-9"
             />
             <span className="hidden md:inline xl:inline text-base 2xl:text-xl font-bold bg-gradient-to-r from-blue-600 to-sky-500 bg-clip-text text-transparent truncate whitespace-nowrap">
               Bright Agent Hub
