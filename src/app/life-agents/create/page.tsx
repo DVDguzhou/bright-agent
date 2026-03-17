@@ -700,26 +700,34 @@ export default function CreateLifeAgentPage() {
     );
   }
 
+  const scrollToLastMessage = () => {
+    profileChatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  };
+
+  const scrollToLastExperienceMessage = () => {
+    experienceChatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  };
+
   return (
     <div className="flex min-h-dvh flex-col">
       {/* 紧凑顶部栏 - 非卡片 */}
-      <header className="shrink-0 border-b border-slate-200/80 bg-white/95 px-4 py-3 backdrop-blur-md sm:px-6">
-        <div className="mx-auto flex max-w-5xl items-center justify-between gap-3">
-          <Link href="/life-agents" className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-sky-600">
+      <header className="shrink-0 border-b border-slate-200/80 bg-white/95 px-3 py-2 backdrop-blur-md sm:px-6 sm:py-3">
+        <div className="mx-auto flex max-w-5xl items-center justify-between gap-2">
+          <Link href="/life-agents" className="flex items-center gap-1 text-sm text-slate-500 hover:text-sky-600">
             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
             返回
           </Link>
           <div className="flex flex-1 items-center justify-center gap-2 min-w-0">
-            <h1 className="truncate text-base font-semibold text-slate-800 sm:text-lg">创建本地经验 Agent</h1>
-            <span className="shrink-0 rounded-full bg-sky-100 px-2.5 py-0.5 text-xs font-medium text-sky-700">
-              第 {step}/4 步
+            <h1 className="truncate text-sm font-semibold text-slate-800 sm:text-base">创建 Agent</h1>
+            <span className="shrink-0 rounded-full bg-sky-100 px-2 py-0.5 text-xs font-medium text-sky-700">
+              {step}/4
             </span>
           </div>
-          <div className="w-14 shrink-0 sm:w-16" />
+          <div className="w-12 shrink-0 sm:w-16" />
         </div>
-        <div className="mx-auto mt-2 max-w-5xl">
+        <div className="mx-auto mt-1.5 max-w-5xl">
           <div className="flex gap-1">
             {[1, 2, 3, 4].map((s) => (
               <div
@@ -733,16 +741,19 @@ export default function CreateLifeAgentPage() {
 
       {step === 1 && (
         <div className="flex min-h-0 flex-1 flex-col">
-          <div className="mx-auto w-full max-w-3xl flex-1 flex flex-col min-h-0 px-4 sm:px-6">
-            {/* 轻量提示条 - 非卡片 */}
-            <div className="shrink-0 flex items-center justify-between gap-2 py-3 text-xs text-slate-500">
-              <span>基础资料 · 已完成 {completedChatCount}/{PROFILE_CHAT_FIELDS.length} 项</span>
-              <span>可回复「跳过」略过选填项</span>
+          <div className="mx-auto w-full max-w-3xl flex-1 flex flex-col min-h-0">
+            {/* 单行提示 - 紧凑 */}
+            <div className="shrink-0 flex items-center justify-between gap-2 px-3 py-2 text-xs text-slate-500 sm:px-3">
+              <span>基础资料 {completedChatCount}/{PROFILE_CHAT_FIELDS.length}</span>
+              <span>可回复「跳过」略过</span>
             </div>
 
-            {/* 全宽聊天区域 */}
-            <div className="flex-1 overflow-y-auto pb-4 pt-1">
-              <div className="space-y-4">
+            {/* 聊天区域 - 键盘弹起时会被顶上去 */}
+            <div
+              className="flex-1 overflow-y-auto overscroll-contain px-3 pb-2 sm:px-4"
+              style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 0.5rem)" }}
+            >
+              <div className="space-y-4 pb-[72px]">
                 {chatHistory.map((msg, i) => (
                   <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                     <div
@@ -761,7 +772,7 @@ export default function CreateLifeAgentPage() {
             </div>
 
             {error ? (
-              <div className="shrink-0 mb-2 rounded-xl bg-rose-50 px-4 py-2.5 text-sm text-rose-600">
+              <div className="shrink-0 mx-3 mb-2 rounded-xl bg-rose-50 px-4 py-2.5 text-sm text-rose-600 sm:mx-4">
                 {error}
               </div>
             ) : null}
@@ -770,14 +781,26 @@ export default function CreateLifeAgentPage() {
               <form
                 ref={profileFormRef}
                 onSubmit={submitChatAnswer}
-                className="shrink-0 border-t border-slate-200/80 bg-white py-3"
-                style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
+                className="fixed inset-x-0 bottom-0 z-[60] border-t border-slate-200/80 bg-white/95 backdrop-blur-md"
+                style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
               >
-                <div className="flex items-end gap-2">
+                <div className="flex w-full items-end gap-2 px-2 py-2.5 sm:px-4">
+                  <ComposerActionButton
+                    onClick={() => {
+                      fillProfileInput(currentChatField.required ? getPlaceholderExample(currentChatField.placeholder) : "跳过");
+                      setTimeout(scrollToLastMessage, 100);
+                    }}
+                    disabled={chatLoading}
+                    title={currentChatField.required ? "填入示例" : "跳过这一项"}
+                  >
+                    <span className="text-xs font-semibold">{currentChatField.required ? "例" : "跳"}</span>
+                  </ComposerActionButton>
                   <div className="flex-1 min-w-0 rounded-2xl bg-slate-100 px-4 py-2.5">
                     <textarea
                       ref={profileInputRef}
-                      onFocus={(e) => e.target.scrollIntoView({ behavior: "smooth", block: "nearest" })}
+                      onFocus={() => {
+                        setTimeout(scrollToLastMessage, 150);
+                      }}
                       className="max-h-36 min-h-[24px] w-full resize-none border-0 bg-transparent text-[15px] leading-6 text-slate-800 outline-none placeholder:text-slate-400"
                       value={chatInput}
                       onChange={(e) => {
@@ -807,6 +830,20 @@ export default function CreateLifeAgentPage() {
                     )}
                   </ComposerActionButton>
                 </div>
+                <p className="px-2 pb-1 text-[11px] text-slate-400 sm:px-4">
+                  {currentChatField.required ? "建议认真填" : "可跳过"}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      fillProfileInput(getPlaceholderExample(currentChatField.placeholder));
+                      setTimeout(scrollToLastMessage, 100);
+                    }}
+                    disabled={chatLoading}
+                    className="ml-2 text-sky-600 hover:text-sky-700 disabled:opacity-50"
+                  >
+                    示例
+                  </button>
+                </p>
               </form>
             ) : (
               <div className="shrink-0 space-y-3 border-t border-slate-200/80 bg-slate-50/50 py-4">
@@ -829,7 +866,10 @@ export default function CreateLifeAgentPage() {
             )}
           </div>
 
-          <div className="shrink-0 border-t border-slate-200/80 bg-white px-4 py-4 sm:px-6">
+          <div
+            className="shrink-0 border-t border-slate-200/80 bg-white px-4 py-4 sm:px-6"
+            style={!chatDone ? { paddingBottom: "calc(env(safe-area-inset-bottom) + 5rem)" } : undefined}
+          >
             <div className="mx-auto flex max-w-3xl flex-col gap-3 sm:flex-row sm:justify-between">
               <button type="button" onClick={restartProfileChat} className="btn-secondary min-h-[44px]">
                 重新开始
@@ -855,16 +895,19 @@ export default function CreateLifeAgentPage() {
 
       {step === 2 && (
         <div className="flex min-h-0 flex-1 flex-col">
-          <div className="mx-auto w-full max-w-3xl flex-1 flex flex-col min-h-0 px-4 sm:px-6">
-            {/* 轻量提示条 - 非卡片 */}
-            <div className="shrink-0 flex items-center justify-between gap-2 py-3 text-xs text-slate-500">
+          <div className="mx-auto w-full max-w-3xl flex-1 flex flex-col min-h-0">
+            {/* 单行提示 - 紧凑 */}
+            <div className="shrink-0 flex items-center justify-between gap-2 px-3 py-2 text-xs text-slate-500 sm:px-3">
               <span>记忆经验 · 已记录 {experienceHistory.filter((msg) => msg.role === "user").length} 轮</span>
               <span>越具体，Agent 越像你</span>
             </div>
 
-            {/* 全宽聊天区域 */}
-            <div className="flex-1 overflow-y-auto pb-4 pt-1">
-              <div className="space-y-4">
+            {/* 聊天区域 - 键盘弹起时会被顶上去 */}
+            <div
+              className="flex-1 overflow-y-auto overscroll-contain px-3 pb-2 sm:px-4"
+              style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 0.5rem)" }}
+            >
+              <div className="space-y-4 pb-[72px]">
                 {experienceHistory.map((msg, i) => (
                   <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                     <div
@@ -883,7 +926,7 @@ export default function CreateLifeAgentPage() {
             </div>
 
             {error ? (
-              <div className="shrink-0 mb-2 rounded-xl bg-rose-50 px-4 py-2.5 text-sm text-rose-600">
+              <div className="shrink-0 mx-3 mb-2 rounded-xl bg-rose-50 px-4 py-2.5 text-sm text-rose-600 sm:mx-4">
                 {error}
               </div>
             ) : null}
@@ -892,14 +935,16 @@ export default function CreateLifeAgentPage() {
               <form
                 ref={experienceFormRef}
                 onSubmit={submitExperienceAnswer}
-                className="shrink-0 border-t border-slate-200/80 bg-white py-3"
-                style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
+                className="fixed inset-x-0 bottom-0 z-[60] border-t border-slate-200/80 bg-white/95 backdrop-blur-md"
+                style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
               >
-                <div className="flex items-end gap-2">
+                <div className="flex w-full items-end gap-2 px-2 py-2.5 sm:px-4">
                   <div className="flex-1 min-w-0 rounded-2xl bg-slate-100 px-4 py-2.5">
                     <textarea
                       ref={experienceInputRef}
-                      onFocus={(e) => e.target.scrollIntoView({ behavior: "smooth", block: "nearest" })}
+                      onFocus={() => {
+                        setTimeout(scrollToLastExperienceMessage, 150);
+                      }}
                       className="max-h-36 min-h-[24px] w-full resize-none border-0 bg-transparent text-[15px] leading-6 text-slate-800 outline-none placeholder:text-slate-400"
                       value={experienceInput}
                       onChange={(e) => {
@@ -929,11 +974,14 @@ export default function CreateLifeAgentPage() {
                     )}
                   </ComposerActionButton>
                 </div>
-                <p className="mt-1.5 truncate px-1 text-[11px] text-slate-400">
+                <p className="px-2 pb-1 text-[11px] text-slate-400 sm:px-4">
                   尽量写真实细节
                   <button
                     type="button"
-                    onClick={() => fillExperienceInput("最让我后悔的一次选择是：")}
+                    onClick={() => {
+                      fillExperienceInput("最让我后悔的一次选择是：");
+                      setTimeout(scrollToLastExperienceMessage, 100);
+                    }}
                     disabled={experienceLoading}
                     className="ml-2 text-sky-600 hover:text-sky-700 disabled:opacity-50"
                   >
@@ -948,7 +996,10 @@ export default function CreateLifeAgentPage() {
             )}
           </div>
 
-          <div className="shrink-0 border-t border-slate-200/80 bg-white px-4 py-4 sm:px-6">
+          <div
+            className="shrink-0 border-t border-slate-200/80 bg-white px-4 py-4 sm:px-6"
+            style={!experienceDone ? { paddingBottom: "calc(env(safe-area-inset-bottom) + 5rem)" } : undefined}
+          >
             <div className="mx-auto flex max-w-3xl flex-col gap-3 sm:flex-row sm:justify-between">
               <button
                 type="button"
