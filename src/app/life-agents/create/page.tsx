@@ -701,353 +701,298 @@ export default function CreateLifeAgentPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl space-y-8">
-      <div className="rounded-[28px] border border-white/80 bg-white/70 px-5 py-5 shadow-[0_22px_60px_-36px_rgba(15,23,42,0.24)] backdrop-blur-xl sm:px-6">
-        <Link href="/life-agents" className="text-sm text-slate-500 hover:text-sky-700">
-          ← 返回人生 Agent 列表
-        </Link>
-        <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="section-title">创建你的本地经验 Agent</h1>
-            <p className="mt-2 text-sm leading-6 text-slate-500">
-              先收集基础资料，再补充真实经历和经验，然后设置回答风格，最后收费并申请认证。
-            </p>
+    <div className="flex min-h-dvh flex-col">
+      {/* 紧凑顶部栏 - 非卡片 */}
+      <header className="shrink-0 border-b border-slate-200/80 bg-white/95 px-4 py-3 backdrop-blur-md sm:px-6">
+        <div className="mx-auto flex max-w-5xl items-center justify-between gap-3">
+          <Link href="/life-agents" className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-sky-600">
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            返回
+          </Link>
+          <div className="flex flex-1 items-center justify-center gap-2 min-w-0">
+            <h1 className="truncate text-base font-semibold text-slate-800 sm:text-lg">创建本地经验 Agent</h1>
+            <span className="shrink-0 rounded-full bg-sky-100 px-2.5 py-0.5 text-xs font-medium text-sky-700">
+              第 {step}/4 步
+            </span>
           </div>
-          <span className="inline-flex w-fit items-center rounded-full bg-sky-100/90 px-4 py-2 text-sm font-medium text-sky-700">
-            第 {step} / 4 步
-          </span>
+          <div className="w-14 shrink-0 sm:w-16" />
         </div>
-        <div className="mt-4 flex gap-2">
-          {[1, 2, 3, 4].map((s) => (
-            <div
-              key={s}
-              className={`h-2 flex-1 rounded-full transition-colors ${s <= step ? "bg-gradient-to-r from-sky-500 to-cyan-400" : "bg-slate-200"}`}
-            />
-          ))}
+        <div className="mx-auto mt-2 max-w-5xl">
+          <div className="flex gap-1">
+            {[1, 2, 3, 4].map((s) => (
+              <div
+                key={s}
+                className={`h-1 flex-1 rounded-full transition-colors ${s <= step ? "bg-sky-500" : "bg-slate-200"}`}
+              />
+            ))}
+          </div>
         </div>
-      </div>
+      </header>
 
       {step === 1 && (
-        <div className="mx-auto max-w-3xl space-y-5">
-          <section className="relative overflow-hidden rounded-[32px] border border-white/80 bg-white/80 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.28)] backdrop-blur-3xl">
-            <div className="pointer-events-none absolute inset-0 overflow-hidden">
-              <div className="absolute left-[8%] top-[24%] h-40 w-40 rounded-full bg-sky-200/35 blur-3xl" />
-              <div className="absolute bottom-[18%] right-[10%] h-44 w-44 rounded-full bg-orange-200/35 blur-3xl" />
-              <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.92)_0%,rgba(255,255,255,0.82)_100%)]" />
+        <div className="flex min-h-0 flex-1 flex-col">
+          <div className="mx-auto w-full max-w-3xl flex-1 flex flex-col min-h-0 px-4 sm:px-6">
+            {/* 轻量提示条 - 非卡片 */}
+            <div className="shrink-0 flex items-center justify-between gap-2 py-3 text-xs text-slate-500">
+              <span>基础资料 · 已完成 {completedChatCount}/{PROFILE_CHAT_FIELDS.length} 项</span>
+              <span>可回复「跳过」略过选填项</span>
             </div>
-            <div className="relative flex min-h-[72dvh] flex-col px-4 pb-4 pt-4 sm:px-6 sm:pb-6 sm:pt-5">
-              <div className="flex items-center justify-between gap-3 px-1">
-                <div className="w-10 shrink-0" />
-                <div className="text-center">
-                  <p className="text-base font-semibold tracking-[0.08em] text-slate-800">基础资料</p>
-                  <p className="mt-1 text-xs text-slate-500">我会一项一项问，你只要像聊天一样回答</p>
-                </div>
-                <span className="inline-flex h-10 min-w-10 items-center justify-center rounded-full bg-white/80 px-3 text-xs font-medium text-slate-500 shadow-sm ring-1 ring-slate-200/70 backdrop-blur">
-                  第 1 步
-                </span>
-              </div>
 
-              <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-                <span className="rounded-full bg-sky-100/90 px-3 py-1 text-xs font-medium text-sky-700 backdrop-blur">
-                  已完成 {completedChatCount} / {PROFILE_CHAT_FIELDS.length} 项
-                </span>
-                <span className="rounded-full bg-white/85 px-3 py-1 text-xs text-slate-500 ring-1 ring-slate-200/80 backdrop-blur">
-                  可回复“跳过”来略过选填项
-                </span>
-              </div>
-
-              <div className="mt-5 rounded-3xl border border-white/80 bg-white/55 p-4 text-sm text-slate-600 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] backdrop-blur-xl sm:p-5">
-                <p className="font-medium text-slate-800">先把基础资料聊出来，AI 会自动帮你整理成可发布内容。</p>
-                <p className="mt-2 leading-7">
-                  我会依次问 Agent 名称、一句话介绍、背景、人群、欢迎语、擅长标签和示例问题。最后我会自动总结，并生成初始经验知识。
-                </p>
-              </div>
-
-              <div className="mt-5 flex-1 overflow-y-auto px-1 pb-28 pt-2 sm:pb-6">
-                <div className="space-y-4">
-                  {chatHistory.map((msg, i) => (
-                    <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                      <div
-                        className={`max-w-[88%] rounded-[24px] px-4 py-3 text-sm leading-7 shadow-sm sm:px-5 ${
-                          msg.role === "user"
-                            ? "bg-gradient-to-br from-sky-500 to-cyan-400 text-white shadow-sky-200/70"
-                            : "border border-white/90 bg-white/88 text-slate-700 backdrop-blur-xl"
-                        }`}
-                      >
-                        <p className="whitespace-pre-wrap">{msg.content}</p>
-                      </div>
-                    </div>
-                  ))}
-                  <div ref={profileChatEndRef} />
-                </div>
-              </div>
-
-              {error ? (
-                <div className="mx-1 mb-3 rounded-2xl border border-rose-200 bg-rose-50/95 px-4 py-3 text-sm text-rose-600 backdrop-blur">
-                  {error}
-                </div>
-              ) : null}
-
-              {!chatDone ? (
-                <form
-                  ref={profileFormRef}
-                  onSubmit={submitChatAnswer}
-                  className="sticky bottom-2 z-10 mx-0 scroll-mb-[35vh] rounded-[28px] border border-white/65 bg-white/42 p-2 shadow-[0_28px_70px_-30px_rgba(15,23,42,0.42),0_10px_24px_-18px_rgba(255,255,255,0.9)_inset] ring-1 ring-white/35 backdrop-blur-[22px] sm:mx-1 sm:rounded-[32px] sm:p-2.5"
-                  style={{ paddingBottom: "max(0.5rem, calc(env(safe-area-inset-bottom) + 0.125rem))" }}
-                >
-                  <div className="pointer-events-none absolute inset-x-3 top-0 h-px bg-gradient-to-r from-transparent via-white/95 to-transparent" />
-                  <div className="relative flex items-end gap-1.5 sm:gap-2">
-                    <ComposerActionButton
-                      onClick={() => fillProfileInput(currentChatField.required ? getPlaceholderExample(currentChatField.placeholder) : "跳过")}
-                      disabled={chatLoading}
-                      title={currentChatField.required ? "填入示例" : "跳过这一项"}
+            {/* 全宽聊天区域 */}
+            <div className="flex-1 overflow-y-auto pb-4 pt-1">
+              <div className="space-y-4">
+                {chatHistory.map((msg, i) => (
+                  <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                    <div
+                      className={`max-w-[85%] rounded-2xl px-4 py-3 text-[15px] leading-7 sm:max-w-[75%] ${
+                        msg.role === "user"
+                          ? "bg-sky-500 text-white"
+                          : "bg-slate-100 text-slate-800"
+                      }`}
                     >
-                      <span className="text-xs font-semibold">{currentChatField.required ? "例" : "跳"}</span>
-                    </ComposerActionButton>
-                    <div className="flex-1 rounded-[22px] border border-white/55 bg-white/52 px-3.5 py-2.5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.55),inset_0_-1px_3px_rgba(15,23,42,0.04)] backdrop-blur-xl sm:rounded-[26px] sm:px-4">
-                      <textarea
-                        ref={profileInputRef}
-                        onFocus={(e) => e.target.scrollIntoView({ behavior: "smooth", block: "nearest" })}
-                        className="max-h-40 min-h-[24px] w-full resize-none scroll-mb-[35vh] border-0 bg-transparent text-[14px] leading-6 text-slate-800 outline-none placeholder:text-slate-400 sm:text-[15px]"
-                        value={chatInput}
-                        onChange={(e) => {
-                          setChatInput(e.target.value);
-                          autoResizeTextarea(e.target);
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
-                            e.preventDefault();
-                            e.currentTarget.form?.requestSubmit();
-                          }
-                        }}
-                        placeholder={chatLoading ? "AI 正在整理资料…" : currentChatField.placeholder}
-                        required={Boolean(currentChatField.required)}
-                        disabled={chatLoading}
-                        rows={1}
-                        enterKeyHint="send"
-                      />
-                      <div className="mt-1 flex items-center justify-between gap-2">
-                        <p className="truncate text-[10px] text-slate-400 sm:text-[11px]">
-                          {currentChatField.required ? "这一项建议认真填，AI 才更像你" : "不会的可跳过，后面还能回来改"}
-                        </p>
-                        <button
-                          type="button"
-                          onClick={() => fillProfileInput(getPlaceholderExample(currentChatField.placeholder))}
-                          disabled={chatLoading}
-                          className="shrink-0 rounded-full border border-white/60 bg-white/65 px-2.5 py-1 text-[10px] font-medium text-slate-500 shadow-[0_10px_20px_-16px_rgba(15,23,42,0.35)] transition hover:text-sky-700 disabled:opacity-50 sm:text-[11px]"
-                        >
-                          示例
-                        </button>
-                      </div>
+                      <p className="whitespace-pre-wrap">{msg.content}</p>
                     </div>
-                    <ComposerActionButton type="submit" disabled={chatLoading} title="发送" tone="primary">
-                      {chatLoading ? (
-                        <span className="text-xs">...</span>
-                      ) : (
-                        <svg viewBox="0 0 20 20" className="h-4 w-4 fill-current" aria-hidden="true">
-                          <path d="M3.72 2.94a.75.75 0 0 1 .8-.12l11.5 5.5a.75.75 0 0 1 0 1.36l-11.5 5.5A.75.75 0 0 1 3.45 14.5l1.34-4.05H9.5a.75.75 0 0 0 0-1.5H4.8L3.45 4.9a.75.75 0 0 1 .27-.96Z" />
-                        </svg>
-                      )}
-                    </ComposerActionButton>
                   </div>
-                </form>
-              ) : (
-                <div className="mx-1 space-y-3">
-                  <div className="rounded-[28px] border border-emerald-200 bg-emerald-50/90 px-5 py-4 text-sm text-emerald-700 shadow-sm backdrop-blur">
-                    基础资料已经整理好了，下一步继续补充你的真实经历和经验。
+                ))}
+                <div ref={profileChatEndRef} />
+              </div>
+            </div>
+
+            {error ? (
+              <div className="shrink-0 mb-2 rounded-xl bg-rose-50 px-4 py-2.5 text-sm text-rose-600">
+                {error}
+              </div>
+            ) : null}
+
+            {!chatDone ? (
+              <form
+                ref={profileFormRef}
+                onSubmit={submitChatAnswer}
+                className="shrink-0 border-t border-slate-200/80 bg-white py-3"
+                style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
+              >
+                <div className="flex items-end gap-2">
+                  <ComposerActionButton
+                    onClick={() => fillProfileInput(currentChatField.required ? getPlaceholderExample(currentChatField.placeholder) : "跳过")}
+                    disabled={chatLoading}
+                    title={currentChatField.required ? "填入示例" : "跳过这一项"}
+                  >
+                    <span className="text-xs font-semibold">{currentChatField.required ? "例" : "跳"}</span>
+                  </ComposerActionButton>
+                  <div className="flex-1 min-w-0 rounded-2xl bg-slate-100 px-4 py-2.5">
+                    <textarea
+                      ref={profileInputRef}
+                      onFocus={(e) => e.target.scrollIntoView({ behavior: "smooth", block: "nearest" })}
+                      className="max-h-36 min-h-[24px] w-full resize-none border-0 bg-transparent text-[15px] leading-6 text-slate-800 outline-none placeholder:text-slate-400"
+                      value={chatInput}
+                      onChange={(e) => {
+                        setChatInput(e.target.value);
+                        autoResizeTextarea(e.target);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+                          e.preventDefault();
+                          e.currentTarget.form?.requestSubmit();
+                        }
+                      }}
+                      placeholder={chatLoading ? "AI 正在整理资料…" : currentChatField.placeholder}
+                      required={Boolean(currentChatField.required)}
+                      disabled={chatLoading}
+                      rows={1}
+                      enterKeyHint="send"
+                    />
                   </div>
-                  <div className="rounded-[28px] border border-white/85 bg-white/90 p-4 shadow-[0_18px_45px_-28px_rgba(15,23,42,0.22)] backdrop-blur-2xl">
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <div>
-                        <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-400">Agent 名称</p>
-                        <p className="mt-2 text-sm text-slate-700">{form.displayName || "未填写"}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-400">一句话介绍</p>
-                        <p className="mt-2 text-sm text-slate-700">{form.headline || "未填写"}</p>
-                      </div>
-                      <div className="sm:col-span-2">
-                        <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-400">擅长标签</p>
-                        <p className="mt-2 text-sm text-slate-700">{form.expertiseTags || "未填写"}</p>
-                      </div>
-                    </div>
+                  <ComposerActionButton type="submit" disabled={chatLoading} title="发送" tone="primary">
+                    {chatLoading ? (
+                      <span className="text-xs">...</span>
+                    ) : (
+                      <svg viewBox="0 0 20 20" className="h-4 w-4 fill-current" aria-hidden="true">
+                        <path d="M3.72 2.94a.75.75 0 0 1 .8-.12l11.5 5.5a.75.75 0 0 1 0 1.36l-11.5 5.5A.75.75 0 0 1 3.45 14.5l1.34-4.05H9.5a.75.75 0 0 0 0-1.5H4.8L3.45 4.9a.75.75 0 0 1 .27-.96Z" />
+                      </svg>
+                    )}
+                  </ComposerActionButton>
+                </div>
+                <p className="mt-1.5 truncate px-1 text-[11px] text-slate-400">
+                  {currentChatField.required ? "建议认真填" : "可跳过"}
+                  <button
+                    type="button"
+                    onClick={() => fillProfileInput(getPlaceholderExample(currentChatField.placeholder))}
+                    disabled={chatLoading}
+                    className="ml-2 text-sky-600 hover:text-sky-700 disabled:opacity-50"
+                  >
+                    示例
+                  </button>
+                </p>
+              </form>
+            ) : (
+              <div className="shrink-0 space-y-3 border-t border-slate-200/80 bg-slate-50/50 py-4">
+                <p className="text-sm text-emerald-700">基础资料已整理好，下一步补充真实经历。</p>
+                <div className="grid gap-3 text-sm sm:grid-cols-2">
+                  <div>
+                    <p className="text-xs text-slate-400">Agent 名称</p>
+                    <p className="text-slate-700">{form.displayName || "未填写"}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-400">一句话介绍</p>
+                    <p className="text-slate-700">{form.headline || "未填写"}</p>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <p className="text-xs text-slate-400">擅长标签</p>
+                    <p className="text-slate-700">{form.expertiseTags || "未填写"}</p>
                   </div>
                 </div>
-              )}
-            </div>
-          </section>
+              </div>
+            )}
+          </div>
 
-          <div className="flex flex-col gap-3 sm:flex-row sm:justify-between">
-            <button type="button" onClick={restartProfileChat} className="btn-secondary min-h-[48px] w-full sm:w-auto">
-              重新开始
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                if (!chatDone) {
-                  setError("请先完成基础资料对话整理");
-                  return;
-                }
-                setError("");
-                setStep(2);
-              }}
-              className="btn-primary min-h-[48px] w-full sm:w-auto"
-            >
-              下一步：补充经验
-            </button>
+          <div className="shrink-0 border-t border-slate-200/80 bg-white px-4 py-4 sm:px-6">
+            <div className="mx-auto flex max-w-3xl flex-col gap-3 sm:flex-row sm:justify-between">
+              <button type="button" onClick={restartProfileChat} className="btn-secondary min-h-[44px]">
+                重新开始
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!chatDone) {
+                    setError("请先完成基础资料对话整理");
+                    return;
+                  }
+                  setError("");
+                  setStep(2);
+                }}
+                className="btn-primary min-h-[44px]"
+              >
+                下一步：补充经验
+              </button>
+            </div>
           </div>
         </div>
       )}
 
       {step === 2 && (
-        <div className="mx-auto max-w-3xl space-y-5">
-          <section className="relative overflow-hidden rounded-[32px] border border-white/80 bg-white/80 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.28)] backdrop-blur-3xl">
-            <div className="pointer-events-none absolute inset-0 overflow-hidden">
-              <div className="absolute left-[8%] top-[24%] h-40 w-40 rounded-full bg-sky-200/35 blur-3xl" />
-              <div className="absolute bottom-[18%] right-[10%] h-44 w-44 rounded-full bg-orange-200/35 blur-3xl" />
-              <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.92)_0%,rgba(255,255,255,0.82)_100%)]" />
+        <div className="flex min-h-0 flex-1 flex-col">
+          <div className="mx-auto w-full max-w-3xl flex-1 flex flex-col min-h-0 px-4 sm:px-6">
+            {/* 轻量提示条 - 非卡片 */}
+            <div className="shrink-0 flex items-center justify-between gap-2 py-3 text-xs text-slate-500">
+              <span>记忆经验 · 已记录 {experienceHistory.filter((msg) => msg.role === "user").length} 轮</span>
+              <span>越具体，Agent 越像你</span>
             </div>
 
-            <div className="relative flex min-h-[72dvh] flex-col px-4 pb-4 pt-4 sm:px-6 sm:pb-6 sm:pt-5">
-              <div className="flex items-center justify-between gap-3 px-1">
-                <div className="w-10 shrink-0" />
-                <div className="text-center">
-                  <p className="text-base font-semibold tracking-[0.08em] text-slate-800">记忆经验</p>
-                  <p className="mt-1 text-xs text-slate-500">继续把你的真实经历、方法和踩坑说出来</p>
-                </div>
-                <span className="inline-flex h-10 min-w-10 items-center justify-center rounded-full bg-white/80 px-3 text-xs font-medium text-slate-500 shadow-sm ring-1 ring-slate-200/70 backdrop-blur">
-                  第 2 步
-                </span>
-              </div>
-
-              <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-                <span className="rounded-full bg-sky-100/90 px-3 py-1 text-xs font-medium text-sky-700 backdrop-blur">
-                  已记录 {experienceHistory.filter((msg) => msg.role === "user").length} 轮
-                </span>
-                <span className="rounded-full bg-white/85 px-3 py-1 text-xs text-slate-500 ring-1 ring-slate-200/80 backdrop-blur">
-                  越具体，后面的 Agent 越像你
-                </span>
-              </div>
-
-              <div className="mt-5 rounded-3xl border border-white/80 bg-white/55 p-4 text-sm text-slate-600 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] backdrop-blur-xl sm:p-5">
-                <p className="font-medium text-slate-800">这里不是重复填资料，而是继续补充你的真实经验。</p>
-                <p className="mt-2 leading-7">
-                  你可以继续讲过程、转折、踩坑、结果、总结出来的方法。AI 会边追问边整理成可复用的经验知识。
-                </p>
-              </div>
-
-              <div className="mt-5 flex-1 overflow-y-auto px-1 pb-28 pt-2 sm:pb-6">
-                <div className="space-y-4">
-                  {experienceHistory.map((msg, i) => (
-                    <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                      <div
-                        className={`max-w-[88%] rounded-[24px] px-4 py-3 text-sm leading-7 shadow-sm sm:px-5 ${
-                          msg.role === "user"
-                            ? "bg-gradient-to-br from-sky-500 to-cyan-400 text-white shadow-sky-200/70"
-                            : "border border-white/90 bg-white/88 text-slate-700 backdrop-blur-xl"
-                        }`}
-                      >
-                        <p className="whitespace-pre-wrap">{msg.content}</p>
-                      </div>
+            {/* 全宽聊天区域 */}
+            <div className="flex-1 overflow-y-auto pb-4 pt-1">
+              <div className="space-y-4">
+                {experienceHistory.map((msg, i) => (
+                  <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                    <div
+                      className={`max-w-[85%] rounded-2xl px-4 py-3 text-[15px] leading-7 sm:max-w-[75%] ${
+                        msg.role === "user"
+                          ? "bg-sky-500 text-white"
+                          : "bg-slate-100 text-slate-800"
+                      }`}
+                    >
+                      <p className="whitespace-pre-wrap">{msg.content}</p>
                     </div>
-                  ))}
-                  <div ref={experienceChatEndRef} />
-                </div>
-              </div>
-
-              {error ? (
-                <div className="mx-1 mb-3 rounded-2xl border border-rose-200 bg-rose-50/95 px-4 py-3 text-sm text-rose-600 backdrop-blur">
-                  {error}
-                </div>
-              ) : null}
-
-              {!experienceDone ? (
-                <form
-                  ref={experienceFormRef}
-                  onSubmit={submitExperienceAnswer}
-                  className="sticky bottom-2 z-10 mx-0 scroll-mb-[35vh] rounded-[28px] border border-white/65 bg-white/42 p-2 shadow-[0_28px_70px_-30px_rgba(15,23,42,0.42),0_10px_24px_-18px_rgba(255,255,255,0.9)_inset] ring-1 ring-white/35 backdrop-blur-[22px] sm:bottom-0 sm:mx-1 sm:rounded-[32px] sm:p-2.5"
-                  style={{ paddingBottom: "max(0.5rem, calc(env(safe-area-inset-bottom) + 0.125rem))" }}
-                >
-                  <div className="pointer-events-none absolute inset-x-3 top-0 h-px bg-gradient-to-r from-transparent via-white/95 to-transparent" />
-                  <div className="relative flex items-end gap-1.5 sm:gap-2">
-                    <div className="flex-1 rounded-[22px] border border-white/55 bg-white/52 px-3.5 py-2.5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.55),inset_0_-1px_3px_rgba(15,23,42,0.04)] backdrop-blur-xl sm:rounded-[26px] sm:px-4">
-                      <textarea
-                        ref={experienceInputRef}
-                        onFocus={(e) => e.target.scrollIntoView({ behavior: "smooth", block: "nearest" })}
-                        className="max-h-40 min-h-[24px] w-full resize-none scroll-mb-[35vh] border-0 bg-transparent text-[14px] leading-6 text-slate-800 outline-none placeholder:text-slate-400 sm:text-[15px]"
-                        value={experienceInput}
-                        onChange={(e) => {
-                          setExperienceInput(e.target.value);
-                          autoResizeTextarea(e.target);
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
-                            e.preventDefault();
-                            e.currentTarget.form?.requestSubmit();
-                          }
-                        }}
-                        placeholder={experienceLoading ? "AI 正在思考下一问…" : "说出你需要分享的经验和信息"}
-                        required
-                        disabled={experienceLoading}
-                        rows={1}
-                        enterKeyHint="send"
-                      />
-                      <div className="mt-1 flex items-center justify-between gap-2">
-                        <p className="truncate text-[10px] text-slate-400 sm:text-[11px]">尽量写真实细节，比如时间、转折、踩坑和结果</p>
-                        <button
-                          type="button"
-                          onClick={() => fillExperienceInput("最让我后悔的一次选择是：")}
-                          disabled={experienceLoading}
-                          className="shrink-0 rounded-full border border-white/60 bg-white/65 px-2.5 py-1 text-[10px] font-medium text-slate-500 shadow-[0_10px_20px_-16px_rgba(15,23,42,0.35)] transition hover:text-sky-700 disabled:opacity-50 sm:text-[11px]"
-                        >
-                          灵感
-                        </button>
-                      </div>
-                    </div>
-                    <ComposerActionButton type="submit" disabled={experienceLoading} title="发送" tone="primary">
-                      {experienceLoading ? (
-                        <span className="text-xs">...</span>
-                      ) : (
-                        <svg viewBox="0 0 20 20" className="h-4 w-4 fill-current" aria-hidden="true">
-                          <path d="M3.72 2.94a.75.75 0 0 1 .8-.12l11.5 5.5a.75.75 0 0 1 0 1.36l-11.5 5.5A.75.75 0 0 1 3.45 14.5l1.34-4.05H9.5a.75.75 0 0 0 0-1.5H4.8L3.45 4.9a.75.75 0 0 1 .27-.96Z" />
-                        </svg>
-                      )}
-                    </ComposerActionButton>
                   </div>
-                </form>
-              ) : (
-                <div className="mx-1 rounded-[28px] border border-emerald-200 bg-emerald-50/90 px-5 py-4 text-sm text-emerald-700 shadow-sm backdrop-blur">
-                  经验记录得差不多了，可以进入下一步继续设置回答风格。
-                </div>
-              )}
+                ))}
+                <div ref={experienceChatEndRef} />
+              </div>
             </div>
-          </section>
 
-          <div className="flex flex-col gap-3 sm:flex-row sm:justify-between">
-            <button
-              type="button"
-              onClick={() => {
-                setStep(1);
-                setError("");
-              }}
-              className="btn-secondary min-h-[48px] w-full sm:w-auto"
-            >
-              上一步
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                if (!experienceDone) {
-                  setError("请先完成经验信息整理");
-                  return;
-                }
-                setError("");
-                setStep(3);
-              }}
-              className="btn-primary min-h-[48px] w-full sm:w-auto"
-            >
-              下一步：让回答更像你
-            </button>
+            {error ? (
+              <div className="shrink-0 mb-2 rounded-xl bg-rose-50 px-4 py-2.5 text-sm text-rose-600">
+                {error}
+              </div>
+            ) : null}
+
+            {!experienceDone ? (
+              <form
+                ref={experienceFormRef}
+                onSubmit={submitExperienceAnswer}
+                className="shrink-0 border-t border-slate-200/80 bg-white py-3"
+                style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
+              >
+                <div className="flex items-end gap-2">
+                  <div className="flex-1 min-w-0 rounded-2xl bg-slate-100 px-4 py-2.5">
+                    <textarea
+                      ref={experienceInputRef}
+                      onFocus={(e) => e.target.scrollIntoView({ behavior: "smooth", block: "nearest" })}
+                      className="max-h-36 min-h-[24px] w-full resize-none border-0 bg-transparent text-[15px] leading-6 text-slate-800 outline-none placeholder:text-slate-400"
+                      value={experienceInput}
+                      onChange={(e) => {
+                        setExperienceInput(e.target.value);
+                        autoResizeTextarea(e.target);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+                          e.preventDefault();
+                          e.currentTarget.form?.requestSubmit();
+                        }
+                      }}
+                      placeholder={experienceLoading ? "AI 正在思考下一问…" : "说出你需要分享的经验和信息"}
+                      required
+                      disabled={experienceLoading}
+                      rows={1}
+                      enterKeyHint="send"
+                    />
+                  </div>
+                  <ComposerActionButton type="submit" disabled={experienceLoading} title="发送" tone="primary">
+                    {experienceLoading ? (
+                      <span className="text-xs">...</span>
+                    ) : (
+                      <svg viewBox="0 0 20 20" className="h-4 w-4 fill-current" aria-hidden="true">
+                        <path d="M3.72 2.94a.75.75 0 0 1 .8-.12l11.5 5.5a.75.75 0 0 1 0 1.36l-11.5 5.5A.75.75 0 0 1 3.45 14.5l1.34-4.05H9.5a.75.75 0 0 0 0-1.5H4.8L3.45 4.9a.75.75 0 0 1 .27-.96Z" />
+                      </svg>
+                    )}
+                  </ComposerActionButton>
+                </div>
+                <p className="mt-1.5 truncate px-1 text-[11px] text-slate-400">
+                  尽量写真实细节
+                  <button
+                    type="button"
+                    onClick={() => fillExperienceInput("最让我后悔的一次选择是：")}
+                    disabled={experienceLoading}
+                    className="ml-2 text-sky-600 hover:text-sky-700 disabled:opacity-50"
+                  >
+                    灵感
+                  </button>
+                </p>
+              </form>
+            ) : (
+              <div className="shrink-0 border-t border-slate-200/80 bg-slate-50/50 py-4">
+                <p className="text-sm text-emerald-700">经验记录得差不多了，可以进入下一步设置回答风格。</p>
+              </div>
+            )}
+          </div>
+
+          <div className="shrink-0 border-t border-slate-200/80 bg-white px-4 py-4 sm:px-6">
+            <div className="mx-auto flex max-w-3xl flex-col gap-3 sm:flex-row sm:justify-between">
+              <button
+                type="button"
+                onClick={() => {
+                  setStep(1);
+                  setError("");
+                }}
+                className="btn-secondary min-h-[44px]"
+              >
+                上一步
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!experienceDone) {
+                    setError("请先完成经验信息整理");
+                    return;
+                  }
+                  setError("");
+                  setStep(3);
+                }}
+                className="btn-primary min-h-[44px]"
+              >
+                下一步：让回答更像你
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -1059,14 +1004,11 @@ export default function CreateLifeAgentPage() {
             setError("");
             setStep(4);
           }}
-          className="mx-auto max-w-4xl space-y-5"
+          className="flex min-h-0 flex-1 flex-col"
         >
-          <section className="relative overflow-hidden rounded-[32px] border border-white/80 bg-white/80 px-5 py-6 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.28)] backdrop-blur-2xl sm:px-6">
-            <div className="pointer-events-none absolute inset-0 overflow-hidden">
-              <div className="absolute left-[6%] top-[12%] h-36 w-36 rounded-full bg-sky-200/25 blur-3xl" />
-              <div className="absolute bottom-[12%] right-[8%] h-40 w-40 rounded-full bg-emerald-200/20 blur-3xl" />
-            </div>
-            <div className="relative">
+          <div className="flex-1 overflow-y-auto">
+            <div className="mx-auto max-w-4xl space-y-6 px-4 py-6 sm:px-6">
+          <section className="border-b border-slate-200/80 pb-6">
               <h2 className="text-xl font-semibold text-slate-900">让回答更像你本人</h2>
               <p className="mt-1 text-slate-600">
                 这里决定 Agent 说话的感觉。别只填标签，还要告诉它你平时怎么开口、讨厌什么套话。
@@ -1246,41 +1188,41 @@ export default function CreateLifeAgentPage() {
                   )}
                 </div>
               </div>
-            </div>
           </section>
 
           {error ? (
-            <p className="rounded-2xl border border-rose-200 bg-rose-50/95 px-4 py-3 text-sm text-rose-600">
+            <p className="rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-600">
               {error}
             </p>
           ) : null}
+            </div>
+          </div>
 
-          <div className="flex flex-col gap-3 sm:flex-row sm:justify-between">
-            <button
-              type="button"
-              onClick={() => {
-                setStep(3);
-                setError("");
-              }}
-              className="btn-secondary min-h-[48px] w-full sm:w-auto"
-            >
-              上一步
-            </button>
-            <button type="submit" className="btn-primary min-h-[48px] w-full sm:w-auto">
-              下一步：设置收费
-            </button>
+          <div className="shrink-0 border-t border-slate-200/80 bg-white px-4 py-4 sm:px-6">
+            <div className="mx-auto flex max-w-4xl flex-col gap-3 sm:flex-row sm:justify-between">
+              <button
+                type="button"
+                onClick={() => {
+                  setStep(2);
+                  setError("");
+                }}
+                className="btn-secondary min-h-[44px]"
+              >
+                上一步
+              </button>
+              <button type="submit" className="btn-primary min-h-[44px]">
+                下一步：设置收费
+              </button>
+            </div>
           </div>
         </form>
       )}
 
       {step === 4 && (
-        <form onSubmit={submit} className="mx-auto max-w-3xl space-y-5">
-          <section className="relative overflow-hidden rounded-[32px] border border-white/80 bg-white/80 px-5 py-6 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.28)] backdrop-blur-2xl sm:px-6">
-            <div className="pointer-events-none absolute inset-0 overflow-hidden">
-              <div className="absolute left-[8%] top-[12%] h-32 w-32 rounded-full bg-sky-200/25 blur-3xl" />
-              <div className="absolute bottom-[12%] right-[8%] h-36 w-36 rounded-full bg-emerald-200/20 blur-3xl" />
-            </div>
-            <div className="relative">
+        <form onSubmit={submit} className="flex min-h-0 flex-1 flex-col">
+          <div className="flex-1 overflow-y-auto">
+            <div className="mx-auto max-w-3xl space-y-6 px-4 py-6 sm:px-6">
+          <section className="border-b border-slate-200/80 pb-6">
             <h2 className="text-xl font-semibold text-slate-900">设置收费</h2>
             <div className="mt-5 max-w-sm">
               <label className="mb-2 block text-sm font-medium text-slate-700">每次提问价格（元）</label>
@@ -1294,10 +1236,9 @@ export default function CreateLifeAgentPage() {
                 required
               />
             </div>
-            </div>
           </section>
 
-          <div className="rounded-[32px] border border-white/80 bg-white/80 px-5 py-6 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.22)] backdrop-blur-2xl sm:px-6">
+          <section className="border-b border-slate-200/80 py-6">
             <p className="font-medium text-slate-900">申请官方认证</p>
             <p className="mt-2 text-sm leading-6 text-slate-600">
               平台会核实你的经历真实性，认证后会显示认证标识。你可以在发布前或发布后联系官方申请。
@@ -1308,9 +1249,9 @@ export default function CreateLifeAgentPage() {
                 {OFFICIAL_CONTACT.email}
               </a>
             </p>
-          </div>
+          </section>
 
-          <div className="rounded-[32px] border border-white/80 bg-white/80 px-5 py-6 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.22)] backdrop-blur-2xl sm:px-6">
+          <section className="border-b border-slate-200/80 py-6">
             <label className="mb-2 block text-sm font-medium text-slate-700">
               有什么你不能回答或不想回答的问题？（选填）
             </label>
@@ -1321,9 +1262,9 @@ export default function CreateLifeAgentPage() {
               placeholder="例如：投资理财、医疗建议、超出我行业的问题..."
             />
             <p className="mt-1 text-xs text-slate-500">用户提问到这类问题时，AI 会明确说明无法回答</p>
-          </div>
+          </section>
 
-          <div className="rounded-[32px] border border-white/80 bg-white/75 p-5 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.2)] backdrop-blur-2xl">
+          <section className="py-6">
             <h3 className="font-medium text-slate-900">已记录的经验预览</h3>
             <ul className="mt-3 space-y-2 text-sm text-slate-600">
               {knowledgeEntries.slice(0, 5).map((e, i) => (
@@ -1336,36 +1277,40 @@ export default function CreateLifeAgentPage() {
                 <li className="text-slate-500">... 共 {knowledgeEntries.length} 条</li>
               )}
             </ul>
-            <div className="mt-5 grid gap-3 rounded-2xl border border-slate-200/80 bg-white/70 p-4 text-sm text-slate-600">
+            <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50/50 p-4 text-sm text-slate-600">
               <p>
                 <span className="font-medium text-slate-800">擅长标签：</span>
                 {form.expertiseTags || "未填写"}
               </p>
-              <p>
+              <p className="mt-2">
                 <span className="font-medium text-slate-800">示例问题：</span>
                 {sampleQuestionsList.length > 0 ? sampleQuestionsList.join(" / ") : "未填写"}
               </p>
             </div>
-          </div>
+          </section>
 
           {error && (
-            <p className="rounded-2xl border border-rose-200 bg-rose-50/95 px-4 py-3 text-sm text-rose-600">{error}</p>
+            <p className="rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-600">{error}</p>
           )}
+            </div>
+          </div>
 
-          <div className="flex flex-col gap-3 sm:flex-row sm:justify-between">
-            <button
-              type="button"
-              onClick={() => {
-                setStep(2);
-                setError("");
-              }}
-              className="btn-secondary min-h-[48px] w-full sm:w-auto"
-            >
-              上一步
-            </button>
-            <button type="submit" disabled={loading} className="btn-primary min-h-[48px] w-full sm:w-auto disabled:opacity-60">
-              {loading ? "创建中..." : "发布我的 Agent"}
-            </button>
+          <div className="shrink-0 border-t border-slate-200/80 bg-white px-4 py-4 sm:px-6">
+            <div className="mx-auto flex max-w-3xl flex-col gap-3 sm:flex-row sm:justify-between">
+              <button
+                type="button"
+                onClick={() => {
+                  setStep(3);
+                  setError("");
+                }}
+                className="btn-secondary min-h-[44px]"
+              >
+                上一步
+              </button>
+              <button type="submit" disabled={loading} className="btn-primary min-h-[44px] disabled:opacity-60">
+                {loading ? "创建中..." : "发布我的 Agent"}
+              </button>
+            </div>
           </div>
         </form>
       )}
