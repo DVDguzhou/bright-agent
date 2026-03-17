@@ -114,7 +114,7 @@ export default function DashboardChatHistoryPage() {
                   key={item.id}
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.03 }}
+                  transition={{ delay: index < 8 ? index * 0.03 : 0 }}
                   className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4"
                 >
                   <div className="flex flex-wrap items-start justify-between gap-3">

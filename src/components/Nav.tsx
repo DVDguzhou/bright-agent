@@ -150,7 +150,7 @@ export function Nav() {
       <motion.nav
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/85 backdrop-blur-xl overflow-x-hidden"
+        className="sticky top-0 z-50 border-b border-slate-200/80 bg-white supports-[backdrop-filter]:bg-white/85 supports-[backdrop-filter]:backdrop-blur-xl overflow-x-hidden"
       >
         <div className="container mx-auto px-3 sm:px-4 max-w-7xl flex items-center justify-between min-h-[56px] sm:h-16">
           <Link href="/" className="flex items-center gap-2 group shrink-0 min-w-0" title="Bright Agent Hub">
@@ -219,7 +219,7 @@ export function Nav() {
       </motion.nav>
 
       {/* 手机+平板：底部导航栏；电脑端不显示 */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 flex lg:hidden items-center justify-around border-t border-slate-200/90 bg-white/95 backdrop-blur-xl pb-[env(safe-area-inset-bottom)] pt-2">
+      <div className="fixed bottom-0 left-0 right-0 z-50 flex lg:hidden items-center justify-around border-t border-slate-200/90 bg-white supports-[backdrop-filter]:bg-white/95 supports-[backdrop-filter]:backdrop-blur-xl pb-[env(safe-area-inset-bottom)] pt-2">
         {navLinks.map((link) => {
           const Icon = link.Icon;
           const active = pathname === link.href;

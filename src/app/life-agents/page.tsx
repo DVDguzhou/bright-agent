@@ -393,7 +393,7 @@ export default function LifeAgentsPage() {
                 key={profile.id}
                 initial={{ opacity: 0, y: 18 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
+                transition={{ delay: index < 6 ? index * 0.05 : 0 }}
               >
                 <Link href={"/life-agents/" + profile.id} className="block h-full">
                   <div className="glass-card h-full p-6">

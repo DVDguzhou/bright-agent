@@ -21,10 +21,7 @@ html {
 body {
   font-family: var(--font-sans);
   background: #f8fafc;
-  background-image: 
-    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(59, 130, 246, 0.12), transparent),
-    radial-gradient(ellipse 60% 40% at 100% 0%, rgba(14, 165, 233, 0.09), transparent),
-    radial-gradient(ellipse 60% 40% at 0% 100%, rgba(125, 211, 252, 0.1), transparent);
+  background-image: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(59, 130, 246, 0.08), transparent);
   color: #0f172a;
 }
 
@@ -53,10 +50,32 @@ body {
   color: inherit;
 }
 
+@keyframes float-a {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(30px, -20px); }
+}
+@keyframes float-b {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(-20px, 30px); }
+}
+.animate-float-a {
+  animation: float-a 8s ease-in-out infinite;
+  will-change: transform;
+}
+.animate-float-b {
+  animation: float-b 10s ease-in-out infinite;
+  will-change: transform;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-float-a, .animate-float-b {
+    animation: none;
+  }
+}
+
 @layer components {
   .glass-card {
-    @apply relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white/85 backdrop-blur-xl shadow-sm;
-    background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,250,252,0.92) 100%);
+    @apply relative overflow-hidden rounded-2xl border border-slate-200/80 shadow-sm;
+    background: linear-gradient(135deg, #fff 0%, #f8fafc 100%);
   }
 
   .glass-card:hover {

@@ -172,7 +172,7 @@ export default function LifeAgentChatPage() {
 
   useEffect(() => {
     viewportRef.current?.scrollTo({ top: viewportRef.current.scrollHeight, behavior: "smooth" });
-  }, [messages, loading, sessionLoading]);
+  }, [messages]);
 
   const sendMessage = async (e: FormEvent) => {
     e.preventDefault();

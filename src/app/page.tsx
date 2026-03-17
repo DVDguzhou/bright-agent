@@ -41,16 +41,8 @@ export default function HomePage() {
   return (
     <div className="relative min-h-[calc(100vh-6rem)] sm:min-h-[calc(100vh-8rem)] flex flex-col items-center justify-center py-8 sm:py-20 overflow-x-hidden">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <motion.div
-          className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-blue-500/10 blur-3xl"
-          animate={{ x: [0, 30, 0], y: [0, -20, 0] }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <motion.div
-          className="absolute top-1/2 -right-40 w-80 h-80 rounded-full bg-sky-400/10 blur-3xl"
-          animate={{ x: [0, -20, 0], y: [0, 30, 0] }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-        />
+        <div className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-blue-500/10 blur-3xl animate-float-a" />
+        <div className="absolute top-1/2 -right-40 w-80 h-80 rounded-full bg-sky-400/10 blur-3xl animate-float-b" />
       </div>
 
       <motion.div
