@@ -72,9 +72,14 @@ export default function LifeAgentDetailPage() {
   const id = params.id as string;
   const [profile, setProfile] = useState<DetailData | null>(null);
   const [loaded, setLoaded] = useState(false);
-  const [questionCount, setQuestionCount] = useState(0);
+  const [questionCountInput, setQuestionCountInput] = useState("");
   const [purchasing, setPurchasing] = useState(false);
   const [message, setMessage] = useState("");
+
+  const questionCount = useMemo(() => {
+    const n = parseInt(questionCountInput, 10);
+    return Number.isNaN(n) ? 0 : Math.min(MAX_QUESTIONS, Math.max(0, n));
+  }, [questionCountInput]);
 
   useEffect(() => {
     setLoaded(false);
@@ -294,11 +299,9 @@ export default function LifeAgentDetailPage() {
                 type="number"
                 min={0}
                 max={MAX_QUESTIONS}
-                value={questionCount}
-                onChange={(e) => {
-                  const v = e.target.value === "" ? 0 : parseInt(e.target.value, 10);
-                  setQuestionCount(isNaN(v) ? 0 : Math.min(MAX_QUESTIONS, Math.max(0, v)));
-                }}
+                value={questionCountInput}
+                onChange={(e) => setQuestionCountInput(e.target.value)}
+                placeholder="0"
                 className="input-shell w-full max-w-[8rem]"
               />
               <p className="mt-1 text-xs text-slate-500">1–500 次，可自由选择</p>
