@@ -709,7 +709,7 @@ export default function CreateLifeAgentPage() {
   };
 
   return (
-    <div className="-mx-4 -mt-3 -mb-20 sm:-mt-8 lg:-mb-8 flex flex-col" style={{ height: "calc(100dvh - 56px)" }}>
+    <div className="-mx-4 -mt-3 -mb-20 sm:-mt-8 lg:-mb-8 flex flex-col h-[calc(100dvh-7.5rem)] lg:h-[calc(100dvh-3.5rem)]">
       {/* 紧凑顶部栏 */}
       <header className="shrink-0 border-b border-slate-200/80 bg-white/95 px-3 py-2 backdrop-blur-md sm:px-6 sm:py-3">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-2">
