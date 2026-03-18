@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
@@ -85,6 +86,44 @@ export default function LifeAgentChatPage() {
   const [ratingScore, setRatingScore] = useState(5);
   const [ratingComment, setRatingComment] = useState("");
   const [ratingSubmitting, setRatingSubmitting] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [inputBarStyle, setInputBarStyle] = useState<React.CSSProperties | undefined>(undefined);
+  const chatEndRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => setMounted(true), []);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.visualViewport) return;
+    const vv = window.visualViewport;
+    const update = () => {
+      const gap = window.innerHeight - vv.height;
+      if (gap > 80) {
+        setInputBarStyle({
+          top: `${vv.height}px`,
+          bottom: "auto",
+          transform: "translateY(-100%)",
+        });
+      } else {
+        setInputBarStyle(undefined);
+      }
+    };
+    vv.addEventListener("resize", update);
+    vv.addEventListener("scroll", update);
+    update();
+    return () => {
+      vv.removeEventListener("resize", update);
+      vv.removeEventListener("scroll", update);
+    };
+  }, []);
+
+  const scrollToLastMessage = () => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  };
+
+  const dismissKeyboard = () => {
+    const el = document.activeElement as HTMLElement | null;
+    if (el?.matches?.("input, textarea")) el.blur();
+  };
 
   const syncRatingForm = (rating?: Profile["viewerState"]["rating"]) => {
     setRatingScore((rating?.currentScore as number | null) ?? 5);
@@ -296,7 +335,7 @@ export default function LifeAgentChatPage() {
   const ratingState = profile.viewerState.rating;
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[0.8fr_1.4fr]">
+    <div className="-mx-4 -mt-3 -mb-20 sm:-mt-8 lg:-mb-8 grid gap-6 lg:grid-cols-[0.8fr_1.4fr] min-h-0">
       <aside className="space-y-6">
         <div className="glass-card p-6">
           <Link href={`/life-agents/${id}`} className="text-sm text-slate-500 hover:text-sky-700">
@@ -472,14 +511,20 @@ export default function LifeAgentChatPage() {
       </aside>
 
       <section className="glass-card flex min-h-[75dvh] flex-col overflow-hidden">
-        <div className="border-b border-slate-200 px-6 py-4">
+        <div className="border-b border-slate-200 px-6 py-4 shrink-0">
           <h2 className="text-lg font-semibold text-slate-900">咨询聊天</h2>
           <p className="mt-1 text-sm text-slate-600">
             描述你的具体处境和问题，TA 会结合真实经验给出可操作的建议。问得越具体，回答越有用。
           </p>
         </div>
 
-        <div ref={viewportRef} className="flex-1 space-y-5 overflow-y-auto px-6 py-6">
+        <div
+          ref={viewportRef}
+          className="flex-1 space-y-5 overflow-y-auto overscroll-contain px-6 py-6 pb-28 lg:pb-6"
+          onClick={dismissKeyboard}
+          onTouchStart={dismissKeyboard}
+          role="presentation"
+        >
           {sessionLoading ? (
             <div className="flex h-full items-center justify-center text-sm text-slate-500">正在加载历史会话...</div>
           ) : (
@@ -489,10 +534,10 @@ export default function LifeAgentChatPage() {
                 className={message.role === "user" ? "flex justify-end" : "flex justify-start"}
               >
                 <div
-                  className={`max-w-[85%] rounded-3xl px-5 py-4 text-sm leading-7 shadow-sm ${
+                  className={`max-w-[85%] rounded-2xl px-4 py-3 text-[15px] leading-7 sm:max-w-[75%] ${
                     message.role === "user"
-                      ? "bg-blue-600 text-white"
-                      : "border border-slate-200 bg-white text-slate-800"
+                      ? "bg-sky-500 text-white"
+                      : "bg-slate-100 text-slate-800"
                   }`}
                 >
                   <p className="whitespace-pre-wrap">{message.content}</p>
@@ -627,53 +672,77 @@ export default function LifeAgentChatPage() {
 
           {loading && (
             <div className="flex justify-start">
-              <div className="rounded-3xl border border-slate-200 bg-white px-5 py-4 text-sm text-slate-500 shadow-sm">
+              <div className="max-w-[85%] rounded-2xl bg-slate-100 px-4 py-3 text-[15px] text-slate-600 sm:max-w-[75%]">
                 正在根据 TA 的经验整理回答...
               </div>
             </div>
           )}
+          <div ref={chatEndRef} />
         </div>
 
-        <form
-          onSubmit={sendMessage}
-          className="mx-4 rounded-[28px] border border-white/65 bg-white/42 p-2 shadow-[0_28px_70px_-30px_rgba(15,23,42,0.42),0_10px_24px_-18px_rgba(255,255,255,0.9)_inset] ring-1 ring-white/35 backdrop-blur-[22px] sm:mx-6 sm:rounded-[32px] sm:p-2.5"
-          style={{ paddingBottom: "max(0.5rem, calc(env(safe-area-inset-bottom) + 0.125rem))" }}
-        >
-          {error && <p className="mb-3 rounded-2xl bg-rose-50 px-4 py-3 text-sm text-rose-600">{error}</p>}
-          <div className="relative flex items-end gap-1.5 sm:gap-2">
-            <div className="flex-1 rounded-[22px] border border-white/55 bg-white/52 px-3.5 py-2.5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.55),inset_0_-1px_3px_rgba(15,23,42,0.04)] backdrop-blur-xl sm:rounded-[26px] sm:px-4">
-              <textarea
-                className="max-h-40 min-h-[24px] w-full resize-none scroll-mb-[35vh] border-0 bg-transparent text-[14px] leading-6 text-slate-800 outline-none placeholder:text-slate-400 sm:text-[15px]"
-                value={input}
-                onChange={(e) => {
-                  setInput(e.target.value);
-                  autoResizeTextarea(e.target);
-                }}
-                onFocus={(e) => e.target.scrollIntoView({ behavior: "smooth", block: "nearest" })}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
-                    e.preventDefault();
-                    e.currentTarget.form?.requestSubmit();
-                  }
-                }}
-                placeholder="描述你的处境 + 具体问题，例如：我二本大三，在纠结考研还是就业，家里经济一般..."
-                disabled={loading || sessionLoading}
-                rows={1}
-                enterKeyHint="send"
-              />
-              <p className="mt-1 text-[10px] text-slate-400 sm:text-[11px]">写得越具体，回答越有用</p>
-            </div>
-            <button
-              type="submit"
-              disabled={loading || sessionLoading || !input.trim()}
-              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-[18px] border border-sky-400/80 bg-gradient-to-br from-sky-500 via-sky-500 to-cyan-400 text-white shadow-[0_16px_30px_-16px_rgba(14,165,233,0.95)] transition hover:brightness-[1.05] disabled:cursor-not-allowed disabled:opacity-50 sm:h-11 sm:w-11 sm:rounded-full"
-            >
-              <svg viewBox="0 0 20 20" className="h-4 w-4 fill-current" aria-hidden="true">
-                <path d="M3.72 2.94a.75.75 0 0 1 .8-.12l11.5 5.5a.75.75 0 0 1 0 1.36l-11.5 5.5A.75.75 0 0 1 3.45 14.5l1.34-4.05H9.5a.75.75 0 0 0 0-1.5H4.8L3.45 4.9a.75.75 0 0 1 .27-.96Z" />
-              </svg>
-            </button>
+        {error && (
+          <div className="shrink-0 mx-4 rounded-xl bg-rose-50 px-4 py-2 text-sm text-rose-600 sm:mx-6">
+            {error}
           </div>
-        </form>
+        )}
+
+        {/* 输入栏 - 用 Portal 渲染到 body，键盘弹出时跟随，确保在底部导航之上 */}
+        {mounted &&
+          createPortal(
+            <form
+              onSubmit={sendMessage}
+              className="fixed left-0 right-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-[100] border-t border-slate-200/80 bg-white px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] transition-[top,transform] duration-200 ease-out sm:px-4 lg:bottom-0"
+              style={inputBarStyle}
+            >
+              <div className="mx-auto flex max-w-3xl items-end gap-2">
+                <div className="flex-1 min-w-0 rounded-2xl bg-slate-100 px-4 py-2.5">
+                  <textarea
+                    onFocus={() => {
+                      setTimeout(scrollToLastMessage, 150);
+                      [100, 350, 600].forEach((ms) =>
+                        setTimeout(() => {
+                          const vv = window.visualViewport;
+                          if (vv && window.innerHeight - vv.height > 80) {
+                            setInputBarStyle({
+                              top: `${vv.height}px`,
+                              bottom: "auto",
+                              transform: "translateY(-100%)",
+                            });
+                          }
+                        }, ms)
+                      );
+                    }}
+                    className="max-h-36 min-h-[24px] w-full resize-none border-0 bg-transparent text-base leading-6 text-slate-800 outline-none placeholder:text-slate-400"
+                    value={input}
+                    onChange={(e) => {
+                      setInput(e.target.value);
+                      autoResizeTextarea(e.target);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+                        e.preventDefault();
+                        e.currentTarget.form?.requestSubmit();
+                      }
+                    }}
+                    placeholder="描述你的处境 + 具体问题，例如：我二本大三，在纠结考研还是就业，家里经济一般..."
+                    disabled={loading || sessionLoading}
+                    rows={1}
+                    enterKeyHint="send"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={loading || sessionLoading || !input.trim()}
+                  className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-[18px] border border-sky-400/80 bg-gradient-to-br from-sky-500 via-sky-500 to-cyan-400 text-white shadow-[0_16px_30px_-16px_rgba(14,165,233,0.95)] transition hover:brightness-[1.05] disabled:cursor-not-allowed disabled:opacity-50 sm:h-11 sm:w-11 sm:rounded-full"
+                >
+                  <svg viewBox="0 0 20 20" className="h-4 w-4 fill-current" aria-hidden="true">
+                    <path d="M3.72 2.94a.75.75 0 0 1 .8-.12l11.5 5.5a.75.75 0 0 1 0 1.36l-11.5 5.5A.75.75 0 0 1 3.45 14.5l1.34-4.05H9.5a.75.75 0 0 0 0-1.5H4.8L3.45 4.9a.75.75 0 0 1 .27-.96Z" />
+                  </svg>
+                </button>
+              </div>
+            </form>,
+            document.body
+          )}
       </section>
     </div>
   );
