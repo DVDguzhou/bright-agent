@@ -708,8 +708,13 @@ export default function CreateLifeAgentPage() {
     experienceChatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   };
 
+  const dismissKeyboard = () => {
+    const el = document.activeElement as HTMLElement | null;
+    if (el?.matches?.("input, textarea")) el.blur();
+  };
+
   return (
-    <div className="-mx-4 -mt-3 -mb-20 sm:-mt-8 lg:-mb-8 flex flex-col h-[calc(100dvh-7.5rem)] lg:h-[calc(100dvh-3.5rem)]">
+    <div className="-mx-4 -mt-3 -mb-20 sm:-mt-8 lg:-mb-8 flex flex-col">
       {/* 紧凑顶部栏 */}
       <header className="shrink-0 border-b border-slate-200/80 bg-white/95 px-3 py-2 backdrop-blur-md sm:px-6 sm:py-3">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-2">
@@ -747,8 +752,13 @@ export default function CreateLifeAgentPage() {
             <span>可回复「跳过」略过</span>
           </div>
 
-          {/* 聊天区域 */}
-          <div className="flex-1 overflow-y-auto overscroll-contain px-3 sm:px-4">
+          {/* 聊天区域 - 点击/触摸空白处收起键盘（和微信一样） */}
+          <div
+            className="flex-1 overflow-y-auto overscroll-contain px-3 sm:px-4"
+            onClick={dismissKeyboard}
+            onTouchStart={dismissKeyboard}
+            role="presentation"
+          >
             <div className="mx-auto max-w-3xl space-y-4 pb-28 lg:pb-20">
               {chatHistory.map((msg, i) => (
                 <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
@@ -807,12 +817,12 @@ export default function CreateLifeAgentPage() {
             </div>
           ) : null}
 
-          {/* 输入栏 - 固定在底部导航上方 */}
+          {/* 输入栏 - 固定定位，始终在底部导航上方可见 */}
           {!chatDone && (
             <form
               ref={profileFormRef}
               onSubmit={submitChatAnswer}
-              className="shrink-0 border-t border-slate-200/80 bg-white px-2 py-2 sm:px-4"
+              className="fixed left-0 right-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-[60] border-t border-slate-200/80 bg-white px-2 py-2 sm:px-4 lg:bottom-0"
             >
               <div className="mx-auto flex max-w-3xl items-end gap-2">
                 <ComposerActionButton
@@ -873,8 +883,13 @@ export default function CreateLifeAgentPage() {
             <span>越具体，Agent 越像你</span>
           </div>
 
-          {/* 聊天区域 */}
-          <div className="flex-1 overflow-y-auto overscroll-contain px-3 sm:px-4">
+          {/* 聊天区域 - 点击/触摸空白处收起键盘（和微信一样） */}
+          <div
+            className="flex-1 overflow-y-auto overscroll-contain px-3 sm:px-4"
+            onClick={dismissKeyboard}
+            onTouchStart={dismissKeyboard}
+            role="presentation"
+          >
             <div className="mx-auto max-w-3xl space-y-4 pb-28 lg:pb-20">
               {experienceHistory.map((msg, i) => (
                 <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
@@ -923,12 +938,12 @@ export default function CreateLifeAgentPage() {
             </div>
           ) : null}
 
-          {/* 输入栏 */}
+          {/* 输入栏 - 固定定位，始终在底部导航上方可见 */}
           {!experienceDone && (
             <form
               ref={experienceFormRef}
               onSubmit={submitExperienceAnswer}
-              className="shrink-0 border-t border-slate-200/80 bg-white px-2 py-2 sm:px-4"
+              className="fixed left-0 right-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-[60] border-t border-slate-200/80 bg-white px-2 py-2 sm:px-4 lg:bottom-0"
             >
               <div className="mx-auto flex max-w-3xl items-end gap-2">
                 <div className="flex-1 min-w-0 rounded-2xl bg-slate-100 px-4 py-2.5">
