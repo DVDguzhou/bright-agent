@@ -34,10 +34,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN">
-      <body className="min-h-screen bg-slate-50 text-slate-900 font-sans antialiased overflow-x-hidden">
+      <body className="min-h-screen bg-slate-50 text-slate-900 font-sans antialiased overflow-x-hidden overscroll-x-none">
         <AuthProvider>
           <Nav />
-          <main className="container mx-auto px-4 py-3 sm:py-8 max-w-7xl relative z-10 pb-20 lg:pb-8">{children}</main>
+          <main className="container mx-auto px-4 py-3 sm:py-8 max-w-7xl relative z-10 pb-20 lg:pb-8 overflow-x-hidden">{children}</main>
           <RegisterSW />
           <InstallPWA />
         </AuthProvider>
