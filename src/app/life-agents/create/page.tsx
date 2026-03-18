@@ -229,6 +229,7 @@ export default function CreateLifeAgentPage() {
   const [sampleQuestionsList, setSampleQuestionsList] = useState<string[]>([]);
   const [sampleQuestionsDraft, setSampleQuestionsDraft] = useState("");
   const [chatFieldIndex, setChatFieldIndex] = useState(0);
+  const [inputBarBottom, setInputBarBottom] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     fetch("/api/auth/me", { credentials: "include" })
@@ -245,6 +246,25 @@ export default function CreateLifeAgentPage() {
     experienceChatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [experienceHistory]);
 
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.visualViewport) return;
+    const vv = window.visualViewport;
+    const update = () => {
+      if (vv.height < window.innerHeight * 0.75) {
+        const keyboardHeight = window.innerHeight - vv.height;
+        setInputBarBottom(`${keyboardHeight}px`);
+      } else {
+        setInputBarBottom(undefined);
+      }
+    };
+    vv.addEventListener("resize", update);
+    vv.addEventListener("scroll", update);
+    update();
+    return () => {
+      vv.removeEventListener("resize", update);
+      vv.removeEventListener("scroll", update);
+    };
+  }, []);
 
   useEffect(() => {
     if (step === 1 && chatHistory.length === 0) {
@@ -817,12 +837,13 @@ export default function CreateLifeAgentPage() {
             </div>
           ) : null}
 
-          {/* 输入栏 - 固定定位，始终在底部导航上方可见 */}
+          {/* 输入栏 - 键盘弹起时自动上移到键盘上方 */}
           {!chatDone && (
             <form
               ref={profileFormRef}
               onSubmit={submitChatAnswer}
               className="fixed left-0 right-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-[60] border-t border-slate-200/80 bg-white px-2 py-2 sm:px-4 lg:bottom-0"
+              style={inputBarBottom ? { bottom: inputBarBottom } : undefined}
             >
               <div className="mx-auto flex max-w-3xl items-end gap-2">
                 <ComposerActionButton
@@ -938,12 +959,13 @@ export default function CreateLifeAgentPage() {
             </div>
           ) : null}
 
-          {/* 输入栏 - 固定定位，始终在底部导航上方可见 */}
+          {/* 输入栏 - 键盘弹起时自动上移到键盘上方 */}
           {!experienceDone && (
             <form
               ref={experienceFormRef}
               onSubmit={submitExperienceAnswer}
               className="fixed left-0 right-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-[60] border-t border-slate-200/80 bg-white px-2 py-2 sm:px-4 lg:bottom-0"
+              style={inputBarBottom ? { bottom: inputBarBottom } : undefined}
             >
               <div className="mx-auto flex max-w-3xl items-end gap-2">
                 <div className="flex-1 min-w-0 rounded-2xl bg-slate-100 px-4 py-2.5">
