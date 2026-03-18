@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { OFFICIAL_CONTACT } from "@/lib/official-contact";
@@ -230,6 +231,8 @@ export default function CreateLifeAgentPage() {
   const [sampleQuestionsDraft, setSampleQuestionsDraft] = useState("");
   const [chatFieldIndex, setChatFieldIndex] = useState(0);
   const [inputBarStyle, setInputBarStyle] = useState<React.CSSProperties | undefined>(undefined);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     fetch("/api/auth/me", { credentials: "include" })
@@ -841,14 +844,16 @@ export default function CreateLifeAgentPage() {
             </div>
           ) : null}
 
-          {/* 输入栏 - 键盘弹起时自动上移到键盘上方 */}
-          {!chatDone && (
-            <form
-              ref={profileFormRef}
-              onSubmit={submitChatAnswer}
-              className="fixed left-0 right-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-[60] border-t border-slate-200/80 bg-white px-2 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] transition-[top,transform] duration-200 ease-out sm:px-4 lg:bottom-0"
-              style={inputBarStyle}
-            >
+          {/* 输入栏 - 用 Portal 渲染到 body，避免被 main(z-10) 内的层叠上下文限制，确保在底部导航(z-50)之上 */}
+          {!chatDone &&
+            mounted &&
+            createPortal(
+              <form
+                ref={profileFormRef}
+                onSubmit={submitChatAnswer}
+                className="fixed left-0 right-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-[100] border-t border-slate-200/80 bg-white px-2 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] transition-[top,transform] duration-200 ease-out sm:px-4 lg:bottom-0"
+                style={inputBarStyle}
+              >
               <div className="mx-auto flex max-w-3xl items-end gap-2">
                 <div className="flex-1 min-w-0 rounded-2xl bg-slate-100 px-4 py-2.5">
                   <textarea
@@ -897,8 +902,9 @@ export default function CreateLifeAgentPage() {
                   )}
                 </ComposerActionButton>
               </div>
-            </form>
-          )}
+            </form>,
+              document.body
+            )}
         </div>
       )}
 
@@ -965,14 +971,16 @@ export default function CreateLifeAgentPage() {
             </div>
           ) : null}
 
-          {/* 输入栏 - 键盘弹起时自动上移到键盘上方 */}
-          {!experienceDone && (
-            <form
-              ref={experienceFormRef}
-              onSubmit={submitExperienceAnswer}
-              className="fixed left-0 right-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-[60] border-t border-slate-200/80 bg-white px-2 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] transition-[top,transform] duration-200 ease-out sm:px-4 lg:bottom-0"
-              style={inputBarStyle}
-            >
+          {/* 输入栏 - 用 Portal 渲染到 body，确保在底部导航之上 */}
+          {!experienceDone &&
+            mounted &&
+            createPortal(
+              <form
+                ref={experienceFormRef}
+                onSubmit={submitExperienceAnswer}
+                className="fixed left-0 right-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-[100] border-t border-slate-200/80 bg-white px-2 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] transition-[top,transform] duration-200 ease-out sm:px-4 lg:bottom-0"
+                style={inputBarStyle}
+              >
               <div className="mx-auto flex max-w-3xl items-end gap-2">
                 <div className="flex-1 min-w-0 rounded-2xl bg-slate-100 px-4 py-2.5">
                   <textarea
@@ -1021,8 +1029,9 @@ export default function CreateLifeAgentPage() {
                   )}
                 </ComposerActionButton>
               </div>
-            </form>
-          )}
+            </form>,
+              document.body
+            )}
         </div>
       )}
 
