@@ -878,7 +878,7 @@ export default function CreateLifeAgentPage() {
                         }, ms)
                       );
                     }}
-                    className="max-h-36 min-h-[24px] w-full resize-none border-0 bg-transparent text-[15px] leading-6 text-slate-800 outline-none placeholder:text-slate-400"
+                    className="max-h-36 min-h-[24px] w-full resize-none border-0 bg-transparent text-base leading-6 text-slate-800 outline-none placeholder:text-slate-400"
                     value={chatInput}
                     onChange={(e) => {
                       setChatInput(e.target.value);
@@ -1002,7 +1002,7 @@ export default function CreateLifeAgentPage() {
                           }, ms)
                         );
                       }}
-                    className="max-h-36 min-h-[24px] w-full resize-none border-0 bg-transparent text-[15px] leading-6 text-slate-800 outline-none placeholder:text-slate-400"
+                    className="max-h-36 min-h-[24px] w-full resize-none border-0 bg-transparent text-base leading-6 text-slate-800 outline-none placeholder:text-slate-400"
                     value={experienceInput}
                     onChange={(e) => {
                       setExperienceInput(e.target.value);
