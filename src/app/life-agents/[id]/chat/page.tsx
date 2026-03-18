@@ -657,10 +657,10 @@ export default function LifeAgentChatPage() {
           </div>
         )}
 
-        {/* 输入栏 - 文档流内，自然位于底部导航上方（main 有 pb-20） */}
+        {/* 输入栏 - 竖屏时预留底部导航高度，避免被遮挡 */}
         <form
           onSubmit={sendMessage}
-          className="shrink-0 border-t border-slate-200/80 bg-white px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] sm:px-4"
+          className="shrink-0 border-t border-slate-200/80 bg-white px-2 pt-2 pb-20 lg:pb-[max(0.5rem,env(safe-area-inset-bottom))] sm:px-4"
         >
           <div className="mx-auto flex max-w-3xl items-end gap-2">
             <div className="flex-1 min-w-0 rounded-2xl bg-slate-100 px-4 py-2.5">
