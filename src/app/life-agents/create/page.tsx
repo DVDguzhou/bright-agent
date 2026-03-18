@@ -846,7 +846,7 @@ export default function CreateLifeAgentPage() {
             <form
               ref={profileFormRef}
               onSubmit={submitChatAnswer}
-              className="fixed left-0 right-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-[60] border-t border-slate-200/80 bg-white px-2 py-2 sm:px-4 transition-[top,transform] duration-200 ease-out lg:bottom-0"
+              className="fixed left-0 right-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-[60] border-t border-slate-200/80 bg-white px-2 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] transition-[top,transform] duration-200 ease-out sm:px-4 lg:bottom-0"
               style={inputBarStyle}
             >
               <div className="mx-auto flex max-w-3xl items-end gap-2">
@@ -970,7 +970,7 @@ export default function CreateLifeAgentPage() {
             <form
               ref={experienceFormRef}
               onSubmit={submitExperienceAnswer}
-              className="fixed left-0 right-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-[60] border-t border-slate-200/80 bg-white px-2 py-2 sm:px-4 transition-[top,transform] duration-200 ease-out lg:bottom-0"
+              className="fixed left-0 right-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-[60] border-t border-slate-200/80 bg-white px-2 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] transition-[top,transform] duration-200 ease-out sm:px-4 lg:bottom-0"
               style={inputBarStyle}
             >
               <div className="mx-auto flex max-w-3xl items-end gap-2">
