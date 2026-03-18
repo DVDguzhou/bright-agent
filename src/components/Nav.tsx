@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
@@ -55,6 +56,18 @@ export function Nav() {
   const router = useRouter();
   const pathname = usePathname();
   const { user, refetch } = useAuth();
+  const [hasMessages, setHasMessages] = useState(false);
+
+  useEffect(() => {
+    if (!user) {
+      setHasMessages(false);
+      return;
+    }
+    fetch("/api/life-agents/chat-sessions", { credentials: "include" })
+      .then((r) => (r.ok ? r.json() : []))
+      .then((d) => setHasMessages(Array.isArray(d) && d.length > 0))
+      .catch(() => setHasMessages(false));
+  }, [user]);
 
   const logout = async () => {
     await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
@@ -186,6 +199,7 @@ export function Nav() {
           <div className="hidden lg:flex items-center gap-1 xl:gap-2 2xl:gap-4 shrink-0">
             {navLinks.map((link) => {
               const Icon = link.Icon;
+              const showBadge = link.href === "/dashboard/messages" && hasMessages && pathname !== "/dashboard/messages";
               return (
                 <Link key={link.href} href={link.href} title={link.label}>
                   <motion.span
@@ -197,7 +211,12 @@ export function Nav() {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    <Icon className="w-5 h-5 shrink-0" />
+                    <span className="relative inline-flex">
+                      <Icon className="w-5 h-5 shrink-0" />
+                      {showBadge && (
+                        <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-white" aria-hidden />
+                      )}
+                    </span>
                     <span className="hidden xl:inline">{link.label}</span>
                     {pathname === link.href && (
                       <motion.span
@@ -223,15 +242,21 @@ export function Nav() {
         {navLinks.map((link) => {
           const Icon = link.Icon;
           const active = pathname === link.href;
+          const showBadge = link.href === "/dashboard/messages" && hasMessages && pathname !== "/dashboard/messages";
           return (
             <Link
               key={link.href}
               href={link.href}
-              className={`flex flex-col items-center gap-0.5 px-4 py-2 min-w-0 flex-1 transition-colors ${
+              className={`relative flex flex-col items-center gap-0.5 px-4 py-2 min-w-0 flex-1 transition-colors ${
                 active ? "text-sky-600" : "text-slate-500"
               }`}
             >
-              <Icon className={`h-6 w-6 shrink-0 ${active ? "stroke-[2.5]" : ""}`} />
+              <span className="relative inline-flex">
+                <Icon className={`h-6 w-6 shrink-0 ${active ? "stroke-[2.5]" : ""}`} />
+                {showBadge && (
+                  <span className="absolute -top-0.5 right-0 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-white" aria-hidden />
+                )}
+              </span>
               <span className="text-[11px] font-medium truncate w-full text-center">{link.label}</span>
             </Link>
           );
