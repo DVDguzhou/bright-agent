@@ -850,16 +850,6 @@ export default function CreateLifeAgentPage() {
               style={inputBarStyle}
             >
               <div className="mx-auto flex max-w-3xl items-end gap-2">
-                <ComposerActionButton
-                  onClick={() => {
-                    fillProfileInput(currentChatField.required ? getPlaceholderExample(currentChatField.placeholder) : "跳过");
-                    setTimeout(scrollToLastMessage, 100);
-                  }}
-                  disabled={chatLoading}
-                  title={currentChatField.required ? "填入示例" : "跳过这一项"}
-                >
-                  <span className="text-xs font-semibold">{currentChatField.required ? "例" : "跳"}</span>
-                </ComposerActionButton>
                 <div className="flex-1 min-w-0 rounded-2xl bg-slate-100 px-4 py-2.5">
                   <textarea
                     ref={profileInputRef}
