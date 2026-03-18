@@ -741,7 +741,7 @@ export default function CreateLifeAgentPage() {
   };
 
   return (
-    <div className="-mx-4 -mt-3 -mb-20 sm:-mt-8 lg:-mb-8 flex min-h-0 flex-col overflow-hidden min-w-0 h-[calc(100dvh-6rem)] lg:h-[calc(100dvh-3rem)]">
+    <div className="-mx-4 -mt-3 -mb-20 sm:-mt-8 lg:-mb-8 flex min-h-0 flex-col overflow-hidden min-w-0 h-[calc(100dvh-6rem-3.5rem-env(safe-area-inset-bottom,0px))] lg:h-[calc(100dvh-3rem)]">
       {/* 紧凑顶部栏 */}
       <header className="shrink-0 border-b border-slate-200/80 bg-white/95 px-3 py-2 backdrop-blur-md sm:px-6 sm:py-3">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-2">
@@ -786,7 +786,7 @@ export default function CreateLifeAgentPage() {
             onTouchStart={dismissKeyboard}
             role="presentation"
           >
-            <div className="mx-auto max-w-3xl space-y-4 pb-28 lg:pb-20">
+            <div className={`mx-auto max-w-3xl space-y-4 ${chatDone ? "pb-24" : "pb-28 lg:pb-20"}`}>
               {chatHistory.map((msg, i) => (
                 <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                   <div
@@ -851,7 +851,7 @@ export default function CreateLifeAgentPage() {
               <form
                 ref={profileFormRef}
                 onSubmit={submitChatAnswer}
-                className="fixed left-0 right-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-[100] border-t border-slate-200/80 bg-white px-2 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] transition-[top,transform] duration-200 ease-out sm:px-4 lg:bottom-0"
+                className="fixed left-0 right-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-[100] border-t border-slate-200/80 bg-white px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] transition-[top,transform] duration-200 ease-out sm:px-4 lg:bottom-0"
                 style={inputBarStyle}
               >
               <div className="mx-auto flex max-w-3xl items-end gap-2">
@@ -923,7 +923,7 @@ export default function CreateLifeAgentPage() {
             onTouchStart={dismissKeyboard}
             role="presentation"
           >
-            <div className="mx-auto max-w-3xl space-y-4 pb-28 lg:pb-20">
+            <div className={`mx-auto max-w-3xl space-y-4 ${experienceDone ? "pb-24" : "pb-28 lg:pb-20"}`}>
               {experienceHistory.map((msg, i) => (
                 <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                   <div
@@ -978,7 +978,7 @@ export default function CreateLifeAgentPage() {
               <form
                 ref={experienceFormRef}
                 onSubmit={submitExperienceAnswer}
-                className="fixed left-0 right-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-[100] border-t border-slate-200/80 bg-white px-2 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] transition-[top,transform] duration-200 ease-out sm:px-4 lg:bottom-0"
+                className="fixed left-0 right-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-[100] border-t border-slate-200/80 bg-white px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] transition-[top,transform] duration-200 ease-out sm:px-4 lg:bottom-0"
                 style={inputBarStyle}
               >
               <div className="mx-auto flex max-w-3xl items-end gap-2">
@@ -1236,7 +1236,7 @@ export default function CreateLifeAgentPage() {
             </div>
           </div>
 
-          <div className="shrink-0 border-t border-slate-200/80 bg-white px-4 py-4 sm:px-6">
+          <div className="shrink-0 border-t border-slate-200/80 bg-white px-4 py-4 pb-24 sm:px-6 lg:pb-6">
             <div className="mx-auto flex max-w-4xl flex-col gap-3 sm:flex-row sm:justify-between">
               <button
                 type="button"
@@ -1333,7 +1333,7 @@ export default function CreateLifeAgentPage() {
             </div>
           </div>
 
-          <div className="shrink-0 border-t border-slate-200/80 bg-white px-4 py-4 sm:px-6">
+          <div className="shrink-0 border-t border-slate-200/80 bg-white px-4 py-4 pb-24 sm:px-6 lg:pb-6">
             <div className="mx-auto flex max-w-3xl flex-col gap-3 sm:flex-row sm:justify-between">
               <button
                 type="button"
