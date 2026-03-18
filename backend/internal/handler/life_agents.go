@@ -982,19 +982,13 @@ func buildModifyStateString(p *models.LifeAgentProfile, entries []models.LifeAge
 	if len(p.ExampleReplies) > 0 {
 		b.WriteString("示范回答:\n")
 		for i, r := range p.ExampleReplies {
-			excerpt := r
-			if len(excerpt) > 80 {
-				excerpt = excerpt[:80] + "..."
-			}
+			excerpt := lifeagent.TruncateToRunes(r, 80)
 			b.WriteString(fmt.Sprintf("  %d. %s\n", i+1, excerpt))
 		}
 	}
 	b.WriteString("\n【知识库条目】\n")
 	for i, e := range entries {
-		excerpt := e.Content
-		if len(excerpt) > 120 {
-			excerpt = excerpt[:120] + "..."
-		}
+		excerpt := lifeagent.TruncateToRunes(e.Content, 120)
 		tags := e.Tags
 		b.WriteString(fmt.Sprintf("%d. [%s] %s (tags: %v): %s\n", i+1, e.Category, e.Title, tags, excerpt))
 	}
@@ -1552,10 +1546,7 @@ func LifeAgentsChatFeedback(cfg *config.Config) gin.HandlerFunc {
 			c.JSON(http.StatusOK, gin.H{"ok": true, "updated": true})
 			return
 		}
-		excerpt := msg.Content
-		if len(excerpt) > 400 {
-			excerpt = excerpt[:400] + "..."
-		}
+		excerpt := lifeagent.TruncateToRunes(msg.Content, 400)
 		var userQ string
 		var prevMsg models.LifeAgentChatMessage
 		if db.DB.Where("session_id = ? AND role = ? AND created_at < ?", body.SessionID, "user", msg.CreatedAt).Order("created_at DESC").First(&prevMsg).Error == nil {

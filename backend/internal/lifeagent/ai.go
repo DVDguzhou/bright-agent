@@ -200,10 +200,21 @@ func firstSentence(s string, maxLen int) string {
 	if m == "" {
 		m = s
 	}
-	if len(m) > maxLen {
-		return strings.TrimSpace(m[:maxLen]) + "..."
+	// 按 rune 截断，避免在 UTF-8 多字节字符中间切断导致乱码
+	runes := []rune(m)
+	if len(runes) > maxLen {
+		return strings.TrimSpace(string(runes[:maxLen])) + "..."
 	}
 	return m
+}
+
+// TruncateToRunes 按字符（rune）截断，避免在 UTF-8 多字节字符中间切断导致乱码
+func TruncateToRunes(s string, maxRunes int) string {
+	runes := []rune(s)
+	if len(runes) <= maxRunes {
+		return s
+	}
+	return string(runes[:maxRunes]) + "..."
 }
 
 func normalizeSnippet(s string) string {
