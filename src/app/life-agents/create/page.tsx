@@ -499,8 +499,10 @@ export default function CreateLifeAgentPage() {
         setError(field.key === "displayName" ? "请先填写 Agent 名称" : "这一项先回答一下再继续");
         return;
       }
-      normalizedAnswer = "";
-    } else if (OPTIONAL_SKIP_RE.test(rawAnswer) && !field.required) {
+      setError("请输入内容，或回复「跳过」以略过此项");
+      return;
+    }
+    if (OPTIONAL_SKIP_RE.test(rawAnswer) && !field.required) {
       normalizedAnswer = "";
     }
 
