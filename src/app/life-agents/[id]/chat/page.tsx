@@ -1,7 +1,6 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
@@ -86,35 +85,7 @@ export default function LifeAgentChatPage() {
   const [ratingScore, setRatingScore] = useState(5);
   const [ratingComment, setRatingComment] = useState("");
   const [ratingSubmitting, setRatingSubmitting] = useState(false);
-  const [mounted, setMounted] = useState(false);
-  const [inputBarStyle, setInputBarStyle] = useState<React.CSSProperties | undefined>(undefined);
   const chatEndRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => setMounted(true), []);
-
-  useEffect(() => {
-    if (typeof window === "undefined" || !window.visualViewport) return;
-    const vv = window.visualViewport;
-    const update = () => {
-      const gap = window.innerHeight - vv.height;
-      if (gap > 80) {
-        setInputBarStyle({
-          top: `${vv.height}px`,
-          bottom: "auto",
-          transform: "translateY(-100%)",
-        });
-      } else {
-        setInputBarStyle(undefined);
-      }
-    };
-    vv.addEventListener("resize", update);
-    vv.addEventListener("scroll", update);
-    update();
-    return () => {
-      vv.removeEventListener("resize", update);
-      vv.removeEventListener("scroll", update);
-    };
-  }, []);
 
   const scrollToLastMessage = () => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -335,7 +306,7 @@ export default function LifeAgentChatPage() {
   const ratingState = profile.viewerState.rating;
 
   return (
-    <div className="-mx-4 -mt-3 -mb-20 sm:-mt-8 lg:-mb-8 grid gap-6 lg:grid-cols-[0.8fr_1.4fr] min-h-0">
+    <div className="-mx-4 -mt-3 sm:-mt-8 lg:-mb-8 grid gap-6 lg:grid-cols-[0.8fr_1.4fr] min-h-0">
       <aside className="space-y-6">
         <div className="glass-card p-6">
           <Link href={`/life-agents/${id}`} className="text-sm text-slate-500 hover:text-sky-700">
@@ -520,7 +491,7 @@ export default function LifeAgentChatPage() {
 
         <div
           ref={viewportRef}
-          className="flex-1 space-y-5 overflow-y-auto overscroll-contain px-6 py-6 pb-28 lg:pb-6"
+          className="flex-1 space-y-5 overflow-y-auto overscroll-contain px-6 py-6 pb-4"
           onClick={dismissKeyboard}
           onTouchStart={dismissKeyboard}
           role="presentation"
@@ -686,63 +657,44 @@ export default function LifeAgentChatPage() {
           </div>
         )}
 
-        {/* 输入栏 - 用 Portal 渲染到 body，键盘弹出时跟随，确保在底部导航之上 */}
-        {mounted &&
-          createPortal(
-            <form
-              onSubmit={sendMessage}
-              className="fixed left-0 right-0 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-[100] border-t border-slate-200/80 bg-white px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] transition-[top,transform] duration-200 ease-out sm:px-4 lg:bottom-0"
-              style={inputBarStyle}
+        {/* 输入栏 - 文档流内，自然位于底部导航上方（main 有 pb-20） */}
+        <form
+          onSubmit={sendMessage}
+          className="shrink-0 border-t border-slate-200/80 bg-white px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] sm:px-4"
+        >
+          <div className="mx-auto flex max-w-3xl items-end gap-2">
+            <div className="flex-1 min-w-0 rounded-2xl bg-slate-100 px-4 py-2.5">
+              <textarea
+                onFocus={() => setTimeout(scrollToLastMessage, 150)}
+                className="max-h-36 min-h-[24px] w-full resize-none border-0 bg-transparent text-base leading-6 text-slate-800 outline-none placeholder:text-slate-400"
+                value={input}
+                onChange={(e) => {
+                  setInput(e.target.value);
+                  autoResizeTextarea(e.target);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+                    e.preventDefault();
+                    e.currentTarget.form?.requestSubmit();
+                  }
+                }}
+                placeholder="描述你的处境 + 具体问题，例如：我二本大三，在纠结考研还是就业，家里经济一般..."
+                disabled={loading || sessionLoading}
+                rows={1}
+                enterKeyHint="send"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={loading || sessionLoading || !input.trim()}
+              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-[18px] border border-sky-400/80 bg-gradient-to-br from-sky-500 via-sky-500 to-cyan-400 text-white shadow-[0_16px_30px_-16px_rgba(14,165,233,0.95)] transition hover:brightness-[1.05] disabled:cursor-not-allowed disabled:opacity-50 sm:h-11 sm:w-11 sm:rounded-full"
             >
-              <div className="mx-auto flex max-w-3xl items-end gap-2">
-                <div className="flex-1 min-w-0 rounded-2xl bg-slate-100 px-4 py-2.5">
-                  <textarea
-                    onFocus={() => {
-                      setTimeout(scrollToLastMessage, 150);
-                      [100, 350, 600].forEach((ms) =>
-                        setTimeout(() => {
-                          const vv = window.visualViewport;
-                          if (vv && window.innerHeight - vv.height > 80) {
-                            setInputBarStyle({
-                              top: `${vv.height}px`,
-                              bottom: "auto",
-                              transform: "translateY(-100%)",
-                            });
-                          }
-                        }, ms)
-                      );
-                    }}
-                    className="max-h-36 min-h-[24px] w-full resize-none border-0 bg-transparent text-base leading-6 text-slate-800 outline-none placeholder:text-slate-400"
-                    value={input}
-                    onChange={(e) => {
-                      setInput(e.target.value);
-                      autoResizeTextarea(e.target);
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
-                        e.preventDefault();
-                        e.currentTarget.form?.requestSubmit();
-                      }
-                    }}
-                    placeholder="描述你的处境 + 具体问题，例如：我二本大三，在纠结考研还是就业，家里经济一般..."
-                    disabled={loading || sessionLoading}
-                    rows={1}
-                    enterKeyHint="send"
-                  />
-                </div>
-                <button
-                  type="submit"
-                  disabled={loading || sessionLoading || !input.trim()}
-                  className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-[18px] border border-sky-400/80 bg-gradient-to-br from-sky-500 via-sky-500 to-cyan-400 text-white shadow-[0_16px_30px_-16px_rgba(14,165,233,0.95)] transition hover:brightness-[1.05] disabled:cursor-not-allowed disabled:opacity-50 sm:h-11 sm:w-11 sm:rounded-full"
-                >
-                  <svg viewBox="0 0 20 20" className="h-4 w-4 fill-current" aria-hidden="true">
-                    <path d="M3.72 2.94a.75.75 0 0 1 .8-.12l11.5 5.5a.75.75 0 0 1 0 1.36l-11.5 5.5A.75.75 0 0 1 3.45 14.5l1.34-4.05H9.5a.75.75 0 0 0 0-1.5H4.8L3.45 4.9a.75.75 0 0 1 .27-.96Z" />
-                  </svg>
-                </button>
-              </div>
-            </form>,
-            document.body
-          )}
+              <svg viewBox="0 0 20 20" className="h-4 w-4 fill-current" aria-hidden="true">
+                <path d="M3.72 2.94a.75.75 0 0 1 .8-.12l11.5 5.5a.75.75 0 0 1 0 1.36l-11.5 5.5A.75.75 0 0 1 3.45 14.5l1.34-4.05H9.5a.75.75 0 0 0 0-1.5H4.8L3.45 4.9a.75.75 0 0 1 .27-.96Z" />
+              </svg>
+            </button>
+          </div>
+        </form>
       </section>
     </div>
   );

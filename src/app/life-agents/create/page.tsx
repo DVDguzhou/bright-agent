@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
-import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { OFFICIAL_CONTACT } from "@/lib/official-contact";
@@ -230,10 +229,6 @@ export default function CreateLifeAgentPage() {
   const [sampleQuestionsList, setSampleQuestionsList] = useState<string[]>([]);
   const [sampleQuestionsDraft, setSampleQuestionsDraft] = useState("");
   const [chatFieldIndex, setChatFieldIndex] = useState(0);
-  const [inputBarStyle, setInputBarStyle] = useState<React.CSSProperties | undefined>(undefined);
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-
   useEffect(() => {
     fetch("/api/auth/me", { credentials: "include" })
       .then((res) => (res.ok ? res.json() : null))
@@ -248,30 +243,6 @@ export default function CreateLifeAgentPage() {
   useEffect(() => {
     experienceChatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [experienceHistory]);
-
-  useEffect(() => {
-    if (typeof window === "undefined" || !window.visualViewport) return;
-    const vv = window.visualViewport;
-    const update = () => {
-      const gap = window.innerHeight - vv.height;
-      if (gap > 80) {
-        setInputBarStyle({
-          top: `${vv.height}px`,
-          bottom: "auto",
-          transform: "translateY(-100%)",
-        });
-      } else {
-        setInputBarStyle(undefined);
-      }
-    };
-    vv.addEventListener("resize", update);
-    vv.addEventListener("scroll", update);
-    update();
-    return () => {
-      vv.removeEventListener("resize", update);
-      vv.removeEventListener("scroll", update);
-    };
-  }, []);
 
   useEffect(() => {
     if (step === 1 && chatHistory.length === 0) {
@@ -743,7 +714,7 @@ export default function CreateLifeAgentPage() {
   };
 
   return (
-    <div className="-mx-4 -mt-3 -mb-20 sm:-mt-8 lg:-mb-8 flex min-h-0 flex-col overflow-hidden min-w-0 h-[calc(100dvh-6rem-4.5rem-env(safe-area-inset-bottom,0px))] lg:h-[calc(100dvh-3rem)]">
+    <div className="-mx-4 -mt-3 sm:-mt-8 lg:-mb-8 flex min-h-0 flex-col overflow-hidden min-w-0 h-[calc(100dvh-6rem)] lg:h-[calc(100dvh-3rem)]">
       {/* 紧凑顶部栏 */}
       <header className="shrink-0 border-b border-slate-200/80 bg-white/95 px-3 py-2 backdrop-blur-md sm:px-6 sm:py-3">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-2">
@@ -788,7 +759,7 @@ export default function CreateLifeAgentPage() {
             onTouchStart={dismissKeyboard}
             role="presentation"
           >
-            <div className={`mx-auto max-w-3xl space-y-4 ${chatDone ? "pb-24" : "pb-28 lg:pb-20"}`}>
+            <div className={`mx-auto max-w-3xl space-y-4 ${chatDone ? "pb-24" : "pb-4"}`}>
               {chatHistory.map((msg, i) => (
                 <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                   <div
@@ -846,35 +817,18 @@ export default function CreateLifeAgentPage() {
             </div>
           ) : null}
 
-          {/* 输入栏 - 用 Portal 渲染到 body，避免被 main(z-10) 内的层叠上下文限制，确保在底部导航(z-50)之上 */}
-          {!chatDone &&
-            mounted &&
-            createPortal(
-              <form
-                ref={profileFormRef}
-                onSubmit={submitChatAnswer}
-                className="fixed left-0 right-0 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-[100] border-t border-slate-200/80 bg-white px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] transition-[top,transform] duration-200 ease-out sm:px-4 lg:bottom-0"
-                style={inputBarStyle}
-              >
+          {/* 输入栏 - 文档流内，自然位于底部导航上方（main 有 pb-20） */}
+          {!chatDone && (
+            <form
+              ref={profileFormRef}
+              onSubmit={submitChatAnswer}
+              className="shrink-0 border-t border-slate-200/80 bg-white px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] sm:px-4"
+            >
               <div className="mx-auto flex max-w-3xl items-end gap-2">
                 <div className="flex-1 min-w-0 rounded-2xl bg-slate-100 px-4 py-2.5">
                   <textarea
                     ref={profileInputRef}
-                    onFocus={() => {
-                      setTimeout(scrollToLastMessage, 150);
-                      [100, 350, 600].forEach((ms) =>
-                        setTimeout(() => {
-                          const vv = window.visualViewport;
-                          if (vv && window.innerHeight - vv.height > 80) {
-                            setInputBarStyle({
-                              top: `${vv.height}px`,
-                              bottom: "auto",
-                              transform: "translateY(-100%)",
-                            });
-                          }
-                        }, ms)
-                      );
-                    }}
+                    onFocus={() => setTimeout(scrollToLastMessage, 150)}
                     className="max-h-36 min-h-[24px] w-full resize-none border-0 bg-transparent text-base leading-6 text-slate-800 outline-none placeholder:text-slate-400"
                     value={chatInput}
                     onChange={(e) => {
@@ -904,9 +858,8 @@ export default function CreateLifeAgentPage() {
                   )}
                 </ComposerActionButton>
               </div>
-            </form>,
-              document.body
-            )}
+            </form>
+          )}
         </div>
       )}
 
@@ -925,7 +878,7 @@ export default function CreateLifeAgentPage() {
             onTouchStart={dismissKeyboard}
             role="presentation"
           >
-            <div className={`mx-auto max-w-3xl space-y-4 ${experienceDone ? "pb-24" : "pb-28 lg:pb-20"}`}>
+            <div className={`mx-auto max-w-3xl space-y-4 ${experienceDone ? "pb-24" : "pb-4"}`}>
               {experienceHistory.map((msg, i) => (
                 <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                   <div
@@ -973,35 +926,18 @@ export default function CreateLifeAgentPage() {
             </div>
           ) : null}
 
-          {/* 输入栏 - 用 Portal 渲染到 body，确保在底部导航之上 */}
-          {!experienceDone &&
-            mounted &&
-            createPortal(
-              <form
-                ref={experienceFormRef}
-                onSubmit={submitExperienceAnswer}
-                className="fixed left-0 right-0 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-[100] border-t border-slate-200/80 bg-white px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] transition-[top,transform] duration-200 ease-out sm:px-4 lg:bottom-0"
-                style={inputBarStyle}
-              >
+          {/* 输入栏 - 文档流内，自然位于底部导航上方 */}
+          {!experienceDone && (
+            <form
+              ref={experienceFormRef}
+              onSubmit={submitExperienceAnswer}
+              className="shrink-0 border-t border-slate-200/80 bg-white px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] sm:px-4"
+            >
               <div className="mx-auto flex max-w-3xl items-end gap-2">
                 <div className="flex-1 min-w-0 rounded-2xl bg-slate-100 px-4 py-2.5">
                   <textarea
                     ref={experienceInputRef}
-                      onFocus={() => {
-                        setTimeout(scrollToLastExperienceMessage, 150);
-                        [100, 350, 600].forEach((ms) =>
-                          setTimeout(() => {
-                            const vv = window.visualViewport;
-                            if (vv && window.innerHeight - vv.height > 80) {
-                              setInputBarStyle({
-                                top: `${vv.height}px`,
-                                bottom: "auto",
-                                transform: "translateY(-100%)",
-                              });
-                            }
-                          }, ms)
-                        );
-                      }}
+                    onFocus={() => setTimeout(scrollToLastExperienceMessage, 150)}
                     className="max-h-36 min-h-[24px] w-full resize-none border-0 bg-transparent text-base leading-6 text-slate-800 outline-none placeholder:text-slate-400"
                     value={experienceInput}
                     onChange={(e) => {
@@ -1031,9 +967,8 @@ export default function CreateLifeAgentPage() {
                   )}
                 </ComposerActionButton>
               </div>
-            </form>,
-              document.body
-            )}
+            </form>
+          )}
         </div>
       )}
 
