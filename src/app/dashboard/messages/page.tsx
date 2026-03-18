@@ -1,90 +1,66 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { RatingStars } from "@/components/RatingStars";
+import { useAuth } from "@/contexts/AuthContext";
+import { VerificationBadge } from "@/components/VerificationBadge";
 
-type FeedbackItem = {
+type ChatHistoryItem = {
   id: string;
-  profileId: string;
-  profileName: string;
-  feedbackType: string;
-  assistantExcerpt?: string | null;
-  comment?: string | null;
+  title: string;
+  messageCount: number;
   createdAt: string;
-};
-
-type RatingItem = {
-  id: string;
-  profileId: string;
-  profileName: string;
-  score: number;
-  comment?: string | null;
   updatedAt: string;
+  profile: {
+    id: string;
+    displayName: string;
+    headline: string;
+    verificationStatus?: string;
+  };
 };
 
-type SummaryData = {
-  counts: { helpful: number; notSpecific: number; notSuitable: number };
-  ratings: { averageScore: number; raters: number; recent: RatingItem[] };
-  recent: FeedbackItem[];
-};
+function trimTitle(title: string) {
+  return title.length > 28 ? `${title.slice(0, 28)}...` : title;
+}
 
 export default function DashboardMessagesPage() {
-  const [data, setData] = useState<SummaryData | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  const normalizeSummary = (raw: any): SummaryData => ({
-    counts: {
-      helpful: raw?.counts?.helpful ?? 0,
-      notSpecific: raw?.counts?.notSpecific ?? 0,
-      notSuitable: raw?.counts?.notSuitable ?? 0,
-    },
-    ratings: {
-      averageScore: raw?.ratings?.averageScore ?? 0,
-      raters: raw?.ratings?.raters ?? 0,
-      recent: Array.isArray(raw?.ratings?.recent) ? raw.ratings.recent : [],
-    },
-    recent: Array.isArray(raw?.recent) ? raw.recent : [],
-  });
+  const { user, loading } = useAuth();
+  const [items, setItems] = useState<ChatHistoryItem[]>([]);
+  const [dataLoading, setDataLoading] = useState(true);
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
-    fetch("/api/life-agents/feedback/all", { credentials: "include" })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => {
-        setData(normalizeSummary(d));
-        setLoading(false);
-      })
-      .catch(() => {
-        setData(normalizeSummary(null));
-        setLoading(false);
-      });
-  }, []);
+    if (!user) {
+      setDataLoading(false);
+      return;
+    }
 
-  const feedbackLabel = (t: string) =>
-    t === "helpful" ? "有帮助" : t === "not_specific" ? "不够具体" : t === "not_suitable" ? "不适合我" : t;
-  const feedbackColor = (t: string) =>
-    t === "helpful"
-      ? "bg-green-100 text-green-700"
-      : t === "not_specific"
-      ? "bg-amber-100 text-amber-700"
-      : "bg-rose-100 text-rose-700";
+    fetch("/api/life-agents/chat-sessions", { credentials: "include" })
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => setItems(Array.isArray(data) ? data : []))
+      .catch(() => setItems([]))
+      .finally(() => setDataLoading(false));
+  }, [user]);
 
-  if (loading) {
+  const filteredItems = useMemo(() => {
+    const keyword = query.trim().toLowerCase();
+    if (!keyword) return items;
+
+    return items.filter((item) =>
+      [item.title, item.profile.displayName, item.profile.headline].some((value) =>
+        value.toLowerCase().includes(keyword)
+      )
+    );
+  }, [items, query]);
+
+  if (loading || !user) {
     return (
-      <div className="space-y-8">
-        <Link href="/dashboard" className="text-sm text-slate-500 hover:text-sky-700">
-          ← 返回个人主页
-        </Link>
-        <div className="h-64 animate-pulse rounded-3xl bg-white shadow-sm" />
+      <div className="py-20 text-center">
+        <p className="text-slate-500">{loading ? "加载中..." : "请先登录后查看聊天记录。"}</p>
       </div>
     );
   }
-
-  const counts = data?.counts ?? { helpful: 0, notSpecific: 0, notSuitable: 0 };
-  const ratings = data?.ratings ?? { averageScore: 0, raters: 0, recent: [] };
-  const recent = data?.recent ?? [];
-  const total = counts.helpful + counts.notSpecific + counts.notSuitable;
 
   return (
     <div className="space-y-8">
@@ -92,124 +68,79 @@ export default function DashboardMessagesPage() {
         <Link href="/dashboard" className="text-sm text-slate-500 hover:text-sky-700">
           ← 返回个人主页
         </Link>
-        <h1 className="section-title mt-3">消息 · 用户反馈</h1>
-        <p className="section-subtitle mt-2">
-          用户对你的人生 Agent 回复的评价，帮你了解回答效果并持续改进
-        </p>
+        <h1 className="section-title mt-3">消息 · 聊天记录</h1>
+        <p className="section-subtitle mt-2">你和人生 Agent 的历史会话只对你自己可见，卖家看不到聊天正文。</p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-4">
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">有帮助</p>
-          <p className="mt-1 text-2xl font-semibold text-green-700">{counts.helpful}</p>
-        </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">不够具体</p>
-          <p className="mt-1 text-2xl font-semibold text-amber-700">{counts.notSpecific}</p>
-        </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">不适合我</p>
-          <p className="mt-1 text-2xl font-semibold text-rose-700">{counts.notSuitable}</p>
-        </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">当前评分</p>
-          <div className="mt-2 flex items-center gap-2">
-            <RatingStars score={ratings.averageScore} size="md" />
-            <p className="text-2xl font-semibold text-sky-700">
-              {ratings.raters > 0 ? ratings.averageScore.toFixed(1) : "--"}
-            </p>
+      <div className="glass-card overflow-hidden">
+        <div className="border-b border-slate-200 px-6 py-4">
+          <h2 className="text-lg font-semibold text-slate-900">最近会话</h2>
+          <p className="mt-1 text-sm text-slate-500">点击任意记录即可跳转回对应 Agent 的指定会话。</p>
+          <div className="mt-4">
+            <input
+              className="input-shell w-full"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="搜索 Agent 名称、简介或会话标题"
+            />
           </div>
-          <p className="mt-1 text-xs text-slate-500">{ratings.raters} 位用户已评分</p>
         </div>
-      </div>
 
-      <div className="glass-card overflow-hidden">
-        <div className="border-b border-slate-200 px-6 py-4">
-          <h2 className="text-lg font-semibold text-slate-900">最近反馈（最近 50 条）</h2>
-          <p className="mt-1 text-sm text-slate-500">
-            用户对某条回复点击「有帮助」「不够具体」或「不适合我」后，会出现在这里
-          </p>
-        </div>
         <div className="p-6">
-          {total === 0 ? (
-            <p className="py-12 text-center text-slate-500">暂无反馈，用户反馈后会显示在这里</p>
-          ) : recent.length === 0 ? (
-            <p className="py-12 text-center text-slate-500">暂无最近反馈</p>
+          {dataLoading ? (
+            <p className="py-12 text-center text-slate-500">正在加载聊天记录...</p>
+          ) : items.length === 0 ? (
+            <div className="py-12 text-center">
+              <p className="text-slate-500">还没有历史会话。</p>
+              <Link href="/life-agents" className="mt-4 inline-flex rounded-full bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-700">
+                去找一个 Agent 聊聊
+              </Link>
+            </div>
+          ) : filteredItems.length === 0 ? (
+            <div className="py-12 text-center">
+              <p className="text-slate-500">没有找到匹配的聊天记录。</p>
+              <button
+                type="button"
+                onClick={() => setQuery("")}
+                className="mt-4 inline-flex rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50"
+              >
+                清空搜索
+              </button>
+            </div>
           ) : (
             <ul className="space-y-4">
-              {recent.map((fb, i) => (
-                <motion.li
-                  key={fb.id}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.03 }}
-                  className="rounded-2xl border border-slate-200 bg-slate-50/50 p-4"
-                >
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Link
-                      href={`/dashboard/life-agents/${fb.profileId}`}
-                      className="text-sm font-medium text-sky-600 hover:text-sky-700"
-                    >
-                      {fb.profileName}
-                    </Link>
-                    <span className="text-slate-400">·</span>
-                    <span
-                      className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${feedbackColor(
-                        fb.feedbackType
-                      )}`}
-                    >
-                      {feedbackLabel(fb.feedbackType)}
-                    </span>
-                    <span className="text-xs text-slate-400">{fb.createdAt}</span>
-                  </div>
-                  {fb.assistantExcerpt && (
-                    <p className="mt-1 text-sm text-slate-600">
-                      <span className="font-medium text-slate-500">回复摘要：</span>
-                      {fb.assistantExcerpt.length > 120
-                        ? fb.assistantExcerpt.slice(0, 120) + "…"
-                        : fb.assistantExcerpt}
-                    </p>
-                  )}
-                  {fb.comment && (
-                    <p className="mt-1 text-sm text-slate-700 italic">补充：{fb.comment}</p>
-                  )}
-                </motion.li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </div>
-
-      <div className="glass-card overflow-hidden">
-        <div className="border-b border-slate-200 px-6 py-4">
-          <h2 className="text-lg font-semibold text-slate-900">最近评分</h2>
-          <p className="mt-1 text-sm text-slate-500">用户每满 10 次提问可更新一次评分，重复评分会覆盖旧分数，不会重复计人数</p>
-        </div>
-        <div className="p-6">
-          {ratings.recent.length === 0 ? (
-            <p className="py-12 text-center text-slate-500">暂无评分</p>
-          ) : (
-            <ul className="space-y-4">
-              {ratings.recent.map((item, i) => (
+              {filteredItems.map((item, index) => (
                 <motion.li
                   key={item.id}
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.03 }}
-                  className="rounded-2xl border border-slate-200 bg-slate-50/50 p-4"
+                  transition={{ delay: index < 8 ? index * 0.03 : 0 }}
+                  className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4"
                 >
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Link href={`/dashboard/life-agents/${item.profileId}`} className="text-sm font-medium text-sky-600 hover:text-sky-700">
-                      {item.profileName}
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Link
+                          href={`/life-agents/${item.profile.id}/chat?sessionId=${item.id}`}
+                          className="text-base font-semibold text-slate-900 hover:text-sky-700"
+                        >
+                          {item.profile.displayName}
+                        </Link>
+                        <VerificationBadge status={item.profile.verificationStatus ?? "none"} size="sm" />
+                      </div>
+                      <p className="mt-1 text-sm text-slate-600">{item.profile.headline}</p>
+                      <p className="mt-3 text-sm font-medium text-slate-800">{trimTitle(item.title)}</p>
+                      <p className="mt-1 text-xs text-slate-500">
+                        共 {item.messageCount} 条消息 · 最近更新 {new Date(item.updatedAt).toLocaleString("zh-CN")}
+                      </p>
+                    </div>
+                    <Link
+                      href={`/life-agents/${item.profile.id}/chat?sessionId=${item.id}`}
+                      className="btn-secondary"
+                    >
+                      继续聊天
                     </Link>
-                    <span className="text-slate-400">·</span>
-                    <span className="inline-flex items-center gap-2 rounded-full bg-sky-100 px-2.5 py-1 text-xs font-medium text-sky-700">
-                      <RatingStars score={item.score} size="sm" />
-                      {item.score}/5 分
-                    </span>
-                    <span className="text-xs text-slate-400">{item.updatedAt}</span>
                   </div>
-                  {item.comment && <p className="mt-2 text-sm text-slate-700">{item.comment}</p>}
                 </motion.li>
               ))}
             </ul>

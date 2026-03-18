@@ -175,18 +175,18 @@ export default function DashboardPage() {
                 <span className="font-medium text-slate-800 group-hover:text-sky-700 transition-colors">
                   消息
                 </span>
-                <span className="block text-slate-500 text-sm mt-0.5">用户对 AI 回复的反馈汇总</span>
+                <span className="block text-slate-500 text-sm mt-0.5">查看并继续你和人生 Agent 的聊天记录</span>
               </motion.div>
             </Link>
-            <Link href="/dashboard/chat-history">
+            <Link href="/dashboard/feedback">
               <motion.div
                 className="block p-5 rounded-2xl glass-card group"
                 whileHover={{ y: -2 }}
               >
                 <span className="font-medium text-slate-800 group-hover:text-sky-700 transition-colors">
-                  我的聊天记录
+                  用户反馈
                 </span>
-                <span className="block text-slate-500 text-sm mt-0.5">查看并继续你和人生 Agent 的历史会话</span>
+                <span className="block text-slate-500 text-sm mt-0.5">用户对你的人生 Agent 回复的评价汇总</span>
               </motion.div>
             </Link>
             <Link href="/life-agents">
