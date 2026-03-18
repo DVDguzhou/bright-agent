@@ -229,7 +229,7 @@ export default function CreateLifeAgentPage() {
   const [sampleQuestionsList, setSampleQuestionsList] = useState<string[]>([]);
   const [sampleQuestionsDraft, setSampleQuestionsDraft] = useState("");
   const [chatFieldIndex, setChatFieldIndex] = useState(0);
-  const [inputBarBottom, setInputBarBottom] = useState<string | undefined>(undefined);
+  const [inputBarStyle, setInputBarStyle] = useState<React.CSSProperties | undefined>(undefined);
 
   useEffect(() => {
     fetch("/api/auth/me", { credentials: "include" })
@@ -250,11 +250,15 @@ export default function CreateLifeAgentPage() {
     if (typeof window === "undefined" || !window.visualViewport) return;
     const vv = window.visualViewport;
     const update = () => {
-      if (vv.height < window.innerHeight * 0.75) {
-        const keyboardHeight = window.innerHeight - vv.height;
-        setInputBarBottom(`${keyboardHeight}px`);
+      const gap = window.innerHeight - vv.height;
+      if (gap > 80) {
+        setInputBarStyle({
+          top: `${vv.height}px`,
+          bottom: "auto",
+          transform: "translateY(-100%)",
+        });
       } else {
-        setInputBarBottom(undefined);
+        setInputBarStyle(undefined);
       }
     };
     vv.addEventListener("resize", update);
@@ -842,8 +846,8 @@ export default function CreateLifeAgentPage() {
             <form
               ref={profileFormRef}
               onSubmit={submitChatAnswer}
-              className="fixed left-0 right-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-[60] border-t border-slate-200/80 bg-white px-2 py-2 sm:px-4 lg:bottom-0"
-              style={inputBarBottom ? { bottom: inputBarBottom } : undefined}
+              className="fixed left-0 right-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-[60] border-t border-slate-200/80 bg-white px-2 py-2 sm:px-4 transition-[top,transform] duration-200 ease-out lg:bottom-0"
+              style={inputBarStyle}
             >
               <div className="mx-auto flex max-w-3xl items-end gap-2">
                 <ComposerActionButton
@@ -861,6 +865,18 @@ export default function CreateLifeAgentPage() {
                     ref={profileInputRef}
                     onFocus={() => {
                       setTimeout(scrollToLastMessage, 150);
+                      [100, 350, 600].forEach((ms) =>
+                        setTimeout(() => {
+                          const vv = window.visualViewport;
+                          if (vv && window.innerHeight - vv.height > 80) {
+                            setInputBarStyle({
+                              top: `${vv.height}px`,
+                              bottom: "auto",
+                              transform: "translateY(-100%)",
+                            });
+                          }
+                        }, ms)
+                      );
                     }}
                     className="max-h-36 min-h-[24px] w-full resize-none border-0 bg-transparent text-[15px] leading-6 text-slate-800 outline-none placeholder:text-slate-400"
                     value={chatInput}
@@ -964,16 +980,28 @@ export default function CreateLifeAgentPage() {
             <form
               ref={experienceFormRef}
               onSubmit={submitExperienceAnswer}
-              className="fixed left-0 right-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-[60] border-t border-slate-200/80 bg-white px-2 py-2 sm:px-4 lg:bottom-0"
-              style={inputBarBottom ? { bottom: inputBarBottom } : undefined}
+              className="fixed left-0 right-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-[60] border-t border-slate-200/80 bg-white px-2 py-2 sm:px-4 transition-[top,transform] duration-200 ease-out lg:bottom-0"
+              style={inputBarStyle}
             >
               <div className="mx-auto flex max-w-3xl items-end gap-2">
                 <div className="flex-1 min-w-0 rounded-2xl bg-slate-100 px-4 py-2.5">
                   <textarea
                     ref={experienceInputRef}
-                    onFocus={() => {
-                      setTimeout(scrollToLastExperienceMessage, 150);
-                    }}
+                      onFocus={() => {
+                        setTimeout(scrollToLastExperienceMessage, 150);
+                        [100, 350, 600].forEach((ms) =>
+                          setTimeout(() => {
+                            const vv = window.visualViewport;
+                            if (vv && window.innerHeight - vv.height > 80) {
+                              setInputBarStyle({
+                                top: `${vv.height}px`,
+                                bottom: "auto",
+                                transform: "translateY(-100%)",
+                              });
+                            }
+                          }, ms)
+                        );
+                      }}
                     className="max-h-36 min-h-[24px] w-full resize-none border-0 bg-transparent text-[15px] leading-6 text-slate-800 outline-none placeholder:text-slate-400"
                     value={experienceInput}
                     onChange={(e) => {
