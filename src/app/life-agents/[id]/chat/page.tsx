@@ -691,7 +691,7 @@ export default function LifeAgentChatPage() {
           createPortal(
             <form
               onSubmit={sendMessage}
-              className="fixed left-0 right-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-[100] border-t border-slate-200/80 bg-white px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] transition-[top,transform] duration-200 ease-out sm:px-4 lg:bottom-0"
+              className="fixed left-0 right-0 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-[100] border-t border-slate-200/80 bg-white px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] transition-[top,transform] duration-200 ease-out sm:px-4 lg:bottom-0"
               style={inputBarStyle}
             >
               <div className="mx-auto flex max-w-3xl items-end gap-2">
