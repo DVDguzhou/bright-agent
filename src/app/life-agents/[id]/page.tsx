@@ -64,14 +64,15 @@ type DetailData = {
   };
 };
 
-const packOptions = [5, 15, 30];
+const MIN_QUESTIONS = 1;
+const MAX_QUESTIONS = 500;
 
 export default function LifeAgentDetailPage() {
   const params = useParams();
   const id = params.id as string;
   const [profile, setProfile] = useState<DetailData | null>(null);
   const [loaded, setLoaded] = useState(false);
-  const [selectedPack, setSelectedPack] = useState(5);
+  const [questionCount, setQuestionCount] = useState(0);
   const [purchasing, setPurchasing] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -88,13 +89,15 @@ export default function LifeAgentDetailPage() {
   }, [id]);
 
   const totalPrice = useMemo(() => {
-    if (!profile) return 0;
-    return (profile.pricePerQuestion * selectedPack) / 100;
-  }, [profile, selectedPack]);
+    if (!profile || questionCount < MIN_QUESTIONS) return 0;
+    const count = Math.min(MAX_QUESTIONS, Math.max(MIN_QUESTIONS, questionCount));
+    return (profile.pricePerQuestion * count) / 100;
+  }, [profile, questionCount]);
   const averageScore = profile?.ratings?.averageScore ?? 0;
 
   const purchase = async () => {
     if (!profile) return;
+    const count = Math.min(MAX_QUESTIONS, Math.max(MIN_QUESTIONS, questionCount));
     setPurchasing(true);
     setMessage("");
     const res = await fetch(`/api/life-agents/${profile.id}/purchase`, {
@@ -102,8 +105,8 @@ export default function LifeAgentDetailPage() {
       headers: { "Content-Type": "application/json" },
       credentials: "include",
       body: JSON.stringify({
-        questionCount: selectedPack,
-        amountPaid: profile.pricePerQuestion * selectedPack,
+        questionCount: count,
+        amountPaid: profile.pricePerQuestion * count,
       }),
     });
     const data = await res.json();
@@ -285,28 +288,27 @@ export default function LifeAgentDetailPage() {
           <div className="glass-card p-6">
             <h2 className="text-xl font-semibold text-slate-900">购买提问次数</h2>
             <p className="mt-2 text-sm text-slate-500">按次收费，先买次数再聊天，流程更简单。</p>
-            <div className="mt-5 grid grid-cols-3 gap-3">
-              {packOptions.map((pack) => (
-                <button
-                  key={pack}
-                  type="button"
-                  onClick={() => setSelectedPack(pack)}
-                  className={`rounded-2xl border px-4 py-4 text-center transition ${
-                    selectedPack === pack
-                      ? "border-sky-400 bg-sky-50 text-sky-700"
-                      : "border-slate-200 bg-white text-slate-700"
-                  }`}
-                >
-                  <p className="text-lg font-semibold">{pack} 次</p>
-                </button>
-              ))}
+            <div className="mt-5">
+              <label className="mb-2 block text-sm font-medium text-slate-700">购买次数</label>
+              <input
+                type="number"
+                min={0}
+                max={MAX_QUESTIONS}
+                value={questionCount}
+                onChange={(e) => {
+                  const v = e.target.value === "" ? 0 : parseInt(e.target.value, 10);
+                  setQuestionCount(isNaN(v) ? 0 : Math.min(MAX_QUESTIONS, Math.max(0, v)));
+                }}
+                className="input-shell w-full max-w-[8rem]"
+              />
+              <p className="mt-1 text-xs text-slate-500">1–500 次，可自由选择</p>
             </div>
             <div className="mt-5 rounded-2xl bg-slate-50 p-4">
               <p className="text-sm text-slate-500">需支付</p>
               <p className="mt-1 text-2xl font-semibold text-slate-900">¥{totalPrice.toFixed(2)}</p>
             </div>
-            <button onClick={purchase} disabled={purchasing} className="btn-primary mt-5 w-full justify-center disabled:opacity-60">
-              {purchasing ? "购买中..." : `购买 ${selectedPack} 次提问`}
+            <button onClick={purchase} disabled={purchasing || questionCount < MIN_QUESTIONS} className="btn-primary mt-5 w-full justify-center disabled:opacity-60">
+              {purchasing ? "购买中..." : questionCount >= MIN_QUESTIONS ? `购买 ${Math.min(MAX_QUESTIONS, questionCount)} 次提问` : "请先选择购买次数"}
             </button>
             {message && <p className="mt-3 text-sm text-slate-600">{message}</p>}
           </div>
