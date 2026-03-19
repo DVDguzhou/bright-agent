@@ -4,6 +4,10 @@
  * 使用：node scripts/test-voice.mjs
  * 环境变量：
  *   TEST_BASE_URL  默认 http://localhost:8080
+ *   TEST_EMAIL / TEST_BUYER  可选，默认带时间戳邮箱
+ *   TEST_SELLER_NAME / TEST_BUYER_NAME  可选，默认昵称带时间戳（避免 NAME_EXISTS）
+ * PowerShell：$env:TEST_BASE_URL="http://host:3000"; node scripts/test-voice.mjs
+ * cmd.exe：set TEST_BASE_URL=http://host:3000&& node scripts/test-voice.mjs
  *
  * 说明：TTS_PROVIDER=auto 且 OPENAI_BASE_URL 含 dashscope 时用百炼 Qwen-TTS（与 OPENAI_API_KEY 共用）；
  *       否则走 OpenAI /audio/speech，需 OPENAI_TTS_API_KEY 等。
@@ -44,8 +48,9 @@ async function loginOrSignup(email, password, name) {
   return r;
 }
 
-const MIN_AGENT = {
-  displayName: "语音测试Agent",
+// 后端 displayName 最长 10 个字符（含中文）
+const MIN_AGENT = (ts) => ({
+  displayName: `测${String(ts).slice(-7)}`,
   headline: "测试用",
   shortBio: "短介绍",
   longBio: "长介绍用于满足创建校验。",
@@ -68,12 +73,14 @@ const MIN_AGENT = {
       tags: ["测试"],
     },
   ],
-};
+});
 
 async function main() {
   const ts = Date.now();
   const sellerEmail = process.env.TEST_EMAIL || `voice-seller-${ts}@test.com`;
   const buyerEmail = process.env.TEST_BUYER || `voice-buyer-${ts}@test.com`;
+  const sellerName = process.env.TEST_SELLER_NAME || `语音卖家-${ts}`;
+  const buyerName = process.env.TEST_BUYER_NAME || `语音买家-${ts}`;
   const password = "Test123456";
 
   console.log("=== 语音功能测试 ===\n");
@@ -92,7 +99,7 @@ async function main() {
   }
 
   console.log("1️⃣  卖家注册/登录");
-  const seller = await loginOrSignup(sellerEmail, password, "语音卖家");
+  const seller = await loginOrSignup(sellerEmail, password, sellerName);
   if (!seller.ok) {
     console.error("   ❌", seller.status, seller.data);
     process.exit(1);
@@ -100,7 +107,7 @@ async function main() {
   console.log("   ✅ 卖家 OK\n");
 
   console.log("2️⃣  创建 Agent");
-  const create = await req("POST", "/api/life-agents", MIN_AGENT, seller.cookie);
+  const create = await req("POST", "/api/life-agents", MIN_AGENT(ts), seller.cookie);
   if (!create.ok) {
     console.error("   ❌", create.status, create.data);
     process.exit(1);
@@ -109,7 +116,7 @@ async function main() {
   console.log("   ✅ agentId:", agentId, "\n");
 
   console.log("3️⃣  买家注册/登录");
-  const buyer = await loginOrSignup(buyerEmail, password, "语音买家");
+  const buyer = await loginOrSignup(buyerEmail, password, buyerName);
   if (!buyer.ok) {
     console.error("   ❌", buyer.status, buyer.data);
     process.exit(1);
@@ -156,7 +163,8 @@ async function main() {
   if (!audioUrl) {
     console.log("\n⚠️  未返回音频 URL。");
     console.log("   常见原因：");
-    console.log("   - 线上 Docker 未传 OPENAI_BASE_URL 时，旧版后端会误走 OpenAI TTS；请部署最新代码（按 qwen 模型名自动走百炼）");
+    console.log("   - Docker：请在 .env 设 OPENAI_MODEL=qwen-plus、OPENAI_BASE_URL=DashScope 兼容地址，或 TTS_PROVIDER=dashscope；");
+    console.log("     docker-compose 默认已改为通义；若仍无音频，请 docker compose build backend --no-cache && up -d，并看 backend 日志「TTS failed」");
     console.log("   - 未配置 OPENAI_API_KEY，或百炼未开通 Qwen-TTS / Key 无权限");
     console.log("   - TTS 请求失败（部署后看后端日志: TTS failed）");
     console.log("   - 回复内容为空（极少见）\n");

@@ -120,6 +120,9 @@ func (p *DashScopeQwenTTSProvider) Synthesize(voiceID string, text string) (stri
 		}
 		return "", 0, fmt.Errorf("dashscope TTS status %d: %s", parsed.StatusCode, msg)
 	}
+	if c := strings.TrimSpace(parsed.Code); c != "" {
+		return "", 0, fmt.Errorf("dashscope TTS code=%s: %s", c, strings.TrimSpace(parsed.Message))
+	}
 	if parsed.Output == nil || parsed.Output.Audio == nil {
 		return "", 0, fmt.Errorf("dashscope TTS: no audio in response")
 	}

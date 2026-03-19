@@ -32,8 +32,9 @@ services:
       # 部署后必填，与 NEXTAUTH_URL 保持一致（含端口），如 http://8.136.119.234:3000
       CORS_ORIGINS: ${CORS_ORIGINS:-}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
-      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
-      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-}
+      # 默认按阿里云百炼部署；若用 OpenAI 官方请在 .env 覆盖 MODEL 与 BASE_URL
+      OPENAI_MODEL: ${OPENAI_MODEL:-qwen-plus}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-https://dashscope.aliyuncs.com/compatible-mode/v1}
       # 通义千问 DashScope 联网搜索（true/1 启用）
       LLM_ENABLE_WEB_SEARCH: ${LLM_ENABLE_WEB_SEARCH:-}
       # 语音条：auto + 模型名含 qwen 或 BASE_URL 含 dashscope → 百炼 Qwen-TTS（与 OPENAI_API_KEY 共用）
