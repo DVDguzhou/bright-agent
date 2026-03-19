@@ -45,6 +45,8 @@ services:
       DASHSCOPE_TTS_VOICE: ${DASHSCOPE_TTS_VOICE:-}
       DASHSCOPE_TTS_LANGUAGE: ${DASHSCOPE_TTS_LANGUAGE:-}
       OPENAI_TTS_API_KEY: ${OPENAI_TTS_API_KEY:-}
+      # 临时排障：true 时聊天 JSON 含 ttsDebug（勿长期开启）
+      TTS_DEBUG: ${TTS_DEBUG:-}
     depends_on:
       mysql:
         condition: service_healthy

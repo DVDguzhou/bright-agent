@@ -159,6 +159,13 @@ async function main() {
   console.log("   📝 回复长度:", reply.length);
   console.log("   🔊 audioUrl:", audioUrl || "(无)");
   console.log("   ⏱  audioDurationSec:", dur ?? "(无)");
+  if (chat.data.ttsDebug) {
+    console.log("   🐛 ttsDebug:", JSON.stringify(chat.data.ttsDebug, null, 2));
+  } else if (!audioUrl) {
+    console.log(
+      "   💡 服务器设 TTS_DEBUG=1 并重启 backend 后重跑本脚本，可在 JSON 里看到 resolvedProvider / synthesizeError"
+    );
+  }
 
   if (!audioUrl) {
     console.log("\n⚠️  未返回音频 URL。");

@@ -28,6 +28,7 @@ type Config struct {
 	DashScopeTTSVoice    string // 默认 Cherry
 	DashScopeTTSLanguage string // 默认 Chinese
 	BaseURL              string // 应用公网地址，用于生成音频 URL，如 https://yourdomain.com
+	TTSDebug             bool   // TTS_DEBUG：聊天 JSON 附带 ttsDebug（排障后关闭）
 }
 
 func Load() *Config {
@@ -44,17 +45,17 @@ func Load() *Config {
 		SessionSecret:      getEnv("SESSION_SECRET", "change-me-in-production"),
 		SessionCookie:      getEnv("SESSION_COOKIE", "agent_fiverr_session"),
 		PlatformKeyPrefix:  getEnv("PLATFORM_KEY_PREFIX", "sk_live_"),
-		OpenAIApiKey:       getEnv("OPENAI_API_KEY", ""),
-		OpenAIModel:        getEnv("OPENAI_MODEL", "gpt-4o-mini"),
-		OpenAIBaseURL:      getEnv("OPENAI_BASE_URL", ""),
+		OpenAIApiKey:       stripOuterQuotes(getEnv("OPENAI_API_KEY", "")),
+		OpenAIModel:        stripOuterQuotes(getEnv("OPENAI_MODEL", "gpt-4o-mini")),
+		OpenAIBaseURL:      stripOuterQuotes(getEnv("OPENAI_BASE_URL", "")),
 		LLMEnableWebSearch: getEnv("LLM_ENABLE_WEB_SEARCH", "") == "true" || getEnv("LLM_ENABLE_WEB_SEARCH", "") == "1",
 		CORSOrigins:        origins,
-		OpenAITTSApiKey:    getEnv("OPENAI_TTS_API_KEY", ""),
-		OpenAITTSBaseURL:   getEnv("OPENAI_TTS_BASE_URL", "https://api.openai.com/v1"),
+		OpenAITTSApiKey:    stripOuterQuotes(getEnv("OPENAI_TTS_API_KEY", "")),
+		OpenAITTSBaseURL:   stripOuterQuotes(getEnv("OPENAI_TTS_BASE_URL", "https://api.openai.com/v1")),
 		OpenAITTSModel:     getEnv("OPENAI_TTS_MODEL", "tts-1"),
 		OpenAITTSVoice:     getEnv("OPENAI_TTS_VOICE", "nova"),
 		TTSProvider:        getEnv("TTS_PROVIDER", "auto"),
-		DashScopeAPIKey:    getEnv("DASHSCOPE_API_KEY", ""),
+		DashScopeAPIKey:    stripOuterQuotes(getEnv("DASHSCOPE_API_KEY", "")),
 		DashScopeTTSURL: getEnv(
 			"DASHSCOPE_TTS_URL",
 			"https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation",
@@ -63,6 +64,7 @@ func Load() *Config {
 		DashScopeTTSVoice:    getEnv("DASHSCOPE_TTS_VOICE", "Cherry"),
 		DashScopeTTSLanguage: getEnv("DASHSCOPE_TTS_LANGUAGE", "Chinese"),
 		BaseURL:              getEnv("BASE_URL", "http://localhost:8080"),
+		TTSDebug:             getEnv("TTS_DEBUG", "") == "true" || getEnv("TTS_DEBUG", "") == "1",
 	}
 }
 
@@ -89,8 +91,8 @@ func openAIBaseURLAllowsSharedChatKeyForTTS(base string) bool {
 	return strings.Contains(u, "api.openai.com")
 }
 
-// likelyDashScopeLLM 部署时若未传 OPENAI_BASE_URL，仅靠 qwen 模型名也应走百炼 TTS（避免误用 OpenAI /audio/speech）
-func (c *Config) likelyDashScopeLLM() bool {
+// LikelyDashScopeLLM 部署时若未传 OPENAI_BASE_URL，仅靠 qwen 模型名也应走百炼 TTS（避免误用 OpenAI /audio/speech）
+func (c *Config) LikelyDashScopeLLM() bool {
 	u := strings.ToLower(strings.TrimSpace(c.OpenAIBaseURL))
 	if strings.Contains(u, "dashscope") {
 		return true
@@ -114,7 +116,7 @@ func (c *Config) ResolveTTSProvider() string {
 	case "auto", "":
 		fallthrough
 	default:
-		if c.likelyDashScopeLLM() && c.DashScopeTTSEffectiveKey() != "" {
+		if c.LikelyDashScopeLLM() && c.DashScopeTTSEffectiveKey() != "" {
 			return "dashscope"
 		}
 		if c.TTSEffectiveAPIKey() != "" {
@@ -145,4 +147,16 @@ func getEnv(k, d string) string {
 		return v
 	}
 	return d
+}
+
+// stripOuterQuotes 去掉 .env / Docker 传入时首尾引号与 BOM，避免 Authorization 里带非法字符
+func stripOuterQuotes(s string) string {
+	s = strings.TrimSpace(s)
+	s = strings.TrimPrefix(s, "\ufeff")
+	if len(s) >= 2 {
+		if (s[0] == '"' && s[len(s)-1] == '"') || (s[0] == '\'' && s[len(s)-1] == '\'') {
+			return strings.TrimSpace(s[1 : len(s)-1])
+		}
+	}
+	return s
 }

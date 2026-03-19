@@ -1506,15 +1506,21 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 
 		var audioURL *string
 		var audioDurationSec *int
-		if body.UseVoiceReply && content != "" && (ptrStr(p.VoiceCloneID) != "" || cfg.ResolveTTSProvider() != "") {
+		var ttsSynthErr, ttsSaveErr error
+		var ttsMediaFmt string
+		resolvedTTS := cfg.ResolveTTSProvider()
+		voiceCloneID := ptrStr(p.VoiceCloneID)
+		if body.UseVoiceReply && content != "" && (voiceCloneID != "" || resolvedTTS != "") {
 			ttsProvider := tts.NewProviderFromConfig(cfg)
-			voiceID := ptrStr(p.VoiceCloneID)
-			audioB64, dur, err := ttsProvider.Synthesize(voiceID, content)
+			ttsMediaFmt = ttsProvider.MediaFormat()
+			audioB64, dur, err := ttsProvider.Synthesize(voiceCloneID, content)
+			ttsSynthErr = err
 			if err != nil {
-				log.Printf("life-agents chat: TTS failed (provider=%q): %v", cfg.ResolveTTSProvider(), err)
+				log.Printf("life-agents chat: TTS failed (provider=%q): %v", resolvedTTS, err)
 			}
 			if err == nil && audioB64 != "" {
 				filename, saveErr := tts.SaveAudio(assistantMsgID, audioB64, ttsProvider.MediaFormat())
+				ttsSaveErr = saveErr
 				if saveErr != nil {
 					log.Printf("life-agents chat: save TTS audio: %v", saveErr)
 				}
@@ -1524,6 +1530,8 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 					audioDurationSec = &dur
 				}
 			}
+		} else if body.UseVoiceReply && content != "" {
+			log.Printf("life-agents chat: useVoiceReply set but no TTS provider (voiceClone=%v resolved=%q)", voiceCloneID != "", resolvedTTS)
 		}
 
 		db.DB.Create(&models.LifeAgentChatMessage{
@@ -1553,8 +1561,40 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 		if audioDurationSec != nil {
 			resp["audioDurationSec"] = *audioDurationSec
 		}
+		if cfg.TTSDebug {
+			dbg := gin.H{
+				"useVoiceReply":       body.UseVoiceReply,
+				"resolvedProvider":    resolvedTTS,
+				"likelyDashScopeLLM":  cfg.LikelyDashScopeLLM(),
+				"openaiKeyLen":        len(strings.TrimSpace(cfg.OpenAIApiKey)),
+				"openaiModel":         cfg.OpenAIModel,
+				"openaiBaseURLPrefix": truncateStr(cfg.OpenAIBaseURL, 48),
+				"gotAudioUrl":         audioURL != nil,
+			}
+			if ttsMediaFmt != "" {
+				dbg["mediaFormat"] = ttsMediaFmt
+			}
+			if ttsSynthErr != nil {
+				dbg["synthesizeError"] = ttsSynthErr.Error()
+			}
+			if ttsSaveErr != nil {
+				dbg["saveError"] = ttsSaveErr.Error()
+			}
+			if body.UseVoiceReply && content != "" && voiceCloneID == "" && resolvedTTS == "" {
+				dbg["skipReason"] = "no_tts_provider"
+			}
+			resp["ttsDebug"] = dbg
+		}
 		c.JSON(http.StatusOK, resp)
 	}
+}
+
+func truncateStr(s string, max int) string {
+	s = strings.TrimSpace(s)
+	if max <= 0 || len(s) <= max {
+		return s
+	}
+	return s[:max] + "…"
 }
 
 func LifeAgentsChatFeedback(cfg *config.Config) gin.HandlerFunc {
