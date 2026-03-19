@@ -113,7 +113,8 @@ func (p *DashScopeQwenTTSProvider) Synthesize(voiceID string, text string) (stri
 	if err := json.Unmarshal(raw, &parsed); err != nil {
 		return "", 0, fmt.Errorf("dashscope TTS: invalid JSON: %w", err)
 	}
-	if parsed.StatusCode != http.StatusOK {
+	// 百炼成功 JSON 往往不带顶层 status_code，缺省反序列化为 0，不能当作失败
+	if parsed.StatusCode != 0 && parsed.StatusCode != http.StatusOK {
 		msg := parsed.Message
 		if msg == "" {
 			msg = string(raw)
