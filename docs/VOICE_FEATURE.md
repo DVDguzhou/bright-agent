@@ -32,12 +32,23 @@ Go 后端使用 GORM AutoMigrate，已添加字段会自动迁移：
 - `life_agent_chat_messages.audio_url`：语音回复的音频 URL
 - `life_agent_chat_messages.audio_duration_sec`：语音时长（秒）
 
-### 2. 环境变量
+### 2. 环境变量与 TTS 选型
+
+**默认推荐（全阿里云）**：`TTS_PROVIDER=auto`（可不写），且 `OPENAI_BASE_URL` 指向百炼兼容端（含 `dashscope`）时，使用 **百炼 Qwen3-TTS-Flash**（`qwen3-tts-flash`），与 **`OPENAI_API_KEY`（通义 sk）** 共用，无需再配 OpenAI。
 
 | 变量 | 说明 |
 |------|------|
-| `OPENAI_API_KEY` | 配置后启用语音回复（使用 OpenAI TTS，默认 nova 音色） |
+| `TTS_PROVIDER` | `auto`（默认）、`dashscope`、`openai` |
+| `OPENAI_API_KEY` | 通义聊天 + 百炼 TTS（auto/dashscope 时） |
+| `DASHSCOPE_API_KEY` | 可选；与 `OPENAI_API_KEY` 不一致时单独指定百炼 Key |
+| `DASHSCOPE_TTS_URL` | 默认北京地域 multimodal-generation；新加坡见 `.env.example` |
+| `DASHSCOPE_TTS_MODEL` | 默认 `qwen3-tts-flash` |
+| `DASHSCOPE_TTS_VOICE` | 默认 `Cherry`（更多见[官方音色表](https://help.aliyun.com/zh/model-studio/qwen-tts)） |
+| `DASHSCOPE_TTS_LANGUAGE` | 默认 `Chinese` |
+| `OPENAI_TTS_API_KEY` | 仅 **`TTS_PROVIDER=openai`**（或 auto 走 OpenAI 分支）时使用 |
 | `BASE_URL` | 应用公网地址（可选，用于生成音频 URL） |
+
+文档：[Qwen-TTS API](https://help.aliyun.com/zh/model-studio/qwen-tts-api)
 
 ### 3. 创建 Agent
 
@@ -46,13 +57,13 @@ Go 后端使用 GORM AutoMigrate，已添加字段会自动迁移：
 
 ### 4. 语音回复
 
-- 当 `useVoiceReply` 为 true 且 `OPENAI_API_KEY` 已配置时，调用 OpenAI TTS 合成
-- 音频保存到 `backend/data/audio/{message_id}.mp3`
+- `useVoiceReply` 为 true 且具备可用 TTS 时合成语音；百炼返回音频 URL 后服务端下载为 **WAV** 存盘，OpenAI 为 **MP3**
+- 音频保存到 `backend/data/audio/{message_id}.(wav|mp3)`
 - 通过 `GET /api/audio/:filename` 提供访问
 
 ### 5. 已实现 API
 
-- `GET /api/life-agents/:id`：返回 `hasVoiceClone`（有 OpenAI Key 或 voiceCloneId 时为 true）
+- `GET /api/life-agents/:id`：返回 `hasVoiceClone`（存在可用 TTS 或 `voiceCloneId` 时为 true）
 - `POST /api/life-agents/:id/chat`：支持 `useVoiceReply`，返回 `audioUrl`、`audioDurationSec`
 - `GET /api/life-agents/:id/chat/sessions/:sessionId`：消息含 `audioUrl`、`audioDurationSec`
 
@@ -70,8 +81,8 @@ node scripts/test-voice.mjs
 # 可选：TEST_BASE_URL=http://localhost:8080
 ```
 
-脚本会注册用户、创建 Agent、购买次数、发送 `useVoiceReply: true` 的聊天，并尝试下载 `audioUrl` 指向的 MP3。
-若响应中 **没有 `audioUrl`**，多半是 `OPENAI_API_KEY` 未配置或不是 OpenAI 官方 Key（通义千问 Key 无法调用 OpenAI TTS）。
+脚本会注册用户、创建 Agent、购买次数、发送 `useVoiceReply: true` 的聊天，并尝试下载 `audioUrl` 指向的音频。
+若响应中 **没有 `audioUrl`**：检查百炼是否开通 Qwen-TTS、Key 是否有权限，或 OpenAI 分支下 `OPENAI_TTS_API_KEY` 是否有效。
 
 ## 第三方 TTS 音色克隆参考
 

@@ -80,3 +80,5 @@ func (p *OpenAIProvider) Synthesize(voiceID string, text string) (string, int, e
 
 	return base64.StdEncoding.EncodeToString(data), durationSec, nil
 }
+
+func (p *OpenAIProvider) MediaFormat() string { return "mp3" }

@@ -3,6 +3,7 @@ package handler
 import (
 	"net/http"
 	"path/filepath"
+	"strings"
 
 	"github.com/agent-marketplace/backend/internal/tts"
 	"github.com/gin-gonic/gin"
@@ -19,6 +20,13 @@ func ServeAudio(c *gin.Context) {
 	if err != nil {
 		c.Status(http.StatusNotFound)
 		return
+	}
+	lf := strings.ToLower(filename)
+	switch {
+	case strings.HasSuffix(lf, ".wav"):
+		c.Header("Content-Type", "audio/wav")
+	case strings.HasSuffix(lf, ".mp3"):
+		c.Header("Content-Type", "audio/mpeg")
 	}
 	c.File(fpath)
 }

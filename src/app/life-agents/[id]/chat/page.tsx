@@ -89,7 +89,7 @@ export default function LifeAgentChatPage() {
   const [ratingScore, setRatingScore] = useState(5);
   const [ratingComment, setRatingComment] = useState("");
   const [ratingSubmitting, setRatingSubmitting] = useState(false);
-  const [useVoiceReply, setUseVoiceReply] = useState(false);
+  const [useVoiceReply, setUseVoiceReply] = useState(true);
   const chatEndRef = useRef<HTMLDivElement | null>(null);
 
   const scrollToLastMessage = () => {
@@ -544,11 +544,11 @@ export default function LifeAgentChatPage() {
                     <div className="space-y-3">
                       <VoiceMessageBubble
                         audioUrl={message.audioUrl}
-                        durationSeconds={message.audioDurationSec ?? 0}
+                        durationSeconds={message.audioDurationSec ?? 1}
                         isFromUser={false}
                       />
                       {message.content && (
-                        <p className="mt-2 border-t border-slate-200/50 pt-2 text-sm text-slate-600">
+                        <p className="mt-2 border-t border-slate-200/60 pt-2 text-[13px] leading-6 text-slate-600">
                           {message.content}
                         </p>
                       )}

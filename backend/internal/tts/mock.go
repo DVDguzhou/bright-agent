@@ -10,5 +10,7 @@ func (p *MockProvider) CreateVoice(profileID string, audioBase64 string) (string
 }
 
 func (p *MockProvider) Synthesize(voiceID string, text string) (string, int, error) {
-	return "", 0, fmt.Errorf("TTS not configured: set OPENAI_API_KEY for voice reply")
+	return "", 0, fmt.Errorf("TTS not configured: set keys for DashScope or OpenAI TTS")
 }
+
+func (p *MockProvider) MediaFormat() string { return "mp3" }

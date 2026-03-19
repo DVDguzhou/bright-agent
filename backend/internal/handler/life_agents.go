@@ -645,7 +645,7 @@ func LifeAgentsGet(cfg *config.Config) gin.HandlerFunc {
 				"knowledgeCount":    len(entries),
 			},
 			"ratings":       ratingsSummary,
-			"hasVoiceClone": ptrStr(p.VoiceCloneID) != "" || cfg.OpenAIApiKey != "",
+			"hasVoiceClone": cfg.VoiceReplyConfigured(ptrStr(p.VoiceCloneID)),
 			"viewerState": gin.H{
 				"isLoggedIn":         user != nil,
 				"isOwner":            user != nil && user.ID == p.UserID,
@@ -1505,12 +1505,12 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 
 		var audioURL *string
 		var audioDurationSec *int
-		if body.UseVoiceReply && content != "" && (ptrStr(p.VoiceCloneID) != "" || cfg.OpenAIApiKey != "") {
-			ttsProvider := tts.NewProvider(cfg.OpenAIApiKey)
+		if body.UseVoiceReply && content != "" && (ptrStr(p.VoiceCloneID) != "" || cfg.ResolveTTSProvider() != "") {
+			ttsProvider := tts.NewProviderFromConfig(cfg)
 			voiceID := ptrStr(p.VoiceCloneID)
 			audioB64, dur, err := ttsProvider.Synthesize(voiceID, content)
 			if err == nil && audioB64 != "" {
-				filename, _ := tts.SaveAudio(assistantMsgID, audioB64, "mp3")
+				filename, _ := tts.SaveAudio(assistantMsgID, audioB64, ttsProvider.MediaFormat())
 				if filename != "" {
 					url := "/api/audio/" + filename
 					audioURL = &url

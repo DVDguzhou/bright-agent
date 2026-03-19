@@ -12,4 +12,7 @@ type Provider interface {
 	// text: 待合成文本
 	// 返回: 音频 base64 或 URL，时长（秒）
 	Synthesize(voiceID string, text string) (audioBase64 string, durationSec int, err error)
+
+	// MediaFormat 保存到磁盘时使用的扩展名（不含点），如 mp3、wav
+	MediaFormat() string
 }

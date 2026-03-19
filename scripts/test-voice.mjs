@@ -5,8 +5,8 @@
  * 环境变量：
  *   TEST_BASE_URL  默认 http://localhost:8080
  *
- * 说明：TTS 使用 OpenAI /audio/speech，需后端 OPENAI_API_KEY 为「OpenAI 官方」有效 Key。
- *       若 .env 里只有通义千问 Key，语音合成会静默失败（响应无 audioUrl）。
+ * 说明：TTS_PROVIDER=auto 且 OPENAI_BASE_URL 含 dashscope 时用百炼 Qwen-TTS（与 OPENAI_API_KEY 共用）；
+ *       否则走 OpenAI /audio/speech，需 OPENAI_TTS_API_KEY 等。
  */
 const BASE = process.env.TEST_BASE_URL || "http://localhost:8080";
 
