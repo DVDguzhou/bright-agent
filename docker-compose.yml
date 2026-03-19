@@ -34,6 +34,8 @@ services:
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
       OPENAI_BASE_URL: ${OPENAI_BASE_URL:-}
+      # 通义千问 DashScope 联网搜索（true/1 启用）
+      LLM_ENABLE_WEB_SEARCH: ${LLM_ENABLE_WEB_SEARCH:-}
     depends_on:
       mysql:
         condition: service_healthy

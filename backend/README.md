@@ -20,6 +20,8 @@ PORT=8080
 OPENAI_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
 OPENAI_API_KEY=sk-xxx
 OPENAI_MODEL=qwen-plus
+# 通义千问联网搜索（仅 DashScope 生效）
+LLM_ENABLE_WEB_SEARCH=true
 ```
 
 ## 数据库

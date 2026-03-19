@@ -61,6 +61,18 @@ Go 后端使用 GORM AutoMigrate，已添加字段会自动迁移：
 - **语音识别**：Chrome、Edge 支持；Safari、Firefox 需检查
 - **录音**：主流现代浏览器支持
 
+## 自动化集成测试
+
+后端启动且 MySQL 可用后，在项目根目录执行：
+
+```bash
+node scripts/test-voice.mjs
+# 可选：TEST_BASE_URL=http://localhost:8080
+```
+
+脚本会注册用户、创建 Agent、购买次数、发送 `useVoiceReply: true` 的聊天，并尝试下载 `audioUrl` 指向的 MP3。
+若响应中 **没有 `audioUrl`**，多半是 `OPENAI_API_KEY` 未配置或不是 OpenAI 官方 Key（通义千问 Key 无法调用 OpenAI TTS）。
+
 ## 第三方 TTS 音色克隆参考
 
 - 阿里云 CosyVoice：约 10–20 秒样本即可克隆

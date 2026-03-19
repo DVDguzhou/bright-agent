@@ -21,6 +21,7 @@ DATABASE_URL="${DATABASE_URL:-root:${MYSQL_PASSWORD}@tcp(localhost:3306)/agent_m
 OPENAI_API_KEY="${OPENAI_API_KEY:-}"
 OPENAI_MODEL="${OPENAI_MODEL:-}"
 OPENAI_BASE_URL="${OPENAI_BASE_URL:-}"
+LLM_ENABLE_WEB_SEARCH="${LLM_ENABLE_WEB_SEARCH:-}"
 
 # ---------- 子命令：backend ----------
 if [[ "${1:-}" == "backend" ]]; then
@@ -33,6 +34,7 @@ if [[ "${1:-}" == "backend" ]]; then
   OPENAI_API_KEY="$OPENAI_API_KEY" \
   OPENAI_MODEL="$OPENAI_MODEL" \
   OPENAI_BASE_URL="$OPENAI_BASE_URL" \
+  LLM_ENABLE_WEB_SEARCH="$LLM_ENABLE_WEB_SEARCH" \
   go run .
   exit 0
 fi
