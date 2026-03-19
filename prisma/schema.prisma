@@ -237,6 +237,7 @@ model LifeAgentProfile {
   income           String?  @map("income")      // 收入
   job              String?  @map("job")         // 工作
   school           String?  @map("school")      // 学校
+  voiceCloneId     String?  @map("voice_clone_id") // TTS 音色克隆 ID
   published        Boolean  @default(true)
   createdAt        DateTime @default(now()) @map("created_at")
   updatedAt        DateTime @updatedAt @map("updated_at")
@@ -285,6 +286,8 @@ model LifeAgentChatMessage {
   sessionId String   @map("session_id")
   role      String
   content   String
+  audioUrl  String?  @map("audio_url")  // 语音回复的音频 URL
+  audioDurationSec Int? @map("audio_duration_sec") // 语音时长（秒）
   refs      Json?    @map("refs")
   createdAt DateTime @default(now()) @map("created_at")
 

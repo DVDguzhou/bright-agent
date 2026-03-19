@@ -3,6 +3,7 @@
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { VoiceInputButton, VoiceMessageBubble, VoiceReplyToggle } from "@/components/voice";
 
 type Profile = {
   id: string;
@@ -10,6 +11,7 @@ type Profile = {
   headline: string;
   welcomeMessage: string;
   sampleQuestions?: string[];
+  hasVoiceClone?: boolean;
   viewerState: {
     isLoggedIn: boolean;
     remainingQuestions: number;
@@ -30,6 +32,8 @@ type ChatMessage = {
   content: string;
   messageId?: string;
   sessionId?: string;
+  audioUrl?: string;
+  audioDurationSec?: number;
   feedback?: "helpful" | "not_specific" | "not_suitable";
   feedbackDraftType?: "helpful" | "not_specific" | "not_suitable";
   feedbackComment?: string;
@@ -85,6 +89,7 @@ export default function LifeAgentChatPage() {
   const [ratingScore, setRatingScore] = useState(5);
   const [ratingComment, setRatingComment] = useState("");
   const [ratingSubmitting, setRatingSubmitting] = useState(false);
+  const [useVoiceReply, setUseVoiceReply] = useState(false);
   const chatEndRef = useRef<HTMLDivElement | null>(null);
 
   const scrollToLastMessage = () => {
@@ -128,6 +133,8 @@ export default function LifeAgentChatPage() {
               content: message.content,
               messageId: message.role === "assistant" ? message.id : undefined,
               sessionId: targetSessionId,
+              audioUrl: message.audioUrl,
+              audioDurationSec: message.audioDurationSec,
               references: Array.isArray(message.references) ? message.references : undefined,
             }))
           : [buildWelcomeMessage(welcomeMessage)]
@@ -190,113 +197,123 @@ export default function LifeAgentChatPage() {
     viewportRef.current?.scrollTo({ top: viewportRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
+  const sendMessageWithText = useCallback(
+    async (text: string) => {
+      if (!text.trim() || !profile) return;
+      if (!profile.viewerState.isLoggedIn) {
+        setError("请先登录后再开始聊天哦～");
+        return;
+      }
+      const trimmed = text.trim();
+      const currentSessionId = sessionId;
+      const now = new Date().toISOString();
+
+      setError("");
+      setLoading(true);
+      setMessages((prev) => [...prev, { role: "user", content: trimmed }]);
+      setInput("");
+
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 300000);
+
+        const res = await fetch(`/api/life-agents/${id}/chat`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            sessionId: currentSessionId ?? undefined,
+            message: trimmed,
+            useVoiceReply: useVoiceReply && profile?.hasVoiceClone,
+          }),
+          signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          setError(
+            data.error === "NO_QUESTIONS_LEFT"
+              ? "你的提问次数已经用完，请先返回详情页购买次数。"
+              : data.error === "UNAUTHORIZED"
+                ? "请先登录。"
+                : data.error === "SESSION_NOT_FOUND"
+                  ? "会话已失效，请重新选择历史会话或新建聊天。"
+                  : "发送失败，请稍后重试。"
+          );
+          setMessages((prev) => prev.slice(0, -1));
+          return;
+        }
+
+        setSessionId(data.sessionId);
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            content: data.reply,
+            messageId: data.messageId,
+            sessionId: data.sessionId,
+            audioUrl: data.audioUrl,
+            audioDurationSec: data.audioDurationSec,
+            references: data.references,
+          },
+        ]);
+        setProfile((prev) =>
+          prev
+            ? {
+                ...prev,
+                viewerState: {
+                  ...prev.viewerState,
+                  remainingQuestions: data.remainingQuestions,
+                  rating: data.rating ?? prev.viewerState.rating,
+                },
+              }
+            : prev
+        );
+        setSessions((prev) => {
+          const nextTitle = data.sessionTitle || trimSessionTitle(trimmed);
+          const existing = prev.find((session) => session.id === data.sessionId);
+          if (!existing) {
+            return [
+              {
+                id: data.sessionId,
+                title: nextTitle,
+                messageCount: 2,
+                createdAt: now,
+                updatedAt: now,
+              },
+              ...prev,
+            ];
+          }
+          return [
+            {
+              ...existing,
+              updatedAt: now,
+              messageCount: existing.messageCount + 2,
+            },
+            ...prev.filter((session) => session.id !== data.sessionId),
+          ];
+        });
+        syncRatingForm(data.rating);
+      } catch (err) {
+        const msg =
+          err instanceof Error && err.name === "AbortError"
+            ? "请求超时，AI 处理较慢，请稍后重试。"
+            : "网络异常，请检查连接后重试。";
+        setError(msg);
+        setMessages((prev) => prev.slice(0, -1));
+      } finally {
+        setLoading(false);
+      }
+    },
+    [id, profile, sessionId, useVoiceReply]
+  );
+
   const sendMessage = async (e: FormEvent) => {
     e.preventDefault();
     if (!input.trim() || !profile) return;
-    if (!profile.viewerState.isLoggedIn) {
-      setError("请先登录后再开始聊天哦～");
-      return;
-    }
-
-    const text = input.trim();
-    const currentSessionId = sessionId;
-    const now = new Date().toISOString();
-
-    setError("");
-    setLoading(true);
-    setMessages((prev) => [...prev, { role: "user", content: text }]);
-    setInput("");
-
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 分钟，兼容本地大模型思考模式
-
-      const res = await fetch(`/api/life-agents/${id}/chat`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          sessionId: currentSessionId ?? undefined,
-          message: text,
-        }),
-        signal: controller.signal,
-      });
-      clearTimeout(timeoutId);
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(
-          data.error === "NO_QUESTIONS_LEFT"
-            ? "你的提问次数已经用完，请先返回详情页购买次数。"
-            : data.error === "UNAUTHORIZED"
-            ? "请先登录。"
-            : data.error === "SESSION_NOT_FOUND"
-            ? "会话已失效，请重新选择历史会话或新建聊天。"
-            : "发送失败，请稍后重试。"
-        );
-        setMessages((prev) => prev.slice(0, -1));
-        return;
-      }
-
-      setSessionId(data.sessionId);
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          content: data.reply,
-          messageId: data.messageId,
-          sessionId: data.sessionId,
-          references: data.references,
-        },
-      ]);
-      setProfile((prev) =>
-        prev
-          ? {
-              ...prev,
-              viewerState: {
-                ...prev.viewerState,
-                remainingQuestions: data.remainingQuestions,
-                rating: data.rating ?? prev.viewerState.rating,
-              },
-            }
-          : prev
-      );
-      setSessions((prev) => {
-        const nextTitle = data.sessionTitle || trimSessionTitle(text);
-        const existing = prev.find((session) => session.id === data.sessionId);
-        if (!existing) {
-          return [
-            {
-              id: data.sessionId,
-              title: nextTitle,
-              messageCount: 2,
-              createdAt: now,
-              updatedAt: now,
-            },
-            ...prev,
-          ];
-        }
-        return [
-          {
-            ...existing,
-            updatedAt: now,
-            messageCount: existing.messageCount + 2,
-          },
-          ...prev.filter((session) => session.id !== data.sessionId),
-        ];
-      });
-      syncRatingForm(data.rating);
-    } catch (err) {
-      const msg =
-        err instanceof Error && err.name === "AbortError"
-          ? "请求超时，AI 处理较慢，请稍后重试。"
-          : "网络异常，请检查连接后重试。";
-      setError(msg);
-      setMessages((prev) => prev.slice(0, -1));
-    } finally {
-      setLoading(false);
-    }
+    await sendMessageWithText(input.trim());
   };
 
   if (!profile) {
@@ -483,10 +500,22 @@ export default function LifeAgentChatPage() {
 
       <section className="glass-card flex min-h-[75dvh] flex-col overflow-hidden">
         <div className="border-b border-slate-200 px-6 py-4 shrink-0">
-          <h2 className="text-lg font-semibold text-slate-900">咨询聊天</h2>
-          <p className="mt-1 text-sm text-slate-600">
-            描述你的具体处境和问题，TA 会结合真实经验给出可操作的建议。问得越具体，回答越有用。
-          </p>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h2 className="text-lg font-semibold text-slate-900">咨询聊天</h2>
+              <p className="mt-1 text-sm text-slate-600">
+                描述你的具体处境和问题，TA 会结合真实经验给出可操作的建议。问得越具体，回答越有用。
+              </p>
+            </div>
+            {profile.hasVoiceClone && (
+              <VoiceReplyToggle
+                useVoiceReply={useVoiceReply}
+                onChange={setUseVoiceReply}
+                hasVoiceClone={profile.hasVoiceClone}
+                disabled={loading || sessionLoading}
+              />
+            )}
+          </div>
         </div>
 
         <div
@@ -511,7 +540,22 @@ export default function LifeAgentChatPage() {
                       : "bg-slate-100 text-slate-800"
                   }`}
                 >
-                  <p className="whitespace-pre-wrap">{message.content}</p>
+                  {message.role === "assistant" && message.audioUrl ? (
+                    <div className="space-y-3">
+                      <VoiceMessageBubble
+                        audioUrl={message.audioUrl}
+                        durationSeconds={message.audioDurationSec ?? 0}
+                        isFromUser={false}
+                      />
+                      {message.content && (
+                        <p className="mt-2 border-t border-slate-200/50 pt-2 text-sm text-slate-600">
+                          {message.content}
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="whitespace-pre-wrap">{message.content}</p>
+                  )}
                   {message.references && message.references.length > 0 && (
                     <div className="mt-4 space-y-2 rounded-2xl bg-slate-50 p-3 text-slate-600">
                       <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">回答依据的经验</p>
@@ -663,6 +707,15 @@ export default function LifeAgentChatPage() {
           className="shrink-0 border-t border-slate-200/80 bg-white px-2 pt-2 pb-12 lg:pb-[max(0.5rem,env(safe-area-inset-bottom))] sm:px-4"
         >
           <div className="mx-auto flex max-w-3xl items-end gap-2">
+            <VoiceInputButton
+              onTranscript={(text, isFinal) => {
+                if (isFinal && text.trim()) {
+                  sendMessageWithText(text);
+                }
+              }}
+              disabled={loading || sessionLoading}
+              size="md"
+            />
             <div className="flex-1 min-w-0 rounded-2xl bg-slate-100 px-4 py-2.5">
               <textarea
                 onFocus={() => setTimeout(scrollToLastMessage, 150)}

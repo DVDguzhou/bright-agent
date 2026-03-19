@@ -12,6 +12,7 @@ import {
   getCityOptionsForCreate,
   getCountyOptionsForCreate,
 } from "@/lib/address-hierarchy";
+import { VoiceRecordPanel } from "@/components/voice";
 
 type KnowledgeEntry = {
   category: string;
@@ -229,6 +230,8 @@ export default function CreateLifeAgentPage() {
   const [sampleQuestionsList, setSampleQuestionsList] = useState<string[]>([]);
   const [sampleQuestionsDraft, setSampleQuestionsDraft] = useState("");
   const [chatFieldIndex, setChatFieldIndex] = useState(0);
+  const [voiceSampleBase64, setVoiceSampleBase64] = useState<string | null>(null);
+  const [voiceSkipped, setVoiceSkipped] = useState(false);
   useEffect(() => {
     fetch("/api/auth/me", { credentials: "include" })
       .then((res) => (res.ok ? res.json() : null))
@@ -636,6 +639,7 @@ export default function CreateLifeAgentPage() {
       exampleReplies: exampleRepliesArr.slice(0, 3),
       expertiseTags: expertiseTagsArr.slice(0, 8),
       sampleQuestions: sampleQuestionsArr,
+      voiceSampleBase64: voiceSampleBase64 ?? undefined,
       knowledgeEntries: validEntries.map((e) => {
         const tags = Array.isArray(e.tags) ? e.tags.filter((t) => t && String(t).trim()) : [];
         return {
@@ -727,14 +731,14 @@ export default function CreateLifeAgentPage() {
           <div className="flex flex-1 items-center justify-center gap-2 min-w-0">
             <h1 className="truncate text-sm font-semibold text-slate-800 sm:text-base">创建 Agent</h1>
             <span className="shrink-0 rounded-full bg-sky-100 px-2 py-0.5 text-xs font-medium text-sky-700">
-              {step}/4
+              {step}/5
             </span>
           </div>
           <div className="w-12 shrink-0 sm:w-16" />
         </div>
         <div className="mx-auto mt-1.5 max-w-5xl">
           <div className="flex gap-1">
-            {[1, 2, 3, 4].map((s) => (
+            {[1, 2, 3, 4, 5].map((s) => (
               <div
                 key={s}
                 className={`h-1 flex-1 rounded-full transition-colors ${s <= step ? "bg-sky-500" : "bg-slate-200"}`}
@@ -1186,7 +1190,7 @@ export default function CreateLifeAgentPage() {
                 上一步
               </button>
               <button type="submit" className="btn-primary min-h-[44px]">
-                下一步：设置收费
+                下一步：采集音色
               </button>
             </div>
           </div>
@@ -1194,6 +1198,45 @@ export default function CreateLifeAgentPage() {
       )}
 
       {step === 4 && (
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <div className="flex-1 overflow-y-auto px-4 py-6 sm:px-6">
+            <div className="mx-auto max-w-2xl">
+              <VoiceRecordPanel
+                onComplete={async (blob) => {
+                  const reader = new FileReader();
+                  reader.onloadend = () => {
+                    const base64 = (reader.result as string).split(",")[1];
+                    setVoiceSampleBase64(base64 ?? null);
+                    setError("");
+                    setStep(5);
+                  };
+                  reader.readAsDataURL(blob);
+                }}
+                onSkip={() => {
+                  setVoiceSkipped(true);
+                  setError("");
+                  setStep(5);
+                }}
+                minDurationSeconds={10}
+                maxDurationSeconds={30}
+              />
+            </div>
+          </div>
+          <div className="shrink-0 border-t border-slate-200/80 bg-white px-4 py-4 pb-24 sm:px-6 lg:pb-6">
+            <div className="mx-auto flex max-w-2xl justify-between">
+              <button
+                type="button"
+                onClick={() => { setStep(3); setError(""); }}
+                className="btn-secondary min-h-[44px]"
+              >
+                上一步
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {step === 5 && (
         <form onSubmit={submit} className="flex min-h-0 flex-1 flex-col">
           <div className="flex-1 overflow-y-auto">
             <div className="mx-auto max-w-3xl space-y-6 px-4 py-6 sm:px-6">
@@ -1275,7 +1318,7 @@ export default function CreateLifeAgentPage() {
               <button
                 type="button"
                 onClick={() => {
-                  setStep(3);
+                  setStep(4);
                   setError("");
                 }}
                 className="btn-secondary min-h-[44px]"
