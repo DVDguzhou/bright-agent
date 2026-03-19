@@ -16,9 +16,10 @@ DATABASE_URL=root:password@tcp(localhost:3306)/agent_marketplace?charset=utf8mb4
 SESSION_SECRET=your-secret-key
 SESSION_COOKIE=agent_fiverr_session
 PORT=8080
-# 可选：人生 Agent 聊天 AI
+# 可选：人生 Agent 聊天 AI（默认通义千问，可换 Ollama/Groq/OpenAI）
+OPENAI_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
 OPENAI_API_KEY=sk-xxx
-OPENAI_MODEL=gpt-4o-mini
+OPENAI_MODEL=qwen-plus
 ```
 
 ## 数据库

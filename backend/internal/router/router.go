@@ -65,6 +65,8 @@ func Setup(cfg *config.Config) *gin.Engine {
 		api.DELETE("/user-api-keys/:id", middleware.RequireAuth(cfg), handler.UserAPIKeysDelete(cfg))
 
 		api.POST("/invocations/issue-token", middleware.RequireAuth(cfg), handler.InvocationsIssueToken(cfg))
+
+		api.GET("/audio/:filename", handler.ServeAudio)
 	}
 
 	return r

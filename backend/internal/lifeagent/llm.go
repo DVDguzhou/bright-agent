@@ -11,10 +11,11 @@ import (
 )
 
 // BuildReplyWithLLM 在有 API 配置时调用 LLM 生成回复，否则回退到模板回复
-// baseURL 可选：Ollama 用 http://localhost:11434/v1，Groq 用 https://api.groq.com/openai/v1
-func BuildReplyWithLLM(apiKey, model, baseURL string, profile ProfileForAI, entries []KnowledgeEntryForAI, history []ChatMessageForAI, message string) (content string, references []map[string]string, err error) {
+// baseURL 可选：Ollama 用 http://localhost:11434/v1，通义千问用 https://dashscope.aliyuncs.com/compatible-mode/v1
+// enableWebSearch：为 true 且 baseURL 为 DashScope 时启用联网搜索
+func BuildReplyWithLLM(apiKey, model, baseURL string, enableWebSearch bool, profile ProfileForAI, entries []KnowledgeEntryForAI, history []ChatMessageForAI, message string) (content string, references []map[string]string, err error) {
 	useLLM := (apiKey != "" || baseURL != "") && model != ""
-	log.Printf("[LLM] BuildReplyWithLLM called: apiKey=%q, model=%q, baseURL=%q, useLLM=%v", apiKey, model, baseURL, useLLM)
+	log.Printf("[LLM] BuildReplyWithLLM called: apiKey=%q, model=%q, baseURL=%q, useLLM=%v, enableWebSearch=%v", apiKey, model, baseURL, useLLM, enableWebSearch)
 	if !useLLM {
 		log.Printf("[LLM] skipping LLM, falling back to BuildReply")
 		content, references = BuildReply(profile, entries, history, message)
@@ -35,12 +36,19 @@ func BuildReplyWithLLM(apiKey, model, baseURL string, profile ProfileForAI, entr
 	systemContent := buildSystemPrompt(profile, selectedEntries)
 	messages := buildMessages(systemContent, profile.DisplayName, history, message)
 
-	resp, err := client.CreateChatCompletion(ctx, openai.ChatCompletionRequest{
-		Model:       model,
-		Messages:    messages,
-		Temperature: 0.4,
-		MaxTokens:   4096, // qwen3 思考模式需要更多 tokens（思考 + 回答）
-	})
+	var resp *openai.ChatCompletionResponse
+	if enableWebSearch && isDashScope(baseURL) {
+		resp, err = chatCompletionWithWebSearch(ctx, apiKey, model, baseURL, messages)
+	} else {
+		var r openai.ChatCompletionResponse
+		r, err = client.CreateChatCompletion(ctx, openai.ChatCompletionRequest{
+			Model:       model,
+			Messages:    messages,
+			Temperature: 0.4,
+			MaxTokens:   4096, // qwen3 思考模式需要更多 tokens（思考 + 回答）
+		})
+		resp = &r
+	}
 	if err != nil {
 		log.Printf("[LLM] call failed: %v (model=%s, baseURL=%s)", err, model, baseURL)
 		content, references = BuildReply(profile, entries, history, message)

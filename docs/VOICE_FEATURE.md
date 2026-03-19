@@ -22,61 +22,39 @@ src/
 │   └── index.ts
 ```
 
-## 后端集成说明
+## 后端集成说明（已实现）
 
-### 1. 数据库迁移
+### 1. 数据库
 
-已添加字段：
+Go 后端使用 GORM AutoMigrate，已添加字段会自动迁移：
 
-- `life_agent_profiles.voice_clone_id`：TTS 音色克隆 ID
+- `life_agent_profiles.voice_clone_id`：TTS 音色克隆 ID（预留，阿里云接入时使用）
 - `life_agent_chat_messages.audio_url`：语音回复的音频 URL
 - `life_agent_chat_messages.audio_duration_sec`：语音时长（秒）
 
-执行迁移：
+### 2. 环境变量
 
-```bash
-npx prisma migrate dev --name add_voice_fields
-```
+| 变量 | 说明 |
+|------|------|
+| `OPENAI_API_KEY` | 配置后启用语音回复（使用 OpenAI TTS，默认 nova 音色） |
+| `BASE_URL` | 应用公网地址（可选，用于生成音频 URL） |
 
-### 2. 创建 Agent API
+### 3. 创建 Agent
 
-`POST /api/life-agents` 请求体新增可选字段：
+- 接收 `voiceSampleBase64`，保存到 `backend/data/voice_samples/{profile_id}.webm`
+- 音色克隆（阿里云 CosyVoice）可后续接入
 
-- `voiceSampleBase64`：Base64 编码的音频（用户朗读采集的 10–30 秒）
+### 4. 语音回复
 
-后端需：
+- 当 `useVoiceReply` 为 true 且 `OPENAI_API_KEY` 已配置时，调用 OpenAI TTS 合成
+- 音频保存到 `backend/data/audio/{message_id}.mp3`
+- 通过 `GET /api/audio/:filename` 提供访问
 
-1. 接收 `voiceSampleBase64`，调用 TTS 音色克隆 API（如阿里云 CosyVoice、千问声音复刻）
-2. 将返回的 `voiceCloneId` 存入 `life_agent_profiles.voice_clone_id`
+### 5. 已实现 API
 
-### 3. 获取 Agent 详情 API
-
-`GET /api/life-agents/:id` 响应需包含：
-
-- `hasVoiceClone`：布尔值，表示该 Agent 是否已配置音色
-
-### 4. 聊天 API
-
-`POST /api/life-agents/:id/chat` 请求体新增：
-
-- `useVoiceReply`：布尔值，是否使用语音回复
-
-响应体新增：
-
-- `audioUrl`：语音回复的音频 URL（当 `useVoiceReply` 为 true 时）
-- `audioDurationSec`：语音时长（秒）
-
-后端需：
-
-1. 当 `useVoiceReply` 为 true 且 Agent 有 `voiceCloneId` 时，调用 TTS 合成
-2. 将返回的音频 URL 或上传后的 URL 返回给前端
-
-### 5. 历史会话消息
-
-`GET /api/life-agents/:id/chat/sessions/:sessionId` 返回的消息中，每条 assistant 消息可包含：
-
-- `audioUrl`
-- `audioDurationSec`
+- `GET /api/life-agents/:id`：返回 `hasVoiceClone`（有 OpenAI Key 或 voiceCloneId 时为 true）
+- `POST /api/life-agents/:id/chat`：支持 `useVoiceReply`，返回 `audioUrl`、`audioDurationSec`
+- `GET /api/life-agents/:id/chat/sessions/:sessionId`：消息含 `audioUrl`、`audioDurationSec`
 
 ## 浏览器兼容性
 

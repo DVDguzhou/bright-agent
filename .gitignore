@@ -15,6 +15,9 @@ build
 dist
 backend/backend.exe
 
+# Voice/TTS data
+backend/data/
+
 # Misc
 .DS_Store
 *.pem

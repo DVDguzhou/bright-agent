@@ -73,7 +73,34 @@ go run .
 
 ---
 
-## 方案 3：OpenAI 官方
+## 方案 3：通义千问（支持联网搜索）
+
+**阿里云百炼，中文效果好，可开启联网搜索获取实时信息。**
+
+### 1. 获取 API Key
+
+- 打开 https://dashscope.console.aliyun.com
+- 创建 API Key
+
+### 2. 配置 .env
+
+```env
+OPENAI_BASE_URL="https://dashscope.aliyuncs.com/compatible-mode/v1"
+OPENAI_MODEL="qwen-plus"
+OPENAI_API_KEY="sk-xxx"
+# 可选：启用联网搜索（需阿里云信息查询服务，有免费试用）
+LLM_ENABLE_WEB_SEARCH="true"
+```
+
+### 3. 联网搜索说明
+
+- `LLM_ENABLE_WEB_SEARCH=true` 时，Agent 可搜索互联网获取最新信息
+- 仅在使用通义千问（DashScope base URL）时生效
+- 阿里云信息查询服务提供 15 天免费试用（约 1000 次/天）
+
+---
+
+## 方案 4：OpenAI 官方
 
 有付费账户时使用，不设置 `OPENAI_BASE_URL` 即可：
 
@@ -91,6 +118,7 @@ OPENAI_API_KEY="sk-xxx"
 | `OPENAI_BASE_URL` | 可选，非 OpenAI 时必填 | `http://localhost:11434/v1` |
 | `OPENAI_MODEL` | 模型名 | `qwen3.5:4b` |
 | `OPENAI_API_KEY` | API Key（Ollama 可填 `ollama`） | `ollama` / `gsk_xxx` / `sk_xxx` |
+| `LLM_ENABLE_WEB_SEARCH` | 通义千问联网搜索（`true`/`1` 启用） | `true` |
 
 未配置任何 AI 时，聊天将使用模板回复。
 

@@ -10,10 +10,13 @@ type Config struct {
 	SessionSecret     string
 	SessionCookie     string
 	PlatformKeyPrefix string
-	OpenAIApiKey      string
-	OpenAIModel       string
-	OpenAIBaseURL     string   // 可选，如 Ollama http://localhost:11434/v1 或 Groq https://api.groq.com/openai/v1
-	CORSOrigins       []string // 部署后前端访问地址，如 http://8.136.119.234:3000
+	OpenAIApiKey        string
+	OpenAIModel         string
+	OpenAIBaseURL       string   // 可选，如 Ollama http://localhost:11434/v1 或 DashScope https://dashscope.aliyuncs.com/compatible-mode/v1
+	LLMEnableWebSearch  bool     // 通义千问等 DashScope 联网搜索，仅 baseURL 为 dashscope 时生效
+	CORSOrigins         []string // 部署后前端访问地址，如 http://8.136.119.234:3000
+	// 语音相关
+	BaseURL string // 应用公网地址，用于生成音频 URL，如 https://yourdomain.com
 }
 
 func Load() *Config {
@@ -32,8 +35,10 @@ func Load() *Config {
 		PlatformKeyPrefix: getEnv("PLATFORM_KEY_PREFIX", "sk_live_"),
 		OpenAIApiKey:      getEnv("OPENAI_API_KEY", ""),
 		OpenAIModel:       getEnv("OPENAI_MODEL", "gpt-4o-mini"),
-		OpenAIBaseURL:     getEnv("OPENAI_BASE_URL", ""),
-		CORSOrigins:       origins,
+		OpenAIBaseURL:      getEnv("OPENAI_BASE_URL", ""),
+		LLMEnableWebSearch: getEnv("LLM_ENABLE_WEB_SEARCH", "") == "true" || getEnv("LLM_ENABLE_WEB_SEARCH", "") == "1",
+		CORSOrigins:        origins,
+		BaseURL:           getEnv("BASE_URL", "http://localhost:8080"),
 	}
 }
 

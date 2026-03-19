@@ -5,13 +5,14 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/agent-marketplace/backend/internal/config"
-	"github.com/agent-marketplace/backend/internal/db"
-	"github.com/agent-marketplace/backend/internal/lifeagent"
-	"github.com/agent-marketplace/backend/internal/middleware"
-	"github.com/agent-marketplace/backend/internal/models"
-	"github.com/gin-gonic/gin"
-)
+		"github.com/agent-marketplace/backend/internal/config"
+		"github.com/agent-marketplace/backend/internal/db"
+		"github.com/agent-marketplace/backend/internal/lifeagent"
+		"github.com/agent-marketplace/backend/internal/middleware"
+		"github.com/agent-marketplace/backend/internal/models"
+		"github.com/agent-marketplace/backend/internal/tts"
+		"github.com/gin-gonic/gin"
+	)
 
 func ptrStr(s *string) string {
 	if s == nil {
@@ -261,6 +262,7 @@ func LifeAgentsCreate(cfg *config.Config) gin.HandlerFunc {
 			SampleQuestions    []string `json:"sampleQuestions"`
 			NotSuitableFor     string   `json:"notSuitableFor"`
 			VerificationStatus string   `json:"verificationStatus"` // none, pending, verified
+			VoiceSampleBase64  string   `json:"voiceSampleBase64"`  // 音色采集音频 base64
 			KnowledgeEntries   []struct {
 				Category string   `json:"category" binding:"required"`
 				Title    string   `json:"title" binding:"required"`
@@ -313,6 +315,9 @@ func LifeAgentsCreate(cfg *config.Config) gin.HandlerFunc {
 			NotSuitableFor:     strOpt(body.NotSuitableFor),
 			VerificationStatus: coalesceVerificationStatus(body.VerificationStatus),
 			Published:          true,
+		}
+		if body.VoiceSampleBase64 != "" {
+			_, _ = tts.SaveVoiceSample(profileID, body.VoiceSampleBase64)
 		}
 		if err := db.DB.Create(&p).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "INTERNAL_ERROR"})
@@ -639,7 +644,8 @@ func LifeAgentsGet(cfg *config.Config) gin.HandlerFunc {
 				"soldQuestionPacks": qpCount,
 				"knowledgeCount":    len(entries),
 			},
-			"ratings": ratingsSummary,
+			"ratings":       ratingsSummary,
+			"hasVoiceClone": ptrStr(p.VoiceCloneID) != "" || cfg.OpenAIApiKey != "",
 			"viewerState": gin.H{
 				"isLoggedIn":         user != nil,
 				"isOwner":            user != nil && user.ID == p.UserID,
@@ -1358,6 +1364,12 @@ func LifeAgentsChatSessionDetail(cfg *config.Config) gin.HandlerFunc {
 			}
 			if msg.Role == "assistant" {
 				item["references"] = buildLifeAgentChatReferences(msg.Refs)
+				if msg.AudioURL != nil {
+					item["audioUrl"] = *msg.AudioURL
+				}
+				if msg.AudioDurationSec != nil {
+					item["audioDurationSec"] = *msg.AudioDurationSec
+				}
 			}
 			messages = append(messages, item)
 		}
@@ -1384,8 +1396,9 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 		}
 		id := c.Param("id")
 		var body struct {
-			SessionID string `json:"sessionId"`
-			Message   string `json:"message" binding:"required,min=2,max=2000"`
+			SessionID     string `json:"sessionId"`
+			Message       string `json:"message" binding:"required,min=2,max=2000"`
+			UseVoiceReply bool   `json:"useVoiceReply"`
 		}
 		if err := c.ShouldBindJSON(&body); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "VALIDATION_ERROR"})
@@ -1471,6 +1484,7 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 		} else {
 			content, refs, _ = lifeagent.BuildReplyWithLLM(
 				cfg.OpenAIApiKey, cfg.OpenAIModel, cfg.OpenAIBaseURL,
+				cfg.LLMEnableWebSearch,
 				profileForAI,
 				entriesForAI, hist, body.Message,
 			)
@@ -1488,11 +1502,36 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 		}
 		db.DB.Create(&models.LifeAgentChatMessage{ID: models.GenID(), SessionID: sessionID, Role: "user", Content: body.Message})
 		assistantMsgID := models.GenID()
-		db.DB.Create(&models.LifeAgentChatMessage{ID: assistantMsgID, SessionID: sessionID, Role: "assistant", Content: content, Refs: refsAny})
+
+		var audioURL *string
+		var audioDurationSec *int
+		if body.UseVoiceReply && content != "" && (ptrStr(p.VoiceCloneID) != "" || cfg.OpenAIApiKey != "") {
+			ttsProvider := tts.NewProvider(cfg.OpenAIApiKey)
+			voiceID := ptrStr(p.VoiceCloneID)
+			audioB64, dur, err := ttsProvider.Synthesize(voiceID, content)
+			if err == nil && audioB64 != "" {
+				filename, _ := tts.SaveAudio(assistantMsgID, audioB64, "mp3")
+				if filename != "" {
+					url := "/api/audio/" + filename
+					audioURL = &url
+					audioDurationSec = &dur
+				}
+			}
+		}
+
+		db.DB.Create(&models.LifeAgentChatMessage{
+			ID:               assistantMsgID,
+			SessionID:        sessionID,
+			Role:             "assistant",
+			Content:          content,
+			Refs:             refsAny,
+			AudioURL:         audioURL,
+			AudioDurationSec: audioDurationSec,
+		})
 		db.DB.Model(packToConsume).Update("questions_used", packToConsume.QuestionsUsed+1)
 		db.DB.Model(&models.LifeAgentChatSession{}).Where("id = ?", sessionID).Update("updated_at", db.DB.NowFunc())
 		ratingState := buildLifeAgentRatingState(id, user.ID)
-		c.JSON(http.StatusOK, gin.H{
+		resp := gin.H{
 			"sessionId":          sessionID,
 			"sessionTitle":       buildLifeAgentSessionTitle(body.Message),
 			"messageId":          assistantMsgID,
@@ -1500,7 +1539,14 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 			"references":         refsMap,
 			"remainingQuestions": remaining - 1,
 			"rating":             ratingState,
-		})
+		}
+		if audioURL != nil {
+			resp["audioUrl"] = *audioURL
+		}
+		if audioDurationSec != nil {
+			resp["audioDurationSec"] = *audioDurationSec
+		}
+		c.JSON(http.StatusOK, resp)
 	}
 }
 
