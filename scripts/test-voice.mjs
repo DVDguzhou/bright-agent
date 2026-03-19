@@ -156,10 +156,11 @@ async function main() {
   if (!audioUrl) {
     console.log("\n⚠️  未返回音频 URL。");
     console.log("   常见原因：");
-    console.log("   - OPENAI_API_KEY 未配置或不是 OpenAI 官方 Key（通义 Key 不能调 OpenAI TTS）");
-    console.log("   - TTS 请求失败（查看后端日志）");
+    console.log("   - 线上 Docker 未传 OPENAI_BASE_URL 时，旧版后端会误走 OpenAI TTS；请部署最新代码（按 qwen 模型名自动走百炼）");
+    console.log("   - 未配置 OPENAI_API_KEY，或百炼未开通 Qwen-TTS / Key 无权限");
+    console.log("   - TTS 请求失败（部署后看后端日志: TTS failed）");
     console.log("   - 回复内容为空（极少见）\n");
-    console.log("=== 结果：聊天成功，语音合成未生效（需检查 Key）===");
+    console.log("=== 结果：聊天成功，语音合成未生效 ===");
     process.exit(0);
   }
 

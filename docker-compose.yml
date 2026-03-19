@@ -36,6 +36,14 @@ services:
       OPENAI_BASE_URL: ${OPENAI_BASE_URL:-}
       # 通义千问 DashScope 联网搜索（true/1 启用）
       LLM_ENABLE_WEB_SEARCH: ${LLM_ENABLE_WEB_SEARCH:-}
+      # 语音条：auto + 模型名含 qwen 或 BASE_URL 含 dashscope → 百炼 Qwen-TTS（与 OPENAI_API_KEY 共用）
+      TTS_PROVIDER: ${TTS_PROVIDER:-}
+      DASHSCOPE_API_KEY: ${DASHSCOPE_API_KEY:-}
+      DASHSCOPE_TTS_URL: ${DASHSCOPE_TTS_URL:-}
+      DASHSCOPE_TTS_MODEL: ${DASHSCOPE_TTS_MODEL:-}
+      DASHSCOPE_TTS_VOICE: ${DASHSCOPE_TTS_VOICE:-}
+      DASHSCOPE_TTS_LANGUAGE: ${DASHSCOPE_TTS_LANGUAGE:-}
+      OPENAI_TTS_API_KEY: ${OPENAI_TTS_API_KEY:-}
     depends_on:
       mysql:
         condition: service_healthy

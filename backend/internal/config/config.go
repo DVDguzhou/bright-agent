@@ -6,15 +6,15 @@ import (
 )
 
 type Config struct {
-	DatabaseURL       string
-	SessionSecret     string
-	SessionCookie     string
-	PlatformKeyPrefix string
-	OpenAIApiKey        string
-	OpenAIModel         string
-	OpenAIBaseURL       string   // 可选，如 Ollama http://localhost:11434/v1 或 DashScope https://dashscope.aliyuncs.com/compatible-mode/v1
-	LLMEnableWebSearch  bool     // 通义千问等 DashScope 联网搜索，仅 baseURL 为 dashscope 时生效
-	CORSOrigins         []string // 部署后前端访问地址，如 http://8.136.119.234:3000
+	DatabaseURL        string
+	SessionSecret      string
+	SessionCookie      string
+	PlatformKeyPrefix  string
+	OpenAIApiKey       string
+	OpenAIModel        string
+	OpenAIBaseURL      string   // 可选，如 Ollama http://localhost:11434/v1 或 DashScope https://dashscope.aliyuncs.com/compatible-mode/v1
+	LLMEnableWebSearch bool     // 通义千问等 DashScope 联网搜索，仅 baseURL 为 dashscope 时生效
+	CORSOrigins        []string // 部署后前端访问地址，如 http://8.136.119.234:3000
 	// 语音相关
 	OpenAITTSApiKey  string // OpenAI TTS 专用 Key；不填时仅在 LLM 为官方 OpenAI 端点时复用 OPENAI_API_KEY
 	OpenAITTSBaseURL string // 默认 https://api.openai.com/v1
@@ -27,7 +27,7 @@ type Config struct {
 	DashScopeTTSModel    string // 默认 qwen3-tts-flash
 	DashScopeTTSVoice    string // 默认 Cherry
 	DashScopeTTSLanguage string // 默认 Chinese
-	BaseURL               string // 应用公网地址，用于生成音频 URL，如 https://yourdomain.com
+	BaseURL              string // 应用公网地址，用于生成音频 URL，如 https://yourdomain.com
 }
 
 func Load() *Config {
@@ -40,21 +40,21 @@ func Load() *Config {
 		}
 	}
 	return &Config{
-		DatabaseURL:       getEnv("DATABASE_URL", "root:password@tcp(localhost:3306)/agent_marketplace?charset=utf8mb4&parseTime=True"),
-		SessionSecret:     getEnv("SESSION_SECRET", "change-me-in-production"),
-		SessionCookie:     getEnv("SESSION_COOKIE", "agent_fiverr_session"),
-		PlatformKeyPrefix: getEnv("PLATFORM_KEY_PREFIX", "sk_live_"),
-		OpenAIApiKey:      getEnv("OPENAI_API_KEY", ""),
-		OpenAIModel:       getEnv("OPENAI_MODEL", "gpt-4o-mini"),
+		DatabaseURL:        getEnv("DATABASE_URL", "root:password@tcp(localhost:3306)/agent_marketplace?charset=utf8mb4&parseTime=True"),
+		SessionSecret:      getEnv("SESSION_SECRET", "change-me-in-production"),
+		SessionCookie:      getEnv("SESSION_COOKIE", "agent_fiverr_session"),
+		PlatformKeyPrefix:  getEnv("PLATFORM_KEY_PREFIX", "sk_live_"),
+		OpenAIApiKey:       getEnv("OPENAI_API_KEY", ""),
+		OpenAIModel:        getEnv("OPENAI_MODEL", "gpt-4o-mini"),
 		OpenAIBaseURL:      getEnv("OPENAI_BASE_URL", ""),
 		LLMEnableWebSearch: getEnv("LLM_ENABLE_WEB_SEARCH", "") == "true" || getEnv("LLM_ENABLE_WEB_SEARCH", "") == "1",
 		CORSOrigins:        origins,
-		OpenAITTSApiKey:  getEnv("OPENAI_TTS_API_KEY", ""),
-		OpenAITTSBaseURL: getEnv("OPENAI_TTS_BASE_URL", "https://api.openai.com/v1"),
-		OpenAITTSModel:   getEnv("OPENAI_TTS_MODEL", "tts-1"),
-		OpenAITTSVoice:   getEnv("OPENAI_TTS_VOICE", "nova"),
-		TTSProvider:     getEnv("TTS_PROVIDER", "auto"),
-		DashScopeAPIKey: getEnv("DASHSCOPE_API_KEY", ""),
+		OpenAITTSApiKey:    getEnv("OPENAI_TTS_API_KEY", ""),
+		OpenAITTSBaseURL:   getEnv("OPENAI_TTS_BASE_URL", "https://api.openai.com/v1"),
+		OpenAITTSModel:     getEnv("OPENAI_TTS_MODEL", "tts-1"),
+		OpenAITTSVoice:     getEnv("OPENAI_TTS_VOICE", "nova"),
+		TTSProvider:        getEnv("TTS_PROVIDER", "auto"),
+		DashScopeAPIKey:    getEnv("DASHSCOPE_API_KEY", ""),
 		DashScopeTTSURL: getEnv(
 			"DASHSCOPE_TTS_URL",
 			"https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation",
@@ -89,6 +89,16 @@ func openAIBaseURLAllowsSharedChatKeyForTTS(base string) bool {
 	return strings.Contains(u, "api.openai.com")
 }
 
+// likelyDashScopeLLM 部署时若未传 OPENAI_BASE_URL，仅靠 qwen 模型名也应走百炼 TTS（避免误用 OpenAI /audio/speech）
+func (c *Config) likelyDashScopeLLM() bool {
+	u := strings.ToLower(strings.TrimSpace(c.OpenAIBaseURL))
+	if strings.Contains(u, "dashscope") {
+		return true
+	}
+	m := strings.ToLower(strings.TrimSpace(c.OpenAIModel))
+	return strings.Contains(m, "qwen")
+}
+
 // ResolveTTSProvider 返回 dashscope | openai | 空（不可用）
 func (c *Config) ResolveTTSProvider() string {
 	mode := strings.ToLower(strings.TrimSpace(c.TTSProvider))
@@ -104,7 +114,7 @@ func (c *Config) ResolveTTSProvider() string {
 	case "auto", "":
 		fallthrough
 	default:
-		if strings.Contains(strings.ToLower(c.OpenAIBaseURL), "dashscope") && c.DashScopeTTSEffectiveKey() != "" {
+		if c.likelyDashScopeLLM() && c.DashScopeTTSEffectiveKey() != "" {
 			return "dashscope"
 		}
 		if c.TTSEffectiveAPIKey() != "" {

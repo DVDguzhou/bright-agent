@@ -2,17 +2,18 @@ package handler
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 
-		"github.com/agent-marketplace/backend/internal/config"
-		"github.com/agent-marketplace/backend/internal/db"
-		"github.com/agent-marketplace/backend/internal/lifeagent"
-		"github.com/agent-marketplace/backend/internal/middleware"
-		"github.com/agent-marketplace/backend/internal/models"
-		"github.com/agent-marketplace/backend/internal/tts"
-		"github.com/gin-gonic/gin"
-	)
+	"github.com/agent-marketplace/backend/internal/config"
+	"github.com/agent-marketplace/backend/internal/db"
+	"github.com/agent-marketplace/backend/internal/lifeagent"
+	"github.com/agent-marketplace/backend/internal/middleware"
+	"github.com/agent-marketplace/backend/internal/models"
+	"github.com/agent-marketplace/backend/internal/tts"
+	"github.com/gin-gonic/gin"
+)
 
 func ptrStr(s *string) string {
 	if s == nil {
@@ -1509,8 +1510,14 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 			ttsProvider := tts.NewProviderFromConfig(cfg)
 			voiceID := ptrStr(p.VoiceCloneID)
 			audioB64, dur, err := ttsProvider.Synthesize(voiceID, content)
+			if err != nil {
+				log.Printf("life-agents chat: TTS failed (provider=%q): %v", cfg.ResolveTTSProvider(), err)
+			}
 			if err == nil && audioB64 != "" {
-				filename, _ := tts.SaveAudio(assistantMsgID, audioB64, ttsProvider.MediaFormat())
+				filename, saveErr := tts.SaveAudio(assistantMsgID, audioB64, ttsProvider.MediaFormat())
+				if saveErr != nil {
+					log.Printf("life-agents chat: save TTS audio: %v", saveErr)
+				}
 				if filename != "" {
 					url := "/api/audio/" + filename
 					audioURL = &url
