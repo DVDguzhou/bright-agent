@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -10,6 +10,14 @@ import { fetchWithTimeout } from "@/lib/fetchWithTimeout";
 type Tab = "email" | "wechat" | "phone";
 
 export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="max-w-md mx-auto py-16 text-center text-slate-400">加载中...</div>}>
+      <LoginContent />
+    </Suspense>
+  );
+}
+
+function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { refetch } = useAuth();
