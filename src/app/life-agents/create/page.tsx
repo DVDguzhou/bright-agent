@@ -151,11 +151,6 @@ const PROFILE_CHAT_FIELDS: readonly ProfileChatField[] = [
     placeholder: "例如：年薪 30-50 万 / 无",
   },
   {
-    key: "longBio",
-    prompt: "详细介绍你的 Agent 背景。",
-    placeholder: "例如：我经历过考研失败、转行、裸辞，后来慢慢找到适合自己的路。",
-  },
-  {
     key: "audience",
     prompt: "你的 Agent 适合帮助什么样的人群？",
     placeholder: "例如：大学生、转行的人、刚进社会的人",

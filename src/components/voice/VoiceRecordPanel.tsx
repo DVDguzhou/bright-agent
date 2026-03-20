@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
-import { useMediaRecorder } from "@/lib/voice";
+import { getMicrophoneEnvIssue, useMediaRecorder } from "@/lib/voice";
 
 const SAMPLE_TEXT =
   "你好，我是这个 Agent 的创建者。我会用我的真实经历和经验来回答你的问题，希望能帮到你。";
@@ -20,11 +20,17 @@ export function VoiceRecordPanel({
   maxDurationSeconds = 30,
 }: VoiceRecordPanelProps) {
   const [hasRecorded, setHasRecorded] = useState(false);
+  const [envIssue, setEnvIssue] = useState<string | null>(null);
   const { status, blob, error, duration, start, stop, reset } = useMediaRecorder();
+
+  useEffect(() => {
+    setEnvIssue(getMicrophoneEnvIssue());
+  }, []);
 
   const isRecording = status === "recording";
   const isValidDuration = duration >= minDurationSeconds && duration <= maxDurationSeconds;
   const canSubmit = blob && duration >= minDurationSeconds;
+  const micBlocked = Boolean(envIssue);
 
   useEffect(() => {
     if (duration >= maxDurationSeconds && isRecording) {
@@ -56,6 +62,13 @@ export function VoiceRecordPanel({
         请朗读下面这段话，系统会采集你的声音特征，生成 Agent 的专属音色。建议在安静环境下录制，时长 {minDurationSeconds}–{maxDurationSeconds} 秒。
       </p>
 
+      {envIssue ? (
+        <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          <p className="font-medium">无法在此页面使用麦克风</p>
+          <p className="mt-1 leading-relaxed">{envIssue}</p>
+        </div>
+      ) : null}
+
       <div className="mt-5 rounded-xl bg-slate-50 p-4">
         <p className="text-[15px] leading-7 text-slate-700">{SAMPLE_TEXT}</p>
       </div>
@@ -66,7 +79,7 @@ export function VoiceRecordPanel({
             <button
               type="button"
               onClick={isRecording ? stop : start}
-              disabled={status === "processing"}
+              disabled={status === "processing" || micBlocked}
               className={`flex h-20 w-20 items-center justify-center rounded-full transition-all ${
                 isRecording
                   ? "bg-rose-500 text-white shadow-lg shadow-rose-500/30 animate-pulse"

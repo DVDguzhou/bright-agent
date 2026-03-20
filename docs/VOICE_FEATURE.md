@@ -76,7 +76,7 @@ Go 后端使用 GORM AutoMigrate，已添加字段会自动迁移：
 ## 浏览器兼容性
 
 - **语音识别**：Chrome、Edge 支持；Safari、Firefox 需检查
-- **录音**：主流现代浏览器支持
+- **录音（音色采集）**：需浏览器暴露 `navigator.mediaDevices.getUserMedia`。在 **非安全上下文**（例如通过 **纯 HTTP + 公网 IP** 打开站点）下，`mediaDevices` 往往为 `undefined`，会报错或无法录音。**生产环境请使用 HTTPS**（Let's Encrypt、阿里云证书等）；本地开发用 `http://localhost` 即可。
 
 ## 自动化集成测试
 

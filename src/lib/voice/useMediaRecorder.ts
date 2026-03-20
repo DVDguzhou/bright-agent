@@ -4,6 +4,29 @@ import { useCallback, useRef, useState } from "react";
 
 export type RecordingStatus = "idle" | "recording" | "processing" | "error";
 
+/**
+ * 浏览器仅在「安全上下文」暴露 navigator.mediaDevices（HTTPS、localhost、127.0.0.1 等）。
+ * 纯 HTTP + IP 访问时 mediaDevices 为 undefined，需在服务端配置 TLS。
+ */
+export function getMicrophoneEnvIssue(): string | null {
+  if (typeof window === "undefined") return null;
+  if (!window.isSecureContext) {
+    return "麦克风仅在 HTTPS 或本机 localhost 下可用。请用 https:// 打开本站，或为域名配置 SSL 证书。";
+  }
+  if (!navigator.mediaDevices?.getUserMedia) {
+    return "当前环境无法使用麦克风 API。请使用 Chrome / Edge / Safari 较新版本，并确保通过 HTTPS 访问。";
+  }
+  return null;
+}
+
+async function getAudioStream(): Promise<MediaStream> {
+  const preflight = getMicrophoneEnvIssue();
+  if (preflight) {
+    throw new Error(preflight);
+  }
+  return navigator.mediaDevices!.getUserMedia({ audio: true });
+}
+
 export function useMediaRecorder(options?: {
   mimeType?: string;
   audioBitsPerSecond?: number;
@@ -25,7 +48,7 @@ export function useMediaRecorder(options?: {
       setDuration(0);
       chunksRef.current = [];
 
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const stream = await getAudioStream();
       streamRef.current = stream;
 
       const mimeType = options?.mimeType ?? "audio/webm;codecs=opus";
