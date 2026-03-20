@@ -9,13 +9,15 @@ import (
 func GenID() string { return uuid.New().String() }
 
 type User struct {
-	ID        string    `gorm:"primaryKey;size:36"`
-	Email     string    `gorm:"uniqueIndex;size:255;not null"`
-	Password  string    `gorm:"size:255;not null"`
-	Name      *string   `gorm:"size:255"`
-	AvatarURL *string   `gorm:"column:avatar_url;type:text"`
-	RoleFlags JSONMap   `gorm:"column:role_flags;type:json"`
-	CreatedAt time.Time `gorm:"column:created_at"`
+	ID           string    `gorm:"primaryKey;size:36"`
+	Email        string    `gorm:"uniqueIndex;size:255;not null"`
+	Password     string    `gorm:"size:255;not null"`
+	Name         *string   `gorm:"size:255"`
+	AvatarURL    *string   `gorm:"column:avatar_url;type:text"`
+	Phone        *string   `gorm:"size:20;uniqueIndex"`
+	WechatOpenID *string   `gorm:"column:wechat_open_id;size:64;uniqueIndex"`
+	RoleFlags    JSONMap   `gorm:"column:role_flags;type:json"`
+	CreatedAt    time.Time `gorm:"column:created_at"`
 
 	// relations - no fk for simplicity, use manual queries
 }

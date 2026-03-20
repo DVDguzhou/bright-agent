@@ -1,21 +1,31 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { fetchWithTimeout } from "@/lib/fetchWithTimeout";
 
+type Tab = "email" | "wechat" | "phone";
+
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { refetch } = useAuth();
+  const [tab, setTab] = useState<Tab>("email");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [phone, setPhone] = useState("");
+  const [code, setCode] = useState("");
+  const [codeSent, setCodeSent] = useState(false);
+  const [countdown, setCountdown] = useState(0);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const submit = async (e: React.FormEvent) => {
+  const urlError = searchParams.get("error");
+
+  const submitEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
@@ -49,6 +59,111 @@ export default function LoginPage() {
     }
   };
 
+  const handleWeChatLogin = async () => {
+    setError("");
+    setLoading(true);
+    try {
+      const res = await fetch("/api/auth/wechat/redirect", { credentials: "include" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data.error === "WECHAT_NOT_CONFIGURED" ? "微信登录未配置" : "获取授权链接失败");
+        return;
+      }
+      if (data.url) {
+        window.location.href = data.url;
+        return;
+      }
+      setError("获取授权链接失败");
+    } catch (e) {
+      setError("网络错误，请检查连接后重试");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const sendCode = async () => {
+    const p = phone.replace(/\s/g, "").replace(/^\+86/, "");
+    if (!/^1[3-9]\d{9}$/.test(p)) {
+      setError("请输入正确的手机号");
+      return;
+    }
+    setError("");
+    setLoading(true);
+    try {
+      const res = await fetch("/api/auth/phone/send-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ phone: p }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(
+          data.error === "SMS_SEND_FAILED" ? "发送验证码失败" : data.error === "INVALID_PHONE" ? "手机号格式错误" : "发送失败"
+        );
+        return;
+      }
+      setCodeSent(true);
+      setCountdown(60);
+      const timer = setInterval(() => {
+        setCountdown((c) => {
+          if (c <= 1) {
+            clearInterval(timer);
+            return 0;
+          }
+          return c - 1;
+        });
+      }, 1000);
+    } catch (e) {
+      setError("网络错误，请检查连接后重试");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const submitPhone = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const p = phone.replace(/\s/g, "").replace(/^\+86/, "");
+    if (!/^1[3-9]\d{9}$/.test(p)) {
+      setError("请输入正确的手机号");
+      return;
+    }
+    if (!code.trim()) {
+      setError("请输入验证码");
+      return;
+    }
+    setError("");
+    setLoading(true);
+    try {
+      const res = await fetch("/api/auth/phone/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ phone: p, code: code.trim() }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(
+          data.error === "INVALID_CODE" ? "验证码错误或已过期" : data.error === "INVALID_PHONE" ? "手机号格式错误" : "验证失败"
+        );
+        return;
+      }
+      await refetch();
+      router.push("/dashboard");
+      router.refresh();
+    } catch (e) {
+      setError("网络错误，请检查连接后重试");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const tabs: { key: Tab; label: string }[] = [
+    { key: "email", label: "邮箱" },
+    { key: "wechat", label: "微信" },
+    { key: "phone", label: "手机号" },
+  ];
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -58,10 +173,34 @@ export default function LoginPage() {
       <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-sky-500 bg-clip-text text-transparent mb-2">
         登录
       </h1>
-      <p className="text-slate-500 mb-8">欢迎回来</p>
-      <form onSubmit={submit} className="space-y-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}>
-          <label className="block text-sm font-medium text-slate-700 mb-2">邮箱</label>
+      <p className="text-slate-500 mb-6">欢迎回来</p>
+
+      <div className="flex gap-2 mb-6">
+        {tabs.map((t) => (
+          <button
+            key={t.key}
+            type="button"
+            onClick={() => setTab(t.key)}
+            className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${
+              tab === t.key ? "bg-sky-100 text-sky-700" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {(urlError || error) && (
+        <p className="mb-4 text-red-400 text-sm">
+          {urlError === "invalid_code" && "授权失败，请重试"}
+          {urlError === "wechat_not_configured" && "微信登录未配置"}
+          {!urlError && error}
+        </p>
+      )}
+
+      {tab === "email" && (
+        <form onSubmit={submitEmail} className="space-y-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <label className="block text-sm font-medium text-slate-700">邮箱</label>
           <input
             type="email"
             value={email}
@@ -70,9 +209,7 @@ export default function LoginPage() {
             placeholder="you@example.com"
             required
           />
-        </motion.div>
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15 }}>
-          <label className="block text-sm font-medium text-slate-700 mb-2">密码</label>
+          <label className="block text-sm font-medium text-slate-700">密码</label>
           <input
             type="password"
             value={password}
@@ -81,26 +218,72 @@ export default function LoginPage() {
             placeholder="••••••••"
             required
           />
-        </motion.div>
-        {error && (
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-red-400 text-sm"
+          <button
+            type="submit"
+            disabled={loading}
+            className="btn-primary w-full py-3 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {error}
-          </motion.p>
-        )}
-        <motion.button
-          type="submit"
-          disabled={loading}
-          className="btn-primary w-full py-3 disabled:opacity-50 disabled:cursor-not-allowed"
-          whileHover={{ scale: loading ? 1 : 1.01 }}
-          whileTap={{ scale: loading ? 1 : 0.99 }}
-        >
-          {loading ? "登录中..." : "登录"}
-        </motion.button>
-      </form>
+            {loading ? "登录中..." : "登录"}
+          </button>
+        </form>
+      )}
+
+      {tab === "wechat" && (
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <p className="text-slate-600 text-sm mb-6">点击下方按钮跳转至微信授权页面</p>
+          <button
+            type="button"
+            onClick={handleWeChatLogin}
+            disabled={loading}
+            className="w-full py-3 rounded-xl bg-[#07c160] text-white font-medium hover:bg-[#06ad56] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 0 1 .213.665l-.39 1.48c-.019.07-.048.141-.048.213 0 .163.13.295.29.295a.326.326 0 0 0 .167-.054l1.903-1.114a.864.864 0 0 1 .717-.098 10.16 10.16 0 0 0 2.837.403c.276 0 .543-.027.811-.05-.857-2.578-.857-1.98.857-5.245C11.31 3.666 10.318 2.188 8.691 2.188zm.405 2.376c.584 0 1.06.475 1.06 1.06.001.584-.475 1.06-1.06 1.06-.584 0-1.06-.475-1.06-1.06 0-.585.476-1.06 1.06-1.06zm4.065 0c.584 0 1.06.475 1.06 1.06.001.584-.475 1.06-1.06 1.06-.584 0-1.06-.475-1.06-1.06 0-.585.476-1.06 1.06-1.06zm4.318 2.898c-.072-1.08-.543-2.1-1.352-2.907-1.02-1.02-2.43-1.582-3.91-1.582-2.42 0-4.392 1.97-4.392 4.392 0 .96.31 1.89.89 2.69l.12.163-.051 1.02.923-.49a1.5 1.5 0 0 1 .8-.24c.66 0 1.29.21 1.81.59.82-.55 1.42-1.33 1.73-2.2.39-.02.77-.08 1.14-.13.18-.02.36-.05.54-.08.02-.16.01-.32-.01-.48z" />
+            </svg>
+            {loading ? "跳转中..." : "微信扫码登录"}
+          </button>
+        </div>
+      )}
+
+      {tab === "phone" && (
+        <form onSubmit={submitPhone} className="space-y-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <label className="block text-sm font-medium text-slate-700">手机号</label>
+          <input
+            type="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            className="input-shell"
+            placeholder="13800138000"
+            maxLength={11}
+          />
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              className="input-shell flex-1"
+              placeholder="验证码"
+              maxLength={6}
+            />
+            <button
+              type="button"
+              onClick={sendCode}
+              disabled={loading || countdown > 0}
+              className="px-4 py-2 rounded-lg bg-slate-100 text-slate-700 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+            >
+              {countdown > 0 ? `${countdown}s` : codeSent ? "重新发送" : "获取验证码"}
+            </button>
+          </div>
+          <button
+            type="submit"
+            disabled={loading}
+            className="btn-primary w-full py-3 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? "验证中..." : "登录"}
+          </button>
+        </form>
+      )}
+
       <p className="mt-6 text-slate-500 text-sm">
         没有账号？{" "}
         <Link href="/signup" className="text-sky-700 hover:text-sky-600 transition-colors">

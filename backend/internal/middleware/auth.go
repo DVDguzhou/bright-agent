@@ -15,6 +15,7 @@ import (
 type SessionUser struct {
 	ID        string
 	Email     string
+	Phone     string
 	Name      *string
 	AvatarURL *string
 	RoleFlags map[string]interface{}
@@ -52,9 +53,14 @@ func getSessionUser(c *gin.Context, cfg *config.Config) *SessionUser {
 			if u.RoleFlags != nil {
 				rf = u.RoleFlags
 			}
+			phone := ""
+			if u.Phone != nil {
+				phone = *u.Phone
+			}
 			return &SessionUser{
 				ID:        u.ID,
 				Email:     u.Email,
+				Phone:     phone,
 				Name:      u.Name,
 				AvatarURL: u.AvatarURL,
 				RoleFlags: rf,
@@ -85,9 +91,14 @@ func getSessionUser(c *gin.Context, cfg *config.Config) *SessionUser {
 	if u.RoleFlags != nil {
 		rf = u.RoleFlags
 	}
+	phone := ""
+	if u.Phone != nil {
+		phone = *u.Phone
+	}
 	return &SessionUser{
 		ID:        u.ID,
 		Email:     u.Email,
+		Phone:     phone,
 		Name:      u.Name,
 		AvatarURL: u.AvatarURL,
 		RoleFlags: rf,

@@ -29,24 +29,15 @@ git clone <your-repo-url> regr
 cd regr
 ```
 
-2. **创建环境变量文件**（可选，用于覆盖默认配置）
+2. **创建环境变量文件**
 
-在项目根目录创建 `.env` 文件：
+生产环境请复制生产模板并修改：
 
-```env
-# MySQL  root 密码（需与 DATABASE_URL 中一致）
-MYSQL_ROOT_PASSWORD=your_secure_password
-
-# 后端会话密钥（生产环境务必修改）
-SESSION_SECRET=your-random-secret-at-least-32-chars
-
-# 站点公网地址（用户访问的 URL）
-NEXTAUTH_URL=https://your-domain.com
-
-# 可选：人生 Agent 聊天 AI
-# OPENAI_API_KEY=sk-xxx
-# OPENAI_MODEL=gpt-4o-mini
+```bash
+cp .env.production.example .env
 ```
+
+详见 [docs/PRODUCTION_ENV.md](docs/PRODUCTION_ENV.md)。开发环境可参考 `.env.example`。
 
 3. **启动服务**
 

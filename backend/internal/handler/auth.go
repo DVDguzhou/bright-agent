@@ -111,6 +111,7 @@ func Me(cfg *config.Config) gin.HandlerFunc {
 		c.JSON(http.StatusOK, gin.H{
 			"id":        user.ID,
 			"email":     user.Email,
+			"phone":     user.Phone,
 			"name":      user.Name,
 			"avatarUrl": user.AvatarURL,
 			"roleFlags": user.RoleFlags,

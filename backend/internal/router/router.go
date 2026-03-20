@@ -19,6 +19,10 @@ func Setup(cfg *config.Config) *gin.Engine {
 			auth.POST("/signup", handler.Signup(cfg))
 			auth.POST("/logout", handler.Logout(cfg))
 			auth.GET("/me", middleware.RequireAuth(cfg), handler.Me(cfg))
+			auth.GET("/wechat/redirect", handler.WeChatRedirect(cfg))
+			auth.GET("/wechat/callback", handler.WeChatCallback(cfg))
+			auth.POST("/phone/send-code", handler.PhoneSendCode(cfg))
+			auth.POST("/phone/verify", handler.PhoneVerify(cfg))
 		}
 
 		agents := api.Group("/agents")

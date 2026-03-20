@@ -38,13 +38,15 @@ enum DisputeStatus {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
-  name      String?
-  avatarUrl String?  @map("avatar_url") @db.Text
-  roleFlags Json?    @map("role_flags") // {is_buyer, is_seller}
-  createdAt DateTime @default(now()) @map("created_at")
+  id           String   @id @default(uuid())
+  email        String   @unique // 邮箱登录；微信/手机用户用占位符如 wechat_xxx@placeholder.local
+  password     String
+  name         String?
+  avatarUrl    String?  @map("avatar_url") @db.Text
+  phone        String?  @unique @db.VarChar(20) // 手机号登录
+  wechatOpenId String?  @unique @map("wechat_open_id") @db.VarChar(64) // 微信开放平台 openid
+  roleFlags    Json?    @map("role_flags") // {is_buyer, is_seller}
+  createdAt    DateTime @default(now()) @map("created_at")
 
   userApiKeys   UserApiKey[]
   ownedAgents   Agent[]       @relation("AgentOwner")

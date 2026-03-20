@@ -3,6 +3,9 @@ package config
 import (
 	"os"
 	"strings"
+	"time"
+
+	"github.com/agent-marketplace/backend/internal/sms"
 )
 
 type Config struct {
@@ -30,8 +33,20 @@ type Config struct {
 	// 声音复刻（与 enrollment target_model 须一致）
 	DashScopeVCModel          string // 默认 qwen3-tts-vc-2026-01-22
 	DashScopeVoiceEnrollURL   string // 创建音色 API
-	BaseURL                   string // 应用公网地址，用于生成音频 URL，如 https://yourdomain.com
-	TTSDebug             bool   // TTS_DEBUG：聊天 JSON 附带 ttsDebug（排障后关闭）
+	BaseURL       string // 应用公网地址，用于生成音频 URL，如 https://yourdomain.com
+	FrontendURL   string // 前端地址，微信回调后重定向目标，不填则从请求推断
+	TTSDebug                  bool   // TTS_DEBUG：聊天 JSON 附带 ttsDebug（排障后关闭）
+	// 微信登录（开放平台网站应用）
+	WeChatAppID       string // 微信开放平台 AppID
+	WeChatAppSecret   string // 微信开放平台 AppSecret
+	WeChatRedirectURI string // 授权回调地址，不填则用 BASE_URL + /api/auth/wechat/callback
+	// 手机号登录
+	PhoneCodeTTL time.Duration // 验证码有效期，默认 5 分钟
+	SMSSender    sms.Sender    // 短信发送器，不填则用 Mock（开发环境打印到日志）
+	SMSAccessKey string       // 阿里云 AccessKeyId（可选）
+	SMSSecret    string       // 阿里云 AccessKeySecret（可选）
+	SMSSignName  string       // 短信签名
+	SMSTemplate  string       // 验证码模板 Code
 }
 
 func Load() *Config {
@@ -43,7 +58,7 @@ func Load() *Config {
 			}
 		}
 	}
-	return &Config{
+	cfg := &Config{
 		DatabaseURL:        getEnv("DATABASE_URL", "root:password@tcp(localhost:3306)/agent_marketplace?charset=utf8mb4&parseTime=True"),
 		SessionSecret:      getEnv("SESSION_SECRET", "change-me-in-production"),
 		SessionCookie:      getEnv("SESSION_COOKIE", "agent_fiverr_session"),
@@ -74,9 +89,43 @@ func Load() *Config {
 			"DASHSCOPE_VOICE_ENROLL_URL",
 			"https://dashscope.aliyuncs.com/api/v1/services/audio/tts/customization",
 		),
-		BaseURL:  getEnv("BASE_URL", "http://localhost:8080"),
-		TTSDebug:             getEnv("TTS_DEBUG", "") == "true" || getEnv("TTS_DEBUG", "") == "1",
+		BaseURL:       getEnv("BASE_URL", "http://localhost:8080"),
+		FrontendURL:   stripOuterQuotes(getEnv("FRONTEND_URL", getEnv("NEXTAUTH_URL", ""))),
+		TTSDebug:        getEnv("TTS_DEBUG", "") == "true" || getEnv("TTS_DEBUG", "") == "1",
+		WeChatAppID:     stripOuterQuotes(getEnv("WECHAT_APP_ID", "")),
+		WeChatAppSecret: stripOuterQuotes(getEnv("WECHAT_APP_SECRET", "")),
+		WeChatRedirectURI: stripOuterQuotes(getEnv("WECHAT_REDIRECT_URI", "")),
+		PhoneCodeTTL:    parseDuration(getEnv("PHONE_CODE_TTL", "5m"), 5*time.Minute),
+		SMSAccessKey:    stripOuterQuotes(getEnv("SMS_ACCESS_KEY_ID", "")),
+		SMSSecret:       stripOuterQuotes(getEnv("SMS_ACCESS_KEY_SECRET", "")),
+		SMSSignName:     getEnv("SMS_SIGN_NAME", ""),
+		SMSTemplate:     getEnv("SMS_TEMPLATE_CODE", ""),
 	}
+	cfg.SMSSender = buildSMSSender(cfg)
+	return cfg
+}
+
+func parseDuration(s string, defaultVal time.Duration) time.Duration {
+	if s == "" {
+		return defaultVal
+	}
+	d, err := time.ParseDuration(s)
+	if err != nil {
+		return defaultVal
+	}
+	return d
+}
+
+func buildSMSSender(cfg *Config) sms.Sender {
+	if cfg.SMSAccessKey != "" && cfg.SMSSecret != "" {
+		return &sms.AliyunSender{
+			AccessKeyID:     cfg.SMSAccessKey,
+			AccessKeySecret: cfg.SMSSecret,
+			SignName:        cfg.SMSSignName,
+			TemplateCode:    cfg.SMSTemplate,
+		}
+	}
+	return sms.MockSender{}
 }
 
 // TTSEffectiveAPIKey 用于调用 OpenAI 语音合成接口的 Key（通义等兼容 Key 不能用于 /audio/speech）。

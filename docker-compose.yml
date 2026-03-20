@@ -29,15 +29,15 @@ services:
       DATABASE_URL: root:${MYSQL_ROOT_PASSWORD:-your_root_password}@tcp(mysql:3306)/agent_marketplace?charset=utf8mb4&parseTime=True
       SESSION_SECRET: ${SESSION_SECRET:-change-me-in-production}
       SESSION_COOKIE: ${SESSION_COOKIE:-agent_fiverr_session}
-      # 部署后必填，与 NEXTAUTH_URL 保持一致（含端口），如 http://8.136.119.234:3000
+      # 生产必填：站点公网地址、CORS
+      BASE_URL: ${BASE_URL:-http://localhost:8080}
+      FRONTEND_URL: ${FRONTEND_URL:-}
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-}
       CORS_ORIGINS: ${CORS_ORIGINS:-}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
-      # 默认按阿里云百炼部署；若用 OpenAI 官方请在 .env 覆盖 MODEL 与 BASE_URL
       OPENAI_MODEL: ${OPENAI_MODEL:-qwen-plus}
       OPENAI_BASE_URL: ${OPENAI_BASE_URL:-https://dashscope.aliyuncs.com/compatible-mode/v1}
-      # 通义千问 DashScope 联网搜索（true/1 启用）
       LLM_ENABLE_WEB_SEARCH: ${LLM_ENABLE_WEB_SEARCH:-}
-      # 语音条：auto + 模型名含 qwen 或 BASE_URL 含 dashscope → 百炼 Qwen-TTS（与 OPENAI_API_KEY 共用）
       TTS_PROVIDER: ${TTS_PROVIDER:-}
       DASHSCOPE_API_KEY: ${DASHSCOPE_API_KEY:-}
       DASHSCOPE_TTS_URL: ${DASHSCOPE_TTS_URL:-}
@@ -47,8 +47,17 @@ services:
       DASHSCOPE_VC_MODEL: ${DASHSCOPE_VC_MODEL:-}
       DASHSCOPE_VOICE_ENROLL_URL: ${DASHSCOPE_VOICE_ENROLL_URL:-}
       OPENAI_TTS_API_KEY: ${OPENAI_TTS_API_KEY:-}
-      # 临时排障：true 时聊天 JSON 含 ttsDebug（勿长期开启）
       TTS_DEBUG: ${TTS_DEBUG:-}
+      # 微信登录
+      WECHAT_APP_ID: ${WECHAT_APP_ID:-}
+      WECHAT_APP_SECRET: ${WECHAT_APP_SECRET:-}
+      WECHAT_REDIRECT_URI: ${WECHAT_REDIRECT_URI:-}
+      # 手机号登录
+      SMS_ACCESS_KEY_ID: ${SMS_ACCESS_KEY_ID:-}
+      SMS_ACCESS_KEY_SECRET: ${SMS_ACCESS_KEY_SECRET:-}
+      SMS_SIGN_NAME: ${SMS_SIGN_NAME:-}
+      SMS_TEMPLATE_CODE: ${SMS_TEMPLATE_CODE:-}
+      PHONE_CODE_TTL: ${PHONE_CODE_TTL:-5m}
     depends_on:
       mysql:
         condition: service_healthy

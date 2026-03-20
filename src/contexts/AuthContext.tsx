@@ -5,6 +5,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 type User = {
   id: string;
   email: string;
+  phone?: string;
   name?: string | null;
   avatarUrl?: string | null;
   roleFlags?: { is_buyer?: boolean; is_seller?: boolean } | null;
