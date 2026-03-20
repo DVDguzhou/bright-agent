@@ -657,21 +657,34 @@ export default function CreateLifeAgentPage() {
       credentials: "include",
       body: JSON.stringify(payload),
     });
-    const data = await res.json();
+    const data = (await res.json()) as {
+      id?: string;
+      voiceCloneId?: string;
+      error?: string;
+      detail?: unknown;
+    };
     setLoading(false);
 
     if (!res.ok) {
       const msg =
         data.error === "UNAUTHORIZED"
           ? "请先登录后再创建"
-          : data.detail
+          : data.detail != null
             ? translateLifeAgentValidationError(String(data.detail))
             : "创建失败，请检查输入内容";
       setError(msg);
       return;
     }
 
-    router.push(`/life-agents/${data.id}`);
+    const newId = data.id;
+    if (newId && voiceSampleBase64 && !voiceSkipped && !data.voiceCloneId) {
+      try {
+        sessionStorage.setItem(`la-voice-warn:${newId}`, "1");
+      } catch {
+        /* ignore */
+      }
+    }
+    router.push(`/life-agents/${newId}`);
     router.refresh();
   };
 

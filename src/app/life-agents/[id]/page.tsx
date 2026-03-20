@@ -75,6 +75,7 @@ export default function LifeAgentDetailPage() {
   const [questionCountInput, setQuestionCountInput] = useState("");
   const [purchasing, setPurchasing] = useState(false);
   const [message, setMessage] = useState("");
+  const [voiceEnrollBanner, setVoiceEnrollBanner] = useState<"warn" | null>(null);
 
   const questionCount = useMemo(() => {
     const n = parseInt(questionCountInput, 10);
@@ -92,6 +93,25 @@ export default function LifeAgentDetailPage() {
       .catch(() => setProfile(null))
       .finally(() => setLoaded(true));
   }, [id]);
+
+  useEffect(() => {
+    if (!profile?.viewerState?.isOwner || typeof window === "undefined") return;
+    const k = `la-voice-warn:${profile.id}`;
+    if (sessionStorage.getItem(k)) {
+      setVoiceEnrollBanner("warn");
+    }
+  }, [profile]);
+
+  const dismissVoiceBanner = () => {
+    if (profile?.id) {
+      try {
+        sessionStorage.removeItem(`la-voice-warn:${profile.id}`);
+      } catch {
+        /* ignore */
+      }
+    }
+    setVoiceEnrollBanner(null);
+  };
 
   const totalPrice = useMemo(() => {
     if (!profile || questionCount < MIN_QUESTIONS) return 0;
@@ -155,6 +175,26 @@ export default function LifeAgentDetailPage() {
       <Link href="/life-agents" className="text-sm text-slate-500 hover:text-sky-700">
         ← 返回人生 Agent 列表
       </Link>
+
+      {voiceEnrollBanner === "warn" && profile.viewerState.isOwner && (
+        <div
+          role="status"
+          className="flex flex-col gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 sm:flex-row sm:items-center sm:justify-between"
+        >
+          <p>
+            你上传了音色样本，但<strong className="font-semibold">云端注册未完成</strong>（语音回复可能仍用默认音色）。
+            请到「控制台 → 我的人生 Agent → 编辑资料」重新录制并保存，或联系管理员查看服务日志。
+          </p>
+          <div className="flex shrink-0 gap-2">
+            <Link href={`/dashboard/life-agents/${profile.id}`} className="btn-secondary whitespace-nowrap px-3 py-2 text-sm">
+              去后台上传
+            </Link>
+            <button type="button" onClick={dismissVoiceBanner} className="rounded-xl px-3 py-2 text-sm text-amber-800 underline hover:text-amber-950">
+              知道了
+            </button>
+          </div>
+        </div>
+      )}
 
       <section className="grid gap-6 lg:grid-cols-[1.4fr_0.8fr]">
         <div className="glass-card p-8">

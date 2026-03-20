@@ -28,7 +28,7 @@ src/
 
 Go 后端使用 GORM AutoMigrate，已添加字段会自动迁移：
 
-- `life_agent_profiles.voice_clone_id`：TTS 音色克隆 ID（预留，阿里云接入时使用）
+- `life_agent_profiles.voice_clone_id`：百炼返回的 **`voice` id** 或内置 Flash 预设名（如种子里的 `Ethan`）；Prisma/MySQL 字段长度建议 ≥128（`VARCHAR(128)`）
 - `life_agent_chat_messages.audio_url`：语音回复的音频 URL
 - `life_agent_chat_messages.audio_duration_sec`：语音时长（秒）
 
@@ -45,15 +45,21 @@ Go 后端使用 GORM AutoMigrate，已添加字段会自动迁移：
 | `DASHSCOPE_TTS_MODEL` | 默认 `qwen3-tts-flash` |
 | `DASHSCOPE_TTS_VOICE` | 默认 `Cherry`（更多见[官方音色表](https://help.aliyun.com/zh/model-studio/qwen-tts)） |
 | `DASHSCOPE_TTS_LANGUAGE` | 默认 `Chinese` |
+| `DASHSCOPE_VC_MODEL` | 声音复刻合成模型，默认 `qwen3-tts-vc-2026-01-22`（须与注册音色时的 `target_model` 一致） |
+| `DASHSCOPE_VOICE_ENROLL_URL` | 音色注册 API，默认北京 `.../audio/tts/customization`；国际域见百炼文档 |
 | `OPENAI_TTS_API_KEY` | 仅 **`TTS_PROVIDER=openai`**（或 auto 走 OpenAI 分支）时使用 |
 | `BASE_URL` | 应用公网地址（可选，用于生成音频 URL） |
 
 文档：[Qwen-TTS API](https://help.aliyun.com/zh/model-studio/qwen-tts-api)
 
-### 3. 创建 Agent
+### 3. 创建 / 更新 Agent 与声音复刻（百炼）
 
-- 接收 `voiceSampleBase64`，保存到 `backend/data/voice_samples/{profile_id}.webm`
-- 音色克隆（阿里云 CosyVoice）可后续接入
+- 请求体可带 `voiceSampleBase64`（常见为浏览器录制的 **WebM**；服务端会解码并尽量按 MIME 送注册接口）。阿里云文档对样本常要求 **WAV/MP3/M4A、约 10–30 秒、≥24kHz**；若注册失败可改用导出后的 WAV 再试。
+- 样本仍保存到 `backend/data/voice_samples/{profile_id}.webm`（便于排障）。
+- 当 `TTS_PROVIDER` 解析为 **dashscope** 时，服务端调用百炼 **音色注册**（`qwen-voice-enrollment` + `target_model` = `DASHSCOPE_VC_MODEL`），将返回的 **`voice` id** 写入 `life_agent_profiles.voice_clone_id`。
+- **PATCH** 人生 Agent 同样支持 `voiceSampleBase64`，会重新注册并更新 `voiceCloneId`。
+- **创建** 成功响应含 `voiceCloneId`（注册失败时可能为空，见后端日志 `life-agents create/update: voice enroll`）。
+- TTS 合成时：若 `voice_clone_id` 是内置 **Flash 预设名**（如 `Cherry`、`Ethan`），仍走 `DASHSCOPE_TTS_MODEL`（如 `qwen3-tts-flash`）；否则走 **`DASHSCOPE_VC_MODEL`**，并在请求里使用该 `voice` id。
 
 ### 4. 语音回复
 

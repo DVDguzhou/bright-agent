@@ -286,6 +286,31 @@ func LifeAgentsCreate(cfg *config.Config) gin.HandlerFunc {
 		}
 
 		profileID := models.GenID()
+		var voiceClonePtr *string
+		if body.VoiceSampleBase64 != "" {
+			_, _ = tts.SaveVoiceSample(profileID, body.VoiceSampleBase64)
+			if cfg.ResolveTTSProvider() == "dashscope" {
+				raw, mime, derr := tts.DecodeBase64AudioPayload(body.VoiceSampleBase64)
+				if derr != nil {
+					log.Printf("life-agents create: voice sample decode: %v", derr)
+				} else {
+					pref := tts.SanitizePreferredVoiceName(profileID, body.DisplayName)
+					vid, eerr := tts.EnrollDashScopeVoice(tts.DashScopeEnrollParams{
+						APIKey:        cfg.DashScopeTTSEffectiveKey(),
+						URL:           cfg.DashScopeVoiceEnrollURL,
+						TargetModel:   cfg.DashScopeVCModel,
+						PreferredName: pref,
+						Audio:         raw,
+						MIME:          mime,
+					})
+					if eerr != nil {
+						log.Printf("life-agents create: dashscope voice enroll: %v", eerr)
+					} else if vid != "" {
+						voiceClonePtr = &vid
+					}
+				}
+			}
+		}
 		p := models.LifeAgentProfile{
 			ID:                 profileID,
 			UserID:             user.ID,
@@ -315,10 +340,8 @@ func LifeAgentsCreate(cfg *config.Config) gin.HandlerFunc {
 			ExampleReplies:     models.JSONArray(body.ExampleReplies),
 			NotSuitableFor:     strOpt(body.NotSuitableFor),
 			VerificationStatus: coalesceVerificationStatus(body.VerificationStatus),
+			VoiceCloneID:       voiceClonePtr,
 			Published:          true,
-		}
-		if body.VoiceSampleBase64 != "" {
-			_, _ = tts.SaveVoiceSample(profileID, body.VoiceSampleBase64)
 		}
 		if err := db.DB.Create(&p).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "INTERNAL_ERROR"})
@@ -338,7 +361,11 @@ func LifeAgentsCreate(cfg *config.Config) gin.HandlerFunc {
 		}
 		var entries []models.LifeAgentKnowledgeEntry
 		db.DB.Where("profile_id = ?", profileID).Order("sort_order").Find(&entries)
-		c.JSON(http.StatusOK, gin.H{"id": profileID, "knowledgeEntries": entries})
+		c.JSON(http.StatusOK, gin.H{
+			"id":               profileID,
+			"voiceCloneId":     ptrStr(voiceClonePtr),
+			"knowledgeEntries": entries,
+		})
 	}
 }
 
@@ -708,6 +735,7 @@ func LifeAgentsUpdate(cfg *config.Config) gin.HandlerFunc {
 				Content  string   `json:"content"`
 				Tags     []string `json:"tags"`
 			} `json:"knowledgeEntries"`
+			VoiceSampleBase64 *string `json:"voiceSampleBase64"`
 		}
 		if err := c.ShouldBindJSON(&body); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "VALIDATION_ERROR"})
@@ -815,6 +843,35 @@ func LifeAgentsUpdate(cfg *config.Config) gin.HandlerFunc {
 				db.DB.Create(&k)
 			}
 		}
+		if body.VoiceSampleBase64 != nil && strings.TrimSpace(*body.VoiceSampleBase64) != "" {
+			s := strings.TrimSpace(*body.VoiceSampleBase64)
+			_, _ = tts.SaveVoiceSample(p.ID, s)
+			if cfg.ResolveTTSProvider() == "dashscope" {
+				raw, mime, derr := tts.DecodeBase64AudioPayload(s)
+				if derr != nil {
+					log.Printf("life-agents update: voice decode: %v", derr)
+				} else {
+					dn := p.DisplayName
+					if body.DisplayName != nil {
+						dn = strings.TrimSpace(*body.DisplayName)
+					}
+					pref := tts.SanitizePreferredVoiceName(p.ID, dn)
+					vid, eerr := tts.EnrollDashScopeVoice(tts.DashScopeEnrollParams{
+						APIKey:        cfg.DashScopeTTSEffectiveKey(),
+						URL:           cfg.DashScopeVoiceEnrollURL,
+						TargetModel:   cfg.DashScopeVCModel,
+						PreferredName: pref,
+						Audio:         raw,
+						MIME:          mime,
+					})
+					if eerr != nil {
+						log.Printf("life-agents update: voice enroll: %v", eerr)
+					} else if vid != "" {
+						db.DB.Model(&p).Update("voice_clone_id", vid)
+					}
+				}
+			}
+		}
 		db.DB.Where("id = ?", id).First(&p)
 		c.JSON(http.StatusOK, gin.H{
 			"id":               p.ID,
@@ -843,6 +900,7 @@ func LifeAgentsUpdate(cfg *config.Config) gin.HandlerFunc {
 			"forbiddenPhrases": p.ForbiddenPhrases,
 			"exampleReplies":   p.ExampleReplies,
 			"notSuitableFor":   ptrStr(p.NotSuitableFor),
+			"voiceCloneId":     ptrStr(p.VoiceCloneID),
 			"published":        p.Published,
 		})
 	}
@@ -1170,6 +1228,8 @@ func LifeAgentsManage(cfg *config.Config) gin.HandlerFunc {
 				"notSuitableFor":     ptrStr(p.NotSuitableFor),
 				"published":          p.Published,
 				"knowledgeEntries":   entries,
+				"voiceCloneId":       ptrStr(p.VoiceCloneID),
+				"hasVoiceClone":      cfg.VoiceReplyConfigured(ptrStr(p.VoiceCloneID)),
 			},
 			"stats": gin.H{
 				"totalRevenue": totalRevenue,

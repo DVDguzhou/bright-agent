@@ -18,6 +18,7 @@ func NewProviderFromConfig(cfg *config.Config) Provider {
 			APIKey:       key,
 			Endpoint:     strings.TrimSpace(cfg.DashScopeTTSURL),
 			Model:        cfg.DashScopeTTSModel,
+			VCModel:      cfg.DashScopeVCModel,
 			Voice:        cfg.DashScopeTTSVoice,
 			LanguageType: cfg.DashScopeTTSLanguage,
 		}

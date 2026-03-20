@@ -6,6 +6,7 @@ import Link from "next/link";
 import { RatingStars } from "@/components/RatingStars";
 import { OFFICIAL_CONTACT } from "@/lib/official-contact";
 import { centsToYuanInput, yuanInputToCents } from "@/lib/price";
+import { VoiceRecordPanel } from "@/components/voice";
 
 type ManageData = {
     profile: {
@@ -37,6 +38,8 @@ type ManageData = {
     forbiddenPhrases?: string[];
     exampleReplies?: string[];
     published: boolean;
+    voiceCloneId?: string | null;
+    hasVoiceClone?: boolean;
     knowledgeEntries: Array<{
       id: string;
       category: string;
@@ -144,6 +147,9 @@ export default function LifeAgentManageDetailPage() {
   const [modifyInput, setModifyInput] = useState("");
   const [modifyLoading, setModifyLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [voiceSamplePending, setVoiceSamplePending] = useState<string | null>(null);
+  const [voicePanelOpen, setVoicePanelOpen] = useState(false);
+  const [voiceSaving, setVoiceSaving] = useState(false);
 
   useEffect(() => {
     fetch(`/api/life-agents/${id}/manage`, { credentials: "include" })
@@ -276,6 +282,7 @@ export default function LifeAgentManageDetailPage() {
       sampleQuestions: form.sampleQuestions.split("\n").map((s) => s.trim()).filter(Boolean),
       forbiddenPhrases: form.forbiddenPhrases.split("\n").map((s) => s.trim()).filter(Boolean),
       exampleReplies,
+      ...(voiceSamplePending ? { voiceSampleBase64: voiceSamplePending } : {}),
     };
 
     const res = await fetch(`/api/life-agents/${id}`, {
@@ -291,8 +298,38 @@ export default function LifeAgentManageDetailPage() {
       setError(resData.error === "FORBIDDEN" ? "无权编辑" : "保存失败，请检查输入");
       return;
     }
+    setVoiceSamplePending(null);
+    setVoicePanelOpen(false);
     setData((prev) => (prev ? { ...prev, profile: resData } : prev));
     router.refresh();
+  };
+
+  const saveVoiceOnly = async () => {
+    if (!voiceSamplePending) {
+      setError("请先录制一段样本");
+      return;
+    }
+    setError("");
+    setVoiceSaving(true);
+    try {
+      const res = await fetch(`/api/life-agents/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ voiceSampleBase64: voiceSamplePending }),
+      });
+      const resData = await res.json();
+      if (!res.ok) {
+        setError(resData.error === "FORBIDDEN" ? "无权编辑" : "音色上传失败，请稍后重试");
+        return;
+      }
+      setVoiceSamplePending(null);
+      setVoicePanelOpen(false);
+      setData((prev) => (prev ? { ...prev, profile: resData } : prev));
+      router.refresh();
+    } finally {
+      setVoiceSaving(false);
+    }
   };
 
   if (!data) {
@@ -567,6 +604,76 @@ export default function LifeAgentManageDetailPage() {
 
       {activeTab === "edit" && (
         <form onSubmit={submit} className="space-y-6">
+          <section className="glass-card p-6">
+            <h2 className="text-xl font-semibold text-slate-900">语音回复音色</h2>
+            <p className="mt-2 text-sm text-slate-600">
+              用户在聊天中选择「语音回复」时，会使用此处绑定的音色。上传样本后由服务端向百炼注册，成功后会显示{" "}
+              <code className="rounded bg-slate-100 px-1 text-xs">voiceCloneId</code>。
+            </p>
+            <div className="mt-4 rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-700">
+              <p>
+                状态：
+                {data.profile.hasVoiceClone
+                  ? "已可用于语音合成"
+                  : "未就绪（未绑定音色、或 Key/权限不足，请查服务端日志）"}
+              </p>
+              {data.profile.voiceCloneId ? (
+                <p className="mt-1 break-all font-mono text-xs text-slate-600">
+                  voiceCloneId：{data.profile.voiceCloneId}
+                </p>
+              ) : (
+                <p className="mt-1 text-slate-500">尚未写入 voiceCloneId</p>
+              )}
+            </div>
+            {voiceSamplePending ? (
+              <p className="mt-3 text-sm text-emerald-700">
+                已录制新样本，可点「仅上传音色」立即提交，或保存本页全部资料时一并提交。
+              </p>
+            ) : null}
+            {!voicePanelOpen ? (
+              <div className="mt-4 flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => {
+                    setVoicePanelOpen(true);
+                    setError("");
+                  }}
+                >
+                  录制音色样本
+                </button>
+                {voiceSamplePending ? (
+                  <button
+                    type="button"
+                    className="btn-primary"
+                    disabled={voiceSaving}
+                    onClick={() => void saveVoiceOnly()}
+                  >
+                    {voiceSaving ? "上传中…" : "仅上传音色"}
+                  </button>
+                ) : null}
+              </div>
+            ) : (
+              <div className="mt-4 space-y-4">
+                <VoiceRecordPanel
+                  onComplete={(blob) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                      const base64 = (reader.result as string).split(",")[1];
+                      setVoiceSamplePending(base64 ?? null);
+                      setVoicePanelOpen(false);
+                      setError("");
+                    };
+                    reader.readAsDataURL(blob);
+                  }}
+                />
+                <button type="button" className="btn-secondary text-sm" onClick={() => setVoicePanelOpen(false)}>
+                  取消
+                </button>
+              </div>
+            )}
+          </section>
+
           <section className="glass-card p-6">
             <h2 className="text-xl font-semibold text-slate-900">基本展示信息</h2>
             <div className="mt-5 grid gap-5 md:grid-cols-2">

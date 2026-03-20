@@ -19,6 +19,7 @@ type DashScopeQwenTTSProvider struct {
 	APIKey       string
 	Endpoint     string // 完整 multimodal-generation URL
 	Model        string // 默认 qwen3-tts-flash
+	VCModel      string // 声音复刻合成模型，须与注册时 target_model 一致
 	Voice        string // 默认 Cherry
 	LanguageType string // 默认 Chinese
 }
@@ -67,6 +68,13 @@ func (p *DashScopeQwenTTSProvider) Synthesize(voiceID string, text string) (stri
 	}
 	if strings.TrimSpace(voiceID) != "" {
 		voice = strings.TrimSpace(voiceID)
+	}
+	vcModel := strings.TrimSpace(p.VCModel)
+	if vcModel == "" {
+		vcModel = "qwen3-tts-vc-2026-01-22"
+	}
+	if voice != "" && !IsDashScopeFlashPresetVoice(voice) {
+		model = vcModel
 	}
 	lang := strings.TrimSpace(p.LanguageType)
 	if lang == "" {

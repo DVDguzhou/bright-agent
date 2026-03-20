@@ -237,7 +237,7 @@ model LifeAgentProfile {
   income           String?  @map("income")      // 收入
   job              String?  @map("job")         // 工作
   school           String?  @map("school")      // 学校
-  voiceCloneId     String?  @map("voice_clone_id") // TTS 音色克隆 ID
+  voiceCloneId     String?  @map("voice_clone_id") @db.VarChar(128) // 百炼系统音色或声音复刻 voice id
   published        Boolean  @default(true)
   createdAt        DateTime @default(now()) @map("created_at")
   updatedAt        DateTime @updatedAt @map("updated_at")

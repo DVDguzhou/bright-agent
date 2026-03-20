@@ -27,7 +27,10 @@ type Config struct {
 	DashScopeTTSModel    string // 默认 qwen3-tts-flash
 	DashScopeTTSVoice    string // 默认 Cherry
 	DashScopeTTSLanguage string // 默认 Chinese
-	BaseURL              string // 应用公网地址，用于生成音频 URL，如 https://yourdomain.com
+	// 声音复刻（与 enrollment target_model 须一致）
+	DashScopeVCModel          string // 默认 qwen3-tts-vc-2026-01-22
+	DashScopeVoiceEnrollURL   string // 创建音色 API
+	BaseURL                   string // 应用公网地址，用于生成音频 URL，如 https://yourdomain.com
 	TTSDebug             bool   // TTS_DEBUG：聊天 JSON 附带 ttsDebug（排障后关闭）
 }
 
@@ -63,7 +66,15 @@ func Load() *Config {
 		DashScopeTTSModel:    getEnv("DASHSCOPE_TTS_MODEL", "qwen3-tts-flash"),
 		DashScopeTTSVoice:    getEnv("DASHSCOPE_TTS_VOICE", "Cherry"),
 		DashScopeTTSLanguage: getEnv("DASHSCOPE_TTS_LANGUAGE", "Chinese"),
-		BaseURL:              getEnv("BASE_URL", "http://localhost:8080"),
+		DashScopeVCModel: getEnv(
+			"DASHSCOPE_VC_MODEL",
+			"qwen3-tts-vc-2026-01-22",
+		),
+		DashScopeVoiceEnrollURL: getEnv(
+			"DASHSCOPE_VOICE_ENROLL_URL",
+			"https://dashscope.aliyuncs.com/api/v1/services/audio/tts/customization",
+		),
+		BaseURL:  getEnv("BASE_URL", "http://localhost:8080"),
 		TTSDebug:             getEnv("TTS_DEBUG", "") == "true" || getEnv("TTS_DEBUG", "") == "1",
 	}
 }
