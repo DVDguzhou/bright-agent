@@ -240,7 +240,6 @@ export default function LifeAgentDetailPage() {
               {Array.isArray(profile.regions) && profile.regions.length > 0 && (
                 <p className="mt-2 text-sm text-slate-500">地区：{profile.regions.join(" / ")}</p>
               )}
-              <p className="mt-5 text-base leading-7 text-slate-700">{profile.longBio}</p>
             </div>
 
             <div className="rounded-3xl bg-sky-50 p-5 text-right">

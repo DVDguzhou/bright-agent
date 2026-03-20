@@ -12,6 +12,7 @@
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
     "db:seed": "tsx prisma/seed.ts",
+    "create:laoda": "tsx scripts/create-laoda.ts",
     "db:studio": "prisma studio",
     "mobile:sync": "npx cap sync",
     "mobile:android": "npx cap open android",

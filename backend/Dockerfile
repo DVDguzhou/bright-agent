@@ -12,7 +12,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o server .
 FROM docker.m.daocloud.io/library/alpine:3.19
 # 国内构建：避免 dl-cdn.alpinelinux.org 极慢
 RUN sed -i 's|https://dl-cdn.alpinelinux.org|https://mirrors.aliyun.com|g' /etc/apk/repositories \
-	&& apk add --no-cache ca-certificates tzdata
+	&& apk add --no-cache ca-certificates tzdata ffmpeg
 ENV TZ=Asia/Shanghai
 WORKDIR /app
 COPY --from=builder /app/server .

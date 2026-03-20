@@ -1,6 +1,8 @@
 "use client";
 
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+
+const VOLUME_BOOST = 1.5; // 播放增益，略微提高音量
 
 type VoiceMessageBubbleProps = {
   audioUrl: string;
@@ -24,8 +26,31 @@ export function VoiceMessageBubble({
   className = "",
 }: VoiceMessageBubbleProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const ctxRef = useRef<AudioContext | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio || !audioUrl) return;
+    try {
+      const ctx = new AudioContext();
+      const source = ctx.createMediaElementSource(audio);
+      const gain = ctx.createGain();
+      gain.gain.value = VOLUME_BOOST;
+      source.connect(gain);
+      gain.connect(ctx.destination);
+      ctxRef.current = ctx;
+      return () => {
+        source.disconnect();
+        gain.disconnect();
+        ctx.close();
+        ctxRef.current = null;
+      };
+    } catch {
+      return undefined;
+    }
+  }, [audioUrl]);
 
   const togglePlay = useCallback(() => {
     const audio = audioRef.current;
@@ -37,7 +62,12 @@ export function VoiceMessageBubble({
       return;
     }
 
-    void audio.play().catch(() => setIsPlaying(false));
+    const play = async () => {
+      const ctx = ctxRef.current;
+      if (ctx?.state === "suspended") await ctx.resume();
+      await audio.play();
+    };
+    void play().catch(() => setIsPlaying(false));
     setIsPlaying(true);
   }, [isPlaying]);
 

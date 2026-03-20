@@ -54,7 +54,7 @@ Go 后端使用 GORM AutoMigrate，已添加字段会自动迁移：
 
 ### 3. 创建 / 更新 Agent 与声音复刻（百炼）
 
-- 请求体可带 `voiceSampleBase64`（常见为浏览器录制的 **WebM**；服务端会解码并尽量按 MIME 送注册接口）。阿里云文档对样本常要求 **WAV/MP3/M4A、约 10–30 秒、≥24kHz**；若注册失败可改用导出后的 WAV 再试。
+- 请求体可带 `voiceSampleBase64`（常见为浏览器录制的 **WebM**）。百炼仅支持 **WAV/MP3/M4A**，服务端在检测到 WebM 时会尝试用 **ffmpeg** 转为 16bit 单声道 24kHz WAV 再提交；若本机未安装 ffmpeg 则仍送 WebM（可能被拒）。建议在服务器上安装 ffmpeg 以提升注册成功率。
 - 样本仍保存到 `backend/data/voice_samples/{profile_id}.webm`（便于排障）。
 - 当 `TTS_PROVIDER` 解析为 **dashscope** 时，服务端调用百炼 **音色注册**（`qwen-voice-enrollment` + `target_model` = `DASHSCOPE_VC_MODEL`），将返回的 **`voice` id** 写入 `life_agent_profiles.voice_clone_id`。
 - **PATCH** 人生 Agent 同样支持 `voiceSampleBase64`，会重新注册并更新 `voiceCloneId`。

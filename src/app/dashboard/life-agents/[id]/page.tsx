@@ -236,11 +236,6 @@ export default function LifeAgentManageDetailPage() {
     setLoading(true);
 
     const exampleReplies = [form.exampleReply1, form.exampleReply2, form.exampleReply3].map((s) => s.trim()).filter(Boolean);
-    if (exampleReplies.length < 2) {
-      setError("请至少保留 2 条示范回答，聊天才会更像你本人");
-      setLoading(false);
-      return;
-    }
 
     const displayName = form.displayName.trim();
     if (displayName.length < 1 || displayName.length > 10) {
@@ -827,15 +822,6 @@ export default function LifeAgentManageDetailPage() {
                     </p>
                   </>
                 )}
-              </div>
-              <div className="md:col-span-2">
-                <label className="mb-2 block text-sm font-medium text-slate-700">详细背景（选填）</label>
-                <textarea
-                  className="input-shell min-h-36"
-                  value={form.longBio}
-                  onChange={(e) => setForm((prev) => ({ ...prev, longBio: e.target.value }))}
-                  placeholder="可以不填"
-                />
               </div>
             </div>
           </section>

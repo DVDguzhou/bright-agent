@@ -304,7 +304,7 @@ func LifeAgentsCreate(cfg *config.Config) gin.HandlerFunc {
 						MIME:          mime,
 					})
 					if eerr != nil {
-						log.Printf("life-agents create: dashscope voice enroll: %v", eerr)
+						log.Printf("life-agents create: dashscope voice enroll: %v (mime=%s len=%d)", eerr, mime, len(raw))
 					} else if vid != "" {
 						voiceClonePtr = &vid
 					}
@@ -865,7 +865,7 @@ func LifeAgentsUpdate(cfg *config.Config) gin.HandlerFunc {
 						MIME:          mime,
 					})
 					if eerr != nil {
-						log.Printf("life-agents update: voice enroll: %v", eerr)
+						log.Printf("life-agents update: voice enroll: %v (mime=%s len=%d)", eerr, mime, len(raw))
 					} else if vid != "" {
 						db.DB.Model(&p).Update("voice_clone_id", vid)
 					}
@@ -901,6 +901,7 @@ func LifeAgentsUpdate(cfg *config.Config) gin.HandlerFunc {
 			"exampleReplies":   p.ExampleReplies,
 			"notSuitableFor":   ptrStr(p.NotSuitableFor),
 			"voiceCloneId":     ptrStr(p.VoiceCloneID),
+			"hasVoiceClone":     cfg.VoiceReplyConfigured(ptrStr(p.VoiceCloneID)),
 			"published":        p.Published,
 		})
 	}

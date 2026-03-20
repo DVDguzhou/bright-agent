@@ -6,7 +6,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
+	"os"
+	"os/exec"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"time"
@@ -45,6 +49,7 @@ type enrollResponse struct {
 }
 
 // EnrollDashScopeVoice 上传样本并返回可在 qwen3-tts-vc 中使用的 voice id
+// 百炼仅支持 WAV/MP3/M4A，浏览器录的 WebM 会先尝试用 ffmpeg 转为 WAV
 func EnrollDashScopeVoice(p DashScopeEnrollParams) (string, error) {
 	key := strings.TrimSpace(p.APIKey)
 	if key == "" {
@@ -61,11 +66,21 @@ func EnrollDashScopeVoice(p DashScopeEnrollParams) (string, error) {
 	if url == "" {
 		url = "https://dashscope.aliyuncs.com/api/v1/services/audio/tts/customization"
 	}
+	audio := p.Audio
 	mime := strings.TrimSpace(p.MIME)
 	if mime == "" {
 		mime = "application/octet-stream"
 	}
-	b64 := base64.StdEncoding.EncodeToString(p.Audio)
+	// 百炼仅支持 WAV/MP3/M4A，WebM 需转换
+	if strings.Contains(strings.ToLower(mime), "webm") {
+		if wav, err := convertWebMToWAV(audio); err == nil {
+			audio = wav
+			mime = "audio/wav"
+		} else {
+			log.Printf("dashscope enroll: webm->wav conversion failed (%v), will try webm anyway", err)
+		}
+	}
+	b64 := base64.StdEncoding.EncodeToString(audio)
 	dataURI := "data:" + mime + ";base64," + b64
 
 	var reqBody enrollRequest
@@ -98,6 +113,7 @@ func EnrollDashScopeVoice(p DashScopeEnrollParams) (string, error) {
 		return "", err
 	}
 	if resp.StatusCode != http.StatusOK {
+		log.Printf("dashscope enroll: http %d body=%s", resp.StatusCode, truncate(string(raw), 500))
 		return "", fmt.Errorf("dashscope enroll http %d: %s", resp.StatusCode, string(raw))
 	}
 
@@ -106,12 +122,15 @@ func EnrollDashScopeVoice(p DashScopeEnrollParams) (string, error) {
 		return "", fmt.Errorf("dashscope enroll: invalid JSON: %w", err)
 	}
 	if parsed.StatusCode != 0 && parsed.StatusCode != http.StatusOK {
+		log.Printf("dashscope enroll: status_code=%d code=%s message=%s", parsed.StatusCode, parsed.Code, parsed.Message)
 		return "", fmt.Errorf("dashscope enroll status %d: %s", parsed.StatusCode, parsed.Message)
 	}
 	if c := strings.TrimSpace(parsed.Code); c != "" {
+		log.Printf("dashscope enroll: code=%s message=%s", c, parsed.Message)
 		return "", fmt.Errorf("dashscope enroll code=%s: %s", c, strings.TrimSpace(parsed.Message))
 	}
 	if parsed.Output == nil || strings.TrimSpace(parsed.Output.Voice) == "" {
+		log.Printf("dashscope enroll: no voice in response body=%s", truncate(string(raw), 300))
 		return "", fmt.Errorf("dashscope enroll: no voice in response: %s", string(raw))
 	}
 	return strings.TrimSpace(parsed.Output.Voice), nil
@@ -147,27 +166,57 @@ func DecodeBase64AudioPayload(s string) ([]byte, string, error) {
 	return raw, "audio/webm", nil
 }
 
+func truncate(s string, max int) string {
+	if len(s) <= max {
+		return s
+	}
+	return s[:max] + "..."
+}
+
+// convertWebMToWAV 用 ffmpeg 将 WebM 转为 16bit 单声道 WAV（百炼要求）
+func convertWebMToWAV(webm []byte) ([]byte, error) {
+	tmpDir := os.TempDir()
+	inPath := filepath.Join(tmpDir, "enroll_in.webm")
+	outPath := filepath.Join(tmpDir, "enroll_out.wav")
+	if err := os.WriteFile(inPath, webm, 0600); err != nil {
+		return nil, err
+	}
+	defer os.Remove(inPath)
+	defer os.Remove(outPath)
+
+	cmd := exec.Command("ffmpeg", "-y", "-i", inPath, "-acodec", "pcm_s16le", "-ac", "1", "-ar", "24000", outPath)
+	cmd.Stdout = nil
+	cmd.Stderr = nil
+	if err := cmd.Run(); err != nil {
+		return nil, err
+	}
+	return os.ReadFile(outPath)
+}
+
 var preferredNameSanitizer = regexp.MustCompile(`[^a-z0-9_]+`)
 
-// SanitizePreferredVoiceName 百炼 preferred_name 约束：字母数字下划线，长度适中
+// SanitizePreferredVoiceName 百炼 preferred_name 约束：仅字母数字下划线，不超过 16 字符
 func SanitizePreferredVoiceName(profileID, displayName string) string {
-	base := strings.ReplaceAll(strings.ToLower(profileID), "-", "_")
-	if len(base) > 24 {
-		base = base[:24]
-	}
-	if base == "" {
-		base = "vc"
-	}
-	// 可加 displayName 前缀但需极短
 	d := preferredNameSanitizer.ReplaceAllString(strings.ToLower(strings.TrimSpace(displayName)), "")
 	if len(d) > 8 {
 		d = d[:8]
 	}
+	base := strings.ReplaceAll(strings.ToLower(profileID), "-", "_")
+	if len(base) > 8 {
+		base = base[:8]
+	}
+	if base == "" {
+		base = "vc"
+	}
+	out := base
 	if d != "" {
-		base = d + "_" + base
+		out = d + "_" + base
 	}
-	if len(base) > 32 {
-		base = base[:32]
+	if len(out) > 16 {
+		out = out[:16]
 	}
-	return base
+	if out == "" {
+		out = "vc"
+	}
+	return out
 }
