@@ -17,11 +17,12 @@ const QUESTION_PACK_ID = "20000000-0000-0000-0000-000000000002";
 async function main() {
   const hash = await bcrypt.hash("5425444", 12);
 
+  // where 与 create 的 email 必须一致；勿用另一邮箱，否则会触发 users.email 唯一约束（P2002）
   const seller = await prisma.user.upsert({
     where: { email: "seller@demo.com" },
     update: {},
     create: {
-      email: "tmxiand@gmail.com",
+      email: "seller@demo.com",
       password: hash,
       name: "Timelord",
       roleFlags: { is_buyer: false, is_seller: true },
@@ -32,7 +33,7 @@ async function main() {
     where: { email: "buyer@demo.com" },
     update: { roleFlags: { is_buyer: true, is_seller: true } },
     create: {
-      email: "tmxiand@gmail.com",
+      email: "buyer@demo.com",
       password: hash,
       name: "Timelord",
       roleFlags: { is_buyer: true, is_seller: true },
@@ -125,7 +126,7 @@ async function main() {
   const base = process.env.NEXTAUTH_URL || "http://localhost:3000";
   console.log("✅ 活泼牢大 已就绪");
   console.log("   聊天页:", `${base}/life-agents/${laodaAgent.id}/chat`);
-  console.log("   买家 tmxiand@gmail.com / 5425444 已预充 50 次提问");
+  console.log("   买家 buyer@demo.com 已预充 50 次提问（本脚本新建时密码 5425444；若来自 db:seed 则为 password123）");
 }
 
 main()
