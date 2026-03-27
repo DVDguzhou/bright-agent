@@ -29,6 +29,8 @@ services:
       DATABASE_URL: root:${MYSQL_ROOT_PASSWORD:-your_root_password}@tcp(mysql:3306)/agent_marketplace?charset=utf8mb4&parseTime=True
       SESSION_SECRET: ${SESSION_SECRET:-change-me-in-production}
       SESSION_COOKIE: ${SESSION_COOKIE:-agent_fiverr_session}
+      # HTTPS 站点建议 true，否则会话 Cookie 可能不被浏览器保存（邮箱登录/注册后仍显示未登录）
+      SECURE_SESSION_COOKIE: ${SECURE_SESSION_COOKIE:-}
       # 生产必填：站点公网地址、CORS
       BASE_URL: ${BASE_URL:-http://localhost:8080}
       FRONTEND_URL: ${FRONTEND_URL:-}

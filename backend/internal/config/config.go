@@ -10,8 +10,9 @@ import (
 
 type Config struct {
 	DatabaseURL        string
-	SessionSecret      string
-	SessionCookie      string
+	SessionSecret       string
+	SessionCookie       string
+	SecureSessionCookie bool // SECURE_SESSION_COOKIE=true：HTTPS 生产环境建议开启（会话 Cookie 带 Secure）
 	PlatformKeyPrefix  string
 	OpenAIApiKey       string
 	OpenAIModel        string
@@ -60,8 +61,9 @@ func Load() *Config {
 	}
 	cfg := &Config{
 		DatabaseURL:        getEnv("DATABASE_URL", "root:password@tcp(localhost:3306)/agent_marketplace?charset=utf8mb4&parseTime=True"),
-		SessionSecret:      getEnv("SESSION_SECRET", "change-me-in-production"),
-		SessionCookie:      getEnv("SESSION_COOKIE", "agent_fiverr_session"),
+		SessionSecret:       getEnv("SESSION_SECRET", "change-me-in-production"),
+		SessionCookie:       getEnv("SESSION_COOKIE", "agent_fiverr_session"),
+		SecureSessionCookie: getEnv("SECURE_SESSION_COOKIE", "") == "true" || getEnv("SECURE_SESSION_COOKIE", "") == "1",
 		PlatformKeyPrefix:  getEnv("PLATFORM_KEY_PREFIX", "sk_live_"),
 		OpenAIApiKey:       stripOuterQuotes(getEnv("OPENAI_API_KEY", "")),
 		OpenAIModel:        stripOuterQuotes(getEnv("OPENAI_MODEL", "gpt-4o-mini")),

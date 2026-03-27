@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/agent-marketplace/backend/internal/config"
+	"github.com/agent-marketplace/backend/internal/cookieutil"
 	"github.com/agent-marketplace/backend/internal/db"
 	"github.com/agent-marketplace/backend/internal/models"
 	"github.com/gin-gonic/gin"
@@ -67,7 +68,8 @@ func getSessionUser(c *gin.Context, cfg *config.Config) *SessionUser {
 			}
 		}
 		// 会话中的 user ID 在数据库中不存在（如切换 DB 后），清除无效 cookie
-		c.SetCookie(cfg.SessionCookie, "", -1, "/", "", false, true)
+		sec := cookieutil.SessionSecure(c, cfg)
+		c.SetCookie(cfg.SessionCookie, "", -1, "/", "", sec, true)
 	}
 	auth := c.GetHeader("Authorization")
 	if !strings.HasPrefix(auth, "Bearer ") {

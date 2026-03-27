@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/agent-marketplace/backend/internal/config"
+	"github.com/agent-marketplace/backend/internal/cookieutil"
 	"github.com/agent-marketplace/backend/internal/db"
 	"github.com/agent-marketplace/backend/internal/middleware"
 	"github.com/agent-marketplace/backend/internal/models"
@@ -121,14 +122,16 @@ func Me(cfg *config.Config) gin.HandlerFunc {
 
 func Logout(cfg *config.Config) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.SetCookie(cfg.SessionCookie, "", -1, "/", "", false, true)
+		sec := cookieutil.SessionSecure(c, cfg)
+		c.SetCookie(cfg.SessionCookie, "", -1, "/", "", sec, true)
 		c.JSON(http.StatusOK, gin.H{"ok": true})
 	}
 }
 
 func setSessionCookie(c *gin.Context, cfg *config.Config, userID string) {
 	maxAge := 60 * 60 * 24 * 7 // 7 days
-	c.SetCookie(cfg.SessionCookie, userID, maxAge, "/", "", false, true)
+	sec := cookieutil.SessionSecure(c, cfg)
+	c.SetCookie(cfg.SessionCookie, userID, maxAge, "/", "", sec, true)
 }
 
 func ptr(s string) *string {
