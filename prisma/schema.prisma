@@ -2,7 +2,9 @@
 // 按 buyandsell.md 设计：平台不执行 Agent，只做授权与存证
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  // 本机开发用 native；Linux 服务器 / node:bookworm Docker 用 OpenSSL 3（slim 镜像需含 libssl3）
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
 }
 
 datasource db {

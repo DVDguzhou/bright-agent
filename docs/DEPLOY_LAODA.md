@@ -46,7 +46,30 @@ https://brightagent.cn/life-agents/10000000-0000-0000-0000-000000000002/chat
 
 默认使用百炼系统音色 **Ethan**（`voiceCloneId`）。若需自定义音色，请在卖家控制台对该 Agent 上传样本或走项目里的声音复刻脚本（见 `.env.example` 与 `docs` 中语音相关说明）。
 
+## 用 Docker 跑脚本（无本机 Node 时）
+
+若拉取 `node` 镜像失败，可换国内镜像前缀，例如：`docker.m.daocloud.io/library/node:20-bookworm`。
+
+**不要用 `bookworm-slim` 直接跑 Prisma**（易缺 libssl），请改用 **`node:20-bookworm`**（非 slim），或在 slim 里先执行 `apt-get update && apt-get install -y openssl`。
+
+`DATABASE_PRISMA_URL` 里必须是**真实 root 密码**，不要带「你的」等占位符。
+
+```bash
+cd ~/regr
+docker run --rm -it \
+  -v "$PWD:/app" -w /app \
+  --network host \
+  -e DATABASE_PRISMA_URL="mysql://root:你的真实密码@127.0.0.1:3306/agent_marketplace" \
+  node:20-bookworm \
+  bash -lc "npm install && npx prisma generate && npm run create:laoda"
+```
+
+仓库已在 `schema.prisma` 中配置 `binaryTargets` 含 `debian-openssl-3.0.x`，与 Debian 12 / OpenSSL 3 一致；若仍报错，请先 `git pull` 再执行上述命令。
+
 ## 常见问题
+
+**Q：`libssl.so.1.1` / `Prisma cannot find libssl`？**  
+A：换用 `node:20-bookworm`（非 slim），或 `git pull` 后重新 `npx prisma generate`（已包含 `debian-openssl-3.0.x` 引擎）。
 
 **Q：`Prisma` 连不上库？**  
 A：确认 MySQL 已启动、`DATABASE_PRISMA_URL` 密码与 `docker-compose` 里 `MYSQL_ROOT_PASSWORD` 一致，且端口未被防火墙拦截。
