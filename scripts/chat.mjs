@@ -14,8 +14,8 @@
  *
  * 环境变量：
  *   TEST_BASE_URL  后端地址，默认 http://backend:8080
- *   TEST_EMAIL     登录邮箱
- *   TEST_PASSWORD  登录密码
+ *   TEST_EMAIL     登录邮箱，默认 buyer@demo.com
+ *   TEST_PASSWORD  登录密码，默认 password123（与 db:seed / create:laoda 中买家一致）
  */
 import { createInterface } from "node:readline";
 
@@ -63,7 +63,7 @@ const hasFlag = (f) => process.argv.includes(f);
 
 // ---------- Main ----------
 async function main() {
-  const email = process.env.TEST_EMAIL || "tmxiand@gmail.com";
+  const email = process.env.TEST_EMAIL || "buyer@demo.com";
   const password = process.env.TEST_PASSWORD || "password123";
 
   console.log(`\n🔑 登录 ${email} ...`);

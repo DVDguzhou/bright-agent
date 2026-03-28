@@ -4,10 +4,10 @@
  * 使用：node scripts/create-laoda-2-with-voice.mjs
  * 环境变量：
  *   TEST_BASE_URL  默认 http://localhost:8080（Go 后端）
- *   LAODA_SELLER_EMAIL  默认 tmxiand@gmail.com（创建活泼牢大2.0 的账号）
- *   LAODA_SELLER_PASSWORD  默认 5425444
+ *   LAODA_SELLER_EMAIL  默认 tmxiand@gmail.com（与活泼牢大默认卖家一致）
+ *   LAODA_SELLER_PASSWORD  默认 password123（与 db:seed 一致）
  *
- * 前置：已用 tmxiand@gmail.com 创建「活泼牢大2.0」，Go 后端已启动，DASHSCOPE 相关配置已就绪
+ * 前置：已创建「活泼牢大2.0」且知悉其卖家账号，Go 后端已启动，DASHSCOPE 相关配置已就绪
  */
 import fs from "fs";
 import path from "path";
@@ -20,7 +20,7 @@ const VOICE_FILE = path.join(VOICE_DIR, "laoda_voice.mp3");
 
 const BASE = process.env.TEST_BASE_URL || "http://localhost:8080";
 const SELLER_EMAIL = process.env.LAODA_SELLER_EMAIL || "tmxiand@gmail.com";
-const SELLER_PASSWORD = process.env.LAODA_SELLER_PASSWORD || "5425444";
+const SELLER_PASSWORD = process.env.LAODA_SELLER_PASSWORD || "password123";
 
 function parseCookie(setCookie) {
   if (!setCookie) return "";

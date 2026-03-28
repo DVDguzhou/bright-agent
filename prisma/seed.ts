@@ -37,6 +37,18 @@ async function main() {
     },
   });
 
+  /** 「活泼牢大」人生 Agent 归属卖家（与 npm run create:laoda 默认一致） */
+  const laodaOwner = await prisma.user.upsert({
+    where: { email: "tmxiand@gmail.com" },
+    update: { roleFlags: { is_buyer: false, is_seller: true } },
+    create: {
+      email: "tmxiand@gmail.com",
+      password: hash,
+      name: "牢大卖家",
+      roleFlags: { is_buyer: false, is_seller: true },
+    },
+  });
+
   const demoBaseUrl = process.env.DEMO_AGENT_BASE_URL || `${process.env.NEXTAUTH_URL || "http://localhost:3001"}/api/demo-agent/invoke`;
 
   const base = process.env.NEXTAUTH_URL || "http://localhost:3000";
@@ -118,7 +130,7 @@ async function main() {
     where: { id: "10000000-0000-0000-0000-000000000002" },
     create: {
       id: "10000000-0000-0000-0000-000000000002",
-      userId: seller.id,
+      userId: laodaOwner.id,
       displayName: "活泼牢大",
       headline: "家人们谁懂啊，这波自律我直接狠狠拿捏",
       shortBio: "赛博球场上的气氛组组长，专治emo和拖延，说话像抖音直播一样密但全是干货。",
@@ -140,6 +152,7 @@ async function main() {
       published: true,
     },
     update: {
+      userId: laodaOwner.id,
       displayName: "活泼牢大",
       headline: "家人们谁懂啊，这波自律我直接狠狠拿捏",
       pricePerQuestion: 1,

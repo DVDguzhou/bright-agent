@@ -5,11 +5,12 @@
  * 使用（在服务器项目根目录，需能访问后端 API）：
  *   export TEST_BASE_URL="https://brightagent.cn"
  *   export LAODA_OWNER_EMAIL="tmxiand@gmail.com"
- *   export LAODA_OWNER_PASSWORD="你的密码"
+ *   export LAODA_OWNER_PASSWORD="password123"
  *   node scripts/enroll-laoda-voice.mjs
  *
  * LAODA_OWNER 必须是该 Agent 在库里的「创建者」账号。
- * 脚本 create-laoda 写的是 seller@demo.com；若你在网页创建或历史数据是 tmxiand@gmail.com，请用对应邮箱。
+ * `npm run create:laoda` / `db:seed` 默认归属 **tmxiand@gmail.com**（密码与种子一致时常为 password123）。
+ * 若用 LAODA_OWNER_EMAIL 改成了其它邮箱，请同步修改此处。
  */
 import fs from "fs";
 import path from "path";

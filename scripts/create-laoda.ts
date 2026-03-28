@@ -5,6 +5,10 @@
  * 或：npm run db:seed  （完整种子会一并创建牢大）
  *
  * 依赖：DATABASE_PRISMA_URL 在 .env 中已配置，MySQL 已启动
+ *
+ * 环境变量（可选）：
+ *   LAODA_OWNER_EMAIL     牢大归属卖家邮箱，默认 tmxiand@gmail.com
+ *   LAODA_OWNER_PASSWORD  该账号初始密码（仅新建用户时写入），默认 password123（与 db:seed 一致）
  */
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
@@ -15,15 +19,18 @@ const LAODA_ID = "10000000-0000-0000-0000-000000000002";
 const QUESTION_PACK_ID = "20000000-0000-0000-0000-000000000002";
 
 async function main() {
-  const hash = await bcrypt.hash("5425444", 12);
+  const ownerEmail = process.env.LAODA_OWNER_EMAIL ?? "tmxiand@gmail.com";
+  const ownerPlain = process.env.LAODA_OWNER_PASSWORD ?? "password123";
+  const ownerHash = await bcrypt.hash(ownerPlain, 12);
+  const buyerHash = await bcrypt.hash("password123", 12);
 
   // where 与 create 的 email 必须一致；勿用另一邮箱，否则会触发 users.email 唯一约束（P2002）
-  const seller = await prisma.user.upsert({
-    where: { email: "seller@demo.com" },
-    update: {},
+  const owner = await prisma.user.upsert({
+    where: { email: ownerEmail },
+    update: { roleFlags: { is_buyer: false, is_seller: true } },
     create: {
-      email: "seller@demo.com",
-      password: hash,
+      email: ownerEmail,
+      password: ownerHash,
       name: "Timelord",
       roleFlags: { is_buyer: false, is_seller: true },
     },
@@ -34,7 +41,7 @@ async function main() {
     update: { roleFlags: { is_buyer: true, is_seller: true } },
     create: {
       email: "buyer@demo.com",
-      password: hash,
+      password: buyerHash,
       name: "Timelord",
       roleFlags: { is_buyer: true, is_seller: true },
     },
@@ -44,7 +51,7 @@ async function main() {
     where: { id: LAODA_ID },
     create: {
       id: LAODA_ID,
-      userId: seller.id,
+      userId: owner.id,
       displayName: "活泼牢大",
       headline: "家人们谁懂啊，这波自律我直接狠狠拿捏",
       shortBio: "赛博球场上的气氛组组长，专治emo和拖延，说话像抖音直播一样密但全是干货。",
@@ -65,6 +72,7 @@ async function main() {
       published: true,
     },
     update: {
+      userId: owner.id,
       displayName: "活泼牢大",
       headline: "家人们谁懂啊，这波自律我直接狠狠拿捏",
       pricePerQuestion: 1,
@@ -126,7 +134,10 @@ async function main() {
   const base = process.env.NEXTAUTH_URL || "http://localhost:3000";
   console.log("✅ 活泼牢大 已就绪");
   console.log("   聊天页:", `${base}/life-agents/${laodaAgent.id}/chat`);
-  console.log("   买家 buyer@demo.com 已预充 50 次提问（本脚本新建时密码 5425444；若来自 db:seed 则为 password123）");
+  console.log(
+    `   卖家 ${ownerEmail}（控制台编辑 / 上传音色请用该账号）`,
+  );
+  console.log("   买家 buyer@demo.com 已预充 50 次提问（密码与 db:seed 一致时为 password123）");
 }
 
 main()

@@ -38,7 +38,9 @@ https://brightagent.cn/life-agents/10000000-0000-0000-0000-000000000002/chat
 
 ## 预充提问次数（脚本里已配置）
 
-脚本会为买家 **`buyer@demo.com`** 预充 **50 次** 对该 Agent 的提问（由 `create-laoda.ts` 新建时密码与脚本内哈希一致，常见为 `5425444`）。`db:seed` 演示账号则为 `password123`，以你库中实际为准。
+脚本会为买家 **`buyer@demo.com`** 预充 **50 次** 对该 Agent 的提问。`create:laoda` 与 **`db:seed`** 里买家密码均为演示用 **`password123`**（若你改过账号密码，以库中实际为准）。
+
+牢大归属卖家默认 **`tmxiand@gmail.com`**（与 `create-laoda.ts` / `db:seed` 一致）。若要改成其它邮箱，可在执行 `create:laoda` 前设置环境变量 **`LAODA_OWNER_EMAIL`** / **`LAODA_OWNER_PASSWORD`**（仅新建该用户时写入密码）。
 
 也可用 **`npm run db:seed`** 做完整种子（含「阿青学长」等演示数据），其中同样包含活泼牢大；若只要牢大、避免多余数据，优先 **`npm run create:laoda`**。
 
@@ -48,19 +50,19 @@ https://brightagent.cn/life-agents/10000000-0000-0000-0000-000000000002/chat
 
 **方式 A — 网页：** 使用 **该 Agent 的创建者（卖家）账号** 登录 → **控制台** → **我的人生 Agent** → 点「活泼牢大」→ 在编辑页 **录制/上传音色样本** → 保存（或仅上传音色）。
 
-- 跑过脚本 `create:laoda` 时，卖家在库里一般是 **`seller@demo.com`**。  
-- 若你是在网站里用 **`tmxiand@gmail.com`** 创建的人生 Agent，或线上数据里该 Agent 归此账号，请用 **`tmxiand@gmail.com`** 登录（以你库里 `life_agent_profiles.user_id` 对应用户为准）。
+- **`npm run create:laoda` / `db:seed` 写入的牢大** 归属卖家 **`tmxiand@gmail.com`**（控制台上传音色请用该账号登录，演示密码常为 **`password123`**）。  
+- 若你曾用 **`LAODA_OWNER_EMAIL`** 指向其它邮箱，或在线上手动把 Agent 转给别的用户，请用**实际卖家账号**登录；以库里 `life_agent_profiles.user_id` 为准。
 
 **方式 B — 脚本（服务器）：** 确保 `voice_samples/laoda_reference/laoda_voice.mp3` 存在，后端已配置百炼声音复刻，然后：
 
 ```bash
 export TEST_BASE_URL="https://brightagent.cn"
 export LAODA_OWNER_EMAIL="tmxiand@gmail.com"
-export LAODA_OWNER_PASSWORD="该邮箱的登录密码"
+export LAODA_OWNER_PASSWORD="password123"
 node scripts/enroll-laoda-voice.mjs
 ```
 
-若创建者实为 `seller@demo.com`，把 `LAODA_OWNER_EMAIL` 改成对应邮箱即可。
+若线上已修改 `tmxiand@gmail.com` 的登录密码，请把 **`LAODA_OWNER_PASSWORD`** 改成当前密码。
 
 成功后会写入 `voiceCloneId`；若未返回，检查后端 `TTS_PROVIDER`、通义 Key、`DASHSCOPE_VC_MODEL` 等（见 `.env.example`）。
 
