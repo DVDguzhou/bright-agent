@@ -53,13 +53,35 @@ https://brightagent.cn/life-agents/10000000-0000-0000-0000-000000000002/chat
 - **`npm run create:laoda` / `db:seed` 写入的牢大** 归属卖家 **`tmxiand@gmail.com`**（控制台上传音色请用该账号登录，演示密码常为 **`password123`**）。  
 - 若你曾用 **`LAODA_OWNER_EMAIL`** 指向其它邮箱，或在线上手动把 Agent 转给别的用户，请用**实际卖家账号**登录；以库里 `life_agent_profiles.user_id` 为准。
 
-**方式 B — 脚本（服务器）：** 确保 `voice_samples/laoda_reference/laoda_voice.mp3` 存在，后端已配置百炼声音复刻，然后：
+**方式 B — 脚本（服务器，推荐）：** 与网页上传**不是两条路**：脚本用卖家账号登录后调用 `PATCH /api/life-agents/:id` 上传 `voiceSampleBase64`，**Go 后端再调百炼 DashScope** 写入 `voiceCloneId`，和你在控制台上传时后端逻辑一致。
+
+**服务器上请先准备：**
+
+1. **参考音频**  
+   路径：`voice_samples/laoda_reference/laoda_voice.mp3`。  
+   **可直接把该文件提交进仓库**，服务器 `git pull` 后即存在，无需再 `scp`。若未提交，再单独上传到同一路径亦可。
+
+2. **后端环境变量（`docker-compose` / 宿主 `.env` 里给 backend 的那份）**  
+   与 `.env.production.example` 一致即可，核心是：  
+   - `TTS_PROVIDER=dashscope`  
+   - `OPENAI_API_KEY`（通义 / DashScope 可用的 Key）  
+   - `DASHSCOPE_VC_MODEL`、`DASHSCOPE_VOICE_ENROLL_URL`（百炼声音复刻端点）  
+   改完后 **重建并重启 backend 容器**，否则 enroll 会失败或仍用旧配置。
+
+3. **能访问到后端 HTTP**  
+   `TEST_BASE_URL` 填公网 **`https://brightagent.cn`**（经网关到 8080）即可；若脚本只在**同一台机器**上跑且后端映射在宿主机，也可用 **`http://127.0.0.1:8080`**。
+
+4. **Node 或 Docker**  
+   宿主机没有 `npm` 时，见下文「用 Docker 跑 enroll 脚本」。
 
 ```bash
+cd ~/regr
 export TEST_BASE_URL="https://brightagent.cn"
 export LAODA_OWNER_EMAIL="tmxiand@gmail.com"
-export LAODA_OWNER_PASSWORD="password123"
+export LAODA_OWNER_PASSWORD="你的卖家密码"
+npm install   # 若尚未安装依赖
 node scripts/enroll-laoda-voice.mjs
+# 或：npm run enroll:laoda-voice
 ```
 
 若线上已修改 `tmxiand@gmail.com` 的登录密码，请把 **`LAODA_OWNER_PASSWORD`** 改成当前密码。
@@ -85,6 +107,22 @@ docker run --rm -it \
 ```
 
 仓库已在 `schema.prisma` 中配置 `binaryTargets` 含 `debian-openssl-3.0.x`，与 Debian 12 / OpenSSL 3 一致；若仍报错，请先 `git pull` 再执行上述命令。
+
+**用 Docker 跑「牢大音色」脚本（不写库，只调 API）：** 需已存在 `voice_samples/laoda_reference/laoda_voice.mp3`，且容器能访问后端（公网域名或宿主机端口）。
+
+```bash
+cd ~/regr
+docker run --rm -it \
+  -v "$PWD:/app" -w /app \
+  --network host \
+  -e TEST_BASE_URL="http://127.0.0.1:8080" \
+  -e LAODA_OWNER_EMAIL="tmxiand@gmail.com" \
+  -e LAODA_OWNER_PASSWORD="你的卖家密码" \
+  node:20-bookworm \
+  bash -lc "npm install && node scripts/enroll-laoda-voice.mjs"
+```
+
+若后端只暴露在公网、未监听宿主机 8080，把 **`TEST_BASE_URL`** 改成 **`https://brightagent.cn`**，并去掉 `--network host`（容器走默认桥接访问外网即可）。
 
 ## 常见问题
 
