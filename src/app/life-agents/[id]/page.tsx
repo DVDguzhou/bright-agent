@@ -40,7 +40,6 @@ type DetailData = {
   verificationStatus?: string;
   creator: {
     name: string | null;
-    email: string;
   };
   stats: {
     sessionCount: number;
@@ -375,7 +374,7 @@ export default function LifeAgentDetailPage() {
         <div className="glass-card p-6">
           <h2 className="text-xl font-semibold text-slate-900">创作者信息</h2>
           <p className="mt-3 text-sm text-slate-700">
-            发布者：{profile.creator.name || "未设置昵称"} · {profile.creator.email}
+            发布者：{profile.creator.name || "未设置昵称"}
           </p>
           <p className="mt-4 text-sm leading-6 text-slate-600">{profile.shortBio}</p>
         </div>

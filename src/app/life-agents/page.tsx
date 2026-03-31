@@ -42,7 +42,6 @@ type LifeAgentListItem = {
   };
   creator: {
     name: string | null;
-    email: string;
   };
 };
 

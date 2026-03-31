@@ -218,7 +218,7 @@ func LifeAgentsList(cfg *config.Config) gin.HandlerFunc {
 				"county":             ptrStr(p.County),
 				"regions":            p.Regions,
 				"verificationStatus": coalesceVerificationStatus(p.VerificationStatus),
-				"creator":            gin.H{"id": u.ID, "name": u.Name, "email": u.Email},
+				"creator":            gin.H{"id": u.ID, "name": u.Name},
 				"knowledgeCount":     kMap[p.ID],
 				"soldQuestionPacks":  qpMap[p.ID],
 				"sessionCount":       sessMap[p.ID],
@@ -665,7 +665,7 @@ func LifeAgentsGet(cfg *config.Config) gin.HandlerFunc {
 			"exampleReplies":     p.ExampleReplies,
 			"notSuitableFor":     ptrStr(p.NotSuitableFor),
 			"published":          p.Published,
-			"creator":            gin.H{"id": u.ID, "name": u.Name, "email": u.Email},
+			"creator":            gin.H{"id": u.ID, "name": u.Name},
 			"knowledgeEntries":   entries,
 			"stats": gin.H{
 				"sessionCount":      sessCount,
