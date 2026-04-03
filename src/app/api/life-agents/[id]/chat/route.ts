@@ -29,6 +29,21 @@ export async function POST(
 
     clearTimeout(timeoutId);
 
+    // SSE 流式响应：直接透传 ReadableStream，不缓冲
+    const ct = backendRes.headers.get("content-type") || "";
+    if (ct.includes("text/event-stream") && backendRes.body) {
+      return new Response(backendRes.body, {
+        status: backendRes.status,
+        headers: {
+          "Content-Type": "text/event-stream",
+          "Cache-Control": "no-cache",
+          Connection: "keep-alive",
+          "X-Accel-Buffering": "no",
+        },
+      });
+    }
+
+    // 非流式响应（错误等）：按原来的 JSON 透传
     const data = await backendRes.text();
     return new NextResponse(data, {
       status: backendRes.status,

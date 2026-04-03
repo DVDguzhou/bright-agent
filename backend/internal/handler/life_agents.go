@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -1539,16 +1540,33 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 			ExampleReplies:   []string(p.ExampleReplies),
 			NotSuitableFor:   ptrStr(p.NotSuitableFor),
 		}
+		// --- SSE streaming ---
+		c.Header("Content-Type", "text/event-stream")
+		c.Header("Cache-Control", "no-cache")
+		c.Header("Connection", "keep-alive")
+		c.Header("X-Accel-Buffering", "no")
+		c.Status(http.StatusOK)
+
+		writeSSE := func(eventType string, payload interface{}) {
+			data, _ := json.Marshal(payload)
+			fmt.Fprintf(c.Writer, "event: %s\ndata: %s\n\n", eventType, data)
+			c.Writer.Flush()
+		}
+
 		var content string
 		var refs []map[string]string
 		if lifeagent.ClassifyQuestionIntent(cfg.OpenAIApiKey, cfg.OpenAIModel, cfg.OpenAIBaseURL, body.Message) {
 			content = lifeagent.BuildIdentityReply(profileForAI)
+			writeSSE("content", gin.H{"content": content})
 		} else {
-			content, refs, _ = lifeagent.BuildReplyWithLLM(
+			content, refs, _ = lifeagent.BuildReplyWithLLMStream(
 				cfg.OpenAIApiKey, cfg.OpenAIModel, cfg.OpenAIBaseURL,
 				cfg.LLMEnableWebSearch,
 				profileForAI,
 				entriesForAI, hist, body.Message,
+				func(chunk string) {
+					writeSSE("content", gin.H{"content": chunk})
+				},
 			)
 		}
 		refsMap := make([]map[string]interface{}, len(refs))
@@ -1567,21 +1585,16 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 
 		var audioURL *string
 		var audioDurationSec *int
-		var ttsSynthErr, ttsSaveErr error
-		var ttsMediaFmt string
 		resolvedTTS := cfg.ResolveTTSProvider()
 		voiceCloneID := ptrStr(p.VoiceCloneID)
 		if body.UseVoiceReply && content != "" && (voiceCloneID != "" || resolvedTTS != "") {
 			ttsProvider := tts.NewProviderFromConfig(cfg)
-			ttsMediaFmt = ttsProvider.MediaFormat()
 			audioB64, dur, err := ttsProvider.Synthesize(voiceCloneID, content)
-			ttsSynthErr = err
 			if err != nil {
 				log.Printf("life-agents chat: TTS failed (provider=%q): %v", resolvedTTS, err)
 			}
 			if err == nil && audioB64 != "" {
 				filename, saveErr := tts.SaveAudio(assistantMsgID, audioB64, ttsProvider.MediaFormat())
-				ttsSaveErr = saveErr
 				if saveErr != nil {
 					log.Printf("life-agents chat: save TTS audio: %v", saveErr)
 				}
@@ -1591,8 +1604,6 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 					audioDurationSec = &dur
 				}
 			}
-		} else if body.UseVoiceReply && content != "" {
-			log.Printf("life-agents chat: useVoiceReply set but no TTS provider (voiceClone=%v resolved=%q)", voiceCloneID != "", resolvedTTS)
 		}
 
 		db.DB.Create(&models.LifeAgentChatMessage{
@@ -1607,7 +1618,7 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 		db.DB.Model(packToConsume).Update("questions_used", packToConsume.QuestionsUsed+1)
 		db.DB.Model(&models.LifeAgentChatSession{}).Where("id = ?", sessionID).Update("updated_at", db.DB.NowFunc())
 		ratingState := buildLifeAgentRatingState(id, user.ID)
-		resp := gin.H{
+		donePayload := gin.H{
 			"sessionId":          sessionID,
 			"sessionTitle":       buildLifeAgentSessionTitle(body.Message),
 			"messageId":          assistantMsgID,
@@ -1617,36 +1628,12 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 			"rating":             ratingState,
 		}
 		if audioURL != nil {
-			resp["audioUrl"] = *audioURL
+			donePayload["audioUrl"] = *audioURL
 		}
 		if audioDurationSec != nil {
-			resp["audioDurationSec"] = *audioDurationSec
+			donePayload["audioDurationSec"] = *audioDurationSec
 		}
-		if cfg.TTSDebug {
-			dbg := gin.H{
-				"useVoiceReply":       body.UseVoiceReply,
-				"resolvedProvider":    resolvedTTS,
-				"likelyDashScopeLLM":  cfg.LikelyDashScopeLLM(),
-				"openaiKeyLen":        len(strings.TrimSpace(cfg.OpenAIApiKey)),
-				"openaiModel":         cfg.OpenAIModel,
-				"openaiBaseURLPrefix": truncateStr(cfg.OpenAIBaseURL, 48),
-				"gotAudioUrl":         audioURL != nil,
-			}
-			if ttsMediaFmt != "" {
-				dbg["mediaFormat"] = ttsMediaFmt
-			}
-			if ttsSynthErr != nil {
-				dbg["synthesizeError"] = ttsSynthErr.Error()
-			}
-			if ttsSaveErr != nil {
-				dbg["saveError"] = ttsSaveErr.Error()
-			}
-			if body.UseVoiceReply && content != "" && voiceCloneID == "" && resolvedTTS == "" {
-				dbg["skipReason"] = "no_tts_provider"
-			}
-			resp["ttsDebug"] = dbg
-		}
-		c.JSON(http.StatusOK, resp)
+		writeSSE("done", donePayload)
 	}
 }
 

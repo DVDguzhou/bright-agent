@@ -34,9 +34,6 @@ type ChatMessage = {
   sessionId?: string;
   audioUrl?: string;
   audioDurationSec?: number;
-  feedback?: "helpful" | "not_specific" | "not_suitable";
-  feedbackDraftType?: "helpful" | "not_specific" | "not_suitable";
-  feedbackComment?: string;
   references?: Array<{
     id: string;
     category: string;
@@ -213,6 +210,13 @@ export default function LifeAgentChatPage() {
       setMessages((prev) => [...prev, { role: "user", content: trimmed }]);
       setInput("");
 
+      // 先插入一条空的 assistant 占位消息，后续流式追加内容
+      const assistantIdx = { current: -1 };
+      setMessages((prev) => {
+        assistantIdx.current = prev.length;
+        return [...prev, { role: "assistant" as const, content: "" }];
+      });
+
       try {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 300000);
@@ -230,79 +234,146 @@ export default function LifeAgentChatPage() {
         });
         clearTimeout(timeoutId);
 
-        const data = await res.json();
+        const ct = res.headers.get("content-type") || "";
 
-        if (!res.ok) {
-          setError(
-            data.error === "NO_QUESTIONS_LEFT"
-              ? "你的提问次数已经用完，请先返回详情页购买次数。"
-              : data.error === "UNAUTHORIZED"
-                ? "请先登录。"
-                : data.error === "SESSION_NOT_FOUND"
-                  ? "会话已失效，请重新选择历史会话或新建聊天。"
-                  : "发送失败，请稍后重试。"
+        // 非 SSE 响应（错误等）：按原逻辑处理
+        if (!ct.includes("text/event-stream")) {
+          const data = await res.json();
+          if (!res.ok) {
+            setError(
+              data.error === "NO_QUESTIONS_LEFT"
+                ? "你的提问次数已经用完，请先返回详情页购买次数。"
+                : data.error === "UNAUTHORIZED"
+                  ? "请先登录。"
+                  : data.error === "SESSION_NOT_FOUND"
+                    ? "会话已失效，请重新选择历史会话或新建聊天。"
+                    : "发送失败，请稍后重试。"
+            );
+            // 移除用户消息和空的 assistant 占位
+            setMessages((prev) => prev.slice(0, -2));
+            return;
+          }
+          // 兜底：非流式成功响应
+          setMessages((prev) =>
+            prev.map((m, i) =>
+              i === assistantIdx.current
+                ? { ...m, content: data.reply, messageId: data.messageId, sessionId: data.sessionId, references: data.references, audioUrl: data.audioUrl, audioDurationSec: data.audioDurationSec }
+                : m
+            )
           );
-          setMessages((prev) => prev.slice(0, -1));
           return;
         }
 
-        setSessionId(data.sessionId);
-        setMessages((prev) => [
-          ...prev,
-          {
-            role: "assistant",
-            content: data.reply,
-            messageId: data.messageId,
-            sessionId: data.sessionId,
-            audioUrl: data.audioUrl,
-            audioDurationSec: data.audioDurationSec,
-            references: data.references,
-          },
-        ]);
-        setProfile((prev) =>
-          prev
-            ? {
-                ...prev,
-                viewerState: {
-                  ...prev.viewerState,
-                  remainingQuestions: data.remainingQuestions,
-                  rating: data.rating ?? prev.viewerState.rating,
-                },
+        // SSE 流式响应
+        const reader = res.body!.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+
+        while (true) {
+          const { done: readerDone, value } = await reader.read();
+          if (readerDone) break;
+          buffer += decoder.decode(value, { stream: true });
+
+          // 按双换行分割 SSE 事件
+          const parts = buffer.split("\n\n");
+          buffer = parts.pop() || "";
+
+          for (const part of parts) {
+            let eventType = "";
+            let eventData = "";
+            for (const line of part.split("\n")) {
+              if (line.startsWith("event: ")) eventType = line.slice(7);
+              else if (line.startsWith("data: ")) eventData = line.slice(6);
+            }
+            if (!eventData) continue;
+
+            try {
+              const parsed = JSON.parse(eventData);
+
+              if (eventType === "content" && parsed.content) {
+                setMessages((prev) =>
+                  prev.map((m, i) =>
+                    i === assistantIdx.current
+                      ? { ...m, content: m.content + parsed.content }
+                      : m
+                  )
+                );
+              } else if (eventType === "done") {
+                const data = parsed;
+                // 更新 assistant 消息的元数据
+                setMessages((prev) =>
+                  prev.map((m, i) =>
+                    i === assistantIdx.current
+                      ? {
+                          ...m,
+                          content: data.reply || m.content,
+                          messageId: data.messageId,
+                          sessionId: data.sessionId,
+                          references: data.references,
+                          audioUrl: data.audioUrl,
+                          audioDurationSec: data.audioDurationSec,
+                        }
+                      : m
+                  )
+                );
+                setSessionId(data.sessionId);
+                setProfile((prev) =>
+                  prev
+                    ? {
+                        ...prev,
+                        viewerState: {
+                          ...prev.viewerState,
+                          remainingQuestions: data.remainingQuestions,
+                          rating: data.rating ?? prev.viewerState.rating,
+                        },
+                      }
+                    : prev
+                );
+                setSessions((prevSessions) => {
+                  const nextTitle = data.sessionTitle || trimSessionTitle(trimmed);
+                  const existing = prevSessions.find((session) => session.id === data.sessionId);
+                  if (!existing) {
+                    return [
+                      {
+                        id: data.sessionId,
+                        title: nextTitle,
+                        messageCount: 2,
+                        createdAt: now,
+                        updatedAt: now,
+                      },
+                      ...prevSessions,
+                    ];
+                  }
+                  return [
+                    {
+                      ...existing,
+                      updatedAt: now,
+                      messageCount: existing.messageCount + 2,
+                    },
+                    ...prevSessions.filter((session) => session.id !== data.sessionId),
+                  ];
+                });
+                syncRatingForm(data.rating);
               }
-            : prev
-        );
-        setSessions((prev) => {
-          const nextTitle = data.sessionTitle || trimSessionTitle(trimmed);
-          const existing = prev.find((session) => session.id === data.sessionId);
-          if (!existing) {
-            return [
-              {
-                id: data.sessionId,
-                title: nextTitle,
-                messageCount: 2,
-                createdAt: now,
-                updatedAt: now,
-              },
-              ...prev,
-            ];
+            } catch {
+              // ignore malformed SSE data
+            }
           }
-          return [
-            {
-              ...existing,
-              updatedAt: now,
-              messageCount: existing.messageCount + 2,
-            },
-            ...prev.filter((session) => session.id !== data.sessionId),
-          ];
-        });
-        syncRatingForm(data.rating);
+        }
       } catch (err) {
         const msg =
           err instanceof Error && err.name === "AbortError"
             ? "请求超时，AI 处理较慢，请稍后重试。"
             : "网络异常，请检查连接后重试。";
         setError(msg);
-        setMessages((prev) => prev.slice(0, -1));
+        // 移除用户消息和空/部分 assistant 消息
+        setMessages((prev) => {
+          const assistantMsg = prev[assistantIdx.current];
+          if (assistantMsg && !assistantMsg.content) {
+            return prev.slice(0, -2);
+          }
+          return prev.slice(0, -1);
+        });
       } finally {
         setLoading(false);
       }
@@ -556,142 +627,11 @@ export default function LifeAgentChatPage() {
                   ) : (
                     <p className="whitespace-pre-wrap">{message.content}</p>
                   )}
-                  {message.references && message.references.length > 0 && (
-                    <div className="mt-4 space-y-2 rounded-2xl bg-slate-50 p-3 text-slate-600">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">回答依据的经验</p>
-                      {message.references.map((reference) => (
-                        <div key={reference.id} className="rounded-2xl bg-white p-3">
-                          <p className="text-sm font-medium text-slate-800">
-                            {reference.category} · {reference.title}
-                          </p>
-                          <p className="mt-1 text-xs leading-6 text-slate-500">{reference.excerpt}</p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  {message.role === "assistant" && message.messageId && sessionId && profile?.viewerState.isLoggedIn && (
-                    <div className="mt-4 rounded-2xl bg-slate-50 p-3 text-xs text-slate-600">
-                      <p className="font-medium text-slate-700">这条回答感觉怎么样？</p>
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        {(["helpful", "not_specific", "not_suitable"] as const).map((fb) => (
-                          <button
-                            key={fb}
-                            type="button"
-                            onClick={() => {
-                              if (message.feedback) return;
-                              setMessages((prev) =>
-                                prev.map((m) =>
-                                  m.messageId === message.messageId
-                                    ? { ...m, feedbackDraftType: fb, feedbackComment: m.feedbackComment ?? "" }
-                                    : m
-                                )
-                              );
-                            }}
-                            disabled={!!message.feedback}
-                            className={`rounded-full px-3 py-1.5 transition ${
-                              message.feedback === fb || message.feedbackDraftType === fb
-                                ? fb === "helpful"
-                                  ? "bg-green-100 text-green-700"
-                                  : "bg-amber-100 text-amber-700"
-                                : "bg-white text-slate-600 hover:bg-slate-100 disabled:opacity-50"
-                            }`}
-                          >
-                            {fb === "helpful" ? "有帮助" : fb === "not_specific" ? "不够具体" : "不适合我"}
-                          </button>
-                        ))}
-                      </div>
-                      {!message.feedback && message.feedbackDraftType && (
-                        <div className="mt-3 space-y-2">
-                          <textarea
-                            className="input-shell min-h-20 bg-white"
-                            value={message.feedbackComment ?? ""}
-                            onChange={(e) =>
-                              setMessages((prev) =>
-                                prev.map((m) =>
-                                  m.messageId === message.messageId
-                                    ? { ...m, feedbackComment: e.target.value }
-                                    : m
-                                )
-                              )
-                            }
-                            placeholder="可以直接描述这个 Agent 的问题，例如：太像 AI、回答绕、没抓住我的背景..."
-                          />
-                          <div className="flex gap-2">
-                            <button
-                              type="button"
-                              className="btn-secondary"
-                              onClick={async () => {
-                                const target = messages.find((m) => m.messageId === message.messageId);
-                                if (!target?.feedbackDraftType) return;
-                                const res = await fetch(`/api/life-agents/${id}/chat/feedback`, {
-                                  method: "POST",
-                                  headers: { "Content-Type": "application/json" },
-                                  credentials: "include",
-                                  body: JSON.stringify({
-                                    messageId: message.messageId,
-                                    sessionId,
-                                    feedbackType: target.feedbackDraftType,
-                                    comment: target.feedbackComment?.trim() || undefined,
-                                  }),
-                                });
-                                if (!res.ok) {
-                                  setError("反馈提交失败，请稍后重试。");
-                                  return;
-                                }
-                                setMessages((prev) =>
-                                  prev.map((m) =>
-                                    m.messageId === message.messageId
-                                      ? {
-                                          ...m,
-                                          feedback: target.feedbackDraftType,
-                                          feedbackComment: target.feedbackComment,
-                                          feedbackDraftType: undefined,
-                                        }
-                                      : m
-                                  )
-                                );
-                              }}
-                            >
-                              提交反馈
-                            </button>
-                            <button
-                              type="button"
-                              className="rounded-full px-3 py-1.5 text-slate-500 hover:bg-slate-100"
-                              onClick={() =>
-                                setMessages((prev) =>
-                                  prev.map((m) =>
-                                    m.messageId === message.messageId
-                                      ? { ...m, feedbackDraftType: undefined, feedbackComment: "" }
-                                      : m
-                                  )
-                                )
-                              }
-                            >
-                              取消
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                      {message.feedback && (
-                        <p className="mt-2 text-slate-500">
-                          已提交反馈
-                          {message.feedbackComment ? `：${message.feedbackComment}` : ""}
-                        </p>
-                      )}
-                    </div>
-                  )}
                 </div>
               </div>
             ))
           )}
 
-          {loading && (
-            <div className="flex justify-start">
-              <div className="max-w-[85%] rounded-2xl bg-slate-100 px-4 py-3 text-[15px] text-slate-600 sm:max-w-[75%]">
-                正在根据 TA 的经验整理回答...
-              </div>
-            </div>
-          )}
           <div ref={chatEndRef} />
         </div>
 

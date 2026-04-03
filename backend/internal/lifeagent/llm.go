@@ -2,7 +2,9 @@ package lifeagent
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"io"
 	"log"
 	"regexp"
 	"strings"
@@ -65,6 +67,98 @@ func BuildReplyWithLLM(apiKey, model, baseURL string, enableWebSearch bool, prof
 
 	log.Printf("[LLM] SUCCESS: raw=%q", resp.Choices[0].Message.Content[:min(len(resp.Choices[0].Message.Content), 200)])
 	content = humanizeReply(strings.TrimSpace(resp.Choices[0].Message.Content))
+	references = make([]map[string]string, len(selectedEntries))
+	for i, e := range selectedEntries {
+		excerpt := normalizeSnippet(firstSentence(e.Content, 80))
+		if excerpt == "" {
+			excerpt = "基于已有经历给到的一条可执行建议。"
+		}
+		references[i] = map[string]string{
+			"id": e.ID, "category": e.Category, "title": e.Title,
+			"excerpt": excerpt,
+		}
+	}
+	return content, references, nil
+}
+
+// BuildReplyWithLLMStream 流式版本：每产生一个 token 片段就通过 onChunk 回调推送给调用方。
+// 返回完整回复文本和引用列表。DashScope 联网搜索和无 LLM 时回退到非流式。
+func BuildReplyWithLLMStream(apiKey, model, baseURL string, enableWebSearch bool, profile ProfileForAI, entries []KnowledgeEntryForAI, history []ChatMessageForAI, message string, onChunk func(chunk string)) (content string, references []map[string]string, err error) {
+	useLLM := (apiKey != "" || baseURL != "") && model != ""
+
+	// DashScope 联网搜索不支持流式，回退到非流式并一次性推送
+	if !useLLM || (enableWebSearch && isDashScope(baseURL)) {
+		content, references, err = BuildReplyWithLLM(apiKey, model, baseURL, enableWebSearch, profile, entries, history, message)
+		if onChunk != nil && content != "" {
+			onChunk(content)
+		}
+		return
+	}
+
+	if apiKey == "" && baseURL != "" {
+		apiKey = "ollama"
+	}
+
+	selectedEntries := selectEntries(message, entries)
+	ctx := context.Background()
+	cfg := openai.DefaultConfig(apiKey)
+	if baseURL != "" {
+		cfg.BaseURL = baseURL
+	}
+	client := openai.NewClientWithConfig(cfg)
+
+	systemContent := buildSystemPrompt(profile, selectedEntries)
+	msgs := buildMessages(systemContent, profile.DisplayName, history, message)
+
+	stream, err := client.CreateChatCompletionStream(ctx, openai.ChatCompletionRequest{
+		Model:       model,
+		Messages:    msgs,
+		Temperature: 0.4,
+		MaxTokens:   4096,
+		Stream:      true,
+	})
+	if err != nil {
+		log.Printf("[LLM-stream] open stream failed: %v", err)
+		content, references = BuildReply(profile, entries, history, message)
+		if onChunk != nil && content != "" {
+			onChunk(content)
+		}
+		return content, references, nil
+	}
+	defer stream.Close()
+
+	var sb strings.Builder
+	for {
+		resp, err := stream.Recv()
+		if errors.Is(err, io.EOF) {
+			break
+		}
+		if err != nil {
+			log.Printf("[LLM-stream] recv error: %v", err)
+			break
+		}
+		if len(resp.Choices) > 0 {
+			delta := resp.Choices[0].Delta.Content
+			if delta != "" {
+				sb.WriteString(delta)
+				if onChunk != nil {
+					onChunk(delta)
+				}
+			}
+		}
+	}
+
+	raw := strings.TrimSpace(sb.String())
+	if raw == "" {
+		log.Printf("[LLM-stream] empty streamed content, falling back")
+		content, references = BuildReply(profile, entries, history, message)
+		if onChunk != nil && content != "" {
+			onChunk(content)
+		}
+		return content, references, nil
+	}
+
+	content = humanizeReply(raw)
 	references = make([]map[string]string, len(selectedEntries))
 	for i, e := range selectedEntries {
 		excerpt := normalizeSnippet(firstSentence(e.Content, 80))
