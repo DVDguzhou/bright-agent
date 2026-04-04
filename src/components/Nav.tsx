@@ -105,9 +105,11 @@ export function Nav() {
   const isSupportChatPage = pathname === "/support/chat";
   const hideGlobalTopNav =
     isLifeAgentCreatePage ||
+    isLifeAgentSearchPage ||
     isDashboardMessagesPage ||
     isDashboardApiKeysPage ||
     isDashboardLifeAgentsListPage ||
+    isDashboardLifeAgentCoEditPage ||
     isDashboardLifeAgentFeedbackPage ||
     isLicensesPage ||
     isMapPage ||
