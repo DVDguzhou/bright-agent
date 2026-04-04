@@ -89,6 +89,13 @@ export function Nav() {
     }`;
 
   const isLifeAgentChatPage = /^\/life-agents\/[^/]+\/chat(?:\/|$)/.test(pathname);
+  const isLifeAgentDetailPage =
+    /^\/life-agents\/[^/]+\/?$/.test(pathname) &&
+    pathname !== "/life-agents/create" &&
+    pathname !== "/life-agents/search";
+  const isLifeAgentCreatePage = pathname === "/life-agents/create";
+  const useBackArrowOnMobileTop = isLifeAgentDetailPage || isLifeAgentCreatePage;
+  const hideGlobalBottomNav = isLifeAgentChatPage || isLifeAgentDetailPage;
 
   const feedTab = searchParams.get("tab");
   const isFeedDiscover = pathname === "/life-agents" && !feedTab;
@@ -206,14 +213,27 @@ export function Nav() {
             <div className="flex items-center gap-1 py-2.5 lg:hidden">
               <button
                 type="button"
-                onClick={() => setMobileDrawerOpen(true)}
+                onClick={() => {
+                  if (useBackArrowOnMobileTop) {
+                    if (window.history.length > 1) router.back();
+                    else router.push("/life-agents");
+                    return;
+                  }
+                  setMobileDrawerOpen(true);
+                }}
                 className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-slate-600 transition active:bg-slate-100"
-                aria-label="打开菜单"
+                aria-label={useBackArrowOnMobileTop ? "返回" : "打开菜单"}
                 aria-expanded={mobileDrawerOpen}
               >
-                <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
+                {useBackArrowOnMobileTop ? (
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24" aria-hidden>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                  </svg>
+                ) : (
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                )}
               </button>
               <div className="flex min-w-0 flex-1 items-center justify-center gap-2 sm:gap-4">
                 <Link href="/life-agents?tab=favorites" className={`relative ${feedTabClass(isFeedFavorites)}`} scroll={false}>
@@ -429,7 +449,7 @@ export function Nav() {
         ) : null}
       </AnimatePresence>
 
-      {!isLifeAgentChatPage && (
+      {!hideGlobalBottomNav && (
         <>
           {/* 中间 FAB 与第 3 列空白对齐：Agent | 消息 | （+） | License | 我的 */}
           <Link
