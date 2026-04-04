@@ -254,7 +254,7 @@ function SearchEntryView() {
         autoFocus
         fileInputRef={fileInputRef}
       />
-      <div className="mx-auto w-full flex-1 max-lg:px-0 sm:max-w-lg sm:px-3 lg:px-4">
+      <div className="mx-auto w-full flex-1 px-4 sm:max-w-lg sm:px-3 lg:px-4">
         <section className="mt-6">
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-sm font-medium text-slate-500">历史记录</h2>
