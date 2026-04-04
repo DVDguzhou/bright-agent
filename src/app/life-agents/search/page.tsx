@@ -159,7 +159,7 @@ function SearchResultsView({ query }: { query: string }) {
   );
 
   return (
-    <div className="min-h-[100dvh] bg-white max-lg:flex max-lg:flex-col">
+    <div className="min-h-[100dvh] bg-white max-lg:-mx-4 max-lg:flex max-lg:flex-col">
       <SearchTopBar
         draft={draft}
         onDraftChange={setDraft}
@@ -167,7 +167,7 @@ function SearchResultsView({ query }: { query: string }) {
         onBack={goBack}
         fileInputRef={fileInputRef}
       />
-      <div className="min-h-0 flex-1 px-4 pb-28 pt-3 max-lg:-mx-0 sm:mx-auto sm:max-w-7xl sm:px-4">
+      <div className="min-h-0 flex-1 pb-28 pt-3 max-lg:px-0 sm:mx-auto sm:max-w-7xl sm:px-4">
         <p className="text-xs text-slate-500">
           {loading ? "加载中…" : loadError ? "" : `共 ${ranked.length} 个相关 Agent`}
         </p>
@@ -245,7 +245,7 @@ function SearchEntryView() {
   }, [router]);
 
   return (
-    <div className="min-h-[100dvh] bg-white pb-36 max-lg:flex max-lg:flex-col sm:mx-0">
+    <div className="min-h-[100dvh] bg-white pb-36 max-lg:-mx-4 max-lg:flex max-lg:flex-col sm:mx-0">
       <SearchTopBar
         draft={draft}
         onDraftChange={setDraft}
@@ -254,7 +254,7 @@ function SearchEntryView() {
         autoFocus
         fileInputRef={fileInputRef}
       />
-      <div className="mx-auto w-full max-w-lg flex-1 px-4 sm:px-3 lg:px-4">
+      <div className="mx-auto w-full flex-1 max-lg:px-0 sm:max-w-lg sm:px-3 lg:px-4">
         <section className="mt-6">
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-sm font-medium text-slate-500">历史记录</h2>
