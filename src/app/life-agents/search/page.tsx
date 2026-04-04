@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { MutableRefObject } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { VoiceInputButton } from "@/components/voice";
 import { LifeAgentDiscoverCardGrid } from "@/components/LifeAgentDiscoverCardGrid";
@@ -24,12 +25,94 @@ function speechRecognitionSupported() {
   );
 }
 
+/** 顶栏：返回 + 胶囊输入（含图搜）+「搜索」，对齐小红书搜索页 */
+function SearchTopBar({
+  draft,
+  onDraftChange,
+  onSearch,
+  onBack,
+  autoFocus,
+  fileInputRef,
+}: {
+  draft: string;
+  onDraftChange: (v: string) => void;
+  onSearch: () => void;
+  onBack: () => void;
+  autoFocus?: boolean;
+  fileInputRef: MutableRefObject<HTMLInputElement | null>;
+}) {
+  return (
+    <header className="max-lg:sticky max-lg:top-0 max-lg:z-[60] border-b border-[#f0f0f0] bg-white pt-[max(0.25rem,env(safe-area-inset-top))]">
+      <div className="mx-auto flex max-w-7xl items-center gap-1 px-2 py-2 sm:gap-2 sm:px-4 lg:px-4">
+        <button
+          type="button"
+          onClick={onBack}
+          className="flex h-10 w-10 shrink-0 items-center justify-center text-[#111] active:opacity-50"
+          aria-label="返回"
+        >
+          <svg className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 18l-6-6 6-6" />
+          </svg>
+        </button>
+        <div className="relative flex min-h-[38px] min-w-0 flex-1 items-center rounded-full border border-[#e8e8e8] bg-[#f5f5f5] py-1 pl-3.5 pr-11">
+          <input
+            className="min-w-0 flex-1 border-0 bg-transparent text-[16px] text-[#111] outline-none placeholder:text-[#999]"
+            value={draft}
+            onChange={(e) => onDraftChange(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                onSearch();
+              }
+            }}
+            placeholder="搜索 Agent、经验、话题…"
+            enterKeyHint="search"
+            autoFocus={autoFocus}
+          />
+          <input ref={fileInputRef} type="file" accept="image/*" className="hidden" tabIndex={-1} aria-hidden />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="absolute right-1 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full text-[#666] transition active:bg-black/[0.06]"
+            aria-label="图搜"
+            title="图搜（即将上线）"
+          >
+            <svg className="h-[22px] w-[22px]" fill="none" stroke="currentColor" strokeWidth={1.75} viewBox="0 0 24 24" aria-hidden>
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
+            </svg>
+          </button>
+        </div>
+        <button
+          type="button"
+          onClick={onSearch}
+          className="shrink-0 px-1.5 py-2 text-[16px] font-medium text-[#111] active:opacity-50"
+        >
+          搜索
+        </button>
+      </div>
+    </header>
+  );
+}
+
 function SearchResultsView({ query }: { query: string }) {
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [draft, setDraft] = useState(query);
   const [profiles, setProfiles] = useState<LifeAgentListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+
+  const goBack = useCallback(() => {
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push("/life-agents");
+    }
+  }, [router]);
 
   useEffect(() => {
     setDraft(query);
@@ -76,36 +159,18 @@ function SearchResultsView({ query }: { query: string }) {
   );
 
   return (
-    <div className="-mx-4 min-h-0 flex-1 px-4 pb-28 pt-2 sm:mx-0 sm:px-0">
-      <div className="mx-auto max-w-lg sm:max-w-none">
-        <div className="flex items-center gap-2">
-          <div className="relative flex min-w-0 flex-1 items-center rounded-full border border-slate-200 bg-slate-50 py-2 pl-4 pr-12">
-            <input
-              className="min-w-0 flex-1 border-0 bg-transparent text-[15px] text-[#111] outline-none placeholder:text-slate-400"
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  runSearch(draft);
-                }
-              }}
-              placeholder="搜索 Agent、经验、话题…"
-              enterKeyHint="search"
-            />
-          </div>
-          <button
-            type="button"
-            onClick={() => runSearch(draft)}
-            className="shrink-0 px-1 py-2 text-[15px] font-medium text-[#ff2442]"
-          >
-            搜索
-          </button>
-        </div>
-        <p className="mt-2 text-xs text-slate-500">
+    <div className="min-h-[100dvh] bg-white max-lg:flex max-lg:flex-col">
+      <SearchTopBar
+        draft={draft}
+        onDraftChange={setDraft}
+        onSearch={() => runSearch(draft)}
+        onBack={goBack}
+        fileInputRef={fileInputRef}
+      />
+      <div className="min-h-0 flex-1 px-4 pb-28 pt-3 max-lg:-mx-0 sm:mx-auto sm:max-w-7xl sm:px-4">
+        <p className="text-xs text-slate-500">
           {loading ? "加载中…" : loadError ? "" : `共 ${ranked.length} 个相关 Agent`}
         </p>
-      </div>
 
       <div className="mx-auto mt-4 max-w-7xl">
         {loadError ? (
@@ -127,6 +192,7 @@ function SearchResultsView({ query }: { query: string }) {
             emptySubtitle="换个关键词试试，或减少筛选条件。"
           />
         )}
+      </div>
       </div>
     </div>
   );
@@ -170,52 +236,26 @@ function SearchEntryView() {
     [router],
   );
 
-  return (
-    <div className="min-h-[100dvh] bg-white pb-36 pt-2 sm:mx-0 -mx-4 px-4 sm:px-0">
-      <div className="mx-auto max-w-lg sm:px-3">
-        <div className="flex items-center gap-2 pt-1">
-          <div className="relative flex min-w-0 flex-1 items-center rounded-full border border-slate-200 bg-slate-50 py-2 pl-4 pr-12">
-            <input
-              className="min-w-0 flex-1 border-0 bg-transparent text-[15px] text-[#111] outline-none placeholder:text-slate-400"
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  runSearch(draft);
-                }
-              }}
-              placeholder="搜索 Agent、经验、话题…"
-              enterKeyHint="search"
-              autoFocus
-            />
-            <input ref={fileInputRef} type="file" accept="image/*" className="hidden" tabIndex={-1} aria-hidden />
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full text-slate-400 transition hover:bg-white hover:text-slate-600"
-              aria-label="图搜"
-              title="图搜（即将上线）"
-            >
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.75} viewBox="0 0 24 24" aria-hidden>
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                />
-              </svg>
-            </button>
-          </div>
-          <button
-            type="button"
-            onClick={() => runSearch(draft)}
-            className="shrink-0 px-1 py-2 text-[15px] font-medium text-[#ff2442]"
-          >
-            搜索
-          </button>
-        </div>
+  const goBack = useCallback(() => {
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push("/life-agents");
+    }
+  }, [router]);
 
-        <section className="mt-8">
+  return (
+    <div className="min-h-[100dvh] bg-white pb-36 max-lg:flex max-lg:flex-col sm:mx-0">
+      <SearchTopBar
+        draft={draft}
+        onDraftChange={setDraft}
+        onSearch={() => runSearch(draft)}
+        onBack={goBack}
+        autoFocus
+        fileInputRef={fileInputRef}
+      />
+      <div className="mx-auto w-full max-w-lg flex-1 px-4 sm:px-3 lg:px-4">
+        <section className="mt-6">
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-sm font-medium text-slate-500">历史记录</h2>
             {history.length > 0 ? (

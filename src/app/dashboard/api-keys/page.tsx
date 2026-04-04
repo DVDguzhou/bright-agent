@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -178,39 +177,47 @@ export default function ApiKeysPage() {
 
   if (authLoading || !user) {
     return (
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mx-auto max-w-5xl py-20 text-center text-slate-500">
-        {authLoading ? (
-          "加载中…"
-        ) : (
-          <>
-            请先{" "}
-            <Link href="/login" className="text-sky-600 hover:text-sky-700">
-              登录
-            </Link>
-          </>
-        )}
-      </motion.div>
+      <div className="flex min-h-[50vh] items-center justify-center px-4">
+        <p className="text-sm text-slate-500">
+          {authLoading ? (
+            "加载中…"
+          ) : (
+            <>
+              请先{" "}
+              <Link href="/login" className="text-sky-600 hover:text-sky-700">
+                登录
+              </Link>
+              后管理 API Key。
+            </>
+          )}
+        </p>
+      </div>
     );
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="mx-auto max-w-5xl space-y-5 max-lg:-mx-4 max-lg:bg-[#f7f8fa] max-lg:px-3 max-lg:pb-24"
-    >
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <Link href="/dashboard" className="text-sm text-slate-500 hover:text-slate-800">
-            ← 返回个人主页
-          </Link>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">开放 API 与密钥</h1>
-          <p className="mt-1 max-w-2xl text-sm text-slate-600">
-            为每个你管理的人生 Agent 签发专用调用 Key、配置对外公示的单价（分/次），并查看调用次数。开放调用不消耗咨询者的提问包，平台按次记账供后续结算对接。
-          </p>
-        </div>
+    <div className="mx-auto max-w-2xl bg-white pb-6 max-lg:-mx-4 max-lg:min-h-[calc(100dvh-env(safe-area-inset-bottom)-4.25rem)] max-lg:pb-24 lg:pb-8">
+      <header className="flex items-center justify-between gap-3 px-4 pb-3 pt-[max(0.25rem,env(safe-area-inset-top))] sm:px-0">
+        <h1 className="text-[26px] font-bold leading-tight tracking-tight text-[#111]">开放 API</h1>
+        <Link
+          href="/life-agents"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[#111] transition active:bg-slate-200"
+          aria-label="去找 Agent 聊天"
+          title="去找 Agent"
+        >
+          <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24" aria-hidden>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
+        </Link>
+      </header>
+
+      <div className="px-4 pb-3 sm:px-0">
+        <p className="text-[15px] leading-relaxed text-slate-500">
+          为每个人生 Agent 管理调用 Key、公示单价（分/次）与调用数据。开放调用不消耗咨询者提问包，按次记账供后续结算。
+        </p>
       </div>
 
+      <div className="space-y-4 px-4 sm:px-0">
       <section className="overflow-hidden rounded-[24px] bg-white shadow-sm ring-1 ring-black/[0.06]">
         <div className="border-b border-slate-100 bg-gradient-to-r from-sky-50/80 via-white to-amber-50/50 px-5 py-4 sm:px-6">
           <h2 className="text-lg font-semibold text-slate-900">人生 Agent 调用 Key</h2>
@@ -442,12 +449,10 @@ export default function ApiKeysPage() {
               ))}
             </ul>
           )}
-          <p className="text-xs text-slate-500">
-            更多说明见仓库内 <code className="rounded bg-slate-100 px-1">docs/API_DOCS.md</code>
-          </p>
         </div>
       </section>
-    </motion.div>
+      </div>
+    </div>
   );
 }
 
