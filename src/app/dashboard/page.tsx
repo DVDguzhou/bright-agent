@@ -159,6 +159,17 @@ export default function DashboardPage() {
         </svg>
       ),
     },
+    {
+      href: "/licenses",
+      label: "License",
+      desc: "凭证管理",
+      bgClass: "bg-indigo-100",
+      icon: (
+        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+        </svg>
+      ),
+    },
   ];
 
   const serviceTabs = [
@@ -281,7 +292,7 @@ export default function DashboardPage() {
       </section>
 
       <section className="rounded-[28px] bg-white px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
-        <div className="grid grid-cols-5 gap-2 text-center">
+        <div className="grid grid-cols-3 gap-3 text-center sm:grid-cols-6 sm:gap-2">
           {quickActions.map((item) => (
             <Link key={item.label} href={item.href} className="group block rounded-2xl px-1 py-2 active:scale-[0.99]">
               <div className="mx-auto flex w-full flex-col items-center">

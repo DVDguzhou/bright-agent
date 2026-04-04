@@ -83,7 +83,7 @@ export default function DashboardMessagesPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl bg-white pb-6 max-lg:-mx-4 max-lg:min-h-[calc(100dvh-5.5rem)] lg:pb-8">
+    <div className="mx-auto max-w-2xl bg-white pb-6 max-lg:-mx-4 max-lg:min-h-[calc(100dvh-env(safe-area-inset-bottom)-4.25rem)] max-lg:pb-24 lg:pb-8">
       <header className="flex items-center justify-between gap-3 px-4 pb-3 pt-[max(0.25rem,env(safe-area-inset-top))] sm:px-0">
         <h1 className="text-[26px] font-bold leading-tight tracking-tight text-[#111]">消息</h1>
         <Link
@@ -174,11 +174,6 @@ export default function DashboardMessagesPage() {
                         <span className="truncate text-[16px] font-semibold text-[#111]">
                           {item.profile.displayName}
                         </span>
-                        <span
-                          className="h-2 w-2 shrink-0 rounded-full bg-emerald-500"
-                          title="在线"
-                          aria-hidden
-                        />
                       </div>
                       <p className="mt-0.5 line-clamp-1 text-[13px] leading-snug text-slate-400">
                         {previewText(item)}

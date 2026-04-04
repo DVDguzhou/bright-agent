@@ -44,17 +44,17 @@ const IconSearch = ({ className }: { className?: string }) => (
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
   </svg>
 );
-// 我的 License
-const IconLicense = ({ className }: { className?: string }) => (
+/** 底栏「地图」入口（仍跳转 License 页；完整管理见「我的」） */
+const IconMap = ({ className }: { className?: string }) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
   </svg>
 );
 
 const navLinks = [
   { href: "/life-agents", label: "Agent", Icon: IconAgent },
   { href: "/dashboard/messages", label: "消息", Icon: IconMessages },
-  { href: "/licenses", label: "License", Icon: IconLicense },
+  { href: "/licenses", label: "地图", Icon: IconMap },
 ];
 
 export function Nav() {
@@ -95,7 +95,8 @@ export function Nav() {
     pathname !== "/life-agents/search";
   const isLifeAgentCreatePage = pathname === "/life-agents/create";
   const isLifeAgentSearchPage = pathname === "/life-agents/search";
-  const hideGlobalTopNav = isLifeAgentCreatePage;
+  const isDashboardMessagesPage = pathname === "/dashboard/messages";
+  const hideGlobalTopNav = isLifeAgentCreatePage || isDashboardMessagesPage;
   const useBackArrowOnMobileTop = isLifeAgentDetailPage || isLifeAgentCreatePage || isLifeAgentSearchPage;
   const hideGlobalBottomNav = isLifeAgentChatPage || isLifeAgentDetailPage || isLifeAgentCreatePage;
 
@@ -415,8 +416,8 @@ export function Nav() {
                   onClick={() => setMobileDrawerOpen(false)}
                   className="mb-2 flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-slate-800 hover:bg-slate-50"
                 >
-                  <IconLicense className="h-5 w-5 text-slate-600" />
-                  License
+                  <IconMap className="h-5 w-5 text-slate-600" />
+                  地图
                 </Link>
                 {user ? (
                   <>
@@ -467,7 +468,7 @@ export function Nav() {
 
       {!hideGlobalBottomNav && (
         <>
-          {/* 中间 FAB 与第 3 列空白对齐：Agent | 消息 | （+） | License | 我的 */}
+          {/* 中间 FAB 与第 3 列空白对齐：Agent | 消息 | （+） | 地图 | 我的 */}
           <Link
             href="/life-agents/create"
             className="fixed bottom-[calc(env(safe-area-inset-bottom)+2.25rem)] left-1/2 z-[60] flex h-12 w-12 -translate-x-1/2 lg:hidden items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-sky-400 shadow-lg shadow-blue-500/30 ring-4 ring-white transition-transform active:scale-95"
