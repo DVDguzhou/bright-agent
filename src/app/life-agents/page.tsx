@@ -48,25 +48,23 @@ type LifeAgentListItem = {
 const UI = {
   all: "全部",
   allOrAny: "全部 / 不限",
-  badge: "专注本地经验的对话式 Agent",
-  heroTitle: "浏览人生 Agent",
-  heroSubtitle:
-    "学长、大妈、酒吧达人、创业者，把真实经历做成可对话的 Agent，按次付费咨询。",
-  createAgent: "创建 Agent",
-  profileHome: "个人主页",
+  badge: "本地经验 · 可对话",
+  heroTitle: "发现 Agent",
+  heroSubtitle: "真实经历做成可对话咨询，按次付费",
+  createAgent: "发布",
+  profileHome: "我的",
   signup: "注册",
-  sectionTitle: "人生 Agent",
-  sectionSubtitle: "按经验领域、地区筛选",
+  sectionTitle: "推荐",
+  sectionSubtitle: "",
   loading: "加载中...",
   countSuffix: "个",
-  keywordSearch: "关键词搜索",
-  searchPlaceholder:
-    "如：考研、求职、转行、职业规划...",
+  keywordSearch: "搜索感兴趣的方向",
+  searchPlaceholder: "考研、求职、转行、雅思…",
   searchHint:
-    "支持多关键词，空格或逗号分隔；会自动扩展相关词，如搜“考研”会匹配“就业”“读研”等。",
-  region: "所在地区",
-  regionHint:
-    "可多级筛选，组合关键词与地区缩小范围",
+    "多关键词用空格或逗号分隔；会自动联想相关词。",
+  region: "地区筛选",
+  regionHint: "组合地区缩小范围",
+  filtersToggle: "地区与筛选",
   emptyTitle: "还没有人生 Agent",
   emptySubtitle:
     "创建第一个，把你的经验变成可对话的咨询页",
@@ -102,6 +100,19 @@ const RELATED_TERM_GROUPS: string[][] = [
   ["离职", "offer", "裸辞"],
   ["涨薪", "晋升", "转岗"],
 ];
+
+function hueFromId(id: string) {
+  let h = 0;
+  for (let i = 0; i < id.length; i += 1) {
+    h = (h + id.charCodeAt(i) * (i + 1)) % 360;
+  }
+  return h;
+}
+
+function coverAspectClass(index: number) {
+  const aspects = ["aspect-[4/5]", "aspect-[3/4]", "aspect-[5/6]"] as const;
+  return aspects[index % aspects.length];
+}
 
 function normalizeSearchText(value: string) {
   return value.trim().toLowerCase();
@@ -253,52 +264,62 @@ export default function LifeAgentsPage() {
   }, [profiles, query, selectedCountry, selectedProvince, selectedCity, selectedCounty]);
 
   return (
-    <div className="space-y-10">
-      <section className="rounded-3xl border border-slate-200 bg-white/90 p-8 shadow-sm">
-        <div className="max-w-3xl">
-          <p className="mb-3 inline-flex rounded-full bg-blue-50 px-4 py-1.5 text-sm font-medium text-blue-700">
-            {UI.badge}
-          </p>
-          <h1 className="section-title">{UI.heroTitle}</h1>
-          <p className="section-subtitle mt-4">{UI.heroSubtitle}</p>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <Link href="/life-agents/create" className="btn-primary">
+    <div className="-mx-1 space-y-4 pb-4 sm:mx-0 sm:space-y-5">
+      <section className="rounded-2xl bg-white px-3 py-4 shadow-sm ring-1 ring-slate-200/80 sm:px-5 sm:py-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] font-medium uppercase tracking-wide text-rose-500/90">{UI.badge}</p>
+            <h1 className="mt-0.5 text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">{UI.heroTitle}</h1>
+            <p className="mt-1 text-xs text-slate-500 sm:text-sm">{UI.heroSubtitle}</p>
+          </div>
+          <div className="flex shrink-0 gap-2">
+            <Link
+              href="/life-agents/create"
+              className="rounded-full bg-gradient-to-r from-rose-500 to-orange-400 px-4 py-2 text-xs font-semibold text-white shadow-sm sm:px-5 sm:text-sm"
+            >
               {UI.createAgent}
             </Link>
-            <Link href={user ? "/dashboard" : "/signup"} className="btn-secondary">
+            <Link
+              href={user ? "/dashboard" : "/signup"}
+              className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-medium text-slate-700 sm:text-sm"
+            >
               {user ? UI.profileHome : UI.signup}
             </Link>
           </div>
         </div>
-      </section>
 
-      <section>
-        <div className="mb-5 flex items-center justify-between gap-4">
-          <div>
-            <h2 className="text-2xl font-semibold text-slate-900">{UI.sectionTitle}</h2>
-            <p className="mt-1 text-sm text-slate-500">{UI.sectionSubtitle}</p>
-          </div>
-          <span className="rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-600">
-            {loading ? UI.loading : filteredProfiles.length + " / " + profiles.length + " " + UI.countSuffix}
-          </span>
-        </div>
-
-        <div className="mb-6 space-y-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-          <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700">{UI.keywordSearch}</label>
+        <div className="mt-4">
+          <label className="sr-only">{UI.keywordSearch}</label>
+          <div className="relative">
+            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden>
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </span>
             <input
-              className="input-shell"
+              className="input-glow w-full rounded-full border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-rose-300 focus:bg-white"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={UI.searchPlaceholder}
             />
-            <p className="mt-2 text-xs text-slate-500">{UI.searchHint}</p>
           </div>
-          <div>
-            <p className="mb-2 text-sm font-medium text-slate-700">{UI.region}</p>
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          <p className="mt-2 px-1 text-[11px] leading-relaxed text-slate-400 sm:text-xs">{UI.searchHint}</p>
+        </div>
+
+        <details className="group mt-4 rounded-2xl border border-slate-100 bg-slate-50/80 open:border-slate-200 open:bg-white">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-2 rounded-2xl px-3 py-2.5 text-sm font-medium text-slate-700 marker:hidden sm:px-4">
+            <span>{UI.filtersToggle}</span>
+            <span className="text-slate-400 transition group-open:rotate-180">
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </span>
+          </summary>
+          <div className="space-y-3 border-t border-slate-100 px-3 pb-4 pt-3 sm:px-4">
+            <p className="text-xs font-medium text-slate-600">{UI.region}</p>
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
               <select
-                className="input-shell"
+                className="input-shell rounded-xl py-2.5 text-sm"
                 value={selectedCountry}
                 onChange={(e) => {
                   setSelectedCountry(e.target.value);
@@ -314,7 +335,7 @@ export default function LifeAgentsPage() {
                 ))}
               </select>
               <select
-                className="input-shell"
+                className="input-shell rounded-xl py-2.5 text-sm"
                 value={selectedProvince}
                 onChange={(e) => {
                   setSelectedProvince(e.target.value);
@@ -329,7 +350,7 @@ export default function LifeAgentsPage() {
                 ))}
               </select>
               <select
-                className="input-shell"
+                className="input-shell rounded-xl py-2.5 text-sm"
                 value={selectedCity}
                 onChange={(e) => {
                   setSelectedCity(e.target.value);
@@ -343,7 +364,7 @@ export default function LifeAgentsPage() {
                 ))}
               </select>
               <select
-                className="input-shell"
+                className="input-shell rounded-xl py-2.5 text-sm"
                 value={selectedCounty}
                 onChange={(e) => setSelectedCounty(e.target.value)}
               >
@@ -354,8 +375,20 @@ export default function LifeAgentsPage() {
                 ))}
               </select>
             </div>
-            <p className="mt-2 text-xs text-slate-500">{UI.regionHint}</p>
+            <p className="text-[11px] text-slate-400">{UI.regionHint}</p>
           </div>
+        </details>
+      </section>
+
+      <section>
+        <div className="mb-3 flex items-center justify-between gap-3 px-1">
+          <h2 className="text-base font-semibold text-slate-900 sm:text-lg">
+            {UI.sectionTitle}
+            {UI.sectionSubtitle ? <span className="ml-2 font-normal text-slate-500">{UI.sectionSubtitle}</span> : null}
+          </h2>
+          <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] text-slate-600 sm:text-xs">
+            {loading ? UI.loading : `${filteredProfiles.length}/${profiles.length}${UI.countSuffix}`}
+          </span>
         </div>
 
         {loadError && (
@@ -371,128 +404,118 @@ export default function LifeAgentsPage() {
           </div>
         )}
         {loading ? (
-          <div className="grid gap-5 lg:grid-cols-2">
-            {[1, 2, 3, 4].map((item) => (
-              <div key={item} className="h-72 animate-pulse rounded-3xl bg-white shadow-sm" />
+          <div
+            className="columns-2 gap-x-2 sm:columns-3 sm:gap-x-3 lg:columns-4 xl:columns-5 [&>*]:mb-2 sm:[&>*]:mb-3"
+            style={{ columnGap: "0.625rem" }}
+          >
+            {[1, 2, 3, 4, 5, 6].map((item) => (
+              <div
+                key={item}
+                className={`break-inside-avoid overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/60 ${
+                  item % 3 === 0 ? "aspect-[5/7]" : item % 3 === 1 ? "aspect-[4/5]" : "aspect-[3/4]"
+                } animate-pulse bg-gradient-to-br from-slate-100 to-slate-200/80`}
+              />
             ))}
           </div>
         ) : filteredProfiles.length === 0 ? (
-          <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-10 text-center">
-            <p className="text-lg font-medium text-slate-900">
+          <div className="rounded-2xl border border-dashed border-slate-200 bg-white px-6 py-12 text-center">
+            <p className="text-base font-semibold text-slate-900">
               {loadError ? "加载失败" : UI.emptyTitle}
             </p>
-            <p className="mt-2 text-slate-500">
+            <p className="mt-2 text-sm text-slate-500">
               {loadError ? "请确认 Go 后端已启动（默认端口 8080），或刷新页面重试" : UI.emptySubtitle}
             </p>
           </div>
         ) : (
-          <div className="grid gap-5 lg:grid-cols-2">
-            {filteredProfiles.map((profile, index) => (
-              <motion.div
-                key={profile.id}
-                initial={{ opacity: 0, y: 18 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index < 6 ? index * 0.05 : 0 }}
-              >
-                <Link href={"/life-agents/" + profile.id} className="block h-full">
-                  <div className="glass-card h-full p-6">
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-100 text-lg font-semibold text-blue-700">
-                            {(profile.displayName ?? UI.anonymous).slice(0, 1)}
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-1.5">
-                              <h3 className="text-xl font-semibold text-slate-900">{profile.displayName}</h3>
-                              <VerificationBadge status={profile.verificationStatus ?? "none"} size="sm" />
-                            </div>
-                            <p className="text-sm text-slate-500">{profile.headline}</p>
-                          </div>
+          <div
+            className="columns-2 gap-x-2 sm:columns-3 sm:gap-x-3 lg:columns-4 xl:columns-5 [&>*]:mb-2 sm:[&>*]:mb-3"
+            style={{ columnGap: "0.625rem" }}
+          >
+            {filteredProfiles.map((profile, index) => {
+              const h = hueFromId(profile.id);
+              const h2 = (h + 48) % 360;
+              const areaLabel = [profile.city, profile.province].filter(Boolean).join(" · ");
+              return (
+                <motion.article
+                  key={profile.id}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index < 8 ? index * 0.04 : 0 }}
+                  className="break-inside-avoid"
+                >
+                  <Link href={"/life-agents/" + profile.id} className="group block">
+                    <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/70 transition duration-200 group-hover:shadow-md group-hover:ring-rose-200/60">
+                      <div
+                        className={`relative w-full overflow-hidden ${coverAspectClass(index)}`}
+                        style={{
+                          background: `linear-gradient(145deg, hsl(${h} 72% 88%), hsl(${h2} 65% 78%) 55%, hsl(${h} 55% 70%))`,
+                        }}
+                      >
+                        <div
+                          className="absolute inset-0 opacity-[0.15]"
+                          style={{
+                            backgroundImage: `radial-gradient(circle at 30% 20%, white, transparent 50%), radial-gradient(circle at 80% 60%, hsl(${h2} 40% 40%), transparent 45%)`,
+                          }}
+                        />
+                        <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 bg-gradient-to-t from-black/35 via-black/10 to-transparent p-2.5 pt-12">
+                          <span className="line-clamp-2 text-[13px] font-semibold leading-snug text-white drop-shadow-sm">
+                            {profile.headline}
+                          </span>
                         </div>
-                        {(profile.education || profile.school || profile.job || profile.income) && (
-                          <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-sm text-slate-500">
-                            {profile.school && <span>{UI.school} {profile.school}</span>}
-                            {profile.education && <span>{UI.education} {profile.education}</span>}
-                            {profile.job && <span>{UI.job} {profile.job}</span>}
-                            {profile.income && <span>{UI.income} {profile.income}</span>}
+                        {(profile.verificationStatus === "verified" || profile.verificationStatus === "pending") && (
+                          <div className="absolute right-2 top-2 rounded-full bg-white/90 px-1.5 py-0.5 shadow-sm backdrop-blur-sm">
+                            <VerificationBadge status={profile.verificationStatus ?? "none"} size="sm" />
                           </div>
                         )}
-                        {(profile.country || profile.province || profile.city || profile.county) && (
-                          <p className="mt-3 text-sm text-slate-500">
-                            {UI.area} {[profile.country, profile.province, profile.city, profile.county].filter(Boolean).join(" / ")}
-                          </p>
-                        )}
-                        {Array.isArray(profile.regions) && profile.regions.length > 0 && (
-                          <div className="mt-3 flex flex-wrap gap-2">
-                            {profile.regions.map((region) => (
+                      </div>
+                      <div className="space-y-1.5 p-2.5 sm:p-3">
+                        <h3 className="line-clamp-2 text-[13px] font-semibold leading-snug text-slate-900 sm:text-sm">
+                          {profile.displayName}
+                        </h3>
+                        {areaLabel ? (
+                          <p className="line-clamp-1 text-[11px] text-slate-400">{areaLabel}</p>
+                        ) : null}
+                        <div className="flex items-center justify-between gap-2 pt-0.5">
+                          <div className="flex min-w-0 items-center gap-1 text-[11px] text-slate-500">
+                            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-200/90 text-[10px] font-bold text-slate-600">
+                              {(profile.displayName ?? UI.anonymous).slice(0, 1)}
+                            </span>
+                            <span className="truncate">{profile.creator.name ?? UI.anonymous}</span>
+                          </div>
+                          <span className="shrink-0 text-sm font-bold text-rose-500">
+                            ¥{(profile.pricePerQuestion / 100).toFixed(0)}
+                            <span className="text-[10px] font-medium text-slate-400">/问</span>
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5 border-t border-slate-100 pt-2 text-[11px] text-slate-500">
+                          <RatingStars score={profile.ratings?.averageScore ?? 0} size="sm" />
+                          <span>
+                            {profile.ratings && profile.ratings.raters > 0
+                              ? profile.ratings.averageScore.toFixed(1)
+                              : "—"}
+                          </span>
+                          {profile.ratings && profile.ratings.raters > 0 ? (
+                            <span className="text-slate-400">· {profile.ratings.raters} 人评</span>
+                          ) : null}
+                        </div>
+                        {(profile.expertiseTags ?? []).length > 0 ? (
+                          <div className="flex flex-wrap gap-1">
+                            {(profile.expertiseTags ?? []).slice(0, 2).map((tag: string) => (
                               <span
-                                key={profile.id + "-" + region}
-                                className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700"
+                                key={tag}
+                                className="rounded-md bg-rose-50 px-1.5 py-0.5 text-[10px] font-medium text-rose-600/90"
                               >
-                                {region}
+                                {tag}
                               </span>
                             ))}
                           </div>
-                        )}
-                        <p className="mt-4 text-sm leading-6 text-slate-600">{profile.shortBio}</p>
-                        <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-slate-500">
-                          <span className="inline-flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1 text-amber-700">
-                            <RatingStars score={profile.ratings?.averageScore ?? 0} size="sm" />
-                            {profile.ratings && profile.ratings.raters > 0
-                              ? profile.ratings.averageScore.toFixed(1) + " / 5"
-                              : UI.unrated}
-                          </span>
-                          <span>
-                            {profile.ratings && profile.ratings.raters > 0
-                              ? profile.ratings.raters + " " + UI.ratersSuffix
-                              : UI.unrated}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="rounded-2xl bg-sky-50 px-4 py-3 text-right">
-                        <p className="text-xs text-slate-500">{UI.perQuestion}</p>
-                        <p className="text-lg font-semibold text-sky-700">
-                          {"¥"}
-                          {(profile.pricePerQuestion / 100).toFixed(2)}
-                        </p>
+                        ) : null}
                       </div>
                     </div>
-
-                    <div className="mt-5 flex flex-wrap gap-2">
-                      {(profile.expertiseTags ?? []).slice(0, 5).map((tag: string) => (
-                        <span
-                          key={tag}
-                          className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-
-                    <div className="mt-5 grid grid-cols-3 gap-3 text-sm">
-                      <div className="rounded-2xl bg-slate-50 p-3">
-                        <p className="text-slate-500">{UI.knowledgeCount}</p>
-                        <p className="mt-1 font-semibold text-slate-900">{profile.knowledgeCount}</p>
-                      </div>
-                      <div className="rounded-2xl bg-slate-50 p-3">
-                        <p className="text-slate-500">{UI.soldQuestionPacks}</p>
-                        <p className="mt-1 font-semibold text-slate-900">{profile.soldQuestionPacks}</p>
-                      </div>
-                      <div className="rounded-2xl bg-slate-50 p-3">
-                        <p className="text-slate-500">{UI.sessionCount}</p>
-                        <p className="mt-1 font-semibold text-slate-900">{profile.sessionCount}</p>
-                      </div>
-                    </div>
-
-                    <div className="mt-5 rounded-2xl bg-blue-50 p-4">
-                      <p className="text-sm font-medium text-slate-900">{UI.audience}</p>
-                      <p className="mt-1 text-sm leading-6 text-slate-600">{profile.audience}</p>
-                    </div>
-                  </div>
-                </Link>
-              </motion.div>
-            ))}
+                  </Link>
+                </motion.article>
+              );
+            })}
           </div>
         )}
       </section>
