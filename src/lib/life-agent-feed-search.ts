@@ -33,6 +33,8 @@ export type LifeAgentListItem = {
   coverUrl?: string;
   coverImageUrl?: string;
   coverPresetKey?: string;
+  /** 创作者「我的人生 Agent」列表用：是否在广场发布 */
+  published?: boolean;
 };
 
 const RELATED_TERM_GROUPS: string[][] = [

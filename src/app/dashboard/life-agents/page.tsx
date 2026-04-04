@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { useAuth } from "@/contexts/AuthContext";
+import { LifeAgentDiscoverCardGrid } from "@/components/LifeAgentDiscoverCardGrid";
+import type { LifeAgentListItem } from "@/lib/life-agent-feed-search";
 
 type ProfileItem = {
   id: string;
@@ -20,13 +22,55 @@ type ProfileItem = {
   sessionCount: number;
   soldPacks: number;
   totalRevenue: number;
-};
+} & Partial<
+  Pick<
+    LifeAgentListItem,
+    "coverUrl" | "coverImageUrl" | "coverPresetKey" | "verificationStatus" | "ratings" | "expertiseTags"
+  >
+>;
+
+function mineToListItem(p: ProfileItem): LifeAgentListItem {
+  return {
+    id: p.id,
+    displayName: p.displayName,
+    headline: p.headline,
+    shortBio: p.shortBio,
+    audience: "",
+    welcomeMessage: "",
+    pricePerQuestion: p.pricePerQuestion,
+    expertiseTags: Array.isArray(p.expertiseTags) ? p.expertiseTags : [],
+    sampleQuestions: [],
+    regions: p.regions,
+    country: p.country,
+    province: p.province,
+    city: p.city,
+    county: p.county,
+    verificationStatus: p.verificationStatus,
+    knowledgeCount: p.knowledgeCount,
+    soldQuestionPacks: p.soldPacks,
+    sessionCount: p.sessionCount,
+    ratings: p.ratings,
+    creator: { name: p.displayName },
+    coverUrl: p.coverUrl,
+    coverImageUrl: p.coverImageUrl,
+    coverPresetKey: p.coverPresetKey,
+    published: p.published,
+  };
+}
 
 export default function LifeAgentsManagePage() {
+  const { user, loading: authLoading } = useAuth();
   const [profiles, setProfiles] = useState<ProfileItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
+    if (!user) {
+      setLoading(false);
+      setProfiles([]);
+      return;
+    }
+
     fetch("/api/life-agents/mine", { credentials: "include" })
       .then((r) => (r.ok ? r.json() : []))
       .then((data) => {
@@ -37,109 +81,101 @@ export default function LifeAgentsManagePage() {
         setProfiles([]);
         setLoading(false);
       });
-  }, []);
+  }, [user]);
+
+  const listItems = useMemo(() => profiles.map(mineToListItem), [profiles]);
+
+  const filteredItems = useMemo(() => {
+    const keyword = query.trim().toLowerCase();
+    if (!keyword) return listItems;
+    return listItems.filter((item) =>
+      [item.displayName, item.headline, item.shortBio].some((v) => v.toLowerCase().includes(keyword)),
+    );
+  }, [listItems, query]);
+
+  if (authLoading) {
+    return (
+      <div className="flex min-h-[50vh] items-center justify-center px-4">
+        <p className="text-sm text-slate-500">加载中…</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="flex min-h-[50vh] items-center justify-center px-4">
+        <p className="text-sm text-slate-500">
+          请先 <Link href="/login" className="font-medium text-sky-600 hover:text-sky-700">登录</Link>{" "}
+          后管理你的人生 Agent。
+        </p>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-8">
-      <div>
-        <Link href="/dashboard" className="text-sm text-slate-500 hover:text-sky-700">
-          ← 返回个人主页
+    <div className="-mx-1 space-y-4 pb-4 max-lg:-mx-4 max-lg:min-h-[calc(100dvh-env(safe-area-inset-bottom)-4.25rem)] max-lg:bg-white max-lg:px-1 max-lg:pb-24 sm:mx-0 sm:space-y-5">
+      <header className="flex items-center justify-between gap-3 px-4 pb-1 pt-[max(0.25rem,env(safe-area-inset-top))] sm:px-4">
+        <h1 className="text-[26px] font-bold leading-tight tracking-tight text-[#111]">我的人生 Agent</h1>
+        <Link
+          href="/life-agents/create"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[#111] transition active:bg-slate-200"
+          aria-label="新建 Agent"
+          title="新建 Agent"
+        >
+          <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24" aria-hidden>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
         </Link>
-        <h1 className="section-title mt-3">我的人生 Agent</h1>
-        <p className="section-subtitle mt-2">
-          管理你的 Agent 资料、查看销量与聊天数据
-        </p>
-        <div className="mt-6 flex gap-3">
-          <Link href="/life-agents/create" className="btn-primary">
-            新建 Agent
-          </Link>
-          <Link href="/life-agents" className="btn-secondary">
-            浏览全部
-          </Link>
-        </div>
+      </header>
+
+      <div className="px-4 pb-1 sm:px-4">
+        <label className="sr-only">搜索我的 Agent</label>
+        <input
+          className="w-full rounded-full border-0 bg-slate-100 px-4 py-2.5 text-[15px] text-[#111] outline-none ring-1 ring-transparent transition placeholder:text-slate-400 focus:bg-slate-50 focus:ring-slate-200"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="搜索名称、标题或简介"
+        />
       </div>
 
-      {loading ? (
-        <div className="grid gap-5 lg:grid-cols-2">
-          {[1, 2].map((i) => (
-            <div key={i} className="h-48 animate-pulse rounded-3xl bg-white shadow-sm" />
-          ))}
-        </div>
-      ) : profiles.length === 0 ? (
-        <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center shadow-sm">
-          <p className="text-lg font-medium text-slate-900">还没有人生 Agent</p>
-          <p className="mt-2 text-slate-600">创建第一个，开始分享你的经验并接受咨询。</p>
-          <Link href="/life-agents/create" className="btn-primary mt-6 inline-flex">
-            去创建
-          </Link>
-        </div>
-      ) : (
-        <div className="grid gap-5 lg:grid-cols-2">
-          {profiles.map((profile, i) => (
-            <motion.div
-              key={profile.id}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
-            >
-              <Link href={`/dashboard/life-agents/${profile.id}`} className="block h-full">
-                <div className="glass-card h-full p-6 hover:border-sky-300/80">
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <h3 className="text-xl font-semibold text-slate-900">{profile.displayName}</h3>
-                      <p className="mt-1 text-sm text-slate-600">{profile.headline}</p>
-                      {Array.isArray(profile.regions) && profile.regions.length > 0 && (
-                        <p className="mt-2 text-sm text-slate-500">地区：{profile.regions.join(" / ")}</p>
-                      )}
-                      {(profile.country || profile.province || profile.city || profile.county) && (
-                        <p className="mt-2 text-sm text-slate-500">
-                          📍 {[profile.country, profile.province, profile.city, profile.county].filter(Boolean).join(" / ")}
-                        </p>
-                      )}
-                      <p className="mt-3 line-clamp-2 text-sm text-slate-500">{profile.shortBio}</p>
-                    </div>
-                    <span
-                      className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium ${
-                        profile.published ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-600"
-                      }`}
-                    >
-                      {profile.published ? "已发布" : "未发布"}
-                    </span>
-                  </div>
-
-                  <div className="mt-5 grid grid-cols-2 gap-3 text-sm md:grid-cols-4">
-                    <div className="rounded-2xl bg-slate-50 p-3">
-                      <p className="text-slate-500">知识条目</p>
-                      <p className="mt-1 font-semibold text-slate-900">{profile.knowledgeCount}</p>
-                    </div>
-                    <div className="rounded-2xl bg-slate-50 p-3">
-                      <p className="text-slate-500">聊天会话</p>
-                      <p className="mt-1 font-semibold text-slate-900">{profile.sessionCount}</p>
-                    </div>
-                    <div className="rounded-2xl bg-slate-50 p-3">
-                      <p className="text-slate-500">售出次数包</p>
-                      <p className="mt-1 font-semibold text-slate-900">{profile.soldPacks}</p>
-                    </div>
-                    <div className="rounded-2xl bg-sky-50 p-3">
-                      <p className="text-slate-500">累计收入</p>
-                      <p className="mt-1 font-semibold text-sky-700">
-                        ¥{((profile.totalRevenue ?? 0) / 100).toFixed(2)}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="mt-5 flex items-center justify-between">
-                    <span className="text-sm text-slate-500">
-                      ¥{(profile.pricePerQuestion / 100).toFixed(2)} / 次
-                    </span>
-                    <span className="text-sm text-sky-600 group-hover:text-sky-700">编辑详情 →</span>
-                  </div>
-                </div>
+      <section className="px-1 sm:px-0">
+        {loading ? (
+          <LifeAgentDiscoverCardGrid
+            profiles={[]}
+            loading
+            emptyTitle=""
+            emptySubtitle=""
+            profileHref={(id) => `/dashboard/life-agents/${id}`}
+          />
+        ) : profiles.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-slate-200 bg-white px-6 py-12 text-center">
+            <p className="text-base font-semibold text-slate-900">还没有人生 Agent</p>
+            <p className="mt-2 text-sm text-slate-500">创建第一个，开始分享你的经验并接受咨询。</p>
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+              <Link
+                href="/life-agents/create"
+                className="inline-flex rounded-full bg-[#111] px-6 py-2.5 text-sm font-semibold text-white active:opacity-90"
+              >
+                去创建
               </Link>
-            </motion.div>
-          ))}
-        </div>
-      )}
+              <Link
+                href="/life-agents"
+                className="inline-flex rounded-full border border-slate-200 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 active:bg-slate-50"
+              >
+                逛发现页
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <LifeAgentDiscoverCardGrid
+            profiles={filteredItems}
+            loading={false}
+            emptyTitle="没有匹配的 Agent"
+            emptySubtitle="换个关键词试试，或清空搜索框查看全部。"
+            profileHref={(id) => `/dashboard/life-agents/${id}`}
+          />
+        )}
+      </section>
     </div>
   );
 }

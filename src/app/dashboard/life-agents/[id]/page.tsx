@@ -1,13 +1,15 @@
 "use client";
 
 import { FormEvent, useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { RatingStars } from "@/components/RatingStars";
+import { motion } from "framer-motion";
 import { OFFICIAL_CONTACT } from "@/lib/official-contact";
 import { centsToYuanInput, yuanInputToCents } from "@/lib/price";
 import { VoiceRecordPanel } from "@/components/voice";
 import { LifeAgentCoverPicker } from "@/components/LifeAgentCoverPicker";
+import { lifeAgentCoverShouldBypassOptimizer, resolveLifeAgentCoverUrl } from "@/lib/life-agent-covers";
 
 type ManageData = {
     profile: {
@@ -101,7 +103,6 @@ const TONE_OPTIONS = ["直接一点", "温柔一点", "理性克制", "接地气
 const RESPONSE_STYLE_OPTIONS = ["先给判断再解释", "先理解处境再建议", "多举自己的例子", "短一点别太满", "先拆选项再给建议", "像微信聊天少分点"];
 const REGION_OPTIONS = ["温州", "杭州", "宁波", "台州", "绍兴", "上海", "北京", "深圳", "广州", "东京", "大阪", "新加坡"];
 const TAB_ITEMS = [
-  { id: "feedback", label: "消息", hint: "看用户反馈" },
   { id: "modify", label: "对话修改", hint: "像聊天一样改" },
   { id: "edit", label: "编辑资料", hint: "手动调整资料" },
   { id: "sales", label: "销量记录", hint: "看购买情况" },
@@ -114,7 +115,7 @@ export default function LifeAgentManageDetailPage() {
   const modifyChatEndRef = useRef<HTMLDivElement>(null);
   const id = params.id as string;
   const [data, setData] = useState<ManageData | null>(null);
-  const [activeTab, setActiveTab] = useState<"edit" | "modify" | "sales" | "sessions" | "feedback">("feedback");
+  const [activeTab, setActiveTab] = useState<"edit" | "modify" | "sales" | "sessions">("modify");
   const [form, setForm] = useState({
     displayName: "",
     headline: "",
@@ -342,96 +343,149 @@ export default function LifeAgentManageDetailPage() {
     );
   }
 
+  const coverSrc =
+    data.profile.coverUrl?.trim() ||
+    resolveLifeAgentCoverUrl(data.profile.coverImageUrl, data.profile.coverPresetKey);
+  const feedbackTotal =
+    (data.feedback?.counts.helpful ?? 0) +
+    (data.feedback?.counts.notSpecific ?? 0) +
+    (data.feedback?.counts.notSuitable ?? 0);
+
   return (
-    <div className="space-y-8">
-      <div>
-        <Link href="/dashboard/life-agents" className="text-sm text-slate-500 hover:text-sky-700">
-          ← 返回我的人生 Agent
-        </Link>
-        <div className="mt-3 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div className="min-w-0 lg:flex-1">
-            <h1 className="section-title break-words">{data.profile.displayName}</h1>
-            <p className="section-subtitle mt-1">{data.profile.headline}</p>
-          </div>
-          <div className="grid w-full grid-cols-2 gap-3 sm:w-auto sm:grid-cols-2 lg:flex lg:flex-none lg:flex-wrap lg:justify-end lg:pl-6">
-            <Link
-              href={`/life-agents/${id}`}
-              className="btn-secondary min-h-[48px] px-4 text-center whitespace-nowrap touch-manipulation"
-            >
-              查看展示页
-            </Link>
-            <Link
-              href={`/life-agents/${id}/chat`}
-              className="btn-primary min-h-[48px] px-4 text-center whitespace-nowrap touch-manipulation"
-            >
-              进入聊天
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">累计收入</p>
-          <p className="mt-1 text-2xl font-semibold text-sky-700">
-            ¥{(data.stats.totalRevenue / 100).toFixed(2)}
-          </p>
-        </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">售出次数包</p>
-          <p className="mt-1 text-2xl font-semibold text-slate-900">{data.stats.soldPacks}</p>
-        </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">聊天会话</p>
-          <p className="mt-1 text-2xl font-semibold text-slate-900">{data.stats.sessionCount}</p>
-        </div>
-        <div
-          className={`cursor-pointer rounded-2xl border p-5 shadow-sm transition ${
-            activeTab === "feedback"
-              ? "border-sky-400 bg-sky-50"
-              : "border-slate-200 bg-white hover:border-slate-300"
-          }`}
-          onClick={() => setActiveTab("feedback")}
-          role="button"
-          tabIndex={0}
-        >
-          <p className="text-sm text-slate-500">用户反馈</p>
-          <p className="mt-1 text-2xl font-semibold text-slate-900">
-            {(data.feedback?.counts.helpful ?? 0) +
-              (data.feedback?.counts.notSpecific ?? 0) +
-              (data.feedback?.counts.notSuitable ?? 0)}
-          </p>
-          <p className="mt-1 text-xs text-slate-500">
-            有帮助 {(data.feedback?.counts.helpful ?? 0)} · 不够具体 {(data.feedback?.counts.notSpecific ?? 0)} · 不适合 {(data.feedback?.counts.notSuitable ?? 0)}
-          </p>
-        </div>
-      </div>
-
-      <div className="rounded-[28px] border border-white/80 bg-white/75 p-2 shadow-[0_18px_50px_-36px_rgba(15,23,42,0.32)] backdrop-blur-xl">
-        <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-5">
-        {TAB_ITEMS.map((tab) => (
-          <button
-            key={tab.id}
-            type="button"
-            onClick={() => setActiveTab(tab.id)}
-            className={`group min-h-[64px] rounded-2xl px-4 py-3 text-left transition-all ${
-              activeTab === tab.id
-                ? "bg-gradient-to-br from-sky-500 to-cyan-400 text-white shadow-[0_18px_40px_-24px_rgba(14,165,233,0.8)]"
-                : "bg-white/80 text-slate-600 ring-1 ring-slate-200/80 hover:bg-sky-50/80 hover:text-sky-700 hover:ring-sky-200"
-            }`}
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.28 }}
+      className="mx-auto max-w-5xl space-y-4 max-lg:-mx-4 max-lg:bg-[#f7f8fa] max-lg:px-3 max-lg:pb-24"
+    >
+      <section className="overflow-hidden rounded-[28px] bg-white shadow-sm ring-1 ring-black/[0.04]">
+        <div className="bg-gradient-to-r from-amber-50 via-white to-sky-50 px-4 pb-4 pt-3 sm:px-6">
+          <Link
+            href="/dashboard/life-agents"
+            className="text-sm font-medium text-slate-500 transition hover:text-[#111]"
           >
-            <span className="block text-sm font-semibold">{tab.label}</span>
-            <span
-              className={`mt-1 block text-xs ${
-                activeTab === tab.id ? "text-white/80" : "text-slate-400 group-hover:text-sky-500"
+            ← 全部 Agent
+          </Link>
+          <div className="mt-3 flex items-start justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl ring-1 ring-black/5">
+                <Image
+                  src={coverSrc}
+                  alt=""
+                  fill
+                  className="object-cover"
+                  sizes="64px"
+                  unoptimized={lifeAgentCoverShouldBypassOptimizer(coverSrc)}
+                />
+              </div>
+              <div className="min-w-0">
+                <h1 className="break-words text-[26px] font-black leading-tight tracking-tight text-[#111] sm:text-[28px]">
+                  {data.profile.displayName}
+                </h1>
+                <p className="mt-1 line-clamp-2 text-sm text-slate-500">{data.profile.headline}</p>
+                <p className="mt-1 text-xs font-medium text-slate-400">
+                  {data.profile.published ? "已发布" : "未发布"} · 创作者管理主页
+                </p>
+              </div>
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
+              <Link
+                href={`/life-agents/${id}`}
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-slate-700 shadow-sm ring-1 ring-black/[0.05] active:scale-[0.98]"
+                aria-label="查看展示页"
+                title="展示页"
+              >
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                  />
+                </svg>
+              </Link>
+              <Link
+                href={`/life-agents/${id}/chat`}
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-slate-700 shadow-sm ring-1 ring-black/[0.05] active:scale-[0.98]"
+                aria-label="进入聊天"
+                title="聊天"
+              >
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                  />
+                </svg>
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 border-t border-slate-100 sm:grid-cols-4">
+          <div className="px-2 py-3 text-center">
+            <p className="text-2xl font-black leading-none text-sky-700">
+              ¥{(data.stats.totalRevenue / 100).toFixed(2)}
+            </p>
+            <p className="mt-1 text-[11px] font-medium text-slate-700">累计收入</p>
+            <p className="mt-0.5 text-[10px] text-slate-400">元</p>
+          </div>
+          <div className="px-2 py-3 text-center">
+            <p className="text-2xl font-black leading-none text-[#111]">{data.stats.soldPacks}</p>
+            <p className="mt-1 text-[11px] font-medium text-slate-700">售出次数包</p>
+            <p className="mt-0.5 text-[10px] text-slate-400">次</p>
+          </div>
+          <div className="px-2 py-3 text-center">
+            <p className="text-2xl font-black leading-none text-[#111]">{data.stats.sessionCount}</p>
+            <p className="mt-1 text-[11px] font-medium text-slate-700">聊天会话</p>
+            <p className="mt-0.5 text-[10px] text-slate-400">场</p>
+          </div>
+          <Link
+            href={`/dashboard/life-agents/${id}/feedback`}
+            className="block px-2 py-3 text-center transition hover:bg-slate-50/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2"
+          >
+            <p className="text-2xl font-black leading-none text-[#111]">{feedbackTotal}</p>
+            <p className="mt-1 text-[11px] font-medium text-slate-700">用户反馈</p>
+            <p className="mt-0.5 line-clamp-2 text-[10px] leading-tight text-slate-400">
+              有帮助 {data.feedback?.counts.helpful ?? 0} · 不够具体 {data.feedback?.counts.notSpecific ?? 0} · 不适合{" "}
+              {data.feedback?.counts.notSuitable ?? 0}
+            </p>
+          </Link>
+        </div>
+      </section>
+
+      <section className="rounded-[28px] bg-white px-3 py-3 shadow-sm ring-1 ring-black/[0.04] sm:px-4">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {TAB_ITEMS.map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveTab(tab.id)}
+              className={`group min-h-[64px] rounded-2xl px-3 py-3 text-left transition-all sm:px-4 ${
+                activeTab === tab.id
+                  ? "bg-gradient-to-br from-sky-500 to-cyan-400 text-white shadow-md shadow-sky-500/25"
+                  : "bg-[#fafbfc] text-slate-600 ring-1 ring-black/[0.05] hover:bg-sky-50/80 hover:text-sky-800 hover:ring-sky-100"
               }`}
             >
-              {tab.hint}
-            </span>
-          </button>
-        ))}
+              <span className="block text-sm font-semibold">{tab.label}</span>
+              <span
+                className={`mt-1 block text-xs leading-snug ${
+                  activeTab === tab.id ? "text-white/85" : "text-slate-400 group-hover:text-sky-600"
+                }`}
+              >
+                {tab.hint}
+              </span>
+            </button>
+          ))}
         </div>
-      </div>
+      </section>
 
       {activeTab === "modify" && (
         <div className="space-y-6">
@@ -1065,106 +1119,6 @@ export default function LifeAgentManageDetailPage() {
         </div>
       )}
 
-      {activeTab === "feedback" && (
-        <div className="glass-card overflow-hidden">
-          <h3 className="border-b border-slate-200 px-6 py-4 text-lg font-semibold text-slate-900">
-            用户反馈汇总
-          </h3>
-          <div className="p-6">
-            <p className="mb-4 text-sm text-slate-600">
-              用户对回复的轻反馈，可帮你发现哪里需要补充经验或改进回答。
-            </p>
-            {data?.feedback ? (
-              <>
-                <div className="mb-6 grid grid-cols-3 gap-4">
-                  <div className="rounded-2xl bg-green-50 p-4">
-                    <p className="text-sm text-green-700">有帮助</p>
-                    <p className="mt-1 text-2xl font-semibold text-green-800">{data.feedback.counts.helpful}</p>
-                  </div>
-                  <div className="rounded-2xl bg-amber-50 p-4">
-                    <p className="text-sm text-amber-700">不够具体</p>
-                    <p className="mt-1 text-2xl font-semibold text-amber-800">{data.feedback.counts.notSpecific}</p>
-                  </div>
-                  <div className="rounded-2xl bg-rose-50 p-4">
-                    <p className="text-sm text-rose-700">不适合我</p>
-                    <p className="mt-1 text-2xl font-semibold text-rose-800">{data.feedback.counts.notSuitable}</p>
-                  </div>
-                </div>
-                <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-4">
-                  <p className="text-sm text-slate-500">当前评分</p>
-                  <div className="mt-2 flex items-center gap-2">
-                    <RatingStars score={data.feedback.ratings?.averageScore ?? 0} size="md" />
-                    <p className="text-2xl font-semibold text-sky-700">
-                      {data.feedback.ratings && data.feedback.ratings.raters > 0
-                        ? data.feedback.ratings.averageScore.toFixed(1)
-                        : "--"}
-                    </p>
-                  </div>
-                  <p className="mt-1 text-xs text-slate-500">
-                    {data.feedback.ratings?.raters ?? 0} 位用户已评分
-                  </p>
-                </div>
-                <h4 className="mb-3 font-medium text-slate-800">最近反馈（最近 20 条）</h4>
-                {!data.feedback.recent?.length ? (
-                  <p className="text-slate-500">暂无反馈，用户反馈后会显示在这里</p>
-                ) : (
-                  <ul className="space-y-4">
-                    {data.feedback.recent.map((fb) => (
-                      <li key={fb.id} className="rounded-2xl border border-slate-200 bg-slate-50/50 p-4">
-                        <div className="flex items-center gap-2">
-                          <span
-                            className={`rounded-full px-2 py-0.5 text-xs ${
-                              fb.feedbackType === "helpful"
-                                ? "bg-green-100 text-green-700"
-                                : fb.feedbackType === "not_specific"
-                                ? "bg-amber-100 text-amber-700"
-                                : "bg-rose-100 text-rose-700"
-                            }`}
-                          >
-                            {fb.feedbackType === "helpful" ? "有帮助" : fb.feedbackType === "not_specific" ? "不够具体" : "不适合我"}
-                          </span>
-                          <span className="text-xs text-slate-500">{fb.createdAt}</span>
-                        </div>
-                        {fb.assistantExcerpt && (
-                          <p className="mt-1 text-sm text-slate-600">
-                            <span className="font-medium text-slate-500">回复摘要：</span>
-                            {(fb.assistantExcerpt ?? "").length > 120 ? (fb.assistantExcerpt ?? "").slice(0, 120) + "..." : fb.assistantExcerpt}
-                          </p>
-                        )}
-                        {fb.comment && (
-                          <p className="mt-1 text-sm text-slate-700 italic">补充：{fb.comment}</p>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                <h4 className="mb-3 mt-8 font-medium text-slate-800">最近评分</h4>
-                {!data.feedback.ratings?.recent?.length ? (
-                  <p className="text-slate-500">暂无评分</p>
-                ) : (
-                  <ul className="space-y-4">
-                    {data.feedback.ratings.recent.map((item) => (
-                      <li key={item.id} className="rounded-2xl border border-slate-200 bg-slate-50/50 p-4">
-                        <div className="flex items-center gap-2">
-                          <span className="inline-flex items-center gap-2 rounded-full bg-sky-100 px-2.5 py-1 text-xs text-sky-700">
-                            <RatingStars score={item.score} size="sm" />
-                            {item.score}/5 分
-                          </span>
-                          <span className="text-xs text-slate-500">{item.updatedAt}</span>
-                        </div>
-                        {item.comment && <p className="mt-2 text-sm text-slate-700">{item.comment}</p>}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </>
-            ) : (
-              <p className="text-slate-500">加载中...</p>
-            )}
-          </div>
-        </div>
-      )}
-
       {activeTab === "sessions" && (
         <div className="glass-card overflow-hidden">
           <h3 className="border-b border-slate-200 px-6 py-4 text-lg font-semibold text-slate-900">
@@ -1222,6 +1176,6 @@ export default function LifeAgentManageDetailPage() {
           </button>
         </div>
       </section>
-    </div>
+    </motion.div>
   );
 }

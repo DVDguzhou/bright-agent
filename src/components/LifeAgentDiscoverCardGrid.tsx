@@ -15,9 +15,17 @@ type Props = {
   loading: boolean;
   emptyTitle: string;
   emptySubtitle: string;
+  /** 默认公开详情页；管理列表可指向 `/dashboard/life-agents/:id` */
+  profileHref?: (id: string) => string;
 };
 
-export function LifeAgentDiscoverCardGrid({ profiles, loading, emptyTitle, emptySubtitle }: Props) {
+export function LifeAgentDiscoverCardGrid({
+  profiles,
+  loading,
+  emptyTitle,
+  emptySubtitle,
+  profileHref = (id) => `/life-agents/${id}`,
+}: Props) {
   if (loading) {
     return (
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4 xl:grid-cols-5">
@@ -63,9 +71,18 @@ export function LifeAgentDiscoverCardGrid({ profiles, loading, emptyTitle, empty
             transition={{ delay: index < 8 ? index * 0.04 : 0 }}
             className="min-h-0"
           >
-            <Link href={"/life-agents/" + profile.id} className="group flex h-full min-h-0">
+            <Link href={profileHref(profile.id)} className="group flex h-full min-h-0">
               <div className="flex h-full min-h-[280px] w-full flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/70 transition duration-200 group-hover:shadow-md group-hover:ring-blue-200/60 sm:min-h-[300px]">
                 <div className="relative aspect-[4/5] w-full shrink-0 overflow-hidden bg-slate-100">
+                  {typeof profile.published === "boolean" && (
+                    <div
+                      className={`absolute left-2 top-2 z-[1] rounded-full px-2 py-0.5 text-[10px] font-bold shadow-sm ${
+                        profile.published ? "bg-emerald-600 text-white" : "bg-white/95 text-slate-600 ring-1 ring-slate-200/80"
+                      }`}
+                    >
+                      {profile.published ? "已发布" : "未发布"}
+                    </div>
+                  )}
                   <Image
                     src={coverUrl}
                     alt=""

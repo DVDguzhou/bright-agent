@@ -96,7 +96,17 @@ export function Nav() {
   const isLifeAgentCreatePage = pathname === "/life-agents/create";
   const isLifeAgentSearchPage = pathname === "/life-agents/search";
   const isDashboardMessagesPage = pathname === "/dashboard/messages";
-  const hideGlobalTopNav = isLifeAgentCreatePage || isDashboardMessagesPage;
+  const isDashboardLifeAgentsListPage = pathname === "/dashboard/life-agents";
+  const isDashboardLifeAgentFeedbackPage = /^\/dashboard\/life-agents\/[^/]+\/feedback\/?$/.test(pathname);
+  const isLicensesPage = pathname === "/licenses";
+  const isSupportChatPage = pathname === "/support/chat";
+  const hideGlobalTopNav =
+    isLifeAgentCreatePage ||
+    isDashboardMessagesPage ||
+    isDashboardLifeAgentsListPage ||
+    isDashboardLifeAgentFeedbackPage ||
+    isLicensesPage ||
+    isSupportChatPage;
   const useBackArrowOnMobileTop = isLifeAgentDetailPage || isLifeAgentCreatePage || isLifeAgentSearchPage;
   const hideGlobalBottomNav = isLifeAgentChatPage || isLifeAgentDetailPage || isLifeAgentCreatePage;
 
