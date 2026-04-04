@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -438,6 +439,7 @@ func LifeAgentsCreateNextQuestion(cfg *config.Config) gin.HandlerFunc {
 			return
 		}
 		out, err := lifeagent.GenerateNextCreateQuestion(
+			c.Request.Context(),
 			cfg.OpenAIApiKey, cfg.OpenAIModel, cfg.OpenAIBaseURL,
 			&body,
 		)
@@ -466,6 +468,7 @@ func LifeAgentsCreateProfileSummary(cfg *config.Config) gin.HandlerFunc {
 			return
 		}
 		out, err := lifeagent.GenerateProfileCreateSummary(
+			c.Request.Context(),
 			cfg.OpenAIApiKey, cfg.OpenAIModel, cfg.OpenAIBaseURL,
 			&body,
 		)
@@ -1068,6 +1071,7 @@ func LifeAgentsModifyViaChat(cfg *config.Config) gin.HandlerFunc {
 		}
 		state := buildModifyStateString(&p, entries)
 		intent, err := lifeagent.InterpretModificationIntent(
+			c.Request.Context(),
 			cfg.OpenAIApiKey, cfg.OpenAIModel, cfg.OpenAIBaseURL,
 			state, body.ChatHistory, body.Message,
 		)
@@ -1634,11 +1638,15 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 			return
 		}
 		sessionID := body.SessionID
+		var sessionSummary string
 		if sessionID != "" {
 			var sess models.LifeAgentChatSession
 			if db.DB.Where("id = ? AND profile_id = ? AND buyer_id = ?", sessionID, id, user.ID).First(&sess).Error != nil {
 				c.JSON(http.StatusNotFound, gin.H{"error": "SESSION_NOT_FOUND"})
 				return
+			}
+			if sess.Summary != nil {
+				sessionSummary = *sess.Summary
 			}
 		} else {
 			title := buildLifeAgentSessionTitle(body.Message)
@@ -1652,11 +1660,29 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 			db.DB.Create(&sess)
 			sessionID = sess.ID
 		}
+		// 跨会话记忆：加载当前买家与该 agent 之前会话的摘要
+		var crossMemory string
+		{
+			var prevSessions []models.LifeAgentChatSession
+			db.DB.Where("profile_id = ? AND buyer_id = ? AND id != ? AND summary IS NOT NULL AND summary != ''",
+				id, user.ID, sessionID).Order("updated_at DESC").Limit(3).Find(&prevSessions)
+			var summaries []string
+			for _, s := range prevSessions {
+				if s.Summary != nil && *s.Summary != "" {
+					summaries = append(summaries, *s.Summary)
+				}
+			}
+			crossMemory = lifeagent.BuildCrossSessionMemory(summaries)
+		}
 		var entries []models.LifeAgentKnowledgeEntry
 		db.DB.Where("profile_id = ?", id).Order("sort_order").Find(&entries)
 		var hist []lifeagent.ChatMessageForAI
 		var msgs []models.LifeAgentChatMessage
-		db.DB.Where("session_id = ?", sessionID).Order("created_at ASC").Limit(8).Find(&msgs)
+		// 取最近 20 条（DESC），再反转为时间正序，确保 LLM 看到的是最新上下文
+		db.DB.Where("session_id = ?", sessionID).Order("created_at DESC").Limit(20).Find(&msgs)
+		for i, j := 0, len(msgs)-1; i < j; i, j = i+1, j-1 {
+			msgs[i], msgs[j] = msgs[j], msgs[i]
+		}
 		for _, m := range msgs {
 			hist = append(hist, lifeagent.ChatMessageForAI{Role: m.Role, Content: m.Content})
 		}
@@ -1697,17 +1723,22 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 
 		var content string
 		var refs []map[string]string
-		if lifeagent.ClassifyQuestionIntent(cfg.OpenAIApiKey, cfg.OpenAIModel, cfg.OpenAIBaseURL, body.Message) {
+		if lifeagent.ClassifyQuestionIntent(body.Message) {
 			content = lifeagent.BuildIdentityReply(profileForAI)
 			writeSSE("content", gin.H{"content": content})
 		} else {
 			content, refs, _ = lifeagent.BuildReplyWithLLMStream(
+				c.Request.Context(),
 				cfg.OpenAIApiKey, cfg.OpenAIModel, cfg.OpenAIBaseURL,
 				cfg.LLMEnableWebSearch,
 				profileForAI,
 				entriesForAI, hist, body.Message,
 				func(chunk string) {
 					writeSSE("content", gin.H{"content": chunk})
+				},
+				&lifeagent.ChatOptions{
+					SessionSummary:     sessionSummary,
+					CrossSessionMemory: crossMemory,
 				},
 			)
 		}
@@ -1759,6 +1790,24 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 		})
 		db.DB.Model(packToConsume).Update("questions_used", packToConsume.QuestionsUsed+1)
 		db.DB.Model(&models.LifeAgentChatSession{}).Where("id = ?", sessionID).Update("updated_at", db.DB.NowFunc())
+		// 异步生成会话摘要：消息数 > 12 时触发，不阻塞响应
+		totalMsgCount := len(msgs) + 2 // existing + new user + new assistant
+		if totalMsgCount > 12 {
+			allHist := make([]lifeagent.ChatMessageForAI, len(hist), len(hist)+2)
+			copy(allHist, hist)
+			allHist = append(allHist, lifeagent.ChatMessageForAI{Role: "user", Content: body.Message})
+			allHist = append(allHist, lifeagent.ChatMessageForAI{Role: "assistant", Content: content})
+			go func(sid string, messages []lifeagent.ChatMessageForAI) {
+				summary := lifeagent.SummarizeConversation(
+					context.Background(),
+					cfg.OpenAIApiKey, cfg.OpenAIModel, cfg.OpenAIBaseURL,
+					messages,
+				)
+				if summary != "" {
+					db.DB.Model(&models.LifeAgentChatSession{}).Where("id = ?", sid).Update("summary", summary)
+				}
+			}(sessionID, allHist)
+		}
 		ratingState := buildLifeAgentRatingState(id, user.ID)
 		donePayload := gin.H{
 			"sessionId":          sessionID,

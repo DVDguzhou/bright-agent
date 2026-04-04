@@ -215,6 +215,7 @@ type LifeAgentChatSession struct {
 	BuyerID     string    `gorm:"column:buyer_id;size:36;not null;index"`
 	Title       string    `gorm:"size:255;not null"`
 	Status      string    `gorm:"size:32;default:active"`
+	Summary     *string   `gorm:"column:summary;type:text"`
 	IsAPI       bool      `gorm:"column:is_api;default:false;index"`
 	InvokeKeyID *string   `gorm:"column:invoke_key_id;size:36"`
 	CreatedAt   time.Time `gorm:"column:created_at"`

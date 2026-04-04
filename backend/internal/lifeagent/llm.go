@@ -12,31 +12,31 @@ import (
 	openai "github.com/sashabaranov/go-openai"
 )
 
+// pre-compiled regexps for hot paths
+var (
+	headingRe    = regexp.MustCompile(`(?m)^#{1,6}\s*`)
+	listItemRe   = regexp.MustCompile(`(?m)^\s*(\d+[\.\)、]|[-*•])\s*`)
+	identityRe   = regexp.MustCompile(`[^\p{Han}a-z0-9]`)
+)
+
 // BuildReplyWithLLM 在有 API 配置时调用 LLM 生成回复，否则回退到模板回复
 // baseURL 可选：Ollama 用 http://localhost:11434/v1，通义千问用 https://dashscope.aliyuncs.com/compatible-mode/v1
 // enableWebSearch：为 true 且 baseURL 为 DashScope 时启用联网搜索
-func BuildReplyWithLLM(apiKey, model, baseURL string, enableWebSearch bool, profile ProfileForAI, entries []KnowledgeEntryForAI, history []ChatMessageForAI, message string) (content string, references []map[string]string, err error) {
-	useLLM := (apiKey != "" || baseURL != "") && model != ""
-	log.Printf("[LLM] BuildReplyWithLLM called: apiKey=%q, model=%q, baseURL=%q, useLLM=%v, enableWebSearch=%v", apiKey, model, baseURL, useLLM, enableWebSearch)
-	if !useLLM {
+func BuildReplyWithLLM(ctx context.Context, apiKey, model, baseURL string, enableWebSearch bool, profile ProfileForAI, entries []KnowledgeEntryForAI, history []ChatMessageForAI, message string, opts *ChatOptions) (content string, references []map[string]string, err error) {
+	if !isLLMEnabled(apiKey, model, baseURL) {
 		log.Printf("[LLM] skipping LLM, falling back to BuildReply")
 		content, references = BuildReply(profile, entries, history, message)
 		return content, references, nil
 	}
-	if apiKey == "" && baseURL != "" {
-		apiKey = "ollama" // Ollama 等本地服务不需要真 key，但客户端要求非空
-	}
+	apiKey = resolveAPIKey(apiKey, baseURL)
 
-	selectedEntries := selectEntries(message, entries)
-	ctx := context.Background()
-	cfg := openai.DefaultConfig(apiKey)
-	if baseURL != "" {
-		cfg.BaseURL = baseURL
-	}
-	client := openai.NewClientWithConfig(cfg)
+	selectedEntries := selectEntries(message, history, entries)
+	ctx, cancel := withLLMTimeout(ctx)
+	defer cancel()
+	client := getClient(apiKey, baseURL)
 
 	systemContent := buildSystemPrompt(profile, selectedEntries)
-	messages := buildMessages(systemContent, profile.DisplayName, history, message)
+	messages := buildMessages(systemContent, profile.DisplayName, history, message, opts)
 
 	var resp *openai.ChatCompletionResponse
 	if enableWebSearch && isDashScope(baseURL) {
@@ -83,32 +83,25 @@ func BuildReplyWithLLM(apiKey, model, baseURL string, enableWebSearch bool, prof
 
 // BuildReplyWithLLMStream 流式版本：每产生一个 token 片段就通过 onChunk 回调推送给调用方。
 // 返回完整回复文本和引用列表。DashScope 联网搜索和无 LLM 时回退到非流式。
-func BuildReplyWithLLMStream(apiKey, model, baseURL string, enableWebSearch bool, profile ProfileForAI, entries []KnowledgeEntryForAI, history []ChatMessageForAI, message string, onChunk func(chunk string)) (content string, references []map[string]string, err error) {
-	useLLM := (apiKey != "" || baseURL != "") && model != ""
-
+func BuildReplyWithLLMStream(ctx context.Context, apiKey, model, baseURL string, enableWebSearch bool, profile ProfileForAI, entries []KnowledgeEntryForAI, history []ChatMessageForAI, message string, onChunk func(chunk string), opts *ChatOptions) (content string, references []map[string]string, err error) {
 	// DashScope 联网搜索不支持流式，回退到非流式并一次性推送
-	if !useLLM || (enableWebSearch && isDashScope(baseURL)) {
-		content, references, err = BuildReplyWithLLM(apiKey, model, baseURL, enableWebSearch, profile, entries, history, message)
+	if !isLLMEnabled(apiKey, model, baseURL) || (enableWebSearch && isDashScope(baseURL)) {
+		content, references, err = BuildReplyWithLLM(ctx, apiKey, model, baseURL, enableWebSearch, profile, entries, history, message, opts)
 		if onChunk != nil && content != "" {
 			onChunk(content)
 		}
 		return
 	}
 
-	if apiKey == "" && baseURL != "" {
-		apiKey = "ollama"
-	}
+	apiKey = resolveAPIKey(apiKey, baseURL)
 
-	selectedEntries := selectEntries(message, entries)
-	ctx := context.Background()
-	cfg := openai.DefaultConfig(apiKey)
-	if baseURL != "" {
-		cfg.BaseURL = baseURL
-	}
-	client := openai.NewClientWithConfig(cfg)
+	selectedEntries := selectEntries(message, history, entries)
+	ctx, cancel := withStreamTimeout(ctx)
+	defer cancel()
+	client := getClient(apiKey, baseURL)
 
 	systemContent := buildSystemPrompt(profile, selectedEntries)
-	msgs := buildMessages(systemContent, profile.DisplayName, history, message)
+	msgs := buildMessages(systemContent, profile.DisplayName, history, message, opts)
 
 	stream, err := client.CreateChatCompletionStream(ctx, openai.ChatCompletionRequest{
 		Model:       model,
@@ -173,7 +166,10 @@ func BuildReplyWithLLMStream(apiKey, model, baseURL string, enableWebSearch bool
 	return content, references, nil
 }
 
-func selectEntries(message string, entries []KnowledgeEntryForAI) []KnowledgeEntryForAI {
+func selectEntries(message string, history []ChatMessageForAI, entries []KnowledgeEntryForAI) []KnowledgeEntryForAI {
+	// 结合最近几轮用户消息构建组合查询，让知识库检索感知对话上下文
+	query := buildContextQuery(message, history)
+
 	ranked := make([]struct {
 		entry KnowledgeEntryForAI
 		score int
@@ -182,7 +178,7 @@ func selectEntries(message string, entries []KnowledgeEntryForAI) []KnowledgeEnt
 		ranked[i] = struct {
 			entry KnowledgeEntryForAI
 			score int
-		}{e, scoreEntry(message, e)}
+		}{e, scoreEntry(query, e)}
 	}
 	for i := 0; i < len(ranked)-1; i++ {
 		for j := i + 1; j < len(ranked); j++ {
@@ -222,47 +218,17 @@ func selectEntries(message string, entries []KnowledgeEntryForAI) []KnowledgeEnt
 	return nil
 }
 
-// ClassifyQuestionIntent 用 LLM 判断问题意图：身份类（直接查 profile）还是知识类（走 LLM 生成）
-// 完全依赖 LLM，无关键词兜底；LLM 失败时回退规则匹配
-func ClassifyQuestionIntent(apiKey, model, baseURL, message string) (isIdentity bool) {
-	useLLM := (apiKey != "" || baseURL != "") && model != ""
-	if !useLLM {
-		return IsIdentityQuestion(message)
-	}
-	if apiKey == "" && baseURL != "" {
-		apiKey = "ollama"
-	}
-	ctx := context.Background()
-	cfg := openai.DefaultConfig(apiKey)
-	if baseURL != "" {
-		cfg.BaseURL = baseURL
-	}
-	client := openai.NewClientWithConfig(cfg)
-	prompt := `用户问：「` + message + `」
-判断问题类型，只回复一个字：
-- 身份：仅限问【你自己】的名字、介绍、你是谁、你叫什么、怎么称呼
-- 知识：问【他人】（妈妈、爸爸、朋友等）、问经历、建议、怎么做、参加过什么等
-
-示例：你叫什么→身份 | 你妈妈叫什么→知识 | 你是谁→身份 | 你爸做什么→知识 | 介绍一下你→身份 | 你朋友是谁→知识
-
-只回复：身份 或 知识`
-	resp, err := client.CreateChatCompletion(ctx, openai.ChatCompletionRequest{
-		Model:       model,
-		Messages:    []openai.ChatCompletionMessage{{Role: openai.ChatMessageRoleUser, Content: prompt}},
-		Temperature: 0.1,
-		MaxTokens:   150, // qwen3 思考模式需要更多 tokens
-	})
-	if err != nil || len(resp.Choices) == 0 {
-		return IsIdentityQuestion(message)
-	}
-	content := strings.TrimSpace(strings.ToLower(resp.Choices[0].Message.Content))
-	return strings.Contains(content, "身份")
+// ClassifyQuestionIntent 纯规则匹配判断身份类问题。
+// 身份类问题直接返回 profile 信息（零幻觉），其余交给主 LLM 统一处理。
+// 不再单独调用 LLM 分类，避免双倍延迟。
+func ClassifyQuestionIntent(message string) (isIdentity bool) {
+	return IsIdentityQuestion(message)
 }
 
 // IsIdentityQuestion 规则匹配兜底（无 LLM 时）：仅限问【你自己】；不含他人关键词
 func IsIdentityQuestion(msg string) bool {
 	norm := strings.ToLower(strings.TrimSpace(msg))
-	norm = regexp.MustCompile(`[^\p{Han}a-z0-9]`).ReplaceAllString(norm, "")
+	norm = identityRe.ReplaceAllString(norm, "")
 	// 只用【你+动词】明确模式，避免「你妈妈叫什么」误匹配「叫什么」
 	patterns := []string{
 		"你叫什么", "你叫什么名字", "你叫啥",
@@ -397,12 +363,43 @@ func appendArrayLines(sb *strings.Builder, items []string) {
 	}
 }
 
-func buildMessages(systemContent, displayName string, history []ChatMessageForAI, newMessage string) []openai.ChatCompletionMessage {
-	messages := make([]openai.ChatCompletionMessage, 0, len(history)+3)
+// buildContextQuery 将最近几轮用户消息与当前消息拼接，用于知识库检索
+func buildContextQuery(message string, history []ChatMessageForAI) string {
+	var parts []string
+	// 取最近 3 条用户消息作为上下文
+	userCount := 0
+	for i := len(history) - 1; i >= 0 && userCount < 3; i-- {
+		if history[i].Role == "user" {
+			parts = append([]string{history[i].Content}, parts...)
+			userCount++
+		}
+	}
+	parts = append(parts, message)
+	return strings.Join(parts, " ")
+}
+
+func buildMessages(systemContent, displayName string, history []ChatMessageForAI, newMessage string, opts *ChatOptions) []openai.ChatCompletionMessage {
+	messages := make([]openai.ChatCompletionMessage, 0, len(history)+5)
 	messages = append(messages, openai.ChatCompletionMessage{
 		Role:    openai.ChatMessageRoleSystem,
 		Content: systemContent,
 	})
+
+	// 注入跨会话记忆（之前会话的摘要）
+	if opts != nil && opts.CrossSessionMemory != "" {
+		messages = append(messages, openai.ChatCompletionMessage{
+			Role:    openai.ChatMessageRoleSystem,
+			Content: "【之前的对话记忆】\n以下是你与这位用户之前聊过的内容摘要，可作为背景参考，但不要主动提起除非用户问到相关话题：\n" + opts.CrossSessionMemory,
+		})
+	}
+
+	// 注入本次会话早期内容摘要（历史压缩）
+	if opts != nil && opts.SessionSummary != "" {
+		messages = append(messages, openai.ChatCompletionMessage{
+			Role:    openai.ChatMessageRoleSystem,
+			Content: "【本次对话早期内容摘要】\n" + opts.SessionSummary,
+		})
+	}
 
 	for _, m := range history {
 		role := openai.ChatMessageRoleUser
@@ -424,8 +421,8 @@ func buildMessages(systemContent, displayName string, history []ChatMessageForAI
 
 func humanizeReply(content string) string {
 	content = strings.ReplaceAll(content, "\r\n", "\n")
-	content = regexp.MustCompile(`(?m)^#{1,6}\s*`).ReplaceAllString(content, "")
-	content = regexp.MustCompile(`(?m)^\s*(\d+[\.\)、]|[-*•])\s*`).ReplaceAllString(content, "")
+	content = headingRe.ReplaceAllString(content, "")
+	content = listItemRe.ReplaceAllString(content, "")
 
 	lines := strings.Split(content, "\n")
 	var cleaned []string
