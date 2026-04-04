@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { RatingStars } from "@/components/RatingStars";
@@ -73,12 +73,14 @@ const MAX_QUESTIONS = 500;
 
 export default function LifeAgentDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const id = params.id as string;
   const [profile, setProfile] = useState<DetailData | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [questionCountInput, setQuestionCountInput] = useState("");
   const [purchasing, setPurchasing] = useState(false);
   const [message, setMessage] = useState("");
+  const [showPurchase, setShowPurchase] = useState(false);
   const [voiceEnrollBanner, setVoiceEnrollBanner] = useState<"warn" | null>(null);
 
   const questionCount = useMemo(() => {
@@ -108,11 +110,7 @@ export default function LifeAgentDetailPage() {
 
   const dismissVoiceBanner = () => {
     if (profile?.id) {
-      try {
-        sessionStorage.removeItem(`la-voice-warn:${profile.id}`);
-      } catch {
-        /* ignore */
-      }
+      try { sessionStorage.removeItem(`la-voice-warn:${profile.id}`); } catch { /* ignore */ }
     }
     setVoiceEnrollBanner(null);
   };
@@ -122,6 +120,7 @@ export default function LifeAgentDetailPage() {
     const count = Math.min(MAX_QUESTIONS, Math.max(MIN_QUESTIONS, questionCount));
     return (profile.pricePerQuestion * count) / 100;
   }, [profile, questionCount]);
+
   const averageScore = profile?.ratings?.averageScore ?? 0;
   const heroCoverUrl = profile
     ? profile.coverUrl || resolveLifeAgentCoverUrl(profile.coverImageUrl, profile.coverPresetKey)
@@ -136,272 +135,310 @@ export default function LifeAgentDetailPage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
-      body: JSON.stringify({
-        questionCount: count,
-        amountPaid: profile.pricePerQuestion * count,
-      }),
+      body: JSON.stringify({ questionCount: count, amountPaid: profile.pricePerQuestion * count }),
     });
     const data = await res.json();
     setPurchasing(false);
-
     if (!res.ok) {
       setMessage(data.error === "UNAUTHORIZED" ? "请先登录后再购买。" : "购买失败，请稍后重试。");
       return;
     }
-
     setProfile((prev) =>
-      prev
-        ? {
-            ...prev,
-            viewerState: { ...prev.viewerState, remainingQuestions: data.remainingQuestions },
-          }
-        : prev
+      prev ? { ...prev, viewerState: { ...prev.viewerState, remainingQuestions: data.remainingQuestions } } : prev
     );
     setMessage(`购买成功，当前剩余 ${data.remainingQuestions} 次提问。`);
   };
 
+  /* ---------- loading / 404 ---------- */
   if (!loaded) {
-    return <div className="h-64 animate-pulse rounded-3xl bg-white shadow-sm" />;
-  }
-  if (!profile) {
     return (
-      <div className="space-y-4">
-        <Link href="/life-agents" className="text-sm text-slate-500 hover:text-sky-700">
-          ← 返回人生 Agent 列表
-        </Link>
-        <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center">
-          <p className="text-lg font-medium text-slate-900">未找到该 Agent</p>
-          <p className="mt-2 text-slate-500">链接可能已失效，请从列表重新进入。</p>
+      <div className="mx-auto max-w-lg">
+        <div className="aspect-[4/3] animate-pulse bg-slate-100" />
+        <div className="space-y-3 p-4">
+          <div className="h-6 w-1/3 animate-pulse rounded bg-slate-100" />
+          <div className="h-5 w-2/3 animate-pulse rounded bg-slate-100" />
+          <div className="h-4 w-full animate-pulse rounded bg-slate-50" />
         </div>
       </div>
     );
   }
 
+  if (!profile) {
+    return (
+      <div className="mx-auto max-w-lg space-y-4 px-4 pt-12 text-center">
+        <p className="text-lg font-medium text-slate-900">未找到该 Agent</p>
+        <p className="text-slate-500">链接可能已失效，请从列表重新进入。</p>
+        <Link href="/life-agents" className="mt-4 inline-block rounded-full bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white">
+          返回列表
+        </Link>
+      </div>
+    );
+  }
+
+  const areaText = [profile.country, profile.province, profile.city, profile.county].filter(Boolean).join(" · ");
+  const allTags = [
+    profile.personaArchetype,
+    profile.toneStyle,
+    profile.responseStyle,
+    profile.mbti,
+    ...(profile.expertiseTags ?? []),
+  ].filter(Boolean) as string[];
+
   return (
-    <div className="space-y-8">
-      <Link href="/life-agents" className="text-sm text-slate-500 hover:text-sky-700">
-        ← 返回人生 Agent 列表
-      </Link>
-
-      {heroCoverUrl ? (
-        <div className="relative -mx-1 aspect-[21/9] max-h-56 overflow-hidden rounded-2xl bg-slate-100 sm:mx-0 sm:max-h-64">
-          <Image
-            src={heroCoverUrl}
-            alt=""
-            fill
-            className="object-cover object-center"
-            sizes="100vw"
-            priority
-            unoptimized={lifeAgentCoverShouldBypassOptimizer(heroCoverUrl)}
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+    <>
+      {/* ===== 全宽封面 ===== */}
+      <div className="relative -mx-4 -mt-4 sm:-mx-6 sm:-mt-6 lg:-mx-8">
+        <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-100 sm:aspect-[2/1] sm:max-h-[420px]">
+          {heroCoverUrl && (
+            <Image
+              src={heroCoverUrl}
+              alt=""
+              fill
+              className="object-cover object-center"
+              sizes="100vw"
+              priority
+              unoptimized={lifeAgentCoverShouldBypassOptimizer(heroCoverUrl)}
+            />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/20" />
+          <button
+            onClick={() => router.back()}
+            className="absolute left-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-black/30 text-white backdrop-blur-sm transition hover:bg-black/50 sm:left-4 sm:top-4"
+            aria-label="返回"
+          >
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          {(profile.verificationStatus === "verified" || profile.verificationStatus === "pending") && (
+            <div className="absolute right-3 top-3 rounded-full bg-white/90 px-2 py-1 shadow-sm backdrop-blur-sm sm:right-4 sm:top-4">
+              <VerificationBadge status={profile.verificationStatus ?? "none"} size="sm" />
+            </div>
+          )}
         </div>
-      ) : null}
+      </div>
 
-      {voiceEnrollBanner === "warn" && profile.viewerState.isOwner && (
-        <div
-          role="status"
-          className="flex flex-col gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 sm:flex-row sm:items-center sm:justify-between"
-        >
-          <p>
-            你上传了音色样本，但<strong className="font-semibold">云端注册未完成</strong>（语音回复可能仍用默认音色）。
-            请到「控制台 → 我的人生 Agent → 编辑资料」重新录制并保存，或联系管理员查看服务日志。
+      {/* ===== 主内容（底部留出固定栏空间） ===== */}
+      <div className="mx-auto max-w-2xl space-y-2 pb-24 sm:pb-28">
+
+        {/* --- 价格 + 名称 --- */}
+        <div className="-mx-4 bg-white px-4 pb-4 pt-5 sm:-mx-6 sm:px-6">
+          <p className="text-2xl font-bold text-blue-600">
+            ¥{(profile.pricePerQuestion / 100).toFixed(2)}
+            <span className="ml-1 text-sm font-medium text-slate-400">/次提问</span>
           </p>
-          <div className="flex shrink-0 gap-2">
-            <Link href={`/dashboard/life-agents/${profile.id}`} className="btn-secondary whitespace-nowrap px-3 py-2 text-sm">
-              去后台上传
-            </Link>
-            <button type="button" onClick={dismissVoiceBanner} className="rounded-xl px-3 py-2 text-sm text-amber-800 underline hover:text-amber-950">
-              知道了
-            </button>
-          </div>
-        </div>
-      )}
+          <h1 className="mt-3 text-lg font-bold leading-snug text-slate-900 sm:text-xl">
+            {profile.displayName}
+          </h1>
+          <p className="mt-1.5 text-sm leading-relaxed text-slate-500">{profile.headline}</p>
 
-      <section className="grid gap-6 lg:grid-cols-[1.4fr_0.8fr]">
-        <div className="glass-card p-8">
-          <div className="flex flex-wrap items-start justify-between gap-5">
-            <div className="max-w-2xl">
-              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-3xl bg-blue-100 text-2xl font-semibold text-blue-700">
-                {(profile.displayName ?? "?").slice(0, 1)}
-              </div>
-              <div className="flex flex-wrap items-center gap-2">
-                <h1 className="section-title">{profile.displayName}</h1>
-                <VerificationBadge status={profile.verificationStatus ?? "none"} size="md" />
-                {profile.verificationStatus === "pending" && (
-                  <span className="text-sm text-amber-600">请联系我们完成认证</span>
-                )}
-              </div>
-              <p className="mt-2 text-lg text-slate-600">{profile.headline}</p>
-              <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-slate-500">
-                <span className="inline-flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1 text-amber-700">
-                  <RatingStars score={averageScore} size="md" />
-                  {profile.ratings && profile.ratings.raters > 0
-                    ? `${profile.ratings.averageScore.toFixed(1)} / 5 分`
-                    : "暂无评分"}
+          {allTags.length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {allTags.map((tag) => (
+                <span key={tag} className="rounded-md bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-600">
+                  {tag}
                 </span>
-                <span>
-                  {profile.ratings && profile.ratings.raters > 0
-                    ? `${profile.ratings.raters} 位用户已评分`
-                    : "满 10 次提问后用户可评分"}
-                </span>
-              </div>
-              {(profile.education || profile.school || profile.job || profile.income) && (
-                <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-500">
-                  {profile.school && <span>🏫 {profile.school}</span>}
-                  {profile.education && <span>📜 {profile.education}</span>}
-                  {profile.job && <span>💼 {profile.job}</span>}
-                  {profile.income && <span>💰 {profile.income}</span>}
-                </div>
-              )}
-              {(profile.country || profile.province || profile.city || profile.county) && (
-                <p className="mt-3 text-sm text-slate-500">
-                  📍 {[profile.country, profile.province, profile.city, profile.county].filter(Boolean).join(" / ")}
-                </p>
-              )}
-              {Array.isArray(profile.regions) && profile.regions.length > 0 && (
-                <p className="mt-2 text-sm text-slate-500">地区：{profile.regions.join(" / ")}</p>
-              )}
+              ))}
             </div>
+          )}
 
-            <div className="rounded-3xl bg-sky-50 p-5 text-right">
-              <p className="text-sm text-slate-500">每次提问</p>
-              <p className="mt-1 text-3xl font-semibold text-sky-700">
-                ¥{(profile.pricePerQuestion / 100).toFixed(2)}
-              </p>
-              <p className="mt-2 text-sm text-slate-500">已售次数包 {profile.stats.soldQuestionPacks}</p>
-            </div>
-          </div>
-
-          <div className="mt-6 flex flex-wrap gap-2">
-            {profile.personaArchetype && (
-              <span className="rounded-full bg-sky-100 px-3 py-1 text-sm text-sky-700">
-                {profile.personaArchetype}
+          {/* 小数据条 */}
+          <div className="mt-4 flex items-center gap-4 border-t border-slate-100 pt-3 text-xs text-slate-400">
+            <span>{profile.stats.soldQuestionPacks} 次已售</span>
+            <span>{profile.stats.sessionCount} 场聊天</span>
+            <span>{profile.stats.knowledgeCount} 条知识</span>
+            {profile.viewerState.remainingQuestions > 0 && (
+              <span className="ml-auto font-medium text-blue-600">
+                剩余 {profile.viewerState.remainingQuestions} 次
               </span>
             )}
-            {profile.toneStyle && (
-              <span className="rounded-full bg-amber-100 px-3 py-1 text-sm text-amber-700">
-                {profile.toneStyle}
-              </span>
-            )}
-            {profile.responseStyle && (
-              <span className="rounded-full bg-emerald-100 px-3 py-1 text-sm text-emerald-700">
-                {profile.responseStyle}
-              </span>
-            )}
-            {profile.mbti && (
-              <span className="rounded-full bg-violet-100 px-3 py-1 text-sm text-violet-700">
-                {profile.mbti}
-              </span>
-            )}
-            {(profile.expertiseTags ?? []).map((tag: string) => (
-              <span key={tag} className="rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-700">
-                {tag}
-              </span>
-            ))}
-          </div>
-
-          <div className="mt-8 grid gap-4 md:grid-cols-3">
-            <div className="rounded-2xl bg-slate-50 p-4">
-              <p className="text-sm text-slate-500">知识条目</p>
-              <p className="mt-2 text-xl font-semibold text-slate-900">{profile.stats.knowledgeCount}</p>
-            </div>
-            <div className="rounded-2xl bg-slate-50 p-4">
-              <p className="text-sm text-slate-500">聊天会话</p>
-              <p className="mt-2 text-xl font-semibold text-slate-900">{profile.stats.sessionCount}</p>
-            </div>
-            <div className="rounded-2xl bg-slate-50 p-4">
-              <p className="text-sm text-slate-500">我的剩余提问</p>
-              <p className="mt-2 text-xl font-semibold text-slate-900">{profile.viewerState.remainingQuestions}</p>
-            </div>
           </div>
         </div>
 
-        <div className="space-y-6">
-          <div className="glass-card p-6">
-            <h2 className="text-xl font-semibold text-slate-900">进入聊天前，你会看到</h2>
-            <p className="mt-3 rounded-2xl bg-blue-50 p-4 text-sm leading-6 text-slate-700">
-              {profile.welcomeMessage}
+        {/* --- 创作者卡片 --- */}
+        <div className="-mx-4 bg-white px-4 py-4 sm:-mx-6 sm:px-6">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-sky-400 text-base font-bold text-white">
+              {(profile.displayName ?? "?").slice(0, 1)}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1.5">
+                <span className="truncate text-sm font-semibold text-slate-900">
+                  {profile.creator.name || profile.displayName}
+                </span>
+                <VerificationBadge status={profile.verificationStatus ?? "none"} size="sm" />
+              </div>
+              <p className="mt-0.5 line-clamp-1 text-xs text-slate-400">{profile.shortBio}</p>
+            </div>
+          </div>
+
+          {(profile.school || profile.education || profile.job || profile.income || areaText) && (
+            <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
+              {profile.school && <span>🏫 {profile.school}</span>}
+              {profile.education && <span>📜 {profile.education}</span>}
+              {profile.job && <span>💼 {profile.job}</span>}
+              {profile.income && <span>💰 {profile.income}</span>}
+              {areaText && <span>📍 {areaText}</span>}
+            </div>
+          )}
+        </div>
+
+        {/* --- 音色注册提醒 --- */}
+        {voiceEnrollBanner === "warn" && profile.viewerState.isOwner && (
+          <div className="-mx-4 bg-amber-50 px-4 py-3 text-sm text-amber-800 sm:-mx-6 sm:px-6">
+            <p>
+              音色样本已上传，但<strong>云端注册未完成</strong>。请到后台重新录制。
             </p>
-            <div className="mt-4 rounded-2xl bg-slate-50 p-4">
-              <p className="text-sm text-slate-500">用户评分</p>
-              <div className="mt-2 flex items-center gap-2">
-                <RatingStars score={averageScore} size="lg" />
-                <p className="text-2xl font-semibold text-slate-900">
-                  {profile.ratings && profile.ratings.raters > 0
-                    ? profile.ratings.averageScore.toFixed(1)
-                    : "--"}
-                </p>
-              </div>
-              <p className="mt-1 text-xs text-slate-500">
+            <div className="mt-2 flex gap-2">
+              <Link href={`/dashboard/life-agents/${profile.id}`} className="rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white">
+                去后台
+              </Link>
+              <button type="button" onClick={dismissVoiceBanner} className="text-xs text-amber-700 underline">
+                知道了
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* --- 适合人群 --- */}
+        <div className="-mx-4 bg-white px-4 py-4 sm:-mx-6 sm:px-6">
+          <h2 className="text-sm font-semibold text-slate-900">适合咨询的人群</h2>
+          <p className="mt-2 text-sm leading-7 text-slate-600">{profile.audience}</p>
+        </div>
+
+        {/* --- 你可以问 --- */}
+        {(profile.sampleQuestions ?? []).length > 0 && (
+          <div className="-mx-4 bg-white px-4 py-4 sm:-mx-6 sm:px-6">
+            <h2 className="text-sm font-semibold text-slate-900">你可以问这些问题</h2>
+            <div className="mt-3 space-y-2">
+              {profile.sampleQuestions.map((q, i) => (
+                <div key={i} className="flex items-start gap-2 rounded-xl bg-slate-50 px-3 py-2.5">
+                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-blue-100 text-[10px] font-bold text-blue-600">
+                    {i + 1}
+                  </span>
+                  <span className="text-sm leading-relaxed text-slate-700">{q}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* --- 欢迎语 --- */}
+        <div className="-mx-4 bg-white px-4 py-4 sm:-mx-6 sm:px-6">
+          <h2 className="text-sm font-semibold text-slate-900">开场欢迎语</h2>
+          <div className="mt-2 rounded-xl bg-blue-50/60 px-3.5 py-3 text-sm leading-6 text-slate-700">
+            {profile.welcomeMessage}
+          </div>
+        </div>
+
+        {/* --- 评价 --- */}
+        <div className="-mx-4 bg-white px-4 py-4 sm:-mx-6 sm:px-6">
+          <h2 className="text-sm font-semibold text-slate-900">用户评价</h2>
+          <div className="mt-3 flex items-center gap-3">
+            <span className="text-3xl font-bold text-slate-900">
+              {profile.ratings && profile.ratings.raters > 0
+                ? profile.ratings.averageScore.toFixed(1)
+                : "—"}
+            </span>
+            <div>
+              <RatingStars score={averageScore} size="md" />
+              <p className="mt-0.5 text-xs text-slate-400">
                 {profile.ratings && profile.ratings.raters > 0
-                  ? `${profile.ratings.raters} 位用户已评分`
-                  : "还没有用户评分"}
+                  ? `${profile.ratings.raters} 人评价`
+                  : "暂无评价"}
               </p>
             </div>
-            <div className="mt-5 flex flex-wrap gap-3">
-              <Link href={`/life-agents/${profile.id}/chat`} className="btn-primary">
-                进入聊天页
-              </Link>
-              {!profile.viewerState.isLoggedIn && (
-                <Link href="/login" className="btn-secondary">
-                  登录后咨询
-                </Link>
-              )}
-            </div>
           </div>
+          {profile.ratings?.recent && profile.ratings.recent.length > 0 && (
+            <div className="mt-4 space-y-3 border-t border-slate-100 pt-3">
+              {profile.ratings.recent.slice(0, 5).map((r) => (
+                <div key={r.id} className="text-sm">
+                  <div className="flex items-center gap-2">
+                    <RatingStars score={r.score} size="sm" />
+                    <span className="text-xs text-slate-400">{new Date(r.updatedAt).toLocaleDateString()}</span>
+                  </div>
+                  {r.comment && <p className="mt-1 text-slate-600">{r.comment}</p>}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
-          <div className="glass-card p-6">
-            <h2 className="text-xl font-semibold text-slate-900">购买提问次数</h2>
-            <p className="mt-2 text-sm text-slate-500">按次收费，先买次数再聊天，流程更简单。</p>
-            <div className="mt-5">
-              <label className="mb-2 block text-sm font-medium text-slate-700">购买次数</label>
-              <input
-                type="number"
-                min={0}
-                max={MAX_QUESTIONS}
-                value={questionCountInput}
-                onChange={(e) => setQuestionCountInput(e.target.value)}
-                placeholder="0"
-                className="input-shell w-full max-w-[8rem]"
-              />
-              <p className="mt-1 text-xs text-slate-500">1–500 次，可自由选择</p>
+        {/* --- 购买面板（展开式） --- */}
+        {showPurchase && (
+          <div className="-mx-4 bg-white px-4 py-4 sm:-mx-6 sm:px-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-slate-900">购买提问次数</h2>
+              <button onClick={() => setShowPurchase(false)} className="text-xs text-slate-400 hover:text-slate-600">
+                收起
+              </button>
             </div>
-            <div className="mt-5 rounded-2xl bg-slate-50 p-4">
-              <p className="text-sm text-slate-500">需支付</p>
-              <p className="mt-1 text-2xl font-semibold text-slate-900">¥{totalPrice.toFixed(2)}</p>
+            <p className="mt-1 text-xs text-slate-400">1–500 次，按次收费</p>
+            <div className="mt-3 flex items-end gap-3">
+              <div className="flex-1">
+                <input
+                  type="number"
+                  min={0}
+                  max={MAX_QUESTIONS}
+                  value={questionCountInput}
+                  onChange={(e) => setQuestionCountInput(e.target.value)}
+                  placeholder="输入次数"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-blue-300 focus:bg-white"
+                />
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-slate-400">合计</p>
+                <p className="text-xl font-bold text-blue-600">¥{totalPrice.toFixed(2)}</p>
+              </div>
             </div>
-            <button onClick={purchase} disabled={purchasing || questionCount < MIN_QUESTIONS} className="btn-primary mt-5 w-full justify-center disabled:opacity-60">
-              {purchasing ? "购买中..." : questionCount >= MIN_QUESTIONS ? `购买 ${Math.min(MAX_QUESTIONS, questionCount)} 次提问` : "请先选择购买次数"}
+            <button
+              onClick={purchase}
+              disabled={purchasing || questionCount < MIN_QUESTIONS}
+              className="mt-4 w-full rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-50"
+            >
+              {purchasing
+                ? "购买中..."
+                : questionCount >= MIN_QUESTIONS
+                  ? `确认购买 ${Math.min(MAX_QUESTIONS, questionCount)} 次`
+                  : "请输入购买次数"}
             </button>
-            {message && <p className="mt-3 text-sm text-slate-600">{message}</p>}
+            {message && <p className="mt-2 text-center text-sm text-slate-600">{message}</p>}
           </div>
-        </div>
-      </section>
+        )}
+      </div>
 
-      <section className="grid gap-6 lg:grid-cols-[1fr_0.95fr]">
-        <div className="glass-card p-6">
-          <h2 className="text-xl font-semibold text-slate-900">适合咨询的人群</h2>
-          <p className="mt-3 text-sm leading-7 text-slate-700">{profile.audience}</p>
-
-          <h3 className="mt-8 text-lg font-semibold text-slate-900">你可以问这些问题</h3>
-          <div className="mt-4 flex flex-wrap gap-3">
-            {(profile.sampleQuestions ?? []).map((question: string) => (
-              <span key={question} className="rounded-2xl bg-slate-100 px-4 py-3 text-sm text-slate-700">
-                {question}
-              </span>
-            ))}
+      {/* ===== 底部固定操作栏 ===== */}
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-100 bg-white/95 backdrop-blur-md">
+        <div className="mx-auto flex max-w-2xl items-center gap-3 px-4 py-3 sm:px-6">
+          <div className="min-w-0 flex-1">
+            <p className="text-lg font-bold text-blue-600">
+              ¥{(profile.pricePerQuestion / 100).toFixed(2)}
+              <span className="ml-1 text-xs font-normal text-slate-400">/次</span>
+            </p>
           </div>
+          <button
+            onClick={() => setShowPurchase(!showPurchase)}
+            className="shrink-0 rounded-xl border border-blue-200 bg-blue-50 px-5 py-2.5 text-sm font-semibold text-blue-600 transition hover:bg-blue-100"
+          >
+            购买提问
+          </button>
+          {profile.viewerState.isLoggedIn ? (
+            <Link
+              href={`/life-agents/${profile.id}/chat`}
+              className="shrink-0 rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
+            >
+              进入聊天
+            </Link>
+          ) : (
+            <Link
+              href="/login"
+              className="shrink-0 rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
+            >
+              登录后咨询
+            </Link>
+          )}
         </div>
-
-        <div className="glass-card p-6">
-          <h2 className="text-xl font-semibold text-slate-900">创作者信息</h2>
-          <p className="mt-3 text-sm text-slate-700">
-            发布者：{profile.creator.name || "未设置昵称"}
-          </p>
-          <p className="mt-4 text-sm leading-6 text-slate-600">{profile.shortBio}</p>
-        </div>
-      </section>
-    </div>
+      </div>
+    </>
   );
 }
