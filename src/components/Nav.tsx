@@ -62,18 +62,18 @@ export function Nav() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { user, refetch } = useAuth();
-  const [hasMessages, setHasMessages] = useState(false);
+  const [messageCount, setMessageCount] = useState(0);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
 
   useEffect(() => {
     if (!user) {
-      setHasMessages(false);
+      setMessageCount(0);
       return;
     }
     fetch("/api/life-agents/chat-sessions", { credentials: "include" })
       .then((r) => (r.ok ? r.json() : []))
-      .then((d) => setHasMessages(Array.isArray(d) && d.length > 0))
-      .catch(() => setHasMessages(false));
+      .then((d) => setMessageCount(Array.isArray(d) ? d.length : 0))
+      .catch(() => setMessageCount(0));
   }, [user]);
 
   const logout = async () => {
@@ -96,6 +96,7 @@ export function Nav() {
   const isLifeAgentCreatePage = pathname === "/life-agents/create";
   const isLifeAgentSearchPage = pathname === "/life-agents/search";
   const isDashboardMessagesPage = pathname === "/dashboard/messages";
+  const isDashboardNotificationsPage = pathname === "/dashboard/notifications";
   const isDashboardApiKeysPage = pathname === "/dashboard/api-keys";
   const isDashboardLifeAgentsListPage = pathname === "/dashboard/life-agents";
   const isDashboardLifeAgentFeedbackPage = /^\/dashboard\/life-agents\/[^/]+\/feedback\/?$/.test(pathname);
@@ -107,6 +108,7 @@ export function Nav() {
     isLifeAgentCreatePage ||
     isLifeAgentSearchPage ||
     isDashboardMessagesPage ||
+    isDashboardNotificationsPage ||
     isDashboardApiKeysPage ||
     isDashboardLifeAgentsListPage ||
     isDashboardLifeAgentCoEditPage ||
@@ -309,7 +311,7 @@ export function Nav() {
           <div className="flex shrink-0 items-center gap-1 xl:gap-2 2xl:gap-4">
             {navLinks.map((link) => {
               const Icon = link.Icon;
-              const showBadge = link.href === "/dashboard/messages" && hasMessages && pathname !== "/dashboard/messages";
+              const showBadge = link.href === "/dashboard/messages" && messageCount > 0 && pathname !== "/dashboard/messages";
               const active = link.href === "/life-agents" ? isDiscoverEntryPage : pathname === link.href;
               return (
                 <Link key={link.href} href={link.href} title={link.label}>
@@ -325,7 +327,9 @@ export function Nav() {
                     <span className="relative inline-flex">
                       <Icon className="w-5 h-5 shrink-0" />
                       {showBadge && (
-                        <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-white" aria-hidden />
+                        <span className="absolute -right-2 -top-2 inline-flex min-w-[18px] items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold leading-[18px] text-white ring-2 ring-white">
+                          {messageCount > 99 ? "99+" : messageCount}
+                        </span>
                       )}
                     </span>
                     <span className="hidden xl:inline">{link.label}</span>
@@ -411,8 +415,10 @@ export function Nav() {
                 >
                   <span className="relative inline-flex">
                     <IconMessages className="h-5 w-5 text-slate-600" />
-                    {hasMessages && pathname !== "/dashboard/messages" ? (
-                      <span className="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-white" aria-hidden />
+                    {messageCount > 0 && pathname !== "/dashboard/messages" ? (
+                      <span className="absolute -right-2 -top-2 inline-flex min-w-[18px] items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold leading-[18px] text-white ring-2 ring-white">
+                        {messageCount > 99 ? "99+" : messageCount}
+                      </span>
                     ) : null}
                   </span>
                   消息
@@ -515,7 +521,9 @@ export function Nav() {
                     <span className="relative inline-flex">
                       <Icon className={`h-6 w-6 shrink-0 ${active ? "stroke-[2.5]" : ""}`} />
                       {showBadge && (
-                        <span className="absolute -top-0.5 right-0 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-white" aria-hidden />
+                        <span className="absolute -right-2 -top-2 inline-flex min-w-[18px] items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold leading-[18px] text-white ring-2 ring-white">
+                          {messageCount > 99 ? "99+" : messageCount}
+                        </span>
                       )}
                     </span>
                     <span className="w-full truncate text-center text-[11px] font-medium">{link.label}</span>
@@ -530,7 +538,7 @@ export function Nav() {
                   )}
                   {renderTab(
                     messagesLink,
-                    hasMessages && pathname !== "/dashboard/messages"
+                    messageCount > 0 && pathname !== "/dashboard/messages"
                   )}
                   <div className="min-h-[52px] min-w-0 flex-1 px-2 py-2" aria-hidden />
                   {renderTab(licenseLink, false)}

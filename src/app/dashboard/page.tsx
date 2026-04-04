@@ -47,6 +47,7 @@ export default function DashboardPage() {
   const { user, loading } = useAuth();
   const [lifeAgentsCreated, setLifeAgentsCreated] = useState<LifeAgentCreated[]>([]);
   const [lifeAgentsPurchased, setLifeAgentsPurchased] = useState<LifeAgentPurchased[]>([]);
+  const [notificationCount, setNotificationCount] = useState(0);
 
   useEffect(() => {
     if (!user) {
@@ -67,6 +68,19 @@ export default function DashboardPage() {
         setLifeAgentsCreated(c);
         setLifeAgentsPurchased(p);
       });
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+    fetch("/api/life-agents/feedback/all", { credentials: "include" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        const count =
+          (Array.isArray(data?.recent) ? data.recent.length : 0) +
+          (Array.isArray(data?.ratings?.recent) ? data.ratings.recent.length : 0);
+        setNotificationCount(count);
+      })
+      .catch(() => setNotificationCount(0));
   }, [user]);
 
   const totals = useMemo(() => {
@@ -187,13 +201,25 @@ export default function DashboardPage() {
             </div>
             <div className="flex items-center gap-2">
               <Link
-                href="/life-agents/create"
+                href="/dashboard/notifications"
                 className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-slate-700 shadow-sm ring-1 ring-black/[0.05] active:scale-[0.98]"
-                aria-label="创建人生 Agent"
+                aria-label="提醒"
               >
-                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
+                <span className="relative inline-flex">
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V4a2 2 0 10-4 0v1.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                    />
+                  </svg>
+                  {notificationCount > 0 ? (
+                    <span className="absolute -right-1 -top-1 inline-flex min-w-[18px] items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold leading-[18px] text-white ring-2 ring-white">
+                      {notificationCount > 99 ? "99+" : notificationCount}
+                    </span>
+                  ) : null}
+                </span>
               </Link>
             </div>
           </div>
