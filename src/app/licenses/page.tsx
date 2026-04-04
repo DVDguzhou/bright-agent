@@ -146,8 +146,18 @@ function LicensesPageContent() {
   return (
     <div className="-mx-1 space-y-4 pb-4 max-lg:-mx-4 max-lg:min-h-[calc(100dvh-env(safe-area-inset-bottom)-4.25rem)] max-lg:bg-white max-lg:pb-24 sm:mx-0 sm:space-y-5">
       <header className="flex items-center justify-between gap-2 px-4 pb-1 pt-[max(0.25rem,env(safe-area-inset-top))] sm:px-4">
-        <h1 className="min-w-0 flex-1 text-[26px] font-bold leading-tight tracking-tight text-[#111]">地图</h1>
+        <h1 className="min-w-0 flex-1 text-[26px] font-bold leading-tight tracking-tight text-[#111]">Licenses</h1>
         <div className="flex shrink-0 items-center gap-2">
+          <Link
+            href="/map"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-[#111] transition active:bg-slate-200"
+            aria-label="地图"
+            title="地图"
+          >
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+            </svg>
+          </Link>
           <Link
             href="/life-agents"
             className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-[#111] transition active:bg-slate-200"

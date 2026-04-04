@@ -29,7 +29,7 @@ export default function SupportChatPage() {
     <div className="mx-auto flex min-h-[50vh] max-w-2xl flex-col bg-white max-lg:-mx-4 max-lg:min-h-[calc(100dvh-env(safe-area-inset-bottom)-4.25rem)] max-lg:pb-24 lg:min-h-[60vh]">
       <header className="flex items-center gap-3 px-4 pb-3 pt-[max(0.25rem,env(safe-area-inset-top))] sm:px-0">
         <Link
-          href="/licenses"
+          href="/map"
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[#111] transition active:bg-slate-200"
           aria-label="返回地图"
           title="返回"

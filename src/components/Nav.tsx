@@ -44,7 +44,7 @@ const IconSearch = ({ className }: { className?: string }) => (
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
   </svg>
 );
-/** 底栏「地图」入口（仍跳转 License 页；完整管理见「我的」） */
+/** 底栏「地图」→ Agent 地理分布页；已购凭证见 /licenses */
 const IconMap = ({ className }: { className?: string }) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
@@ -54,7 +54,7 @@ const IconMap = ({ className }: { className?: string }) => (
 const navLinks = [
   { href: "/life-agents", label: "Agent", Icon: IconAgent },
   { href: "/dashboard/messages", label: "消息", Icon: IconMessages },
-  { href: "/licenses", label: "地图", Icon: IconMap },
+  { href: "/map", label: "地图", Icon: IconMap },
 ];
 
 export function Nav() {
@@ -99,6 +99,7 @@ export function Nav() {
   const isDashboardLifeAgentsListPage = pathname === "/dashboard/life-agents";
   const isDashboardLifeAgentFeedbackPage = /^\/dashboard\/life-agents\/[^/]+\/feedback\/?$/.test(pathname);
   const isLicensesPage = pathname === "/licenses";
+  const isMapPage = pathname === "/map";
   const isSupportChatPage = pathname === "/support/chat";
   const hideGlobalTopNav =
     isLifeAgentCreatePage ||
@@ -106,6 +107,7 @@ export function Nav() {
     isDashboardLifeAgentsListPage ||
     isDashboardLifeAgentFeedbackPage ||
     isLicensesPage ||
+    isMapPage ||
     isSupportChatPage;
   const useBackArrowOnMobileTop = isLifeAgentDetailPage || isLifeAgentCreatePage || isLifeAgentSearchPage;
   const hideGlobalBottomNav = isLifeAgentChatPage || isLifeAgentDetailPage || isLifeAgentCreatePage;
@@ -422,12 +424,22 @@ export function Nav() {
                   消息
                 </Link>
                 <Link
-                  href="/licenses"
+                  href="/map"
                   onClick={() => setMobileDrawerOpen(false)}
                   className="mb-2 flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-slate-800 hover:bg-slate-50"
                 >
                   <IconMap className="h-5 w-5 text-slate-600" />
                   地图
+                </Link>
+                <Link
+                  href="/licenses"
+                  onClick={() => setMobileDrawerOpen(false)}
+                  className="mb-2 flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-slate-800 hover:bg-slate-50"
+                >
+                  <svg className="h-5 w-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                  </svg>
+                  Licenses
                 </Link>
                 {user ? (
                   <>
