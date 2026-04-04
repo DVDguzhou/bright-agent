@@ -45,6 +45,68 @@ function feedbackAccent(t: string) {
   return "bg-rose-100 text-rose-800";
 }
 
+function FeedbackHeader({
+  id,
+  title,
+  subtitle,
+  query,
+  onQueryChange,
+  coverSrc,
+  disableSearch = false,
+}: {
+  id: string;
+  title: string;
+  subtitle: string;
+  query?: string;
+  onQueryChange?: (value: string) => void;
+  coverSrc?: string;
+  disableSearch?: boolean;
+}) {
+  return (
+    <header className="sticky top-0 z-20 border-b border-slate-200/80 bg-white/95 px-4 pb-3 pt-[max(0.35rem,env(safe-area-inset-top))] backdrop-blur-md sm:px-0">
+      <div className="flex items-center gap-3">
+        <Link
+          href={`/dashboard/life-agents/${id}`}
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[#111] transition active:bg-slate-200"
+          aria-label="返回工作台"
+          title="返回"
+        >
+          <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24" aria-hidden>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+        </Link>
+        <div className="min-w-0 flex-1">
+          <h1 className="text-[26px] font-bold leading-tight tracking-tight text-[#111]">{title}</h1>
+          <p className="mt-0.5 truncate text-sm text-slate-500">{subtitle}</p>
+        </div>
+        <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full ring-1 ring-black/[0.06]">
+          {coverSrc ? (
+            <Image
+              src={coverSrc}
+              alt=""
+              fill
+              className="object-cover"
+              sizes="40px"
+              unoptimized={lifeAgentCoverShouldBypassOptimizer(coverSrc)}
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-slate-100 text-xs font-semibold text-slate-400">A</div>
+          )}
+        </div>
+      </div>
+      <div className="mt-4">
+        <input
+          className="w-full rounded-full border-0 bg-slate-100 px-4 py-2.5 text-[15px] text-[#111] outline-none ring-1 ring-transparent transition placeholder:text-slate-400 focus:bg-slate-50 focus:ring-slate-200 disabled:cursor-not-allowed disabled:opacity-70"
+          value={query ?? ""}
+          onChange={(e) => onQueryChange?.(e.target.value)}
+          placeholder="搜索评价类型、摘要或评语"
+          disabled={disableSearch}
+        />
+      </div>
+    </header>
+  );
+}
+
 export default function LifeAgentFeedbackFeedPage() {
   const params = useParams();
   const id = params.id as string;
@@ -145,16 +207,24 @@ export default function LifeAgentFeedbackFeedPage() {
     resolveLifeAgentCoverUrl(profile?.coverImageUrl, profile?.coverPresetKey);
 
   if (loading && !payload) {
-    return <div className="mx-auto h-56 max-w-3xl animate-pulse rounded-[28px] bg-white shadow-sm ring-1 ring-black/[0.04]" />;
+    return (
+      <div className="mx-auto max-w-3xl space-y-4 max-lg:-mx-4 max-lg:bg-[#f7f8fa] max-lg:pb-24">
+        <FeedbackHeader id={id} title="反馈诊断" subtitle="正在加载 Agent 反馈" disableSearch />
+        <div className="h-56 animate-pulse rounded-[28px] bg-white shadow-sm ring-1 ring-black/[0.04]" />
+      </div>
+    );
   }
 
   if (loadError || !profile) {
     return (
-      <div className="mx-auto max-w-2xl px-4 py-16 text-center">
-        <p className="text-[15px] text-slate-500">{loadError ?? "无法加载"}</p>
-        <Link href={`/dashboard/life-agents/${id}`} className="mt-6 inline-flex rounded-full bg-[#111] px-6 py-2.5 text-sm font-medium text-white">
-          返回工作台
-        </Link>
+      <div className="mx-auto max-w-3xl space-y-4 max-lg:-mx-4 max-lg:bg-[#f7f8fa] max-lg:pb-24">
+        <FeedbackHeader id={id} title="反馈诊断" subtitle="暂时无法读取这个 Agent 的反馈数据" disableSearch />
+        <div className="rounded-[28px] bg-white px-4 py-16 text-center shadow-sm ring-1 ring-black/[0.04]">
+          <p className="text-[15px] text-slate-500">{loadError ?? "无法加载"}</p>
+          <Link href={`/dashboard/life-agents/${id}`} className="mt-6 inline-flex rounded-full bg-[#111] px-6 py-2.5 text-sm font-medium text-white">
+            返回工作台
+          </Link>
+        </div>
       </div>
     );
   }
@@ -163,42 +233,14 @@ export default function LifeAgentFeedbackFeedPage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-4 max-lg:-mx-4 max-lg:bg-[#f7f8fa] max-lg:px-3 max-lg:pb-24">
-      <header className="rounded-[28px] bg-white px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
-        <div className="flex items-center gap-3">
-          <Link
-            href={`/dashboard/life-agents/${id}`}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[#111] transition active:bg-slate-200"
-            aria-label="返回工作台"
-            title="返回"
-          >
-            <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24" aria-hidden>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-            </svg>
-          </Link>
-          <div className="min-w-0 flex-1">
-            <h1 className="text-[26px] font-bold leading-tight tracking-tight text-[#111]">反馈诊断</h1>
-            <p className="mt-0.5 truncate text-sm text-slate-500">{profile.displayName}</p>
-          </div>
-          <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full ring-1 ring-black/[0.06]">
-            <Image
-              src={coverSrc}
-              alt=""
-              fill
-              className="object-cover"
-              sizes="40px"
-              unoptimized={lifeAgentCoverShouldBypassOptimizer(coverSrc)}
-            />
-          </div>
-        </div>
-        <div className="mt-4">
-          <input
-            className="w-full rounded-full border-0 bg-slate-100 px-4 py-2.5 text-[15px] text-[#111] outline-none ring-1 ring-transparent transition placeholder:text-slate-400 focus:bg-slate-50 focus:ring-slate-200"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="搜索评价类型、摘要或评语"
-          />
-        </div>
-      </header>
+      <FeedbackHeader
+        id={id}
+        title="反馈诊断"
+        subtitle={profile.displayName}
+        query={query}
+        onQueryChange={setQuery}
+        coverSrc={coverSrc}
+      />
 
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <div className="rounded-2xl bg-white px-3 py-4 text-center shadow-sm ring-1 ring-black/[0.04]">
