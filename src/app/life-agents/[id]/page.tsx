@@ -8,6 +8,7 @@ import Image from "next/image";
 import { RatingStars } from "@/components/RatingStars";
 import { VerificationBadge } from "@/components/VerificationBadge";
 import { lifeAgentCoverShouldBypassOptimizer, resolveLifeAgentCoverUrl } from "@/lib/life-agent-covers";
+import { isFavoriteAgentId, toggleFavoriteAgentId } from "@/lib/life-agent-favorites";
 
 type DetailData = {
   id: string;
@@ -85,10 +86,18 @@ export default function LifeAgentDetailPage() {
   const [showPurchase, setShowPurchase] = useState(false);
   const [voiceEnrollBanner, setVoiceEnrollBanner] = useState<"warn" | null>(null);
   const [portalReady, setPortalReady] = useState(false);
+  const [starred, setStarred] = useState(false);
 
   useEffect(() => {
     setPortalReady(true);
   }, []);
+
+  useEffect(() => {
+    const sync = () => setStarred(isFavoriteAgentId(id));
+    sync();
+    window.addEventListener("la-favorite-change", sync);
+    return () => window.removeEventListener("la-favorite-change", sync);
+  }, [id]);
 
   useEffect(() => {
     if (!showPurchase) return;
@@ -116,8 +125,10 @@ export default function LifeAgentDetailPage() {
     fetch(`/api/life-agents/${id}`, { credentials: "include" })
       .then((res) => res.json().then((data) => ({ ok: res.ok, data })))
       .then(({ ok, data }) => {
-        if (ok && data?.displayName) setProfile(data);
-        else setProfile(null);
+        if (ok && data?.displayName) {
+          setProfile(data);
+          setStarred(isFavoriteAgentId(id));
+        } else setProfile(null);
       })
       .catch(() => setProfile(null))
       .finally(() => setLoaded(true));
@@ -233,11 +244,34 @@ export default function LifeAgentDetailPage() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          {(profile.verificationStatus === "verified" || profile.verificationStatus === "pending") && (
-            <div className="absolute right-3 top-3 rounded-full bg-white/90 px-2 py-1 shadow-sm backdrop-blur-sm sm:right-4 sm:top-4">
-              <VerificationBadge status={profile.verificationStatus ?? "none"} size="sm" />
-            </div>
-          )}
+          <div className="absolute right-3 top-3 flex items-center gap-2 sm:right-4 sm:top-4">
+            <button
+              type="button"
+              onClick={() => setStarred(toggleFavoriteAgentId(profile.id))}
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-black/30 text-white backdrop-blur-sm transition hover:bg-black/50"
+              aria-label={starred ? "取消收藏" : "收藏"}
+              title={starred ? "取消收藏" : "收藏"}
+            >
+              {starred ? (
+                <svg className="h-5 w-5 text-amber-300" fill="currentColor" viewBox="0 0 24 24" aria-hidden>
+                  <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                </svg>
+              ) : (
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden>
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+                  />
+                </svg>
+              )}
+            </button>
+            {(profile.verificationStatus === "verified" || profile.verificationStatus === "pending") && (
+              <div className="rounded-full bg-white/90 px-2 py-1 shadow-sm backdrop-blur-sm">
+                <VerificationBadge status={profile.verificationStatus ?? "none"} size="sm" />
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

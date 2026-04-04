@@ -92,8 +92,8 @@ export function Nav() {
 
   const feedTab = searchParams.get("tab");
   const isFeedDiscover = pathname === "/life-agents" && !feedTab;
-  const isFeedFollowing = pathname === "/life-agents" && feedTab === "following";
-  const isFeedNearby = pathname === "/life-agents" && feedTab === "nearby";
+  const isFeedFavorites = pathname === "/life-agents" && feedTab === "favorites";
+  const isFeedPurchased = pathname === "/life-agents" && feedTab === "purchased";
 
   useEffect(() => {
     if (!mobileDrawerOpen) return;
@@ -216,9 +216,9 @@ export function Nav() {
                 </svg>
               </button>
               <div className="flex min-w-0 flex-1 items-center justify-center gap-2 sm:gap-4">
-                <Link href="/life-agents?tab=following" className={`relative ${feedTabClass(isFeedFollowing)}`} scroll={false}>
-                  关注
-                  {isFeedFollowing ? (
+                <Link href="/life-agents?tab=favorites" className={`relative ${feedTabClass(isFeedFavorites)}`} scroll={false}>
+                  收藏
+                  {isFeedFavorites ? (
                     <span className="absolute bottom-0 left-1 right-1 h-0.5 rounded-full bg-[#ff2442]" aria-hidden />
                   ) : null}
                 </Link>
@@ -228,15 +228,15 @@ export function Nav() {
                     <span className="absolute bottom-0 left-1 right-1 h-0.5 rounded-full bg-[#ff2442]" aria-hidden />
                   ) : null}
                 </Link>
-                <Link href="/life-agents?tab=nearby" className={`relative ${feedTabClass(isFeedNearby)}`} scroll={false}>
-                  附近
-                  {isFeedNearby ? (
+                <Link href="/life-agents?tab=purchased" className={`relative ${feedTabClass(isFeedPurchased)}`} scroll={false}>
+                  已购买
+                  {isFeedPurchased ? (
                     <span className="absolute bottom-0 left-1 right-1 h-0.5 rounded-full bg-[#ff2442]" aria-hidden />
                   ) : null}
                 </Link>
               </div>
               <Link
-                href="/life-agents#discover-search"
+                href="/life-agents/search"
                 className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-slate-600 transition active:bg-slate-100"
                 title="搜索"
                 aria-label="搜索"
@@ -352,6 +352,14 @@ export function Nav() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                   </svg>
                   创建 Agent
+                </Link>
+                <Link
+                  href="/dashboard/life-agents"
+                  onClick={() => setMobileDrawerOpen(false)}
+                  className="mb-2 flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-slate-800 hover:bg-slate-50"
+                >
+                  <IconAgent className="h-5 w-5 text-slate-600" />
+                  我创建的 Agent
                 </Link>
                 <Link
                   href="/dashboard/messages"

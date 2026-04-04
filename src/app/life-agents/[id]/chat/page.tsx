@@ -101,11 +101,13 @@ export default function LifeAgentChatPage() {
   const [useVoiceReply, setUseVoiceReply] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
   const [emojiOpen, setEmojiOpen] = useState(false);
+  const [keyboardInset, setKeyboardInset] = useState(0);
   const chatEndRef = useRef<HTMLDivElement | null>(null);
   const composerWrapRef = useRef<HTMLDivElement | null>(null);
 
   const scrollToLastMessage = () => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    viewportRef.current?.scrollTo({ top: viewportRef.current.scrollHeight, behavior: "smooth" });
   };
 
   const dismissKeyboard = () => {
@@ -210,6 +212,15 @@ export default function LifeAgentChatPage() {
   }, [messages]);
 
   useEffect(() => {
+    if (keyboardInset <= 0) return;
+    const t = window.setTimeout(() => {
+      chatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+      viewportRef.current?.scrollTo({ top: viewportRef.current.scrollHeight, behavior: "smooth" });
+    }, 80);
+    return () => window.clearTimeout(t);
+  }, [keyboardInset]);
+
+  useEffect(() => {
     if (!menuOpen) return;
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -232,6 +243,32 @@ export default function LifeAgentChatPage() {
     document.addEventListener("pointerdown", onPointer);
     return () => document.removeEventListener("pointerdown", onPointer);
   }, [emojiOpen]);
+
+  /** 移动端软键盘（viewport 不缩放时）用 visualViewport 垫高底部输入区 */
+  useEffect(() => {
+    if (typeof window === "undefined" || window.matchMedia("(min-width: 1024px)").matches) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, []);
+
+  useEffect(() => {
+    const vv = typeof window !== "undefined" ? window.visualViewport : null;
+    if (!vv) return;
+    const update = () => {
+      const gap = Math.max(0, window.innerHeight - vv.height - Math.max(0, vv.offsetTop));
+      setKeyboardInset(gap);
+    };
+    update();
+    vv.addEventListener("resize", update);
+    vv.addEventListener("scroll", update);
+    return () => {
+      vv.removeEventListener("resize", update);
+      vv.removeEventListener("scroll", update);
+    };
+  }, []);
 
   const quickPhrases = useMemo(() => {
     const samples = profile?.sampleQuestions?.filter(Boolean).slice(0, 4) ?? [];
@@ -446,8 +483,12 @@ export default function LifeAgentChatPage() {
   const openMenu = () => setMenuOpen(true);
   const closeMenu = () => setMenuOpen(false);
 
+  const bottomBarPad = `calc(env(safe-area-inset-bottom, 0px) + ${keyboardInset}px)`;
+
   return (
-    <div className="-mx-4 -mt-3 sm:-mt-8 lg:-mb-8 flex min-h-[calc(100dvh-9rem)] flex-col sm:min-h-[calc(100dvh-8rem)] lg:min-h-[calc(100dvh-5rem)]">
+    <div
+      className="-mx-4 -mt-3 flex min-h-0 flex-col sm:-mt-8 lg:-mb-8 lg:min-h-[calc(100dvh-5rem)] max-lg:fixed max-lg:inset-0 max-lg:z-[35] max-lg:h-[100dvh] max-lg:max-h-[100dvh] max-lg:w-screen max-lg:max-w-none max-lg:overflow-hidden max-lg:bg-white max-lg:px-4 max-lg:pt-[env(safe-area-inset-top)]"
+    >
       <AnimatePresence>
         {menuOpen && (
           <>
@@ -686,8 +727,8 @@ export default function LifeAgentChatPage() {
         )}
       </AnimatePresence>
 
-      <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-none border-0 border-slate-200/80 bg-white shadow-sm sm:rounded-3xl sm:border lg:rounded-3xl">
-        <header className="flex shrink-0 items-center gap-2 border-b border-slate-100 bg-white px-1 py-2 pt-[max(0.25rem,env(safe-area-inset-top))] sm:px-3">
+      <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-none border-0 border-slate-200/80 bg-white shadow-sm sm:rounded-3xl sm:border lg:rounded-3xl max-lg:flex-1">
+        <header className="sticky top-0 z-20 flex shrink-0 items-center gap-2 border-b border-slate-100 bg-white px-1 py-2 sm:px-3 lg:pt-[max(0.25rem,env(safe-area-inset-top))] max-lg:pt-0">
           <button
             type="button"
             onClick={() => router.push(`/life-agents/${id}`)}
@@ -736,9 +777,8 @@ export default function LifeAgentChatPage() {
 
         <div
           ref={viewportRef}
-          className="flex-1 overflow-y-auto overscroll-contain bg-white px-3 py-3 sm:px-6 sm:py-5"
+          className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-white px-3 py-3 sm:px-6 sm:py-5"
           onClick={dismissKeyboard}
-          onTouchStart={dismissKeyboard}
           role="presentation"
         >
           <div className="mx-auto max-w-3xl space-y-4">
@@ -802,7 +842,7 @@ export default function LifeAgentChatPage() {
                 </div>
               ))
             )}
-            <div ref={chatEndRef} />
+            <div ref={chatEndRef} className="h-1 shrink-0 scroll-mt-4" aria-hidden />
           </div>
         </div>
 
@@ -812,7 +852,10 @@ export default function LifeAgentChatPage() {
           </div>
         )}
 
-        <div className="shrink-0 border-t border-slate-100 bg-white px-3 pb-1 pt-2 sm:px-4">
+        <div
+          className="shrink-0 border-t border-slate-100 bg-white px-3 pt-2 sm:px-4"
+          style={{ paddingBottom: bottomBarPad }}
+        >
           <div className="mx-auto max-w-3xl">
             <div className="-mx-1 flex gap-2 overflow-x-auto pb-2 scrollbar-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {quickPhrases.map((phrase) => (
@@ -829,14 +872,12 @@ export default function LifeAgentChatPage() {
                 </button>
               ))}
             </div>
-          </div>
-        </div>
 
-        <form
-          onSubmit={sendMessage}
-          className="shrink-0 bg-white px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-1 sm:px-4"
-        >
-          <div ref={composerWrapRef} className="relative mx-auto max-w-3xl">
+            <form
+              onSubmit={sendMessage}
+              className="bg-white px-0 pb-0 pt-1 sm:px-0"
+            >
+              <div ref={composerWrapRef} className="relative mx-auto w-full max-w-3xl">
             {emojiOpen ? (
               <div className="absolute bottom-full left-0 right-0 z-20 mb-2 flex flex-wrap gap-1.5 rounded-2xl border border-slate-100 bg-white p-3 shadow-lg">
                 {QUICK_EMOJIS.map((em) => (
@@ -868,7 +909,8 @@ export default function LifeAgentChatPage() {
               <textarea
                 onFocus={() => {
                   setEmojiOpen(false);
-                  setTimeout(scrollToLastMessage, 150);
+                  setTimeout(scrollToLastMessage, 280);
+                  setTimeout(scrollToLastMessage, 520);
                 }}
                 className="max-h-32 min-h-[36px] w-full min-w-0 flex-1 resize-none border-0 bg-transparent py-2 text-[15px] leading-5 text-[#111] outline-none placeholder:text-slate-400"
                 value={input}
@@ -911,8 +953,10 @@ export default function LifeAgentChatPage() {
                 </svg>
               </button>
             </div>
+              </div>
+            </form>
           </div>
-        </form>
+        </div>
       </section>
     </div>
   );
