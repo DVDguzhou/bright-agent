@@ -2,7 +2,7 @@
 
 import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { LifeAgentMessageComposer } from "@/components/LifeAgentMessageComposer";
 import {
   buildPatchPayloadFromProfile,
@@ -34,6 +34,7 @@ function dismissKeyboard() {
 
 export default function LifeAgentCoEditPage() {
   const params = useParams();
+  const router = useRouter();
   const id = params.id as string;
   const [data, setData] = useState<ManageData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -191,24 +192,28 @@ export default function LifeAgentCoEditPage() {
         "lg:relative lg:z-auto lg:-mx-4 lg:-mt-8 lg:-mb-8 lg:min-h-[calc(100dvh-4rem)] max-lg:min-h-0"
       }
     >
-      <header className="z-40 shrink-0 border-b border-slate-200/80 bg-white/95 px-3 pb-2 pt-[max(0.5rem,env(safe-area-inset-top))] backdrop-blur-md max-lg:relative sm:px-6 sm:pb-3 sm:pt-[max(0.75rem,env(safe-area-inset-top))] lg:sticky lg:top-0">
-        <div className="mx-auto grid max-w-5xl grid-cols-[2.5rem_1fr_2.5rem] items-center gap-2 sm:grid-cols-[3rem_1fr_3rem]">
-          <Link
-            href={`/dashboard/life-agents/${id}`}
-            className="flex h-10 w-10 items-center justify-center rounded-full text-slate-600 transition hover:bg-slate-100"
+      <header className="z-40 shrink-0 border-b border-slate-200/80 bg-white/95 px-4 pb-1 pt-[max(0.25rem,env(safe-area-inset-top))] backdrop-blur-md sm:px-4 lg:sticky lg:top-0">
+        <div className="mx-auto flex max-w-5xl items-center justify-between gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              if (window.history.length > 1) router.back();
+              else router.push(`/dashboard/life-agents/${id}`);
+            }}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[#111] transition active:bg-slate-200"
             aria-label="返回"
+            title="返回"
           >
-            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24" aria-hidden>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
-          </Link>
-          <div className="flex min-w-0 flex-col items-center justify-center gap-0.5 text-center sm:flex-row sm:gap-2">
-            <h1 className="text-[15px] font-semibold text-slate-900 sm:text-base">对话调教</h1>
-            <span className="shrink-0 rounded-full bg-sky-100 px-2 py-0.5 text-xs font-medium text-sky-700">
-              已调教 {turnCount} 轮
-            </span>
+          </button>
+          <div className="min-w-0 flex-1">
+            <h1 className="text-[26px] font-bold leading-tight tracking-tight text-[#111]">对话调教</h1>
           </div>
-          <span className="justify-self-end sm:w-12" aria-hidden />
+          <div className="flex h-10 min-w-10 shrink-0 items-center justify-center rounded-full px-2 text-xs font-medium text-sky-700">
+            已调教 {turnCount} 轮
+          </div>
         </div>
       </header>
 

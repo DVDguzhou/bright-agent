@@ -84,18 +84,8 @@ export default function DashboardMessagesPage() {
 
   return (
     <div className="mx-auto max-w-2xl bg-white pb-6 max-lg:-mx-4 max-lg:min-h-[calc(100dvh-env(safe-area-inset-bottom)-4.25rem)] max-lg:pb-24 lg:pb-8">
-      <header className="flex items-center justify-between gap-3 px-4 pb-3 pt-[max(0.25rem,env(safe-area-inset-top))] sm:px-0">
+      <header className="px-4 pb-3 pt-[max(0.25rem,env(safe-area-inset-top))] sm:px-0">
         <h1 className="text-[26px] font-bold leading-tight tracking-tight text-[#111]">消息</h1>
-        <Link
-          href="/life-agents"
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[#111] transition active:bg-slate-200"
-          aria-label="去找 Agent 聊天"
-          title="去找 Agent"
-        >
-          <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24" aria-hidden>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-          </svg>
-        </Link>
       </header>
 
       <div className="px-4 pb-3 sm:px-0">

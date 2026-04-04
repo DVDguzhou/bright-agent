@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -32,13 +33,23 @@ function formatYuanFromFen(fen: number) {
   return (fen / 100).toFixed(2);
 }
 
-function ApiKeysHeader() {
+function ApiKeysHeader({ onBack }: { onBack: () => void }) {
   return (
     <header className="sticky top-0 z-20 border-b border-slate-200/80 bg-white/95 px-4 pb-3 pt-[max(0.35rem,env(safe-area-inset-top))] backdrop-blur-md sm:px-0">
       <div className="flex items-center justify-between gap-3">
-        <div className="min-w-0">
+        <button
+          type="button"
+          onClick={onBack}
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[#111] transition active:bg-slate-200"
+          aria-label="返回"
+          title="返回"
+        >
+          <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24" aria-hidden>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <div className="min-w-0 flex-1">
           <h1 className="text-[26px] font-bold leading-tight tracking-tight text-[#111]">开放 API</h1>
-          <p className="mt-0.5 text-sm text-slate-500">管理人生 Agent 的调用 Key、定价和调用数据</p>
         </div>
         <Link
           href="/life-agents"
@@ -56,6 +67,7 @@ function ApiKeysHeader() {
 }
 
 export default function ApiKeysPage() {
+  const router = useRouter();
   const { user, loading: authLoading } = useAuth();
   const [agents, setAgents] = useState<AgentApiRow[]>([]);
   const [overviewLoading, setOverviewLoading] = useState(true);
@@ -201,7 +213,12 @@ export default function ApiKeysPage() {
   if (authLoading || !user) {
     return (
       <div className="mx-auto max-w-2xl bg-white pb-6 max-lg:-mx-4 max-lg:min-h-[calc(100dvh-env(safe-area-inset-bottom)-4.25rem)] max-lg:pb-24 lg:pb-8">
-        <ApiKeysHeader />
+        <ApiKeysHeader
+          onBack={() => {
+            if (window.history.length > 1) router.back();
+            else router.push("/dashboard");
+          }}
+        />
         <div className="flex min-h-[50vh] items-center justify-center px-4 sm:px-0">
           <p className="text-sm text-slate-500">
             {authLoading ? (
@@ -223,7 +240,12 @@ export default function ApiKeysPage() {
 
   return (
     <div className="mx-auto max-w-2xl bg-white pb-6 max-lg:-mx-4 max-lg:min-h-[calc(100dvh-env(safe-area-inset-bottom)-4.25rem)] max-lg:pb-24 lg:pb-8">
-      <ApiKeysHeader />
+      <ApiKeysHeader
+        onBack={() => {
+          if (window.history.length > 1) router.back();
+          else router.push("/dashboard");
+        }}
+      />
 
       <div className="px-4 pb-3 sm:px-0">
         <p className="text-[15px] leading-relaxed text-slate-500">

@@ -99,6 +99,7 @@ export function Nav() {
   const isDashboardApiKeysPage = pathname === "/dashboard/api-keys";
   const isDashboardLifeAgentsListPage = pathname === "/dashboard/life-agents";
   const isDashboardLifeAgentFeedbackPage = /^\/dashboard\/life-agents\/[^/]+\/feedback\/?$/.test(pathname);
+  const isDashboardLifeAgentCoEditPage = /^\/dashboard\/life-agents\/[^/]+\/co-edit\/?$/.test(pathname);
   const isLicensesPage = pathname === "/licenses";
   const isMapPage = pathname === "/map";
   const isSupportChatPage = pathname === "/support/chat";
@@ -112,12 +113,14 @@ export function Nav() {
     isMapPage ||
     isSupportChatPage;
   const useBackArrowOnMobileTop = isLifeAgentDetailPage || isLifeAgentCreatePage;
-  const hideGlobalBottomNav = isLifeAgentChatPage || isLifeAgentDetailPage || isLifeAgentCreatePage;
+  const hideGlobalBottomNav =
+    isLifeAgentChatPage || isLifeAgentDetailPage || isLifeAgentCreatePage || isDashboardLifeAgentCoEditPage;
+  const isDiscoverEntryPage = pathname === "/" || pathname === "/life-agents";
 
   const feedTab = searchParams.get("tab");
-  const isFeedDiscover = pathname === "/life-agents" && !feedTab;
-  const isFeedFavorites = pathname === "/life-agents" && feedTab === "favorites";
-  const isFeedPurchased = pathname === "/life-agents" && feedTab === "purchased";
+  const isFeedDiscover = isDiscoverEntryPage && !feedTab;
+  const isFeedFavorites = isDiscoverEntryPage && feedTab === "favorites";
+  const isFeedPurchased = isDiscoverEntryPage && feedTab === "purchased";
 
   useEffect(() => {
     if (!mobileDrawerOpen) return;
@@ -305,11 +308,12 @@ export function Nav() {
             {navLinks.map((link) => {
               const Icon = link.Icon;
               const showBadge = link.href === "/dashboard/messages" && hasMessages && pathname !== "/dashboard/messages";
+              const active = link.href === "/life-agents" ? isDiscoverEntryPage : pathname === link.href;
               return (
                 <Link key={link.href} href={link.href} title={link.label}>
                   <motion.span
                     className={`relative flex items-center gap-1.5 xl:gap-2 px-2 xl:px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
-                      pathname === link.href
+                      active
                         ? "text-sky-700"
                         : "text-slate-600 hover:text-slate-900"
                     }`}
@@ -323,7 +327,7 @@ export function Nav() {
                       )}
                     </span>
                     <span className="hidden xl:inline">{link.label}</span>
-                    {pathname === link.href && (
+                    {active && (
                       <motion.span
                         layoutId="nav-underline"
                         className="absolute left-2 right-2 bottom-1 h-0.5 bg-sky-500/60 rounded-full"
@@ -497,7 +501,7 @@ export function Nav() {
                 showBadge: boolean
               ) => {
                 const Icon = link.Icon;
-                const active = pathname === link.href;
+                const active = link.href === "/life-agents" ? isDiscoverEntryPage : pathname === link.href;
                 return (
                   <Link
                     key={link.href}
