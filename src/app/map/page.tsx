@@ -60,40 +60,17 @@ export default function MapPage() {
         <h1 className="min-w-0 flex-1 text-[26px] font-bold leading-tight tracking-tight text-[#111]">地图</h1>
         <div className="flex shrink-0 items-center gap-2">
           <Link
-            href="/licenses"
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-[#111] transition active:bg-slate-200"
-            aria-label="Licenses"
-            title="Licenses"
-          >
-            <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden>
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-              />
-            </svg>
-          </Link>
-          <Link
-            href="/life-agents"
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-[#111] transition active:bg-slate-200"
-            aria-label="去发现"
-            title="发现"
-          >
-            <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24" aria-hidden>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-            </svg>
-          </Link>
-          <Link
             href="/support/chat"
             className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-[#111] transition active:bg-slate-200"
             aria-label="联系客服"
             title="联系客服"
           >
             <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 18v-6a9 9 0 0118 0v6" />
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+                d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"
               />
             </svg>
           </Link>
