@@ -546,6 +546,7 @@ func LifeAgentsDelete(cfg *config.Config) gin.HandlerFunc {
 		db.DB.Where("profile_id = ?", id).Delete(&models.LifeAgentKnowledgeEntry{})
 		db.DB.Where("profile_id = ?", id).Delete(&models.LifeAgentQuestionPack{})
 		db.DB.Where("profile_id = ?", id).Delete(&models.LifeAgentRating{})
+		db.DB.Where("profile_id = ?", id).Delete(&models.LifeAgentInvokeKey{})
 		if err := db.DB.Delete(&p).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "INTERNAL_ERROR"})
 			return
@@ -802,6 +803,9 @@ func LifeAgentsUpdate(cfg *config.Config) gin.HandlerFunc {
 			VoiceSampleBase64 *string `json:"voiceSampleBase64"`
 			CoverPresetKey    *string `json:"coverPresetKey"`
 			CoverImageURL     *string `json:"coverImageUrl"`
+			ApiInvokeEnabled            *bool `json:"apiInvokeEnabled"`
+			ApiPriceFollowsConsultation *bool `json:"apiPriceFollowsConsultation"`
+			ApiPricePerCallCents        *int  `json:"apiPricePerCallCents"`
 		}
 		if err := c.ShouldBindJSON(&body); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "VALIDATION_ERROR"})
@@ -836,6 +840,31 @@ func LifeAgentsUpdate(cfg *config.Config) gin.HandlerFunc {
 		}
 		if body.Published != nil {
 			upd.Update("published", *body.Published)
+		}
+		if body.ApiInvokeEnabled != nil {
+			upd.Update("api_invoke_enabled", *body.ApiInvokeEnabled)
+		}
+		if body.ApiPriceFollowsConsultation != nil && *body.ApiPriceFollowsConsultation {
+			if err := db.DB.Model(&p).Updates(map[string]interface{}{"api_price_per_call_cents": nil}).Error; err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "INTERNAL_ERROR"})
+				return
+			}
+		}
+		if body.ApiPriceFollowsConsultation != nil && !*body.ApiPriceFollowsConsultation && body.ApiPricePerCallCents != nil {
+			v := *body.ApiPricePerCallCents
+			if v < 0 {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "VALIDATION_ERROR"})
+				return
+			}
+			upd.Update("api_price_per_call_cents", v)
+		}
+		if body.ApiPriceFollowsConsultation == nil && body.ApiPricePerCallCents != nil {
+			v := *body.ApiPricePerCallCents
+			if v < 0 {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "VALIDATION_ERROR"})
+				return
+			}
+			upd.Update("api_price_per_call_cents", v)
 		}
 		if body.Education != nil {
 			upd.Update("education", *body.Education)
@@ -997,10 +1026,15 @@ func LifeAgentsUpdate(cfg *config.Config) gin.HandlerFunc {
 			"notSuitableFor":   ptrStr(p.NotSuitableFor),
 			"voiceCloneId":     ptrStr(p.VoiceCloneID),
 			"hasVoiceClone":     cfg.VoiceReplyConfigured(ptrStr(p.VoiceCloneID)),
-			"published":        p.Published,
-			"coverImageUrl":    ptrStr(p.CoverImageURL),
-			"coverPresetKey":   ptrStr(p.CoverPresetKey),
-			"coverUrl":         lifeAgentCoverURL(&p),
+			"published":                     p.Published,
+			"apiInvokeEnabled":              p.ApiInvokeEnabled,
+			"apiPriceFollowsConsultation":   p.ApiPricePerCallCents == nil,
+			"apiPricePerCallCents":          p.ApiPricePerCallCents,
+			"effectiveApiPricePerCallCents": effectiveLifeAgentAPIPriceCents(&p),
+			"apiTotalCalls":                 p.ApiTotalCalls,
+			"coverImageUrl":                 ptrStr(p.CoverImageURL),
+			"coverPresetKey":                ptrStr(p.CoverPresetKey),
+			"coverUrl":                      lifeAgentCoverURL(&p),
 		})
 	}
 }
@@ -1332,9 +1366,14 @@ func LifeAgentsManage(cfg *config.Config) gin.HandlerFunc {
 				"knowledgeEntries":   entries,
 				"voiceCloneId":       ptrStr(p.VoiceCloneID),
 				"hasVoiceClone":      cfg.VoiceReplyConfigured(ptrStr(p.VoiceCloneID)),
-				"coverImageUrl":      ptrStr(p.CoverImageURL),
-				"coverPresetKey":     ptrStr(p.CoverPresetKey),
-				"coverUrl":           lifeAgentCoverURL(&p),
+				"coverImageUrl":                 ptrStr(p.CoverImageURL),
+				"coverPresetKey":                ptrStr(p.CoverPresetKey),
+				"coverUrl":                      lifeAgentCoverURL(&p),
+				"apiInvokeEnabled":              p.ApiInvokeEnabled,
+				"apiPriceFollowsConsultation":   p.ApiPricePerCallCents == nil,
+				"apiPricePerCallCents":          p.ApiPricePerCallCents,
+				"effectiveApiPricePerCallCents": effectiveLifeAgentAPIPriceCents(&p),
+				"apiTotalCalls":                 p.ApiTotalCalls,
 			},
 			"stats": gin.H{
 				"totalRevenue": totalRevenue,

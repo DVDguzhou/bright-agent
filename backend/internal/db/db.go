@@ -9,6 +9,7 @@ import (
 
 	"github.com/agent-marketplace/backend/internal/models"
 	_ "github.com/go-sql-driver/mysql"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -78,7 +79,7 @@ func Init(dsn string) error {
 		return err
 	}
 	dropAllForeignKeys(DB)
-	return DB.AutoMigrate(
+	if err := DB.AutoMigrate(
 		&models.User{},
 		&models.UserApiKey{},
 		&models.Agent{},
@@ -94,5 +95,27 @@ func Init(dsn string) error {
 		&models.LifeAgentQuestionPack{},
 		&models.LifeAgentFeedback{},
 		&models.LifeAgentRating{},
-	)
+		&models.LifeAgentInvokeKey{},
+	); err != nil {
+		return err
+	}
+	return ensureLifeAgentAPICallerUser(DB)
+}
+
+func ensureLifeAgentAPICallerUser(db *gorm.DB) error {
+	var n int64
+	db.Model(&models.User{}).Where("id = ?", models.LifeAgentAPICallerUserID).Count(&n)
+	if n > 0 {
+		return nil
+	}
+	hash, err := bcrypt.GenerateFromPassword([]byte(models.GenID()), 12)
+	if err != nil {
+		return err
+	}
+	u := models.User{
+		ID:       models.LifeAgentAPICallerUserID,
+		Email:    "life-agent-api@system.internal",
+		Password: string(hash),
+	}
+	return db.Create(&u).Error
 }

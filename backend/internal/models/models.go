@@ -8,6 +8,9 @@ import (
 
 func GenID() string { return uuid.New().String() }
 
+// LifeAgentAPICallerUserID 占位用户：开放 API 调用产生的会话归属此 ID，不消耗真实买家的提问包
+const LifeAgentAPICallerUserID = "00000000-0000-4000-8000-000000000001"
+
 type User struct {
 	ID           string    `gorm:"primaryKey;size:36"`
 	Email        string    `gorm:"uniqueIndex;size:255;not null"`
@@ -172,11 +175,26 @@ type LifeAgentProfile struct {
 	CoverImageURL    *string   `gorm:"column:cover_image_url;size:512"` // 用户上传，站内相对路径如 /uploads/...
 	CoverPresetKey   *string   `gorm:"column:cover_preset_key;size:64"`  // 预设键，如 01-student-panda；与 cover_image_url 二选一优先 URL
 	Published        bool      `gorm:"default:true;index"` // 列表筛选 published=true 时用
+	ApiInvokeEnabled bool      `gorm:"column:api_invoke_enabled;default:false"`
+	ApiPricePerCallCents *int  `gorm:"column:api_price_per_call_cents"` // nil 表示与单次咨询同价（price_per_question）
+	ApiTotalCalls    int       `gorm:"column:api_total_calls;default:0"`
 	CreatedAt        time.Time `gorm:"column:created_at"`
 	UpdatedAt        time.Time `gorm:"column:updated_at"`
 }
 
 func (LifeAgentProfile) TableName() string { return "life_agent_profiles" }
+
+type LifeAgentInvokeKey struct {
+	ID        string    `gorm:"primaryKey;size:36"`
+	ProfileID string    `gorm:"column:profile_id;size:36;not null;index"`
+	KeyHash   string    `gorm:"column:key_hash;size:64;not null;index"`
+	KeyPrefix string    `gorm:"column:key_prefix;size:32;not null"`
+	Name      *string   `gorm:"size:100"`
+	CallCount int       `gorm:"column:call_count;default:0"`
+	CreatedAt time.Time `gorm:"column:created_at"`
+}
+
+func (LifeAgentInvokeKey) TableName() string { return "life_agent_invoke_keys" }
 
 type LifeAgentKnowledgeEntry struct {
 	ID        string    `gorm:"primaryKey;size:36" json:"id"`
@@ -192,13 +210,15 @@ type LifeAgentKnowledgeEntry struct {
 func (LifeAgentKnowledgeEntry) TableName() string { return "life_agent_knowledge_entries" }
 
 type LifeAgentChatSession struct {
-	ID        string    `gorm:"primaryKey;size:36"`
-	ProfileID string    `gorm:"column:profile_id;size:36;not null;index"`
-	BuyerID   string    `gorm:"column:buyer_id;size:36;not null;index"`
-	Title     string    `gorm:"size:255;not null"`
-	Status    string    `gorm:"size:32;default:active"`
-	CreatedAt time.Time `gorm:"column:created_at"`
-	UpdatedAt time.Time `gorm:"column:updated_at"`
+	ID          string    `gorm:"primaryKey;size:36"`
+	ProfileID   string    `gorm:"column:profile_id;size:36;not null;index"`
+	BuyerID     string    `gorm:"column:buyer_id;size:36;not null;index"`
+	Title       string    `gorm:"size:255;not null"`
+	Status      string    `gorm:"size:32;default:active"`
+	IsAPI       bool      `gorm:"column:is_api;default:false;index"`
+	InvokeKeyID *string   `gorm:"column:invoke_key_id;size:36"`
+	CreatedAt   time.Time `gorm:"column:created_at"`
+	UpdatedAt   time.Time `gorm:"column:updated_at"`
 }
 
 func (LifeAgentChatSession) TableName() string { return "life_agent_chat_sessions" }

@@ -13,7 +13,8 @@ type Config struct {
 	SessionSecret       string
 	SessionCookie       string
 	SecureSessionCookie bool // SECURE_SESSION_COOKIE=true：HTTPS 生产环境建议开启（会话 Cookie 带 Secure）
-	PlatformKeyPrefix  string
+	PlatformKeyPrefix         string
+	LifeAgentInvokeKeyPrefix  string // 人生 Agent 开放调用 Key 前缀，默认 lai_sk_
 	OpenAIApiKey       string
 	OpenAIModel        string
 	OpenAIBaseURL      string   // 可选，如 Ollama http://localhost:11434/v1 或 DashScope https://dashscope.aliyuncs.com/compatible-mode/v1
@@ -64,7 +65,8 @@ func Load() *Config {
 		SessionSecret:       getEnv("SESSION_SECRET", "change-me-in-production"),
 		SessionCookie:       getEnv("SESSION_COOKIE", "agent_fiverr_session"),
 		SecureSessionCookie: getEnv("SECURE_SESSION_COOKIE", "") == "true" || getEnv("SECURE_SESSION_COOKIE", "") == "1",
-		PlatformKeyPrefix:  getEnv("PLATFORM_KEY_PREFIX", "sk_live_"),
+		PlatformKeyPrefix:        getEnv("PLATFORM_KEY_PREFIX", "sk_live_"),
+		LifeAgentInvokeKeyPrefix: getEnv("LIFE_AGENT_INVOKE_KEY_PREFIX", "lai_sk_"),
 		OpenAIApiKey:       stripOuterQuotes(getEnv("OPENAI_API_KEY", "")),
 		OpenAIModel:        stripOuterQuotes(getEnv("OPENAI_MODEL", "gpt-4o-mini")),
 		OpenAIBaseURL:      stripOuterQuotes(getEnv("OPENAI_BASE_URL", "")),

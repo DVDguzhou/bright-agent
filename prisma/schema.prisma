@@ -245,6 +245,9 @@ model LifeAgentProfile {
   coverImageUrl    String?  @map("cover_image_url") @db.VarChar(512)
   coverPresetKey   String?  @map("cover_preset_key") @db.VarChar(64)
   published        Boolean  @default(true)
+  apiInvokeEnabled Boolean  @default(false) @map("api_invoke_enabled")
+  apiPricePerCallCents Int? @map("api_price_per_call_cents")
+  apiTotalCalls    Int      @default(0) @map("api_total_calls")
   createdAt        DateTime @default(now()) @map("created_at")
   updatedAt        DateTime @updatedAt @map("updated_at")
 
@@ -252,8 +255,23 @@ model LifeAgentProfile {
   knowledgeEntries LifeAgentKnowledgeEntry[]
   chatSessions   LifeAgentChatSession[]
   questionPacks  LifeAgentQuestionPack[]
+  invokeKeys     LifeAgentInvokeKey[]
 
   @@map("life_agent_profiles")
+}
+
+model LifeAgentInvokeKey {
+  id        String   @id @default(uuid())
+  profileId String   @map("profile_id")
+  keyHash   String   @map("key_hash")
+  keyPrefix String   @map("key_prefix")
+  name      String?
+  callCount Int      @default(0) @map("call_count")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  profile LifeAgentProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@map("life_agent_invoke_keys")
 }
 
 model LifeAgentKnowledgeEntry {
@@ -277,6 +295,8 @@ model LifeAgentChatSession {
   buyerId   String   @map("buyer_id")
   title     String
   status    String   @default("active")
+  isApi     Boolean  @default(false) @map("is_api")
+  invokeKeyId String? @map("invoke_key_id") @db.VarChar(36)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
