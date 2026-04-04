@@ -13,6 +13,7 @@ import {
   getCountyOptionsForCreate,
 } from "@/lib/address-hierarchy";
 import { VoiceRecordPanel } from "@/components/voice";
+import { LifeAgentMessageComposer } from "@/components/LifeAgentMessageComposer";
 import { LifeAgentCoverPicker } from "@/components/LifeAgentCoverPicker";
 
 type KnowledgeEntry = {
@@ -74,12 +75,6 @@ const OPTIONAL_SKIP_RE = /^(跳过|不填|先空着|暂无|没有|无)$/;
 
 function getPlaceholderExample(placeholder: string) {
   return placeholder.replace(/^例如[:：]\s*/, "").trim();
-}
-
-function autoResizeTextarea(textarea: HTMLTextAreaElement | null) {
-  if (!textarea) return;
-  textarea.style.height = "0px";
-  textarea.style.height = `${Math.min(textarea.scrollHeight, 160)}px`;
 }
 
 const PROFILE_CHAT_FIELDS: readonly ProfileChatField[] = [
@@ -150,6 +145,8 @@ export default function CreateLifeAgentPage() {
   const experienceFormRef = useRef<HTMLFormElement>(null);
   const profileInputRef = useRef<HTMLTextAreaElement>(null);
   const experienceInputRef = useRef<HTMLTextAreaElement>(null);
+  const [profileMoreOpen, setProfileMoreOpen] = useState(false);
+  const [experienceMoreOpen, setExperienceMoreOpen] = useState(false);
   const [user, setUser] = useState<{ id: string } | null>(null);
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -319,9 +316,9 @@ export default function CreateLifeAgentPage() {
     setChatHistory([{ role: "assistant", content: PROFILE_CHAT_FIELDS[0].prompt }]);
   };
 
-  const submitExperienceAnswer = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const answer = experienceInput.trim();
+  const submitExperienceAnswer = async (e?: React.FormEvent, voiceText?: string) => {
+    e?.preventDefault();
+    const answer = (voiceText ?? experienceInput).trim();
     if (!answer || experienceDone || experienceLoading) return;
 
     setExperienceInput("");
@@ -425,12 +422,12 @@ export default function CreateLifeAgentPage() {
     }
   };
 
-  const submitChatAnswer = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const submitChatAnswer = async (e?: React.FormEvent, voiceText?: string) => {
+    e?.preventDefault();
     if (chatDone || chatLoading) return;
 
     const field = PROFILE_CHAT_FIELDS[chatFieldIndex];
-    const rawAnswer = chatInput.trim();
+    const rawAnswer = (voiceText ?? chatInput).trim();
     let normalizedAnswer = rawAnswer;
 
     if (!rawAnswer) {
@@ -697,24 +694,28 @@ export default function CreateLifeAgentPage() {
   };
 
   return (
-    <div className="-mx-4 -mt-3 sm:-mt-8 -mb-20 lg:-mb-8 flex min-w-0 flex-col min-h-[calc(100dvh-6rem)] lg:min-h-[calc(100dvh-4rem)]">
-      {/* 紧凑顶部栏 */}
-      <header className="shrink-0 border-b border-slate-200/80 bg-white/95 px-3 py-2 backdrop-blur-md sm:px-6 sm:py-3">
-        <div className="mx-auto flex max-w-5xl items-center justify-between gap-2">
-          <Link href="/life-agents" className="flex items-center gap-1 text-sm text-slate-500 hover:text-sky-600">
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+    <div className="-mx-4 -mt-3 max-lg:-mb-20 sm:-mt-8 lg:-mb-8 flex min-w-0 flex-col min-h-[100dvh] lg:min-h-[calc(100dvh-4rem)]">
+      {/* 顶替全局顶栏：固定安全区 + 三列网格，避免窄屏把标题挤没 */}
+      <header className="sticky top-0 z-40 shrink-0 border-b border-slate-200/80 bg-white/95 px-3 pb-2 pt-[max(0.5rem,env(safe-area-inset-top))] backdrop-blur-md sm:px-6 sm:pb-3 sm:pt-[max(0.75rem,env(safe-area-inset-top))]">
+        <div className="mx-auto grid max-w-5xl grid-cols-[2.5rem_1fr_2.5rem] items-center gap-2 sm:grid-cols-[3rem_1fr_3rem]">
+          <Link
+            href="/life-agents"
+            className="flex h-10 w-10 items-center justify-center rounded-full text-slate-600 transition hover:bg-slate-100"
+            aria-label="返回"
+          >
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </Link>
-          <div className="flex flex-1 items-center justify-center gap-2 min-w-0">
-            <h1 className="truncate text-sm font-semibold text-slate-800 sm:text-base">创建 Agent</h1>
+          <div className="flex min-w-0 flex-col items-center justify-center gap-0.5 text-center sm:flex-row sm:gap-2">
+            <h1 className="text-[15px] font-semibold text-slate-900 sm:text-base">创建 Agent</h1>
             <span className="shrink-0 rounded-full bg-sky-100 px-2 py-0.5 text-xs font-medium text-sky-700">
               {step}/5
             </span>
           </div>
-          <div className="w-12 shrink-0 sm:w-16" />
+          <span className="justify-self-end sm:w-12" aria-hidden />
         </div>
-        <div className="mx-auto mt-1.5 max-w-5xl">
+        <div className="mx-auto mt-2 max-w-5xl">
           <div className="flex gap-1">
             {[1, 2, 3, 4, 5].map((s) => (
               <div
@@ -809,53 +810,41 @@ export default function CreateLifeAgentPage() {
             </div>
           ) : null}
 
-          {/* 输入栏 - 文档流内，自然位于底部导航上方（main 有 pb-20） */}
+          {/* 输入栏（与 Agent 聊天页同款） */}
           {!chatDone && (
-            <form
-              ref={profileFormRef}
-              onSubmit={submitChatAnswer}
-              className="shrink-0 border-t border-slate-200/80 bg-white px-2 pt-2 pb-[max(6rem,calc(5rem+env(safe-area-inset-bottom)))] lg:pb-[max(0.5rem,env(safe-area-inset-bottom))] sm:px-4"
-            >
+            <div className="shrink-0 border-t border-slate-100 bg-white px-3 pb-[env(safe-area-inset-bottom)] pt-2 sm:px-4">
               <div className="mx-auto max-w-3xl">
-                <div className="flex items-end gap-1.5 rounded-full border border-slate-200 bg-white py-1.5 pl-3 pr-1 shadow-sm sm:gap-2 sm:py-2">
-                  <textarea
-                    ref={profileInputRef}
-                    onFocus={() => setTimeout(scrollToLastMessage, 150)}
-                    className="max-h-32 min-h-[36px] w-full min-w-0 flex-1 resize-none border-0 bg-transparent py-2 text-[15px] leading-5 text-[#111] outline-none placeholder:text-slate-400"
-                    value={chatInput}
-                    onChange={(e) => {
-                      setChatInput(e.target.value);
-                      autoResizeTextarea(e.target);
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
-                        e.preventDefault();
-                        e.currentTarget.form?.requestSubmit();
-                      }
-                    }}
-                    placeholder={chatLoading ? "AI 正在整理资料…" : currentChatField.placeholder}
-                    required={Boolean(currentChatField.required)}
-                    disabled={chatLoading}
-                    rows={1}
-                    enterKeyHint="send"
-                  />
-                  <button
-                    type="submit"
-                    disabled={chatLoading}
-                    className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#1677ff] text-white transition hover:brightness-95 disabled:opacity-50"
-                    aria-label="发送"
-                  >
-                    {chatLoading ? (
-                      <span className="text-xs">...</span>
-                    ) : (
-                      <svg viewBox="0 0 20 20" className="h-4 w-4 fill-current" aria-hidden="true">
-                        <path d="M3.72 2.94a.75.75 0 0 1 .8-.12l11.5 5.5a.75.75 0 0 1 0 1.36l-11.5 5.5A.75.75 0 0 1 3.45 14.5l1.34-4.05H9.5a.75.75 0 0 0 0-1.5H4.8L3.45 4.9a.75.75 0 0 1 .27-.96Z" />
-                      </svg>
-                    )}
-                  </button>
-                </div>
+                <LifeAgentMessageComposer
+                  formRef={profileFormRef}
+                  textareaRef={profileInputRef}
+                  value={chatInput}
+                  onChange={setChatInput}
+                  onSubmit={(e) => void submitChatAnswer(e)}
+                  disabled={chatLoading || chatDone}
+                  placeholder={chatLoading ? "AI 正在整理资料…" : currentChatField.placeholder}
+                  required={Boolean(currentChatField.required)}
+                  onVoiceFinal={(text) => void submitChatAnswer(undefined, text.trim())}
+                  onTextareaFocus={() => {
+                    setTimeout(scrollToLastMessage, 280);
+                    setTimeout(scrollToLastMessage, 520);
+                  }}
+                  moreOpen={profileMoreOpen}
+                  onMoreClick={() => setProfileMoreOpen((o) => !o)}
+                  onCloseMorePanel={() => setProfileMoreOpen(false)}
+                  morePanel={
+                    <div className="rounded-2xl border border-slate-100 bg-white p-2 shadow-lg">
+                      <Link
+                        href="/life-agents"
+                        className="block rounded-xl px-3 py-2.5 text-sm text-slate-700 hover:bg-slate-50"
+                        onClick={() => setProfileMoreOpen(false)}
+                      >
+                        返回发现页
+                      </Link>
+                    </div>
+                  }
+                />
               </div>
-            </form>
+            </div>
           )}
         </div>
       )}
@@ -933,13 +922,9 @@ export default function CreateLifeAgentPage() {
             </div>
           ) : null}
 
-          {/* 输入栏 - 文档流内，自然位于底部导航上方 */}
+          {/* 输入栏（与 Agent 聊天页同款） */}
           {!experienceDone && (
-            <form
-              ref={experienceFormRef}
-              onSubmit={submitExperienceAnswer}
-              className="shrink-0 border-t border-slate-200/80 bg-white px-2 pt-2 pb-[max(6rem,calc(5rem+env(safe-area-inset-bottom)))] lg:pb-[max(0.5rem,env(safe-area-inset-bottom))] sm:px-4"
-            >
+            <div className="shrink-0 border-t border-slate-100 bg-white px-3 pb-[env(safe-area-inset-bottom)] pt-2 sm:px-4">
               {experienceHistory.filter((m) => m.role === "user").length >= 4 && (
                 <div className="mx-auto mb-2 max-w-3xl text-center">
                   <button
@@ -955,45 +940,37 @@ export default function CreateLifeAgentPage() {
                 </div>
               )}
               <div className="mx-auto max-w-3xl">
-                <div className="flex items-end gap-1.5 rounded-full border border-slate-200 bg-white py-1.5 pl-3 pr-1 shadow-sm sm:gap-2 sm:py-2">
-                  <textarea
-                    ref={experienceInputRef}
-                    onFocus={() => setTimeout(scrollToLastExperienceMessage, 150)}
-                    className="max-h-32 min-h-[36px] w-full min-w-0 flex-1 resize-none border-0 bg-transparent py-2 text-[15px] leading-5 text-[#111] outline-none placeholder:text-slate-400"
-                    value={experienceInput}
-                    onChange={(e) => {
-                      setExperienceInput(e.target.value);
-                      autoResizeTextarea(e.target);
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
-                        e.preventDefault();
-                        e.currentTarget.form?.requestSubmit();
-                      }
-                    }}
-                    placeholder={experienceLoading ? "AI 正在思考下一问…" : "说出你需要分享的经验和信息"}
-                    required
-                    disabled={experienceLoading}
-                    rows={1}
-                    enterKeyHint="send"
-                  />
-                  <button
-                    type="submit"
-                    disabled={experienceLoading}
-                    className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#1677ff] text-white transition hover:brightness-95 disabled:opacity-50"
-                    aria-label="发送"
-                  >
-                    {experienceLoading ? (
-                      <span className="text-xs">...</span>
-                    ) : (
-                      <svg viewBox="0 0 20 20" className="h-4 w-4 fill-current" aria-hidden="true">
-                        <path d="M3.72 2.94a.75.75 0 0 1 .8-.12l11.5 5.5a.75.75 0 0 1 0 1.36l-11.5 5.5A.75.75 0 0 1 3.45 14.5l1.34-4.05H9.5a.75.75 0 0 0 0-1.5H4.8L3.45 4.9a.75.75 0 0 1 .27-.96Z" />
-                      </svg>
-                    )}
-                  </button>
-                </div>
+                <LifeAgentMessageComposer
+                  formRef={experienceFormRef}
+                  textareaRef={experienceInputRef}
+                  value={experienceInput}
+                  onChange={setExperienceInput}
+                  onSubmit={(e) => void submitExperienceAnswer(e)}
+                  disabled={experienceLoading || experienceDone}
+                  placeholder={experienceLoading ? "AI 正在思考下一问…" : "说出你需要分享的经验和信息"}
+                  required
+                  onVoiceFinal={(text) => void submitExperienceAnswer(undefined, text.trim())}
+                  onTextareaFocus={() => {
+                    setTimeout(scrollToLastExperienceMessage, 280);
+                    setTimeout(scrollToLastExperienceMessage, 520);
+                  }}
+                  moreOpen={experienceMoreOpen}
+                  onMoreClick={() => setExperienceMoreOpen((o) => !o)}
+                  onCloseMorePanel={() => setExperienceMoreOpen(false)}
+                  morePanel={
+                    <div className="rounded-2xl border border-slate-100 bg-white p-2 shadow-lg">
+                      <Link
+                        href="/life-agents"
+                        className="block rounded-xl px-3 py-2.5 text-sm text-slate-700 hover:bg-slate-50"
+                        onClick={() => setExperienceMoreOpen(false)}
+                      >
+                        返回发现页
+                      </Link>
+                    </div>
+                  }
+                />
               </div>
-            </form>
+            </div>
           )}
         </div>
       )}

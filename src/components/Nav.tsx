@@ -97,7 +97,8 @@ export function Nav() {
   const isLifeAgentSearchPage = pathname === "/life-agents/search";
   const hideGlobalTopNav = isLifeAgentCreatePage || isLifeAgentSearchPage;
   const useBackArrowOnMobileTop = isLifeAgentDetailPage || isLifeAgentCreatePage;
-  const hideGlobalBottomNav = isLifeAgentChatPage || isLifeAgentDetailPage;
+  const hideGlobalBottomNav =
+    isLifeAgentChatPage || isLifeAgentDetailPage || isLifeAgentCreatePage || isLifeAgentSearchPage;
 
   const feedTab = searchParams.get("tab");
   const isFeedDiscover = pathname === "/life-agents" && !feedTab;

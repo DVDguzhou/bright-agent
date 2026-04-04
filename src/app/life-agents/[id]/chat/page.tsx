@@ -5,7 +5,8 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
-import { VoiceInputButton, VoiceMessageBubble, VoiceReplyToggle } from "@/components/voice";
+import { VoiceMessageBubble, VoiceReplyToggle } from "@/components/voice";
+import { LifeAgentMessageComposer } from "@/components/LifeAgentMessageComposer";
 import { useAuth } from "@/contexts/AuthContext";
 import { lifeAgentCoverShouldBypassOptimizer, resolveLifeAgentCoverUrl } from "@/lib/life-agent-covers";
 
@@ -68,14 +69,6 @@ function trimSessionTitle(title: string) {
   return title.length > 18 ? `${title.slice(0, 18)}...` : title;
 }
 
-const QUICK_EMOJIS = ["😀", "👍", "❤️", "🙏", "😂", "🎉", "🫡", "✨"];
-
-function autoResizeTextarea(textarea: HTMLTextAreaElement | null) {
-  if (!textarea) return;
-  textarea.style.height = "0px";
-  textarea.style.height = `${Math.min(textarea.scrollHeight, 160)}px`;
-}
-
 export default function LifeAgentChatPage() {
   const params = useParams();
   const router = useRouter();
@@ -98,10 +91,8 @@ export default function LifeAgentChatPage() {
   const [ratingSubmitting, setRatingSubmitting] = useState(false);
   const [useVoiceReply, setUseVoiceReply] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [emojiOpen, setEmojiOpen] = useState(false);
   const [viewportBox, setViewportBox] = useState<{ height: number; offsetTop: number } | null>(null);
   const chatEndRef = useRef<HTMLDivElement | null>(null);
-  const composerWrapRef = useRef<HTMLDivElement | null>(null);
 
   const scrollToLastMessage = () => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -230,16 +221,6 @@ export default function LifeAgentChatPage() {
       window.removeEventListener("keydown", onKey);
     };
   }, [menuOpen]);
-
-  useEffect(() => {
-    if (!emojiOpen) return;
-    const onPointer = (e: PointerEvent) => {
-      const el = composerWrapRef.current;
-      if (el && !el.contains(e.target as Node)) setEmojiOpen(false);
-    };
-    document.addEventListener("pointerdown", onPointer);
-    return () => document.removeEventListener("pointerdown", onPointer);
-  }, [emojiOpen]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -861,88 +842,21 @@ export default function LifeAgentChatPage() {
 
         <div className="shrink-0 border-t border-slate-100 bg-white px-3 pb-[env(safe-area-inset-bottom)] pt-2 sm:px-4">
           <div className="mx-auto max-w-3xl">
-            <form
+            <LifeAgentMessageComposer
+              value={input}
+              onChange={setInput}
               onSubmit={sendMessage}
-              className="bg-white px-0 pb-0 pt-1 sm:px-0"
-            >
-              <div ref={composerWrapRef} className="relative mx-auto w-full max-w-3xl">
-            {emojiOpen ? (
-              <div className="absolute bottom-full left-0 right-0 z-20 mb-2 flex flex-wrap gap-1.5 rounded-2xl border border-slate-100 bg-white p-3 shadow-lg">
-                {QUICK_EMOJIS.map((em) => (
-                  <button
-                    key={em}
-                    type="button"
-                    className="flex h-9 w-9 items-center justify-center rounded-lg text-lg transition hover:bg-slate-50"
-                    onClick={() => {
-                      setInput((prev) => prev + em);
-                      setEmojiOpen(false);
-                    }}
-                  >
-                    {em}
-                  </button>
-                ))}
-              </div>
-            ) : null}
-            <div className="flex items-end gap-1.5 rounded-full border border-slate-200 bg-white py-1.5 pl-2 pr-1 shadow-sm sm:gap-2 sm:py-2 sm:pl-3">
-              <VoiceInputButton
-                onTranscript={(text, isFinal) => {
-                  if (isFinal && text.trim()) {
-                    sendMessageWithText(text);
-                  }
-                }}
-                disabled={loading || sessionLoading}
-                size="sm"
-                className="!h-9 !w-9 shrink-0 border-slate-200 sm:!h-10 sm:!w-10"
-              />
-              <textarea
-                onFocus={() => {
-                  setEmojiOpen(false);
-                  setTimeout(scrollToLastMessage, 280);
-                  setTimeout(scrollToLastMessage, 520);
-                }}
-                className="max-h-32 min-h-[36px] w-full min-w-0 flex-1 resize-none border-0 bg-transparent py-2 text-[15px] leading-5 text-[#111] outline-none placeholder:text-slate-400"
-                value={input}
-                onChange={(e) => {
-                  setInput(e.target.value);
-                  autoResizeTextarea(e.target);
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
-                    e.preventDefault();
-                    e.currentTarget.form?.requestSubmit();
-                  }
-                }}
-                placeholder="发消息..."
-                disabled={loading || sessionLoading}
-                rows={1}
-                enterKeyHint="send"
-              />
-              <button
-                type="button"
-                onClick={() => setEmojiOpen((o) => !o)}
-                disabled={loading || sessionLoading}
-                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 disabled:opacity-40"
-                aria-label="表情"
-              >
-                <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24" aria-hidden>
-                  <circle cx="12" cy="12" r="9" />
-                  <path strokeLinecap="round" d="M8.5 14.5s1.2 2 3.5 2 3.5-2 3.5-2M9 9h.01M15 9h.01" />
-                </svg>
-              </button>
-              <button
-                type="button"
-                onClick={openMenu}
-                disabled={loading || sessionLoading}
-                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 disabled:opacity-40"
-                aria-label="更多功能"
-              >
-                <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-                </svg>
-              </button>
-            </div>
-              </div>
-            </form>
+              disabled={loading || sessionLoading}
+              placeholder="发消息..."
+              onVoiceFinal={(text) => {
+                if (text.trim()) sendMessageWithText(text);
+              }}
+              onTextareaFocus={() => {
+                setTimeout(scrollToLastMessage, 280);
+                setTimeout(scrollToLastMessage, 520);
+              }}
+              onMoreClick={openMenu}
+            />
           </div>
         </div>
       </section>
