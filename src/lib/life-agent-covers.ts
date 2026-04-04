@@ -14,5 +14,9 @@ export function resolveLifeAgentCoverUrl(coverImageUrl?: string | null, _coverPr
 
 export function lifeAgentCoverShouldBypassOptimizer(src: string): boolean {
   const s = src.trim();
-  return s.startsWith("/uploads/") || s.startsWith("/life-agent-cover-presets/");
+  return (
+    s.startsWith("/uploads/") ||
+    s.startsWith("/api/upload/life-agent-cover/") ||
+    s.startsWith("/life-agent-cover-presets/")
+  );
 }

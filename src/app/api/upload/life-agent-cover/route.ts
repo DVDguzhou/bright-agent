@@ -12,6 +12,10 @@ const ALLOWED = new Map([
   ["image/webp", "webp"],
 ]);
 
+function coverStorageDir() {
+  return path.join(process.cwd(), "public", "uploads", "life-agent-covers");
+}
+
 async function requireSession(cookieHeader: string | null): Promise<boolean> {
   if (!cookieHeader) return false;
   const res = await fetch(`${API_BACKEND}/api/auth/me`, {
@@ -55,10 +59,10 @@ export async function POST(req: Request) {
 
   const buf = Buffer.from(await file.arrayBuffer());
   const name = `${crypto.randomUUID()}.${ext}`;
-  const dir = path.join(process.cwd(), "public", "uploads", "life-agent-covers");
+  const dir = coverStorageDir();
   await mkdir(dir, { recursive: true });
   const full = path.join(dir, name);
   await writeFile(full, buf);
 
-  return NextResponse.json({ url: `/uploads/life-agent-covers/${name}` });
+  return NextResponse.json({ url: `/api/upload/life-agent-cover/${name}` });
 }

@@ -58,7 +58,9 @@ func validateLifeAgentCoverImageURL(u string) bool {
 	if !strings.HasPrefix(u, "/") || strings.Contains(u, "..") {
 		return false
 	}
-	return strings.HasPrefix(u, "/uploads/life-agent-covers/") || strings.HasPrefix(u, "/life-agent-cover-presets/")
+	return strings.HasPrefix(u, "/uploads/life-agent-covers/") ||
+		strings.HasPrefix(u, "/api/upload/life-agent-cover/") ||
+		strings.HasPrefix(u, "/life-agent-cover-presets/")
 }
 
 func lifeAgentCoverURL(p *models.LifeAgentProfile) string {

@@ -62,18 +62,25 @@ export function Nav() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { user, refetch } = useAuth();
-  const [messageCount, setMessageCount] = useState(0);
+  const [notificationCount, setNotificationCount] = useState(0);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
 
   useEffect(() => {
     if (!user) {
-      setMessageCount(0);
+      setNotificationCount(0);
       return;
     }
-    fetch("/api/life-agents/chat-sessions", { credentials: "include" })
+    fetch("/api/life-agents/feedback/all", { credentials: "include" })
       .then((r) => (r.ok ? r.json() : []))
-      .then((d) => setMessageCount(Array.isArray(d) ? d.length : 0))
-      .catch(() => setMessageCount(0));
+      .then((d) => {
+        const count =
+          (Array.isArray((d as { recent?: unknown[] })?.recent) ? (d as { recent?: unknown[] }).recent!.length : 0) +
+          (Array.isArray((d as { ratings?: { recent?: unknown[] } })?.ratings?.recent)
+            ? (d as { ratings?: { recent?: unknown[] } }).ratings!.recent!.length
+            : 0);
+        setNotificationCount(count);
+      })
+      .catch(() => setNotificationCount(0));
   }, [user]);
 
   const logout = async () => {
@@ -125,6 +132,7 @@ export function Nav() {
   const isFeedDiscover = isDiscoverEntryPage && !feedTab;
   const isFeedFavorites = isDiscoverEntryPage && feedTab === "favorites";
   const isFeedPurchased = isDiscoverEntryPage && feedTab === "purchased";
+  const isDashboardHomePage = pathname === "/dashboard";
 
   useEffect(() => {
     if (!mobileDrawerOpen) return;
@@ -280,12 +288,30 @@ export function Nav() {
                 </Link>
               </div>
               <Link
-                href="/life-agents/search"
+                href={isDashboardHomePage ? "/dashboard/notifications" : "/life-agents/search"}
                 className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-slate-600 transition active:bg-slate-100"
-                title="搜索"
-                aria-label="搜索"
+                title={isDashboardHomePage ? "提醒" : "搜索"}
+                aria-label={isDashboardHomePage ? "提醒" : "搜索"}
               >
-                <IconSearch className="h-5 w-5 stroke-[1.75]" />
+                {isDashboardHomePage ? (
+                  <span className="relative inline-flex">
+                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V4a2 2 0 10-4 0v1.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                      />
+                    </svg>
+                    {notificationCount > 0 ? (
+                      <span className="absolute -right-2 -top-2 inline-flex min-w-[18px] items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold leading-[18px] text-white ring-2 ring-white">
+                        {notificationCount > 99 ? "99+" : notificationCount}
+                      </span>
+                    ) : null}
+                  </span>
+                ) : (
+                  <IconSearch className="h-5 w-5 stroke-[1.75]" />
+                )}
               </Link>
             </div>
           )}
@@ -311,7 +337,6 @@ export function Nav() {
           <div className="flex shrink-0 items-center gap-1 xl:gap-2 2xl:gap-4">
             {navLinks.map((link) => {
               const Icon = link.Icon;
-              const showBadge = link.href === "/dashboard/messages" && messageCount > 0 && pathname !== "/dashboard/messages";
               const active = link.href === "/life-agents" ? isDiscoverEntryPage : pathname === link.href;
               return (
                 <Link key={link.href} href={link.href} title={link.label}>
@@ -326,11 +351,6 @@ export function Nav() {
                   >
                     <span className="relative inline-flex">
                       <Icon className="w-5 h-5 shrink-0" />
-                      {showBadge && (
-                        <span className="absolute -right-2 -top-2 inline-flex min-w-[18px] items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold leading-[18px] text-white ring-2 ring-white">
-                          {messageCount > 99 ? "99+" : messageCount}
-                        </span>
-                      )}
                     </span>
                     <span className="hidden xl:inline">{link.label}</span>
                     {active && (
@@ -411,16 +431,9 @@ export function Nav() {
                 <Link
                   href="/dashboard/messages"
                   onClick={() => setMobileDrawerOpen(false)}
-                  className="relative mb-2 flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-slate-800 hover:bg-slate-50"
+                  className="mb-2 flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-slate-800 hover:bg-slate-50"
                 >
-                  <span className="relative inline-flex">
-                    <IconMessages className="h-5 w-5 text-slate-600" />
-                    {messageCount > 0 && pathname !== "/dashboard/messages" ? (
-                      <span className="absolute -right-2 -top-2 inline-flex min-w-[18px] items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold leading-[18px] text-white ring-2 ring-white">
-                        {messageCount > 99 ? "99+" : messageCount}
-                      </span>
-                    ) : null}
-                  </span>
+                  <IconMessages className="h-5 w-5 text-slate-600" />
                   消息
                 </Link>
                 <Link
@@ -505,8 +518,7 @@ export function Nav() {
             {(() => {
               const [lifeAgentsLink, messagesLink, licenseLink] = navLinks;
               const renderTab = (
-                link: (typeof navLinks)[number],
-                showBadge: boolean
+                link: (typeof navLinks)[number]
               ) => {
                 const Icon = link.Icon;
                 const active = link.href === "/life-agents" ? isDiscoverEntryPage : pathname === link.href;
@@ -520,11 +532,6 @@ export function Nav() {
                   >
                     <span className="relative inline-flex">
                       <Icon className={`h-6 w-6 shrink-0 ${active ? "stroke-[2.5]" : ""}`} />
-                      {showBadge && (
-                        <span className="absolute -right-2 -top-2 inline-flex min-w-[18px] items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold leading-[18px] text-white ring-2 ring-white">
-                          {messageCount > 99 ? "99+" : messageCount}
-                        </span>
-                      )}
                     </span>
                     <span className="w-full truncate text-center text-[11px] font-medium">{link.label}</span>
                   </Link>
@@ -532,16 +539,10 @@ export function Nav() {
               };
               return (
                 <>
-                  {renderTab(
-                    lifeAgentsLink,
-                    false
-                  )}
-                  {renderTab(
-                    messagesLink,
-                    messageCount > 0 && pathname !== "/dashboard/messages"
-                  )}
+                  {renderTab(lifeAgentsLink)}
+                  {renderTab(messagesLink)}
                   <div className="min-h-[52px] min-w-0 flex-1 px-2 py-2" aria-hidden />
-                  {renderTab(licenseLink, false)}
+                  {renderTab(licenseLink)}
                 </>
               );
             })()}
