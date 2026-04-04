@@ -88,7 +88,7 @@ export function Nav() {
       isActive ? "text-sky-700 bg-sky-50" : "text-slate-600 hover:bg-slate-50"
     }`;
 
-  const isLifeAgentDeep = /^\/life-agents\/[^/]+/.test(pathname);
+  const isLifeAgentChatPage = /^\/life-agents\/[^/]+\/chat(?:\/|$)/.test(pathname);
 
   const feedTab = searchParams.get("tab");
   const isFeedDiscover = pathname === "/life-agents" && !feedTab;
@@ -197,12 +197,12 @@ export function Nav() {
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         className={`sticky top-0 z-50 border-b border-slate-100 bg-white/95 supports-[backdrop-filter]:backdrop-blur-xl overflow-x-hidden pt-[env(safe-area-inset-top)] ${
-          isLifeAgentDeep ? "hidden lg:block" : ""
+          isLifeAgentChatPage ? "hidden lg:block" : ""
         }`}
       >
         <div className="container mx-auto max-w-7xl px-3 sm:px-4">
-          {/* 手机：小红书式顶栏（发现流 + 搜索胶囊 + 消息）；详情/聊天页不显示，避免与页面内返回重复 */}
-          {!isLifeAgentDeep && (
+          {/* 手机：小红书式顶栏（发现流 + 搜索胶囊 + 消息）；聊天页不显示，避免与聊天页内导航重复 */}
+          {!isLifeAgentChatPage && (
             <div className="flex items-center gap-1 py-2.5 lg:hidden">
               <button
                 type="button"
@@ -308,7 +308,7 @@ export function Nav() {
 
       {/* 手机+平板：底部导航栏；Agent 详情/聊天页有专用操作栏时隐藏 */}
       <AnimatePresence>
-        {mobileDrawerOpen && !isLifeAgentDeep ? (
+        {mobileDrawerOpen && !isLifeAgentChatPage ? (
           <>
             <motion.button
               key="nav-drawer-backdrop"
@@ -429,7 +429,7 @@ export function Nav() {
         ) : null}
       </AnimatePresence>
 
-      {!/^\/life-agents\/[^/]+/.test(pathname) && (
+      {!isLifeAgentChatPage && (
         <>
           {/* 中间 FAB 与第 3 列空白对齐：Agent | 消息 | （+） | License | 我的 */}
           <Link

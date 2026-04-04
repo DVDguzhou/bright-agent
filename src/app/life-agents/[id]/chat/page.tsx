@@ -101,7 +101,7 @@ export default function LifeAgentChatPage() {
   const [useVoiceReply, setUseVoiceReply] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
   const [emojiOpen, setEmojiOpen] = useState(false);
-  const [vpHeight, setVpHeight] = useState<number | null>(null);
+  const [viewportBox, setViewportBox] = useState<{ height: number; offsetTop: number } | null>(null);
   const chatEndRef = useRef<HTMLDivElement | null>(null);
   const composerWrapRef = useRef<HTMLDivElement | null>(null);
 
@@ -212,12 +212,12 @@ export default function LifeAgentChatPage() {
   }, [messages]);
 
   useEffect(() => {
-    if (vpHeight === null) return;
+    if (viewportBox === null) return;
     const t = window.setTimeout(() => {
       viewportRef.current?.scrollTo({ top: viewportRef.current.scrollHeight, behavior: "smooth" });
     }, 80);
     return () => window.clearTimeout(t);
-  }, [vpHeight]);
+  }, [viewportBox]);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -254,17 +254,27 @@ export default function LifeAgentChatPage() {
   }, []);
 
   useEffect(() => {
-    const vv = typeof window !== "undefined" ? window.visualViewport : null;
-    if (!vv) return;
+    if (typeof window === "undefined") return;
+    const vv = window.visualViewport;
     const update = () => {
-      setVpHeight(vv.height);
+      if (!vv) {
+        setViewportBox({ height: window.innerHeight, offsetTop: 0 });
+        return;
+      }
+      setViewportBox({
+        height: Math.max(0, vv.height),
+        offsetTop: Math.max(0, vv.offsetTop),
+      });
     };
     update();
+    if (!vv) return;
     vv.addEventListener("resize", update);
     vv.addEventListener("scroll", update);
+    window.addEventListener("resize", update);
     return () => {
       vv.removeEventListener("resize", update);
       vv.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
     };
   }, []);
 
@@ -484,7 +494,11 @@ export default function LifeAgentChatPage() {
   return (
     <div
       className="flex min-h-0 flex-col lg:-mx-4 lg:-mt-3 lg:-mb-8 lg:min-h-[calc(100dvh-5rem)] max-lg:fixed max-lg:inset-x-0 max-lg:top-0 max-lg:z-[35] max-lg:overflow-hidden max-lg:bg-white"
-      style={vpHeight != null ? { height: `${vpHeight}px` } : { height: "100dvh" }}
+      style={
+        viewportBox
+          ? { height: `${viewportBox.height}px`, top: `${viewportBox.offsetTop}px` }
+          : { height: "100dvh" }
+      }
     >
       <AnimatePresence>
         {menuOpen && (
