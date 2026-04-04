@@ -1,10 +1,13 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { VoiceInputButton, VoiceMessageBubble, VoiceReplyToggle } from "@/components/voice";
+import { useAuth } from "@/contexts/AuthContext";
+import { lifeAgentCoverShouldBypassOptimizer, resolveLifeAgentCoverUrl } from "@/lib/life-agent-covers";
 
 type Profile = {
   id: string;
@@ -13,6 +16,9 @@ type Profile = {
   welcomeMessage: string;
   sampleQuestions?: string[];
   hasVoiceClone?: boolean;
+  coverUrl?: string;
+  coverImageUrl?: string;
+  coverPresetKey?: string;
   viewerState: {
     isLoggedIn: boolean;
     remainingQuestions: number;
@@ -62,6 +68,10 @@ function trimSessionTitle(title: string) {
   return title.length > 18 ? `${title.slice(0, 18)}...` : title;
 }
 
+const QUICK_EMOJIS = ["😀", "👍", "❤️", "🙏", "😂", "🎉", "🫡", "✨"];
+
+const DEFAULT_QUICK_PHRASES = ["你好", "谢谢", "想请教一下", "在吗"];
+
 function autoResizeTextarea(textarea: HTMLTextAreaElement | null) {
   if (!textarea) return;
   textarea.style.height = "0px";
@@ -72,6 +82,7 @@ export default function LifeAgentChatPage() {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { user } = useAuth();
   const id = params.id as string;
   const initialRequestedSessionIdRef = useRef(searchParams.get("sessionId"));
   const viewportRef = useRef<HTMLDivElement | null>(null);
@@ -89,7 +100,9 @@ export default function LifeAgentChatPage() {
   const [ratingSubmitting, setRatingSubmitting] = useState(false);
   const [useVoiceReply, setUseVoiceReply] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [emojiOpen, setEmojiOpen] = useState(false);
   const chatEndRef = useRef<HTMLDivElement | null>(null);
+  const composerWrapRef = useRef<HTMLDivElement | null>(null);
 
   const scrollToLastMessage = () => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -209,6 +222,27 @@ export default function LifeAgentChatPage() {
       window.removeEventListener("keydown", onKey);
     };
   }, [menuOpen]);
+
+  useEffect(() => {
+    if (!emojiOpen) return;
+    const onPointer = (e: PointerEvent) => {
+      const el = composerWrapRef.current;
+      if (el && !el.contains(e.target as Node)) setEmojiOpen(false);
+    };
+    document.addEventListener("pointerdown", onPointer);
+    return () => document.removeEventListener("pointerdown", onPointer);
+  }, [emojiOpen]);
+
+  const quickPhrases = useMemo(() => {
+    const samples = profile?.sampleQuestions?.filter(Boolean).slice(0, 4) ?? [];
+    return Array.from(new Set([...samples, ...DEFAULT_QUICK_PHRASES])).slice(0, 8);
+  }, [profile]);
+
+  const agentCoverUrl = profile
+    ? profile.coverUrl || resolveLifeAgentCoverUrl(profile.coverImageUrl, profile.coverPresetKey)
+    : null;
+
+  const userLetter = (user?.name?.trim() || user?.email || "我").slice(0, 1).toUpperCase();
 
   const sendMessageWithText = useCallback(
     async (text: string) => {
@@ -653,48 +687,61 @@ export default function LifeAgentChatPage() {
       </AnimatePresence>
 
       <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-none border-0 border-slate-200/80 bg-white shadow-sm sm:rounded-3xl sm:border lg:rounded-3xl">
-        <header className="flex shrink-0 items-center gap-2 border-b border-slate-100 px-2 py-2 sm:px-4">
+        <header className="flex shrink-0 items-center gap-2 border-b border-slate-100 bg-white px-1 py-2 pt-[max(0.25rem,env(safe-area-inset-top))] sm:px-3">
+          <button
+            type="button"
+            onClick={() => router.push(`/life-agents/${id}`)}
+            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[#111] transition hover:bg-slate-100"
+            aria-label="返回"
+          >
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24" aria-hidden>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <div className="flex min-w-0 flex-1 items-center justify-center gap-2.5 px-1">
+            <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full bg-slate-100 ring-1 ring-black/5">
+              {agentCoverUrl ? (
+                <Image
+                  src={agentCoverUrl}
+                  alt=""
+                  fill
+                  className="object-cover"
+                  sizes="36px"
+                  unoptimized={lifeAgentCoverShouldBypassOptimizer(agentCoverUrl)}
+                />
+              ) : (
+                <span className="flex h-full w-full items-center justify-center text-xs font-bold text-slate-500">
+                  {profile.displayName.slice(0, 1)}
+                </span>
+              )}
+            </div>
+            <div className="min-w-0 text-left">
+              <p className="truncate text-[15px] font-semibold text-[#111]">{profile.displayName}</p>
+              <p className="truncate text-xs text-slate-500">{profile.headline || "在线咨询"}</p>
+            </div>
+          </div>
           <button
             type="button"
             onClick={openMenu}
-            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-slate-600 hover:bg-slate-100"
+            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[#111] transition hover:bg-slate-100"
             aria-expanded={menuOpen}
             aria-controls="chat-side-panel"
-            title="更多"
+            aria-label="更多"
           >
-            <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M4 6h16M4 12h16M4 18h16" />
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h.01M12 12h.01M19 12h.01" />
             </svg>
           </button>
-          <div className="min-w-0 flex-1 flex justify-center px-1">
-            <span className="inline-flex max-w-full items-center rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-800">
-              <span className="truncate">{profile.displayName}</span>
-            </span>
-          </div>
-          <Link
-            href={`/life-agents/${id}`}
-            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 hover:text-slate-800"
-            title="Agent 详情"
-          >
-            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-          </Link>
         </header>
 
         <div
           ref={viewportRef}
-          className="flex-1 space-y-5 overflow-y-auto overscroll-contain bg-white px-3 py-4 pb-2 sm:px-6 sm:py-6"
+          className="flex-1 overflow-y-auto overscroll-contain bg-white px-3 py-3 sm:px-6 sm:py-5"
           onClick={dismissKeyboard}
           onTouchStart={dismissKeyboard}
           role="presentation"
         >
-          <div className="mx-auto max-w-3xl space-y-5">
+          <div className="mx-auto max-w-3xl space-y-4">
             {sessionLoading ? (
               <div className="flex min-h-[40vh] items-center justify-center text-sm text-slate-500">
                 正在加载历史会话...
@@ -703,13 +750,31 @@ export default function LifeAgentChatPage() {
               messages.map((message, index) => (
                 <div
                   key={`${message.role}-${index}-${message.messageId ?? "draft"}`}
-                  className={message.role === "user" ? "flex justify-end" : "flex justify-start"}
+                  className={`flex items-end gap-2 ${message.role === "user" ? "justify-end" : "justify-start"}`}
                 >
+                  {message.role === "assistant" ? (
+                    <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full bg-slate-100 ring-1 ring-black/5">
+                      {agentCoverUrl ? (
+                        <Image
+                          src={agentCoverUrl}
+                          alt=""
+                          fill
+                          className="object-cover"
+                          sizes="32px"
+                          unoptimized={lifeAgentCoverShouldBypassOptimizer(agentCoverUrl)}
+                        />
+                      ) : (
+                        <span className="flex h-full w-full items-center justify-center text-[10px] font-bold text-slate-500">
+                          {profile.displayName.slice(0, 1)}
+                        </span>
+                      )}
+                    </div>
+                  ) : null}
                   <div
-                    className={`max-w-[90%] rounded-2xl px-4 py-3 text-[15px] leading-7 sm:max-w-[85%] ${
+                    className={`max-w-[78%] rounded-2xl px-3.5 py-2.5 text-[15px] leading-relaxed sm:max-w-[72%] ${
                       message.role === "user"
-                        ? "bg-sky-500 text-white"
-                        : "bg-slate-100 text-slate-800"
+                        ? "rounded-br-md bg-[#1677ff] text-white"
+                        : "rounded-bl-md bg-[#f0f0f0] text-[#111]"
                     }`}
                   >
                     {message.role === "assistant" && message.audioUrl ? (
@@ -720,7 +785,7 @@ export default function LifeAgentChatPage() {
                           isFromUser={false}
                         />
                         {message.content && (
-                          <p className="mt-2 border-t border-slate-200/60 pt-2 text-[13px] leading-6 text-slate-600">
+                          <p className="mt-2 border-t border-black/10 pt-2 text-[13px] leading-6 text-slate-600">
                             {message.content}
                           </p>
                         )}
@@ -729,6 +794,11 @@ export default function LifeAgentChatPage() {
                       <p className="whitespace-pre-wrap">{message.content}</p>
                     )}
                   </div>
+                  {message.role === "user" ? (
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-rose-400 text-xs font-bold text-white ring-1 ring-white">
+                      {userLetter}
+                    </div>
+                  ) : null}
                 </div>
               ))
             )}
@@ -742,26 +812,65 @@ export default function LifeAgentChatPage() {
           </div>
         )}
 
+        <div className="shrink-0 border-t border-slate-100 bg-white px-3 pb-1 pt-2 sm:px-4">
+          <div className="mx-auto max-w-3xl">
+            <div className="-mx-1 flex gap-2 overflow-x-auto pb-2 scrollbar-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {quickPhrases.map((phrase) => (
+                <button
+                  key={phrase}
+                  type="button"
+                  disabled={loading || sessionLoading}
+                  onClick={() => {
+                    void sendMessageWithText(phrase);
+                  }}
+                  className="shrink-0 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-700 transition active:bg-slate-100 disabled:opacity-50"
+                >
+                  {phrase}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
         <form
           onSubmit={sendMessage}
-          className="shrink-0 border-t border-slate-100 bg-white px-2 pb-12 pt-2 sm:px-4 lg:pb-[max(0.5rem,env(safe-area-inset-bottom))]"
+          className="shrink-0 bg-white px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-1 sm:px-4"
         >
-          <div className="mx-auto flex max-w-3xl items-end gap-1.5 sm:gap-2">
-            <button
-              type="button"
-              onClick={openMenu}
-              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 sm:h-11 sm:w-11"
-              title="更多"
-              aria-label="打开更多菜单"
-            >
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-            </button>
-            <div className="flex min-h-[44px] min-w-0 flex-1 items-end gap-2 rounded-[1.75rem] border border-slate-200 bg-white px-3 py-1.5 shadow-sm sm:rounded-[2rem] sm:px-4 sm:py-2">
+          <div ref={composerWrapRef} className="relative mx-auto max-w-3xl">
+            {emojiOpen ? (
+              <div className="absolute bottom-full left-0 right-0 z-20 mb-2 flex flex-wrap gap-1.5 rounded-2xl border border-slate-100 bg-white p-3 shadow-lg">
+                {QUICK_EMOJIS.map((em) => (
+                  <button
+                    key={em}
+                    type="button"
+                    className="flex h-9 w-9 items-center justify-center rounded-lg text-lg transition hover:bg-slate-50"
+                    onClick={() => {
+                      setInput((prev) => prev + em);
+                      setEmojiOpen(false);
+                    }}
+                  >
+                    {em}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+            <div className="flex items-end gap-1.5 rounded-full border border-slate-200 bg-white py-1.5 pl-2 pr-1 shadow-sm sm:gap-2 sm:py-2 sm:pl-3">
+              <VoiceInputButton
+                onTranscript={(text, isFinal) => {
+                  if (isFinal && text.trim()) {
+                    sendMessageWithText(text);
+                  }
+                }}
+                disabled={loading || sessionLoading}
+                size="sm"
+                className="!h-9 !w-9 shrink-0 border-slate-200 sm:!h-10 sm:!w-10"
+              />
               <textarea
-                onFocus={() => setTimeout(scrollToLastMessage, 150)}
-                className="max-h-36 min-h-[24px] w-full flex-1 resize-none border-0 bg-transparent py-2 text-base leading-6 text-slate-800 outline-none placeholder:text-slate-400"
+                onFocus={() => {
+                  setEmojiOpen(false);
+                  setTimeout(scrollToLastMessage, 150);
+                }}
+                className="max-h-32 min-h-[36px] w-full min-w-0 flex-1 resize-none border-0 bg-transparent py-2 text-[15px] leading-5 text-[#111] outline-none placeholder:text-slate-400"
                 value={input}
                 onChange={(e) => {
                   setInput(e.target.value);
@@ -773,32 +882,35 @@ export default function LifeAgentChatPage() {
                     e.currentTarget.form?.requestSubmit();
                   }
                 }}
-                placeholder="发消息…"
+                placeholder="发消息..."
                 disabled={loading || sessionLoading}
                 rows={1}
                 enterKeyHint="send"
               />
-              <VoiceInputButton
-                onTranscript={(text, isFinal) => {
-                  if (isFinal && text.trim()) {
-                    sendMessageWithText(text);
-                  }
-                }}
+              <button
+                type="button"
+                onClick={() => setEmojiOpen((o) => !o)}
                 disabled={loading || sessionLoading}
-                size="sm"
-                className="!h-9 !w-9 shrink-0 border-0 bg-transparent sm:!h-10 sm:!w-10"
-              />
+                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 disabled:opacity-40"
+                aria-label="表情"
+              >
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24" aria-hidden>
+                  <circle cx="12" cy="12" r="9" />
+                  <path strokeLinecap="round" d="M8.5 14.5s1.2 2 3.5 2 3.5-2 3.5-2M9 9h.01M15 9h.01" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                onClick={openMenu}
+                disabled={loading || sessionLoading}
+                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 disabled:opacity-40"
+                aria-label="更多功能"
+              >
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                </svg>
+              </button>
             </div>
-            <button
-              type="submit"
-              disabled={loading || sessionLoading || !input.trim()}
-              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-900 text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40 sm:h-11 sm:w-11"
-              aria-label="发送"
-            >
-              <svg viewBox="0 0 20 20" className="h-4 w-4 fill-current" aria-hidden="true">
-                <path d="M3.72 2.94a.75.75 0 0 1 .8-.12l11.5 5.5a.75.75 0 0 1 0 1.36l-11.5 5.5A.75.75 0 0 1 3.45 14.5l1.34-4.05H9.5a.75.75 0 0 0 0-1.5H4.8L3.45 4.9a.75.75 0 0 1 .27-.96Z" />
-              </svg>
-            </button>
           </div>
         </form>
       </section>

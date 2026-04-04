@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -60,8 +60,10 @@ const navLinks = [
 export function Nav() {
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { user, refetch } = useAuth();
   const [hasMessages, setHasMessages] = useState(false);
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -87,6 +89,30 @@ export function Nav() {
     }`;
 
   const isLifeAgentDeep = /^\/life-agents\/[^/]+/.test(pathname);
+
+  const feedTab = searchParams.get("tab");
+  const isFeedDiscover = pathname === "/life-agents" && !feedTab;
+  const isFeedFollowing = pathname === "/life-agents" && feedTab === "following";
+  const isFeedNearby = pathname === "/life-agents" && feedTab === "nearby";
+
+  useEffect(() => {
+    if (!mobileDrawerOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMobileDrawerOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [mobileDrawerOpen]);
+
+  const feedTabClass = (active: boolean) =>
+    `relative px-2 py-1 text-[15px] transition-colors ${
+      active ? "font-semibold text-[#111]" : "font-normal text-slate-500"
+    }`;
 
   const AuthLinks = ({ vertical = false }: { vertical?: boolean }) =>
     user ? (
@@ -177,59 +203,46 @@ export function Nav() {
         <div className="container mx-auto max-w-7xl px-3 sm:px-4">
           {/* 手机：小红书式顶栏（发现流 + 搜索胶囊 + 消息）；详情/聊天页不显示，避免与页面内返回重复 */}
           {!isLifeAgentDeep && (
-            <div className="flex items-center gap-2 py-2.5 lg:hidden">
-              <Link
-                href="/life-agents"
-                className="shrink-0 rounded-full ring-1 ring-slate-100"
-                title="发现 Agent"
+            <div className="flex items-center gap-1 py-2.5 lg:hidden">
+              <button
+                type="button"
+                onClick={() => setMobileDrawerOpen(true)}
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-slate-600 transition active:bg-slate-100"
+                aria-label="打开菜单"
+                aria-expanded={mobileDrawerOpen}
               >
-                <Image
-                  src="/bright-agent-icon.png"
-                  alt=""
-                  width={32}
-                  height={32}
-                  className="h-8 w-8 rounded-full object-cover"
-                />
-              </Link>
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+              <div className="flex min-w-0 flex-1 items-center justify-center gap-2 sm:gap-4">
+                <Link href="/life-agents?tab=following" className={`relative ${feedTabClass(isFeedFollowing)}`} scroll={false}>
+                  关注
+                  {isFeedFollowing ? (
+                    <span className="absolute bottom-0 left-1 right-1 h-0.5 rounded-full bg-[#ff2442]" aria-hidden />
+                  ) : null}
+                </Link>
+                <Link href="/life-agents" className={`relative ${feedTabClass(isFeedDiscover)}`} scroll={false}>
+                  发现
+                  {isFeedDiscover ? (
+                    <span className="absolute bottom-0 left-1 right-1 h-0.5 rounded-full bg-[#ff2442]" aria-hidden />
+                  ) : null}
+                </Link>
+                <Link href="/life-agents?tab=nearby" className={`relative ${feedTabClass(isFeedNearby)}`} scroll={false}>
+                  附近
+                  {isFeedNearby ? (
+                    <span className="absolute bottom-0 left-1 right-1 h-0.5 rounded-full bg-[#ff2442]" aria-hidden />
+                  ) : null}
+                </Link>
+              </div>
               <Link
                 href="/life-agents#discover-search"
-                className="flex min-w-0 flex-1 items-center gap-2 rounded-full bg-slate-100 px-3 py-2 text-sm text-slate-400 transition active:bg-slate-200"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-slate-600 transition active:bg-slate-100"
+                title="搜索"
+                aria-label="搜索"
               >
-                <IconSearch className="h-4 w-4 shrink-0 text-slate-400" />
-                <span className="truncate">搜索 Agent、经验、话题…</span>
+                <IconSearch className="h-5 w-5 stroke-[1.75]" />
               </Link>
-              <Link
-                href="/dashboard/messages"
-                className="relative shrink-0 rounded-full p-2 text-slate-600 transition active:bg-slate-100"
-                title="消息"
-              >
-                <IconMessages className="h-6 w-6" />
-                {hasMessages && pathname !== "/dashboard/messages" ? (
-                  <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-white" aria-hidden />
-                ) : null}
-              </Link>
-              {user ? (
-                <div className="flex shrink-0 items-center gap-1">
-                  <Link
-                    href="/dashboard"
-                    className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-sky-400 text-xs font-bold text-white"
-                    title="我的"
-                  >
-                    {(user.name?.trim() || user.email || "?").slice(0, 1).toUpperCase()}
-                  </Link>
-                  <button
-                    type="button"
-                    onClick={logout}
-                    className="rounded-full px-2 py-1 text-[11px] font-medium text-slate-500"
-                  >
-                    退出
-                  </button>
-                </div>
-              ) : (
-                <Link href="/login" className="shrink-0 rounded-full bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white">
-                  登录
-                </Link>
-              )}
             </div>
           )}
 
@@ -294,6 +307,120 @@ export function Nav() {
       </motion.nav>
 
       {/* 手机+平板：底部导航栏；Agent 详情/聊天页有专用操作栏时隐藏 */}
+      <AnimatePresence>
+        {mobileDrawerOpen && !isLifeAgentDeep ? (
+          <>
+            <motion.button
+              key="nav-drawer-backdrop"
+              type="button"
+              aria-label="关闭菜单"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              className="fixed inset-0 z-[190] bg-black/35 backdrop-blur-[2px] lg:hidden"
+              onClick={() => setMobileDrawerOpen(false)}
+            />
+            <motion.aside
+              key="nav-drawer-panel"
+              initial={{ x: "-105%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-105%" }}
+              transition={{ type: "spring", stiffness: 380, damping: 36 }}
+              className="fixed left-0 top-0 z-[191] flex h-[100dvh] w-[min(100vw,18.5rem)] flex-col border-r border-slate-200 bg-white shadow-xl lg:hidden"
+            >
+              <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
+                <span className="text-sm font-semibold text-slate-800">菜单</span>
+                <button
+                  type="button"
+                  onClick={() => setMobileDrawerOpen(false)}
+                  className="rounded-full p-2 text-slate-500 hover:bg-slate-100"
+                  aria-label="关闭"
+                >
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <div className="min-h-0 flex-1 overflow-y-auto px-3 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+                <Link
+                  href="/life-agents/create"
+                  onClick={() => setMobileDrawerOpen(false)}
+                  className="mb-2 flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-slate-800 hover:bg-slate-50"
+                >
+                  <svg className="h-5 w-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  创建 Agent
+                </Link>
+                <Link
+                  href="/dashboard/messages"
+                  onClick={() => setMobileDrawerOpen(false)}
+                  className="relative mb-2 flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-slate-800 hover:bg-slate-50"
+                >
+                  <span className="relative inline-flex">
+                    <IconMessages className="h-5 w-5 text-slate-600" />
+                    {hasMessages && pathname !== "/dashboard/messages" ? (
+                      <span className="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-white" aria-hidden />
+                    ) : null}
+                  </span>
+                  消息
+                </Link>
+                <Link
+                  href="/licenses"
+                  onClick={() => setMobileDrawerOpen(false)}
+                  className="mb-2 flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-slate-800 hover:bg-slate-50"
+                >
+                  <IconLicense className="h-5 w-5 text-slate-600" />
+                  License
+                </Link>
+                {user ? (
+                  <>
+                    <Link
+                      href="/dashboard"
+                      onClick={() => setMobileDrawerOpen(false)}
+                      className="mb-2 flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-slate-800 hover:bg-slate-50"
+                    >
+                      <IconDashboard className="h-5 w-5 text-slate-600" />
+                      我的
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMobileDrawerOpen(false);
+                        void logout();
+                      }}
+                      className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm font-medium text-rose-600 hover:bg-rose-50"
+                    >
+                      <IconLogout className="h-5 w-5" />
+                      退出登录
+                    </button>
+                  </>
+                ) : (
+                  <div className="mt-2 space-y-2 border-t border-slate-100 pt-4">
+                    <Link
+                      href="/login"
+                      onClick={() => setMobileDrawerOpen(false)}
+                      className="flex items-center justify-center gap-2 rounded-xl bg-slate-900 py-3 text-sm font-semibold text-white"
+                    >
+                      <IconLogin className="h-4 w-4" />
+                      登录
+                    </Link>
+                    <Link
+                      href="/signup"
+                      onClick={() => setMobileDrawerOpen(false)}
+                      className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 py-3 text-sm font-semibold text-slate-800"
+                    >
+                      注册
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </motion.aside>
+          </>
+        ) : null}
+      </AnimatePresence>
+
       {!/^\/life-agents\/[^/]+/.test(pathname) && (
         <>
           {/* 中间 FAB 与第 3 列空白对齐：Agent | 消息 | （+） | License | 我的 */}

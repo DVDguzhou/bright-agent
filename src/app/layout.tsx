@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
 import "./globals.css";
 import { Nav } from "@/components/Nav";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -37,7 +38,9 @@ export default function RootLayout({
     <html lang="zh-CN">
       <body className="min-h-screen bg-slate-50 text-slate-900 font-sans antialiased overflow-x-hidden overscroll-x-none">
         <AuthProvider>
-          <Nav />
+          <Suspense fallback={null}>
+            <Nav />
+          </Suspense>
           <main className="container mx-auto px-4 py-3 sm:py-8 max-w-7xl relative z-10 pb-20 lg:pb-8 overflow-x-hidden">{children}</main>
           <RegisterSW />
           <InstallPWA />

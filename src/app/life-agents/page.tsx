@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { RatingStars } from "@/components/RatingStars";
 import { VerificationBadge } from "@/components/VerificationBadge";
@@ -201,7 +202,9 @@ function searchScore(profile: LifeAgentListItem, rawQuery: string) {
   return score;
 }
 
-export default function LifeAgentsPage() {
+function LifeAgentsPageContent() {
+  const searchParams = useSearchParams();
+  const feedTab = searchParams.get("tab");
   const [profiles, setProfiles] = useState<LifeAgentListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
@@ -260,6 +263,19 @@ export default function LifeAgentsPage() {
       })
       .map(({ profile }) => profile);
   }, [profiles, query, selectedCountry, selectedProvince, selectedCity, selectedCounty]);
+
+  const displayProfiles = useMemo(() => {
+    if (feedTab === "following") return [];
+    if (feedTab === "nearby") {
+      return [...filteredProfiles].sort((a, b) => {
+        const ac = a.city?.trim() ? 1 : 0;
+        const bc = b.city?.trim() ? 1 : 0;
+        if (bc !== ac) return bc - ac;
+        return (b.soldQuestionPacks ?? 0) - (a.soldQuestionPacks ?? 0);
+      });
+    }
+    return filteredProfiles;
+  }, [feedTab, filteredProfiles]);
 
   return (
     <div className="-mx-1 space-y-4 pb-4 sm:mx-0 sm:space-y-5">
@@ -372,13 +388,30 @@ export default function LifeAgentsPage() {
       </section>
 
       <section>
-        <div className="mb-3 flex items-center justify-between gap-3 px-1">
+        {feedTab === "following" ? (
+          <div className="mb-3 rounded-xl border border-amber-100 bg-amber-50/90 px-4 py-3 text-sm text-amber-900">
+            <p className="font-medium">关注动态即将上线</p>
+            <p className="mt-1 text-xs text-amber-800/90">关注你喜欢的 Agent 后，将在这里快速找到对方。请先使用「发现」浏览。</p>
+            <Link href="/life-agents" className="mt-3 inline-block text-sm font-semibold text-amber-950 underline-offset-2 hover:underline">
+              返回发现
+            </Link>
+          </div>
+        ) : feedTab === "nearby" ? (
+          <div className="mb-3 rounded-xl border border-sky-100 bg-sky-50/80 px-4 py-2.5 text-xs text-sky-900">
+            <span className="font-medium text-sky-950">附近</span>
+            ：已优先展示填写了城市信息的 Agent；也可展开上方「地区与筛选」进一步缩小范围。
+          </div>
+        ) : null}
+
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-3 px-1">
           <h2 className="text-base font-semibold text-slate-900 sm:text-lg">
-            {UI.sectionTitle}
-            {UI.sectionSubtitle ? <span className="ml-2 font-normal text-slate-500">{UI.sectionSubtitle}</span> : null}
+            {feedTab === "nearby" ? "附近推荐" : UI.sectionTitle}
+            {UI.sectionSubtitle && feedTab !== "nearby" ? (
+              <span className="ml-2 font-normal text-slate-500">{UI.sectionSubtitle}</span>
+            ) : null}
           </h2>
           <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] text-slate-600 sm:text-xs">
-            {loading ? UI.loading : `${filteredProfiles.length}/${profiles.length}${UI.countSuffix}`}
+            {loading ? UI.loading : `${displayProfiles.length}/${profiles.length}${UI.countSuffix}`}
           </span>
         </div>
 
@@ -412,18 +445,22 @@ export default function LifeAgentsPage() {
               </div>
             ))}
           </div>
-        ) : filteredProfiles.length === 0 ? (
+        ) : displayProfiles.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-slate-200 bg-white px-6 py-12 text-center">
             <p className="text-base font-semibold text-slate-900">
-              {loadError ? "加载失败" : UI.emptyTitle}
+              {loadError ? "加载失败" : feedTab === "following" ? "暂无关注内容" : UI.emptyTitle}
             </p>
             <p className="mt-2 text-sm text-slate-500">
-              {loadError ? "请确认 Go 后端已启动（默认端口 8080），或刷新页面重试" : UI.emptySubtitle}
+              {loadError
+                ? "请确认 Go 后端已启动（默认端口 8080），或刷新页面重试"
+                : feedTab === "following"
+                  ? "功能上线后，你关注的 Agent 会出现在这里。"
+                  : UI.emptySubtitle}
             </p>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4 xl:grid-cols-5">
-            {filteredProfiles.map((profile, index) => {
+            {displayProfiles.map((profile, index) => {
               const areaLabel = [profile.city, profile.province].filter(Boolean).join(" · ");
               const tags = (profile.expertiseTags ?? []).slice(0, 2);
               const coverUrl =
@@ -511,5 +548,24 @@ export default function LifeAgentsPage() {
         )}
       </section>
     </div>
+  );
+}
+
+export default function LifeAgentsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="-mx-1 space-y-4 pb-4 sm:mx-0">
+          <div className="h-40 animate-pulse rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/80" />
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="aspect-[4/5] animate-pulse rounded-2xl bg-slate-200/80" />
+            ))}
+          </div>
+        </div>
+      }
+    >
+      <LifeAgentsPageContent />
+    </Suspense>
   );
 }
