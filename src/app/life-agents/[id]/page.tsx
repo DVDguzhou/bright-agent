@@ -6,7 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { RatingStars } from "@/components/RatingStars";
 import { VerificationBadge } from "@/components/VerificationBadge";
-import { resolveLifeAgentCoverUrl } from "@/lib/life-agent-covers";
+import { lifeAgentCoverShouldBypassOptimizer, resolveLifeAgentCoverUrl } from "@/lib/life-agent-covers";
 
 type DetailData = {
   id: string;
@@ -189,10 +189,10 @@ export default function LifeAgentDetailPage() {
             src={heroCoverUrl}
             alt=""
             fill
-            className="object-cover object-[center_20%]"
+            className="object-cover object-center"
             sizes="100vw"
             priority
-            unoptimized={heroCoverUrl.startsWith("/uploads/")}
+            unoptimized={lifeAgentCoverShouldBypassOptimizer(heroCoverUrl)}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
         </div>

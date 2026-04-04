@@ -14,7 +14,6 @@ import {
 } from "@/lib/address-hierarchy";
 import { VoiceRecordPanel } from "@/components/voice";
 import { LifeAgentCoverPicker } from "@/components/LifeAgentCoverPicker";
-import { DEFAULT_COVER_PRESET_KEY } from "@/lib/life-agent-covers";
 
 type KnowledgeEntry = {
   category: string;
@@ -228,7 +227,6 @@ export default function CreateLifeAgentPage() {
   const [sampleQuestionsDraft, setSampleQuestionsDraft] = useState("");
   const [chatFieldIndex, setChatFieldIndex] = useState(0);
   const [voiceSampleBase64, setVoiceSampleBase64] = useState<string | null>(null);
-  const [coverPresetKey, setCoverPresetKey] = useState<string>(DEFAULT_COVER_PRESET_KEY);
   const [coverImageUrl, setCoverImageUrl] = useState("");
   const [voiceSkipped, setVoiceSkipped] = useState(false);
   useEffect(() => {
@@ -648,9 +646,7 @@ export default function CreateLifeAgentPage() {
           tags: tags.length >= 1 ? tags : [e.category],
         };
       }),
-      ...(coverImageUrl.trim()
-        ? { coverImageUrl: coverImageUrl.trim() }
-        : { coverPresetKey: coverPresetKey.trim() || DEFAULT_COVER_PRESET_KEY }),
+      ...(coverImageUrl.trim() ? { coverImageUrl: coverImageUrl.trim() } : {}),
     };
 
     const res = await fetch("/api/life-agents", {
@@ -1271,12 +1267,8 @@ export default function CreateLifeAgentPage() {
             <div className="mx-auto max-w-3xl space-y-6 px-4 py-6 sm:px-6">
           <section className="border-b border-slate-200/80 pb-6">
             <LifeAgentCoverPicker
-              coverPresetKey={coverPresetKey}
               coverImageUrl={coverImageUrl}
-              onChange={({ coverPresetKey: k, coverImageUrl: u }) => {
-                setCoverPresetKey(k || DEFAULT_COVER_PRESET_KEY);
-                setCoverImageUrl(u);
-              }}
+              onChange={(u) => setCoverImageUrl(u)}
               disabled={loading}
             />
           </section>

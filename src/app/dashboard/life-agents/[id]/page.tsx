@@ -8,7 +8,6 @@ import { OFFICIAL_CONTACT } from "@/lib/official-contact";
 import { centsToYuanInput, yuanInputToCents } from "@/lib/price";
 import { VoiceRecordPanel } from "@/components/voice";
 import { LifeAgentCoverPicker } from "@/components/LifeAgentCoverPicker";
-import { DEFAULT_COVER_PRESET_KEY } from "@/lib/life-agent-covers";
 
 type ManageData = {
     profile: {
@@ -145,7 +144,6 @@ export default function LifeAgentManageDetailPage() {
     exampleReply2: "",
     exampleReply3: "",
     published: true,
-    coverPresetKey: DEFAULT_COVER_PRESET_KEY as string,
     coverImageUrl: "",
   });
   const [loading, setLoading] = useState(false);
@@ -194,7 +192,6 @@ export default function LifeAgentManageDetailPage() {
             exampleReply2: Array.isArray(p.exampleReplies) ? p.exampleReplies[1] ?? "" : "",
             exampleReply3: Array.isArray(p.exampleReplies) ? p.exampleReplies[2] ?? "" : "",
             published: p.published,
-            coverPresetKey: p.coverPresetKey?.trim() || DEFAULT_COVER_PRESET_KEY,
             coverImageUrl: p.coverImageUrl ?? "",
           });
         }
@@ -287,9 +284,6 @@ export default function LifeAgentManageDetailPage() {
       forbiddenPhrases: form.forbiddenPhrases.split("\n").map((s) => s.trim()).filter(Boolean),
       exampleReplies,
       coverImageUrl: form.coverImageUrl.trim(),
-      coverPresetKey: form.coverImageUrl.trim()
-        ? ""
-        : form.coverPresetKey.trim() || DEFAULT_COVER_PRESET_KEY,
       ...(voiceSamplePending ? { voiceSampleBase64: voiceSamplePending } : {}),
     };
 
@@ -614,15 +608,8 @@ export default function LifeAgentManageDetailPage() {
         <form onSubmit={submit} className="space-y-6">
           <section className="glass-card p-6">
             <LifeAgentCoverPicker
-              coverPresetKey={form.coverPresetKey}
               coverImageUrl={form.coverImageUrl}
-              onChange={({ coverPresetKey: k, coverImageUrl: u }) => {
-                setForm((prev) => ({
-                  ...prev,
-                  coverPresetKey: k || DEFAULT_COVER_PRESET_KEY,
-                  coverImageUrl: u,
-                }));
-              }}
+              onChange={(u) => setForm((prev) => ({ ...prev, coverImageUrl: u }))}
               disabled={loading}
             />
           </section>

@@ -18,6 +18,14 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ["framer-motion"],
   },
+  async headers() {
+    return [
+      {
+        source: "/life-agent-cover-presets/:path*",
+        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;
