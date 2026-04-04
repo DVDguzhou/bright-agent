@@ -408,8 +408,8 @@ export default function LifeAgentDetailPage() {
       </div>
 
       {/* ===== 底部固定操作栏 ===== */}
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-100 bg-white/95 backdrop-blur-md">
-        <div className="mx-auto flex max-w-2xl items-center gap-3 px-4 py-3 sm:px-6">
+      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-slate-100 bg-white/95 backdrop-blur-md">
+        <div className="mx-auto flex max-w-2xl items-center gap-3 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 sm:px-6">
           <div className="min-w-0 flex-1">
             <p className="text-lg font-bold text-blue-600">
               ¥{(profile.pricePerQuestion / 100).toFixed(2)}

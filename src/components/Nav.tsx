@@ -237,51 +237,73 @@ export function Nav() {
         </div>
       </motion.nav>
 
-      {/* 手机+平板：底部导航栏；电脑端不显示 */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 flex lg:hidden items-center justify-around border-t border-slate-200/90 bg-white supports-[backdrop-filter]:bg-white/95 supports-[backdrop-filter]:backdrop-blur-xl pb-[env(safe-area-inset-bottom)] pt-2">
-        {navLinks.map((link) => {
-          const Icon = link.Icon;
-          const active = pathname === link.href;
-          const showBadge = link.href === "/dashboard/messages" && hasMessages && pathname !== "/dashboard/messages";
-          return (
+      {/* 手机+平板：底部导航栏；Agent 详情/聊天页有专用操作栏时隐藏 */}
+      <div className={`fixed bottom-0 left-0 right-0 z-50 lg:hidden${/^\/life-agents\/[^/]+/.test(pathname) ? " hidden" : ""}`}>
+        {/* 中间凸起的创建按钮 */}
+        <div className="pointer-events-none absolute inset-x-0 -top-5 flex justify-center">
+          <Link
+            href="/life-agents/create"
+            className="pointer-events-auto flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-sky-400 shadow-lg shadow-blue-500/30 ring-4 ring-white transition-transform active:scale-95"
+            aria-label="创建 Agent"
+          >
+            <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+          </Link>
+        </div>
+
+        <div className="flex items-center justify-around border-t border-slate-200/90 bg-white supports-[backdrop-filter]:bg-white/95 supports-[backdrop-filter]:backdrop-blur-xl pb-[env(safe-area-inset-bottom)] pt-2">
+          {navLinks.map((link) => {
+            const Icon = link.Icon;
+            const active = pathname === link.href;
+            const showBadge = link.href === "/dashboard/messages" && hasMessages && pathname !== "/dashboard/messages";
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`relative flex flex-col items-center gap-0.5 px-3 py-2 min-w-0 flex-1 transition-colors ${
+                  active ? "text-blue-600" : "text-slate-400"
+                }`}
+              >
+                <span className="relative inline-flex">
+                  <Icon className={`h-6 w-6 shrink-0 ${active ? "stroke-[2.5]" : ""}`} />
+                  {showBadge && (
+                    <span className="absolute -top-0.5 right-0 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-white" aria-hidden />
+                  )}
+                </span>
+                <span className="text-[11px] font-medium truncate w-full text-center">{link.label}</span>
+              </Link>
+            );
+          })}
+
+          {/* 中间占位，给凸起按钮留空间 */}
+          <div className="flex flex-col items-center gap-0.5 px-3 py-2 min-w-0 flex-1">
+            <div className="h-6 w-6" />
+            <span className="text-[11px] font-medium text-slate-400">创建</span>
+          </div>
+
+          {user ? (
             <Link
-              key={link.href}
-              href={link.href}
-              className={`relative flex flex-col items-center gap-0.5 px-4 py-2 min-w-0 flex-1 transition-colors ${
-                active ? "text-sky-600" : "text-slate-500"
+              href="/dashboard"
+              className={`flex flex-col items-center gap-0.5 px-3 py-2 min-w-0 flex-1 transition-colors ${
+                pathname === "/dashboard" ? "text-blue-600" : "text-slate-400"
               }`}
             >
-              <span className="relative inline-flex">
-                <Icon className={`h-6 w-6 shrink-0 ${active ? "stroke-[2.5]" : ""}`} />
-                {showBadge && (
-                  <span className="absolute -top-0.5 right-0 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-white" aria-hidden />
-                )}
-              </span>
-              <span className="text-[11px] font-medium truncate w-full text-center">{link.label}</span>
+              <IconDashboard className={`h-6 w-6 shrink-0 ${pathname === "/dashboard" ? "stroke-[2.5]" : ""}`} />
+              <span className="text-[11px] font-medium">我的</span>
             </Link>
-          );
-        })}
-        {user ? (
-          <Link
-            href="/dashboard"
-            className={`flex flex-col items-center gap-0.5 px-4 py-2 min-w-0 flex-1 transition-colors ${
-              pathname === "/dashboard" ? "text-sky-600" : "text-slate-500"
-            }`}
-          >
-            <IconDashboard className={`h-6 w-6 shrink-0 ${pathname === "/dashboard" ? "stroke-[2.5]" : ""}`} />
-            <span className="text-[11px] font-medium">我的</span>
-          </Link>
-        ) : (
-          <Link
-            href="/login"
-            className={`flex flex-col items-center gap-0.5 px-4 py-2 min-w-0 flex-1 transition-colors ${
-              pathname === "/login" ? "text-sky-600" : "text-slate-500"
-            }`}
-          >
-            <IconLogin className={`h-6 w-6 shrink-0 ${pathname === "/login" ? "stroke-[2.5]" : ""}`} />
-            <span className="text-[11px] font-medium">登录</span>
-          </Link>
-        )}
+          ) : (
+            <Link
+              href="/login"
+              className={`flex flex-col items-center gap-0.5 px-3 py-2 min-w-0 flex-1 transition-colors ${
+                pathname === "/login" ? "text-blue-600" : "text-slate-400"
+              }`}
+            >
+              <IconLogin className={`h-6 w-6 shrink-0 ${pathname === "/login" ? "stroke-[2.5]" : ""}`} />
+              <span className="text-[11px] font-medium">登录</span>
+            </Link>
+          )}
+        </div>
       </div>
     </>
   );
