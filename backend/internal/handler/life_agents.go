@@ -38,6 +38,38 @@ func coalesceVerificationStatus(v string) string {
 	}
 }
 
+// 与前端 public/life-agent-cover-presets/*.png 一致
+var allowedLifeAgentCoverPresets = map[string]struct{}{
+	"01-student-panda":   {},
+	"02-robot-pro":       {},
+	"03-scholar-owl":     {},
+	"04-social-fox":      {},
+	"05-achiever-dino":   {},
+	"06-wellness-cloud":  {},
+	"07-city-bear":       {},
+	"08-service-dog":     {},
+}
+
+func validateLifeAgentCoverImageURL(u string) bool {
+	if u == "" || len(u) > 512 {
+		return false
+	}
+	if !strings.HasPrefix(u, "/") || strings.Contains(u, "..") {
+		return false
+	}
+	return strings.HasPrefix(u, "/uploads/life-agent-covers/") || strings.HasPrefix(u, "/life-agent-cover-presets/")
+}
+
+func lifeAgentCoverURL(p *models.LifeAgentProfile) string {
+	if p.CoverImageURL != nil && strings.TrimSpace(*p.CoverImageURL) != "" {
+		return strings.TrimSpace(*p.CoverImageURL)
+	}
+	if p.CoverPresetKey != nil && strings.TrimSpace(*p.CoverPresetKey) != "" {
+		return "/life-agent-cover-presets/" + strings.TrimSpace(*p.CoverPresetKey) + ".png"
+	}
+	return ""
+}
+
 func buildLifeAgentRatingState(profileID, buyerID string) gin.H {
 	var usedQuestions int
 	db.DB.Raw(
@@ -199,6 +231,7 @@ func LifeAgentsList(cfg *config.Config) gin.HandlerFunc {
 		for _, p := range profiles {
 			u := userMap[p.UserID]
 			ratingsSummary := ratingMap[p.ID]
+			cu := lifeAgentCoverURL(&p)
 			resp = append(resp, gin.H{
 				"id":                 p.ID,
 				"displayName":        p.DisplayName,
@@ -224,6 +257,9 @@ func LifeAgentsList(cfg *config.Config) gin.HandlerFunc {
 				"soldQuestionPacks":  qpMap[p.ID],
 				"sessionCount":       sessMap[p.ID],
 				"ratings":            ratingsSummary,
+				"coverImageUrl":      ptrStr(p.CoverImageURL),
+				"coverPresetKey":     ptrStr(p.CoverPresetKey),
+				"coverUrl":           cu,
 			})
 		}
 		c.JSON(http.StatusOK, resp)
@@ -265,6 +301,8 @@ func LifeAgentsCreate(cfg *config.Config) gin.HandlerFunc {
 			NotSuitableFor     string   `json:"notSuitableFor"`
 			VerificationStatus string   `json:"verificationStatus"` // none, pending, verified
 			VoiceSampleBase64  string   `json:"voiceSampleBase64"`  // 音色采集音频 base64
+			CoverPresetKey     string   `json:"coverPresetKey"`
+			CoverImageURL      string   `json:"coverImageUrl"`
 			KnowledgeEntries   []struct {
 				Category string   `json:"category" binding:"required"`
 				Title    string   `json:"title" binding:"required"`
@@ -312,6 +350,25 @@ func LifeAgentsCreate(cfg *config.Config) gin.HandlerFunc {
 				}
 			}
 		}
+		var coverImgPtr *string
+		if u := strings.TrimSpace(body.CoverImageURL); u != "" {
+			if !validateLifeAgentCoverImageURL(u) {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "VALIDATION_ERROR", "detail": "invalid coverImageUrl"})
+				return
+			}
+			coverImgPtr = &u
+		}
+		var coverPresetPtr *string
+		if k := strings.TrimSpace(body.CoverPresetKey); k != "" {
+			if _, ok := allowedLifeAgentCoverPresets[k]; !ok {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "VALIDATION_ERROR", "detail": "invalid coverPresetKey"})
+				return
+			}
+			coverPresetPtr = &k
+		}
+		if coverImgPtr != nil {
+			coverPresetPtr = nil
+		}
 		p := models.LifeAgentProfile{
 			ID:                 profileID,
 			UserID:             user.ID,
@@ -342,6 +399,8 @@ func LifeAgentsCreate(cfg *config.Config) gin.HandlerFunc {
 			NotSuitableFor:     strOpt(body.NotSuitableFor),
 			VerificationStatus: coalesceVerificationStatus(body.VerificationStatus),
 			VoiceCloneID:       voiceClonePtr,
+			CoverImageURL:      coverImgPtr,
+			CoverPresetKey:     coverPresetPtr,
 			Published:          true,
 		}
 		if err := db.DB.Create(&p).Error; err != nil {
@@ -637,6 +696,7 @@ func LifeAgentsGet(cfg *config.Config) gin.HandlerFunc {
 		db.DB.Model(&models.LifeAgentQuestionPack{}).Where("profile_id = ?", id).Count(&qpCount)
 		ratingsSummary := buildLifeAgentRatingsSummary(id, 5)
 
+		cu := lifeAgentCoverURL(&p)
 		c.JSON(http.StatusOK, gin.H{
 			"id":                 p.ID,
 			"displayName":        p.DisplayName,
@@ -675,6 +735,9 @@ func LifeAgentsGet(cfg *config.Config) gin.HandlerFunc {
 			},
 			"ratings":       ratingsSummary,
 			"hasVoiceClone": cfg.VoiceReplyConfigured(ptrStr(p.VoiceCloneID)),
+			"coverImageUrl":  ptrStr(p.CoverImageURL),
+			"coverPresetKey": ptrStr(p.CoverPresetKey),
+			"coverUrl":       cu,
 			"viewerState": gin.H{
 				"isLoggedIn":         user != nil,
 				"isOwner":            user != nil && user.ID == p.UserID,
@@ -737,6 +800,8 @@ func LifeAgentsUpdate(cfg *config.Config) gin.HandlerFunc {
 				Tags     []string `json:"tags"`
 			} `json:"knowledgeEntries"`
 			VoiceSampleBase64 *string `json:"voiceSampleBase64"`
+			CoverPresetKey    *string `json:"coverPresetKey"`
+			CoverImageURL     *string `json:"coverImageUrl"`
 		}
 		if err := c.ShouldBindJSON(&body); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "VALIDATION_ERROR"})
@@ -829,6 +894,35 @@ func LifeAgentsUpdate(cfg *config.Config) gin.HandlerFunc {
 		if body.ExampleReplies != nil {
 			upd.Update("example_replies", models.JSONArray(body.ExampleReplies))
 		}
+		coverUpdates := map[string]interface{}{}
+		if body.CoverImageURL != nil {
+			s := strings.TrimSpace(*body.CoverImageURL)
+			if s == "" {
+				coverUpdates["cover_image_url"] = nil
+			} else if validateLifeAgentCoverImageURL(s) {
+				coverUpdates["cover_image_url"] = s
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "VALIDATION_ERROR"})
+				return
+			}
+		}
+		if body.CoverPresetKey != nil {
+			s := strings.TrimSpace(*body.CoverPresetKey)
+			if s == "" {
+				coverUpdates["cover_preset_key"] = nil
+			} else if _, ok := allowedLifeAgentCoverPresets[s]; ok {
+				coverUpdates["cover_preset_key"] = s
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "VALIDATION_ERROR"})
+				return
+			}
+		}
+		if len(coverUpdates) > 0 {
+			if err := db.DB.Model(&p).Updates(coverUpdates).Error; err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "INTERNAL_ERROR"})
+				return
+			}
+		}
 		if body.KnowledgeEntries != nil {
 			db.DB.Where("profile_id = ?", id).Delete(&models.LifeAgentKnowledgeEntry{})
 			for i, e := range *body.KnowledgeEntries {
@@ -904,6 +998,9 @@ func LifeAgentsUpdate(cfg *config.Config) gin.HandlerFunc {
 			"voiceCloneId":     ptrStr(p.VoiceCloneID),
 			"hasVoiceClone":     cfg.VoiceReplyConfigured(ptrStr(p.VoiceCloneID)),
 			"published":        p.Published,
+			"coverImageUrl":    ptrStr(p.CoverImageURL),
+			"coverPresetKey":   ptrStr(p.CoverPresetKey),
+			"coverUrl":         lifeAgentCoverURL(&p),
 		})
 	}
 }
@@ -1105,6 +1202,9 @@ func buildManageProfileResp(p *models.LifeAgentProfile, entries []models.LifeAge
 		"notSuitableFor":   ptrStr(p.NotSuitableFor),
 		"published":        p.Published,
 		"knowledgeEntries": keList,
+		"coverImageUrl":    ptrStr(p.CoverImageURL),
+		"coverPresetKey":   ptrStr(p.CoverPresetKey),
+		"coverUrl":         lifeAgentCoverURL(p),
 	}
 }
 
@@ -1232,6 +1332,9 @@ func LifeAgentsManage(cfg *config.Config) gin.HandlerFunc {
 				"knowledgeEntries":   entries,
 				"voiceCloneId":       ptrStr(p.VoiceCloneID),
 				"hasVoiceClone":      cfg.VoiceReplyConfigured(ptrStr(p.VoiceCloneID)),
+				"coverImageUrl":      ptrStr(p.CoverImageURL),
+				"coverPresetKey":     ptrStr(p.CoverPresetKey),
+				"coverUrl":           lifeAgentCoverURL(&p),
 			},
 			"stats": gin.H{
 				"totalRevenue": totalRevenue,

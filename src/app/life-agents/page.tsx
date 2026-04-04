@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { RatingStars } from "@/components/RatingStars";
@@ -12,6 +12,8 @@ import {
   getCountyOptionsForFilter as getCountyOptions,
   getProvinceOptionsForFilter as getProvinceOptions,
 } from "@/lib/address-hierarchy";
+import Image from "next/image";
+import { resolveLifeAgentCoverUrl } from "@/lib/life-agent-covers";
 
 type LifeAgentListItem = {
   id: string;
@@ -43,6 +45,9 @@ type LifeAgentListItem = {
   creator: {
     name: string | null;
   };
+  coverUrl?: string;
+  coverImageUrl?: string;
+  coverPresetKey?: string;
 };
 
 const UI = {
@@ -109,9 +114,63 @@ function hueFromId(id: string) {
   return h;
 }
 
-function coverAspectClass(index: number) {
-  const aspects = ["aspect-[4/5]", "aspect-[3/4]", "aspect-[5/6]"] as const;
-  return aspects[index % aspects.length];
+/** 无真实封面图时的统一占位：渐变 + 点阵/网格 + 大号首字，不依赖用户摄影素材 */
+function AgentCoverPlaceholder({
+  id,
+  displayName,
+  headline,
+  hue,
+  hue2,
+  badge,
+}: {
+  id: string;
+  displayName: string;
+  headline: string;
+  hue: number;
+  hue2: number;
+  badge?: ReactNode;
+}) {
+  const pid = id.replace(/[^a-z0-9]/gi, "").slice(0, 16) || "p";
+  const initial = (displayName || UI.anonymous).slice(0, 1);
+  return (
+    <div
+      className="relative aspect-[4/5] w-full shrink-0 overflow-hidden"
+      style={{
+        background: `linear-gradient(145deg, hsl(${hue} 72% 88%), hsl(${hue2} 65% 78%) 55%, hsl(${hue} 55% 70%))`,
+      }}
+    >
+      <svg className="pointer-events-none absolute inset-0 h-full w-full text-white/30" aria-hidden>
+        <defs>
+          <pattern id={`la-dots-${pid}`} width="14" height="14" patternUnits="userSpaceOnUse">
+            <circle cx="2.2" cy="2.2" r="1" fill="currentColor" />
+          </pattern>
+          <pattern id={`la-grid-${pid}`} width="24" height="24" patternUnits="userSpaceOnUse">
+            <path d="M 24 0 L 0 0 0 24" fill="none" stroke="currentColor" strokeWidth="0.35" opacity="0.5" />
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill={`url(#la-dots-${pid})`} opacity="0.55" />
+        <rect width="100%" height="100%" fill={`url(#la-grid-${pid})`} opacity="0.4" />
+      </svg>
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.16]"
+        style={{
+          backgroundImage: `radial-gradient(circle at 28% 16%, white, transparent 48%), radial-gradient(circle at 85% 55%, hsl(${hue2} 35% 35%), transparent 40%)`,
+        }}
+      />
+      <span
+        className="pointer-events-none absolute left-1/2 top-[38%] -translate-x-1/2 -translate-y-1/2 select-none text-[clamp(3rem,18vw,5rem)] font-black leading-none tracking-tight text-white/25 sm:text-[clamp(3.25rem,11vw,4.25rem)]"
+        aria-hidden
+      >
+        {initial}
+      </span>
+      <div className="absolute inset-x-0 bottom-0 flex items-end bg-gradient-to-t from-black/45 via-black/15 to-transparent p-2.5 pt-12">
+        <span className="line-clamp-2 text-[13px] font-semibold leading-snug text-white drop-shadow-md">
+          {headline}
+        </span>
+      </div>
+      {badge ? <div className="absolute right-2 top-2">{badge}</div> : null}
+    </div>
+  );
 }
 
 function normalizeSearchText(value: string) {
@@ -404,17 +463,21 @@ export default function LifeAgentsPage() {
           </div>
         )}
         {loading ? (
-          <div
-            className="columns-2 gap-x-2 sm:columns-3 sm:gap-x-3 lg:columns-4 xl:columns-5 [&>*]:mb-2 sm:[&>*]:mb-3"
-            style={{ columnGap: "0.625rem" }}
-          >
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4 xl:grid-cols-5">
             {[1, 2, 3, 4, 5, 6].map((item) => (
               <div
                 key={item}
-                className={`break-inside-avoid overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/60 ${
-                  item % 3 === 0 ? "aspect-[5/7]" : item % 3 === 1 ? "aspect-[4/5]" : "aspect-[3/4]"
-                } animate-pulse bg-gradient-to-br from-slate-100 to-slate-200/80`}
-              />
+                className="flex min-h-0 flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/60"
+              >
+                <div className="aspect-[4/5] w-full shrink-0 animate-pulse bg-gradient-to-br from-slate-100 to-slate-200/90" />
+                <div className="flex flex-1 flex-col gap-2 p-2.5">
+                  <div className="min-h-[2.75rem] animate-pulse rounded-md bg-slate-100" />
+                  <div className="h-3 w-2/3 animate-pulse rounded bg-slate-100" />
+                  <div className="h-4 animate-pulse rounded bg-slate-50" />
+                  <div className="h-6 animate-pulse rounded bg-slate-50" />
+                  <div className="min-h-[1.375rem] animate-pulse rounded bg-slate-100" />
+                </div>
+              </div>
             ))}
           </div>
         ) : filteredProfiles.length === 0 ? (
@@ -427,54 +490,70 @@ export default function LifeAgentsPage() {
             </p>
           </div>
         ) : (
-          <div
-            className="columns-2 gap-x-2 sm:columns-3 sm:gap-x-3 lg:columns-4 xl:columns-5 [&>*]:mb-2 sm:[&>*]:mb-3"
-            style={{ columnGap: "0.625rem" }}
-          >
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4 xl:grid-cols-5">
             {filteredProfiles.map((profile, index) => {
               const h = hueFromId(profile.id);
               const h2 = (h + 48) % 360;
               const areaLabel = [profile.city, profile.province].filter(Boolean).join(" · ");
+              const tags = (profile.expertiseTags ?? []).slice(0, 2);
+              const coverUrl =
+                profile.coverUrl ||
+                resolveLifeAgentCoverUrl(profile.coverImageUrl, profile.coverPresetKey) ||
+                null;
               return (
                 <motion.article
                   key={profile.id}
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index < 8 ? index * 0.04 : 0 }}
-                  className="break-inside-avoid"
+                  className="min-h-0"
                 >
-                  <Link href={"/life-agents/" + profile.id} className="group block">
-                    <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/70 transition duration-200 group-hover:shadow-md group-hover:ring-rose-200/60">
-                      <div
-                        className={`relative w-full overflow-hidden ${coverAspectClass(index)}`}
-                        style={{
-                          background: `linear-gradient(145deg, hsl(${h} 72% 88%), hsl(${h2} 65% 78%) 55%, hsl(${h} 55% 70%))`,
-                        }}
-                      >
-                        <div
-                          className="absolute inset-0 opacity-[0.15]"
-                          style={{
-                            backgroundImage: `radial-gradient(circle at 30% 20%, white, transparent 50%), radial-gradient(circle at 80% 60%, hsl(${h2} 40% 40%), transparent 45%)`,
-                          }}
-                        />
-                        <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 bg-gradient-to-t from-black/35 via-black/10 to-transparent p-2.5 pt-12">
-                          <span className="line-clamp-2 text-[13px] font-semibold leading-snug text-white drop-shadow-sm">
-                            {profile.headline}
-                          </span>
-                        </div>
-                        {(profile.verificationStatus === "verified" || profile.verificationStatus === "pending") && (
-                          <div className="absolute right-2 top-2 rounded-full bg-white/90 px-1.5 py-0.5 shadow-sm backdrop-blur-sm">
-                            <VerificationBadge status={profile.verificationStatus ?? "none"} size="sm" />
+                  <Link href={"/life-agents/" + profile.id} className="group flex h-full min-h-0">
+                    <div className="flex h-full min-h-[280px] w-full flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/70 transition duration-200 group-hover:shadow-md group-hover:ring-rose-200/60 sm:min-h-[300px]">
+                      {coverUrl ? (
+                        <div className="relative aspect-[4/5] w-full shrink-0 overflow-hidden bg-slate-100">
+                          <Image
+                            src={coverUrl}
+                            alt=""
+                            fill
+                            className="object-cover"
+                            sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 220px"
+                            unoptimized={coverUrl.startsWith("/uploads/")}
+                          />
+                          {(profile.verificationStatus === "verified" || profile.verificationStatus === "pending") && (
+                            <div className="absolute right-2 top-2 rounded-full bg-white/90 px-1.5 py-0.5 shadow-sm backdrop-blur-sm">
+                              <VerificationBadge status={profile.verificationStatus ?? "none"} size="sm" />
+                            </div>
+                          )}
+                          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/45 via-black/15 to-transparent p-2.5 pt-12">
+                            <span className="line-clamp-2 text-[13px] font-semibold leading-snug text-white drop-shadow-md">
+                              {profile.headline}
+                            </span>
                           </div>
-                        )}
-                      </div>
-                      <div className="space-y-1.5 p-2.5 sm:p-3">
-                        <h3 className="line-clamp-2 text-[13px] font-semibold leading-snug text-slate-900 sm:text-sm">
+                        </div>
+                      ) : (
+                        <AgentCoverPlaceholder
+                          id={profile.id}
+                          displayName={profile.displayName}
+                          headline={profile.headline}
+                          hue={h}
+                          hue2={h2}
+                          badge={
+                            profile.verificationStatus === "verified" || profile.verificationStatus === "pending" ? (
+                              <div className="rounded-full bg-white/90 px-1.5 py-0.5 shadow-sm backdrop-blur-sm">
+                                <VerificationBadge status={profile.verificationStatus ?? "none"} size="sm" />
+                              </div>
+                            ) : undefined
+                          }
+                        />
+                      )}
+                      <div className="flex min-h-0 flex-1 flex-col px-2.5 pb-2.5 pt-2 sm:p-3">
+                        <h3 className="line-clamp-2 min-h-[2.75rem] text-[13px] font-semibold leading-snug text-slate-900 sm:text-sm">
                           {profile.displayName}
                         </h3>
-                        {areaLabel ? (
-                          <p className="line-clamp-1 text-[11px] text-slate-400">{areaLabel}</p>
-                        ) : null}
+                        <p className="line-clamp-1 min-h-[1.125rem] text-[11px] text-slate-400">
+                          {areaLabel || "\u00a0"}
+                        </p>
                         <div className="flex items-center justify-between gap-2 pt-0.5">
                           <div className="flex min-w-0 items-center gap-1 text-[11px] text-slate-500">
                             <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-200/90 text-[10px] font-bold text-slate-600">
@@ -498,18 +577,17 @@ export default function LifeAgentsPage() {
                             <span className="text-slate-400">· {profile.ratings.raters} 人评</span>
                           ) : null}
                         </div>
-                        {(profile.expertiseTags ?? []).length > 0 ? (
-                          <div className="flex flex-wrap gap-1">
-                            {(profile.expertiseTags ?? []).slice(0, 2).map((tag: string) => (
-                              <span
-                                key={tag}
-                                className="rounded-md bg-rose-50 px-1.5 py-0.5 text-[10px] font-medium text-rose-600/90"
-                              >
-                                {tag}
-                              </span>
-                            ))}
-                          </div>
-                        ) : null}
+                        <div className="flex-1" aria-hidden />
+                        <div className="flex min-h-[1.375rem] flex-wrap content-end gap-1">
+                          {tags.map((tag: string) => (
+                            <span
+                              key={tag}
+                              className="rounded-md bg-rose-50 px-1.5 py-0.5 text-[10px] font-medium text-rose-600/90"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   </Link>

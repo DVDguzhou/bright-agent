@@ -3,8 +3,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { RatingStars } from "@/components/RatingStars";
 import { VerificationBadge } from "@/components/VerificationBadge";
+import { resolveLifeAgentCoverUrl } from "@/lib/life-agent-covers";
 
 type DetailData = {
   id: string;
@@ -61,6 +63,9 @@ type DetailData = {
     isOwner: boolean;
     remainingQuestions: number;
   };
+  coverUrl?: string;
+  coverImageUrl?: string;
+  coverPresetKey?: string;
 };
 
 const MIN_QUESTIONS = 1;
@@ -118,6 +123,9 @@ export default function LifeAgentDetailPage() {
     return (profile.pricePerQuestion * count) / 100;
   }, [profile, questionCount]);
   const averageScore = profile?.ratings?.averageScore ?? 0;
+  const heroCoverUrl = profile
+    ? profile.coverUrl || resolveLifeAgentCoverUrl(profile.coverImageUrl, profile.coverPresetKey)
+    : null;
 
   const purchase = async () => {
     if (!profile) return;
@@ -174,6 +182,21 @@ export default function LifeAgentDetailPage() {
       <Link href="/life-agents" className="text-sm text-slate-500 hover:text-sky-700">
         ← 返回人生 Agent 列表
       </Link>
+
+      {heroCoverUrl ? (
+        <div className="relative -mx-1 aspect-[21/9] max-h-56 overflow-hidden rounded-2xl bg-slate-100 sm:mx-0 sm:max-h-64">
+          <Image
+            src={heroCoverUrl}
+            alt=""
+            fill
+            className="object-cover object-[center_20%]"
+            sizes="100vw"
+            priority
+            unoptimized={heroCoverUrl.startsWith("/uploads/")}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+        </div>
+      ) : null}
 
       {voiceEnrollBanner === "warn" && profile.viewerState.isOwner && (
         <div

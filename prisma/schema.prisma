@@ -242,6 +242,8 @@ model LifeAgentProfile {
   job              String?  @map("job")         // 工作
   school           String?  @map("school")      // 学校
   voiceCloneId     String?  @map("voice_clone_id") @db.VarChar(128) // 百炼系统音色或声音复刻 voice id
+  coverImageUrl    String?  @map("cover_image_url") @db.VarChar(512)
+  coverPresetKey   String?  @map("cover_preset_key") @db.VarChar(64)
   published        Boolean  @default(true)
   createdAt        DateTime @default(now()) @map("created_at")
   updatedAt        DateTime @updatedAt @map("updated_at")

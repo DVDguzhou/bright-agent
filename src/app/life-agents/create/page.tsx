@@ -13,6 +13,8 @@ import {
   getCountyOptionsForCreate,
 } from "@/lib/address-hierarchy";
 import { VoiceRecordPanel } from "@/components/voice";
+import { LifeAgentCoverPicker } from "@/components/LifeAgentCoverPicker";
+import { DEFAULT_COVER_PRESET_KEY } from "@/lib/life-agent-covers";
 
 type KnowledgeEntry = {
   category: string;
@@ -226,6 +228,8 @@ export default function CreateLifeAgentPage() {
   const [sampleQuestionsDraft, setSampleQuestionsDraft] = useState("");
   const [chatFieldIndex, setChatFieldIndex] = useState(0);
   const [voiceSampleBase64, setVoiceSampleBase64] = useState<string | null>(null);
+  const [coverPresetKey, setCoverPresetKey] = useState<string>(DEFAULT_COVER_PRESET_KEY);
+  const [coverImageUrl, setCoverImageUrl] = useState("");
   const [voiceSkipped, setVoiceSkipped] = useState(false);
   useEffect(() => {
     fetch("/api/auth/me", { credentials: "include" })
@@ -644,6 +648,9 @@ export default function CreateLifeAgentPage() {
           tags: tags.length >= 1 ? tags : [e.category],
         };
       }),
+      ...(coverImageUrl.trim()
+        ? { coverImageUrl: coverImageUrl.trim() }
+        : { coverPresetKey: coverPresetKey.trim() || DEFAULT_COVER_PRESET_KEY }),
     };
 
     const res = await fetch("/api/life-agents", {
@@ -1262,6 +1269,18 @@ export default function CreateLifeAgentPage() {
         <form onSubmit={submit} className="flex min-h-0 flex-1 flex-col">
           <div className="flex-1 overflow-y-auto">
             <div className="mx-auto max-w-3xl space-y-6 px-4 py-6 sm:px-6">
+          <section className="border-b border-slate-200/80 pb-6">
+            <LifeAgentCoverPicker
+              coverPresetKey={coverPresetKey}
+              coverImageUrl={coverImageUrl}
+              onChange={({ coverPresetKey: k, coverImageUrl: u }) => {
+                setCoverPresetKey(k || DEFAULT_COVER_PRESET_KEY);
+                setCoverImageUrl(u);
+              }}
+              disabled={loading}
+            />
+          </section>
+
           <section className="border-b border-slate-200/80 pb-6">
             <h2 className="text-xl font-semibold text-slate-900">设置收费</h2>
             <div className="mt-5 max-w-sm">
