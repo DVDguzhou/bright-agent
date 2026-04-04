@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -82,6 +83,11 @@ export default function LifeAgentDetailPage() {
   const [message, setMessage] = useState("");
   const [showPurchase, setShowPurchase] = useState(false);
   const [voiceEnrollBanner, setVoiceEnrollBanner] = useState<"warn" | null>(null);
+  const [portalReady, setPortalReady] = useState(false);
+
+  useEffect(() => {
+    setPortalReady(true);
+  }, []);
 
   const questionCount = useMemo(() => {
     const n = parseInt(questionCountInput, 10);
@@ -366,54 +372,68 @@ export default function LifeAgentDetailPage() {
 
       </div>
 
-      {/* ===== 购买面板（Bottom Sheet 浮层） ===== */}
-      {showPurchase && (
-        <>
-          <div className="fixed inset-0 z-[60] bg-black/40" onClick={() => setShowPurchase(false)} />
-          <div className="fixed inset-x-0 bottom-0 z-[70] rounded-t-2xl bg-white px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-5 shadow-2xl">
-            <div className="flex items-center justify-between">
-              <h2 className="text-base font-semibold text-slate-900">购买提问次数</h2>
-              <button onClick={() => setShowPurchase(false)} className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 text-slate-400 hover:text-slate-600">
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
+      {/* 购买面板挂到 body，避免被 main z-10 压在全局底栏下面 */}
+      {portalReady &&
+        showPurchase &&
+        createPortal(
+          <>
+            <div
+              className="fixed inset-0 z-[200] bg-black/40"
+              aria-hidden
+              onClick={() => setShowPurchase(false)}
+            />
+            <div className="fixed inset-x-0 bottom-0 z-[210] max-h-[85vh] overflow-y-auto rounded-t-2xl bg-white px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-5 shadow-2xl">
+              <div className="flex items-center justify-between">
+                <h2 className="text-base font-semibold text-slate-900">购买提问次数</h2>
+                <button
+                  type="button"
+                  onClick={() => setShowPurchase(false)}
+                  className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 text-slate-400 hover:text-slate-600"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <p className="mt-1 text-xs text-slate-400">
+                1–500 次，按次收费，每次 ¥{(profile.pricePerQuestion / 100).toFixed(2)}
+              </p>
+              <div className="mt-4 flex items-end gap-4">
+                <div className="flex-1">
+                  <label className="mb-1.5 block text-xs font-medium text-slate-500">购买次数</label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={MAX_QUESTIONS}
+                    value={questionCountInput}
+                    onChange={(e) => setQuestionCountInput(e.target.value)}
+                    placeholder="输入次数"
+                    autoFocus
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-base outline-none focus:border-blue-400 focus:bg-white"
+                  />
+                </div>
+                <div className="shrink-0 pb-1 text-right">
+                  <p className="text-xs text-slate-400">合计</p>
+                  <p className="text-2xl font-bold text-blue-600">¥{totalPrice.toFixed(2)}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={purchase}
+                disabled={purchasing || questionCount < MIN_QUESTIONS}
+                className="mt-5 w-full rounded-xl bg-blue-600 py-3.5 text-sm font-semibold text-white transition hover:bg-blue-700 active:bg-blue-800 disabled:opacity-50"
+              >
+                {purchasing
+                  ? "购买中..."
+                  : questionCount >= MIN_QUESTIONS
+                    ? `确认购买 ${Math.min(MAX_QUESTIONS, questionCount)} 次`
+                    : "请输入购买次数"}
               </button>
+              {message ? <p className="mt-3 text-center text-sm text-blue-600">{message}</p> : null}
             </div>
-            <p className="mt-1 text-xs text-slate-400">1–500 次，按次收费，每次 ¥{(profile.pricePerQuestion / 100).toFixed(2)}</p>
-            <div className="mt-4 flex items-end gap-4">
-              <div className="flex-1">
-                <label className="mb-1.5 block text-xs font-medium text-slate-500">购买次数</label>
-                <input
-                  type="number"
-                  min={0}
-                  max={MAX_QUESTIONS}
-                  value={questionCountInput}
-                  onChange={(e) => setQuestionCountInput(e.target.value)}
-                  placeholder="输入次数"
-                  autoFocus
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-base outline-none focus:border-blue-400 focus:bg-white"
-                />
-              </div>
-              <div className="shrink-0 pb-1 text-right">
-                <p className="text-xs text-slate-400">合计</p>
-                <p className="text-2xl font-bold text-blue-600">¥{totalPrice.toFixed(2)}</p>
-              </div>
-            </div>
-            <button
-              onClick={purchase}
-              disabled={purchasing || questionCount < MIN_QUESTIONS}
-              className="mt-5 w-full rounded-xl bg-blue-600 py-3.5 text-sm font-semibold text-white transition hover:bg-blue-700 active:bg-blue-800 disabled:opacity-50"
-            >
-              {purchasing
-                ? "购买中..."
-                : questionCount >= MIN_QUESTIONS
-                  ? `确认购买 ${Math.min(MAX_QUESTIONS, questionCount)} 次`
-                  : "请输入购买次数"}
-            </button>
-            {message && <p className="mt-3 text-center text-sm text-blue-600">{message}</p>}
-          </div>
-        </>
-      )}
+          </>,
+          document.body
+        )}
 
       {/* ===== 底部固定操作栏 ===== */}
       <div className="fixed inset-x-0 bottom-0 z-50 border-t border-slate-100 bg-white/95 backdrop-blur-md">

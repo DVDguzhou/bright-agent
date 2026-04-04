@@ -240,7 +240,7 @@ export function Nav() {
       {/* 手机+平板：底部导航栏；Agent 详情/聊天页有专用操作栏时隐藏 */}
       {!/^\/life-agents\/[^/]+/.test(pathname) && (
         <>
-          {/* 中间凸起的创建按钮（独立 fixed 层，避免被遮挡） */}
+          {/* 中间凸起与第 3 列「创建」对齐：Agent | 消息 | 创建 | License | 我的 */}
           <Link
             href="/life-agents/create"
             className="fixed bottom-[calc(env(safe-area-inset-bottom)+2.25rem)] left-1/2 z-[60] flex h-12 w-12 -translate-x-1/2 lg:hidden items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-sky-400 shadow-lg shadow-blue-500/30 ring-4 ring-white transition-transform active:scale-95"
@@ -251,35 +251,51 @@ export function Nav() {
             </svg>
           </Link>
 
-          <div className="fixed bottom-0 left-0 right-0 z-50 flex lg:hidden items-center justify-around border-t border-slate-200/90 bg-white supports-[backdrop-filter]:bg-white/95 supports-[backdrop-filter]:backdrop-blur-xl pb-[env(safe-area-inset-bottom)] pt-2">
-            {navLinks.map((link) => {
-              const Icon = link.Icon;
-              const active = pathname === link.href;
-              const showBadge = link.href === "/dashboard/messages" && hasMessages && pathname !== "/dashboard/messages";
+          <div className="fixed bottom-0 left-0 right-0 z-50 flex lg:hidden items-end justify-around border-t border-slate-200/90 bg-white supports-[backdrop-filter]:bg-white/95 supports-[backdrop-filter]:backdrop-blur-xl pb-[env(safe-area-inset-bottom)] pt-2">
+            {(() => {
+              const [lifeAgentsLink, messagesLink, licenseLink] = navLinks;
+              const renderTab = (
+                link: (typeof navLinks)[number],
+                showBadge: boolean
+              ) => {
+                const Icon = link.Icon;
+                const active = pathname === link.href;
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className={`relative flex min-w-0 flex-1 flex-col items-center gap-0.5 px-2 py-2 transition-colors ${
+                      active ? "text-blue-600" : "text-slate-400"
+                    }`}
+                  >
+                    <span className="relative inline-flex">
+                      <Icon className={`h-6 w-6 shrink-0 ${active ? "stroke-[2.5]" : ""}`} />
+                      {showBadge && (
+                        <span className="absolute -top-0.5 right-0 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-white" aria-hidden />
+                      )}
+                    </span>
+                    <span className="w-full truncate text-center text-[11px] font-medium">{link.label}</span>
+                  </Link>
+                );
+              };
               return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={`relative flex flex-col items-center gap-0.5 px-3 py-2 min-w-0 flex-1 transition-colors ${
-                    active ? "text-blue-600" : "text-slate-400"
-                  }`}
-                >
-                  <span className="relative inline-flex">
-                    <Icon className={`h-6 w-6 shrink-0 ${active ? "stroke-[2.5]" : ""}`} />
-                    {showBadge && (
-                      <span className="absolute -top-0.5 right-0 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-white" aria-hidden />
-                    )}
-                  </span>
-                  <span className="text-[11px] font-medium truncate w-full text-center">{link.label}</span>
-                </Link>
+                <>
+                  {renderTab(
+                    lifeAgentsLink,
+                    false
+                  )}
+                  {renderTab(
+                    messagesLink,
+                    hasMessages && pathname !== "/dashboard/messages"
+                  )}
+                  <div className="flex min-w-0 flex-1 flex-col items-center gap-0.5 px-2 py-2">
+                    <div className="h-6 w-6 shrink-0" aria-hidden />
+                    <span className="text-[11px] font-medium text-blue-600">创建</span>
+                  </div>
+                  {renderTab(licenseLink, false)}
+                </>
               );
-            })}
-
-            {/* 中间占位，给凸起按钮留空间 */}
-            <div className="flex flex-col items-center gap-0.5 px-3 py-2 min-w-0 flex-1">
-              <div className="h-6 w-6" />
-              <span className="text-[11px] font-medium text-blue-500">创建</span>
-            </div>
+            })()}
 
             {user ? (
               <Link
