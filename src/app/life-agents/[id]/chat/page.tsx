@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -69,8 +69,6 @@ function trimSessionTitle(title: string) {
 }
 
 const QUICK_EMOJIS = ["😀", "👍", "❤️", "🙏", "😂", "🎉", "🫡", "✨"];
-
-const DEFAULT_QUICK_PHRASES = ["你好", "谢谢", "想请教一下", "在吗"];
 
 function autoResizeTextarea(textarea: HTMLTextAreaElement | null) {
   if (!textarea) return;
@@ -277,11 +275,6 @@ export default function LifeAgentChatPage() {
       window.removeEventListener("resize", update);
     };
   }, []);
-
-  const quickPhrases = useMemo(() => {
-    const samples = profile?.sampleQuestions?.filter(Boolean).slice(0, 4) ?? [];
-    return Array.from(new Set([...samples, ...DEFAULT_QUICK_PHRASES])).slice(0, 8);
-  }, [profile]);
 
   const agentCoverUrl = profile
     ? profile.coverUrl || resolveLifeAgentCoverUrl(profile.coverImageUrl, profile.coverPresetKey)
@@ -742,7 +735,10 @@ export default function LifeAgentChatPage() {
         <header className="z-20 flex shrink-0 items-center gap-2 border-b border-slate-100 bg-white px-1 py-2 pt-[env(safe-area-inset-top)] sm:px-3">
           <button
             type="button"
-            onClick={() => router.push(`/life-agents/${id}`)}
+            onClick={() => {
+              if (window.history.length > 1) router.back();
+              else router.push(`/life-agents/${id}`);
+            }}
             className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[#111] transition hover:bg-slate-100"
             aria-label="返回"
           >
@@ -865,22 +861,6 @@ export default function LifeAgentChatPage() {
 
         <div className="shrink-0 border-t border-slate-100 bg-white px-3 pb-[env(safe-area-inset-bottom)] pt-2 sm:px-4">
           <div className="mx-auto max-w-3xl">
-            <div className="-mx-1 flex gap-2 overflow-x-auto pb-2 scrollbar-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              {quickPhrases.map((phrase) => (
-                <button
-                  key={phrase}
-                  type="button"
-                  disabled={loading || sessionLoading}
-                  onClick={() => {
-                    void sendMessageWithText(phrase);
-                  }}
-                  className="shrink-0 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-700 transition active:bg-slate-100 disabled:opacity-50"
-                >
-                  {phrase}
-                </button>
-              ))}
-            </div>
-
             <form
               onSubmit={sendMessage}
               className="bg-white px-0 pb-0 pt-1 sm:px-0"

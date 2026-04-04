@@ -94,6 +94,8 @@ export function Nav() {
     pathname !== "/life-agents/create" &&
     pathname !== "/life-agents/search";
   const isLifeAgentCreatePage = pathname === "/life-agents/create";
+  const isLifeAgentSearchPage = pathname === "/life-agents/search";
+  const hideGlobalTopNav = isLifeAgentCreatePage || isLifeAgentSearchPage;
   const useBackArrowOnMobileTop = isLifeAgentDetailPage || isLifeAgentCreatePage;
   const hideGlobalBottomNav = isLifeAgentChatPage || isLifeAgentDetailPage;
 
@@ -204,7 +206,7 @@ export function Nav() {
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         className={`sticky top-0 z-50 border-b border-slate-100 bg-white/95 supports-[backdrop-filter]:backdrop-blur-xl overflow-x-hidden pt-[env(safe-area-inset-top)] ${
-          isLifeAgentChatPage ? "hidden lg:block" : ""
+          hideGlobalTopNav ? "hidden" : isLifeAgentChatPage ? "hidden lg:block" : ""
         }`}
       >
         <div className="container mx-auto max-w-7xl px-3 sm:px-4">

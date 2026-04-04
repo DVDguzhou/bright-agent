@@ -82,38 +82,6 @@ function autoResizeTextarea(textarea: HTMLTextAreaElement | null) {
   textarea.style.height = `${Math.min(textarea.scrollHeight, 160)}px`;
 }
 
-function ComposerActionButton({
-  type = "button",
-  onClick,
-  disabled,
-  children,
-  title,
-  tone = "neutral",
-}: {
-  type?: "button" | "submit";
-  onClick?: () => void;
-  disabled?: boolean;
-  children: React.ReactNode;
-  title?: string;
-  tone?: "neutral" | "primary";
-}) {
-  return (
-    <button
-      type={type}
-      onClick={onClick}
-      disabled={disabled}
-      title={title}
-      className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-[18px] border text-sm font-medium transition sm:h-11 sm:w-11 sm:rounded-full disabled:cursor-not-allowed disabled:opacity-50 ${
-        tone === "primary"
-          ? "border-sky-400/80 bg-gradient-to-br from-sky-500 via-sky-500 to-cyan-400 text-white shadow-[0_16px_30px_-16px_rgba(14,165,233,0.95)] hover:brightness-[1.05]"
-          : "border-white/70 bg-white/60 text-slate-600 shadow-[0_14px_28px_-18px_rgba(15,23,42,0.28)] backdrop-blur-xl hover:bg-white/72"
-      }`}
-    >
-      {children}
-    </button>
-  );
-}
-
 const PROFILE_CHAT_FIELDS: readonly ProfileChatField[] = [
   {
     key: "displayName",
@@ -737,7 +705,6 @@ export default function CreateLifeAgentPage() {
             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-            返回
           </Link>
           <div className="flex flex-1 items-center justify-center gap-2 min-w-0">
             <h1 className="truncate text-sm font-semibold text-slate-800 sm:text-base">创建 Agent</h1>
@@ -776,16 +743,26 @@ export default function CreateLifeAgentPage() {
           >
             <div className={`mx-auto max-w-3xl space-y-4 ${chatDone ? "pb-24" : "pb-4"}`}>
               {chatHistory.map((msg, i) => (
-                <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                <div key={i} className={`flex items-end gap-2 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                  {msg.role === "assistant" ? (
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-200 text-[10px] font-bold text-slate-600 ring-1 ring-black/5">
+                      AI
+                    </div>
+                  ) : null}
                   <div
-                    className={`max-w-[85%] rounded-2xl px-4 py-3 text-[15px] leading-7 sm:max-w-[75%] ${
+                    className={`max-w-[78%] rounded-2xl px-3.5 py-2.5 text-[15px] leading-relaxed sm:max-w-[72%] ${
                       msg.role === "user"
-                        ? "bg-sky-500 text-white"
-                        : "bg-slate-100 text-slate-800"
+                        ? "rounded-br-md bg-[#1677ff] text-white"
+                        : "rounded-bl-md bg-[#f0f0f0] text-[#111]"
                     }`}
                   >
                     <p className="whitespace-pre-wrap">{msg.content}</p>
                   </div>
+                  {msg.role === "user" ? (
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-rose-400 text-xs font-bold text-white ring-1 ring-white">
+                      我
+                    </div>
+                  ) : null}
                 </div>
               ))}
 
@@ -839,12 +816,12 @@ export default function CreateLifeAgentPage() {
               onSubmit={submitChatAnswer}
               className="shrink-0 border-t border-slate-200/80 bg-white px-2 pt-2 pb-[max(6rem,calc(5rem+env(safe-area-inset-bottom)))] lg:pb-[max(0.5rem,env(safe-area-inset-bottom))] sm:px-4"
             >
-              <div className="mx-auto flex max-w-3xl items-end gap-2">
-                <div className="flex-1 min-w-0 rounded-2xl bg-slate-100 px-4 py-2.5">
+              <div className="mx-auto max-w-3xl">
+                <div className="flex items-end gap-1.5 rounded-full border border-slate-200 bg-white py-1.5 pl-3 pr-1 shadow-sm sm:gap-2 sm:py-2">
                   <textarea
                     ref={profileInputRef}
                     onFocus={() => setTimeout(scrollToLastMessage, 150)}
-                    className="max-h-36 min-h-[24px] w-full resize-none border-0 bg-transparent text-base leading-6 text-slate-800 outline-none placeholder:text-slate-400"
+                    className="max-h-32 min-h-[36px] w-full min-w-0 flex-1 resize-none border-0 bg-transparent py-2 text-[15px] leading-5 text-[#111] outline-none placeholder:text-slate-400"
                     value={chatInput}
                     onChange={(e) => {
                       setChatInput(e.target.value);
@@ -862,16 +839,21 @@ export default function CreateLifeAgentPage() {
                     rows={1}
                     enterKeyHint="send"
                   />
+                  <button
+                    type="submit"
+                    disabled={chatLoading}
+                    className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#1677ff] text-white transition hover:brightness-95 disabled:opacity-50"
+                    aria-label="发送"
+                  >
+                    {chatLoading ? (
+                      <span className="text-xs">...</span>
+                    ) : (
+                      <svg viewBox="0 0 20 20" className="h-4 w-4 fill-current" aria-hidden="true">
+                        <path d="M3.72 2.94a.75.75 0 0 1 .8-.12l11.5 5.5a.75.75 0 0 1 0 1.36l-11.5 5.5A.75.75 0 0 1 3.45 14.5l1.34-4.05H9.5a.75.75 0 0 0 0-1.5H4.8L3.45 4.9a.75.75 0 0 1 .27-.96Z" />
+                      </svg>
+                    )}
+                  </button>
                 </div>
-                <ComposerActionButton type="submit" disabled={chatLoading} title="发送" tone="primary">
-                  {chatLoading ? (
-                    <span className="text-xs">...</span>
-                  ) : (
-                    <svg viewBox="0 0 20 20" className="h-4 w-4 fill-current" aria-hidden="true">
-                      <path d="M3.72 2.94a.75.75 0 0 1 .8-.12l11.5 5.5a.75.75 0 0 1 0 1.36l-11.5 5.5A.75.75 0 0 1 3.45 14.5l1.34-4.05H9.5a.75.75 0 0 0 0-1.5H4.8L3.45 4.9a.75.75 0 0 1 .27-.96Z" />
-                    </svg>
-                  )}
-                </ComposerActionButton>
               </div>
             </form>
           )}
@@ -895,16 +877,26 @@ export default function CreateLifeAgentPage() {
           >
             <div className={`mx-auto max-w-3xl space-y-4 ${experienceDone ? "pb-24" : "pb-4"}`}>
               {experienceHistory.map((msg, i) => (
-                <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                <div key={i} className={`flex items-end gap-2 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                  {msg.role === "assistant" ? (
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-200 text-[10px] font-bold text-slate-600 ring-1 ring-black/5">
+                      AI
+                    </div>
+                  ) : null}
                   <div
-                    className={`max-w-[85%] rounded-2xl px-4 py-3 text-[15px] leading-7 sm:max-w-[75%] ${
+                    className={`max-w-[78%] rounded-2xl px-3.5 py-2.5 text-[15px] leading-relaxed sm:max-w-[72%] ${
                       msg.role === "user"
-                        ? "bg-sky-500 text-white"
-                        : "bg-slate-100 text-slate-800"
+                        ? "rounded-br-md bg-[#1677ff] text-white"
+                        : "rounded-bl-md bg-[#f0f0f0] text-[#111]"
                     }`}
                   >
                     <p className="whitespace-pre-wrap">{msg.content}</p>
                   </div>
+                  {msg.role === "user" ? (
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-rose-400 text-xs font-bold text-white ring-1 ring-white">
+                      我
+                    </div>
+                  ) : null}
                 </div>
               ))}
 
@@ -962,12 +954,12 @@ export default function CreateLifeAgentPage() {
                   </button>
                 </div>
               )}
-              <div className="mx-auto flex max-w-3xl items-end gap-2">
-                <div className="flex-1 min-w-0 rounded-2xl bg-slate-100 px-4 py-2.5">
+              <div className="mx-auto max-w-3xl">
+                <div className="flex items-end gap-1.5 rounded-full border border-slate-200 bg-white py-1.5 pl-3 pr-1 shadow-sm sm:gap-2 sm:py-2">
                   <textarea
                     ref={experienceInputRef}
                     onFocus={() => setTimeout(scrollToLastExperienceMessage, 150)}
-                    className="max-h-36 min-h-[24px] w-full resize-none border-0 bg-transparent text-base leading-6 text-slate-800 outline-none placeholder:text-slate-400"
+                    className="max-h-32 min-h-[36px] w-full min-w-0 flex-1 resize-none border-0 bg-transparent py-2 text-[15px] leading-5 text-[#111] outline-none placeholder:text-slate-400"
                     value={experienceInput}
                     onChange={(e) => {
                       setExperienceInput(e.target.value);
@@ -985,16 +977,21 @@ export default function CreateLifeAgentPage() {
                     rows={1}
                     enterKeyHint="send"
                   />
+                  <button
+                    type="submit"
+                    disabled={experienceLoading}
+                    className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#1677ff] text-white transition hover:brightness-95 disabled:opacity-50"
+                    aria-label="发送"
+                  >
+                    {experienceLoading ? (
+                      <span className="text-xs">...</span>
+                    ) : (
+                      <svg viewBox="0 0 20 20" className="h-4 w-4 fill-current" aria-hidden="true">
+                        <path d="M3.72 2.94a.75.75 0 0 1 .8-.12l11.5 5.5a.75.75 0 0 1 0 1.36l-11.5 5.5A.75.75 0 0 1 3.45 14.5l1.34-4.05H9.5a.75.75 0 0 0 0-1.5H4.8L3.45 4.9a.75.75 0 0 1 .27-.96Z" />
+                      </svg>
+                    )}
+                  </button>
                 </div>
-                <ComposerActionButton type="submit" disabled={experienceLoading} title="发送" tone="primary">
-                  {experienceLoading ? (
-                    <span className="text-xs">...</span>
-                  ) : (
-                    <svg viewBox="0 0 20 20" className="h-4 w-4 fill-current" aria-hidden="true">
-                      <path d="M3.72 2.94a.75.75 0 0 1 .8-.12l11.5 5.5a.75.75 0 0 1 0 1.36l-11.5 5.5A.75.75 0 0 1 3.45 14.5l1.34-4.05H9.5a.75.75 0 0 0 0-1.5H4.8L3.45 4.9a.75.75 0 0 1 .27-.96Z" />
-                    </svg>
-                  )}
-                </ComposerActionButton>
               </div>
             </form>
           )}
