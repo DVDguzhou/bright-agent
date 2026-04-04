@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { OFFICIAL_CONTACT } from "@/lib/official-contact";
@@ -55,6 +55,129 @@ export default function LifeAgentEditPage() {
   const [voicePanelOpen, setVoicePanelOpen] = useState(false);
   const [voiceSamplePending, setVoiceSamplePending] = useState<string | null>(null);
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
+  const mountedRef = useRef(true);
+  const formRef = useRef<FormState | null>(null);
+  const voiceSamplePendingRef = useRef<string | null>(null);
+  const savingRef = useRef(false);
+  const voiceSavingRef = useRef(false);
+  const lastSavedPayloadRef = useRef<string | null>(null);
+  const pendingAutosavePayloadRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    formRef.current = form;
+  }, [form]);
+
+  useEffect(() => {
+    voiceSamplePendingRef.current = voiceSamplePending;
+  }, [voiceSamplePending]);
+
+  useEffect(() => {
+    savingRef.current = saving;
+  }, [saving]);
+
+  useEffect(() => {
+    voiceSavingRef.current = voiceSaving;
+  }, [voiceSaving]);
+
+  const buildSavablePayload = useCallback((nextForm: FormState, nextVoiceSamplePending?: string | null) => {
+    const built = buildProfilePayload(nextForm, nextVoiceSamplePending);
+    if ("error" in built) return null;
+    return {
+      payload: built.payload,
+      serialized: JSON.stringify(built.payload),
+    };
+  }, []);
+
+  const commitSavedProfile = useCallback(
+    (
+      next: ManageData["profile"],
+      options?: {
+        clearVoiceSamplePending?: boolean;
+        updateLastSavedAt?: boolean;
+      },
+    ) => {
+      const nextForm = createFormState(next);
+      const snapshot = buildSavablePayload(nextForm, null);
+      if (snapshot) {
+        lastSavedPayloadRef.current = snapshot.serialized;
+        pendingAutosavePayloadRef.current = null;
+      }
+      if (!mountedRef.current) return;
+      if (options?.clearVoiceSamplePending) {
+        setVoiceSamplePending(null);
+        setVoicePanelOpen(false);
+      }
+      if (options?.updateLastSavedAt !== false) {
+        setLastSavedAt(new Date().toISOString());
+      }
+      setData((prev) => (prev ? { ...prev, profile: next } : prev));
+      setForm(nextForm);
+    },
+    [buildSavablePayload],
+  );
+
+  const persistProfile = useCallback(
+    async (
+      nextForm: FormState,
+      nextVoiceSamplePending?: string | null,
+      options?: {
+        keepalive?: boolean;
+        clearVoiceSamplePending?: boolean;
+        silent?: boolean;
+      },
+    ) => {
+      const snapshot = buildSavablePayload(nextForm, nextVoiceSamplePending);
+      if (!snapshot) return false;
+      if (snapshot.serialized === lastSavedPayloadRef.current || snapshot.serialized === pendingAutosavePayloadRef.current) {
+        return true;
+      }
+
+      pendingAutosavePayloadRef.current = snapshot.serialized;
+      if (!options?.keepalive) {
+        setSaving(true);
+      }
+
+      try {
+        const res = await fetch(`/api/life-agents/${id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(snapshot.payload),
+          keepalive: options?.keepalive,
+        });
+        const next = await res.json().catch(() => null);
+        if (!res.ok || !next) {
+          pendingAutosavePayloadRef.current = null;
+          if (!options?.silent && mountedRef.current) {
+            setError("保存失败，请检查输入或稍后重试");
+          }
+          return false;
+        }
+        commitSavedProfile(next, {
+          clearVoiceSamplePending: options?.clearVoiceSamplePending,
+          updateLastSavedAt: true,
+        });
+        return true;
+      } catch {
+        pendingAutosavePayloadRef.current = null;
+        if (!options?.silent && mountedRef.current) {
+          setError("保存失败，请检查网络后重试");
+        }
+        return false;
+      } finally {
+        if (!options?.keepalive && mountedRef.current) {
+          setSaving(false);
+        }
+      }
+    },
+    [buildSavablePayload, commitSavedProfile, id],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -62,14 +185,20 @@ export default function LifeAgentEditPage() {
     void fetchManageData(id).then((result) => {
       if (cancelled) return;
       setData(result.data);
-      setForm(result.data ? createFormState(result.data.profile) : null);
+      const nextForm = result.data ? createFormState(result.data.profile) : null;
+      setForm(nextForm);
       setLoadError(result.error);
       setLoading(false);
+      if (nextForm) {
+        const snapshot = buildSavablePayload(nextForm, null);
+        lastSavedPayloadRef.current = snapshot?.serialized ?? null;
+        pendingAutosavePayloadRef.current = null;
+      }
     });
     return () => {
       cancelled = true;
     };
-  }, [id]);
+  }, [buildSavablePayload, id]);
 
   const selectedRegions = useMemo(() => {
     if (!form) return [];
@@ -98,27 +227,7 @@ export default function LifeAgentEditPage() {
       setError(built.error ?? "保存失败");
       return;
     }
-    setSaving(true);
-    try {
-      const res = await fetch(`/api/life-agents/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(built.payload),
-      });
-      const next = await res.json().catch(() => null);
-      if (!res.ok) {
-        setError("保存失败，请检查输入或稍后重试");
-        return;
-      }
-      setVoiceSamplePending(null);
-      setVoicePanelOpen(false);
-      setLastSavedAt(new Date().toISOString());
-      setData((prev) => (prev ? { ...prev, profile: next } : prev));
-      setForm(createFormState(next));
-    } finally {
-      setSaving(false);
-    }
+    await persistProfile(form, voiceSamplePending, { clearVoiceSamplePending: true });
   };
 
   const saveVoiceOnly = async () => {
@@ -140,14 +249,35 @@ export default function LifeAgentEditPage() {
         setError("音色上传失败，请稍后重试");
         return;
       }
-      setVoiceSamplePending(null);
-      setVoicePanelOpen(false);
-      setLastSavedAt(new Date().toISOString());
-      setData((prev) => (prev ? { ...prev, profile: next } : prev));
+      commitSavedProfile(next, { clearVoiceSamplePending: true, updateLastSavedAt: true });
     } finally {
       setVoiceSaving(false);
     }
   };
+
+  useEffect(() => {
+    const autosave = () => {
+      const nextForm = formRef.current;
+      if (!nextForm || savingRef.current || voiceSavingRef.current) return;
+      void persistProfile(nextForm, voiceSamplePendingRef.current, {
+        keepalive: true,
+        clearVoiceSamplePending: true,
+        silent: true,
+      });
+    };
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "hidden") autosave();
+    };
+
+    window.addEventListener("pagehide", autosave);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      window.removeEventListener("pagehide", autosave);
+      autosave();
+    };
+  }, [persistProfile]);
 
   if (loading) {
     return <div className="mx-auto h-64 max-w-3xl animate-pulse rounded-[28px] bg-white shadow-sm ring-1 ring-black/[0.04]" />;
@@ -194,7 +324,10 @@ export default function LifeAgentEditPage() {
         <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-100">
           <div className="h-full rounded-full bg-gradient-to-r from-sky-500 to-cyan-400" style={{ width: `${completion}%` }} />
         </div>
-        <p className="mt-2 text-xs text-slate-400">{lastSavedAt ? `最近保存：${new Date(lastSavedAt).toLocaleString("zh-CN")}` : "尚未保存本次修改"}</p>
+        <p className="mt-2 text-xs text-slate-400">
+          {lastSavedAt ? `最近保存：${new Date(lastSavedAt).toLocaleString("zh-CN")}` : "尚未保存本次修改"}
+          <span className="ml-2">离开页面时会自动保存已通过校验的修改</span>
+        </p>
       </header>
 
       <form id="life-agent-edit-form" onSubmit={saveProfile} className="space-y-4">
