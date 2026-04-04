@@ -213,6 +213,15 @@ export default function LifeAgentsPage() {
   const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.location.hash !== "#discover-search") return;
+    const t = window.setTimeout(() => {
+      document.getElementById("discover-search")?.focus();
+    }, 100);
+    return () => window.clearTimeout(t);
+  }, []);
+
+  useEffect(() => {
     setLoadError(null);
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 秒超时
@@ -278,6 +287,7 @@ export default function LifeAgentsPage() {
               </svg>
             </span>
             <input
+              id="discover-search"
               className="input-glow w-full rounded-full border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-300 focus:bg-white"
               value={query}
               onChange={(e) => setQuery(e.target.value)}

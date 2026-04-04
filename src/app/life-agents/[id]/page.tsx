@@ -78,7 +78,8 @@ export default function LifeAgentDetailPage() {
   const id = params.id as string;
   const [profile, setProfile] = useState<DetailData | null>(null);
   const [loaded, setLoaded] = useState(false);
-  const [questionCountInput, setQuestionCountInput] = useState("");
+  const [purchaseCount, setPurchaseCount] = useState(1);
+  const [payMethod, setPayMethod] = useState<"balance" | "wechat">("balance");
   const [purchasing, setPurchasing] = useState(false);
   const [message, setMessage] = useState("");
   const [showPurchase, setShowPurchase] = useState(false);
@@ -89,10 +90,26 @@ export default function LifeAgentDetailPage() {
     setPortalReady(true);
   }, []);
 
-  const questionCount = useMemo(() => {
-    const n = parseInt(questionCountInput, 10);
-    return Number.isNaN(n) ? 0 : Math.min(MAX_QUESTIONS, Math.max(0, n));
-  }, [questionCountInput]);
+  useEffect(() => {
+    if (!showPurchase) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [showPurchase]);
+
+  useEffect(() => {
+    if (showPurchase) {
+      setPayMethod("balance");
+      setMessage("");
+    }
+  }, [showPurchase]);
+
+  const questionCount = useMemo(
+    () => Math.min(MAX_QUESTIONS, Math.max(MIN_QUESTIONS, purchaseCount)),
+    [purchaseCount]
+  );
 
   useEffect(() => {
     setLoaded(false);
@@ -122,10 +139,10 @@ export default function LifeAgentDetailPage() {
   };
 
   const totalPrice = useMemo(() => {
-    if (!profile || questionCount < MIN_QUESTIONS) return 0;
-    const count = Math.min(MAX_QUESTIONS, Math.max(MIN_QUESTIONS, questionCount));
+    if (!profile) return 0;
+    const count = Math.min(MAX_QUESTIONS, Math.max(MIN_QUESTIONS, purchaseCount));
     return (profile.pricePerQuestion * count) / 100;
-  }, [profile, questionCount]);
+  }, [profile, purchaseCount]);
 
   const averageScore = profile?.ratings?.averageScore ?? 0;
   const heroCoverUrl = profile
@@ -372,64 +389,160 @@ export default function LifeAgentDetailPage() {
 
       </div>
 
-      {/* 购买面板挂到 body，避免被 main z-10 压在全局底栏下面 */}
+      {/* 购买面板：闲鱼式底部弹层（挂 body） */}
       {portalReady &&
         showPurchase &&
         createPortal(
           <>
             <div
-              className="fixed inset-0 z-[200] bg-black/40"
+              className="fixed inset-0 z-[200] bg-black/45"
               aria-hidden
               onClick={() => setShowPurchase(false)}
             />
-            <div className="fixed inset-x-0 bottom-0 z-[210] max-h-[85vh] overflow-y-auto rounded-t-2xl bg-white px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-5 shadow-2xl">
-              <div className="flex items-center justify-between">
-                <h2 className="text-base font-semibold text-slate-900">购买提问次数</h2>
-                <button
-                  type="button"
-                  onClick={() => setShowPurchase(false)}
-                  className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 text-slate-400 hover:text-slate-600"
-                >
-                  <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-              <p className="mt-1 text-xs text-slate-400">
-                1–500 次，按次收费，每次 ¥{(profile.pricePerQuestion / 100).toFixed(2)}
-              </p>
-              <div className="mt-4 flex items-end gap-4">
-                <div className="flex-1">
-                  <label className="mb-1.5 block text-xs font-medium text-slate-500">购买次数</label>
-                  <input
-                    type="number"
-                    min={0}
-                    max={MAX_QUESTIONS}
-                    value={questionCountInput}
-                    onChange={(e) => setQuestionCountInput(e.target.value)}
-                    placeholder="输入次数"
-                    autoFocus
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-base outline-none focus:border-blue-400 focus:bg-white"
-                  />
-                </div>
-                <div className="shrink-0 pb-1 text-right">
-                  <p className="text-xs text-slate-400">合计</p>
-                  <p className="text-2xl font-bold text-blue-600">¥{totalPrice.toFixed(2)}</p>
-                </div>
-              </div>
+            <div
+              className="fixed inset-x-0 bottom-0 z-[210] flex max-h-[90vh] flex-col rounded-t-[20px] bg-[#f4f4f4] shadow-[0_-8px_32px_rgba(0,0,0,0.12)]"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="la-purchase-title"
+            >
               <button
                 type="button"
-                onClick={purchase}
-                disabled={purchasing || questionCount < MIN_QUESTIONS}
-                className="mt-5 w-full rounded-xl bg-blue-600 py-3.5 text-sm font-semibold text-white transition hover:bg-blue-700 active:bg-blue-800 disabled:opacity-50"
+                onClick={() => setShowPurchase(false)}
+                className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full text-slate-500 transition hover:bg-black/5"
+                aria-label="关闭"
               >
-                {purchasing
-                  ? "购买中..."
-                  : questionCount >= MIN_QUESTIONS
-                    ? `确认购买 ${Math.min(MAX_QUESTIONS, questionCount)} 次`
-                    : "请输入购买次数"}
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
-              {message ? <p className="mt-3 text-center text-sm text-blue-600">{message}</p> : null}
+
+              {/* 顶部商品区（白底） */}
+              <div className="shrink-0 rounded-t-[20px] bg-white px-4 pb-4 pt-5">
+                <div className="flex gap-3 pr-10">
+                  <div className="relative h-[4.5rem] w-[4.5rem] shrink-0 overflow-hidden rounded-lg bg-slate-100 ring-1 ring-black/5">
+                    {heroCoverUrl ? (
+                      <Image
+                        src={heroCoverUrl}
+                        alt=""
+                        fill
+                        className="object-cover"
+                        sizes="72px"
+                        unoptimized={lifeAgentCoverShouldBypassOptimizer(heroCoverUrl)}
+                      />
+                    ) : null}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p id="la-purchase-title" className="line-clamp-2 text-[15px] font-semibold leading-snug text-[#111]">
+                      {profile.displayName}
+                    </p>
+                    <p className="mt-1 line-clamp-1 text-xs text-slate-500">{profile.headline}</p>
+                    <p className="mt-2 text-[22px] font-bold leading-none text-[#ff4400]">
+                      ¥{(profile.pricePerQuestion / 100).toFixed(2)}
+                      <span className="ml-1 text-xs font-normal text-slate-400">/ 次提问</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* 中间可滚动：白卡片分区 */}
+              <div className="min-h-0 flex-1 space-y-2 overflow-y-auto px-3 py-2 pb-[calc(5.5rem+env(safe-area-inset-bottom))]">
+                <div className="flex items-center justify-between rounded-xl bg-white px-4 py-3.5 text-sm shadow-sm">
+                  <span className="text-slate-600">服务类型</span>
+                  <span className="font-medium text-[#111]">按次付费 · 提问咨询</span>
+                </div>
+
+                <div className="flex items-center justify-between rounded-xl bg-white px-4 py-3.5 text-sm shadow-sm">
+                  <span className="text-[#111]">购买数量</span>
+                  <div className="flex items-center rounded-lg border border-slate-200 bg-slate-50">
+                    <button
+                      type="button"
+                      disabled={purchaseCount <= MIN_QUESTIONS}
+                      onClick={() => setPurchaseCount((c) => Math.max(MIN_QUESTIONS, c - 1))}
+                      className="flex h-9 w-10 items-center justify-center text-lg text-slate-600 transition active:bg-slate-200 disabled:opacity-35"
+                    >
+                      −
+                    </button>
+                    <span className="min-w-[2.25rem] text-center text-base font-semibold tabular-nums text-[#111]">
+                      {purchaseCount}
+                    </span>
+                    <button
+                      type="button"
+                      disabled={purchaseCount >= MAX_QUESTIONS}
+                      onClick={() => setPurchaseCount((c) => Math.min(MAX_QUESTIONS, c + 1))}
+                      className="flex h-9 w-10 items-center justify-center text-lg text-slate-600 transition active:bg-slate-200 disabled:opacity-35"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between rounded-xl bg-white px-4 py-3.5 text-sm shadow-sm">
+                  <span className="text-slate-600">应付合计</span>
+                  <span className="text-lg font-bold text-[#ff4400]">¥{totalPrice.toFixed(2)}</span>
+                </div>
+
+                <div className="overflow-hidden rounded-xl bg-white shadow-sm">
+                  <p className="border-b border-slate-100 px-4 py-2 text-xs text-slate-400">支付方式</p>
+                  <button
+                    type="button"
+                    onClick={() => setPayMethod("balance")}
+                    className="flex w-full items-center gap-3 border-b border-slate-50 px-4 py-3.5 text-left text-sm"
+                  >
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-400 text-xs font-bold text-white">
+                      余
+                    </span>
+                    <span className="flex-1 font-medium text-[#111]">账户余额（演示）</span>
+                    <span
+                      className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${
+                        payMethod === "balance" ? "border-amber-500 bg-amber-400" : "border-slate-300"
+                      }`}
+                    >
+                      {payMethod === "balance" ? (
+                        <svg className="h-3 w-3 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                      ) : null}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPayMethod("wechat")}
+                    className="flex w-full items-center gap-3 px-4 py-3.5 text-left text-sm"
+                  >
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#07c160] text-[10px] font-bold text-white">
+                      微
+                    </span>
+                    <span className="flex-1 font-medium text-[#111]">微信支付（演示）</span>
+                    <span
+                      className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${
+                        payMethod === "wechat" ? "border-[#07c160] bg-[#07c160]" : "border-slate-300"
+                      }`}
+                    >
+                      {payMethod === "wechat" ? (
+                        <svg className="h-3 w-3 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                      ) : null}
+                    </span>
+                  </button>
+                </div>
+
+                {message ? (
+                  <p className="px-1 text-center text-sm text-[#ff4400]">{message}</p>
+                ) : null}
+              </div>
+
+              {/* 底部固定：闲鱼式橙色胶囊按钮 */}
+              <div className="shrink-0 border-t border-slate-200/80 bg-white px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3">
+                <button
+                  type="button"
+                  onClick={purchase}
+                  disabled={purchasing}
+                  className="w-full rounded-full bg-[#ff4400] py-3.5 text-base font-bold text-white shadow-sm transition active:opacity-90 disabled:opacity-50"
+                >
+                  {purchasing ? "提交中…" : `确认购买 ¥${totalPrice.toFixed(2)}`}
+                </button>
+              </div>
             </div>
           </>,
           document.body

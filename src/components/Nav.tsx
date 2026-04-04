@@ -39,6 +39,11 @@ const IconSignup = ({ className }: { className?: string }) => (
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
   </svg>
 );
+const IconSearch = ({ className }: { className?: string }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+  </svg>
+);
 // 我的 License
 const IconLicense = ({ className }: { className?: string }) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
@@ -80,6 +85,8 @@ export function Nav() {
     `py-3 px-3 rounded-lg text-sm font-medium transition-colors block w-full text-left ${
       isActive ? "text-sky-700 bg-sky-50" : "text-slate-600 hover:bg-slate-50"
     }`;
+
+  const isLifeAgentDeep = /^\/life-agents\/[^/]+/.test(pathname);
 
   const AuthLinks = ({ vertical = false }: { vertical?: boolean }) =>
     user ? (
@@ -163,40 +170,88 @@ export function Nav() {
       <motion.nav
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="sticky top-0 z-50 border-b border-slate-200/80 bg-white supports-[backdrop-filter]:bg-white/85 supports-[backdrop-filter]:backdrop-blur-xl overflow-x-hidden pt-[env(safe-area-inset-top)]"
+        className={`sticky top-0 z-50 border-b border-slate-100 bg-white/95 supports-[backdrop-filter]:backdrop-blur-xl overflow-x-hidden pt-[env(safe-area-inset-top)] ${
+          isLifeAgentDeep ? "hidden lg:block" : ""
+        }`}
       >
-        <div className="container mx-auto px-3 sm:px-4 max-w-7xl flex items-center justify-between min-h-[44px] sm:h-16">
-          <Link href="/" className="flex items-center gap-2 group shrink-0 min-w-0" title="BrightAgent">
+        <div className="container mx-auto max-w-7xl px-3 sm:px-4">
+          {/* 手机：小红书式顶栏（发现流 + 搜索胶囊 + 消息）；详情/聊天页不显示，避免与页面内返回重复 */}
+          {!isLifeAgentDeep && (
+            <div className="flex items-center gap-2 py-2.5 lg:hidden">
+              <Link
+                href="/life-agents"
+                className="shrink-0 rounded-full ring-1 ring-slate-100"
+                title="发现 Agent"
+              >
+                <Image
+                  src="/bright-agent-icon.png"
+                  alt=""
+                  width={32}
+                  height={32}
+                  className="h-8 w-8 rounded-full object-cover"
+                />
+              </Link>
+              <Link
+                href="/life-agents#discover-search"
+                className="flex min-w-0 flex-1 items-center gap-2 rounded-full bg-slate-100 px-3 py-2 text-sm text-slate-400 transition active:bg-slate-200"
+              >
+                <IconSearch className="h-4 w-4 shrink-0 text-slate-400" />
+                <span className="truncate">搜索 Agent、经验、话题…</span>
+              </Link>
+              <Link
+                href="/dashboard/messages"
+                className="relative shrink-0 rounded-full p-2 text-slate-600 transition active:bg-slate-100"
+                title="消息"
+              >
+                <IconMessages className="h-6 w-6" />
+                {hasMessages && pathname !== "/dashboard/messages" ? (
+                  <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-white" aria-hidden />
+                ) : null}
+              </Link>
+              {user ? (
+                <div className="flex shrink-0 items-center gap-1">
+                  <Link
+                    href="/dashboard"
+                    className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-sky-400 text-xs font-bold text-white"
+                    title="我的"
+                  >
+                    {(user.name?.trim() || user.email || "?").slice(0, 1).toUpperCase()}
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={logout}
+                    className="rounded-full px-2 py-1 text-[11px] font-medium text-slate-500"
+                  >
+                    退出
+                  </button>
+                </div>
+              ) : (
+                <Link href="/login" className="shrink-0 rounded-full bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white">
+                  登录
+                </Link>
+              )}
+            </div>
+          )}
+
+          {/* 电脑端顶栏 */}
+          <div className="hidden min-h-[52px] items-center justify-between lg:flex sm:h-16">
+          <Link href="/" className="group flex min-w-0 shrink-0 items-center gap-2" title="BrightAgent">
             <Image
               src="/bright-agent-icon.png"
               alt="BrightAgent"
               width={36}
               height={36}
-              className="shrink-0 rounded-lg object-contain w-7 h-7 sm:w-9 sm:h-9"
+              className="h-7 w-7 shrink-0 rounded-lg object-contain sm:h-9 sm:w-9"
             />
-            <span className="hidden md:inline xl:inline text-base 2xl:text-xl font-bold bg-gradient-to-r from-blue-600 to-sky-500 bg-clip-text text-transparent truncate whitespace-nowrap">
+            <span className="hidden truncate whitespace-nowrap bg-gradient-to-r from-blue-600 to-sky-500 bg-clip-text text-base font-bold text-transparent md:inline xl:inline 2xl:text-xl">
               BrightAgent
             </span>
-            <span className="hidden 2xl:inline text-slate-500 group-hover:text-sky-600 transition-colors text-sm truncate whitespace-nowrap">
+            <span className="hidden truncate whitespace-nowrap text-sm text-slate-500 transition-colors group-hover:text-sky-600 2xl:inline">
               本地经验 · 对话咨询 · Agent as Service
             </span>
           </Link>
 
-          {/* 手机/平板：顶部保留账户入口，避免找不到登录状态和退出 */}
-          <div className="flex lg:hidden items-center gap-2 shrink-0">
-            {user ? (
-              <button
-                type="button"
-                onClick={logout}
-                className="inline-flex items-center rounded-full bg-rose-50 px-3 py-1.5 text-xs font-medium text-rose-600"
-              >
-                退出
-              </button>
-            ) : null}
-          </div>
-
-          {/* Desktop nav: 仅电脑端(lg+) 显示，手机平板用底部导航 */}
-          <div className="hidden lg:flex items-center gap-1 xl:gap-2 2xl:gap-4 shrink-0">
+          <div className="flex shrink-0 items-center gap-1 xl:gap-2 2xl:gap-4">
             {navLinks.map((link) => {
               const Icon = link.Icon;
               const showBadge = link.href === "/dashboard/messages" && hasMessages && pathname !== "/dashboard/messages";
@@ -231,8 +286,9 @@ export function Nav() {
             })}
           </div>
 
-          <div className="hidden lg:flex items-center gap-1 xl:gap-2 2xl:gap-4 shrink-0">
+          <div className="flex shrink-0 items-center gap-1 xl:gap-2 2xl:gap-4">
             <AnimatePresence mode="wait">{AuthLinks({})}</AnimatePresence>
+          </div>
           </div>
         </div>
       </motion.nav>
@@ -240,7 +296,7 @@ export function Nav() {
       {/* 手机+平板：底部导航栏；Agent 详情/聊天页有专用操作栏时隐藏 */}
       {!/^\/life-agents\/[^/]+/.test(pathname) && (
         <>
-          {/* 中间凸起与第 3 列「创建」对齐：Agent | 消息 | 创建 | License | 我的 */}
+          {/* 中间 FAB 与第 3 列空白对齐：Agent | 消息 | （+） | License | 我的 */}
           <Link
             href="/life-agents/create"
             className="fixed bottom-[calc(env(safe-area-inset-bottom)+2.25rem)] left-1/2 z-[60] flex h-12 w-12 -translate-x-1/2 lg:hidden items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-sky-400 shadow-lg shadow-blue-500/30 ring-4 ring-white transition-transform active:scale-95"
@@ -288,10 +344,7 @@ export function Nav() {
                     messagesLink,
                     hasMessages && pathname !== "/dashboard/messages"
                   )}
-                  <div className="flex min-w-0 flex-1 flex-col items-center gap-0.5 px-2 py-2">
-                    <div className="h-6 w-6 shrink-0" aria-hidden />
-                    <span className="text-[11px] font-medium text-blue-600">创建</span>
-                  </div>
+                  <div className="min-h-[52px] min-w-0 flex-1 px-2 py-2" aria-hidden />
                   {renderTab(licenseLink, false)}
                 </>
               );
