@@ -95,10 +95,11 @@ export function Nav() {
     pathname !== "/life-agents/search";
   const isLifeAgentCreatePage = pathname === "/life-agents/create";
   const isLifeAgentSearchPage = pathname === "/life-agents/search";
-  const hideGlobalTopNav = isLifeAgentCreatePage || isLifeAgentSearchPage;
-  const useBackArrowOnMobileTop = isLifeAgentDetailPage || isLifeAgentCreatePage;
-  const hideGlobalBottomNav =
-    isLifeAgentChatPage || isLifeAgentDetailPage || isLifeAgentCreatePage || isLifeAgentSearchPage;
+  const hideGlobalTopNav = isLifeAgentCreatePage;
+  const useBackArrowOnMobileTop = isLifeAgentDetailPage || isLifeAgentCreatePage || isLifeAgentSearchPage;
+  const hideGlobalBottomNav = isLifeAgentChatPage || isLifeAgentDetailPage || isLifeAgentCreatePage;
+
+  const searchPageQuery = isLifeAgentSearchPage ? (searchParams.get("q") ?? "").trim() : "";
 
   const feedTab = searchParams.get("tab");
   const isFeedDiscover = pathname === "/life-agents" && !feedTab;
@@ -238,34 +239,46 @@ export function Nav() {
                   </svg>
                 )}
               </button>
-              <div className="flex min-w-0 flex-1 items-center justify-center gap-2 sm:gap-4">
-                <Link href="/life-agents?tab=favorites" className={`relative ${feedTabClass(isFeedFavorites)}`} scroll={false}>
-                  收藏
-                  {isFeedFavorites ? (
-                    <span className="absolute bottom-0 left-1 right-1 h-0.5 rounded-full bg-[#ff2442]" aria-hidden />
-                  ) : null}
+              {isLifeAgentSearchPage ? (
+                <div className="flex min-w-0 flex-1 items-center justify-center px-2">
+                  <span className="truncate text-[16px] font-semibold text-[#111]">
+                    {searchPageQuery ? "搜索结果" : "搜索"}
+                  </span>
+                </div>
+              ) : (
+                <div className="flex min-w-0 flex-1 items-center justify-center gap-2 sm:gap-4">
+                  <Link href="/life-agents?tab=favorites" className={`relative ${feedTabClass(isFeedFavorites)}`} scroll={false}>
+                    收藏
+                    {isFeedFavorites ? (
+                      <span className="absolute bottom-0 left-1 right-1 h-0.5 rounded-full bg-[#ff2442]" aria-hidden />
+                    ) : null}
+                  </Link>
+                  <Link href="/life-agents" className={`relative ${feedTabClass(isFeedDiscover)}`} scroll={false}>
+                    发现
+                    {isFeedDiscover ? (
+                      <span className="absolute bottom-0 left-1 right-1 h-0.5 rounded-full bg-[#ff2442]" aria-hidden />
+                    ) : null}
+                  </Link>
+                  <Link href="/life-agents?tab=purchased" className={`relative ${feedTabClass(isFeedPurchased)}`} scroll={false}>
+                    已购买
+                    {isFeedPurchased ? (
+                      <span className="absolute bottom-0 left-1 right-1 h-0.5 rounded-full bg-[#ff2442]" aria-hidden />
+                    ) : null}
+                  </Link>
+                </div>
+              )}
+              {isLifeAgentSearchPage ? (
+                <span className="h-10 w-10 shrink-0" aria-hidden />
+              ) : (
+                <Link
+                  href="/life-agents/search"
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-slate-600 transition active:bg-slate-100"
+                  title="搜索"
+                  aria-label="搜索"
+                >
+                  <IconSearch className="h-5 w-5 stroke-[1.75]" />
                 </Link>
-                <Link href="/life-agents" className={`relative ${feedTabClass(isFeedDiscover)}`} scroll={false}>
-                  发现
-                  {isFeedDiscover ? (
-                    <span className="absolute bottom-0 left-1 right-1 h-0.5 rounded-full bg-[#ff2442]" aria-hidden />
-                  ) : null}
-                </Link>
-                <Link href="/life-agents?tab=purchased" className={`relative ${feedTabClass(isFeedPurchased)}`} scroll={false}>
-                  已购买
-                  {isFeedPurchased ? (
-                    <span className="absolute bottom-0 left-1 right-1 h-0.5 rounded-full bg-[#ff2442]" aria-hidden />
-                  ) : null}
-                </Link>
-              </div>
-              <Link
-                href="/life-agents/search"
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-slate-600 transition active:bg-slate-100"
-                title="搜索"
-                aria-label="搜索"
-              >
-                <IconSearch className="h-5 w-5 stroke-[1.75]" />
-              </Link>
+              )}
             </div>
           )}
 

@@ -1,13 +1,12 @@
 "use client";
 
-import { Capacitor } from "@capacitor/core";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 
-/** 静态导出 / Capacitor 包不走 Next middleware，需在客户端跳转发现页 */
-function useMobileDiscoverEntryRedirect() {
+/** 静态导出 / Capacitor 包不走 Next middleware：根路径客户端直达发现页 */
+function useRootToDiscoverRedirect() {
   const router = useRouter();
   const didRedirect = useRef(false);
   useEffect(() => {
@@ -17,15 +16,8 @@ function useMobileDiscoverEntryRedirect() {
       window.location.pathname.replace(/\/index\.html$/i, "").replace(/\/$/, "") || "/";
     if (normalized !== "/") return;
 
-    const native = Capacitor.isNativePlatform();
-    const narrow = window.matchMedia("(max-width: 1023px)").matches;
-    const touch = navigator.maxTouchPoints > 0;
-    const coarse = window.matchMedia("(pointer: coarse)").matches;
-
-    if (native || (narrow && (touch || coarse))) {
-      didRedirect.current = true;
-      router.replace("/life-agents");
-    }
+    didRedirect.current = true;
+    router.replace("/life-agents");
   }, [router]);
 }
 
@@ -64,7 +56,7 @@ const cards = [
 ];
 
 export default function HomePage() {
-  useMobileDiscoverEntryRedirect();
+  useRootToDiscoverRedirect();
 
   return (
     <div className="relative min-h-[calc(100vh-6rem)] sm:min-h-[calc(100vh-8rem)] flex flex-col items-center justify-center py-4 sm:py-20 overflow-x-hidden">

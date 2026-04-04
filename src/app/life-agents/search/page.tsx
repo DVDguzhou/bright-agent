@@ -3,7 +3,9 @@
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { VoiceInputButton } from "@/components/voice";
+import { LifeAgentDiscoverCardGrid } from "@/components/LifeAgentDiscoverCardGrid";
 import { addSearchHistory, clearSearchHistory, getSearchHistory } from "@/lib/life-agent-search-history";
+import { rankLifeAgentsBySearchQuery, type LifeAgentListItem } from "@/lib/life-agent-feed-search";
 
 const GUESS_LEFT = ["考研经验咨询", "秋招改简历", "转行互联网", "雅思怎么准备", "体制内跳槽"];
 const GUESS_RIGHT: { text: string; hot?: boolean }[] = [
@@ -18,11 +20,119 @@ function speechRecognitionSupported() {
   if (typeof window === "undefined") return false;
   return Boolean(
     (window as unknown as { SpeechRecognition?: unknown }).SpeechRecognition ||
-      (window as unknown as { webkitSpeechRecognition?: unknown }).webkitSpeechRecognition
+      (window as unknown as { webkitSpeechRecognition?: unknown }).webkitSpeechRecognition,
   );
 }
 
-function SearchPageInner() {
+function SearchResultsView({ query }: { query: string }) {
+  const router = useRouter();
+  const [draft, setDraft] = useState(query);
+  const [profiles, setProfiles] = useState<LifeAgentListItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setDraft(query);
+  }, [query]);
+
+  useEffect(() => {
+    setLoadError(null);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+    fetch("/api/life-agents", { credentials: "include", signal: controller.signal })
+      .then((res) => res.json())
+      .then((data) => {
+        setProfiles(Array.isArray(data) ? data : []);
+        setLoadError(null);
+      })
+      .catch((err) => {
+        setProfiles([]);
+        setLoadError(
+          err.name === "AbortError" ? "请求超时，请检查后端是否启动或稍后重试" : "加载失败，请刷新页面重试",
+        );
+      })
+      .finally(() => {
+        clearTimeout(timeoutId);
+        setLoading(false);
+      });
+
+    return () => {
+      clearTimeout(timeoutId);
+      controller.abort();
+    };
+  }, []);
+
+  const ranked = useMemo(() => rankLifeAgentsBySearchQuery(profiles, query), [profiles, query]);
+
+  const runSearch = useCallback(
+    (q: string) => {
+      const t = q.trim();
+      if (!t) return;
+      addSearchHistory(t);
+      router.push(`/life-agents/search?q=${encodeURIComponent(t)}`);
+    },
+    [router],
+  );
+
+  return (
+    <div className="-mx-4 min-h-0 flex-1 px-4 pb-28 pt-2 sm:mx-0 sm:px-0">
+      <div className="mx-auto max-w-lg sm:max-w-none">
+        <div className="flex items-center gap-2">
+          <div className="relative flex min-w-0 flex-1 items-center rounded-full border border-slate-200 bg-slate-50 py-2 pl-4 pr-12">
+            <input
+              className="min-w-0 flex-1 border-0 bg-transparent text-[15px] text-[#111] outline-none placeholder:text-slate-400"
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  runSearch(draft);
+                }
+              }}
+              placeholder="搜索 Agent、经验、话题…"
+              enterKeyHint="search"
+            />
+          </div>
+          <button
+            type="button"
+            onClick={() => runSearch(draft)}
+            className="shrink-0 px-1 py-2 text-[15px] font-medium text-[#ff2442]"
+          >
+            搜索
+          </button>
+        </div>
+        <p className="mt-2 text-xs text-slate-500">
+          {loading ? "加载中…" : loadError ? "" : `共 ${ranked.length} 个相关 Agent`}
+        </p>
+      </div>
+
+      <div className="mx-auto mt-4 max-w-7xl">
+        {loadError ? (
+          <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-amber-800">
+            {loadError}
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="ml-3 text-sm font-medium text-amber-700 underline hover:no-underline"
+            >
+              刷新页面
+            </button>
+          </div>
+        ) : (
+          <LifeAgentDiscoverCardGrid
+            profiles={ranked}
+            loading={loading}
+            emptyTitle="没有匹配的 Agent"
+            emptySubtitle="换个关键词试试，或减少筛选条件。"
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
+function SearchEntryView() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [draft, setDraft] = useState("");
@@ -46,7 +156,7 @@ function SearchPageInner() {
 
   const visibleHistory = useMemo(
     () => (historyExpanded ? history : history.slice(0, 6)),
-    [history, historyExpanded]
+    [history, historyExpanded],
   );
 
   const runSearch = useCallback(
@@ -55,25 +165,15 @@ function SearchPageInner() {
       if (!t) return;
       addSearchHistory(t);
       setHistory(getSearchHistory());
-      router.push(`/life-agents?q=${encodeURIComponent(t)}`);
+      router.push(`/life-agents/search?q=${encodeURIComponent(t)}`);
     },
-    [router]
+    [router],
   );
 
   return (
-    <div className="min-h-[100dvh] bg-white pb-36 pt-[max(0.5rem,env(safe-area-inset-top))] sm:mx-0 -mx-4 px-4 sm:px-0">
+    <div className="min-h-[100dvh] bg-white pb-36 pt-2 sm:mx-0 -mx-4 px-4 sm:px-0">
       <div className="mx-auto max-w-lg sm:px-3">
         <div className="flex items-center gap-2 pt-1">
-          <button
-            type="button"
-            onClick={() => router.back()}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[#111] active:bg-slate-100"
-            aria-label="返回"
-          >
-            <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24" aria-hidden>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
           <div className="relative flex min-w-0 flex-1 items-center rounded-full border border-slate-200 bg-slate-50 py-2 pl-4 pr-12">
             <input
               className="min-w-0 flex-1 border-0 bg-transparent text-[15px] text-[#111] outline-none placeholder:text-slate-400"
@@ -260,6 +360,17 @@ function SearchPageInner() {
       </div>
     </div>
   );
+}
+
+function SearchPageInner() {
+  const searchParams = useSearchParams();
+  const q = (searchParams.get("q") ?? "").trim();
+
+  if (q) {
+    return <SearchResultsView query={q} key={q} />;
+  }
+
+  return <SearchEntryView />;
 }
 
 export default function LifeAgentsSearchPage() {

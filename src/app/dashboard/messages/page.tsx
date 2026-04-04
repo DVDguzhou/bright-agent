@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
-import { VerificationBadge } from "@/components/VerificationBadge";
+import { getDisplayAvatar } from "@/lib/avatar";
 
 type ChatHistoryItem = {
   id: string;
@@ -20,8 +21,27 @@ type ChatHistoryItem = {
   };
 };
 
-function trimTitle(title: string) {
-  return title.length > 28 ? `${title.slice(0, 28)}...` : title;
+function formatSessionTime(iso: string) {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const now = new Date();
+  if (d.toDateString() === now.toDateString()) {
+    return d.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit", hour12: false });
+  }
+  const yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+  if (d.toDateString() === yesterday.toDateString()) return "昨天";
+  const y = d.getFullYear();
+  const thisYear = now.getFullYear();
+  if (y === thisYear) return `${d.getMonth() + 1}/${d.getDate()}`;
+  return `${y}/${d.getMonth() + 1}/${d.getDate()}`;
+}
+
+function previewText(item: ChatHistoryItem) {
+  if (item.messageCount === 0) return "暂无消息";
+  const t = (item.title ?? "").trim();
+  if (t) return t.length > 80 ? `${t.slice(0, 80)}…` : t;
+  return item.profile.headline || "暂无消息";
 }
 
 export default function DashboardMessagesPage() {
@@ -49,103 +69,133 @@ export default function DashboardMessagesPage() {
 
     return items.filter((item) =>
       [item.title, item.profile.displayName, item.profile.headline].some((value) =>
-        value.toLowerCase().includes(keyword)
-      )
+        value.toLowerCase().includes(keyword),
+      ),
     );
   }, [items, query]);
 
   if (loading || !user) {
     return (
-      <div className="py-20 text-center">
-        <p className="text-slate-500">{loading ? "加载中..." : "请先登录后查看聊天记录。"}</p>
+      <div className="flex min-h-[50vh] items-center justify-center px-4">
+        <p className="text-sm text-slate-500">{loading ? "加载中…" : "请先登录后查看消息。"}</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8">
-      <div>
-        <Link href="/dashboard" className="text-sm text-slate-500 hover:text-sky-700">
-          ← 返回个人主页
+    <div className="mx-auto max-w-2xl bg-white pb-6 max-lg:-mx-4 max-lg:min-h-[calc(100dvh-5.5rem)] lg:pb-8">
+      <header className="flex items-center justify-between gap-3 px-4 pb-3 pt-[max(0.25rem,env(safe-area-inset-top))] sm:px-0">
+        <h1 className="text-[26px] font-bold leading-tight tracking-tight text-[#111]">消息</h1>
+        <Link
+          href="/life-agents"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[#111] transition active:bg-slate-200"
+          aria-label="去找 Agent 聊天"
+          title="去找 Agent"
+        >
+          <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24" aria-hidden>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
         </Link>
-        <h1 className="section-title mt-3">消息 · 聊天记录</h1>
-        <p className="section-subtitle mt-2">你和人生 Agent 的历史会话只对你自己可见，卖家看不到聊天正文。</p>
+      </header>
+
+      <div className="px-4 pb-3 sm:px-0">
+        <label className="sr-only">搜索会话</label>
+        <input
+          className="w-full rounded-full border-0 bg-slate-100 px-4 py-2.5 text-[15px] text-[#111] outline-none ring-1 ring-transparent transition placeholder:text-slate-400 focus:bg-slate-50 focus:ring-slate-200"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="搜索会话或 Agent"
+        />
       </div>
 
-      <div className="glass-card overflow-hidden">
-        <div className="border-b border-slate-200 px-6 py-4">
-          <h2 className="text-lg font-semibold text-slate-900">最近会话</h2>
-          <p className="mt-1 text-sm text-slate-500">点击任意记录即可跳转回对应 Agent 的指定会话。</p>
-          <div className="mt-4">
-            <input
-              className="input-shell w-full"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="搜索 Agent 名称、简介或会话标题"
-            />
+      <div className="border-t border-slate-100">
+        {dataLoading ? (
+          <ul className="divide-y divide-slate-100 px-4 sm:px-0" aria-busy>
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <li key={i} className="flex items-center gap-3 py-3.5">
+                <div className="h-12 w-12 shrink-0 animate-pulse rounded-full bg-slate-200" />
+                <div className="min-w-0 flex-1 space-y-2">
+                  <div className="h-4 w-32 animate-pulse rounded bg-slate-200" />
+                  <div className="h-3 w-full max-w-[12rem] animate-pulse rounded bg-slate-100" />
+                </div>
+                <div className="h-3 w-10 shrink-0 animate-pulse rounded bg-slate-100" />
+              </li>
+            ))}
+          </ul>
+        ) : items.length === 0 ? (
+          <div className="px-4 py-16 text-center sm:px-0">
+            <p className="text-[15px] text-slate-400">还没有会话</p>
+            <Link
+              href="/life-agents"
+              className="mt-5 inline-flex rounded-full bg-[#111] px-6 py-2.5 text-sm font-medium text-white active:opacity-90"
+            >
+              去找 Agent 聊聊
+            </Link>
           </div>
-        </div>
-
-        <div className="p-6">
-          {dataLoading ? (
-            <p className="py-12 text-center text-slate-500">正在加载聊天记录...</p>
-          ) : items.length === 0 ? (
-            <div className="py-12 text-center">
-              <p className="text-slate-500">还没有历史会话。</p>
-              <Link href="/life-agents" className="mt-4 inline-flex rounded-full bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-700">
-                去找一个 Agent 聊聊
-              </Link>
-            </div>
-          ) : filteredItems.length === 0 ? (
-            <div className="py-12 text-center">
-              <p className="text-slate-500">没有找到匹配的聊天记录。</p>
-              <button
-                type="button"
-                onClick={() => setQuery("")}
-                className="mt-4 inline-flex rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50"
-              >
-                清空搜索
-              </button>
-            </div>
-          ) : (
-            <ul className="space-y-4">
-              {filteredItems.map((item, index) => (
+        ) : filteredItems.length === 0 ? (
+          <div className="px-4 py-16 text-center sm:px-0">
+            <p className="text-[15px] text-slate-400">没有匹配的会话</p>
+            <button
+              type="button"
+              onClick={() => setQuery("")}
+              className="mt-4 text-sm font-medium text-slate-600 underline"
+            >
+              清空搜索
+            </button>
+          </div>
+        ) : (
+          <ul className="divide-y divide-slate-100">
+            {filteredItems.map((item, index) => {
+              const avatarSrc = getDisplayAvatar({ name: item.profile.displayName });
+              const href = `/life-agents/${item.profile.id}/chat?sessionId=${item.id}`;
+              return (
                 <motion.li
                   key={item.id}
-                  initial={{ opacity: 0, y: 8 }}
+                  initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index < 8 ? index * 0.03 : 0 }}
-                  className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4"
+                  transition={{ delay: index < 10 ? index * 0.02 : 0 }}
                 >
-                  <div className="flex flex-wrap items-start justify-between gap-3">
+                  <Link
+                    href={href}
+                    className="flex items-center gap-3 px-4 py-3.5 transition active:bg-slate-50 sm:px-0"
+                  >
+                    <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full bg-slate-100 ring-1 ring-black/[0.06]">
+                      <Image
+                        src={avatarSrc}
+                        alt=""
+                        fill
+                        className="object-cover"
+                        sizes="48px"
+                        unoptimized
+                      />
+                    </div>
                     <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <Link
-                          href={`/life-agents/${item.profile.id}/chat?sessionId=${item.id}`}
-                          className="text-base font-semibold text-slate-900 hover:text-sky-700"
-                        >
+                      <div className="flex min-w-0 items-center gap-1.5">
+                        <span className="truncate text-[16px] font-semibold text-[#111]">
                           {item.profile.displayName}
-                        </Link>
-                        <VerificationBadge status={item.profile.verificationStatus ?? "none"} size="sm" />
+                        </span>
+                        <span
+                          className="h-2 w-2 shrink-0 rounded-full bg-emerald-500"
+                          title="在线"
+                          aria-hidden
+                        />
                       </div>
-                      <p className="mt-1 text-sm text-slate-600">{item.profile.headline}</p>
-                      <p className="mt-3 text-sm font-medium text-slate-800">{trimTitle(item.title)}</p>
-                      <p className="mt-1 text-xs text-slate-500">
-                        共 {item.messageCount} 条消息 · 最近更新 {new Date(item.updatedAt).toLocaleString("zh-CN")}
+                      <p className="mt-0.5 line-clamp-1 text-[13px] leading-snug text-slate-400">
+                        {previewText(item)}
                       </p>
                     </div>
-                    <Link
-                      href={`/life-agents/${item.profile.id}/chat?sessionId=${item.id}`}
-                      className="btn-secondary"
+                    <time
+                      className="shrink-0 pt-0.5 text-xs tabular-nums text-slate-400"
+                      dateTime={item.updatedAt}
                     >
-                      继续聊天
-                    </Link>
-                  </div>
+                      {formatSessionTime(item.updatedAt)}
+                    </time>
+                  </Link>
                 </motion.li>
-              ))}
-            </ul>
-          )}
-        </div>
+              );
+            })}
+          </ul>
+        )}
       </div>
     </div>
   );
