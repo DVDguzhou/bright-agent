@@ -1,4 +1,4 @@
-# 小黑平台
+# BrightAgent
 
 项目主文档见 [PROJECT_README.md](./PROJECT_README.md)，完整技术文档见 [docs/](./docs/)。
 

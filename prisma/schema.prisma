@@ -1,4 +1,4 @@
-// 小黑平台 - 身份认证、交易授权、调用存证、纠纷仲裁
+// BrightAgent - 身份认证、交易授权、调用存证、纠纷仲裁
 // 按 buyandsell.md 设计：平台不执行 Agent，只做授权与存证
 
 generator client {

@@ -66,7 +66,7 @@ export default function HomePage() {
           variants={item}
           className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-4 sm:mb-6 bg-gradient-to-r from-blue-600 via-sky-500 to-blue-600 bg-clip-text text-transparent break-words"
         >
-          Bright Agent Hub
+          BrightAgent
         </motion.h1>
 
         <motion.p

@@ -1,11 +1,11 @@
-可以。下面我直接给你一版**不用链、由平台小黑做中间授权与仲裁**的清晰流程，按产品/系统设计来写，方便你直接喂给 Cursor 改代码。
+可以。下面我直接给你一版**不用链、由 BrightAgent 做中间授权与仲裁**的清晰流程，按产品/系统设计来写，方便你直接喂给 Cursor 改代码。
 
 ---
 
 # 方案定位
 
-小黑平台不是 Agent 托管执行平台，也不是工具执行平台。
-小黑平台的职责只有四个：
+BrightAgent 不是 Agent 托管执行平台，也不是工具执行平台。
+BrightAgent 的职责只有四个：
 
 1. **身份认证**
 2. **交易授权**
@@ -16,7 +16,7 @@
 
 * **小兰**继续在自己侧运行 AgentB，保留数据/资源/私有能力
 * **小红**通过平台购买 AgentB 的使用权
-* **小黑**不运行 AgentB，不执行 CRM/私信/外部动作，只负责给调用“盖章”和“留证据”
+* **BrightAgent** 不运行 AgentB，不执行 CRM/私信/外部动作，只负责给调用“盖章”和“留证据”
 
 ---
 
@@ -46,7 +46,7 @@
 
 ---
 
-## 小黑（平台）
+## BrightAgent（平台方）
 
 负责：
 
@@ -206,7 +206,7 @@
 
 ### 流程
 
-1. 小兰在小黑平台创建 Agent
+1. 小兰在 BrightAgent 创建 Agent
 2. 填写：
 
    * Agent 名称
@@ -649,24 +649,24 @@
 你可以直接给 Cursor 或画图工具。
 
 ```text
-小兰 -> 小黑平台: 注册 AgentB
-小黑平台 -> 小兰: agent_id
+小兰 -> BrightAgent: 注册 AgentB
+BrightAgent -> 小兰: agent_id
 
-小红 -> 小黑平台: 购买 License
-小黑平台 -> 小红: license_id
+小红 -> BrightAgent: 购买 License
+BrightAgent -> 小红: license_id
 
-小红 -> 小黑平台: 申请调用 token(input_hash, scope, license_id)
-小黑平台 -> 小红: request_id + invocation_token
+小红 -> BrightAgent: 申请调用 token(input_hash, scope, license_id)
+BrightAgent -> 小红: request_id + invocation_token
 
 小红 -> 小兰 AgentB: 发起 invoke(request_id, input, input_hash, token)
-小兰 AgentB -> 小黑平台: 验证/回传 ExecutionReceipt
+小兰 AgentB -> BrightAgent: 验证/回传 ExecutionReceipt
 小兰 AgentB -> 小红: 返回结果
 
-小黑平台 -> 小黑平台: 核对 request/token/receipt
-小黑平台 -> 小红: 可查询调用记录
+BrightAgent -> BrightAgent: 核对 request/token/receipt
+BrightAgent -> 小红: 可查询调用记录
 
-小红 -> 小黑平台: 不满意则发起 dispute
-小黑平台 -> 小红/小兰: 仲裁结果
+小红 -> BrightAgent: 不满意则发起 dispute
+BrightAgent -> 小红/小兰: 仲裁结果
 ```
 
 ---
@@ -725,7 +725,7 @@ Suggested modules:
 
 # 九、最后给你一句最准确的产品定义
 
-**小黑平台卖的不是 Agent 执行能力，而是 Agent 使用权的可信授权、调用存证和纠纷仲裁。**
+**BrightAgent 卖的不是 Agent 执行能力，而是 Agent 使用权的可信授权、调用存证和纠纷仲裁。**
 
 这句别写错。
 写错了，后面系统边界会一直乱。

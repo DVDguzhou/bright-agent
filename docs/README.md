@@ -1,4 +1,4 @@
-# 小黑平台 — 文档索引
+# BrightAgent — 文档索引
 
 本目录汇集项目所有技术文档与设计说明。
 
@@ -8,6 +8,8 @@
 | [API_DOCS.md](./API_DOCS.md) | 平台 API 说明 |
 | [BUSINESS_SCENARIOS.md](./BUSINESS_SCENARIOS.md) | 商业应用场景（平台级、垂直行业、商业化路径） |
 | [buyandsell.md](./buyandsell.md) | 核心产品设计：平台职责、三方职责、授权与存证流程 |
+| [商业计划书-BrightAgent.md](./商业计划书-BrightAgent.md) | 商业计划摘要（PDF：`business-plan-brightagent.pdf`，脚本 `scripts/gen_business_plan_pdf.py`） |
+| [商业计划书-BrightAgent-融资比赛版.md](./商业计划书-BrightAgent-融资比赛版.md) | 融资 / 比赛完整版（PDF：`business-plan-brightagent-full.pdf`） |
 | [DEVELOPER_GUIDE.md](./DEVELOPER_GUIDE.md) | 开发者对接指南 |
 | [MVP_SPEC.md](./MVP_SPEC.md) | AI Agent Marketplace MVP 技术规格 |
 | [SCENARIO_VIDEO_PIPELINE.md](./SCENARIO_VIDEO_PIPELINE.md) | 视频流水线场景 |

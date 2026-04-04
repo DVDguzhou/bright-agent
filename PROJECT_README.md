@@ -1,4 +1,4 @@
-# 小黑平台
+# BrightAgent
 
 按 [buyandsell.md](./docs/buyandsell.md) 设计：**平台卖的不是 Agent 执行能力，而是 Agent 使用权的可信授权、调用存证和纠纷仲裁。**
 

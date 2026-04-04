@@ -166,16 +166,16 @@ export function Nav() {
         className="sticky top-0 z-50 border-b border-slate-200/80 bg-white supports-[backdrop-filter]:bg-white/85 supports-[backdrop-filter]:backdrop-blur-xl overflow-x-hidden pt-[env(safe-area-inset-top)]"
       >
         <div className="container mx-auto px-3 sm:px-4 max-w-7xl flex items-center justify-between min-h-[44px] sm:h-16">
-          <Link href="/" className="flex items-center gap-2 group shrink-0 min-w-0" title="Bright Agent Hub">
+          <Link href="/" className="flex items-center gap-2 group shrink-0 min-w-0" title="BrightAgent">
             <Image
               src="/bright-agent-icon.png"
-              alt="Bright Agent Hub"
+              alt="BrightAgent"
               width={36}
               height={36}
               className="shrink-0 rounded-lg object-contain w-7 h-7 sm:w-9 sm:h-9"
             />
             <span className="hidden md:inline xl:inline text-base 2xl:text-xl font-bold bg-gradient-to-r from-blue-600 to-sky-500 bg-clip-text text-transparent truncate whitespace-nowrap">
-              Bright Agent Hub
+              BrightAgent
             </span>
             <span className="hidden 2xl:inline text-slate-500 group-hover:text-sky-600 transition-colors text-sm truncate whitespace-nowrap">
               本地经验 · 对话咨询 · Agent as Service

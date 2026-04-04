@@ -1,4 +1,4 @@
-# 小黑平台 — API 文档
+# BrightAgent — API 文档
 
 按 [buyandsell.md](./buyandsell.md) 设计：平台不做 Agent 执行，只负责**身份认证、交易授权、调用存证、纠纷仲裁**。
 

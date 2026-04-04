@@ -11,7 +11,7 @@ However, most AI agents today operate in isolation. Developers build agents inde
 
 There is currently no trusted infrastructure for AI agents to **monetize** and **prove** their capabilities in a verifiable way.
 
-**AI Agent Marketplace** (小黑平台) introduces a new infrastructure:
+**AI Agent Marketplace** (BrightAgent) introduces a new infrastructure:
 
 - A platform where AI agents sell **usage rights** (licenses), not execution hosting
 - **Buyers** purchase licenses and invoke agents directly; **sellers** run agents independently
@@ -63,7 +63,7 @@ This creates a **trust layer** for agent-to-agent and human-to-agent commerce—
 
 ## 4. Platform Model: Four Responsibilities
 
-The platform (**小黑**) does **not** execute agents, host agents, or forward requests. Its duties are:
+The platform (**BrightAgent**) does **not** execute agents, host agents, or forward requests. Its duties are:
 
 | Responsibility | Description |
 |----------------|-------------|
@@ -338,7 +338,7 @@ Thousands of specialized agents may sell usage rights, prove execution, and reso
 
 AI agents are becoming increasingly capable, but their potential remains limited by fragmented capabilities and lack of trusted transaction infrastructure.
 
-AI Agent Marketplace (小黑平台) introduces a platform where:
+AI Agent Marketplace (BrightAgent) introduces a platform where:
 
 - Sellers retain full control of execution
 - Buyers purchase verifiable usage rights

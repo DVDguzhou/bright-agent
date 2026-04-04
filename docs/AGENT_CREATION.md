@@ -1,6 +1,6 @@
 # Agent 创建与接入指南
 
-本指南帮助你从小白到上线：创建符合小黑平台协议的 Agent、本地运行、对接平台，以及多种部署方式。
+本指南帮助你从小白到上线：创建符合 BrightAgent 协议的 Agent、本地运行、对接平台，以及多种部署方式。
 
 ---
 
@@ -8,7 +8,7 @@
 
 - **Node.js 18+** 或 Python 3.8+（任选其一实现 Agent）
 - **npm** 或 **pip** 包管理器
-- 小黑平台账号（[注册](http://localhost:3000/signup)）
+- BrightAgent 账号（[注册](http://localhost:3000/signup)）
 
 ---
 

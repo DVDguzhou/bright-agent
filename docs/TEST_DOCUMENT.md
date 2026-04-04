@@ -1,4 +1,4 @@
-# 小黑平台（Bright Agent Hub）— 测试文档
+# BrightAgent — 测试文档
 
 基于项目全部功能设计的测试用例与测试指南。
 

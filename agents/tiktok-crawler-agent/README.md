@@ -1,6 +1,6 @@
 # TikTok 选品情报 Agent（试验版）
 
-用于验证小黑平台信任层的试验 Agent。按 `docs/VERTICAL_CASE_RESEARCH.md` 规格实现。
+用于验证 BrightAgent 信任层的试验 Agent。按 `docs/VERTICAL_CASE_RESEARCH.md` 规格实现。
 
 ## 能力
 
