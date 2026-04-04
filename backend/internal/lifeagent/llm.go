@@ -12,28 +12,28 @@ import (
 	openai "github.com/sashabaranov/go-openai"
 )
 
+// pre-compiled regexps for hot paths
+var (
+	headingRe    = regexp.MustCompile(`(?m)^#{1,6}\s*`)
+	listItemRe   = regexp.MustCompile(`(?m)^\s*(\d+[\.\)、]|[-*•])\s*`)
+	identityRe   = regexp.MustCompile(`[^\p{Han}a-z0-9]`)
+)
+
 // BuildReplyWithLLM 在有 API 配置时调用 LLM 生成回复，否则回退到模板回复
 // baseURL 可选：Ollama 用 http://localhost:11434/v1，通义千问用 https://dashscope.aliyuncs.com/compatible-mode/v1
 // enableWebSearch：为 true 且 baseURL 为 DashScope 时启用联网搜索
-func BuildReplyWithLLM(apiKey, model, baseURL string, enableWebSearch bool, profile ProfileForAI, entries []KnowledgeEntryForAI, history []ChatMessageForAI, message string) (content string, references []map[string]string, err error) {
-	useLLM := (apiKey != "" || baseURL != "") && model != ""
-	log.Printf("[LLM] BuildReplyWithLLM called: apiKey=%q, model=%q, baseURL=%q, useLLM=%v, enableWebSearch=%v", apiKey, model, baseURL, useLLM, enableWebSearch)
-	if !useLLM {
+func BuildReplyWithLLM(ctx context.Context, apiKey, model, baseURL string, enableWebSearch bool, profile ProfileForAI, entries []KnowledgeEntryForAI, history []ChatMessageForAI, message string) (content string, references []map[string]string, err error) {
+	if !isLLMEnabled(apiKey, model, baseURL) {
 		log.Printf("[LLM] skipping LLM, falling back to BuildReply")
 		content, references = BuildReply(profile, entries, history, message)
 		return content, references, nil
 	}
-	if apiKey == "" && baseURL != "" {
-		apiKey = "ollama" // Ollama 等本地服务不需要真 key，但客户端要求非空
-	}
+	apiKey = resolveAPIKey(apiKey, baseURL)
 
 	selectedEntries := selectEntries(message, entries)
-	ctx := context.Background()
-	cfg := openai.DefaultConfig(apiKey)
-	if baseURL != "" {
-		cfg.BaseURL = baseURL
-	}
-	client := openai.NewClientWithConfig(cfg)
+	ctx, cancel := withLLMTimeout(ctx)
+	defer cancel()
+	client := getClient(apiKey, baseURL)
 
 	systemContent := buildSystemPrompt(profile, selectedEntries)
 	messages := buildMessages(systemContent, profile.DisplayName, history, message)
@@ -83,29 +83,22 @@ func BuildReplyWithLLM(apiKey, model, baseURL string, enableWebSearch bool, prof
 
 // BuildReplyWithLLMStream 流式版本：每产生一个 token 片段就通过 onChunk 回调推送给调用方。
 // 返回完整回复文本和引用列表。DashScope 联网搜索和无 LLM 时回退到非流式。
-func BuildReplyWithLLMStream(apiKey, model, baseURL string, enableWebSearch bool, profile ProfileForAI, entries []KnowledgeEntryForAI, history []ChatMessageForAI, message string, onChunk func(chunk string)) (content string, references []map[string]string, err error) {
-	useLLM := (apiKey != "" || baseURL != "") && model != ""
-
+func BuildReplyWithLLMStream(ctx context.Context, apiKey, model, baseURL string, enableWebSearch bool, profile ProfileForAI, entries []KnowledgeEntryForAI, history []ChatMessageForAI, message string, onChunk func(chunk string)) (content string, references []map[string]string, err error) {
 	// DashScope 联网搜索不支持流式，回退到非流式并一次性推送
-	if !useLLM || (enableWebSearch && isDashScope(baseURL)) {
-		content, references, err = BuildReplyWithLLM(apiKey, model, baseURL, enableWebSearch, profile, entries, history, message)
+	if !isLLMEnabled(apiKey, model, baseURL) || (enableWebSearch && isDashScope(baseURL)) {
+		content, references, err = BuildReplyWithLLM(ctx, apiKey, model, baseURL, enableWebSearch, profile, entries, history, message)
 		if onChunk != nil && content != "" {
 			onChunk(content)
 		}
 		return
 	}
 
-	if apiKey == "" && baseURL != "" {
-		apiKey = "ollama"
-	}
+	apiKey = resolveAPIKey(apiKey, baseURL)
 
 	selectedEntries := selectEntries(message, entries)
-	ctx := context.Background()
-	cfg := openai.DefaultConfig(apiKey)
-	if baseURL != "" {
-		cfg.BaseURL = baseURL
-	}
-	client := openai.NewClientWithConfig(cfg)
+	ctx, cancel := withStreamTimeout(ctx)
+	defer cancel()
+	client := getClient(apiKey, baseURL)
 
 	systemContent := buildSystemPrompt(profile, selectedEntries)
 	msgs := buildMessages(systemContent, profile.DisplayName, history, message)
@@ -222,47 +215,17 @@ func selectEntries(message string, entries []KnowledgeEntryForAI) []KnowledgeEnt
 	return nil
 }
 
-// ClassifyQuestionIntent 用 LLM 判断问题意图：身份类（直接查 profile）还是知识类（走 LLM 生成）
-// 完全依赖 LLM，无关键词兜底；LLM 失败时回退规则匹配
-func ClassifyQuestionIntent(apiKey, model, baseURL, message string) (isIdentity bool) {
-	useLLM := (apiKey != "" || baseURL != "") && model != ""
-	if !useLLM {
-		return IsIdentityQuestion(message)
-	}
-	if apiKey == "" && baseURL != "" {
-		apiKey = "ollama"
-	}
-	ctx := context.Background()
-	cfg := openai.DefaultConfig(apiKey)
-	if baseURL != "" {
-		cfg.BaseURL = baseURL
-	}
-	client := openai.NewClientWithConfig(cfg)
-	prompt := `用户问：「` + message + `」
-判断问题类型，只回复一个字：
-- 身份：仅限问【你自己】的名字、介绍、你是谁、你叫什么、怎么称呼
-- 知识：问【他人】（妈妈、爸爸、朋友等）、问经历、建议、怎么做、参加过什么等
-
-示例：你叫什么→身份 | 你妈妈叫什么→知识 | 你是谁→身份 | 你爸做什么→知识 | 介绍一下你→身份 | 你朋友是谁→知识
-
-只回复：身份 或 知识`
-	resp, err := client.CreateChatCompletion(ctx, openai.ChatCompletionRequest{
-		Model:       model,
-		Messages:    []openai.ChatCompletionMessage{{Role: openai.ChatMessageRoleUser, Content: prompt}},
-		Temperature: 0.1,
-		MaxTokens:   150, // qwen3 思考模式需要更多 tokens
-	})
-	if err != nil || len(resp.Choices) == 0 {
-		return IsIdentityQuestion(message)
-	}
-	content := strings.TrimSpace(strings.ToLower(resp.Choices[0].Message.Content))
-	return strings.Contains(content, "身份")
+// ClassifyQuestionIntent 纯规则匹配判断身份类问题。
+// 身份类问题直接返回 profile 信息（零幻觉），其余交给主 LLM 统一处理。
+// 不再单独调用 LLM 分类，避免双倍延迟。
+func ClassifyQuestionIntent(message string) (isIdentity bool) {
+	return IsIdentityQuestion(message)
 }
 
 // IsIdentityQuestion 规则匹配兜底（无 LLM 时）：仅限问【你自己】；不含他人关键词
 func IsIdentityQuestion(msg string) bool {
 	norm := strings.ToLower(strings.TrimSpace(msg))
-	norm = regexp.MustCompile(`[^\p{Han}a-z0-9]`).ReplaceAllString(norm, "")
+	norm = identityRe.ReplaceAllString(norm, "")
 	// 只用【你+动词】明确模式，避免「你妈妈叫什么」误匹配「叫什么」
 	patterns := []string{
 		"你叫什么", "你叫什么名字", "你叫啥",
@@ -424,8 +387,8 @@ func buildMessages(systemContent, displayName string, history []ChatMessageForAI
 
 func humanizeReply(content string) string {
 	content = strings.ReplaceAll(content, "\r\n", "\n")
-	content = regexp.MustCompile(`(?m)^#{1,6}\s*`).ReplaceAllString(content, "")
-	content = regexp.MustCompile(`(?m)^\s*(\d+[\.\)、]|[-*•])\s*`).ReplaceAllString(content, "")
+	content = headingRe.ReplaceAllString(content, "")
+	content = listItemRe.ReplaceAllString(content, "")
 
 	lines := strings.Split(content, "\n")
 	var cleaned []string

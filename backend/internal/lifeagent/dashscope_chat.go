@@ -8,7 +8,6 @@ import (
 	"io"
 	"net/http"
 	"strings"
-	"time"
 
 	openai "github.com/sashabaranov/go-openai"
 )
@@ -44,8 +43,7 @@ func chatCompletionWithWebSearch(ctx context.Context, apiKey, model, baseURL str
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+apiKey)
 
-	client := &http.Client{Timeout: 120 * time.Second}
-	resp, err := client.Do(req)
+	resp, err := dashScopeHTTPClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("http do: %w", err)
 	}

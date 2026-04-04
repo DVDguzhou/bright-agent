@@ -33,17 +33,14 @@ type ModifyIntentChanges struct {
 }
 
 // InterpretModificationIntent 用 LLM 解析用户的修改意图，返回 structured changes
-func InterpretModificationIntent(apiKey, model, baseURL string, currentState string, chatHistory []ChatMessageForAI, userMessage string) (*ModifyIntent, error) {
-	useLLM := (apiKey != "" || baseURL != "") && model != ""
-	if !useLLM {
+func InterpretModificationIntent(ctx context.Context, apiKey, model, baseURL string, currentState string, chatHistory []ChatMessageForAI, userMessage string) (*ModifyIntent, error) {
+	if !isLLMEnabled(apiKey, model, baseURL) {
 		return &ModifyIntent{
 			Reply:   "当前未配置 AI，无法理解你的修改意图。请到「编辑资料」里直接修改。",
 			Changes: nil,
 		}, nil
 	}
-	if apiKey == "" && baseURL != "" {
-		apiKey = "ollama"
-	}
+	apiKey = resolveAPIKey(apiKey, baseURL)
 
 	systemPrompt := `你是帮助 Agent 创建者修改其人生 Agent 的助手。用户会通过自然语言说明想怎么改，你要理解意图并输出一个 JSON 对象。
 
@@ -83,12 +80,9 @@ func InterpretModificationIntent(apiKey, model, baseURL string, currentState str
 	}
 	messages = append(messages, openai.ChatCompletionMessage{Role: openai.ChatMessageRoleUser, Content: userContent})
 
-	ctx := context.Background()
-	cfg := openai.DefaultConfig(apiKey)
-	if baseURL != "" {
-		cfg.BaseURL = baseURL
-	}
-	client := openai.NewClientWithConfig(cfg)
+	ctx, cancel := withLLMTimeout(ctx)
+	defer cancel()
+	client := getClient(apiKey, baseURL)
 
 	resp, err := client.CreateChatCompletion(ctx, openai.ChatCompletionRequest{
 		Model:       model,

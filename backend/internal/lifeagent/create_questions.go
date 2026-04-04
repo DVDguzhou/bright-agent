@@ -50,15 +50,11 @@ type ToneHints struct {
 
 // GenerateNextCreateQuestion 根据对话历史生成下一个问题，或判断是否已收集足够信息
 // 暗中从用户回复中学习其语气风格，用于后续 Agent 人格设定
-func GenerateNextCreateQuestion(apiKey, model, baseURL string, input *CreateQuestionInput) (*CreateQuestionOutput, error) {
-	useLLM := (apiKey != "" || baseURL != "") && model != ""
-	if !useLLM {
-		// 未配置 LLM 时回退：简单继续问或结束
+func GenerateNextCreateQuestion(ctx context.Context, apiKey, model, baseURL string, input *CreateQuestionInput) (*CreateQuestionOutput, error) {
+	if !isLLMEnabled(apiKey, model, baseURL) {
 		return fallbackNextQuestion(input), nil
 	}
-	if apiKey == "" && baseURL != "" {
-		apiKey = "ollama"
-	}
+	apiKey = resolveAPIKey(apiKey, baseURL)
 
 	systemPrompt := `你是在帮助用户创建「人生 Agent」的采访助手。用户会通过对话逐步分享自己的经历、经验，你要通过提问引导他们输出全面、具体的信息。
 
@@ -131,12 +127,9 @@ func GenerateNextCreateQuestion(apiKey, model, baseURL string, input *CreateQues
 		historyText.String(),
 	)
 
-	ctx := context.Background()
-	cfg := openai.DefaultConfig(apiKey)
-	if baseURL != "" {
-		cfg.BaseURL = baseURL
-	}
-	client := openai.NewClientWithConfig(cfg)
+	ctx, cancel := withLLMTimeout(ctx)
+	defer cancel()
+	client := getClient(apiKey, baseURL)
 
 	resp, err := client.CreateChatCompletion(ctx, openai.ChatCompletionRequest{
 		Model:       model,

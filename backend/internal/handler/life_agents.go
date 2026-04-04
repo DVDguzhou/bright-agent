@@ -438,6 +438,7 @@ func LifeAgentsCreateNextQuestion(cfg *config.Config) gin.HandlerFunc {
 			return
 		}
 		out, err := lifeagent.GenerateNextCreateQuestion(
+			c.Request.Context(),
 			cfg.OpenAIApiKey, cfg.OpenAIModel, cfg.OpenAIBaseURL,
 			&body,
 		)
@@ -466,6 +467,7 @@ func LifeAgentsCreateProfileSummary(cfg *config.Config) gin.HandlerFunc {
 			return
 		}
 		out, err := lifeagent.GenerateProfileCreateSummary(
+			c.Request.Context(),
 			cfg.OpenAIApiKey, cfg.OpenAIModel, cfg.OpenAIBaseURL,
 			&body,
 		)
@@ -1068,6 +1070,7 @@ func LifeAgentsModifyViaChat(cfg *config.Config) gin.HandlerFunc {
 		}
 		state := buildModifyStateString(&p, entries)
 		intent, err := lifeagent.InterpretModificationIntent(
+			c.Request.Context(),
 			cfg.OpenAIApiKey, cfg.OpenAIModel, cfg.OpenAIBaseURL,
 			state, body.ChatHistory, body.Message,
 		)
@@ -1697,11 +1700,12 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 
 		var content string
 		var refs []map[string]string
-		if lifeagent.ClassifyQuestionIntent(cfg.OpenAIApiKey, cfg.OpenAIModel, cfg.OpenAIBaseURL, body.Message) {
+		if lifeagent.ClassifyQuestionIntent(body.Message) {
 			content = lifeagent.BuildIdentityReply(profileForAI)
 			writeSSE("content", gin.H{"content": content})
 		} else {
 			content, refs, _ = lifeagent.BuildReplyWithLLMStream(
+				c.Request.Context(),
 				cfg.OpenAIApiKey, cfg.OpenAIModel, cfg.OpenAIBaseURL,
 				cfg.LLMEnableWebSearch,
 				profileForAI,

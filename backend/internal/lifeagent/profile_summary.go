@@ -44,14 +44,11 @@ type ProfileSummaryOutput struct {
 	KnowledgeEntries []KEntry `json:"knowledgeEntries"`
 }
 
-func GenerateProfileCreateSummary(apiKey, model, baseURL string, input *ProfileSummaryInput) (*ProfileSummaryOutput, error) {
-	useLLM := (apiKey != "" || baseURL != "") && model != ""
-	if !useLLM {
+func GenerateProfileCreateSummary(ctx context.Context, apiKey, model, baseURL string, input *ProfileSummaryInput) (*ProfileSummaryOutput, error) {
+	if !isLLMEnabled(apiKey, model, baseURL) {
 		return fallbackProfileSummary(input), nil
 	}
-	if apiKey == "" && baseURL != "" {
-		apiKey = "ollama"
-	}
+	apiKey = resolveAPIKey(apiKey, baseURL)
 
 	systemPrompt := `你在帮助用户创建「人生 Agent」。用户已经通过对话回答了基础资料，你要把这些原始回答整理成结构化资料，并提炼出可直接入库的经验知识。
 
@@ -123,12 +120,10 @@ func GenerateProfileCreateSummary(apiKey, model, baseURL string, input *ProfileS
 		input.SampleQuestionsText,
 	)
 
-	cfg := openai.DefaultConfig(apiKey)
-	if baseURL != "" {
-		cfg.BaseURL = baseURL
-	}
-	client := openai.NewClientWithConfig(cfg)
-	resp, err := client.CreateChatCompletion(context.Background(), openai.ChatCompletionRequest{
+	ctx, cancel := withLLMTimeout(ctx)
+	defer cancel()
+	client := getClient(apiKey, baseURL)
+	resp, err := client.CreateChatCompletion(ctx, openai.ChatCompletionRequest{
 		Model: model,
 		Messages: []openai.ChatCompletionMessage{
 			{Role: openai.ChatMessageRoleSystem, Content: systemPrompt},

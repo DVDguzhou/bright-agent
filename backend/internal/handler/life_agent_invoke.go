@@ -278,11 +278,12 @@ func LifeAgentsChatAPI(cfg *config.Config) gin.HandlerFunc {
 
 		var content string
 		var refs []map[string]string
-		if lifeagent.ClassifyQuestionIntent(cfg.OpenAIApiKey, cfg.OpenAIModel, cfg.OpenAIBaseURL, body.Message) {
+		if lifeagent.ClassifyQuestionIntent(body.Message) {
 			content = lifeagent.BuildIdentityReply(profileForAI)
 		} else {
 			var err error
 			content, refs, err = lifeagent.BuildReplyWithLLM(
+				c.Request.Context(),
 				cfg.OpenAIApiKey, cfg.OpenAIModel, cfg.OpenAIBaseURL,
 				cfg.LLMEnableWebSearch,
 				profileForAI,
