@@ -22,7 +22,7 @@ var (
 // BuildReplyWithLLM 在有 API 配置时调用 LLM 生成回复，否则回退到模板回复
 // baseURL 可选：Ollama 用 http://localhost:11434/v1，通义千问用 https://dashscope.aliyuncs.com/compatible-mode/v1
 // enableWebSearch：为 true 且 baseURL 为 DashScope 时启用联网搜索
-func BuildReplyWithLLM(ctx context.Context, apiKey, model, baseURL string, enableWebSearch bool, profile ProfileForAI, entries []KnowledgeEntryForAI, history []ChatMessageForAI, message string) (content string, references []map[string]string, err error) {
+func BuildReplyWithLLM(ctx context.Context, apiKey, model, baseURL string, enableWebSearch bool, profile ProfileForAI, entries []KnowledgeEntryForAI, history []ChatMessageForAI, message string, opts *ChatOptions) (content string, references []map[string]string, err error) {
 	if !isLLMEnabled(apiKey, model, baseURL) {
 		log.Printf("[LLM] skipping LLM, falling back to BuildReply")
 		content, references = BuildReply(profile, entries, history, message)
@@ -30,13 +30,13 @@ func BuildReplyWithLLM(ctx context.Context, apiKey, model, baseURL string, enabl
 	}
 	apiKey = resolveAPIKey(apiKey, baseURL)
 
-	selectedEntries := selectEntries(message, entries)
+	selectedEntries := selectEntries(message, history, entries)
 	ctx, cancel := withLLMTimeout(ctx)
 	defer cancel()
 	client := getClient(apiKey, baseURL)
 
 	systemContent := buildSystemPrompt(profile, selectedEntries)
-	messages := buildMessages(systemContent, profile.DisplayName, history, message)
+	messages := buildMessages(systemContent, profile.DisplayName, history, message, opts)
 
 	var resp *openai.ChatCompletionResponse
 	if enableWebSearch && isDashScope(baseURL) {
@@ -83,10 +83,10 @@ func BuildReplyWithLLM(ctx context.Context, apiKey, model, baseURL string, enabl
 
 // BuildReplyWithLLMStream 流式版本：每产生一个 token 片段就通过 onChunk 回调推送给调用方。
 // 返回完整回复文本和引用列表。DashScope 联网搜索和无 LLM 时回退到非流式。
-func BuildReplyWithLLMStream(ctx context.Context, apiKey, model, baseURL string, enableWebSearch bool, profile ProfileForAI, entries []KnowledgeEntryForAI, history []ChatMessageForAI, message string, onChunk func(chunk string)) (content string, references []map[string]string, err error) {
+func BuildReplyWithLLMStream(ctx context.Context, apiKey, model, baseURL string, enableWebSearch bool, profile ProfileForAI, entries []KnowledgeEntryForAI, history []ChatMessageForAI, message string, onChunk func(chunk string), opts *ChatOptions) (content string, references []map[string]string, err error) {
 	// DashScope 联网搜索不支持流式，回退到非流式并一次性推送
 	if !isLLMEnabled(apiKey, model, baseURL) || (enableWebSearch && isDashScope(baseURL)) {
-		content, references, err = BuildReplyWithLLM(ctx, apiKey, model, baseURL, enableWebSearch, profile, entries, history, message)
+		content, references, err = BuildReplyWithLLM(ctx, apiKey, model, baseURL, enableWebSearch, profile, entries, history, message, opts)
 		if onChunk != nil && content != "" {
 			onChunk(content)
 		}
@@ -95,13 +95,13 @@ func BuildReplyWithLLMStream(ctx context.Context, apiKey, model, baseURL string,
 
 	apiKey = resolveAPIKey(apiKey, baseURL)
 
-	selectedEntries := selectEntries(message, entries)
+	selectedEntries := selectEntries(message, history, entries)
 	ctx, cancel := withStreamTimeout(ctx)
 	defer cancel()
 	client := getClient(apiKey, baseURL)
 
 	systemContent := buildSystemPrompt(profile, selectedEntries)
-	msgs := buildMessages(systemContent, profile.DisplayName, history, message)
+	msgs := buildMessages(systemContent, profile.DisplayName, history, message, opts)
 
 	stream, err := client.CreateChatCompletionStream(ctx, openai.ChatCompletionRequest{
 		Model:       model,
@@ -166,7 +166,10 @@ func BuildReplyWithLLMStream(ctx context.Context, apiKey, model, baseURL string,
 	return content, references, nil
 }
 
-func selectEntries(message string, entries []KnowledgeEntryForAI) []KnowledgeEntryForAI {
+func selectEntries(message string, history []ChatMessageForAI, entries []KnowledgeEntryForAI) []KnowledgeEntryForAI {
+	// 结合最近几轮用户消息构建组合查询，让知识库检索感知对话上下文
+	query := buildContextQuery(message, history)
+
 	ranked := make([]struct {
 		entry KnowledgeEntryForAI
 		score int
@@ -175,7 +178,7 @@ func selectEntries(message string, entries []KnowledgeEntryForAI) []KnowledgeEnt
 		ranked[i] = struct {
 			entry KnowledgeEntryForAI
 			score int
-		}{e, scoreEntry(message, e)}
+		}{e, scoreEntry(query, e)}
 	}
 	for i := 0; i < len(ranked)-1; i++ {
 		for j := i + 1; j < len(ranked); j++ {
@@ -360,12 +363,43 @@ func appendArrayLines(sb *strings.Builder, items []string) {
 	}
 }
 
-func buildMessages(systemContent, displayName string, history []ChatMessageForAI, newMessage string) []openai.ChatCompletionMessage {
-	messages := make([]openai.ChatCompletionMessage, 0, len(history)+3)
+// buildContextQuery 将最近几轮用户消息与当前消息拼接，用于知识库检索
+func buildContextQuery(message string, history []ChatMessageForAI) string {
+	var parts []string
+	// 取最近 3 条用户消息作为上下文
+	userCount := 0
+	for i := len(history) - 1; i >= 0 && userCount < 3; i-- {
+		if history[i].Role == "user" {
+			parts = append([]string{history[i].Content}, parts...)
+			userCount++
+		}
+	}
+	parts = append(parts, message)
+	return strings.Join(parts, " ")
+}
+
+func buildMessages(systemContent, displayName string, history []ChatMessageForAI, newMessage string, opts *ChatOptions) []openai.ChatCompletionMessage {
+	messages := make([]openai.ChatCompletionMessage, 0, len(history)+5)
 	messages = append(messages, openai.ChatCompletionMessage{
 		Role:    openai.ChatMessageRoleSystem,
 		Content: systemContent,
 	})
+
+	// 注入跨会话记忆（之前会话的摘要）
+	if opts != nil && opts.CrossSessionMemory != "" {
+		messages = append(messages, openai.ChatCompletionMessage{
+			Role:    openai.ChatMessageRoleSystem,
+			Content: "【之前的对话记忆】\n以下是你与这位用户之前聊过的内容摘要，可作为背景参考，但不要主动提起除非用户问到相关话题：\n" + opts.CrossSessionMemory,
+		})
+	}
+
+	// 注入本次会话早期内容摘要（历史压缩）
+	if opts != nil && opts.SessionSummary != "" {
+		messages = append(messages, openai.ChatCompletionMessage{
+			Role:    openai.ChatMessageRoleSystem,
+			Content: "【本次对话早期内容摘要】\n" + opts.SessionSummary,
+		})
+	}
 
 	for _, m := range history {
 		role := openai.ChatMessageRoleUser

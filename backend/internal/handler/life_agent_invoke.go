@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
@@ -223,11 +224,15 @@ func LifeAgentsChatAPI(cfg *config.Config) gin.HandlerFunc {
 		}
 
 		sessionID := body.SessionID
+		var sessionSummary string
 		if sessionID != "" {
 			var sess models.LifeAgentChatSession
 			if db.DB.Where("id = ? AND profile_id = ? AND buyer_id = ? AND is_api = ?", sessionID, id, models.LifeAgentAPICallerUserID, true).First(&sess).Error != nil {
 				c.JSON(http.StatusNotFound, gin.H{"error": "SESSION_NOT_FOUND"})
 				return
+			}
+			if sess.Summary != nil {
+				sessionSummary = *sess.Summary
 			}
 		} else {
 			title := buildLifeAgentSessionTitle(body.Message)
@@ -244,12 +249,30 @@ func LifeAgentsChatAPI(cfg *config.Config) gin.HandlerFunc {
 			db.DB.Create(&sess)
 			sessionID = sess.ID
 		}
+		// 跨会话记忆：加载之前会话的摘要
+		var crossMemory string
+		{
+			var prevSessions []models.LifeAgentChatSession
+			db.DB.Where("profile_id = ? AND buyer_id = ? AND id != ? AND summary IS NOT NULL AND summary != ''",
+				id, models.LifeAgentAPICallerUserID, sessionID).Order("updated_at DESC").Limit(3).Find(&prevSessions)
+			var summaries []string
+			for _, s := range prevSessions {
+				if s.Summary != nil && *s.Summary != "" {
+					summaries = append(summaries, *s.Summary)
+				}
+			}
+			crossMemory = lifeagent.BuildCrossSessionMemory(summaries)
+		}
 
 		var entries []models.LifeAgentKnowledgeEntry
 		db.DB.Where("profile_id = ?", id).Order("sort_order").Find(&entries)
 		var hist []lifeagent.ChatMessageForAI
 		var msgs []models.LifeAgentChatMessage
-		db.DB.Where("session_id = ?", sessionID).Order("created_at ASC").Limit(8).Find(&msgs)
+		// 取最近 20 条（DESC），再反转为时间正序，确保 LLM 看到的是最新上下文
+		db.DB.Where("session_id = ?", sessionID).Order("created_at DESC").Limit(20).Find(&msgs)
+		for i, j := 0, len(msgs)-1; i < j; i, j = i+1, j-1 {
+			msgs[i], msgs[j] = msgs[j], msgs[i]
+		}
 		for _, m := range msgs {
 			hist = append(hist, lifeagent.ChatMessageForAI{Role: m.Role, Content: m.Content})
 		}
@@ -288,6 +311,10 @@ func LifeAgentsChatAPI(cfg *config.Config) gin.HandlerFunc {
 				cfg.LLMEnableWebSearch,
 				profileForAI,
 				entriesForAI, hist, body.Message,
+				&lifeagent.ChatOptions{
+					SessionSummary:     sessionSummary,
+					CrossSessionMemory: crossMemory,
+				},
 			)
 			if err != nil {
 				log.Printf("life-agents api chat: LLM error: %v", err)
@@ -317,6 +344,24 @@ func LifeAgentsChatAPI(cfg *config.Config) gin.HandlerFunc {
 			Refs:      refsAny,
 		})
 		db.DB.Model(&models.LifeAgentChatSession{}).Where("id = ?", sessionID).Update("updated_at", db.DB.NowFunc())
+		// 异步生成会话摘要：消息数 > 12 时触发
+		totalMsgCount := len(msgs) + 2
+		if totalMsgCount > 12 {
+			allHist := make([]lifeagent.ChatMessageForAI, len(hist), len(hist)+2)
+			copy(allHist, hist)
+			allHist = append(allHist, lifeagent.ChatMessageForAI{Role: "user", Content: body.Message})
+			allHist = append(allHist, lifeagent.ChatMessageForAI{Role: "assistant", Content: content})
+			go func(sid string, messages []lifeagent.ChatMessageForAI) {
+				summary := lifeagent.SummarizeConversation(
+					context.Background(),
+					cfg.OpenAIApiKey, cfg.OpenAIModel, cfg.OpenAIBaseURL,
+					messages,
+				)
+				if summary != "" {
+					db.DB.Model(&models.LifeAgentChatSession{}).Where("id = ?", sid).Update("summary", summary)
+				}
+			}(sessionID, allHist)
+		}
 
 		db.DB.Model(&inv).UpdateColumn("call_count", inv.CallCount+1)
 		db.DB.Model(&p).UpdateColumn("api_total_calls", p.ApiTotalCalls+1)
