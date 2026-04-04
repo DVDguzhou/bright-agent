@@ -7,7 +7,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { getDisplayAvatar } from "@/lib/avatar";
 
-type Agent = { id: string; name: string; status: string };
 type LifeAgentCreated = {
   id: string;
   displayName: string;
@@ -46,7 +45,6 @@ function IconBox({
 
 export default function DashboardPage() {
   const { user, loading } = useAuth();
-  const [agents, setAgents] = useState<Agent[]>([]);
   const [lifeAgentsCreated, setLifeAgentsCreated] = useState<LifeAgentCreated[]>([]);
   const [lifeAgentsPurchased, setLifeAgentsPurchased] = useState<LifeAgentPurchased[]>([]);
 
@@ -56,10 +54,6 @@ export default function DashboardPage() {
     }
 
     Promise.all([
-      fetch("/api/agents?owner=me", { credentials: "include" })
-        .then((r) => r.json())
-        .then((d) => (Array.isArray(d) ? d : []))
-        .catch(() => []),
       fetch("/api/life-agents/mine", { credentials: "include" })
         .then((r) => (r.ok ? r.json() : []))
         .then((d) => (Array.isArray(d) ? d : []))
@@ -69,8 +63,7 @@ export default function DashboardPage() {
         .then((d) => (Array.isArray(d) ? d : []))
         .catch(() => []),
     ])
-      .then(([a, c, p]) => {
-        setAgents(a);
+      .then(([c, p]) => {
         setLifeAgentsCreated(c);
         setLifeAgentsPurchased(p);
       });
@@ -89,9 +82,9 @@ export default function DashboardPage() {
       soldPacks,
       revenue,
       purchasedQuestions,
-      marketplaceAgents: agents.length,
+      purchasedProfiles: lifeAgentsPurchased.length,
     };
-  }, [agents.length, lifeAgentsCreated, lifeAgentsPurchased]);
+  }, [lifeAgentsCreated, lifeAgentsPurchased]);
 
   const topStats = [
     { label: "我的创建", value: totals.createdCount, sub: "人生 Agent" },
@@ -136,8 +129,8 @@ export default function DashboardPage() {
     },
     {
       href: "/licenses",
-      label: "License",
-      desc: "凭证管理",
+      label: "已购咨询",
+      desc: "提问包与认证",
       bgClass: "bg-indigo-100",
       icon: (
         <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
@@ -196,7 +189,7 @@ export default function DashboardPage() {
               <Link
                 href="/life-agents/create"
                 className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-slate-700 shadow-sm ring-1 ring-black/[0.05] active:scale-[0.98]"
-                aria-label="创建 Agent"
+                aria-label="创建人生 Agent"
               >
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -232,8 +225,8 @@ export default function DashboardPage() {
 
         <div className="mt-4 grid grid-cols-4 gap-2 rounded-[24px] bg-[#fafbfc] p-3 text-center">
           <div className="rounded-2xl bg-white px-2 py-3 shadow-sm ring-1 ring-black/[0.03]">
-            <p className="text-lg font-black text-[#111]">{totals.marketplaceAgents}</p>
-            <p className="mt-1 text-[11px] text-slate-500">公开 Agent</p>
+            <p className="text-lg font-black text-[#111]">{totals.purchasedProfiles}</p>
+            <p className="mt-1 text-[11px] text-slate-500">已购咨询</p>
           </div>
           <div className="rounded-2xl bg-white px-2 py-3 shadow-sm ring-1 ring-black/[0.03]">
             <p className="text-lg font-black text-[#111]">{totals.soldPacks}</p>

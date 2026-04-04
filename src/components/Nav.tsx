@@ -52,7 +52,7 @@ const IconMap = ({ className }: { className?: string }) => (
 );
 
 const navLinks = [
-  { href: "/life-agents", label: "Agent", Icon: IconAgent },
+  { href: "/life-agents", label: "发现", Icon: IconAgent },
   { href: "/dashboard/messages", label: "消息", Icon: IconMessages },
   { href: "/map", label: "地图", Icon: IconMap },
 ];
@@ -400,7 +400,7 @@ export function Nav() {
                   <svg className="h-5 w-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                   </svg>
-                  创建 Agent
+                  创建人生 Agent
                 </Link>
                 <Link
                   href="/dashboard/life-agents"
@@ -408,7 +408,7 @@ export function Nav() {
                   className="mb-2 flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-slate-800 hover:bg-slate-50"
                 >
                   <IconAgent className="h-5 w-5 text-slate-600" />
-                  我创建的 Agent
+                  我创建的
                 </Link>
                 <Link
                   href="/dashboard/messages"
@@ -439,7 +439,7 @@ export function Nav() {
                   <svg className="h-5 w-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                   </svg>
-                  Licenses
+                  已购咨询
                 </Link>
                 {user ? (
                   <>
@@ -490,11 +490,11 @@ export function Nav() {
 
       {!hideGlobalBottomNav && (
         <>
-          {/* 中间 FAB 与第 3 列空白对齐：Agent | 消息 | （+） | 地图 | 我的 */}
+          {/* 中间 FAB 与第 3 列空白对齐：发现 | 消息 | （+） | 地图 | 我的 */}
           <Link
             href="/life-agents/create"
             className="fixed bottom-[calc(env(safe-area-inset-bottom)+2.25rem)] left-1/2 z-[60] flex h-12 w-12 -translate-x-1/2 lg:hidden items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-sky-400 shadow-lg shadow-blue-500/30 ring-4 ring-white transition-transform active:scale-95"
-            aria-label="创建 Agent"
+            aria-label="创建人生 Agent"
           >
             <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />

@@ -7,10 +7,10 @@ export default function TasksCreatePage() {
     <div className="py-20 max-w-md">
       <h1 className="text-2xl font-bold text-slate-100 mb-4">新流程说明</h1>
       <p className="text-slate-400 mb-6">
-        平台已按 buyandsell.md 重构。请先购买 Agent 的 License，再持 Token 直接调用。
+        任务模式已下线。请前往发现页购买人生 Agent 提问包，在聊天页直接对话。
       </p>
-      <Link href="/agents" className="btn-primary inline-block">
-        浏览 Agents 并购买 License
+      <Link href="/life-agents" className="btn-primary inline-block">
+        浏览人生 Agent
       </Link>
     </div>
   );

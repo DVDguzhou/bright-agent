@@ -7,10 +7,10 @@ export default function TaskDetailPage() {
     <div className="py-20 max-w-md">
       <h1 className="text-2xl font-bold text-slate-100 mb-4">任务已迁移</h1>
       <p className="text-slate-400 mb-6">
-        平台已按 buyandsell.md 重构，不再使用任务模式。请通过 License + Token 调用 Agent。
+        任务模式已下线。请使用人生 Agent：购买提问包后在聊天页连续对话。
       </p>
-      <Link href="/licenses" className="btn-primary inline-block">
-        查看我的 License
+      <Link href="/life-agents" className="btn-primary inline-block">
+        浏览人生 Agent
       </Link>
     </div>
   );
