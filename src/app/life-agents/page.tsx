@@ -5,7 +5,6 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { RatingStars } from "@/components/RatingStars";
 import { VerificationBadge } from "@/components/VerificationBadge";
-import { useAuth } from "@/contexts/AuthContext";
 import {
   COUNTRY_OPTIONS_FOR_FILTER as COUNTRY_OPTIONS,
   getCityOptionsForFilter as getCityOptions,
@@ -56,9 +55,7 @@ const UI = {
   badge: "本地经验 · 可对话",
   heroTitle: "发现 Agent",
   heroSubtitle: "真实经历做成可对话咨询，按次付费",
-  createAgent: "发布",
-  profileHome: "我的",
-  signup: "注册",
+  createAgent: "创建 Agent",
   sectionTitle: "推荐",
   sectionSubtitle: "",
   loading: "加载中...",
@@ -213,7 +210,6 @@ export default function LifeAgentsPage() {
   const [selectedCity, setSelectedCity] = useState<string>(UI.all);
   const [selectedCounty, setSelectedCounty] = useState<string>(UI.all);
 
-  const { user } = useAuth();
   const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -261,24 +257,16 @@ export default function LifeAgentsPage() {
       <section className="rounded-2xl bg-white px-3 py-4 shadow-sm ring-1 ring-slate-200/80 sm:px-5 sm:py-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-medium uppercase tracking-wide text-rose-500/90">{UI.badge}</p>
+            <p className="text-[11px] font-medium uppercase tracking-wide text-blue-500/90">{UI.badge}</p>
             <h1 className="mt-0.5 text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">{UI.heroTitle}</h1>
             <p className="mt-1 text-xs text-slate-500 sm:text-sm">{UI.heroSubtitle}</p>
           </div>
-          <div className="flex shrink-0 gap-2">
-            <Link
-              href="/life-agents/create"
-              className="rounded-full bg-gradient-to-r from-rose-500 to-orange-400 px-4 py-2 text-xs font-semibold text-white shadow-sm sm:px-5 sm:text-sm"
-            >
-              {UI.createAgent}
-            </Link>
-            <Link
-              href={user ? "/dashboard" : "/signup"}
-              className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-medium text-slate-700 sm:text-sm"
-            >
-              {user ? UI.profileHome : UI.signup}
-            </Link>
-          </div>
+          <Link
+            href="/life-agents/create"
+            className="shrink-0 rounded-full bg-gradient-to-r from-blue-600 to-sky-500 px-5 py-2 text-xs font-semibold text-white shadow-sm transition hover:shadow-md sm:text-sm"
+          >
+            {UI.createAgent}
+          </Link>
         </div>
 
         <div className="mt-4">
@@ -290,7 +278,7 @@ export default function LifeAgentsPage() {
               </svg>
             </span>
             <input
-              className="input-glow w-full rounded-full border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-rose-300 focus:bg-white"
+              className="input-glow w-full rounded-full border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-300 focus:bg-white"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={UI.searchPlaceholder}
@@ -440,7 +428,7 @@ export default function LifeAgentsPage() {
                   className="min-h-0"
                 >
                   <Link href={"/life-agents/" + profile.id} className="group flex h-full min-h-0">
-                    <div className="flex h-full min-h-[280px] w-full flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/70 transition duration-200 group-hover:shadow-md group-hover:ring-rose-200/60 sm:min-h-[300px]">
+                    <div className="flex h-full min-h-[280px] w-full flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/70 transition duration-200 group-hover:shadow-md group-hover:ring-blue-200/60 sm:min-h-[300px]">
                       <div className="relative aspect-[4/5] w-full shrink-0 overflow-hidden bg-slate-100">
                           <Image
                             src={coverUrl}
@@ -476,7 +464,7 @@ export default function LifeAgentsPage() {
                             </span>
                             <span className="truncate">{profile.creator.name ?? UI.anonymous}</span>
                           </div>
-                          <span className="shrink-0 text-sm font-bold text-rose-500">
+                          <span className="shrink-0 text-sm font-bold text-blue-600">
                             ¥{(profile.pricePerQuestion / 100).toFixed(0)}
                             <span className="text-[10px] font-medium text-slate-400">/问</span>
                           </span>
@@ -497,7 +485,7 @@ export default function LifeAgentsPage() {
                           {tags.map((tag: string) => (
                             <span
                               key={tag}
-                              className="rounded-md bg-rose-50 px-1.5 py-0.5 text-[10px] font-medium text-rose-600/90"
+                              className="rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-medium text-blue-600/90"
                             >
                               {tag}
                             </span>
