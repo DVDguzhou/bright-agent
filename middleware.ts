@@ -15,6 +15,7 @@ function isPhoneOrTablet(request: NextRequest): boolean {
   return (
     /iphone|ipod|ipad/.test(ua) ||
     /android/.test(ua) ||
+    /micromessenger|mqqbrowser| wv\)|crosswalk/.test(ua) ||
     /mobile|tablet|kindle|silk|playbook|bb10|blackberry|iemobile|bada|webos|opera mini|windows phone|huawei|honor|xiaomi|oppo|vivo|realme|redmi|oneplus|samsungbrowser/.test(
       ua
     )

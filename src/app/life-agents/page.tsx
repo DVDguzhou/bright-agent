@@ -6,12 +6,6 @@ import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { RatingStars } from "@/components/RatingStars";
 import { VerificationBadge } from "@/components/VerificationBadge";
-import {
-  COUNTRY_OPTIONS_FOR_FILTER as COUNTRY_OPTIONS,
-  getCityOptionsForFilter as getCityOptions,
-  getCountyOptionsForFilter as getCountyOptions,
-  getProvinceOptionsForFilter as getProvinceOptions,
-} from "@/lib/address-hierarchy";
 import Image from "next/image";
 import { lifeAgentCoverShouldBypassOptimizer, resolveLifeAgentCoverUrl } from "@/lib/life-agent-covers";
 import { getFavoriteAgentIds } from "@/lib/life-agent-favorites";
@@ -61,23 +55,8 @@ type PurchasedAgentRow = {
 };
 
 const UI = {
-  all: "全部",
-  allOrAny: "全部 / 不限",
-  badge: "本地经验 · 可对话",
-  heroTitle: "发现 Agent",
-  heroSubtitle: "真实经历做成可对话咨询，按次付费",
-  createAgent: "创建 Agent",
-  sectionTitle: "推荐",
-  sectionSubtitle: "",
   loading: "加载中...",
   countSuffix: "个",
-  keywordSearch: "搜索感兴趣的方向",
-  searchPlaceholder: "考研、求职、转行、雅思…",
-  searchHint:
-    "多关键词用空格或逗号分隔；会自动联想相关词。",
-  region: "地区筛选",
-  regionHint: "组合地区缩小范围",
-  filtersToggle: "地区与筛选",
   emptyTitle: "还没有人生 Agent",
   emptySubtitle:
     "创建第一个，把你的经验变成可对话的咨询页",
@@ -218,10 +197,6 @@ function LifeAgentsPageContent() {
   const [profiles, setProfiles] = useState<LifeAgentListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
-  const [selectedCountry, setSelectedCountry] = useState<string>(UI.all);
-  const [selectedProvince, setSelectedProvince] = useState<string>(UI.all);
-  const [selectedCity, setSelectedCity] = useState<string>(UI.all);
-  const [selectedCounty, setSelectedCounty] = useState<string>(UI.all);
 
   const [loadError, setLoadError] = useState<string | null>(null);
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
@@ -276,15 +251,6 @@ function LifeAgentsPageContent() {
   }, [feedTab]);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (window.location.hash !== "#discover-search") return;
-    const t = window.setTimeout(() => {
-      document.getElementById("discover-search")?.focus();
-    }, 100);
-    return () => window.clearTimeout(t);
-  }, []);
-
-  useEffect(() => {
     setLoadError(null);
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 秒超时
@@ -311,10 +277,6 @@ function LifeAgentsPageContent() {
 
   const filteredProfiles = useMemo(() => {
     return [...profiles]
-      .filter((profile) => (selectedCountry === UI.all ? true : profile.country?.includes(selectedCountry)))
-      .filter((profile) => (selectedProvince === UI.all ? true : profile.province?.includes(selectedProvince)))
-      .filter((profile) => (selectedCity === UI.all ? true : profile.city?.includes(selectedCity)))
-      .filter((profile) => (selectedCounty === UI.all ? true : profile.county?.includes(selectedCounty)))
       .map((profile) => ({ profile, score: searchScore(profile, query) }))
       .filter(({ score }) => score > 0)
       .sort((a, b) => {
@@ -322,7 +284,7 @@ function LifeAgentsPageContent() {
         return (b.profile.soldQuestionPacks ?? 0) - (a.profile.soldQuestionPacks ?? 0);
       })
       .map(({ profile }) => profile);
-  }, [profiles, query, selectedCountry, selectedProvince, selectedCity, selectedCounty]);
+  }, [profiles, query]);
 
   const displayProfiles = useMemo(() => {
     if (feedTab === "favorites") {
@@ -334,114 +296,6 @@ function LifeAgentsPageContent() {
 
   return (
     <div className="-mx-1 space-y-4 pb-4 sm:mx-0 sm:space-y-5">
-      <section className="rounded-2xl bg-white px-3 py-4 shadow-sm ring-1 ring-slate-200/80 sm:px-5 sm:py-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-medium uppercase tracking-wide text-blue-500/90">{UI.badge}</p>
-            <h1 className="mt-0.5 text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">{UI.heroTitle}</h1>
-            <p className="mt-1 text-xs text-slate-500 sm:text-sm">{UI.heroSubtitle}</p>
-          </div>
-          <Link
-            href="/life-agents/create"
-            className="shrink-0 rounded-full bg-gradient-to-r from-blue-600 to-sky-500 px-5 py-2 text-xs font-semibold text-white shadow-sm transition hover:shadow-md sm:text-sm"
-          >
-            {UI.createAgent}
-          </Link>
-        </div>
-
-        <div className="mt-4">
-          <label className="sr-only">{UI.keywordSearch}</label>
-          <div className="relative">
-            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden>
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </span>
-            <input
-              id="discover-search"
-              className="input-glow w-full rounded-full border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-300 focus:bg-white"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder={UI.searchPlaceholder}
-            />
-          </div>
-          <p className="mt-2 px-1 text-[11px] leading-relaxed text-slate-400 sm:text-xs">{UI.searchHint}</p>
-        </div>
-
-        <details className="group mt-4 rounded-2xl border border-slate-100 bg-slate-50/80 open:border-slate-200 open:bg-white">
-          <summary className="flex cursor-pointer list-none items-center justify-between gap-2 rounded-2xl px-3 py-2.5 text-sm font-medium text-slate-700 marker:hidden sm:px-4">
-            <span>{UI.filtersToggle}</span>
-            <span className="text-slate-400 transition group-open:rotate-180">
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </span>
-          </summary>
-          <div className="space-y-3 border-t border-slate-100 px-3 pb-4 pt-3 sm:px-4">
-            <p className="text-xs font-medium text-slate-600">{UI.region}</p>
-            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-              <select
-                className="input-shell rounded-xl py-2.5 text-sm"
-                value={selectedCountry}
-                onChange={(e) => {
-                  setSelectedCountry(e.target.value);
-                  setSelectedProvince(UI.all);
-                  setSelectedCity(UI.all);
-                  setSelectedCounty(UI.all);
-                }}
-              >
-                {COUNTRY_OPTIONS.map((item) => (
-                  <option key={item} value={item}>
-                    {item === UI.all ? UI.allOrAny : item}
-                  </option>
-                ))}
-              </select>
-              <select
-                className="input-shell rounded-xl py-2.5 text-sm"
-                value={selectedProvince}
-                onChange={(e) => {
-                  setSelectedProvince(e.target.value);
-                  setSelectedCity(UI.all);
-                  setSelectedCounty(UI.all);
-                }}
-              >
-                {getProvinceOptions(selectedCountry).map((item) => (
-                  <option key={item} value={item}>
-                    {item === UI.all ? UI.all : item}
-                  </option>
-                ))}
-              </select>
-              <select
-                className="input-shell rounded-xl py-2.5 text-sm"
-                value={selectedCity}
-                onChange={(e) => {
-                  setSelectedCity(e.target.value);
-                  setSelectedCounty(UI.all);
-                }}
-              >
-                {getCityOptions(selectedCountry, selectedProvince).map((item) => (
-                  <option key={item} value={item}>
-                    {item === UI.all ? UI.all : item}
-                  </option>
-                ))}
-              </select>
-              <select
-                className="input-shell rounded-xl py-2.5 text-sm"
-                value={selectedCounty}
-                onChange={(e) => setSelectedCounty(e.target.value)}
-              >
-                {getCountyOptions(selectedCountry, selectedProvince, selectedCity).map((item) => (
-                  <option key={item} value={item}>
-                    {item === UI.all ? UI.allOrAny : item}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <p className="text-[11px] text-slate-400">{UI.regionHint}</p>
-          </div>
-        </details>
-      </section>
-
       <section>
         {feedTab === "favorites" ? (
           <div className="mb-3 rounded-xl border border-rose-100 bg-rose-50/80 px-4 py-3 text-sm text-rose-900">
@@ -455,23 +309,22 @@ function LifeAgentsPageContent() {
           </div>
         ) : null}
 
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-3 px-1">
-          <h2 className="text-base font-semibold text-slate-900 sm:text-lg">
-            {feedTab === "favorites" ? "我的收藏" : feedTab === "purchased" ? "已购买" : UI.sectionTitle}
-            {UI.sectionSubtitle && feedTab !== "favorites" && feedTab !== "purchased" ? (
-              <span className="ml-2 font-normal text-slate-500">{UI.sectionSubtitle}</span>
-            ) : null}
-          </h2>
-          <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] text-slate-600 sm:text-xs">
-            {feedTab === "purchased"
-              ? purchasedLoading
-                ? UI.loading
-                : `${purchasedItems.length}${UI.countSuffix}`
-              : loading
-                ? UI.loading
-                : `${displayProfiles.length}/${profiles.length}${UI.countSuffix}`}
-          </span>
-        </div>
+        {feedTab === "favorites" || feedTab === "purchased" ? (
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-3 px-1">
+            <h2 className="text-base font-semibold text-slate-900 sm:text-lg">
+              {feedTab === "favorites" ? "我的收藏" : "已购买"}
+            </h2>
+            <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] text-slate-600 sm:text-xs">
+              {feedTab === "purchased"
+                ? purchasedLoading
+                  ? UI.loading
+                  : `${purchasedItems.length}${UI.countSuffix}`
+                : loading
+                  ? UI.loading
+                  : `${displayProfiles.length}/${profiles.length}${UI.countSuffix}`}
+            </span>
+          </div>
+        ) : null}
 
         {loadError && (
           <div className="mb-6 rounded-2xl bg-amber-50 border border-amber-200 px-4 py-3 text-amber-800">
@@ -707,13 +560,10 @@ export default function LifeAgentsPage() {
   return (
     <Suspense
       fallback={
-        <div className="-mx-1 space-y-4 pb-4 sm:mx-0">
-          <div className="h-40 animate-pulse rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/80" />
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="aspect-[4/5] animate-pulse rounded-2xl bg-slate-200/80" />
-            ))}
-          </div>
+        <div className="-mx-1 grid grid-cols-2 gap-2 pb-4 sm:mx-0 sm:grid-cols-3">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="aspect-[4/5] animate-pulse rounded-2xl bg-slate-200/80" />
+          ))}
         </div>
       }
     >

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { OFFICIAL_CONTACT } from "@/lib/official-contact";
@@ -15,6 +15,12 @@ import {
 import { VoiceRecordPanel } from "@/components/voice";
 import { LifeAgentMessageComposer } from "@/components/LifeAgentMessageComposer";
 import { LifeAgentCoverPicker } from "@/components/LifeAgentCoverPicker";
+import {
+  clearLifeAgentCreateDraft,
+  loadLifeAgentCreateDraft,
+  saveLifeAgentCreateDraft,
+  type LifeAgentCreateDraftV1,
+} from "@/lib/life-agent-create-draft";
 
 type KnowledgeEntry = {
   category: string;
@@ -137,6 +143,60 @@ const PROFILE_CHAT_FIELDS: readonly ProfileChatField[] = [
   },
 ] as const;
 
+type CreateAgentFormState = {
+  displayName: string;
+  headline: string;
+  shortBio: string;
+  longBio: string;
+  education: string;
+  school: string;
+  job: string;
+  income: string;
+  country: string;
+  province: string;
+  city: string;
+  county: string;
+  audience: string;
+  welcomeMessage: string;
+  pricePerQuestion: string;
+  expertiseTags: string;
+  mbti: string;
+  personaArchetype: string;
+  toneStyle: string;
+  responseStyle: string;
+  forbiddenPhrases: string;
+  exampleReply1: string;
+  exampleReply2: string;
+  exampleReply3: string;
+};
+
+const DEFAULT_FORM: CreateAgentFormState = {
+  displayName: "",
+  headline: "",
+  shortBio: "",
+  longBio: "",
+  education: "",
+  school: "",
+  job: "",
+  income: "",
+  country: "",
+  province: "",
+  city: "",
+  county: "",
+  audience: "",
+  welcomeMessage: "你好，我是基于本地真实经验的顾问，你可以问我关于我亲身经历的问题。",
+  pricePerQuestion: "9.9",
+  expertiseTags: "",
+  mbti: "",
+  personaArchetype: "过来人型",
+  toneStyle: "像朋友聊天",
+  responseStyle: "先理解处境再建议",
+  forbiddenPhrases: "",
+  exampleReply1: "",
+  exampleReply2: "",
+  exampleReply3: "",
+};
+
 export default function CreateLifeAgentPage() {
   const router = useRouter();
   const profileChatEndRef = useRef<HTMLDivElement>(null);
@@ -151,32 +211,7 @@ export default function CreateLifeAgentPage() {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [form, setForm] = useState({
-    displayName: "",
-    headline: "",
-    shortBio: "",
-    longBio: "",
-    education: "",
-    school: "",
-    job: "",
-    income: "",
-    country: "",
-    province: "",
-    city: "",
-    county: "",
-    audience: "",
-    welcomeMessage: "你好，我是基于本地真实经验的顾问，你可以问我关于我亲身经历的问题。",
-    pricePerQuestion: "9.9",
-    expertiseTags: "",
-    mbti: "",
-    personaArchetype: "过来人型",
-    toneStyle: "像朋友聊天",
-    responseStyle: "先理解处境再建议",
-    forbiddenPhrases: "",
-    exampleReply1: "",
-    exampleReply2: "",
-    exampleReply3: "",
-  });
+  const [form, setForm] = useState<CreateAgentFormState>(() => ({ ...DEFAULT_FORM }));
   const [notSuitableFor, setNotSuitableFor] = useState("");
   const [knowledgeEntries, setKnowledgeEntries] = useState<KnowledgeEntry[]>([]);
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
@@ -194,6 +229,142 @@ export default function CreateLifeAgentPage() {
   const [voiceSampleBase64, setVoiceSampleBase64] = useState<string | null>(null);
   const [coverImageUrl, setCoverImageUrl] = useState("");
   const [voiceSkipped, setVoiceSkipped] = useState(false);
+  /** 为 true 表示已尝试从 localStorage 恢复草稿，避免与「空聊天自动插入首条」冲突 */
+  const [draftReady, setDraftReady] = useState(false);
+  const saveDraftTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useLayoutEffect(() => {
+    if (!user?.id) {
+      setDraftReady(false);
+      return;
+    }
+    const draft = loadLifeAgentCreateDraft(user.id);
+    if (draft) {
+      const stepClamped = Math.max(1, Math.min(5, Math.floor(Number(draft.step)) || 1));
+      const maxField = PROFILE_CHAT_FIELDS.length - 1;
+      const idx = Math.max(0, Math.min(maxField, Math.floor(Number(draft.chatFieldIndex)) || 0));
+      setStep(stepClamped);
+      setForm({ ...DEFAULT_FORM, ...draft.form });
+      setNotSuitableFor(draft.notSuitableFor);
+      setKnowledgeEntries(
+        draft.knowledgeEntries.map((e) => ({
+          category: e.category,
+          title: e.title,
+          content: e.content,
+          tags: e.tags,
+        })),
+      );
+      setChatHistory(draft.chatHistory);
+      setChatInput(draft.chatInput);
+      setChatDone(draft.chatDone);
+      setChatFieldIndex(idx);
+      setExperienceHistory(draft.experienceHistory);
+      setExperienceInput(draft.experienceInput);
+      setExperienceDone(draft.experienceDone);
+      setShowAdvanced(draft.showAdvanced);
+      setSampleQuestionsList(draft.sampleQuestionsList);
+      setSampleQuestionsDraft(draft.sampleQuestionsDraft);
+      setVoiceSkipped(draft.voiceSkipped);
+      setCoverImageUrl(draft.coverImageUrl);
+      setError("");
+    }
+    setDraftReady(true);
+  }, [user?.id]);
+
+  const buildDraftSnapshot = useCallback((): LifeAgentCreateDraftV1 => {
+    return {
+      v: 1,
+      savedAt: Date.now(),
+      step,
+      form: { ...form },
+      notSuitableFor,
+      knowledgeEntries,
+      chatHistory,
+      chatInput,
+      chatDone,
+      chatFieldIndex,
+      experienceHistory,
+      experienceInput,
+      experienceDone,
+      showAdvanced,
+      sampleQuestionsList,
+      sampleQuestionsDraft,
+      voiceSkipped,
+      coverImageUrl,
+    };
+  }, [
+    step,
+    form,
+    notSuitableFor,
+    knowledgeEntries,
+    chatHistory,
+    chatInput,
+    chatDone,
+    chatFieldIndex,
+    experienceHistory,
+    experienceInput,
+    experienceDone,
+    showAdvanced,
+    sampleQuestionsList,
+    sampleQuestionsDraft,
+    voiceSkipped,
+    coverImageUrl,
+  ]);
+
+  const flushSaveDraft = useCallback(() => {
+    const uid = user?.id;
+    if (!uid || !draftReady) return;
+    saveLifeAgentCreateDraft(uid, buildDraftSnapshot());
+  }, [user?.id, draftReady, buildDraftSnapshot]);
+
+  const flushSaveDraftRef = useRef(flushSaveDraft);
+  flushSaveDraftRef.current = flushSaveDraft;
+
+  useEffect(() => {
+    if (!user?.id || !draftReady) return;
+    if (saveDraftTimerRef.current) clearTimeout(saveDraftTimerRef.current);
+    saveDraftTimerRef.current = setTimeout(() => {
+      saveDraftTimerRef.current = null;
+      flushSaveDraftRef.current();
+    }, 500);
+    return () => {
+      if (saveDraftTimerRef.current) clearTimeout(saveDraftTimerRef.current);
+    };
+  }, [
+    user?.id,
+    draftReady,
+    step,
+    form,
+    notSuitableFor,
+    knowledgeEntries,
+    chatHistory,
+    chatInput,
+    chatDone,
+    chatFieldIndex,
+    experienceHistory,
+    experienceInput,
+    experienceDone,
+    showAdvanced,
+    sampleQuestionsList,
+    sampleQuestionsDraft,
+    voiceSkipped,
+    coverImageUrl,
+  ]);
+
+  useEffect(() => {
+    if (!user?.id || !draftReady) return;
+    const flush = () => flushSaveDraftRef.current();
+    const onVis = () => {
+      if (document.visibilityState === "hidden") flush();
+    };
+    document.addEventListener("visibilitychange", onVis);
+    window.addEventListener("pagehide", flush);
+    return () => {
+      document.removeEventListener("visibilitychange", onVis);
+      window.removeEventListener("pagehide", flush);
+    };
+  }, [user?.id, draftReady]);
+
   useEffect(() => {
     fetch("/api/auth/me", { credentials: "include" })
       .then((res) => (res.ok ? res.json() : null))
@@ -210,21 +381,23 @@ export default function CreateLifeAgentPage() {
   }, [experienceHistory]);
 
   useEffect(() => {
+    if (!draftReady) return;
     if (step === 1 && chatHistory.length === 0) {
       setChatHistory([{ role: "assistant", content: PROFILE_CHAT_FIELDS[0].prompt }]);
       setChatFieldIndex(0);
       setChatDone(false);
       setError("");
     }
-  }, [step, chatHistory.length]);
+  }, [draftReady, step, chatHistory.length]);
 
   useEffect(() => {
+    if (!draftReady) return;
     if (step === 2 && experienceHistory.length === 0) {
       setExperienceHistory([{ role: "assistant", content: FIRST_QUESTION }]);
       setExperienceDone(false);
       setError("");
     }
-  }, [step, experienceHistory.length]);
+  }, [draftReady, step, experienceHistory.length]);
 
   const currentChatField = PROFILE_CHAT_FIELDS[Math.min(chatFieldIndex, PROFILE_CHAT_FIELDS.length - 1)];
   const completedChatCount = chatDone ? PROFILE_CHAT_FIELDS.length : chatFieldIndex;
@@ -285,24 +458,8 @@ export default function CreateLifeAgentPage() {
   };
 
   const restartProfileChat = () => {
-    setForm((prev) => ({
-      ...prev,
-      displayName: "",
-      headline: "",
-      shortBio: "",
-      longBio: "",
-      education: "",
-      school: "",
-      job: "",
-      income: "",
-      country: "",
-      province: "",
-      city: "",
-      county: "",
-      audience: "",
-      welcomeMessage: "你好，我是基于本地真实经验的顾问，你可以问我关于我亲身经历的问题。",
-      expertiseTags: "",
-    }));
+    if (user?.id) clearLifeAgentCreateDraft(user.id);
+    setForm({ ...DEFAULT_FORM });
     setKnowledgeEntries([]);
     setSampleQuestionsList([]);
     setSampleQuestionsDraft("");
@@ -640,6 +797,7 @@ export default function CreateLifeAgentPage() {
     }
 
     const newId = data.id;
+    if (user?.id) clearLifeAgentCreateDraft(user.id);
     if (newId && voiceSampleBase64 && !voiceSkipped && !data.voiceCloneId) {
       try {
         sessionStorage.setItem(`la-voice-warn:${newId}`, "1");
@@ -694,9 +852,17 @@ export default function CreateLifeAgentPage() {
   };
 
   return (
-    <div className="-mx-4 -mt-3 max-lg:-mb-20 sm:-mt-8 lg:-mb-8 flex min-w-0 flex-col min-h-[100dvh] lg:min-h-[calc(100dvh-4rem)]">
-      {/* 顶替全局顶栏：固定安全区 + 三列网格，避免窄屏把标题挤没 */}
-      <header className="sticky top-0 z-40 shrink-0 border-b border-slate-200/80 bg-white/95 px-3 pb-2 pt-[max(0.5rem,env(safe-area-inset-top))] backdrop-blur-md sm:px-6 sm:pb-3 sm:pt-[max(0.75rem,env(safe-area-inset-top))]">
+    <div
+      className={
+        "flex min-w-0 flex-col overflow-hidden " +
+        /* 窄屏：占满视口并禁止整页滚动，避免 sticky 顶栏盖住「基础资料」等首行（main 的 padding + min-h-dvh 常会多出一点可滚动高度） */
+        "max-lg:fixed max-lg:inset-0 max-lg:z-30 max-lg:m-0 max-lg:w-full max-lg:bg-slate-50 max-lg:min-h-0 " +
+        /* 宽屏：与原布局一致 */
+        "lg:relative lg:z-auto lg:-mx-4 lg:-mt-8 lg:-mb-8 lg:min-h-[calc(100dvh-4rem)] max-lg:min-h-0"
+      }
+    >
+      {/* 顶替全局顶栏：窄屏随全屏容器固定；宽屏 sticky 防止长表单滚动时丢失上下文 */}
+      <header className="z-40 shrink-0 border-b border-slate-200/80 bg-white/95 px-3 pb-2 pt-[max(0.5rem,env(safe-area-inset-top))] backdrop-blur-md max-lg:relative sm:px-6 sm:pb-3 sm:pt-[max(0.75rem,env(safe-area-inset-top))] lg:sticky lg:top-0">
         <div className="mx-auto grid max-w-5xl grid-cols-[2.5rem_1fr_2.5rem] items-center gap-2 sm:grid-cols-[3rem_1fr_3rem]">
           <Link
             href="/life-agents"
