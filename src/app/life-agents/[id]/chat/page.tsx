@@ -101,7 +101,7 @@ export default function LifeAgentChatPage() {
   const [useVoiceReply, setUseVoiceReply] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
   const [emojiOpen, setEmojiOpen] = useState(false);
-  const [keyboardInset, setKeyboardInset] = useState(0);
+  const [vpHeight, setVpHeight] = useState<number | null>(null);
   const chatEndRef = useRef<HTMLDivElement | null>(null);
   const composerWrapRef = useRef<HTMLDivElement | null>(null);
 
@@ -212,13 +212,12 @@ export default function LifeAgentChatPage() {
   }, [messages]);
 
   useEffect(() => {
-    if (keyboardInset <= 0) return;
+    if (vpHeight === null) return;
     const t = window.setTimeout(() => {
-      chatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
       viewportRef.current?.scrollTo({ top: viewportRef.current.scrollHeight, behavior: "smooth" });
     }, 80);
     return () => window.clearTimeout(t);
-  }, [keyboardInset]);
+  }, [vpHeight]);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -244,22 +243,21 @@ export default function LifeAgentChatPage() {
     return () => document.removeEventListener("pointerdown", onPointer);
   }, [emojiOpen]);
 
-  /** 移动端软键盘（viewport 不缩放时）用 visualViewport 垫高底部输入区 */
   useEffect(() => {
-    if (typeof window === "undefined" || window.matchMedia("(min-width: 1024px)").matches) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
+    if (typeof window === "undefined") return;
+    const isDesktop = window.matchMedia("(min-width: 1024px)").matches;
+    if (!isDesktop) {
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => { document.body.style.overflow = prev; };
+    }
   }, []);
 
   useEffect(() => {
     const vv = typeof window !== "undefined" ? window.visualViewport : null;
     if (!vv) return;
     const update = () => {
-      const gap = Math.max(0, window.innerHeight - vv.height - Math.max(0, vv.offsetTop));
-      setKeyboardInset(gap);
+      setVpHeight(vv.height);
     };
     update();
     vv.addEventListener("resize", update);
@@ -483,11 +481,10 @@ export default function LifeAgentChatPage() {
   const openMenu = () => setMenuOpen(true);
   const closeMenu = () => setMenuOpen(false);
 
-  const bottomBarPad = `calc(env(safe-area-inset-bottom, 0px) + ${keyboardInset}px)`;
-
   return (
     <div
-      className="-mx-4 -mt-3 flex min-h-0 flex-col sm:-mt-8 lg:-mb-8 lg:min-h-[calc(100dvh-5rem)] max-lg:fixed max-lg:inset-0 max-lg:z-[35] max-lg:h-[100dvh] max-lg:max-h-[100dvh] max-lg:w-screen max-lg:max-w-none max-lg:overflow-hidden max-lg:bg-white max-lg:px-4 max-lg:pt-[env(safe-area-inset-top)]"
+      className="flex min-h-0 flex-col lg:-mx-4 lg:-mt-3 lg:-mb-8 lg:min-h-[calc(100dvh-5rem)] max-lg:fixed max-lg:inset-x-0 max-lg:top-0 max-lg:z-[35] max-lg:overflow-hidden max-lg:bg-white"
+      style={vpHeight != null ? { height: `${vpHeight}px` } : { height: "100dvh" }}
     >
       <AnimatePresence>
         {menuOpen && (
@@ -728,7 +725,7 @@ export default function LifeAgentChatPage() {
       </AnimatePresence>
 
       <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-none border-0 border-slate-200/80 bg-white shadow-sm sm:rounded-3xl sm:border lg:rounded-3xl max-lg:flex-1">
-        <header className="sticky top-0 z-20 flex shrink-0 items-center gap-2 border-b border-slate-100 bg-white px-1 py-2 sm:px-3 lg:pt-[max(0.25rem,env(safe-area-inset-top))] max-lg:pt-0">
+        <header className="z-20 flex shrink-0 items-center gap-2 border-b border-slate-100 bg-white px-1 py-2 pt-[env(safe-area-inset-top)] sm:px-3">
           <button
             type="button"
             onClick={() => router.push(`/life-agents/${id}`)}
@@ -852,10 +849,7 @@ export default function LifeAgentChatPage() {
           </div>
         )}
 
-        <div
-          className="shrink-0 border-t border-slate-100 bg-white px-3 pt-2 sm:px-4"
-          style={{ paddingBottom: bottomBarPad }}
-        >
+        <div className="shrink-0 border-t border-slate-100 bg-white px-3 pb-[env(safe-area-inset-bottom)] pt-2 sm:px-4">
           <div className="mx-auto max-w-3xl">
             <div className="-mx-1 flex gap-2 overflow-x-auto pb-2 scrollbar-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {quickPhrases.map((phrase) => (
