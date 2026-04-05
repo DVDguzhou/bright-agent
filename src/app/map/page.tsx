@@ -36,6 +36,25 @@ type ApiAgent = {
   regions?: string[];
 };
 
+function formatGeolocationError(err: GeolocationPositionError): string {
+  const secure =
+    typeof window !== "undefined" &&
+    (window.isSecureContext || window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
+  if (!secure) {
+    return "当前不是安全连接（需要 https 或本机 localhost）。请用 https 打开本站后再试定位。";
+  }
+  switch (err.code) {
+    case 1:
+      return "定位权限被拒绝：请在系统设置里允许浏览器/App 使用位置，或在地址栏左侧重新允许定位。";
+    case 2:
+      return "暂时拿不到位置（信号弱或被关闭）。可到户外或打开系统定位后再试。";
+    case 3:
+      return "定位超时。可检查 GPS 是否开启，或稍后再试。";
+    default:
+      return err.message || "无法获取位置，请检查定位权限与网络。";
+  }
+}
+
 export default function MapPage() {
   const { user, loading: authLoading } = useAuth();
   const [agents, setAgents] = useState<MapAgentMarker[]>([]);
@@ -151,7 +170,7 @@ export default function MapPage() {
       return;
     }
     if (typeof navigator === "undefined" || !navigator.geolocation) {
-      setGeoError("当前环境不支持定位");
+      setGeoError("当前环境不支持定位 API（例如部分内置浏览器）。");
       setShareEnabled(false);
       writeMapShareEnabled(false);
       return;
@@ -164,19 +183,20 @@ export default function MapPage() {
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
         setUserLatLng({ lat, lng });
+        setGeoError(null);
         if (!firstGeoFitRef.current) {
           firstGeoFitRef.current = true;
           setMapLayoutNonce((n) => n + 1);
         }
       },
-      () => {
-        setGeoError("无法获取位置，请检查浏览器或系统定位权限");
+      (geoErr) => {
+        setGeoError(formatGeolocationError(geoErr));
         setShareEnabled(false);
         writeMapShareEnabled(false);
         stopWatch();
         setUserLatLng(null);
       },
-      { enableHighAccuracy: true, maximumAge: 15000, timeout: 20000 }
+      { enableHighAccuracy: true, maximumAge: 20000, timeout: 25000 }
     );
     watchIdRef.current = id;
     return () => {
@@ -440,10 +460,24 @@ export default function MapPage() {
                       {user && boundAgents.length > 0 ? (
                         <>
                           <p className="text-center text-xs leading-relaxed text-slate-500">
-                            选好后可点「开启定位」显示蓝点；或先点「完成」关闭面板，稍后再来开定位。
+                            选 Agent 会马上保存并高亮地图。<strong className="font-semibold text-slate-600">「开启定位」</strong>
+                            只负责显示你的蓝点，失败也不影响已选 Agent；可随时点「完成」关闭。
                           </p>
                           {geoError ? (
-                            <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-800">{geoError}</p>
+                            <div className="space-y-2 rounded-xl border border-amber-200 bg-amber-50/90 px-3 py-3 text-sm">
+                              <p className="font-medium text-amber-950">已选中的 Agent 仍有效，仅「我的位置」蓝点未开启。</p>
+                              <p className="text-red-800">{geoError}</p>
+                              <button
+                                type="button"
+                                className="w-full rounded-xl bg-white py-2.5 text-sm font-semibold text-[#0091ff] ring-1 ring-[#0091ff]/40 active:bg-sky-50"
+                                onClick={() => {
+                                  setGeoError(null);
+                                  enableSharing();
+                                }}
+                              >
+                                重新尝试定位
+                              </button>
+                            </div>
                           ) : null}
                           {!shareEnabled ? (
                             <button
@@ -451,7 +485,7 @@ export default function MapPage() {
                               className="w-full rounded-2xl bg-[#0091ff] py-3.5 text-sm font-semibold text-white active:opacity-90"
                               onClick={enableSharing}
                             >
-                              开启定位
+                              开启定位（可选）
                             </button>
                           ) : (
                             <button
