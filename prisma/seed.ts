@@ -196,7 +196,6 @@ async function main() {
         "老听人说曼巴精神，到底是鸡汤还是真能照着练？",
       ],
       pricePerQuestion: 1,
-      voiceCloneId: "Ethan",
       published: true,
     },
   });

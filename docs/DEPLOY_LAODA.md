@@ -46,7 +46,9 @@ https://brightagent.cn/life-agents/10000000-0000-0000-0000-000000000002/chat
 
 ## 语音（牢大素材音色，非默认 Ethan）
 
-种子 / `create:laoda` 默认是系统音色 **Ethan**。要改成 `voice_samples/laoda_reference/laoda_voice.mp3` 复刻音色：
+**首次**种子 / `create:laoda` **新建**牢大时默认是系统音色 **Ethan**。要改成 `voice_samples/laoda_reference/laoda_voice.mp3` 复刻音色：
+
+**注意：** 再次执行 `npm run create:laoda` 或 `db:seed` **更新**已有牢大时，**不会**再把 `voiceCloneId` 写回 Ethan，以免冲掉你已上传的复刻 id。若线上一直是 Ethan，说明尚未成功 enroll，请按下面 A/B 做一次。
 
 **方式 A — 网页：** 使用 **该 Agent 的创建者（卖家）账号** 登录 → **控制台** → **我的人生 Agent** → 点「活泼牢大」→ 在编辑页 **录制/上传音色样本** → 保存（或仅上传音色）。
 

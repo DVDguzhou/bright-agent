@@ -6,6 +6,9 @@
  *
  * 依赖：DATABASE_PRISMA_URL 在 .env 中已配置，MySQL 已启动
  *
+ * 注意：对已存在的牢大执行 upsert 时**不会**再写入 voiceCloneId，避免覆盖你在控制台或
+ * enroll-laoda-voice.mjs 里绑定的复刻音色。新建时默认仍为系统音色 Ethan。
+ *
  * 环境变量（可选）：
  *   LAODA_OWNER_EMAIL     牢大归属卖家邮箱，默认 tmxiand@gmail.com
  *   LAODA_OWNER_PASSWORD  该账号初始密码（仅新建用户时写入），默认 password123（与 db:seed 一致）
@@ -116,7 +119,6 @@ async function main() {
         "老听人说曼巴精神，到底是鸡汤还是真能照着练？",
       ],
       pricePerQuestion: 1,
-      voiceCloneId: "Ethan",
       published: true,
     },
   });
