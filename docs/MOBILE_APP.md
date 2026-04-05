@@ -176,6 +176,14 @@ npm run mobile:ios
 - 项目已通过 `patches/@capacitor+app+8.0.1.patch` 修复：将 `call.reject()` 替换为返回空值的 `call.resolve()`。
 - 升级 @capacitor/app 时需检查 patch 是否仍适用，必要时重新生成：修改后执行 `npx patch-package @capacitor/app`。
 
+### Q: 地图页在 App 里无法使用 GPS？
+
+- Web 端地图使用浏览器 `navigator.geolocation`；在 Capacitor WebView 中通常可用，但若系统未授权或行为不一致，可改为使用官方插件：
+  1. 安装：`npm i @capacitor/geolocation`，执行 `npx cap sync`。
+  2. **Android**：在 `AndroidManifest.xml` 中声明 `ACCESS_FINE_LOCATION`（及按需的 `ACCESS_COARSE_LOCATION`），并在运行时请求权限。
+  3. **iOS**：在 `Info.plist` 增加 `NSLocationWhenInUseUsageDescription`（说明为何需要定位）。
+- 若仍加载远程 `MOBILE_APP_URL`，需保证站点为 **HTTPS**（或 iOS ATS 已放行），否则浏览器定位可能受限。
+
 ---
 
 ## 七、项目结构
