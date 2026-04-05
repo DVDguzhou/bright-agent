@@ -35,42 +35,47 @@ type ChatMessageForAI struct {
 	Content string
 }
 
-func BuildReply(profile ProfileForAI, entries []KnowledgeEntryForAI, history []ChatMessageForAI, message string) (content string, references []map[string]string) {
-	ranked := make([]struct {
-		entry KnowledgeEntryForAI
-		score int
-	}, len(entries))
-	for i, e := range entries {
-		ranked[i] = struct {
-			entry KnowledgeEntryForAI
-			score int
-		}{e, scoreEntry(message, e)}
+func BuildReply(profile ProfileForAI, facts []StructuredFactForAI, topics []TopicSummaryForAI, entries []KnowledgeEntryForAI, history []ChatMessageForAI, message string) (content string, references []map[string]string) {
+	if reply, refs, ok := ResolveGroundedFactReply(profile, facts, message); ok {
+		return reply, refs
 	}
-	for i := 0; i < len(ranked)-1; i++ {
-		for j := i + 1; j < len(ranked); j++ {
-			if ranked[j].score > ranked[i].score {
-				ranked[i], ranked[j] = ranked[j], ranked[i]
-			}
-		}
-	}
-	var topEntries []KnowledgeEntryForAI
-	for _, r := range ranked {
-		if r.score > 0 {
-			topEntries = append(topEntries, r.entry)
-			if len(topEntries) >= 3 {
-				break
-			}
-		}
-	}
+	plan := BuildRetrievalPlan(message, history, facts, topics, entries)
+	topTopics := plan.Topics
+	topEntries := plan.Entries
 
 	// 没有任何匹配的知识条目：低风险问题先尝试带保留地推测，高风险具体事实才拒答
-	if len(topEntries) == 0 {
+	if len(topTopics) == 0 && len(topEntries) == 0 && len(plan.Facts) == 0 {
 		if isHighRiskFactQuestion(message) {
 			content = "这个我不敢瞎猜，得有更明确的依据才行。你要是愿意多给我一点背景，我可以帮你一起推一推。"
 			return content, nil
 		}
 		content = buildSpeculativeReply(profile, message)
 		return content, nil
+	}
+
+	if len(topEntries) == 0 && len(plan.Facts) > 0 {
+		content = buildFactReply(plan.Facts[0].FactKey, plan.Facts)
+		return content, BuildRetrievalReferences(plan)
+	}
+
+	if len(topTopics) > 0 {
+		parts := make([]string, 0, len(topTopics))
+		for _, topic := range topTopics {
+			snippet := strings.TrimSpace(topic.Summary)
+			if snippet == "" {
+				continue
+			}
+			parts = append(parts, snippet)
+		}
+		if len(parts) > 0 {
+			content = parts[0]
+			for i := 1; i < len(parts); i++ {
+				content += "\n\n另外，" + parts[i]
+			}
+			content += "\n\n还有啥想问的你接着说。"
+			content = ApplyClaimGuard(message, content, facts, plan)
+			return content, BuildRetrievalReferences(plan)
+		}
 	}
 
 	// 有匹配的知识条目 → 用人设语气自然地呈现知识内容
@@ -114,17 +119,8 @@ func BuildReply(profile ProfileForAI, entries []KnowledgeEntryForAI, history []C
 	// 加一句简短的收尾，保持对话感
 	content += "\n\n还有啥想问的你接着说。"
 
-	references = make([]map[string]string, len(topEntries))
-	for i, e := range topEntries {
-		excerpt := normalizeSnippet(firstSentence(e.Content, 80))
-		if excerpt == "" {
-			excerpt = "来自知识库的相关内容。"
-		}
-		references[i] = map[string]string{
-			"id": e.ID, "category": e.Category, "title": e.Title,
-			"excerpt": excerpt,
-		}
-	}
+	content = ApplyClaimGuard(message, content, facts, plan)
+	references = BuildRetrievalReferences(plan)
 	return content, references
 }
 

@@ -29,7 +29,7 @@ type RatingItem = {
 };
 
 type SummaryData = {
-  counts: { helpful: number; notSpecific: number; notSuitable: number };
+  counts: { helpful: number; notSpecific: number; notSuitable: number; factualError?: number; contradiction?: number; tooConfident?: number };
   ratings: { averageScore: number; raters: number; recent: RatingItem[] };
   recent: FeedbackItem[];
 };
@@ -76,12 +76,18 @@ function feedbackLabel(t: string) {
   if (t === "helpful") return "收到有帮助反馈";
   if (t === "not_specific") return "收到不够具体反馈";
   if (t === "not_suitable") return "收到不适合我反馈";
+  if (t === "factual_error") return "收到事实错误反馈";
+  if (t === "contradiction") return "收到前后矛盾反馈";
+  if (t === "too_confident") return "收到过度自信反馈";
   return "收到新反馈";
 }
 
 function feedbackBadgeClass(t: string) {
   if (t === "helpful") return "bg-emerald-50 text-emerald-800 ring-1 ring-emerald-100";
   if (t === "not_specific") return "bg-amber-50 text-amber-900 ring-1 ring-amber-100";
+  if (t === "factual_error") return "bg-red-50 text-red-800 ring-1 ring-red-100";
+  if (t === "contradiction") return "bg-violet-50 text-violet-800 ring-1 ring-violet-100";
+  if (t === "too_confident") return "bg-orange-50 text-orange-900 ring-1 ring-orange-100";
   return "bg-rose-50 text-rose-800 ring-1 ring-rose-100";
 }
 
@@ -91,6 +97,9 @@ function normalizeSummary(raw: any): SummaryData {
       helpful: raw?.counts?.helpful ?? 0,
       notSpecific: raw?.counts?.notSpecific ?? 0,
       notSuitable: raw?.counts?.notSuitable ?? 0,
+      factualError: raw?.counts?.factualError ?? 0,
+      contradiction: raw?.counts?.contradiction ?? 0,
+      tooConfident: raw?.counts?.tooConfident ?? 0,
     },
     ratings: {
       averageScore: raw?.ratings?.averageScore ?? 0,

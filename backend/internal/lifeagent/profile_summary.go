@@ -41,7 +41,8 @@ type ProfileSummaryOutput struct {
 		ExpertiseTags   []string `json:"expertiseTags"`
 		SampleQuestions []string `json:"sampleQuestions"`
 	} `json:"profile"`
-	KnowledgeEntries []KEntry `json:"knowledgeEntries"`
+	KnowledgeEntries []KEntry        `json:"knowledgeEntries"`
+	StructuredFacts  []FactCandidate `json:"structuredFacts,omitempty"`
 }
 
 func GenerateProfileCreateSummary(ctx context.Context, apiKey, model, baseURL string, input *ProfileSummaryInput) (*ProfileSummaryOutput, error) {
@@ -83,6 +84,16 @@ func GenerateProfileCreateSummary(ctx context.Context, apiKey, model, baseURL st
       "content": "完整内容",
       "tags": ["标签"]
     }
+  ],
+  "structuredFacts": [
+    {
+      "factKey": "school",
+      "factValue": "学校名",
+      "factType": "hard_fact",
+      "source": "profile",
+      "confidence": "high",
+      "status": "confirmed"
+    }
   ]
 }
 
@@ -90,6 +101,7 @@ func GenerateProfileCreateSummary(ctx context.Context, apiKey, model, baseURL st
 - displayName 保持 1 到 10 个字。
 - 所有字符串字段都去掉首尾空格。
 - knowledgeEntries 的 title/category 要简洁清楚，content 要像可直接给 AI 使用的经验描述。
+- structuredFacts 只保留明确填写或明确表达过的事实，不要脑补。
 - 如果用户没有明确填写某个字段，就返回空字符串或空数组。`
 
 	userContent := fmt.Sprintf(`请整理下面这些回答：
@@ -142,6 +154,9 @@ func GenerateProfileCreateSummary(ctx context.Context, apiKey, model, baseURL st
 		return fallbackProfileSummary(input), nil
 	}
 	normalizeProfileSummary(&out, input)
+	if len(out.StructuredFacts) == 0 {
+		out.StructuredFacts = BuildStructuredFactsFromProfileSummary(&out)
+	}
 	return &out, nil
 }
 
@@ -162,6 +177,7 @@ func fallbackProfileSummary(input *ProfileSummaryInput) *ProfileSummaryOutput {
 	out.Profile.ExpertiseTags = splitListText(input.ExpertiseTagsText, 8)
 	out.Profile.SampleQuestions = splitQuestionText(input.SampleQuestionsText, 6)
 	out.KnowledgeEntries = buildFallbackKnowledgeEntries(out)
+	out.StructuredFacts = BuildStructuredFactsFromProfileSummary(out)
 	return out
 }
 
@@ -187,6 +203,9 @@ func normalizeProfileSummary(out *ProfileSummaryOutput, input *ProfileSummaryInp
 	}
 	if len(out.KnowledgeEntries) < 2 {
 		out.KnowledgeEntries = buildFallbackKnowledgeEntries(out)
+	}
+	if len(out.StructuredFacts) == 0 {
+		out.StructuredFacts = BuildStructuredFactsFromProfileSummary(out)
 	}
 }
 

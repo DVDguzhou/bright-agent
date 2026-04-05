@@ -11,6 +11,8 @@
 | [商业计划书-BrightAgent.md](./商业计划书-BrightAgent.md) | 商业计划摘要（PDF：`business-plan-brightagent.pdf`，脚本 `scripts/gen_business_plan_pdf.py`） |
 | [商业计划书-BrightAgent-融资比赛版.md](./商业计划书-BrightAgent-融资比赛版.md) | 融资 / 比赛完整版（PDF：`business-plan-brightagent-full.pdf`） |
 | [DEVELOPER_GUIDE.md](./DEVELOPER_GUIDE.md) | 开发者对接指南 |
+| [LIFE_AGENT_PERSONA_MEMORY_FLOW.md](./LIFE_AGENT_PERSONA_MEMORY_FLOW.md) | Life Agent 人格、事实、记忆、回答与反馈全流程说明 |
+| [LIFE_AGENT_TOPIC_IMPLEMENTATION.md](./LIFE_AGENT_TOPIC_IMPLEMENTATION.md) | Life Agent Topic 层后端数据结构、表设计与检索实现方案 |
 | [MVP_SPEC.md](./MVP_SPEC.md) | AI Agent Marketplace MVP 技术规格 |
 | [SCENARIO_VIDEO_PIPELINE.md](./SCENARIO_VIDEO_PIPELINE.md) | 视频流水线场景 |
 | [start-db.md](./start-db.md) | 数据库启动说明 |

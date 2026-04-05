@@ -27,12 +27,13 @@ type CreateQuestionInput struct {
 
 // CreateQuestionOutput 生成结果：下一问、或完成信号，以及暗中提取的语气风格
 type CreateQuestionOutput struct {
-	Done           bool       `json:"done"`                     // 是否已收集足够信息
-	NextQuestion   string     `json:"nextQuestion,omitempty"`   // 下一个问题（done=false 时）
-	SummaryMessage string     `json:"summaryMessage,omitempty"` // 完成时的收尾话（done=true 时）
-	KnowledgeAdd   []KEntry   `json:"knowledgeAdd,omitempty"`   // 本轮回答可提炼的知识条目（AI 可选返回）
-	ExtractedTone  *ToneHints `json:"extractedTone,omitempty"`  // 从用户回复中学习的语气风格
-	SuggestedTags  []string   `json:"suggestedTags,omitempty"`  // 建议的擅长标签
+	Done           bool            `json:"done"`                     // 是否已收集足够信息
+	NextQuestion   string          `json:"nextQuestion,omitempty"`   // 下一个问题（done=false 时）
+	SummaryMessage string          `json:"summaryMessage,omitempty"` // 完成时的收尾话（done=true 时）
+	KnowledgeAdd   []KEntry        `json:"knowledgeAdd,omitempty"`   // 本轮回答可提炼的知识条目（AI 可选返回）
+	ExtractedTone  *ToneHints      `json:"extractedTone,omitempty"`  // 从用户回复中学习的语气风格
+	SuggestedTags  []string        `json:"suggestedTags,omitempty"`  // 建议的擅长标签
+	FactCandidates []FactCandidate `json:"factCandidates,omitempty"` // 可升级为结构化事实的候选项
 }
 
 type KEntry struct {
@@ -73,7 +74,8 @@ func GenerateNextCreateQuestion(ctx context.Context, apiKey, model, baseURL stri
     "responseStyle": "先给判断再解释|先理解处境再建议|多举自己的例子|短一点别太满|先拆选项再给建议|像微信聊天少分点"
   },
   "suggestedTags": ["标签1", "标签2"],
-  "knowledgeAdd": []
+  "knowledgeAdd": [],
+  "factCandidates": []
 }
 
 当 done=true 时：
@@ -90,7 +92,8 @@ func GenerateNextCreateQuestion(ctx context.Context, apiKey, model, baseURL stri
 - 用户回答「暂无」「无」「没有」等时，可适当换个方向问，或若已有足够信息则结束。
 - extractedTone 根据用户至今所有回复推断，选最贴近的枚举值；若无法判断可省略某字段。
 - suggestedTags 最多 8 个，基于用户分享的领域提炼。
-- knowledgeAdd 可选：若用户某段回复可直接作为一条「知识条目」存储（有明确 category/title/content），可填；否则留空数组。`
+- knowledgeAdd 可选：若用户某段回复可直接作为一条「知识条目」存储（有明确 category/title/content），可填；否则留空数组。
+- factCandidates 可选：若用户明确说出学校、学历、工作、城市、比赛名等事实，可抽成结构化事实候选；若不明确则留空数组。`
 
 	// 构建对话内容
 	var historyText strings.Builder
@@ -157,6 +160,9 @@ func GenerateNextCreateQuestion(ctx context.Context, apiKey, model, baseURL stri
 	if out.Done && out.SummaryMessage == "" {
 		out.SummaryMessage = "很好！你的经验已经记录下来，AI 会基于这些内容来回答来访者。点击下方「下一步」继续设置 Agent 的回答风格即可～"
 	}
+	if len(out.FactCandidates) == 0 {
+		out.FactCandidates = BuildStructuredFactsFromCreateQuestionOutput(&out)
+	}
 
 	return &out, nil
 }
@@ -211,7 +217,9 @@ func fallbackNextQuestion(input *CreateQuestionInput) *CreateQuestionOutput {
 	} else if entries == 0 && turns >= 2 {
 		next = "可以举个例子吗？越具体越好，比如时间、步骤、结果。"
 	}
-	return &CreateQuestionOutput{Done: false, NextQuestion: next}
+	out := &CreateQuestionOutput{Done: false, NextQuestion: next}
+	out.FactCandidates = BuildStructuredFactsFromCreateQuestionOutput(out)
+	return out
 }
 
 // 兼容可能的 markdown 代码块

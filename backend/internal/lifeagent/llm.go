@@ -14,29 +14,29 @@ import (
 
 // pre-compiled regexps for hot paths
 var (
-	headingRe    = regexp.MustCompile(`(?m)^#{1,6}\s*`)
-	listItemRe   = regexp.MustCompile(`(?m)^\s*(\d+[\.\)、]|[-*•])\s*`)
-	identityRe   = regexp.MustCompile(`[^\p{Han}a-z0-9]`)
+	headingRe  = regexp.MustCompile(`(?m)^#{1,6}\s*`)
+	listItemRe = regexp.MustCompile(`(?m)^\s*(\d+[\.\)、]|[-*•])\s*`)
+	identityRe = regexp.MustCompile(`[^\p{Han}a-z0-9]`)
 )
 
 // BuildReplyWithLLM 在有 API 配置时调用 LLM 生成回复，否则回退到模板回复
 // baseURL 可选：Ollama 用 http://localhost:11434/v1，通义千问用 https://dashscope.aliyuncs.com/compatible-mode/v1
 // enableWebSearch：为 true 且 baseURL 为 DashScope 时启用联网搜索
-func BuildReplyWithLLM(ctx context.Context, apiKey, model, baseURL string, enableWebSearch bool, profile ProfileForAI, entries []KnowledgeEntryForAI, history []ChatMessageForAI, message string, opts *ChatOptions) (content string, references []map[string]string, err error) {
+func BuildReplyWithLLM(ctx context.Context, apiKey, model, baseURL string, enableWebSearch bool, profile ProfileForAI, facts []StructuredFactForAI, topics []TopicSummaryForAI, entries []KnowledgeEntryForAI, history []ChatMessageForAI, message string, opts *ChatOptions) (content string, references []map[string]string, err error) {
 	if !isLLMEnabled(apiKey, model, baseURL) {
 		log.Printf("[LLM] skipping LLM, falling back to BuildReply")
-		content, references = BuildReply(profile, entries, history, message)
+		content, references = BuildReply(profile, facts, topics, entries, history, message)
 		return content, references, nil
 	}
 	apiKey = resolveAPIKey(apiKey, baseURL)
 
-	selectedEntries := selectEntries(message, history, entries)
+	plan := BuildRetrievalPlan(message, history, facts, topics, entries)
 	ctx, cancel := withLLMTimeout(ctx)
 	defer cancel()
 	client := getClient(apiKey, baseURL)
 
-	systemContent := buildSystemPrompt(profile, selectedEntries)
-	messages := buildMessages(systemContent, profile.DisplayName, history, message, opts)
+	systemContent := buildSystemPrompt(profile, plan)
+	messages := buildMessages(systemContent, profile.DisplayName, history, message, opts, plan.Confidence)
 
 	var resp *openai.ChatCompletionResponse
 	if enableWebSearch && isDashScope(baseURL) {
@@ -53,40 +53,31 @@ func BuildReplyWithLLM(ctx context.Context, apiKey, model, baseURL string, enabl
 	}
 	if err != nil {
 		log.Printf("[LLM] call failed: %v (model=%s, baseURL=%s)", err, model, baseURL)
-		content, references = BuildReply(profile, entries, history, message)
+		content, references = BuildReply(profile, facts, topics, entries, history, message)
 		log.Printf("[LLM] FALLBACK(err): content=%q", content)
 		return content, references, nil
 	}
 
 	if len(resp.Choices) == 0 || resp.Choices[0].Message.Content == "" {
 		log.Printf("[LLM] empty response, choices=%d", len(resp.Choices))
-		content, references = BuildReply(profile, entries, history, message)
+		content, references = BuildReply(profile, facts, topics, entries, history, message)
 		log.Printf("[LLM] FALLBACK(empty): content=%q", content)
 		return content, references, nil
 	}
 
 	log.Printf("[LLM] SUCCESS: raw=%q", resp.Choices[0].Message.Content[:min(len(resp.Choices[0].Message.Content), 200)])
 	content = humanizeReply(strings.TrimSpace(resp.Choices[0].Message.Content))
-	references = make([]map[string]string, len(selectedEntries))
-	for i, e := range selectedEntries {
-		excerpt := normalizeSnippet(firstSentence(e.Content, 80))
-		if excerpt == "" {
-			excerpt = "基于已有经历给到的一条可执行建议。"
-		}
-		references[i] = map[string]string{
-			"id": e.ID, "category": e.Category, "title": e.Title,
-			"excerpt": excerpt,
-		}
-	}
+	content = ApplyClaimGuard(message, content, facts, plan)
+	references = BuildRetrievalReferences(plan)
 	return content, references, nil
 }
 
 // BuildReplyWithLLMStream 流式版本：每产生一个 token 片段就通过 onChunk 回调推送给调用方。
 // 返回完整回复文本和引用列表。DashScope 联网搜索和无 LLM 时回退到非流式。
-func BuildReplyWithLLMStream(ctx context.Context, apiKey, model, baseURL string, enableWebSearch bool, profile ProfileForAI, entries []KnowledgeEntryForAI, history []ChatMessageForAI, message string, onChunk func(chunk string), opts *ChatOptions) (content string, references []map[string]string, err error) {
+func BuildReplyWithLLMStream(ctx context.Context, apiKey, model, baseURL string, enableWebSearch bool, profile ProfileForAI, facts []StructuredFactForAI, topics []TopicSummaryForAI, entries []KnowledgeEntryForAI, history []ChatMessageForAI, message string, onChunk func(chunk string), opts *ChatOptions) (content string, references []map[string]string, err error) {
 	// DashScope 联网搜索不支持流式，回退到非流式并一次性推送
 	if !isLLMEnabled(apiKey, model, baseURL) || (enableWebSearch && isDashScope(baseURL)) {
-		content, references, err = BuildReplyWithLLM(ctx, apiKey, model, baseURL, enableWebSearch, profile, entries, history, message, opts)
+		content, references, err = BuildReplyWithLLM(ctx, apiKey, model, baseURL, enableWebSearch, profile, facts, topics, entries, history, message, opts)
 		if onChunk != nil && content != "" {
 			onChunk(content)
 		}
@@ -95,13 +86,13 @@ func BuildReplyWithLLMStream(ctx context.Context, apiKey, model, baseURL string,
 
 	apiKey = resolveAPIKey(apiKey, baseURL)
 
-	selectedEntries := selectEntries(message, history, entries)
+	plan := BuildRetrievalPlan(message, history, facts, topics, entries)
 	ctx, cancel := withStreamTimeout(ctx)
 	defer cancel()
 	client := getClient(apiKey, baseURL)
 
-	systemContent := buildSystemPrompt(profile, selectedEntries)
-	msgs := buildMessages(systemContent, profile.DisplayName, history, message, opts)
+	systemContent := buildSystemPrompt(profile, plan)
+	msgs := buildMessages(systemContent, profile.DisplayName, history, message, opts, plan.Confidence)
 
 	stream, err := client.CreateChatCompletionStream(ctx, openai.ChatCompletionRequest{
 		Model:       model,
@@ -112,7 +103,7 @@ func BuildReplyWithLLMStream(ctx context.Context, apiKey, model, baseURL string,
 	})
 	if err != nil {
 		log.Printf("[LLM-stream] open stream failed: %v", err)
-		content, references = BuildReply(profile, entries, history, message)
+		content, references = BuildReply(profile, facts, topics, entries, history, message)
 		if onChunk != nil && content != "" {
 			onChunk(content)
 		}
@@ -144,7 +135,7 @@ func BuildReplyWithLLMStream(ctx context.Context, apiKey, model, baseURL string,
 	raw := strings.TrimSpace(sb.String())
 	if raw == "" {
 		log.Printf("[LLM-stream] empty streamed content, falling back")
-		content, references = BuildReply(profile, entries, history, message)
+		content, references = BuildReply(profile, facts, topics, entries, history, message)
 		if onChunk != nil && content != "" {
 			onChunk(content)
 		}
@@ -152,70 +143,9 @@ func BuildReplyWithLLMStream(ctx context.Context, apiKey, model, baseURL string,
 	}
 
 	content = humanizeReply(raw)
-	references = make([]map[string]string, len(selectedEntries))
-	for i, e := range selectedEntries {
-		excerpt := normalizeSnippet(firstSentence(e.Content, 80))
-		if excerpt == "" {
-			excerpt = "基于已有经历给到的一条可执行建议。"
-		}
-		references[i] = map[string]string{
-			"id": e.ID, "category": e.Category, "title": e.Title,
-			"excerpt": excerpt,
-		}
-	}
+	content = ApplyClaimGuard(message, content, facts, plan)
+	references = BuildRetrievalReferences(plan)
 	return content, references, nil
-}
-
-func selectEntries(message string, history []ChatMessageForAI, entries []KnowledgeEntryForAI) []KnowledgeEntryForAI {
-	// 结合最近几轮用户消息构建组合查询，让知识库检索感知对话上下文
-	query := buildContextQuery(message, history)
-
-	ranked := make([]struct {
-		entry KnowledgeEntryForAI
-		score int
-	}, len(entries))
-	for i, e := range entries {
-		ranked[i] = struct {
-			entry KnowledgeEntryForAI
-			score int
-		}{e, scoreEntry(query, e)}
-	}
-	for i := 0; i < len(ranked)-1; i++ {
-		for j := i + 1; j < len(ranked); j++ {
-			if ranked[j].score > ranked[i].score {
-				ranked[i], ranked[j] = ranked[j], ranked[i]
-			}
-		}
-	}
-	var top []KnowledgeEntryForAI
-	topScore := 0
-	for _, r := range ranked {
-		if r.score > 0 {
-			if topScore == 0 {
-				topScore = r.score
-			}
-			top = append(top, r.entry)
-			if len(top) >= 4 {
-				break
-			}
-			if len(top) >= 3 && r.score < topScore/2 {
-				break
-			}
-		}
-	}
-	if len(top) > 0 {
-		return top
-	}
-	if len(entries) >= 3 {
-		return entries[:3]
-	}
-	if len(entries) >= 2 {
-		return entries[:2]
-	}
-	if len(entries) > 0 {
-		return entries
-	}
-	return nil
 }
 
 // ClassifyQuestionIntent 纯规则匹配判断身份类问题。
@@ -261,7 +191,7 @@ func BuildIdentityReply(profile ProfileForAI) string {
 	return strings.Join(parts, " ")
 }
 
-func buildSystemPrompt(profile ProfileForAI, entries []KnowledgeEntryForAI) string {
+func buildSystemPrompt(profile ProfileForAI, plan RetrievalPlan) string {
 	var sb strings.Builder
 	sb.WriteString("你是「")
 	sb.WriteString(profile.DisplayName)
@@ -271,21 +201,21 @@ func buildSystemPrompt(profile ProfileForAI, entries []KnowledgeEntryForAI) stri
 	sb.WriteString("回答时优先结合知识库里的亲身经历。能用自己的故事说明的，就用「我那时候」「我当年」「我那会儿」开头；能举自己例子的，就举；能给基于经历的判断的，就直接给。不要空泛讲道理，不要像百科或客服。用户问「怎么办」时，先想「我有没有类似经历」，有就用自己的经历来答。\n\n")
 
 	sb.WriteString("【事实边界 - 不可逾越】\n")
-	sb.WriteString("你的名字、学历、工作、经历、时间地点人物等具体事实，优先来自【身份信息】和【知识库】。若没有直接依据，但问题属于可推测范围，可以基于常识、语境和人设做『带保留的推测』，比如说「我觉得」；只有风险高的事实（如真名、隐私、联系方式、具体生日/地址等）才明确表示不敢瞎猜。\n\n")
+	sb.WriteString("你的名字、学历、工作、经历、时间地点人物等具体事实，优先来自【结构化事实】和【知识库】。没有依据时，不能编造成确定事实。普通问题最多做带保留的推测，比如「我倾向于」「按常见情况看」；高风险事实（隐私、联系方式、住址、生日等）没有依据就直接说不知道。\n\n")
 
 	sb.WriteString("【联想空间 - 允许发挥】\n")
-	sb.WriteString("在事实无误的前提下，你可以：基于已有经历给建议、打比方；用共情、语气、口头禅让回答更自然；把多条经历综合起来给一致的建议。表达可以灵活，不必逐字照抄。知识库无直接依据时，也可以先尽量解答。说话时像真人：有停顿、有转折、有「其实」「说实话」这类口语，不要像写作文。\n\n")
+	sb.WriteString("在事实无误的前提下，你可以：基于已有经历给建议、打比方；用共情、语气、口头禅让回答更自然；把多条经历综合起来给一致的建议。表达可以灵活，不必逐字照抄。没有依据时，不要补细节，只能做明确带保留的判断。说话时像真人：有停顿、有转折、有「其实」「说实话」这类口语，不要像写作文。\n\n")
 
 	sb.WriteString("【核心目标】\n")
 	sb.WriteString("直接回答用户的问题。用户问什么就答什么，不要绕弯子。\n\n")
 	sb.WriteString("【回答原则】\n")
 	sb.WriteString("1. 直接回答问题本身。如果用户问「哪里的菜便宜」就直接说地名，问「怎么做」就直接说方法，不要先分析用户卡在哪。\n")
-	sb.WriteString("2. 有明确依据时，直接按知识库或身份信息回答；没有明确依据但问题可推测时，允许做带保留的推测。\n")
+	sb.WriteString("2. 有明确依据时，直接按结构化事实或知识库回答；没有明确依据但问题可推测时，允许做带保留的推测。\n")
 	sb.WriteString("3. 用第一人称自然表达，像朋友微信聊天，2 到 4 段短话即可。能用自己的经历举例时，优先用「我那时候」「我当年」这类开头。\n")
 	sb.WriteString("4. 绝对不要使用分点、编号、标题、Markdown 格式，不要写 1. 2. 3.、-、*、•、###。\n")
 	sb.WriteString("5. 不要把简单问题复杂化。用户问一个简单事实，就给一个简短直接的回答。\n")
 	sb.WriteString("6. 用户问「XXX叫什么」时，直接答名称（从内容提取），绝不要用知识条目标题（如「关于「xxx经历」」）做开头——条目标题是分类，不是答案。\n")
-	sb.WriteString("7. 高风险具体事实（真名、生日、住址、联系方式、隐私）不要硬猜；普通问题则优先尝试回答。\n")
+	sb.WriteString("7. 高风险具体事实（真名、生日、住址、联系方式、隐私）不要硬猜；低置信时优先追问或保留式回答。\n")
 	sb.WriteString("8. 不要灌鸡汤，不要空泛鼓励，不要说客服式套话，不要反问用户「你卡在哪」。\n")
 	sb.WriteString("9. 像真人：有口语感、有个人立场、有「我」的视角，不要像百科或客服。\n\n")
 
@@ -294,7 +224,7 @@ func buildSystemPrompt(profile ProfileForAI, entries []KnowledgeEntryForAI) stri
 	sb.WriteString("用户问「XXX叫什么」「创业大赛叫什么」→ 直接回答名称（如「北京创业大赛」），从知识库内容里提取，不要用条目标题（如「北京创业大赛经历」）做开头，条目标题是分类不是答案。\n")
 	sb.WriteString("用户问「你参加过什么比赛」→ 从知识库找到相关经历后，用「我那时候」「我当年」这类口吻回答，可加一点感受或建议。\n")
 	sb.WriteString("用户问「怎么办」「怎么选」→ 优先从知识库找自己的类似经历，用经历来支撑建议，不要只给空泛道理。\n")
-	sb.WriteString("用户问的知识库里没有直接答案，可以合理推测。\n")
+	sb.WriteString("用户问的知识库里没有直接答案时，可以做保留式推测，但不能编造成已经发生过的具体事实。\n")
 	sb.WriteString("用户问高风险具体事实（如某人真名、住址、生日、联系方式）→ 明确说不敢瞎猜。\n\n")
 	sb.WriteString("【风格约束】\n")
 	sb.WriteString("你要稳定模仿这个人的身份和说话习惯，回答要像真人分享经历，而不是 AI 给建议。\n")
@@ -342,12 +272,18 @@ func buildSystemPrompt(profile ProfileForAI, entries []KnowledgeEntryForAI) stri
 		sb.WriteString("\n不擅长/不回答: ")
 		sb.WriteString(profile.NotSuitableFor)
 	}
+	sb.WriteString("\n\n【结构化事实】\n")
+	sb.WriteString(BuildFactsPromptSection(plan.Facts))
+	sb.WriteString("\n\n【相关 Topic 摘要】\n")
+	sb.WriteString(BuildTopicsPromptSection(plan.Topics))
+	sb.WriteString("\n\n【检索置信度】\n")
+	sb.WriteString(plan.Confidence)
 	sb.WriteString("\n\n--- 知识库（回答时依据的素材，可组合、推理、转化）---\n\n")
 
-	for i, e := range entries {
+	for i, e := range plan.Entries {
 		sb.WriteString(fmt.Sprintf("[%d] %s（%s）\n%s\n\n", i+1, e.Title, e.Category, e.Content))
 	}
-	sb.WriteString("\n最后再提醒一次：只输出自然聊天文本，不要任何分点或标题；优先结合自己的经历来答，像朋友分享故事；有依据就直接答，没有直接依据但可推测时就带保留地答，只有高风险具体事实才拒答。不要把推测说成确定事实，不要反问用户。")
+	sb.WriteString("\n最后再提醒一次：只输出自然聊天文本，不要任何分点或标题；优先结合自己的经历来答，像朋友分享故事；结构化事实优先级最高；低置信时宁可保留、追问，也不要编造具体细节。不要把推测说成确定事实，不要反问用户。")
 	return sb.String()
 }
 
@@ -378,7 +314,7 @@ func buildContextQuery(message string, history []ChatMessageForAI) string {
 	return strings.Join(parts, " ")
 }
 
-func buildMessages(systemContent, displayName string, history []ChatMessageForAI, newMessage string, opts *ChatOptions) []openai.ChatCompletionMessage {
+func buildMessages(systemContent, displayName string, history []ChatMessageForAI, newMessage string, opts *ChatOptions, confidence string) []openai.ChatCompletionMessage {
 	messages := make([]openai.ChatCompletionMessage, 0, len(history)+5)
 	messages = append(messages, openai.ChatCompletionMessage{
 		Role:    openai.ChatMessageRoleSystem,
@@ -414,7 +350,7 @@ func buildMessages(systemContent, displayName string, history []ChatMessageForAI
 
 	messages = append(messages, openai.ChatCompletionMessage{
 		Role:    openai.ChatMessageRoleUser,
-		Content: "直接回答这个问题，尽量结合你的亲身经历来答：有依据就直接说；没直接依据但能合理推测就带保留地回答；只有高风险具体事实才说不敢瞎猜。\n" + newMessage,
+		Content: "直接回答这个问题，尽量结合你的亲身经历来答：结构化事实优先；有依据就直接说；没直接依据但能合理推测就带保留地回答；低置信时先收一收，不要编细节；只有高风险具体事实才说不敢瞎猜。\n当前检索置信度：" + confidence + "\n" + newMessage,
 	})
 	return messages
 }

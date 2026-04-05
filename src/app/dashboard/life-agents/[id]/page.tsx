@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -78,15 +78,15 @@ export default function LifeAgentManageHomePage() {
   const [state, setState] = useState<LoadState>({ data: null, error: null, loading: true });
   const [deleting, setDeleting] = useState(false);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setState((prev) => ({ ...prev, loading: true, error: null }));
     const result = await fetchManageData(id);
     setState({ data: result.data, error: result.error, loading: false });
-  };
+  }, [id]);
 
   useEffect(() => {
     void load();
-  }, [id]);
+  }, [load]);
 
   const data = state.data;
   const profile = data?.profile;
@@ -96,7 +96,10 @@ export default function LifeAgentManageHomePage() {
     return (
       (data.feedback.counts.helpful ?? 0) +
       (data.feedback.counts.notSpecific ?? 0) +
-      (data.feedback.counts.notSuitable ?? 0)
+      (data.feedback.counts.notSuitable ?? 0) +
+      (data.feedback.counts.factualError ?? 0) +
+      (data.feedback.counts.contradiction ?? 0) +
+      (data.feedback.counts.tooConfident ?? 0)
     );
   }, [data]);
   const suggestions = useMemo(() => (data ? buildOptimizationSuggestions(data) : []), [data]);
@@ -280,6 +283,13 @@ export default function LifeAgentManageHomePage() {
             icon={<svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l2.036 6.258a1 1 0 00.95.69h6.58c.969 0 1.371 1.24.588 1.81l-5.323 3.867a1 1 0 00-.364 1.118l2.034 6.258c.3.921-.755 1.688-1.54 1.118l-5.322-3.867a1 1 0 00-1.176 0l-5.323 3.867c-.784.57-1.838-.197-1.539-1.118l2.034-6.258a1 1 0 00-.364-1.118L.895 11.685c-.783-.57-.38-1.81.588-1.81h6.58a1 1 0 00.95-.69l2.036-6.258z" /></svg>}
           />
           <QuickAction
+            href={`/dashboard/life-agents/${id}/topics`}
+            title="Topic 管理"
+            desc="审核 candidate，合并重复主题，并人工修正文案"
+            colorClass="bg-teal-100 text-teal-700"
+            icon={<svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h7m-7 4h10M5 4h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z" /></svg>}
+          />
+          <QuickAction
             href="/dashboard/api-keys"
             title="开放 API"
             desc="管理调用 Key、定价和数据，让别人直接调用你的 Agent"
@@ -343,7 +353,13 @@ export default function LifeAgentManageHomePage() {
                       ? "有帮助"
                       : item.feedbackType === "not_specific"
                         ? "不够具体"
-                        : "不适合我"}
+                        : item.feedbackType === "factual_error"
+                          ? "事实错误"
+                          : item.feedbackType === "contradiction"
+                            ? "前后矛盾"
+                            : item.feedbackType === "too_confident"
+                              ? "过度自信"
+                              : "不适合我"}
                   </p>
                   <p className="mt-0.5 line-clamp-2 text-slate-500">{item.comment?.trim() || item.assistantExcerpt || "无补充说明"}</p>
                   <p className="mt-1 text-xs text-slate-400">{formatShortTime(item.createdAt)}</p>
@@ -390,6 +406,14 @@ export default function LifeAgentManageHomePage() {
           <div className="rounded-2xl bg-[#fafbfc] p-4 ring-1 ring-black/[0.04]">
             <p className="text-xs font-medium text-slate-500">知识条目</p>
             <p className="mt-2 text-sm text-[#111]">{profile.knowledgeEntries.length} 条</p>
+          </div>
+          <div className="rounded-2xl bg-[#fafbfc] p-4 ring-1 ring-black/[0.04]">
+            <p className="text-xs font-medium text-slate-500">结构化事实</p>
+            <p className="mt-2 text-sm text-[#111]">{profile.structuredFacts?.length ?? 0} 条</p>
+          </div>
+          <div className="rounded-2xl bg-[#fafbfc] p-4 ring-1 ring-black/[0.04]">
+            <p className="text-xs font-medium text-slate-500">Topic 摘要</p>
+            <p className="mt-2 text-sm text-[#111]">{profile.topicSummaries?.length ?? data.stats.topicCount ?? 0} 条</p>
           </div>
           <div className="rounded-2xl bg-[#fafbfc] p-4 ring-1 ring-black/[0.04]">
             <p className="text-xs font-medium text-slate-500">开放 API</p>

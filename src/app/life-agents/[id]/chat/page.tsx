@@ -44,9 +44,12 @@ type ChatMessage = {
   audioDurationSec?: number;
   references?: Array<{
     id: string;
+    sourceType?: string;
+    factKey?: string;
     category: string;
     title: string;
     excerpt: string;
+    confidence?: string;
   }>;
 };
 
@@ -89,6 +92,7 @@ export default function LifeAgentChatPage() {
   const [ratingScore, setRatingScore] = useState(5);
   const [ratingComment, setRatingComment] = useState("");
   const [ratingSubmitting, setRatingSubmitting] = useState(false);
+  const [submittingFeedbackId, setSubmittingFeedbackId] = useState<string | null>(null);
   const [useVoiceReply, setUseVoiceReply] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
   const [viewportBox, setViewportBox] = useState<{ height: number; offsetTop: number } | null>(null);
@@ -459,6 +463,35 @@ export default function LifeAgentChatPage() {
     await sendMessageWithText(input.trim());
   };
 
+  const submitMessageFeedback = useCallback(
+    async (message: ChatMessage, feedbackType: string) => {
+      if (!message.messageId || !message.sessionId) return;
+      setSubmittingFeedbackId(message.messageId);
+      try {
+        const res = await fetch(`/api/life-agents/${id}/chat/feedback`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            messageId: message.messageId,
+            sessionId: message.sessionId,
+            feedbackType,
+          }),
+        });
+        if (!res.ok) {
+          setError("反馈提交失败，请稍后重试。");
+          return;
+        }
+        setError("");
+      } catch {
+        setError("反馈提交失败，请稍后重试。");
+      } finally {
+        setSubmittingFeedbackId(null);
+      }
+    },
+    [id]
+  );
+
   if (!profile) {
     return <div className="h-72 animate-pulse rounded-3xl bg-white shadow-sm" />;
   }
@@ -779,55 +812,92 @@ export default function LifeAgentChatPage() {
               </div>
             ) : (
               messages.map((message, index) => (
-                <div
-                  key={`${message.role}-${index}-${message.messageId ?? "draft"}`}
-                  className={`flex items-end gap-2 ${message.role === "user" ? "justify-end" : "justify-start"}`}
-                >
-                  {message.role === "assistant" ? (
-                    <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full bg-slate-100 ring-1 ring-black/5">
-                      {agentCoverUrl ? (
-                        <Image
-                          src={agentCoverUrl}
-                          alt=""
-                          fill
-                          className="object-cover"
-                          sizes="32px"
-                          unoptimized={lifeAgentCoverShouldBypassOptimizer(agentCoverUrl)}
-                        />
-                      ) : (
-                        <span className="flex h-full w-full items-center justify-center text-[10px] font-bold text-slate-500">
-                          {profile.displayName.slice(0, 1)}
-                        </span>
-                      )}
-                    </div>
-                  ) : null}
+                <div key={`${message.role}-${index}-${message.messageId ?? "draft"}`} className="space-y-1">
                   <div
-                    className={`max-w-[78%] rounded-2xl px-3.5 py-2.5 text-[15px] leading-relaxed sm:max-w-[72%] ${
-                      message.role === "user"
-                        ? "rounded-br-md bg-[#1677ff] text-white"
-                        : "rounded-bl-md bg-[#f0f0f0] text-[#111]"
-                    }`}
+                    className={`flex items-end gap-2 ${message.role === "user" ? "justify-end" : "justify-start"}`}
                   >
-                    {message.role === "assistant" && message.audioUrl ? (
-                      <div className="space-y-3">
-                        <VoiceMessageBubble
-                          audioUrl={message.audioUrl}
-                          durationSeconds={message.audioDurationSec ?? 1}
-                          isFromUser={false}
-                        />
-                        {message.content && (
-                          <p className="mt-2 border-t border-black/10 pt-2 text-[13px] leading-6 text-slate-600">
-                            {message.content}
-                          </p>
+                    {message.role === "assistant" ? (
+                      <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full bg-slate-100 ring-1 ring-black/5">
+                        {agentCoverUrl ? (
+                          <Image
+                            src={agentCoverUrl}
+                            alt=""
+                            fill
+                            className="object-cover"
+                            sizes="32px"
+                            unoptimized={lifeAgentCoverShouldBypassOptimizer(agentCoverUrl)}
+                          />
+                        ) : (
+                          <span className="flex h-full w-full items-center justify-center text-[10px] font-bold text-slate-500">
+                            {profile.displayName.slice(0, 1)}
+                          </span>
                         )}
                       </div>
-                    ) : (
-                      <p className="whitespace-pre-wrap">{message.content}</p>
-                    )}
+                    ) : null}
+                    <div
+                      className={`max-w-[78%] rounded-2xl px-3.5 py-2.5 text-[15px] leading-relaxed sm:max-w-[72%] ${
+                        message.role === "user"
+                          ? "rounded-br-md bg-[#1677ff] text-white"
+                          : "rounded-bl-md bg-[#f0f0f0] text-[#111]"
+                      }`}
+                    >
+                      {message.role === "assistant" && message.audioUrl ? (
+                        <div className="space-y-3">
+                          <VoiceMessageBubble
+                            audioUrl={message.audioUrl}
+                            durationSeconds={message.audioDurationSec ?? 1}
+                            isFromUser={false}
+                          />
+                          {message.content && (
+                            <p className="mt-2 border-t border-black/10 pt-2 text-[13px] leading-6 text-slate-600">
+                              {message.content}
+                            </p>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          <p className="whitespace-pre-wrap">{message.content}</p>
+                          {message.references && message.references.length > 0 && (
+                            <div className="flex flex-wrap gap-2 border-t border-black/10 pt-2">
+                              {message.references.slice(0, 4).map((ref) => (
+                                <span
+                                  key={`${ref.id}-${ref.title}`}
+                                  className="rounded-full bg-white/70 px-2.5 py-1 text-[11px] text-slate-600 ring-1 ring-black/5"
+                                  title={ref.excerpt}
+                                >
+                                  {ref.title}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    {message.role === "user" ? (
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-rose-400 text-xs font-bold text-white ring-1 ring-white">
+                        {userLetter}
+                      </div>
+                    ) : null}
                   </div>
-                  {message.role === "user" ? (
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-rose-400 text-xs font-bold text-white ring-1 ring-white">
-                      {userLetter}
+                  {message.role === "assistant" && message.messageId && message.sessionId ? (
+                    <div className="ml-10 flex flex-wrap gap-2 text-xs">
+                      {[
+                        { id: "helpful", label: "有帮助" },
+                        { id: "not_specific", label: "不够具体" },
+                        { id: "factual_error", label: "事实错了" },
+                        { id: "contradiction", label: "前后矛盾" },
+                        { id: "too_confident", label: "太武断了" },
+                      ].map((item) => (
+                        <button
+                          key={`${message.messageId}-${item.id}`}
+                          type="button"
+                          disabled={submittingFeedbackId === message.messageId}
+                          onClick={() => void submitMessageFeedback(message, item.id)}
+                          className="rounded-full bg-slate-100 px-2.5 py-1 text-slate-600 transition hover:bg-slate-200 disabled:opacity-60"
+                        >
+                          {item.label}
+                        </button>
+                      ))}
                     </div>
                   ) : null}
                 </div>

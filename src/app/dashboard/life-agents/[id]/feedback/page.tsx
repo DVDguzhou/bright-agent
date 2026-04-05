@@ -36,12 +36,18 @@ function feedbackLabel(t: string) {
   if (t === "helpful") return "有帮助";
   if (t === "not_specific") return "不够具体";
   if (t === "not_suitable") return "不适合我";
+  if (t === "factual_error") return "事实错误";
+  if (t === "contradiction") return "前后矛盾";
+  if (t === "too_confident") return "过度自信";
   return t;
 }
 
 function feedbackAccent(t: string) {
   if (t === "helpful") return "bg-emerald-100 text-emerald-800";
   if (t === "not_specific") return "bg-amber-100 text-amber-900";
+  if (t === "factual_error") return "bg-red-100 text-red-800";
+  if (t === "contradiction") return "bg-violet-100 text-violet-800";
+  if (t === "too_confident") return "bg-orange-100 text-orange-900";
   return "bg-rose-100 text-rose-800";
 }
 
@@ -174,7 +180,10 @@ export default function LifeAgentFeedbackFeedPage() {
     });
   }, [rows, query]);
 
-  const feedbackCounts = payload?.feedback?.counts ?? { helpful: 0, notSpecific: 0, notSuitable: 0 };
+  const feedbackCounts = useMemo(
+    () => payload?.feedback?.counts ?? { helpful: 0, notSpecific: 0, notSuitable: 0, factualError: 0, contradiction: 0, tooConfident: 0 },
+    [payload?.feedback?.counts]
+  );
   const ratings = payload?.feedback?.ratings ?? { averageScore: 0, raters: 0, recent: [] as Array<{ score: number; comment?: string | null; updatedAt: string }> };
   const keywords = useMemo(
     () =>
@@ -191,6 +200,9 @@ export default function LifeAgentFeedbackFeedPage() {
     }
     if (feedbackCounts.notSuitable > 0) {
       list.push("出现“不适合我”反馈，建议完善“适合帮助的人群”和“不想回答的问题”。");
+    }
+    if ((feedbackCounts.factualError ?? 0) > 0 || (feedbackCounts.contradiction ?? 0) > 0) {
+      list.push("已经出现事实错误或前后矛盾，建议优先检查结构化事实、知识条目和记忆摘要。");
     }
     if (ratings.raters > 0 && ratings.averageScore < 4) {
       list.push("星级均分偏低，建议先用对话调教优化语气和回答结构。");
@@ -242,7 +254,7 @@ export default function LifeAgentFeedbackFeedPage() {
         coverSrc={coverSrc}
       />
 
-      <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <section className="grid grid-cols-2 gap-3 lg:grid-cols-6">
         <div className="rounded-2xl bg-white px-3 py-4 text-center shadow-sm ring-1 ring-black/[0.04]">
           <p className="text-2xl font-black text-sky-700">{ratings.raters > 0 ? ratings.averageScore.toFixed(1) : "—"}</p>
           <p className="mt-1 text-xs text-slate-500">综合评分</p>
@@ -258,6 +270,14 @@ export default function LifeAgentFeedbackFeedPage() {
         <div className="rounded-2xl bg-white px-3 py-4 text-center shadow-sm ring-1 ring-black/[0.04]">
           <p className="text-2xl font-black text-rose-700">{feedbackCounts.notSuitable}</p>
           <p className="mt-1 text-xs text-slate-500">不适合我</p>
+        </div>
+        <div className="rounded-2xl bg-white px-3 py-4 text-center shadow-sm ring-1 ring-black/[0.04]">
+          <p className="text-2xl font-black text-red-700">{feedbackCounts.factualError ?? 0}</p>
+          <p className="mt-1 text-xs text-slate-500">事实错误</p>
+        </div>
+        <div className="rounded-2xl bg-white px-3 py-4 text-center shadow-sm ring-1 ring-black/[0.04]">
+          <p className="text-2xl font-black text-violet-700">{feedbackCounts.contradiction ?? 0}</p>
+          <p className="mt-1 text-xs text-slate-500">前后矛盾</p>
         </div>
       </section>
 
@@ -323,7 +343,17 @@ export default function LifeAgentFeedbackFeedPage() {
                 {row.kind === "feedback" ? (
                   <>
                     <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-sm font-bold ring-1 ring-black/[0.06] ${feedbackAccent(row.feedbackType)}`}>
-                      {row.feedbackType === "helpful" ? "赞" : row.feedbackType === "not_specific" ? "细" : "退"}
+                      {row.feedbackType === "helpful"
+                        ? "赞"
+                        : row.feedbackType === "not_specific"
+                          ? "细"
+                          : row.feedbackType === "factual_error"
+                            ? "错"
+                            : row.feedbackType === "contradiction"
+                              ? "冲"
+                              : row.feedbackType === "too_confident"
+                                ? "满"
+                                : "退"}
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex min-w-0 flex-wrap items-center gap-2">

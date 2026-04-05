@@ -231,7 +231,9 @@ func LifeAgentsChatAPI(cfg *config.Config) gin.HandlerFunc {
 				c.JSON(http.StatusNotFound, gin.H{"error": "SESSION_NOT_FOUND"})
 				return
 			}
-			if sess.Summary != nil {
+			if len(sess.MemoryJSON) > 0 {
+				sessionSummary = lifeagent.ConversationMemoryFromMap(map[string]interface{}(sess.MemoryJSON)).SummaryText
+			} else if sess.Summary != nil {
 				sessionSummary = *sess.Summary
 			}
 		} else {
@@ -255,17 +257,23 @@ func LifeAgentsChatAPI(cfg *config.Config) gin.HandlerFunc {
 			var prevSessions []models.LifeAgentChatSession
 			db.DB.Where("profile_id = ? AND buyer_id = ? AND id != ? AND summary IS NOT NULL AND summary != ''",
 				id, models.LifeAgentAPICallerUserID, sessionID).Order("updated_at DESC").Limit(3).Find(&prevSessions)
-			var summaries []string
+			memories := make([]lifeagent.ConversationMemory, 0, len(prevSessions))
 			for _, s := range prevSessions {
-				if s.Summary != nil && *s.Summary != "" {
-					summaries = append(summaries, *s.Summary)
+				if len(s.MemoryJSON) > 0 {
+					memories = append(memories, lifeagent.ConversationMemoryFromMap(map[string]interface{}(s.MemoryJSON)))
+				} else if s.Summary != nil && *s.Summary != "" {
+					memories = append(memories, lifeagent.ConversationMemory{SummaryText: *s.Summary})
 				}
 			}
-			crossMemory = lifeagent.BuildCrossSessionMemory(summaries)
+			crossMemory = lifeagent.BuildCrossSessionMemory(memories)
 		}
 
 		var entries []models.LifeAgentKnowledgeEntry
 		db.DB.Where("profile_id = ?", id).Order("sort_order").Find(&entries)
+		var facts []models.LifeAgentStructuredFact
+		db.DB.Where("profile_id = ?", id).Order("fact_key ASC, created_at ASC").Find(&facts)
+		var topics []models.LifeAgentTopicSummary
+		db.DB.Where("profile_id = ?", id).Order("topic_group ASC, topic_key ASC").Find(&topics)
 		var hist []lifeagent.ChatMessageForAI
 		var msgs []models.LifeAgentChatMessage
 		// 取最近 20 条（DESC），再反转为时间正序，确保 LLM 看到的是最新上下文
@@ -283,6 +291,8 @@ func LifeAgentsChatAPI(cfg *config.Config) gin.HandlerFunc {
 				Tags: []string(e.Tags),
 			}
 		}
+		factsForAI := lifeagent.BuildStructuredFactsForAI(facts)
+		topicsForAI := lifeagent.BuildTopicSummariesForAI(topics)
 		profileForAI := lifeagent.ProfileForAI{
 			DisplayName:      p.DisplayName,
 			Headline:         p.Headline,
@@ -301,7 +311,10 @@ func LifeAgentsChatAPI(cfg *config.Config) gin.HandlerFunc {
 
 		var content string
 		var refs []map[string]string
-		if lifeagent.ClassifyQuestionIntent(body.Message) {
+		if reply, replyRefs, ok := lifeagent.ResolveGroundedFactReply(profileForAI, factsForAI, body.Message); ok {
+			content = reply
+			refs = replyRefs
+		} else if lifeagent.ClassifyQuestionIntent(body.Message) {
 			content = lifeagent.BuildIdentityReply(profileForAI)
 		} else {
 			var err error
@@ -310,7 +323,7 @@ func LifeAgentsChatAPI(cfg *config.Config) gin.HandlerFunc {
 				cfg.OpenAIApiKey, cfg.OpenAIModel, cfg.OpenAIBaseURL,
 				cfg.LLMEnableWebSearch,
 				profileForAI,
-				entriesForAI, hist, body.Message,
+				factsForAI, topicsForAI, entriesForAI, hist, body.Message,
 				&lifeagent.ChatOptions{
 					SessionSummary:     sessionSummary,
 					CrossSessionMemory: crossMemory,
@@ -352,13 +365,22 @@ func LifeAgentsChatAPI(cfg *config.Config) gin.HandlerFunc {
 			allHist = append(allHist, lifeagent.ChatMessageForAI{Role: "user", Content: body.Message})
 			allHist = append(allHist, lifeagent.ChatMessageForAI{Role: "assistant", Content: content})
 			go func(sid string, messages []lifeagent.ChatMessageForAI) {
-				summary := lifeagent.SummarizeConversation(
+				memory := lifeagent.SummarizeConversationMemory(
 					context.Background(),
 					cfg.OpenAIApiKey, cfg.OpenAIModel, cfg.OpenAIBaseURL,
 					messages,
 				)
-				if summary != "" {
-					db.DB.Model(&models.LifeAgentChatSession{}).Where("id = ?", sid).Update("summary", summary)
+				if memory.SummaryText != "" {
+					reviewStatus := "auto"
+					if len(memory.UserStatedFacts) > 0 {
+						reviewStatus = "pending"
+					}
+					db.DB.Model(&models.LifeAgentChatSession{}).Where("id = ?", sid).Updates(map[string]interface{}{
+						"summary":              memory.SummaryText,
+						"memory_json":          conversationMemoryJSON(memory),
+						"memory_review_status": reviewStatus,
+					})
+					upsertTopicCandidatesFromConversationMemory(id, sid, memory)
 				}
 			}(sessionID, allHist)
 		}
@@ -368,14 +390,14 @@ func LifeAgentsChatAPI(cfg *config.Config) gin.HandlerFunc {
 
 		price := effectiveLifeAgentAPIPriceCents(&p)
 		c.JSON(http.StatusOK, gin.H{
-			"sessionId":                 sessionID,
-			"messageId":               assistantMsgID,
-			"reply":                   content,
-			"references":              refsMap,
-			"apiPricePerCallCents":    price,
-			"apiPriceFollowsConsult":  p.ApiPricePerCallCents == nil,
-			"profileTotalApiCalls":    p.ApiTotalCalls + 1,
-			"disclaimer":              "当前为开放调用记账与公示单价（分/次），线上扣费与结算以平台后续规则为准。",
+			"sessionId":              sessionID,
+			"messageId":              assistantMsgID,
+			"reply":                  content,
+			"references":             refsMap,
+			"apiPricePerCallCents":   price,
+			"apiPriceFollowsConsult": p.ApiPricePerCallCents == nil,
+			"profileTotalApiCalls":   p.ApiTotalCalls + 1,
+			"disclaimer":             "当前为开放调用记账与公示单价（分/次），线上扣费与结算以平台后续规则为准。",
 		})
 	}
 }

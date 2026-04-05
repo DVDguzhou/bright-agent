@@ -46,6 +46,27 @@ export type ManageProfile = {
     content: string;
     tags: string[];
   }>;
+  structuredFacts?: Array<{
+    id: string;
+    factKey: string;
+    factValue: string;
+    factType?: string;
+    source?: string;
+    confidence?: string;
+    status?: string;
+  }>;
+  topicSummaries?: Array<{
+    id: string;
+    topicGroup: string;
+    topicKey: string;
+    topicLabel: string;
+    summary: string;
+    aliases?: string[];
+    questionPatterns?: string[];
+    sourceEntryIds?: string[];
+    confidence?: string;
+    status?: string;
+  }>;
 };
 
 export type ManageData = {
@@ -54,9 +75,17 @@ export type ManageData = {
     totalRevenue: number;
     soldPacks: number;
     sessionCount: number;
+    topicCount?: number;
   };
   feedback?: {
-    counts: { helpful: number; notSpecific: number; notSuitable: number };
+    counts: {
+      helpful: number;
+      notSpecific: number;
+      notSuitable: number;
+      factualError?: number;
+      contradiction?: number;
+      tooConfident?: number;
+    };
     ratings?: {
       averageScore: number;
       raters: number;
@@ -391,8 +420,17 @@ export function buildOptimizationSuggestions(data: ManageData) {
   if ((data.profile.knowledgeEntries ?? []).length < 3) {
     suggestions.push("知识条目不足 3 条，用户更容易觉得回答不够具体。");
   }
+  if ((data.profile.structuredFacts ?? []).length < 4) {
+    suggestions.push("结构化事实还偏少，建议补齐学校、职业、城市和关键经历名词，能明显降低编造。");
+  }
+  if ((data.profile.topicSummaries ?? []).length < 2) {
+    suggestions.push("Topic 摘要还偏少，建议继续补充可复用的经历主题，让检索更容易命中具体场景。");
+  }
   if (feedback.notSpecific > feedback.helpful) {
     suggestions.push("近期“不够具体”偏多，建议在对话调教里补充真实案例和决策过程。");
+  }
+  if ((feedback.factualError ?? 0) + (feedback.contradiction ?? 0) > 0) {
+    suggestions.push("近期出现事实错误或前后矛盾，建议优先检查结构化事实和相关知识条目。");
   }
   if (!data.profile.hasVoiceClone) {
     suggestions.push("还没有可用音色，补一个语音样本能提升陪伴感与转化。");

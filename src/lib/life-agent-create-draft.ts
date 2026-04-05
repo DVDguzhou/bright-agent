@@ -17,6 +17,15 @@ export type LifeAgentCreateDraftKnowledgeEntry = {
   tags: string[];
 };
 
+export type LifeAgentCreateDraftStructuredFact = {
+  factKey: string;
+  factValue: string;
+  factType?: string;
+  source?: string;
+  confidence?: string;
+  status?: string;
+};
+
 /** 与创建页 form state 字段一致；便于恢复时 merge */
 export type LifeAgentCreateDraftForm = Record<string, string>;
 
@@ -27,6 +36,7 @@ export type LifeAgentCreateDraftV1 = {
   form: LifeAgentCreateDraftForm;
   notSuitableFor: string;
   knowledgeEntries: LifeAgentCreateDraftKnowledgeEntry[];
+  structuredFacts: LifeAgentCreateDraftStructuredFact[];
   chatHistory: LifeAgentCreateDraftChatMessage[];
   chatInput: string;
   chatDone: boolean;
@@ -63,6 +73,12 @@ function isKnowledgeEntry(x: unknown): x is LifeAgentCreateDraftKnowledgeEntry {
   );
 }
 
+function isStructuredFact(x: unknown): x is LifeAgentCreateDraftStructuredFact {
+  if (!x || typeof x !== "object") return false;
+  const o = x as Record<string, unknown>;
+  return typeof o.factKey === "string" && typeof o.factValue === "string";
+}
+
 export function parseLifeAgentCreateDraft(raw: string): LifeAgentCreateDraftV1 | null {
   try {
     const data = JSON.parse(raw) as unknown;
@@ -78,6 +94,9 @@ export function parseLifeAgentCreateDraft(raw: string): LifeAgentCreateDraftV1 |
     const knowledgeEntries = Array.isArray(o.knowledgeEntries)
       ? o.knowledgeEntries.filter(isKnowledgeEntry)
       : [];
+    const structuredFacts = Array.isArray(o.structuredFacts)
+      ? o.structuredFacts.filter(isStructuredFact)
+      : [];
 
     return {
       v: LIFE_AGENT_CREATE_DRAFT_VERSION,
@@ -86,6 +105,7 @@ export function parseLifeAgentCreateDraft(raw: string): LifeAgentCreateDraftV1 |
       form: o.form as LifeAgentCreateDraftForm,
       notSuitableFor: typeof o.notSuitableFor === "string" ? o.notSuitableFor : "",
       knowledgeEntries,
+      structuredFacts,
       chatHistory,
       chatInput: typeof o.chatInput === "string" ? o.chatInput : "",
       chatDone: Boolean(o.chatDone),

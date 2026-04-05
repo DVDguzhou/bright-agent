@@ -25,7 +25,7 @@ type RatingItem = {
 };
 
 type SummaryData = {
-  counts: { helpful: number; notSpecific: number; notSuitable: number };
+  counts: { helpful: number; notSpecific: number; notSuitable: number; factualError?: number; contradiction?: number; tooConfident?: number };
   ratings: { averageScore: number; raters: number; recent: RatingItem[] };
   recent: FeedbackItem[];
 };
@@ -39,6 +39,9 @@ export default function DashboardFeedbackPage() {
       helpful: raw?.counts?.helpful ?? 0,
       notSpecific: raw?.counts?.notSpecific ?? 0,
       notSuitable: raw?.counts?.notSuitable ?? 0,
+      factualError: raw?.counts?.factualError ?? 0,
+      contradiction: raw?.counts?.contradiction ?? 0,
+      tooConfident: raw?.counts?.tooConfident ?? 0,
     },
     ratings: {
       averageScore: raw?.ratings?.averageScore ?? 0,
@@ -62,12 +65,30 @@ export default function DashboardFeedbackPage() {
   }, []);
 
   const feedbackLabel = (t: string) =>
-    t === "helpful" ? "有帮助" : t === "not_specific" ? "不够具体" : t === "not_suitable" ? "不适合我" : t;
+    t === "helpful"
+      ? "有帮助"
+      : t === "not_specific"
+        ? "不够具体"
+        : t === "not_suitable"
+          ? "不适合我"
+          : t === "factual_error"
+            ? "事实错误"
+            : t === "contradiction"
+              ? "前后矛盾"
+              : t === "too_confident"
+                ? "过度自信"
+                : t;
   const feedbackColor = (t: string) =>
     t === "helpful"
       ? "bg-emerald-50 text-emerald-800 ring-1 ring-emerald-100"
       : t === "not_specific"
         ? "bg-amber-50 text-amber-900 ring-1 ring-amber-100"
+        : t === "factual_error"
+          ? "bg-red-50 text-red-800 ring-1 ring-red-100"
+          : t === "contradiction"
+            ? "bg-violet-50 text-violet-800 ring-1 ring-violet-100"
+            : t === "too_confident"
+              ? "bg-orange-50 text-orange-900 ring-1 ring-orange-100"
         : "bg-rose-50 text-rose-800 ring-1 ring-rose-100";
 
   const shellClass =
@@ -86,15 +107,18 @@ export default function DashboardFeedbackPage() {
     );
   }
 
-  const counts = data?.counts ?? { helpful: 0, notSpecific: 0, notSuitable: 0 };
+  const counts = data?.counts ?? { helpful: 0, notSpecific: 0, notSuitable: 0, factualError: 0, contradiction: 0, tooConfident: 0 };
   const ratings = data?.ratings ?? { averageScore: 0, raters: 0, recent: [] };
   const recent = data?.recent ?? [];
-  const total = counts.helpful + counts.notSpecific + counts.notSuitable;
+  const total = counts.helpful + counts.notSpecific + counts.notSuitable + (counts.factualError ?? 0) + (counts.contradiction ?? 0) + (counts.tooConfident ?? 0);
 
   const statTiles = [
     { label: "有帮助", value: counts.helpful, valueClass: "text-emerald-700" },
     { label: "不够具体", value: counts.notSpecific, valueClass: "text-amber-700" },
     { label: "不适合我", value: counts.notSuitable, valueClass: "text-rose-700" },
+    { label: "事实错误", value: counts.factualError ?? 0, valueClass: "text-red-700" },
+    { label: "前后矛盾", value: counts.contradiction ?? 0, valueClass: "text-violet-700" },
+    { label: "过度自信", value: counts.tooConfident ?? 0, valueClass: "text-orange-700" },
   ];
 
   return (

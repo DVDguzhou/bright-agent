@@ -29,6 +29,15 @@ type KnowledgeEntry = {
   tags: string[];
 };
 
+type StructuredFact = {
+  factKey: string;
+  factValue: string;
+  factType?: string;
+  source?: string;
+  confidence?: string;
+  status?: string;
+};
+
 type ChatMessage = {
   role: "assistant" | "user";
   content: string;
@@ -70,6 +79,7 @@ type ProfileSummaryResponse = {
     sampleQuestions?: string[];
   };
   knowledgeEntries?: KnowledgeEntry[];
+  structuredFacts?: StructuredFact[];
 };
 
 const FIRST_QUESTION = "你希望分享什么样的经验或信息？可以简单说说你擅长的领域，或你最想帮助用户解决什么问题。";
@@ -214,6 +224,7 @@ export default function CreateLifeAgentPage() {
   const [form, setForm] = useState<CreateAgentFormState>(() => ({ ...DEFAULT_FORM }));
   const [notSuitableFor, setNotSuitableFor] = useState("");
   const [knowledgeEntries, setKnowledgeEntries] = useState<KnowledgeEntry[]>([]);
+  const [structuredFacts, setStructuredFacts] = useState<StructuredFact[]>([]);
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState("");
   const [chatDone, setChatDone] = useState(false);
@@ -255,6 +266,7 @@ export default function CreateLifeAgentPage() {
           tags: e.tags,
         })),
       );
+      setStructuredFacts(Array.isArray(draft.structuredFacts) ? draft.structuredFacts : []);
       setChatHistory(draft.chatHistory);
       setChatInput(draft.chatInput);
       setChatDone(draft.chatDone);
@@ -281,6 +293,7 @@ export default function CreateLifeAgentPage() {
       form: { ...form },
       notSuitableFor,
       knowledgeEntries,
+      structuredFacts,
       chatHistory,
       chatInput,
       chatDone,
@@ -299,6 +312,7 @@ export default function CreateLifeAgentPage() {
     form,
     notSuitableFor,
     knowledgeEntries,
+    structuredFacts,
     chatHistory,
     chatInput,
     chatDone,
@@ -339,6 +353,7 @@ export default function CreateLifeAgentPage() {
     form,
     notSuitableFor,
     knowledgeEntries,
+    structuredFacts,
     chatHistory,
     chatInput,
     chatDone,
@@ -463,6 +478,7 @@ export default function CreateLifeAgentPage() {
     if (user?.id) clearLifeAgentCreateDraft(user.id);
     setForm({ ...DEFAULT_FORM });
     setKnowledgeEntries([]);
+    setStructuredFacts([]);
     setSampleQuestionsList([]);
     setSampleQuestionsDraft("");
     setChatInput("");
@@ -560,6 +576,19 @@ export default function CreateLifeAgentPage() {
           ];
         });
       }
+      if (data.factCandidates?.length) {
+        setStructuredFacts((prev) => {
+          const existing = new Set(prev.map((item) => `${item.factKey}:${item.factValue}`));
+          const next = [...prev];
+          for (const item of data.factCandidates as StructuredFact[]) {
+            const key = `${item.factKey}:${item.factValue}`;
+            if (!item.factKey || !item.factValue || existing.has(key)) continue;
+            existing.add(key);
+            next.push(item);
+          }
+          return next;
+        });
+      }
 
       if (data.done) {
         setExperienceHistory((prev) => [
@@ -655,6 +684,7 @@ export default function CreateLifeAgentPage() {
       setSampleQuestionsList(questions);
       setSampleQuestionsDraft(questions.join("\n"));
       setKnowledgeEntries((data.knowledgeEntries ?? []).filter((item) => item?.content?.trim()));
+      setStructuredFacts((data.structuredFacts ?? []).filter((item) => item?.factKey && item?.factValue));
       setChatHistory((prev) => [
         ...prev,
         {
@@ -773,6 +803,16 @@ export default function CreateLifeAgentPage() {
           tags: tags.length >= 1 ? tags : [e.category],
         };
       }),
+      structuredFacts: structuredFacts
+        .filter((item) => item.factKey && item.factValue)
+        .map((item) => ({
+          factKey: item.factKey,
+          factValue: item.factValue,
+          factType: item.factType,
+          source: item.source,
+          confidence: item.confidence,
+          status: item.status,
+        })),
       ...(coverImageUrl.trim() ? { coverImageUrl: coverImageUrl.trim() } : {}),
     };
 

@@ -41,14 +41,14 @@ func coalesceVerificationStatus(v string) string {
 
 // 与前端 public/life-agent-cover-presets/*.png 一致
 var allowedLifeAgentCoverPresets = map[string]struct{}{
-	"01-student-panda":   {},
-	"02-robot-pro":       {},
-	"03-scholar-owl":     {},
-	"04-social-fox":      {},
-	"05-achiever-dino":   {},
-	"06-wellness-cloud":  {},
-	"07-city-bear":       {},
-	"08-service-dog":     {},
+	"01-student-panda":  {},
+	"02-robot-pro":      {},
+	"03-scholar-owl":    {},
+	"04-social-fox":     {},
+	"05-achiever-dino":  {},
+	"06-wellness-cloud": {},
+	"07-city-bear":      {},
+	"08-service-dog":    {},
 }
 
 func validateLifeAgentCoverImageURL(u string) bool {
@@ -144,10 +144,55 @@ func buildLifeAgentChatReferences(refs models.JSONAny) []gin.H {
 			continue
 		}
 		list = append(list, gin.H{
-			"id":       refMap["id"],
-			"category": refMap["category"],
-			"title":    refMap["title"],
-			"excerpt":  refMap["excerpt"],
+			"id":         refMap["id"],
+			"sourceType": refMap["sourceType"],
+			"factKey":    refMap["factKey"],
+			"topicGroup": refMap["topicGroup"],
+			"topicKey":   refMap["topicKey"],
+			"category":   refMap["category"],
+			"title":      refMap["title"],
+			"excerpt":    refMap["excerpt"],
+			"confidence": refMap["confidence"],
+		})
+	}
+	return list
+}
+
+func buildStructuredFactResponses(facts []models.LifeAgentStructuredFact) []gin.H {
+	list := make([]gin.H, 0, len(facts))
+	for _, fact := range facts {
+		list = append(list, gin.H{
+			"id":              fact.ID,
+			"factKey":         fact.FactKey,
+			"factValue":       fact.FactValue,
+			"factType":        fact.FactType,
+			"source":          fact.Source,
+			"confidence":      fact.Confidence,
+			"status":          fact.Status,
+			"evidence":        fact.Evidence,
+			"lastConfirmedAt": fact.LastConfirmedAt,
+		})
+	}
+	return list
+}
+
+func buildTopicSummaryResponses(topics []models.LifeAgentTopicSummary) []gin.H {
+	list := make([]gin.H, 0, len(topics))
+	for _, topic := range topics {
+		list = append(list, gin.H{
+			"id":                topic.ID,
+			"topicGroup":        topic.TopicGroup,
+			"topicKey":          topic.TopicKey,
+			"topicLabel":        topic.TopicLabel,
+			"summary":           topic.Summary,
+			"aliases":           topic.Aliases,
+			"questionPatterns":  topic.QuestionPatterns,
+			"sourceEntryIds":    topic.SourceEntryIDs,
+			"source":            topic.Source,
+			"confidence":        topic.Confidence,
+			"status":            topic.Status,
+			"manualEdited":      topic.ManualEdited,
+			"mergedIntoTopicId": topic.MergedIntoTopicID,
 		})
 	}
 	return list
@@ -422,12 +467,20 @@ func LifeAgentsCreate(cfg *config.Config) gin.HandlerFunc {
 			}
 			db.DB.Create(&k)
 		}
+		refreshLifeAgentStructuredFacts(profileID)
+		refreshLifeAgentTopicSummaries(profileID)
 		var entries []models.LifeAgentKnowledgeEntry
 		db.DB.Where("profile_id = ?", profileID).Order("sort_order").Find(&entries)
+		var facts []models.LifeAgentStructuredFact
+		db.DB.Where("profile_id = ?", profileID).Order("fact_key ASC, created_at ASC").Find(&facts)
+		var topics []models.LifeAgentTopicSummary
+		db.DB.Where("profile_id = ?", profileID).Order("topic_group ASC, topic_key ASC").Find(&topics)
 		c.JSON(http.StatusOK, gin.H{
 			"id":               profileID,
 			"voiceCloneId":     ptrStr(voiceClonePtr),
 			"knowledgeEntries": entries,
+			"structuredFacts":  buildStructuredFactResponses(facts),
+			"topicSummaries":   buildTopicSummaryResponses(topics),
 		})
 	}
 }
@@ -456,6 +509,7 @@ func LifeAgentsCreateNextQuestion(cfg *config.Config) gin.HandlerFunc {
 			"extractedTone":  out.ExtractedTone,
 			"suggestedTags":  out.SuggestedTags,
 			"knowledgeAdd":   out.KnowledgeAdd,
+			"factCandidates": out.FactCandidates,
 		}
 		c.JSON(http.StatusOK, resp)
 	}
@@ -482,6 +536,7 @@ func LifeAgentsCreateProfileSummary(cfg *config.Config) gin.HandlerFunc {
 			"summaryMessage":   out.SummaryMessage,
 			"profile":          out.Profile,
 			"knowledgeEntries": out.KnowledgeEntries,
+			"structuredFacts":  out.StructuredFacts,
 		})
 	}
 }
@@ -549,6 +604,8 @@ func LifeAgentsDelete(cfg *config.Config) gin.HandlerFunc {
 		}
 		db.DB.Where("profile_id = ?", id).Delete(&models.LifeAgentChatSession{})
 		db.DB.Where("profile_id = ?", id).Delete(&models.LifeAgentKnowledgeEntry{})
+		db.DB.Where("profile_id = ?", id).Delete(&models.LifeAgentStructuredFact{})
+		db.DB.Where("profile_id = ?", id).Delete(&models.LifeAgentTopicSummary{})
 		db.DB.Where("profile_id = ?", id).Delete(&models.LifeAgentQuestionPack{})
 		db.DB.Where("profile_id = ?", id).Delete(&models.LifeAgentRating{})
 		db.DB.Where("profile_id = ?", id).Delete(&models.LifeAgentInvokeKey{})
@@ -572,7 +629,7 @@ func LifeAgentsFeedbackAll(cfg *config.Config) gin.HandlerFunc {
 		db.DB.Where("user_id = ?", user.ID).Find(&profiles)
 		if len(profiles) == 0 {
 			c.JSON(http.StatusOK, gin.H{
-				"counts":  gin.H{"helpful": 0, "notSpecific": 0, "notSuitable": 0},
+				"counts":  gin.H{"helpful": 0, "notSpecific": 0, "notSuitable": 0, "factualError": 0, "contradiction": 0, "tooConfident": 0},
 				"ratings": gin.H{"averageScore": 0, "raters": 0, "recent": []gin.H{}},
 				"recent":  []gin.H{},
 			})
@@ -584,10 +641,13 @@ func LifeAgentsFeedbackAll(cfg *config.Config) gin.HandlerFunc {
 			ids[i] = p.ID
 			profileMap[p.ID] = p.DisplayName
 		}
-		var helpful, notSpecific, notSuitable int64
+		var helpful, notSpecific, notSuitable, factualError, contradiction, tooConfident int64
 		db.DB.Model(&models.LifeAgentFeedback{}).Where("profile_id IN ? AND feedback_type = ?", ids, "helpful").Count(&helpful)
 		db.DB.Model(&models.LifeAgentFeedback{}).Where("profile_id IN ? AND feedback_type = ?", ids, "not_specific").Count(&notSpecific)
 		db.DB.Model(&models.LifeAgentFeedback{}).Where("profile_id IN ? AND feedback_type = ?", ids, "not_suitable").Count(&notSuitable)
+		db.DB.Model(&models.LifeAgentFeedback{}).Where("profile_id IN ? AND feedback_type = ?", ids, "factual_error").Count(&factualError)
+		db.DB.Model(&models.LifeAgentFeedback{}).Where("profile_id IN ? AND feedback_type = ?", ids, "contradiction").Count(&contradiction)
+		db.DB.Model(&models.LifeAgentFeedback{}).Where("profile_id IN ? AND feedback_type = ?", ids, "too_confident").Count(&tooConfident)
 		var recent []models.LifeAgentFeedback
 		db.DB.Where("profile_id IN ?", ids).Order("created_at DESC").Limit(50).Find(&recent)
 		var recentRatings []models.LifeAgentRating
@@ -621,9 +681,12 @@ func LifeAgentsFeedbackAll(cfg *config.Config) gin.HandlerFunc {
 		}
 		c.JSON(http.StatusOK, gin.H{
 			"counts": gin.H{
-				"helpful":     helpful,
-				"notSpecific": notSpecific,
-				"notSuitable": notSuitable,
+				"helpful":       helpful,
+				"notSpecific":   notSpecific,
+				"notSuitable":   notSuitable,
+				"factualError":  factualError,
+				"contradiction": contradiction,
+				"tooConfident":  tooConfident,
 			},
 			"ratings": gin.H{
 				"averageScore": average,
@@ -684,6 +747,10 @@ func LifeAgentsGet(cfg *config.Config) gin.HandlerFunc {
 		db.DB.Where("id = ?", p.UserID).First(&u)
 		var entries []models.LifeAgentKnowledgeEntry
 		db.DB.Where("profile_id = ?", id).Order("sort_order").Find(&entries)
+		var facts []models.LifeAgentStructuredFact
+		db.DB.Where("profile_id = ?", id).Order("fact_key ASC, created_at ASC").Find(&facts)
+		var topics []models.LifeAgentTopicSummary
+		db.DB.Where("profile_id = ?", id).Order("topic_group ASC, topic_key ASC").Find(&topics)
 
 		user := middleware.MustGetUser(c)
 		remaining := 0
@@ -734,13 +801,16 @@ func LifeAgentsGet(cfg *config.Config) gin.HandlerFunc {
 			"published":          p.Published,
 			"creator":            gin.H{"id": u.ID, "name": u.Name},
 			"knowledgeEntries":   entries,
+			"structuredFacts":    buildStructuredFactResponses(facts),
+			"topicSummaries":     buildTopicSummaryResponses(topics),
 			"stats": gin.H{
 				"sessionCount":      sessCount,
 				"soldQuestionPacks": qpCount,
 				"knowledgeCount":    len(entries),
+				"topicCount":        len(topics),
 			},
-			"ratings":       ratingsSummary,
-			"hasVoiceClone": cfg.VoiceReplyConfigured(ptrStr(p.VoiceCloneID)),
+			"ratings":        ratingsSummary,
+			"hasVoiceClone":  cfg.VoiceReplyConfigured(ptrStr(p.VoiceCloneID)),
 			"coverImageUrl":  ptrStr(p.CoverImageURL),
 			"coverPresetKey": ptrStr(p.CoverPresetKey),
 			"coverUrl":       cu,
@@ -805,12 +875,12 @@ func LifeAgentsUpdate(cfg *config.Config) gin.HandlerFunc {
 				Content  string   `json:"content"`
 				Tags     []string `json:"tags"`
 			} `json:"knowledgeEntries"`
-			VoiceSampleBase64 *string `json:"voiceSampleBase64"`
-			CoverPresetKey    *string `json:"coverPresetKey"`
-			CoverImageURL     *string `json:"coverImageUrl"`
-			ApiInvokeEnabled            *bool `json:"apiInvokeEnabled"`
-			ApiPriceFollowsConsultation *bool `json:"apiPriceFollowsConsultation"`
-			ApiPricePerCallCents        *int  `json:"apiPricePerCallCents"`
+			VoiceSampleBase64           *string `json:"voiceSampleBase64"`
+			CoverPresetKey              *string `json:"coverPresetKey"`
+			CoverImageURL               *string `json:"coverImageUrl"`
+			ApiInvokeEnabled            *bool   `json:"apiInvokeEnabled"`
+			ApiPriceFollowsConsultation *bool   `json:"apiPriceFollowsConsultation"`
+			ApiPricePerCallCents        *int    `json:"apiPricePerCallCents"`
 		}
 		if err := c.ShouldBindJSON(&body); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "VALIDATION_ERROR"})
@@ -972,6 +1042,8 @@ func LifeAgentsUpdate(cfg *config.Config) gin.HandlerFunc {
 				db.DB.Create(&k)
 			}
 		}
+		refreshLifeAgentStructuredFacts(id)
+		refreshLifeAgentTopicSummaries(id)
 		if body.VoiceSampleBase64 != nil && strings.TrimSpace(*body.VoiceSampleBase64) != "" {
 			s := strings.TrimSpace(*body.VoiceSampleBase64)
 			_, _ = tts.SaveVoiceSample(p.ID, s)
@@ -1002,35 +1074,39 @@ func LifeAgentsUpdate(cfg *config.Config) gin.HandlerFunc {
 			}
 		}
 		db.DB.Where("id = ?", id).First(&p)
+		var facts []models.LifeAgentStructuredFact
+		db.DB.Where("profile_id = ?", id).Order("fact_key ASC, created_at ASC").Find(&facts)
+		var topics []models.LifeAgentTopicSummary
+		db.DB.Where("profile_id = ?", id).Order("topic_group ASC, topic_key ASC").Find(&topics)
 		c.JSON(http.StatusOK, gin.H{
-			"id":               p.ID,
-			"displayName":      p.DisplayName,
-			"headline":         p.Headline,
-			"shortBio":         p.ShortBio,
-			"longBio":          p.LongBio,
-			"audience":         p.Audience,
-			"welcomeMessage":   p.WelcomeMessage,
-			"pricePerQuestion": p.PricePerQuestion,
-			"expertiseTags":    p.ExpertiseTags,
-			"sampleQuestions":  p.SampleQuestions,
-			"education":        ptrStr(p.Education),
-			"income":           ptrStr(p.Income),
-			"job":              ptrStr(p.Job),
-			"school":           ptrStr(p.School),
-			"country":          ptrStr(p.Country),
-			"province":         ptrStr(p.Province),
-			"city":             ptrStr(p.City),
-			"county":           ptrStr(p.County),
-			"regions":          p.Regions,
-			"mbti":             ptrStr(p.MBTI),
-			"personaArchetype": ptrStr(p.PersonaArchetype),
-			"toneStyle":        ptrStr(p.ToneStyle),
-			"responseStyle":    ptrStr(p.ResponseStyle),
-			"forbiddenPhrases": p.ForbiddenPhrases,
-			"exampleReplies":   p.ExampleReplies,
-			"notSuitableFor":   ptrStr(p.NotSuitableFor),
-			"voiceCloneId":     ptrStr(p.VoiceCloneID),
-			"hasVoiceClone":     cfg.VoiceReplyConfigured(ptrStr(p.VoiceCloneID)),
+			"id":                            p.ID,
+			"displayName":                   p.DisplayName,
+			"headline":                      p.Headline,
+			"shortBio":                      p.ShortBio,
+			"longBio":                       p.LongBio,
+			"audience":                      p.Audience,
+			"welcomeMessage":                p.WelcomeMessage,
+			"pricePerQuestion":              p.PricePerQuestion,
+			"expertiseTags":                 p.ExpertiseTags,
+			"sampleQuestions":               p.SampleQuestions,
+			"education":                     ptrStr(p.Education),
+			"income":                        ptrStr(p.Income),
+			"job":                           ptrStr(p.Job),
+			"school":                        ptrStr(p.School),
+			"country":                       ptrStr(p.Country),
+			"province":                      ptrStr(p.Province),
+			"city":                          ptrStr(p.City),
+			"county":                        ptrStr(p.County),
+			"regions":                       p.Regions,
+			"mbti":                          ptrStr(p.MBTI),
+			"personaArchetype":              ptrStr(p.PersonaArchetype),
+			"toneStyle":                     ptrStr(p.ToneStyle),
+			"responseStyle":                 ptrStr(p.ResponseStyle),
+			"forbiddenPhrases":              p.ForbiddenPhrases,
+			"exampleReplies":                p.ExampleReplies,
+			"notSuitableFor":                ptrStr(p.NotSuitableFor),
+			"voiceCloneId":                  ptrStr(p.VoiceCloneID),
+			"hasVoiceClone":                 cfg.VoiceReplyConfigured(ptrStr(p.VoiceCloneID)),
 			"published":                     p.Published,
 			"apiInvokeEnabled":              p.ApiInvokeEnabled,
 			"apiPriceFollowsConsultation":   p.ApiPricePerCallCents == nil,
@@ -1040,6 +1116,8 @@ func LifeAgentsUpdate(cfg *config.Config) gin.HandlerFunc {
 			"coverImageUrl":                 ptrStr(p.CoverImageURL),
 			"coverPresetKey":                ptrStr(p.CoverPresetKey),
 			"coverUrl":                      lifeAgentCoverURL(&p),
+			"structuredFacts":               buildStructuredFactResponses(facts),
+			"topicSummaries":                buildTopicSummaryResponses(topics),
 		})
 	}
 }
@@ -1158,6 +1236,10 @@ func LifeAgentsModifyViaChat(cfg *config.Config) gin.HandlerFunc {
 			db.DB.Where("id = ?", id).First(&p)
 			db.DB.Where("profile_id = ?", id).Order("sort_order").Find(&entries)
 		}
+		refreshLifeAgentStructuredFacts(id)
+		refreshLifeAgentTopicSummaries(id)
+		db.DB.Where("id = ?", id).First(&p)
+		db.DB.Where("profile_id = ?", id).Order("sort_order").Find(&entries)
 		profileResp := buildManageProfileResp(&p, entries)
 		c.JSON(http.StatusOK, gin.H{
 			"assistantMessage": reply,
@@ -1213,6 +1295,10 @@ func buildManageProfileResp(p *models.LifeAgentProfile, entries []models.LifeAge
 			ID: e.ID, Category: e.Category, Title: e.Title, Content: e.Content, Tags: []string(e.Tags),
 		})
 	}
+	var facts []models.LifeAgentStructuredFact
+	db.DB.Where("profile_id = ?", p.ID).Order("fact_key ASC, created_at ASC").Find(&facts)
+	var topics []models.LifeAgentTopicSummary
+	db.DB.Where("profile_id = ?", p.ID).Order("topic_group ASC, topic_key ASC").Find(&topics)
 	return gin.H{
 		"id":               p.ID,
 		"displayName":      p.DisplayName,
@@ -1242,6 +1328,8 @@ func buildManageProfileResp(p *models.LifeAgentProfile, entries []models.LifeAge
 		"notSuitableFor":   ptrStr(p.NotSuitableFor),
 		"published":        p.Published,
 		"knowledgeEntries": keList,
+		"structuredFacts":  buildStructuredFactResponses(facts),
+		"topicSummaries":   buildTopicSummaryResponses(topics),
 		"coverImageUrl":    ptrStr(p.CoverImageURL),
 		"coverPresetKey":   ptrStr(p.CoverPresetKey),
 		"coverUrl":         lifeAgentCoverURL(p),
@@ -1267,19 +1355,26 @@ func LifeAgentsManage(cfg *config.Config) gin.HandlerFunc {
 		}
 		var entries []models.LifeAgentKnowledgeEntry
 		db.DB.Where("profile_id = ?", id).Order("sort_order").Find(&entries)
+		var facts []models.LifeAgentStructuredFact
+		db.DB.Where("profile_id = ?", id).Order("fact_key ASC, created_at ASC").Find(&facts)
+		var topics []models.LifeAgentTopicSummary
+		db.DB.Where("profile_id = ?", id).Order("topic_group ASC, topic_key ASC").Find(&topics)
 		var packs []models.LifeAgentQuestionPack
 		db.DB.Where("profile_id = ?", id).Order("created_at DESC").Limit(50).Find(&packs)
 		var sessions []models.LifeAgentChatSession
 		db.DB.Where("profile_id = ?", id).Order("updated_at DESC").Limit(50).Find(&sessions)
 		var totalRevenue int
 		var totalPacks, totalSess int64
-		var helpful, notSpecific, notSuitable int64
+		var helpful, notSpecific, notSuitable, factualError, contradiction, tooConfident int64
 		db.DB.Model(&models.LifeAgentQuestionPack{}).Where("profile_id = ? AND status = ?", id, "paid").Select("COALESCE(SUM(amount_paid),0)").Scan(&totalRevenue)
 		db.DB.Model(&models.LifeAgentQuestionPack{}).Where("profile_id = ?", id).Count(&totalPacks)
 		db.DB.Model(&models.LifeAgentChatSession{}).Where("profile_id = ?", id).Count(&totalSess)
 		db.DB.Model(&models.LifeAgentFeedback{}).Where("profile_id = ? AND feedback_type = ?", id, "helpful").Count(&helpful)
 		db.DB.Model(&models.LifeAgentFeedback{}).Where("profile_id = ? AND feedback_type = ?", id, "not_specific").Count(&notSpecific)
 		db.DB.Model(&models.LifeAgentFeedback{}).Where("profile_id = ? AND feedback_type = ?", id, "not_suitable").Count(&notSuitable)
+		db.DB.Model(&models.LifeAgentFeedback{}).Where("profile_id = ? AND feedback_type = ?", id, "factual_error").Count(&factualError)
+		db.DB.Model(&models.LifeAgentFeedback{}).Where("profile_id = ? AND feedback_type = ?", id, "contradiction").Count(&contradiction)
+		db.DB.Model(&models.LifeAgentFeedback{}).Where("profile_id = ? AND feedback_type = ?", id, "too_confident").Count(&tooConfident)
 		var recentFb []models.LifeAgentFeedback
 		db.DB.Where("profile_id = ?", id).Order("created_at DESC").Limit(20).Find(&recentFb)
 		type fbResp struct {
@@ -1341,37 +1436,39 @@ func LifeAgentsManage(cfg *config.Config) gin.HandlerFunc {
 
 		c.JSON(http.StatusOK, gin.H{
 			"profile": gin.H{
-				"id":                 p.ID,
-				"displayName":        p.DisplayName,
-				"headline":           p.Headline,
-				"shortBio":           p.ShortBio,
-				"longBio":            p.LongBio,
-				"audience":           p.Audience,
-				"welcomeMessage":     p.WelcomeMessage,
-				"pricePerQuestion":   p.PricePerQuestion,
-				"expertiseTags":      p.ExpertiseTags,
-				"sampleQuestions":    p.SampleQuestions,
-				"education":          ptrStr(p.Education),
-				"income":             ptrStr(p.Income),
-				"job":                ptrStr(p.Job),
-				"school":             ptrStr(p.School),
-				"country":            ptrStr(p.Country),
-				"province":           ptrStr(p.Province),
-				"city":               ptrStr(p.City),
-				"county":             ptrStr(p.County),
-				"regions":            p.Regions,
-				"verificationStatus": coalesceVerificationStatus(p.VerificationStatus),
-				"mbti":               ptrStr(p.MBTI),
-				"personaArchetype":   ptrStr(p.PersonaArchetype),
-				"toneStyle":          ptrStr(p.ToneStyle),
-				"responseStyle":      ptrStr(p.ResponseStyle),
-				"forbiddenPhrases":   p.ForbiddenPhrases,
-				"exampleReplies":     p.ExampleReplies,
-				"notSuitableFor":     ptrStr(p.NotSuitableFor),
-				"published":          p.Published,
-				"knowledgeEntries":   entries,
-				"voiceCloneId":       ptrStr(p.VoiceCloneID),
-				"hasVoiceClone":      cfg.VoiceReplyConfigured(ptrStr(p.VoiceCloneID)),
+				"id":                            p.ID,
+				"displayName":                   p.DisplayName,
+				"headline":                      p.Headline,
+				"shortBio":                      p.ShortBio,
+				"longBio":                       p.LongBio,
+				"audience":                      p.Audience,
+				"welcomeMessage":                p.WelcomeMessage,
+				"pricePerQuestion":              p.PricePerQuestion,
+				"expertiseTags":                 p.ExpertiseTags,
+				"sampleQuestions":               p.SampleQuestions,
+				"education":                     ptrStr(p.Education),
+				"income":                        ptrStr(p.Income),
+				"job":                           ptrStr(p.Job),
+				"school":                        ptrStr(p.School),
+				"country":                       ptrStr(p.Country),
+				"province":                      ptrStr(p.Province),
+				"city":                          ptrStr(p.City),
+				"county":                        ptrStr(p.County),
+				"regions":                       p.Regions,
+				"verificationStatus":            coalesceVerificationStatus(p.VerificationStatus),
+				"mbti":                          ptrStr(p.MBTI),
+				"personaArchetype":              ptrStr(p.PersonaArchetype),
+				"toneStyle":                     ptrStr(p.ToneStyle),
+				"responseStyle":                 ptrStr(p.ResponseStyle),
+				"forbiddenPhrases":              p.ForbiddenPhrases,
+				"exampleReplies":                p.ExampleReplies,
+				"notSuitableFor":                ptrStr(p.NotSuitableFor),
+				"published":                     p.Published,
+				"knowledgeEntries":              entries,
+				"structuredFacts":               buildStructuredFactResponses(facts),
+				"topicSummaries":                buildTopicSummaryResponses(topics),
+				"voiceCloneId":                  ptrStr(p.VoiceCloneID),
+				"hasVoiceClone":                 cfg.VoiceReplyConfigured(ptrStr(p.VoiceCloneID)),
 				"coverImageUrl":                 ptrStr(p.CoverImageURL),
 				"coverPresetKey":                ptrStr(p.CoverPresetKey),
 				"coverUrl":                      lifeAgentCoverURL(&p),
@@ -1385,9 +1482,10 @@ func LifeAgentsManage(cfg *config.Config) gin.HandlerFunc {
 				"totalRevenue": totalRevenue,
 				"soldPacks":    totalPacks,
 				"sessionCount": totalSess,
+				"topicCount":   len(topics),
 			},
 			"feedback": gin.H{
-				"counts":  gin.H{"helpful": helpful, "notSpecific": notSpecific, "notSuitable": notSuitable},
+				"counts":  gin.H{"helpful": helpful, "notSpecific": notSpecific, "notSuitable": notSuitable, "factualError": factualError, "contradiction": contradiction, "tooConfident": tooConfident},
 				"recent":  fbList,
 				"ratings": ratingsSummary,
 			},
@@ -1647,7 +1745,9 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 				c.JSON(http.StatusNotFound, gin.H{"error": "SESSION_NOT_FOUND"})
 				return
 			}
-			if sess.Summary != nil {
+			if len(sess.MemoryJSON) > 0 {
+				sessionSummary = lifeagent.ConversationMemoryFromMap(map[string]interface{}(sess.MemoryJSON)).SummaryText
+			} else if sess.Summary != nil {
 				sessionSummary = *sess.Summary
 			}
 		} else {
@@ -1668,16 +1768,22 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 			var prevSessions []models.LifeAgentChatSession
 			db.DB.Where("profile_id = ? AND buyer_id = ? AND id != ? AND summary IS NOT NULL AND summary != ''",
 				id, user.ID, sessionID).Order("updated_at DESC").Limit(3).Find(&prevSessions)
-			var summaries []string
+			memories := make([]lifeagent.ConversationMemory, 0, len(prevSessions))
 			for _, s := range prevSessions {
-				if s.Summary != nil && *s.Summary != "" {
-					summaries = append(summaries, *s.Summary)
+				if len(s.MemoryJSON) > 0 {
+					memories = append(memories, lifeagent.ConversationMemoryFromMap(map[string]interface{}(s.MemoryJSON)))
+				} else if s.Summary != nil && *s.Summary != "" {
+					memories = append(memories, lifeagent.ConversationMemory{SummaryText: *s.Summary})
 				}
 			}
-			crossMemory = lifeagent.BuildCrossSessionMemory(summaries)
+			crossMemory = lifeagent.BuildCrossSessionMemory(memories)
 		}
 		var entries []models.LifeAgentKnowledgeEntry
 		db.DB.Where("profile_id = ?", id).Order("sort_order").Find(&entries)
+		var facts []models.LifeAgentStructuredFact
+		db.DB.Where("profile_id = ?", id).Order("fact_key ASC, created_at ASC").Find(&facts)
+		var topics []models.LifeAgentTopicSummary
+		db.DB.Where("profile_id = ?", id).Order("topic_group ASC, topic_key ASC").Find(&topics)
 		var hist []lifeagent.ChatMessageForAI
 		var msgs []models.LifeAgentChatMessage
 		// 取最近 20 条（DESC），再反转为时间正序，确保 LLM 看到的是最新上下文
@@ -1695,6 +1801,8 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 				Tags: []string(e.Tags),
 			}
 		}
+		factsForAI := lifeagent.BuildStructuredFactsForAI(facts)
+		topicsForAI := lifeagent.BuildTopicSummariesForAI(topics)
 		profileForAI := lifeagent.ProfileForAI{
 			DisplayName:      p.DisplayName,
 			Headline:         p.Headline,
@@ -1725,7 +1833,11 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 
 		var content string
 		var refs []map[string]string
-		if lifeagent.ClassifyQuestionIntent(body.Message) {
+		if reply, replyRefs, ok := lifeagent.ResolveGroundedFactReply(profileForAI, factsForAI, body.Message); ok {
+			content = reply
+			refs = replyRefs
+			writeSSE("content", gin.H{"content": content})
+		} else if lifeagent.ClassifyQuestionIntent(body.Message) {
 			content = lifeagent.BuildIdentityReply(profileForAI)
 			writeSSE("content", gin.H{"content": content})
 		} else {
@@ -1734,7 +1846,7 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 				cfg.OpenAIApiKey, cfg.OpenAIModel, cfg.OpenAIBaseURL,
 				cfg.LLMEnableWebSearch,
 				profileForAI,
-				entriesForAI, hist, body.Message,
+				factsForAI, topicsForAI, entriesForAI, hist, body.Message,
 				func(chunk string) {
 					writeSSE("content", gin.H{"content": chunk})
 				},
@@ -1800,13 +1912,22 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 			allHist = append(allHist, lifeagent.ChatMessageForAI{Role: "user", Content: body.Message})
 			allHist = append(allHist, lifeagent.ChatMessageForAI{Role: "assistant", Content: content})
 			go func(sid string, messages []lifeagent.ChatMessageForAI) {
-				summary := lifeagent.SummarizeConversation(
+				memory := lifeagent.SummarizeConversationMemory(
 					context.Background(),
 					cfg.OpenAIApiKey, cfg.OpenAIModel, cfg.OpenAIBaseURL,
 					messages,
 				)
-				if summary != "" {
-					db.DB.Model(&models.LifeAgentChatSession{}).Where("id = ?", sid).Update("summary", summary)
+				if memory.SummaryText != "" {
+					reviewStatus := "auto"
+					if len(memory.UserStatedFacts) > 0 {
+						reviewStatus = "pending"
+					}
+					db.DB.Model(&models.LifeAgentChatSession{}).Where("id = ?", sid).Updates(map[string]interface{}{
+						"summary":              memory.SummaryText,
+						"memory_json":          conversationMemoryJSON(memory),
+						"memory_review_status": reviewStatus,
+					})
+					upsertTopicCandidatesFromConversationMemory(id, sid, memory)
 				}
 			}(sessionID, allHist)
 		}
@@ -1849,7 +1970,7 @@ func LifeAgentsChatFeedback(cfg *config.Config) gin.HandlerFunc {
 		var body struct {
 			MessageID    string  `json:"messageId" binding:"required"`
 			SessionID    string  `json:"sessionId" binding:"required"`
-			FeedbackType string  `json:"feedbackType" binding:"required,oneof=helpful not_specific not_suitable"`
+			FeedbackType string  `json:"feedbackType" binding:"required,oneof=helpful not_specific not_suitable factual_error contradiction too_confident"`
 			Comment      *string `json:"comment"`
 		}
 		if err := c.ShouldBindJSON(&body); err != nil {
@@ -1876,6 +1997,7 @@ func LifeAgentsChatFeedback(cfg *config.Config) gin.HandlerFunc {
 			db.DB.Model(&prev).Updates(map[string]interface{}{
 				"feedback_type": body.FeedbackType,
 				"comment":       body.Comment,
+				"source_refs":   msg.Refs,
 			})
 			c.JSON(http.StatusOK, gin.H{"ok": true, "updated": true})
 			return
@@ -1896,6 +2018,7 @@ func LifeAgentsChatFeedback(cfg *config.Config) gin.HandlerFunc {
 			UserQuestion:     strOpt(userQ),
 			AssistantExcerpt: strOpt(excerpt),
 			Comment:          body.Comment,
+			SourceRefs:       msg.Refs,
 		}
 		db.DB.Create(&fb)
 		c.JSON(http.StatusOK, gin.H{"ok": true})
@@ -1970,10 +2093,13 @@ func LifeAgentsFeedbackSummary(cfg *config.Config) gin.HandlerFunc {
 			c.JSON(http.StatusNotFound, gin.H{"error": "PROFILE_NOT_FOUND"})
 			return
 		}
-		var helpful, notSpecific, notSuitable int64
+		var helpful, notSpecific, notSuitable, factualError, contradiction, tooConfident int64
 		db.DB.Model(&models.LifeAgentFeedback{}).Where("profile_id = ? AND feedback_type = ?", id, "helpful").Count(&helpful)
 		db.DB.Model(&models.LifeAgentFeedback{}).Where("profile_id = ? AND feedback_type = ?", id, "not_specific").Count(&notSpecific)
 		db.DB.Model(&models.LifeAgentFeedback{}).Where("profile_id = ? AND feedback_type = ?", id, "not_suitable").Count(&notSuitable)
+		db.DB.Model(&models.LifeAgentFeedback{}).Where("profile_id = ? AND feedback_type = ?", id, "factual_error").Count(&factualError)
+		db.DB.Model(&models.LifeAgentFeedback{}).Where("profile_id = ? AND feedback_type = ?", id, "contradiction").Count(&contradiction)
+		db.DB.Model(&models.LifeAgentFeedback{}).Where("profile_id = ? AND feedback_type = ?", id, "too_confident").Count(&tooConfident)
 		var recent []models.LifeAgentFeedback
 		db.DB.Where("profile_id = ?", id).Order("created_at DESC").Limit(30).Find(&recent)
 		type fbResp struct {
@@ -1994,9 +2120,12 @@ func LifeAgentsFeedbackSummary(cfg *config.Config) gin.HandlerFunc {
 		ratingsSummary := buildLifeAgentRatingsSummary(id, 20)
 		c.JSON(http.StatusOK, gin.H{
 			"counts": gin.H{
-				"helpful":     helpful,
-				"notSpecific": notSpecific,
-				"notSuitable": notSuitable,
+				"helpful":       helpful,
+				"notSpecific":   notSpecific,
+				"notSuitable":   notSuitable,
+				"factualError":  factualError,
+				"contradiction": contradiction,
+				"tooConfident":  tooConfident,
 			},
 			"ratings": ratingsSummary,
 			"recent":  list,

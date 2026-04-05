@@ -90,6 +90,8 @@ func Init(dsn string) error {
 		&models.Dispute{},
 		&models.LifeAgentProfile{},
 		&models.LifeAgentKnowledgeEntry{},
+		&models.LifeAgentStructuredFact{},
+		&models.LifeAgentTopicSummary{},
 		&models.LifeAgentChatSession{},
 		&models.LifeAgentChatMessage{},
 		&models.LifeAgentQuestionPack{},
