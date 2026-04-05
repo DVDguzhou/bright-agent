@@ -10,6 +10,7 @@ type ProfileForAI struct {
 	DisplayName      string
 	Headline         string
 	ShortBio         string
+	LongBio          string
 	Audience         string
 	WelcomeMessage   string
 	ExpertiseTags    []string
@@ -226,8 +227,31 @@ func normalizeSnippet(s string) string {
 
 func scoreEntry(message string, entry KnowledgeEntryForAI) int {
 	normMsg := normalize(message)
+	normContent := normalize(entry.Content)
+	normTitle := normalize(entry.Title)
 	tokens := tokenize(message)
 	score := 0
+	// 困难/低谷类问题：与知识库里失败、复盘、舆论、伤病等主题对齐
+	hardshipHints := []string{"困难", "最难", "低谷", "挫折", "难熬", "走不出来", "崩溃", "熬"}
+	for _, h := range hardshipHints {
+		if strings.Contains(normMsg, normalize(h)) {
+			for _, needle := range []string{"低谷", "失败", "丧", "emo", "舆论", "输", "跟腱", "拆队", "复盘", "绿军", "凯尔特人"} {
+				if strings.Contains(normContent, needle) || strings.Contains(normTitle, needle) {
+					score += 5
+					break
+				}
+			}
+			break
+		}
+	}
+	if strings.Contains(normMsg, "詹姆斯") || strings.Contains(normMsg, "勒布朗") || strings.Contains(normMsg, "lebron") {
+		for _, needle := range []string{"詹姆斯", "勒布朗", "lebron", "对手", "时代", "国家队", "奥运"} {
+			if strings.Contains(normContent, needle) || strings.Contains(normTitle, needle) {
+				score += 8
+				break
+			}
+		}
+	}
 	for _, tag := range entry.Tags {
 		if strings.Contains(normMsg, normalize(tag)) {
 			score += 7

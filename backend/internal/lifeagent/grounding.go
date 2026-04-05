@@ -268,6 +268,19 @@ func selectEntriesWithScores(query string, entries []KnowledgeEntryForAI) ([]Kno
 			break
 		}
 	}
+	// 若关键词完全未命中，仍注入若干条知识库原文，避免模型在「零上下文」下编造长篇人生故事
+	if len(top) == 0 && len(entries) > 0 {
+		maxFallback := 8
+		if len(entries) < maxFallback {
+			maxFallback = len(entries)
+		}
+		for i := 0; i < maxFallback; i++ {
+			top = append(top, entries[i])
+		}
+		if best <= 0 {
+			best = 1 // 标记为弱相关，配合系统提示要求紧扣条目
+		}
+	}
 	return top, best
 }
 

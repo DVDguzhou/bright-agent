@@ -1807,6 +1807,7 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 			DisplayName:      p.DisplayName,
 			Headline:         p.Headline,
 			ShortBio:         p.ShortBio,
+			LongBio:          p.LongBio,
 			Audience:         p.Audience,
 			WelcomeMessage:   p.WelcomeMessage,
 			ExpertiseTags:    []string(p.ExpertiseTags),
