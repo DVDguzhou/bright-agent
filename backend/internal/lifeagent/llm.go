@@ -2,9 +2,7 @@ package lifeagent
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"io"
 	"log"
 	"regexp"
 	"strings"
@@ -14,9 +12,12 @@ import (
 
 // pre-compiled regexps for hot paths
 var (
-	headingRe  = regexp.MustCompile(`(?m)^#{1,6}\s*`)
-	listItemRe = regexp.MustCompile(`(?m)^\s*(\d+[\.\)、]|[-*•])\s*`)
-	identityRe = regexp.MustCompile(`[^\p{Han}a-z0-9]`)
+	headingRe   = regexp.MustCompile(`(?m)^#{1,6}\s*`)
+	listItemRe  = regexp.MustCompile(`(?m)^\s*(\d+[\.\)、]|[-*•])\s*`)
+	identityRe  = regexp.MustCompile(`[^\p{Han}a-z0-9]`)
+	mdBoldRe    = regexp.MustCompile(`\*\*([^*]+)\*\*`)
+	mdItalicRe  = regexp.MustCompile(`\*([^*\n]+)\*`)
+	backtickRe  = regexp.MustCompile("`+")
 )
 
 // BuildReplyWithLLM 在有 API 配置时调用 LLM 生成回复，否则回退到模板回复
@@ -29,53 +30,44 @@ func BuildReplyWithLLM(ctx context.Context, apiKey, model, baseURL string, enabl
 		return content, references, nil
 	}
 	apiKey = resolveAPIKey(apiKey, baseURL)
-
-	plan := BuildRetrievalPlan(message, history, facts, topics, entries)
 	ctx, cancel := withLLMTimeout(ctx)
 	defer cancel()
 	client := getClient(apiKey, baseURL)
 
-	systemContent := buildSystemPrompt(profile, plan)
-	messages := buildMessages(systemContent, profile.DisplayName, history, message, opts)
-
-	var resp *openai.ChatCompletionResponse
+	// DashScope 联网搜索仍走单阶段（与注入 RAG 同提示），避免双次调用与搜索语义打架
 	if enableWebSearch && isDashScope(baseURL) {
+		plan := BuildRetrievalPlan(message, history, facts, topics, entries)
+		systemContent := buildSystemPrompt(profile, plan)
+		messages := buildMessages(systemContent, profile.DisplayName, history, message, opts)
+		var resp *openai.ChatCompletionResponse
 		resp, err = chatCompletionWithWebSearch(ctx, apiKey, model, baseURL, messages)
-	} else {
-		var r openai.ChatCompletionResponse
-		r, err = client.CreateChatCompletion(ctx, openai.ChatCompletionRequest{
-			Model:       model,
-			Messages:    messages,
-			Temperature: 0.4,
-			MaxTokens:   4096, // qwen3 思考模式需要更多 tokens（思考 + 回答）
-		})
-		resp = &r
+		if err != nil {
+			log.Printf("[LLM] web search call failed: %v", err)
+			content, references = BuildReply(profile, facts, topics, entries, history, message)
+			return content, references, nil
+		}
+		if len(resp.Choices) == 0 || resp.Choices[0].Message.Content == "" {
+			content, references = BuildReply(profile, facts, topics, entries, history, message)
+			return content, references, nil
+		}
+		content = humanizeReply(strings.TrimSpace(resp.Choices[0].Message.Content))
+		content = ApplyClaimGuard(message, content, facts, plan)
+		references = BuildRetrievalReferences(plan)
+		return content, references, nil
 	}
+
+	content, references, err = twoPhaseLifeAgentReply(ctx, client, model, profile, facts, topics, entries, history, message, opts)
 	if err != nil {
-		log.Printf("[LLM] call failed: %v (model=%s, baseURL=%s)", err, model, baseURL)
+		log.Printf("[LLM] two-phase failed: %v", err)
 		content, references = BuildReply(profile, facts, topics, entries, history, message)
-		log.Printf("[LLM] FALLBACK(err): content=%q", content)
 		return content, references, nil
 	}
-
-	if len(resp.Choices) == 0 || resp.Choices[0].Message.Content == "" {
-		log.Printf("[LLM] empty response, choices=%d", len(resp.Choices))
-		content, references = BuildReply(profile, facts, topics, entries, history, message)
-		log.Printf("[LLM] FALLBACK(empty): content=%q", content)
-		return content, references, nil
-	}
-
-	log.Printf("[LLM] SUCCESS: raw=%q", resp.Choices[0].Message.Content[:min(len(resp.Choices[0].Message.Content), 200)])
-	content = humanizeReply(strings.TrimSpace(resp.Choices[0].Message.Content))
-	content = ApplyClaimGuard(message, content, facts, plan)
-	references = BuildRetrievalReferences(plan)
 	return content, references, nil
 }
 
-// BuildReplyWithLLMStream 流式版本：每产生一个 token 片段就通过 onChunk 回调推送给调用方。
-// 返回完整回复文本和引用列表。DashScope 联网搜索和无 LLM 时回退到非流式。
+// BuildReplyWithLLMStream 双阶段生成最终正文后，按小块推流（首 token 前已完成草稿+仲裁，非真·单路 stream）。
+// DashScope 联网搜索与无 LLM 时回退到 BuildReplyWithLLM 并一次性推送。
 func BuildReplyWithLLMStream(ctx context.Context, apiKey, model, baseURL string, enableWebSearch bool, profile ProfileForAI, facts []StructuredFactForAI, topics []TopicSummaryForAI, entries []KnowledgeEntryForAI, history []ChatMessageForAI, message string, onChunk func(chunk string), opts *ChatOptions) (content string, references []map[string]string, err error) {
-	// DashScope 联网搜索不支持流式，回退到非流式并一次性推送
 	if !isLLMEnabled(apiKey, model, baseURL) || (enableWebSearch && isDashScope(baseURL)) {
 		content, references, err = BuildReplyWithLLM(ctx, apiKey, model, baseURL, enableWebSearch, profile, facts, topics, entries, history, message, opts)
 		if onChunk != nil && content != "" {
@@ -85,66 +77,38 @@ func BuildReplyWithLLMStream(ctx context.Context, apiKey, model, baseURL string,
 	}
 
 	apiKey = resolveAPIKey(apiKey, baseURL)
-
-	plan := BuildRetrievalPlan(message, history, facts, topics, entries)
 	ctx, cancel := withStreamTimeout(ctx)
 	defer cancel()
 	client := getClient(apiKey, baseURL)
 
-	systemContent := buildSystemPrompt(profile, plan)
-	msgs := buildMessages(systemContent, profile.DisplayName, history, message, opts)
-
-	stream, err := client.CreateChatCompletionStream(ctx, openai.ChatCompletionRequest{
-		Model:       model,
-		Messages:    msgs,
-		Temperature: 0.4,
-		MaxTokens:   4096,
-		Stream:      true,
-	})
+	content, references, err = twoPhaseLifeAgentReply(ctx, client, model, profile, facts, topics, entries, history, message, opts)
 	if err != nil {
-		log.Printf("[LLM-stream] open stream failed: %v", err)
+		log.Printf("[LLM-stream] two-phase failed: %v", err)
 		content, references = BuildReply(profile, facts, topics, entries, history, message)
 		if onChunk != nil && content != "" {
 			onChunk(content)
 		}
 		return content, references, nil
 	}
-	defer stream.Close()
+	if content == "" {
+		content, references = BuildReply(profile, facts, topics, entries, history, message)
+		if onChunk != nil && content != "" {
+			onChunk(content)
+		}
+		return content, references, nil
+	}
 
-	var sb strings.Builder
-	for {
-		resp, err := stream.Recv()
-		if errors.Is(err, io.EOF) {
-			break
-		}
-		if err != nil {
-			log.Printf("[LLM-stream] recv error: %v", err)
-			break
-		}
-		if len(resp.Choices) > 0 {
-			delta := resp.Choices[0].Delta.Content
-			if delta != "" {
-				sb.WriteString(delta)
-				if onChunk != nil {
-					onChunk(delta)
-				}
+	if onChunk != nil {
+		const chunkRunes = 10
+		runes := []rune(content)
+		for i := 0; i < len(runes); i += chunkRunes {
+			end := i + chunkRunes
+			if end > len(runes) {
+				end = len(runes)
 			}
+			onChunk(string(runes[i:end]))
 		}
 	}
-
-	raw := strings.TrimSpace(sb.String())
-	if raw == "" {
-		log.Printf("[LLM-stream] empty streamed content, falling back")
-		content, references = BuildReply(profile, facts, topics, entries, history, message)
-		if onChunk != nil && content != "" {
-			onChunk(content)
-		}
-		return content, references, nil
-	}
-
-	content = humanizeReply(raw)
-	content = ApplyClaimGuard(message, content, facts, plan)
-	references = BuildRetrievalReferences(plan)
 	return content, references, nil
 }
 
@@ -189,6 +153,130 @@ func BuildIdentityReply(profile ProfileForAI) string {
 		return "你好，我是基于本地真实经验的顾问，你可以问我关于我亲身经历的问题。"
 	}
 	return strings.Join(parts, " ")
+}
+
+// twoPhaseLifeAgentReply：先模型草稿（通识+人设+微信风），再严格检索；有命中则二次调用与知识库对齐。
+func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model string, profile ProfileForAI, facts []StructuredFactForAI, topics []TopicSummaryForAI, entries []KnowledgeEntryForAI, history []ChatMessageForAI, message string, opts *ChatOptions) (content string, references []map[string]string, err error) {
+	draftSystem := buildDraftSystemPrompt(profile)
+	draftMsgs := buildMessages(draftSystem, profile.DisplayName, history, message, opts)
+	draftResp, err := client.CreateChatCompletion(ctx, openai.ChatCompletionRequest{
+		Model:       model,
+		Messages:    draftMsgs,
+		Temperature: 0.55,
+		MaxTokens:   4096,
+	})
+	if err != nil {
+		return "", nil, err
+	}
+	if len(draftResp.Choices) == 0 {
+		return "", nil, fmt.Errorf("draft: empty choices")
+	}
+	draft := strings.TrimSpace(draftResp.Choices[0].Message.Content)
+	if draft == "" {
+		return "", nil, fmt.Errorf("draft: empty content")
+	}
+
+	planStrict := BuildRetrievalPlanStrict(message, history, facts, topics, entries)
+	if !PlanHasArbitrationTargets(planStrict) {
+		out := humanizeReply(draft)
+		return out, nil, nil
+	}
+
+	reconcileSystem := buildReconcileSystemPrompt(profile, planStrict)
+	reconcileUser := buildReconcileUserMessage(message, draft)
+	recResp, err := client.CreateChatCompletion(ctx, openai.ChatCompletionRequest{
+		Model: model,
+		Messages: []openai.ChatCompletionMessage{
+			{Role: openai.ChatMessageRoleSystem, Content: reconcileSystem},
+			{Role: openai.ChatMessageRoleUser, Content: reconcileUser},
+		},
+		Temperature: 0.25,
+		MaxTokens:   2048,
+	})
+	if err != nil {
+		out := humanizeReply(draft)
+		return out, BuildRetrievalReferences(planStrict), nil
+	}
+	final := draft
+	if len(recResp.Choices) > 0 {
+		if t := strings.TrimSpace(recResp.Choices[0].Message.Content); t != "" {
+			final = t
+		}
+	}
+	out := humanizeReply(final)
+	out = ApplyClaimGuard(message, out, facts, planStrict)
+	return out, BuildRetrievalReferences(planStrict), nil
+}
+
+func buildDraftSystemPrompt(profile ProfileForAI) string {
+	var sb strings.Builder
+	sb.WriteString("你是「")
+	sb.WriteString(profile.DisplayName)
+	sb.WriteString("」，在微信里跟朋友聊天。先按正常人思路回：该用通识就用通识，该用口语就用口语，别像客服别像作文。\n\n")
+	sb.WriteString("【口吻】\n")
+	sb.WriteString("像微信短消息：两三段以内，每段一两句；禁止 Markdown（不要 # 标题、不要 - 列表、不要 ** 加粗、不要数字分点）。别起承转合写太长。\n\n")
+	sb.WriteString("【人设】\n")
+	sb.WriteString("用第一人称。下面是你的对外信息，照着演，但别背台词：\n")
+	sb.WriteString("名字: ")
+	sb.WriteString(profile.DisplayName)
+	sb.WriteString("\n一句话: ")
+	sb.WriteString(profile.Headline)
+	sb.WriteString("\n短介绍: ")
+	sb.WriteString(profile.ShortBio)
+	if lb := strings.TrimSpace(profile.LongBio); lb != "" {
+		sb.WriteString("\n长介绍: ")
+		sb.WriteString(strings.TrimSpace(TruncateToRunes(lb, 2200)))
+	}
+	sb.WriteString("\n欢迎语参考: ")
+	sb.WriteString(profile.WelcomeMessage)
+	if profile.NotSuitableFor != "" {
+		sb.WriteString("\n不想聊的: ")
+		sb.WriteString(profile.NotSuitableFor)
+	}
+	sb.WriteString("\n\n【注意】\n")
+	sb.WriteString("回复里不要出现：知识库、资料、依据、检索、训练数据、作为 AI、提示词 等词。说不清就糊弄带过，别解释后台原因。\n")
+	if profile.PersonaArchetype != "" {
+		sb.WriteString("气质参考: ")
+		sb.WriteString(profile.PersonaArchetype)
+		sb.WriteString("\n")
+	}
+	if profile.ToneStyle != "" {
+		sb.WriteString("语气: ")
+		sb.WriteString(profile.ToneStyle)
+		sb.WriteString("\n")
+	}
+	return sb.String()
+}
+
+func buildReconcileSystemPrompt(profile ProfileForAI, plan RetrievalPlan) string {
+	var sb strings.Builder
+	sb.WriteString("你是同一人设「")
+	sb.WriteString(profile.DisplayName)
+	sb.WriteString("」的校对：下面【结构化事实】【Topic】【经历素材】来自该账号已入库内容，**与草稿冲突时以这些内容为准**；不冲突则尽量保留草稿的人声与长度感。\n\n")
+	sb.WriteString("规则：\n")
+	sb.WriteString("1. 输出仍是微信聊天正文：无 Markdown、无列表符号、无 #。\n")
+	sb.WriteString("2. 若草稿与事实/素材在具体经历、数字、人物关系上矛盾，改写到一致，口吻仍口语。\n")
+	sb.WriteString("3. 若不矛盾，可基本保留草稿，仅去掉格式符号、略顺句。\n")
+	sb.WriteString("4. 禁止在输出里提：知识库、资料、依据、检索、修改过程。\n\n")
+	sb.WriteString("【结构化事实】\n")
+	sb.WriteString(BuildFactsPromptSection(plan.Facts))
+	sb.WriteString("\n\n【相关 Topic 摘要】\n")
+	sb.WriteString(BuildTopicsPromptSection(plan.Topics))
+	sb.WriteString("\n\n【经历素材】\n")
+	for i, e := range plan.Entries {
+		sb.WriteString(fmt.Sprintf("[%d] %s（%s）\n%s\n\n", i+1, e.Title, e.Category, e.Content))
+	}
+	return sb.String()
+}
+
+func buildReconcileUserMessage(userMessage, draft string) string {
+	var sb strings.Builder
+	sb.WriteString("用户刚才说：\n")
+	sb.WriteString(userMessage)
+	sb.WriteString("\n\n下面是第一遍回复草稿（可能与上面入库内容不一致）：\n")
+	sb.WriteString(draft)
+	sb.WriteString("\n\n请输出一条最终发给用户的正文（仅此一段对话，不要前缀说明）。")
+	return sb.String()
 }
 
 func buildSystemPrompt(profile ProfileForAI, plan RetrievalPlan) string {
@@ -370,6 +458,9 @@ func humanizeReply(content string) string {
 	content = strings.ReplaceAll(content, "\r\n", "\n")
 	content = headingRe.ReplaceAllString(content, "")
 	content = listItemRe.ReplaceAllString(content, "")
+	content = mdBoldRe.ReplaceAllString(content, "$1")
+	content = mdItalicRe.ReplaceAllString(content, "$1")
+	content = backtickRe.ReplaceAllString(content, "")
 
 	lines := strings.Split(content, "\n")
 	var cleaned []string

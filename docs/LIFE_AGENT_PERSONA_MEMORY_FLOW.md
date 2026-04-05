@@ -311,29 +311,45 @@ flowchart TB
 - 不再“无命中也强塞前几条”
 - 改为根据分值决定高、中、低置信
 
-### 4.5 构造 Prompt
+### 4.5 构造 Prompt（双阶段默认 + 单阶段例外）
 
-Prompt 的主构造逻辑在：
+实现位置：`backend/internal/lifeagent/llm.go`、`backend/internal/lifeagent/grounding.go`。
 
-- `backend/internal/lifeagent/llm.go`
+#### 4.5.1 默认：模型优先 + 知识库仲裁
 
-系统会把上下文拆成几个块：
+1. **第一阶段（草稿）**  
+   - 系统提示：`buildDraftSystemPrompt` — 仅人设（展示名、headline、长短介绍、欢迎语等）与「像微信、禁 Markdown、可用通识」约束。  
+   - **不注入**结构化事实与知识条目，避免 RAG 压掉大模型对公众常识的合理输出。  
+   - 携带会话历史、跨会话摘要等与现有一致的 `buildMessages` 拼装。
 
-- 人格和风格约束
-- 事实边界
-- 结构化事实
-- 检索到的知识条目
-- 当前检索置信度
-- 会话摘要
-- 跨会话记忆
+2. **严格检索**  
+   - `BuildRetrievalPlanStrict`：与 `BuildRetrievalPlan` 相同打分逻辑，但**不对知识条目做「无命中则灌前 N 条」兜底**（见 `selectEntriesWithScores(..., allowFallback)`）。  
+   - `PlanHasArbitrationTargets`：若事实、Topic、条目任一非空，则进入仲裁。
 
-当前 Prompt 的关键原则：
+3. **无仲裁素材**  
+   - 直接对草稿做 `humanizeReply`（去 Markdown/列表等）后返回；**引用列表为空**。
 
-- 结构化事实优先级最高
-- 没依据不能编造成确定事实
-- 低置信时优先保留表达
-- 高风险事实不能乱猜
-- 回答要像真人分享经历
+4. **有仲裁素材**  
+   - **第二阶段**：`buildReconcileSystemPrompt` 注入本轮命中的事实、Topic、条目；用户消息为「用户原话 + 第一遍草稿」。  
+   - 模型任务：草稿与入库内容**冲突则以入库为准**改写；**不冲突**则保留人声并去格式。  
+   - 再经 `humanizeReply`、`ApplyClaimGuard`（与严格检索计划）；引用为 `BuildRetrievalReferences(planStrict)`。
+
+5. **流式 `BuildReplyWithLLMStream`**  
+   - 先在后台跑完两阶段得到**完整正文**，再按固定长度（rune 块）调用 `onChunk`，前端仍为 SSE 体验；并非对单次补全做 token 级 stream。
+
+#### 4.5.2 例外：DashScope 联网搜索
+
+- 当 `enableWebSearch` 且 BaseURL 为 DashScope 时，仍为**单阶段**：`buildSystemPrompt` + `BuildRetrievalPlan`（含条目兜底）+ 一次 `chatCompletionWithWebSearch`，避免与双阶段语义打架。
+
+#### 4.5.3 遗留单阶段提示 `buildSystemPrompt`
+
+- 仍用于上述联网分支；内容含人格、事实边界、注入事实/Topic/条目等，与双阶段中**仲裁层**的素材块类似，但用于整段生成。
+
+关键原则（双阶段合并后）：
+
+- 通识先出、入库内容用于**对齐与纠错**，而非唯一信息源。  
+- 结构化事实与经历素材在**有命中时**优先于与用户草稿矛盾的部分。  
+- 输出经 `humanizeReply` 偏向微信纯文本，减少 Markdown 与列表感。
 
 ### 4.6 调用 LLM 或回退回复
 
@@ -344,7 +360,7 @@ Prompt 的主构造逻辑在：
 
 如果 LLM 可用：
 
-- 正常调用模型
+- 默认两次补全（草稿 + 可选仲裁）；联网搜索路径为一次补全
 
 如果 LLM 不可用或失败：
 

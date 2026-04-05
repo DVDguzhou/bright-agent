@@ -39,10 +39,19 @@ var factIntentRules = []struct {
 }
 
 func BuildRetrievalPlan(message string, history []ChatMessageForAI, facts []StructuredFactForAI, topics []TopicSummaryForAI, entries []KnowledgeEntryForAI) RetrievalPlan {
+	return buildRetrievalPlan(message, history, facts, topics, entries, true)
+}
+
+// BuildRetrievalPlanStrict 仅保留关键词真正命中的知识条目，不注入「前 N 条」兜底，用于双阶段流程里判断是否要知识库仲裁。
+func BuildRetrievalPlanStrict(message string, history []ChatMessageForAI, facts []StructuredFactForAI, topics []TopicSummaryForAI, entries []KnowledgeEntryForAI) RetrievalPlan {
+	return buildRetrievalPlan(message, history, facts, topics, entries, false)
+}
+
+func buildRetrievalPlan(message string, history []ChatMessageForAI, facts []StructuredFactForAI, topics []TopicSummaryForAI, entries []KnowledgeEntryForAI, entryFallback bool) RetrievalPlan {
 	query := buildContextQuery(message, history)
 	selectedFacts, factScore := selectFacts(query, facts)
 	selectedTopics, topicScore := selectTopics(query, topics)
-	selectedEntries, entryScore := selectEntriesWithScores(query, entries)
+	selectedEntries, entryScore := selectEntriesWithScores(query, entries, entryFallback)
 	confidence := "low"
 	switch {
 	case factScore >= 8 || topicScore >= 10 || entryScore >= 10:
@@ -67,6 +76,11 @@ func BuildRetrievalPlan(message string, history []ChatMessageForAI, facts []Stru
 		Confidence: confidence,
 		Reasons:    reasons,
 	}
+}
+
+// PlanHasArbitrationTargets 是否有可用于与用户草稿对齐的结构化事实 / topic / 知识条目（严格检索下非空）。
+func PlanHasArbitrationTargets(p RetrievalPlan) bool {
+	return len(p.Facts) > 0 || len(p.Topics) > 0 || len(p.Entries) > 0
 }
 
 func ResolveGroundedFactReply(profile ProfileForAI, facts []StructuredFactForAI, message string) (string, []map[string]string, bool) {
@@ -232,7 +246,7 @@ func selectFacts(query string, facts []StructuredFactForAI) ([]StructuredFactFor
 	return selected, best
 }
 
-func selectEntriesWithScores(query string, entries []KnowledgeEntryForAI) ([]KnowledgeEntryForAI, int) {
+func selectEntriesWithScores(query string, entries []KnowledgeEntryForAI, allowFallback bool) ([]KnowledgeEntryForAI, int) {
 	ranked := make([]struct {
 		entry KnowledgeEntryForAI
 		score int
@@ -268,8 +282,8 @@ func selectEntriesWithScores(query string, entries []KnowledgeEntryForAI) ([]Kno
 			break
 		}
 	}
-	// 若关键词完全未命中，仍注入若干条知识库原文，避免模型在「零上下文」下编造长篇人生故事
-	if len(top) == 0 && len(entries) > 0 {
+	// 若关键词完全未命中，可选注入若干条知识库原文（仅非严格检索；双阶段草稿阶段不启用）
+	if allowFallback && len(top) == 0 && len(entries) > 0 {
 		maxFallback := 8
 		if len(entries) < maxFallback {
 			maxFallback = len(entries)
