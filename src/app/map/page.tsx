@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import type { MapAgentMarker } from "@/components/LifeAgentsMapView";
 import { useAuth } from "@/contexts/AuthContext";
 import { fetchBoundLifeAgents, type BoundLifeAgent } from "@/lib/bound-life-agents";
@@ -50,6 +51,20 @@ export default function MapPage() {
   const [mapLayoutNonce, setMapLayoutNonce] = useState(0);
   const watchIdRef = useRef<number | null>(null);
   const firstGeoFitRef = useRef(false);
+  const [sheetPortalReady, setSheetPortalReady] = useState(false);
+
+  useEffect(() => {
+    setSheetPortalReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (!sheetOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [sheetOpen]);
 
   useEffect(() => {
     setSelectedProfileId(readMapShareProfileId());
@@ -304,151 +319,173 @@ export default function MapPage() {
         )}
       </div>
 
-      <AnimatePresence>
-        {sheetOpen ? (
-          <>
-            <motion.button
-              type="button"
-              aria-label="关闭"
-              className="fixed inset-0 z-[600] bg-black/35"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={closeSheet}
-            />
-            <motion.div
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="map-gps-sheet-title"
-              className="fixed inset-x-0 bottom-0 z-[610] max-h-[min(85dvh,520px)] rounded-t-3xl bg-white px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 shadow-2xl ring-1 ring-black/5"
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
-              transition={{ type: "spring", damping: 28, stiffness: 320 }}
-            >
-              <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-slate-200" />
-              <h2 id="map-gps-sheet-title" className="text-lg font-bold text-slate-900">
-                位置与绑定 Agent
-              </h2>
-              <p className="mt-2 text-sm leading-relaxed text-slate-500">
-                仅在本页将你的大致位置显示在地图上，并高亮你选中的一个已绑定 Agent。同一时间只能绑定一个；不会把坐标上传到服务器。
-              </p>
-
-              {!user ? (
-                <div className="mt-6 space-y-4">
-                  <p className="text-sm text-slate-600">
-                    登录后可从「已购买或聊过」的 Agent 里选择并开启定位。未登录时仍会本机记住你上次选中的 Agent，用于地图高亮。
-                  </p>
-                  {selectedProfileId ? (
-                    <div className="rounded-2xl border border-sky-100 bg-sky-50/70 px-3 py-3 text-sm text-slate-700">
-                      <p className="font-semibold text-slate-900">本机记住的高亮</p>
-                      <p className="mt-1">{rememberedAgentLabel}</p>
-                    </div>
-                  ) : null}
-                  <Link
-                    href={`/login?next=${encodeURIComponent("/map")}`}
-                    className="flex w-full items-center justify-center rounded-2xl bg-[#0091ff] py-3.5 text-sm font-semibold text-white active:opacity-90"
-                    onClick={closeSheet}
-                  >
-                    去登录
-                  </Link>
-                  {selectedProfileId ? (
-                    <button
-                      type="button"
-                      className="w-full rounded-2xl border border-slate-200 py-3 text-sm font-medium text-slate-600 active:bg-slate-50"
-                      onClick={() => {
-                        clearBinding();
-                        closeSheet();
-                      }}
-                    >
-                      清除本机记住的 Agent
-                    </button>
-                  ) : null}
-                </div>
-              ) : boundAgents.length === 0 ? (
-                <div className="mt-6 space-y-4">
-                  <p className="text-sm text-slate-600">暂无已绑定的 Agent。购买提问包或与某位 Agent 对话后即可在此选择。</p>
-                  <Link
-                    href="/life-agents"
-                    className="flex w-full items-center justify-center rounded-2xl bg-slate-100 py-3.5 text-sm font-semibold text-slate-800 active:bg-slate-200"
-                    onClick={closeSheet}
-                  >
-                    去发现
-                  </Link>
-                </div>
-              ) : (
-                <div className="mt-5 flex max-h-[40vh] flex-col gap-2 overflow-y-auto overscroll-contain pr-1">
-                  {boundAgents.map((b) => {
-                    const checked = selectedProfileId === b.id;
-                    return (
-                      <label
-                        key={b.id}
-                        className={`flex cursor-pointer items-start gap-3 rounded-2xl border px-3 py-3 transition ${
-                          checked ? "border-[#0091ff] bg-sky-50/80" : "border-slate-200 bg-white active:bg-slate-50"
-                        }`}
-                      >
-                        <input
-                          type="radio"
-                          name="map-bound-agent"
-                          className="mt-1 h-4 w-4 accent-[#0091ff]"
-                          checked={checked}
-                          onChange={() => pickAgent(b.id)}
-                        />
-                        <span className="min-w-0 flex-1">
-                          <span className="font-semibold text-slate-900">{b.displayName}</span>
-                          {b.headline ? (
-                            <span className="mt-0.5 block text-xs text-slate-500">{b.headline}</span>
-                          ) : null}
-                        </span>
-                      </label>
-                    );
-                  })}
-                </div>
-              )}
-
-              {user && boundAgents.length > 0 ? (
-                <div className="mt-5 space-y-3">
-                  {geoError ? (
-                    <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-800">{geoError}</p>
-                  ) : null}
-                  {!shareEnabled ? (
-                    <button
-                      type="button"
-                      className="w-full rounded-2xl bg-[#0091ff] py-3.5 text-sm font-semibold text-white active:opacity-90"
-                      onClick={enableSharing}
-                    >
-                      开启定位
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      className="w-full rounded-2xl bg-slate-100 py-3.5 text-sm font-semibold text-slate-800 active:bg-slate-200"
-                      onClick={disableSharing}
-                    >
-                      关闭定位
-                    </button>
-                  )}
-                  <button
+      {sheetPortalReady
+        ? createPortal(
+            <AnimatePresence>
+              {sheetOpen ? (
+                <>
+                  <motion.button
+                    key="map-gps-backdrop"
                     type="button"
-                    className="w-full rounded-2xl border border-slate-200 py-3 text-sm font-medium text-slate-600 active:bg-slate-50"
-                    onClick={clearBinding}
+                    aria-label="关闭"
+                    className="fixed inset-0 z-[10000] bg-black/40"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    onClick={closeSheet}
+                  />
+                  <motion.div
+                    key="map-gps-panel"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="map-gps-sheet-title"
+                    className="fixed inset-x-0 bottom-0 z-[10001] flex max-h-[min(88dvh,600px)] flex-col rounded-t-3xl bg-white shadow-2xl ring-1 ring-black/5"
+                    initial={{ y: "100%" }}
+                    animate={{ y: 0 }}
+                    exit={{ y: "100%" }}
+                    transition={{ type: "spring", damping: 28, stiffness: 320 }}
                   >
-                    清除选中 Agent 与定位偏好
-                  </button>
-                </div>
-              ) : null}
+                    <div className="shrink-0 px-4 pb-2 pt-3">
+                      <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-slate-200" />
+                      <h2 id="map-gps-sheet-title" className="text-lg font-bold text-slate-900">
+                        位置与绑定 Agent
+                      </h2>
+                      <p className="mt-2 text-sm leading-relaxed text-slate-500">
+                        仅在本页将你的大致位置显示在地图上，并高亮你选中的一个已绑定 Agent。同一时间只能绑定一个；不会把坐标上传到服务器。
+                      </p>
+                    </div>
 
-              <button
-                type="button"
-                className="mt-3 w-full py-2 text-sm text-slate-500"
-                onClick={closeSheet}
-              >
-                关闭
-              </button>
-            </motion.div>
-          </>
-        ) : null}
-      </AnimatePresence>
+                    <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-2">
+                      {!user ? (
+                        <div className="space-y-4">
+                          <p className="text-sm text-slate-600">
+                            登录后可从「已购买或聊过」的 Agent 里选择并开启定位。未登录时仍会本机记住你上次选中的 Agent，用于地图高亮。
+                          </p>
+                          {selectedProfileId ? (
+                            <div className="rounded-2xl border border-sky-100 bg-sky-50/70 px-3 py-3 text-sm text-slate-700">
+                              <p className="font-semibold text-slate-900">本机记住的高亮</p>
+                              <p className="mt-1">{rememberedAgentLabel}</p>
+                            </div>
+                          ) : null}
+                          <Link
+                            href={`/login?next=${encodeURIComponent("/map")}`}
+                            className="flex w-full items-center justify-center rounded-2xl bg-[#0091ff] py-3.5 text-sm font-semibold text-white active:opacity-90"
+                            onClick={closeSheet}
+                          >
+                            去登录
+                          </Link>
+                          {selectedProfileId ? (
+                            <button
+                              type="button"
+                              className="w-full rounded-2xl border border-slate-200 py-3 text-sm font-medium text-slate-600 active:bg-slate-50"
+                              onClick={() => {
+                                clearBinding();
+                                closeSheet();
+                              }}
+                            >
+                              清除本机记住的 Agent
+                            </button>
+                          ) : null}
+                        </div>
+                      ) : boundAgents.length === 0 ? (
+                        <div className="space-y-4">
+                          <p className="text-sm text-slate-600">
+                            暂无已绑定的 Agent。购买提问包或与某位 Agent 对话后即可在此选择。
+                          </p>
+                          <Link
+                            href="/life-agents"
+                            className="flex w-full items-center justify-center rounded-2xl bg-slate-100 py-3.5 text-sm font-semibold text-slate-800 active:bg-slate-200"
+                            onClick={closeSheet}
+                          >
+                            去发现
+                          </Link>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col gap-2 pr-1">
+                          <p className="pb-1 text-xs font-medium text-slate-600">
+                            点选下方一项即保存并高亮地图，无需再点「确定」。
+                          </p>
+                          {boundAgents.map((b) => {
+                            const checked = selectedProfileId === b.id;
+                            return (
+                              <label
+                                key={b.id}
+                                className={`flex cursor-pointer items-start gap-3 rounded-2xl border px-3 py-3 transition ${
+                                  checked ? "border-[#0091ff] bg-sky-50/80" : "border-slate-200 bg-white active:bg-slate-50"
+                                }`}
+                              >
+                                <input
+                                  type="radio"
+                                  name="map-bound-agent"
+                                  className="mt-1 h-4 w-4 accent-[#0091ff]"
+                                  checked={checked}
+                                  onChange={() => pickAgent(b.id)}
+                                />
+                                <span className="min-w-0 flex-1">
+                                  <span className="font-semibold text-slate-900">{b.displayName}</span>
+                                  {b.headline ? (
+                                    <span className="mt-0.5 block text-xs text-slate-500">{b.headline}</span>
+                                  ) : null}
+                                </span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="shrink-0 space-y-3 border-t border-slate-100 bg-white px-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-3">
+                      {user && boundAgents.length > 0 ? (
+                        <>
+                          <p className="text-center text-xs leading-relaxed text-slate-500">
+                            选好后可点「开启定位」显示蓝点；或先点「完成」关闭面板，稍后再来开定位。
+                          </p>
+                          {geoError ? (
+                            <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-800">{geoError}</p>
+                          ) : null}
+                          {!shareEnabled ? (
+                            <button
+                              type="button"
+                              className="w-full rounded-2xl bg-[#0091ff] py-3.5 text-sm font-semibold text-white active:opacity-90"
+                              onClick={enableSharing}
+                            >
+                              开启定位
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              className="w-full rounded-2xl bg-slate-100 py-3.5 text-sm font-semibold text-slate-800 active:bg-slate-200"
+                              onClick={disableSharing}
+                            >
+                              关闭定位
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            className="w-full rounded-2xl border border-slate-200 py-3 text-sm font-medium text-slate-600 active:bg-slate-50"
+                            onClick={clearBinding}
+                          >
+                            清除选中 Agent 与定位偏好
+                          </button>
+                        </>
+                      ) : null}
+
+                      <button
+                        type="button"
+                        className="w-full rounded-2xl bg-[#111] py-3.5 text-sm font-semibold text-white active:opacity-90"
+                        onClick={closeSheet}
+                      >
+                        完成
+                      </button>
+                      <p className="pb-1 text-center text-xs text-slate-400">也可点击上方空白处关闭</p>
+                    </div>
+                  </motion.div>
+                </>
+              ) : null}
+            </AnimatePresence>,
+            document.body
+          )
+        : null}
     </div>
   );
 }
