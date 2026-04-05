@@ -93,6 +93,7 @@ export default function LifeAgentChatPage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [viewportBox, setViewportBox] = useState<{ height: number; offsetTop: number } | null>(null);
   const chatEndRef = useRef<HTMLDivElement | null>(null);
+  const sendingRef = useRef(false);
 
   const scrollToLastMessage = () => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -265,7 +266,7 @@ export default function LifeAgentChatPage() {
 
   const sendMessageWithText = useCallback(
     async (text: string) => {
-      if (!text.trim() || !profile) return;
+      if (!text.trim() || !profile || sessionLoading || sendingRef.current) return;
       if (!profile.viewerState.isLoggedIn) {
         setError("请先登录后再开始聊天哦～");
         return;
@@ -275,6 +276,7 @@ export default function LifeAgentChatPage() {
       const now = new Date().toISOString();
 
       setError("");
+      sendingRef.current = true;
       setLoading(true);
       setMessages((prev) => [...prev, { role: "user", content: trimmed }]);
       setInput("");
@@ -444,10 +446,11 @@ export default function LifeAgentChatPage() {
           return prev.slice(0, -1);
         });
       } finally {
+        sendingRef.current = false;
         setLoading(false);
       }
     },
-    [id, profile, sessionId, useVoiceReply]
+    [id, profile, sessionId, sessionLoading, useVoiceReply]
   );
 
   const sendMessage = async (e: FormEvent) => {

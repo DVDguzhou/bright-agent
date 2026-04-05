@@ -22,15 +22,21 @@ export function VoiceInputButton({
   className = "",
   size = "md",
 }: VoiceInputButtonProps) {
-  const { isSupported, status, transcript, error, start, stop, reset } =
+  const { isSupported, status, error, start, stop, reset } =
     useSpeechRecognition({
       lang: "zh-CN",
       continuous: true,
       interimResults: true,
-      onResult: onTranscript,
+      onSessionEnd: (finalTranscript) => {
+        const text = finalTranscript.trim();
+        if (text) {
+          onTranscript(text, true);
+        }
+        reset();
+      },
     });
 
-  const isListening = status === "listening";
+  const isPressActive = status === "listening" || status === "processing";
 
   const handlePressStart = useCallback(() => {
     if (disabled || !isSupported) return;
@@ -39,14 +45,8 @@ export function VoiceInputButton({
   }, [disabled, isSupported, reset, start]);
 
   const handlePressEnd = useCallback(() => {
-    if (isListening) {
-      stop();
-      if (transcript.trim()) {
-        onTranscript(transcript.trim(), true);
-      }
-    }
-    reset();
-  }, [isListening, stop, transcript, onTranscript, reset]);
+    stop();
+  }, [stop]);
 
   useEffect(() => {
     if (error) {
@@ -72,16 +72,19 @@ export function VoiceInputButton({
           e.preventDefault();
           handlePressEnd();
         }}
-        title={isListening ? "松开发送" : "按住说话"}
+        onTouchCancel={handlePressEnd}
+        title={isPressActive ? "松开发送" : "按住说话"}
+        aria-label={isPressActive ? "松开发送语音" : "按住说话"}
+        aria-pressed={isPressActive}
         className={`inline-flex shrink-0 items-center justify-center rounded-full border transition-all ${
           sizeClasses[size]
         } ${
-          isListening
+          isPressActive
             ? "border-rose-400 bg-rose-500 text-white shadow-lg shadow-rose-500/30 scale-110"
             : "border-slate-200 bg-white/80 text-slate-600 hover:bg-slate-100 hover:border-slate-300"
         } disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
       >
-        {isListening ? (
+        {isPressActive ? (
           <svg
             className="h-5 w-5 animate-pulse"
             fill="currentColor"

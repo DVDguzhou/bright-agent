@@ -32,17 +32,27 @@ export function useSpeechRecognition(options?: {
   continuous?: boolean;
   interimResults?: boolean;
   onResult?: (transcript: string, isFinal: boolean) => void;
+  onSessionEnd?: (transcript: string) => void;
   onError?: (error: string) => void;
 }) {
   const [status, setStatus] = useState<SpeechRecognitionStatus>("idle");
   const [transcript, setTranscript] = useState("");
   const [error, setError] = useState<string | null>(null);
   const recognitionRef = useRef<RecognitionInstance | null>(null);
+  const transcriptRef = useRef("");
+  const finalTranscriptRef = useRef("");
+  const emitSessionEndRef = useRef(true);
 
   const SpeechRecognitionAPI =
     typeof window !== "undefined"
       ? (window.SpeechRecognition || (window as unknown as { webkitSpeechRecognition?: new () => RecognitionInstance }).webkitSpeechRecognition)
       : null;
+  const lang = options?.lang ?? "zh-CN";
+  const continuous = options?.continuous ?? true;
+  const interimResults = options?.interimResults ?? true;
+  const onResult = options?.onResult;
+  const onSessionEnd = options?.onSessionEnd;
+  const onError = options?.onError;
 
   const isSupported = !!SpeechRecognitionAPI;
 
@@ -55,38 +65,43 @@ export function useSpeechRecognition(options?: {
 
     try {
       const recognition = new SpeechRecognitionAPI() as RecognitionInstance;
-      recognition.lang = options?.lang ?? "zh-CN";
-      recognition.continuous = options?.continuous ?? true;
-      recognition.interimResults = options?.interimResults ?? true;
+      recognition.lang = lang;
+      recognition.continuous = continuous;
+      recognition.interimResults = interimResults;
 
       recognition.onstart = () => {
+        emitSessionEndRef.current = true;
+        finalTranscriptRef.current = "";
+        transcriptRef.current = "";
         setStatus("listening");
         setError(null);
         setTranscript("");
       };
 
       recognition.onresult = (event: { resultIndex: number; results: SpeechResultList }) => {
-        let finalTranscript = "";
+        let finalChunk = "";
         let interimTranscript = "";
         for (let i = event.resultIndex; i < event.results.length; i++) {
           const result = event.results[i];
           const text = result[0].transcript;
           if (result.isFinal) {
-            finalTranscript += text;
-            options?.onResult?.(text, true);
+            finalChunk += text;
+            onResult?.(text, true);
           } else {
             interimTranscript += text;
-            options?.onResult?.(text, false);
+            onResult?.(text, false);
           }
         }
-        setTranscript((prev) => {
-          const next = prev + finalTranscript + (interimTranscript || "");
-          return next.trim();
-        });
+        finalTranscriptRef.current = `${finalTranscriptRef.current}${finalChunk}`.trim();
+        transcriptRef.current = `${finalTranscriptRef.current}${interimTranscript}`.trim();
+        setTranscript(transcriptRef.current);
       };
 
       recognition.onend = () => {
         setStatus("idle");
+        if (emitSessionEndRef.current) {
+          onSessionEnd?.(transcriptRef.current.trim());
+        }
       };
 
       recognition.onerror = (event: { error: string }) => {
@@ -98,9 +113,10 @@ export function useSpeechRecognition(options?: {
               : event.error === "network"
                 ? "网络错误，请检查连接"
                 : `语音识别错误: ${event.error}`;
+        emitSessionEndRef.current = false;
         setError(msg);
         setStatus("error");
-        options?.onError?.(msg);
+        onError?.(msg);
       };
 
       recognitionRef.current = recognition;
@@ -110,22 +126,37 @@ export function useSpeechRecognition(options?: {
       setError(msg);
       setStatus("error");
     }
-  }, [SpeechRecognitionAPI, isSupported, options?.lang, options?.continuous, options?.interimResults, options?.onResult, options?.onError]);
+  }, [
+    SpeechRecognitionAPI,
+    isSupported,
+    lang,
+    continuous,
+    interimResults,
+    onResult,
+    onSessionEnd,
+    onError,
+  ]);
 
   const stop = useCallback(() => {
     if (recognitionRef.current) {
       recognitionRef.current.stop();
       recognitionRef.current = null;
-      setStatus("idle");
+      setStatus("processing");
     }
   }, []);
 
   const reset = useCallback(() => {
-    stop();
+    emitSessionEndRef.current = false;
+    if (recognitionRef.current) {
+      recognitionRef.current.abort();
+      recognitionRef.current = null;
+    }
+    finalTranscriptRef.current = "";
+    transcriptRef.current = "";
     setTranscript("");
     setError(null);
     setStatus("idle");
-  }, [stop]);
+  }, []);
 
   useEffect(() => {
     return () => {

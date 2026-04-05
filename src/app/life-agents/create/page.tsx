@@ -243,7 +243,8 @@ export default function CreateLifeAgentPage() {
       const stepClamped = Math.max(1, Math.min(5, Math.floor(Number(draft.step)) || 1));
       const maxField = PROFILE_CHAT_FIELDS.length - 1;
       const idx = Math.max(0, Math.min(maxField, Math.floor(Number(draft.chatFieldIndex)) || 0));
-      setStep(stepClamped);
+      const needsVoiceResample = stepClamped >= 4 && !draft.voiceSkipped;
+      setStep(needsVoiceResample ? 4 : stepClamped);
       setForm({ ...DEFAULT_FORM, ...draft.form });
       setNotSuitableFor(draft.notSuitableFor);
       setKnowledgeEntries(
@@ -264,9 +265,10 @@ export default function CreateLifeAgentPage() {
       setShowAdvanced(draft.showAdvanced);
       setSampleQuestionsList(draft.sampleQuestionsList);
       setSampleQuestionsDraft(draft.sampleQuestionsDraft);
+      setVoiceSampleBase64(null);
       setVoiceSkipped(draft.voiceSkipped);
       setCoverImageUrl(draft.coverImageUrl);
-      setError("");
+      setError(needsVoiceResample ? "已恢复草稿，录音样本不会自动保存，请重新录制一次音色。" : "");
     }
     setDraftReady(true);
   }, [user?.id]);
@@ -469,6 +471,9 @@ export default function CreateLifeAgentPage() {
     setExperienceHistory([]);
     setExperienceInput("");
     setExperienceDone(false);
+    setVoiceSampleBase64(null);
+    setVoiceSkipped(false);
+    setCoverImageUrl("");
     setError("");
     setChatHistory([{ role: "assistant", content: PROFILE_CHAT_FIELDS[0].prompt }]);
   };
@@ -758,7 +763,7 @@ export default function CreateLifeAgentPage() {
       exampleReplies: exampleRepliesArr.slice(0, 3),
       expertiseTags: expertiseTagsArr.slice(0, 8),
       sampleQuestions: sampleQuestionsArr,
-      voiceSampleBase64: voiceSampleBase64 ?? undefined,
+      voiceSampleBase64: !voiceSkipped ? voiceSampleBase64 ?? undefined : undefined,
       knowledgeEntries: validEntries.map((e) => {
         const tags = Array.isArray(e.tags) ? e.tags.filter((t) => t && String(t).trim()) : [];
         return {
@@ -1367,17 +1372,29 @@ export default function CreateLifeAgentPage() {
           <div className="flex-1 overflow-y-auto px-4 py-6 sm:px-6">
             <div className="mx-auto max-w-2xl">
               <VoiceRecordPanel
-                onComplete={async (blob) => {
+                onComplete={(blob) => {
                   const reader = new FileReader();
+                  reader.onerror = () => {
+                    setVoiceSampleBase64(null);
+                    setError("录音读取失败，请重新录制一次");
+                  };
                   reader.onloadend = () => {
-                    const base64 = (reader.result as string).split(",")[1];
-                    setVoiceSampleBase64(base64 ?? null);
+                    const result = typeof reader.result === "string" ? reader.result : "";
+                    const base64 = result.includes(",") ? result.split(",")[1] : "";
+                    if (!base64) {
+                      setVoiceSampleBase64(null);
+                      setError("录音读取失败，请重新录制一次");
+                      return;
+                    }
+                    setVoiceSampleBase64(base64);
+                    setVoiceSkipped(false);
                     setError("");
                     setStep(5);
                   };
                   reader.readAsDataURL(blob);
                 }}
                 onSkip={() => {
+                  setVoiceSampleBase64(null);
                   setVoiceSkipped(true);
                   setError("");
                   setStep(5);
@@ -1385,6 +1402,11 @@ export default function CreateLifeAgentPage() {
                 minDurationSeconds={10}
                 maxDurationSeconds={30}
               />
+              {error ? (
+                <p className="mt-4 rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-600">
+                  {error}
+                </p>
+              ) : null}
             </div>
           </div>
           <div className="shrink-0 border-t border-slate-200/80 bg-white px-4 py-4 pb-24 sm:px-6 lg:pb-6">

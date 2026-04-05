@@ -73,6 +73,12 @@ export function VoiceRecordPanel({
         <p className="text-[15px] leading-7 text-slate-700">{SAMPLE_TEXT}</p>
       </div>
 
+      <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50/80 px-4 py-3 text-sm text-slate-600">
+        <p>建议使用 Chrome 或 Edge，并确保当前页面通过 HTTPS 或 localhost 打开。</p>
+        <p className="mt-1">录音样本不会跟随草稿自动保存；如果刷新或离开页面，回来后需要重新录制。</p>
+        <p className="mt-1">如果创建成功后仍没有生成音色，通常是服务端音色注册失败，可稍后在设置页补录。</p>
+      </div>
+
       <div className="mt-6 flex flex-col items-center gap-4">
         {!hasRecorded ? (
           <>
