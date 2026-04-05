@@ -25,6 +25,7 @@
     "@capacitor/app": "^8.0.1",
     "@capacitor/cli": "^8.0.1",
     "@capacitor/core": "^8.0.1",
+    "@capacitor/geolocation": "^8.2.0",
     "@capacitor/ios": "^8.0.1",
     "@capacitor/keyboard": "^8.0.1",
     "@prisma/client": "^5.22.0",

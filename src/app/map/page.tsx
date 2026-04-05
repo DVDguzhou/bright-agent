@@ -8,6 +8,7 @@ import { createPortal } from "react-dom";
 import type { MapAgentMarker } from "@/components/LifeAgentsMapView";
 import { useAuth } from "@/contexts/AuthContext";
 import { fetchBoundLifeAgents, type BoundLifeAgent } from "@/lib/bound-life-agents";
+import { startMapGeolocationWatch, type MapGeoWatchHandle } from "@/lib/map-geolocation-watch";
 import {
   clearMapGpsPreferences,
   readMapShareEnabled,
@@ -36,25 +37,6 @@ type ApiAgent = {
   regions?: string[];
 };
 
-function formatGeolocationError(err: GeolocationPositionError): string {
-  const secure =
-    typeof window !== "undefined" &&
-    (window.isSecureContext || window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
-  if (!secure) {
-    return "当前不是安全连接（需要 https 或本机 localhost）。请用 https 打开本站后再试定位。";
-  }
-  switch (err.code) {
-    case 1:
-      return "定位权限被拒绝：请在系统设置里允许浏览器/App 使用位置，或在地址栏左侧重新允许定位。";
-    case 2:
-      return "暂时拿不到位置（信号弱或被关闭）。可到户外或打开系统定位后再试。";
-    case 3:
-      return "定位超时。可检查 GPS 是否开启，或稍后再试。";
-    default:
-      return err.message || "无法获取位置，请检查定位权限与网络。";
-  }
-}
-
 export default function MapPage() {
   const { user, loading: authLoading } = useAuth();
   const [agents, setAgents] = useState<MapAgentMarker[]>([]);
@@ -68,7 +50,7 @@ export default function MapPage() {
   const [userLatLng, setUserLatLng] = useState<{ lat: number; lng: number } | null>(null);
   const [geoError, setGeoError] = useState<string | null>(null);
   const [mapLayoutNonce, setMapLayoutNonce] = useState(0);
-  const watchIdRef = useRef<number | null>(null);
+  const geoWatchRef = useRef<MapGeoWatchHandle | null>(null);
   const firstGeoFitRef = useRef(false);
   const [sheetPortalReady, setSheetPortalReady] = useState(false);
 
@@ -142,17 +124,16 @@ export default function MapPage() {
     }
   }, [user, boundAgents]);
 
-  const stopWatch = useCallback(() => {
-    if (watchIdRef.current !== null && typeof navigator !== "undefined" && navigator.geolocation) {
-      navigator.geolocation.clearWatch(watchIdRef.current);
-      watchIdRef.current = null;
-    }
+  const stopWatch = useCallback(async () => {
+    const h = geoWatchRef.current;
+    geoWatchRef.current = null;
+    if (h) await h.stop();
   }, []);
 
   useEffect(() => {
     if (authLoading) return;
     if (!user) {
-      stopWatch();
+      void stopWatch();
       setUserLatLng(null);
       setShareEnabled(false);
       setSelectedProfileId(readMapShareProfileId());
@@ -164,44 +145,55 @@ export default function MapPage() {
 
   useEffect(() => {
     if (!shareEnabled || !selectedProfileId || !user) {
-      stopWatch();
+      void stopWatch();
       setUserLatLng(null);
       firstGeoFitRef.current = false;
       return;
     }
-    if (typeof navigator === "undefined" || !navigator.geolocation) {
-      setGeoError("当前环境不支持定位 API（例如部分内置浏览器）。");
-      setShareEnabled(false);
-      writeMapShareEnabled(false);
-      return;
-    }
 
-    setGeoError(null);
-    firstGeoFitRef.current = false;
-    const id = navigator.geolocation.watchPosition(
-      (pos) => {
-        const lat = pos.coords.latitude;
-        const lng = pos.coords.longitude;
-        setUserLatLng({ lat, lng });
+    let cancelled = false;
+
+    void (async () => {
+      try {
+        await stopWatch();
+        if (cancelled) return;
         setGeoError(null);
-        if (!firstGeoFitRef.current) {
-          firstGeoFitRef.current = true;
-          setMapLayoutNonce((n) => n + 1);
+        firstGeoFitRef.current = false;
+        const handle = await startMapGeolocationWatch({
+          onSuccess: (c) => {
+            if (cancelled) return;
+            setUserLatLng(c);
+            setGeoError(null);
+            if (!firstGeoFitRef.current) {
+              firstGeoFitRef.current = true;
+              setMapLayoutNonce((n) => n + 1);
+            }
+          },
+          onError: (msg) => {
+            if (cancelled) return;
+            setGeoError(msg);
+            setShareEnabled(false);
+            writeMapShareEnabled(false);
+            void stopWatch();
+            setUserLatLng(null);
+          },
+        });
+        if (cancelled) {
+          await handle.stop();
+          return;
         }
-      },
-      (geoErr) => {
-        setGeoError(formatGeolocationError(geoErr));
+        geoWatchRef.current = handle;
+      } catch (e) {
+        if (cancelled) return;
+        setGeoError(e instanceof Error ? e.message : "定位启动失败");
         setShareEnabled(false);
         writeMapShareEnabled(false);
-        stopWatch();
-        setUserLatLng(null);
-      },
-      { enableHighAccuracy: true, maximumAge: 20000, timeout: 25000 }
-    );
-    watchIdRef.current = id;
+      }
+    })();
+
     return () => {
-      navigator.geolocation.clearWatch(id);
-      watchIdRef.current = null;
+      cancelled = true;
+      void stopWatch();
     };
   }, [shareEnabled, selectedProfileId, user, stopWatch]);
 
@@ -220,6 +212,18 @@ export default function MapPage() {
         (a.headline && a.headline.toLowerCase().includes(q))
     );
   }, [agents, search]);
+
+  const isLikelyWeChat = useMemo(() => {
+    if (typeof navigator === "undefined") return false;
+    return /MicroMessenger/i.test(navigator.userAgent);
+  }, []);
+
+  const [isNativeApp, setIsNativeApp] = useState(false);
+  useEffect(() => {
+    void import("@capacitor/core").then(({ Capacitor }) => {
+      setIsNativeApp(Capacitor.isNativePlatform());
+    });
+  }, []);
 
   const openSheet = useCallback(() => setSheetOpen(true), []);
   const closeSheet = useCallback(() => setSheetOpen(false), []);
@@ -241,7 +245,7 @@ export default function MapPage() {
   };
 
   const disableSharing = () => {
-    stopWatch();
+    void stopWatch();
     setShareEnabled(false);
     writeMapShareEnabled(false);
     setUserLatLng(null);
@@ -250,7 +254,7 @@ export default function MapPage() {
   };
 
   const clearBinding = () => {
-    stopWatch();
+    void stopWatch();
     clearMapGpsPreferences();
     setSelectedProfileId(null);
     setShareEnabled(false);
@@ -462,6 +466,25 @@ export default function MapPage() {
                           <p className="text-center text-xs leading-relaxed text-slate-500">
                             选 Agent 会马上保存并高亮地图。<strong className="font-semibold text-slate-600">「开启定位」</strong>
                             只负责显示你的蓝点，失败也不影响已选 Agent；可随时点「完成」关闭。
+                          </p>
+                          <p className="text-center text-[11px] leading-snug text-slate-500">
+                            {isNativeApp ? (
+                              <>
+                                <span className="font-semibold text-slate-600">BrightAgent App：</span>
+                                定位走系统接口，首次会弹出授权。若一直失败，请到系统设置里为 BrightAgent 打开「位置」；若你刚更新了安装包仍不行，请确认已用最新版 App。
+                              </>
+                            ) : (
+                              <>
+                                <span className="font-semibold text-slate-600">手机浏览器：</span>
+                                尽量用 Safari / Chrome，并确认是 <strong className="text-slate-700">https</strong>
+                                ；系统「定位服务」总开关需开启。
+                                {isLikelyWeChat ? (
+                                  <span className="mt-1 block text-amber-800">
+                                    当前疑似在微信内：微信常限制网页定位，请点右上角「⋯」→「在浏览器中打开」。
+                                  </span>
+                                ) : null}
+                              </>
+                            )}
                           </p>
                           {geoError ? (
                             <div className="space-y-2 rounded-xl border border-amber-200 bg-amber-50/90 px-3 py-3 text-sm">

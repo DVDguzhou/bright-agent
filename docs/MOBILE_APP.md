@@ -178,11 +178,11 @@ npm run mobile:ios
 
 ### Q: 地图页在 App 里无法使用 GPS？
 
-- Web 端地图使用浏览器 `navigator.geolocation`；在 Capacitor WebView 中通常可用，但若系统未授权或行为不一致，可改为使用官方插件：
-  1. 安装：`npm i @capacitor/geolocation`，执行 `npx cap sync`。
-  2. **Android**：在 `AndroidManifest.xml` 中声明 `ACCESS_FINE_LOCATION`（及按需的 `ACCESS_COARSE_LOCATION`），并在运行时请求权限。
-  3. **iOS**：在 `Info.plist` 增加 `NSLocationWhenInUseUsageDescription`（说明为何需要定位）。
-- 若仍加载远程 `MOBILE_APP_URL`，需保证站点为 **HTTPS**（或 iOS ATS 已放行），否则浏览器定位可能受限。
+- 项目已集成 **`@capacitor/geolocation`**：在 **原生 App 壳**内会走系统定位与权限弹窗，不再仅依赖 WebView 的 `navigator.geolocation`。
+- 修改依赖或权限后请执行 **`npm run mobile:sync`**，再用 Android Studio / Xcode **重新编译安装**到手机。
+- **Android**：`AndroidManifest.xml` 已声明 `ACCESS_COARSE_LOCATION` / `ACCESS_FINE_LOCATION`；首次使用地图「开启定位」时由插件请求运行时权限。
+- **iOS**：`Info.plist` 已配置 `NSLocationWhenInUseUsageDescription`；若仍无弹窗，检查 Xcode **Signing & Capabilities** 与系统设置里本 App 的定位开关。
+- 若 App 使用远程 `MOBILE_APP_URL` 加载网页，地图页脚本仍会调用原生插件；与网页是否 https 无冲突（但建议生产环境仍用 https）。
 
 ---
 
