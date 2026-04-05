@@ -13,6 +13,7 @@
 | [DEVELOPER_GUIDE.md](./DEVELOPER_GUIDE.md) | 开发者对接指南 |
 | [LIFE_AGENT_PERSONA_MEMORY_FLOW.md](./LIFE_AGENT_PERSONA_MEMORY_FLOW.md) | Life Agent 人格、事实、记忆、回答与反馈全流程说明 |
 | [LIFE_AGENT_TOPIC_IMPLEMENTATION.md](./LIFE_AGENT_TOPIC_IMPLEMENTATION.md) | Life Agent Topic 层后端数据结构、表设计与检索实现方案 |
+| [LIFE_AGENT_KOBE_KNOWLEDGE_EXTENDED.md](./LIFE_AGENT_KOBE_KNOWLEDGE_EXTENDED.md) | 科比·布莱恩特 Life Agent 扩展知识（时间线 + 可溯源思想斗争，供拆 knowledgeEntries） |
 | [MVP_SPEC.md](./MVP_SPEC.md) | AI Agent Marketplace MVP 技术规格 |
 | [SCENARIO_VIDEO_PIPELINE.md](./SCENARIO_VIDEO_PIPELINE.md) | 视频流水线场景 |
 | [start-db.md](./start-db.md) | 数据库启动说明 |
