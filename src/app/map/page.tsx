@@ -212,7 +212,7 @@ export default function MapPage() {
 
   const enableSharing = () => {
     if (!selectedProfileId) {
-      setGeoError("请先选择一个已绑定的 Agent");
+      setGeoError("请先选择一个你自己创建的 Agent");
       return;
     }
     setGeoError(null);
@@ -351,7 +351,8 @@ export default function MapPage() {
                         位置与绑定 Agent
                       </h2>
                       <p className="mt-2 text-sm leading-relaxed text-slate-500">
-                        仅在本页将你的大致位置显示在地图上，并高亮你选中的一个已绑定 Agent。同一时间只能绑定一个；不会把坐标上传到服务器。
+                        只能绑定<strong className="font-semibold text-slate-700">你自己创建</strong>
+                        的人生 Agent，不能选别人的。仅在本页显示大致位置并高亮该 Agent；同一时间只能选一个；坐标不会上传服务器。
                       </p>
                     </div>
 
@@ -359,7 +360,8 @@ export default function MapPage() {
                       {!user ? (
                         <div className="space-y-4">
                           <p className="text-sm text-slate-600">
-                            登录后可从「已购买或聊过」的 Agent 里选择并开启定位。未登录时仍会本机记住你上次选中的 Agent，用于地图高亮。
+                            登录后可从<strong className="font-semibold text-slate-800">你自己创建的</strong>
+                            人生 Agent 里选择并开启定位。未登录时仍会本机记住上次选中项，用于地图高亮（须是地图上仍展示的 Agent）。
                           </p>
                           {selectedProfileId ? (
                             <div className="rounded-2xl border border-sky-100 bg-sky-50/70 px-3 py-3 text-sm text-slate-700">
@@ -390,14 +392,14 @@ export default function MapPage() {
                       ) : boundAgents.length === 0 ? (
                         <div className="space-y-4">
                           <p className="text-sm text-slate-600">
-                            暂无已绑定的 Agent。购买提问包或与某位 Agent 对话后即可在此选择。
+                            你还没有自己创建的人生 Agent。创建后即可在此绑定地图高亮与定位。
                           </p>
                           <Link
-                            href="/life-agents"
+                            href="/life-agents/create"
                             className="flex w-full items-center justify-center rounded-2xl bg-slate-100 py-3.5 text-sm font-semibold text-slate-800 active:bg-slate-200"
                             onClick={closeSheet}
                           >
-                            去发现
+                            去创建
                           </Link>
                         </div>
                       ) : (
