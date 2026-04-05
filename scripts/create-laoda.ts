@@ -10,6 +10,7 @@
  *   LAODA_OWNER_EMAIL     牢大归属卖家邮箱，默认 tmxiand@gmail.com
  *   LAODA_OWNER_PASSWORD  该账号初始密码（仅新建用户时写入），默认 password123（与 db:seed 一致）
  */
+import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
