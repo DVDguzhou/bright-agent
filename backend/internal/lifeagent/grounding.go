@@ -75,7 +75,7 @@ func ResolveGroundedFactReply(profile ProfileForAI, facts []StructuredFactForAI,
 		return "", nil, false
 	}
 	if intent.HighRisk {
-		return "这种高风险具体信息我不会乱说，除非资料里有明确记录。", nil, true
+		return "这种具体到门牌号真名啥的我不接招啊，咱聊点别的。", nil, true
 	}
 	matched := factsForKey(intent.Key, facts)
 	if len(matched) == 0 && intent.Key == "city" {
@@ -85,7 +85,7 @@ func ResolveGroundedFactReply(profile ProfileForAI, facts []StructuredFactForAI,
 		if intent.Key == "display_name" && profile.DisplayName != "" {
 			return "我是" + profile.DisplayName + "。", []map[string]string{{"sourceType": "profile", "factKey": "display_name", "title": "名字", "excerpt": profile.DisplayName}}, true
 		}
-		return "这个问题我现在没有足够依据，不想凭空编一个答案。", nil, true
+		return "这题我一时答不上来，脑子有点糊，你换种问法或者先说你想干啥。", nil, true
 	}
 	reply := buildFactReply(intent.Key, matched)
 	refs := make([]map[string]string, 0, len(matched))
@@ -108,7 +108,7 @@ func ApplyClaimGuard(message, content string, facts []StructuredFactForAI, plan 
 		return content
 	}
 	if plan.Confidence == "low" && looksLikeFactualQuestion(message) {
-		return "这件事我没有足够依据，先不把话说死。你要是愿意多给一点背景，我再继续往下判断。"
+		return "哎哟你这问得我有点接不住，就先聊到这儿吧，你心里大概有数就行。"
 	}
 	if intent, ok := detectFactIntent(message); ok {
 		matched := factsForKey(intent.Key, facts)
@@ -321,21 +321,21 @@ func buildFactReply(key string, facts []StructuredFactForAI) string {
 		values = append(values, value)
 	}
 	if len(values) == 0 {
-		return "这个我现在没有足够依据，不想乱说。"
+		return "这个我记混了，不敢瞎扯，咱跳过这茬吧。"
 	}
 	switch key {
 	case "display_name":
 		return "我是" + values[0] + "。"
 	case "school":
-		return "我这边有明确记录的是" + values[0] + "。"
+		return "学校那块写的是" + values[0] + "。"
 	case "education":
 		return "我的学历是" + values[0] + "。"
 	case "job":
 		return "我现在主要做" + values[0] + "。"
 	case "income":
-		return "资料里写的是" + values[0] + "。"
+		return "数字大概是" + values[0] + "吧。"
 	case "city":
-		return "我这边能确认的是" + values[0] + "。"
+		return "地方算是" + values[0] + "那边。"
 	case "event_name":
 		return "我能确认的有：" + strings.Join(values, "、") + "。"
 	default:

@@ -47,7 +47,7 @@ func BuildReply(profile ProfileForAI, facts []StructuredFactForAI, topics []Topi
 	// 没有任何匹配的知识条目：低风险问题先尝试带保留地推测，高风险具体事实才拒答
 	if len(topTopics) == 0 && len(topEntries) == 0 && len(plan.Facts) == 0 {
 		if isHighRiskFactQuestion(message) {
-			content = "这个我不敢瞎猜，得有更明确的依据才行。你要是愿意多给我一点背景，我可以帮你一起推一推。"
+			content = "这事儿我不敢瞎蒙，你多给点线索咱再唠。"
 			return content, nil
 		}
 		content = buildSpeculativeReply(profile, message)
@@ -103,7 +103,7 @@ func BuildReply(profile ProfileForAI, facts []StructuredFactForAI, topics []Topi
 	}
 
 	if len(parts) == 0 {
-		content = "这个问题我暂时答不上来，我的知识库里还没有这方面的内容。"
+		content = "啧，这茬我接不太住，咱换个你能用得上的聊？"
 		return content, nil
 	}
 
