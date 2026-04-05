@@ -61,5 +61,5 @@ export async function fetchBoundLifeAgents(signal?: AbortSignal): Promise<BoundL
     }
   }
 
-  return [...byId.values()];
+  return Array.from(byId.values());
 }
