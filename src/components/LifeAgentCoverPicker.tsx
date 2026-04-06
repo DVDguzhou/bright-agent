@@ -1,8 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import { useRef, useState } from "react";
-import { DEFAULT_COVER_URL } from "@/lib/life-agent-covers";
+import { DEFAULT_COVER_INLINE_SRC } from "@/lib/life-agent-covers";
 
 type Props = {
   coverImageUrl: string;
@@ -16,7 +15,7 @@ export function LifeAgentCoverPicker({ coverImageUrl, onChange, disabled }: Prop
   const [uploadErr, setUploadErr] = useState("");
 
   const showCustom = Boolean(coverImageUrl.trim());
-  const previewSrc = showCustom ? coverImageUrl : DEFAULT_COVER_URL;
+  const previewSrc = showCustom ? coverImageUrl : DEFAULT_COVER_INLINE_SRC;
 
   const onPickFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -59,7 +58,7 @@ export function LifeAgentCoverPicker({ coverImageUrl, onChange, disabled }: Prop
       <p className="text-xs text-slate-500">默认使用统一封面，也可上传自己的图片。</p>
 
       <div className="relative mx-auto aspect-[4/5] w-full max-w-[200px] overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
-        <Image src={previewSrc} alt="封面预览" fill className="object-cover" sizes="200px" unoptimized />
+        <img src={previewSrc} alt="封面预览" className="absolute inset-0 h-full w-full object-cover" />
       </div>
 
       <div className="flex flex-wrap items-center gap-3">

@@ -7,7 +7,7 @@ import {
   type ReactEventHandler,
   type SyntheticEvent,
 } from "react";
-import { DEFAULT_COVER_URL } from "@/lib/life-agent-covers";
+import { DEFAULT_COVER_INLINE_SRC, normalizeLifeAgentCoverImgSrc } from "@/lib/life-agent-covers";
 
 export type LifeAgentCoverImageProps = Omit<ImgHTMLAttributes<HTMLImageElement>, "src" | "onError"> & {
   src: string;
@@ -20,8 +20,7 @@ export type LifeAgentCoverImageProps = Omit<ImgHTMLAttributes<HTMLImageElement>,
 };
 
 /**
- * 人生 Agent 封面：用原生 img，避免 next/image 对 SVG / 动态本地路径不加载导致裂图；
- * 加载失败时回退 DEFAULT_COVER_URL。
+ * 人生 Agent 封面：原生 img；默认封面走 data URL，不依赖 public 静态路径；其它 URL 失败时回退内联默认图。
  */
 export function LifeAgentCoverImage({
   src,
@@ -34,9 +33,9 @@ export function LifeAgentCoverImage({
   alt = "",
   ...rest
 }: LifeAgentCoverImageProps) {
-  const [resolved, setResolved] = useState(src);
+  const [resolved, setResolved] = useState(() => normalizeLifeAgentCoverImgSrc(src));
   useEffect(() => {
-    setResolved(src);
+    setResolved(normalizeLifeAgentCoverImgSrc(src));
   }, [src]);
 
   const cls = [fill ? "absolute inset-0 h-full w-full" : "", className].filter(Boolean).join(" ") || undefined;
@@ -52,8 +51,8 @@ export function LifeAgentCoverImage({
       {...(priority ? ({ fetchPriority: "high" } as ImgHTMLAttributes<HTMLImageElement>) : {})}
       onError={(e: SyntheticEvent<HTMLImageElement>) => {
         onError?.(e);
-        if (resolved !== DEFAULT_COVER_URL) {
-          setResolved(DEFAULT_COVER_URL);
+        if (resolved !== DEFAULT_COVER_INLINE_SRC) {
+          setResolved(DEFAULT_COVER_INLINE_SRC);
         }
       }}
     />
