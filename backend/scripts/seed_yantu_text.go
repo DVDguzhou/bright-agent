@@ -33,5 +33,5 @@ func main() {
 			log.Printf("fail %s: %v", p.DisplayName, err)
 		}
 	}
-	fmt.Println("seed_yantu_text done（研途榜样3人 + 浙大数院飞跃手册2021节选15人）")
+	fmt.Println("seed_yantu_text done（研途榜样3人 + 浙大飞跃手册2021节选21人，含境外升学6人）")
 }
