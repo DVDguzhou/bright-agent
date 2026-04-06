@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Image from "next/image";
+import { LifeAgentCoverImage } from "@/components/LifeAgentCoverImage";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { RatingStars } from "@/components/RatingStars";
-import { lifeAgentCoverShouldBypassOptimizer, resolveLifeAgentCoverUrl } from "@/lib/life-agent-covers";
+import { resolveLifeAgentCoverUrl } from "@/lib/life-agent-covers";
 import {
   extractTopKeywords,
   fetchManageData,
@@ -87,13 +87,12 @@ function FeedbackHeader({
         </div>
         <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full ring-1 ring-black/[0.06]">
           {coverSrc ? (
-            <Image
+            <LifeAgentCoverImage
               src={coverSrc}
               alt=""
               fill
               className="object-cover"
               sizes="40px"
-              unoptimized={lifeAgentCoverShouldBypassOptimizer(coverSrc)}
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center bg-slate-100 text-xs font-semibold text-slate-400">A</div>

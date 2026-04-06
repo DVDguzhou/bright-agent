@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import Image from "next/image";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import { RatingStars } from "@/components/RatingStars";
 import { VerificationBadge } from "@/components/VerificationBadge";
-import { lifeAgentCoverShouldBypassOptimizer, resolveLifeAgentCoverUrl } from "@/lib/life-agent-covers";
+import { LifeAgentCoverImage } from "@/components/LifeAgentCoverImage";
+import { resolveLifeAgentCoverUrl } from "@/lib/life-agent-covers";
 import type { LifeAgentListItem } from "@/lib/life-agent-feed-search";
 import { useWindowedSlice } from "@/lib/use-windowed-slice";
 
@@ -83,7 +83,7 @@ function LifeAgentDiscoverCard({
                 {profile.published ? "已发布" : "未发布"}
               </div>
             )}
-            <Image
+            <LifeAgentCoverImage
               src={coverUrl}
               alt=""
               fill
@@ -91,7 +91,6 @@ function LifeAgentDiscoverCard({
               sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 220px"
               priority={globalIndex < 6}
               loading={globalIndex < 6 ? undefined : "lazy"}
-              unoptimized={lifeAgentCoverShouldBypassOptimizer(coverUrl)}
             />
             {(profile.verificationStatus === "verified" || profile.verificationStatus === "pending") && (
               <div className="absolute right-2 top-2 rounded-full bg-white/90 px-1.5 py-0.5 shadow-sm backdrop-blur-sm">

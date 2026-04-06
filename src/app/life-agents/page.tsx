@@ -6,8 +6,8 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { VerificationBadge } from "@/components/VerificationBadge";
-import Image from "next/image";
-import { lifeAgentCoverShouldBypassOptimizer, resolveLifeAgentCoverUrl } from "@/lib/life-agent-covers";
+import { LifeAgentCoverImage } from "@/components/LifeAgentCoverImage";
+import { resolveLifeAgentCoverUrl } from "@/lib/life-agent-covers";
 import { getFavoriteAgentIds } from "@/lib/life-agent-favorites";
 import { LifeAgentDiscoverCardGrid } from "@/components/LifeAgentDiscoverCardGrid";
 import { rankLifeAgentsBySearchQuery, type LifeAgentListItem } from "@/lib/life-agent-feed-search";
@@ -339,7 +339,7 @@ function PurchasedAgentsWindowedGrid({ rows }: { rows: PurchasedAgentRow[] }) {
               <Link href={`/life-agents/${row.id}/chat`} className="group flex h-full min-h-0">
                 <div className="flex h-full min-h-[280px] w-full flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/70 transition duration-200 group-hover:shadow-md group-hover:ring-emerald-200/70 sm:min-h-[300px]">
                   <div className="relative aspect-[4/5] w-full shrink-0 overflow-hidden bg-slate-100">
-                    <Image
+                    <LifeAgentCoverImage
                       src={coverUrl}
                       alt=""
                       fill
@@ -347,7 +347,6 @@ function PurchasedAgentsWindowedGrid({ rows }: { rows: PurchasedAgentRow[] }) {
                       sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 220px"
                       priority={index < 6}
                       loading={index < 6 ? undefined : "lazy"}
-                      unoptimized={lifeAgentCoverShouldBypassOptimizer(coverUrl)}
                     />
                     {(row.verificationStatus === "verified" || row.verificationStatus === "pending") && (
                       <div className="absolute right-2 top-2 rounded-full bg-white/90 px-1.5 py-0.5 shadow-sm backdrop-blur-sm">

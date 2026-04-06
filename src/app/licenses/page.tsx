@@ -1,13 +1,13 @@
 "use client";
 
 import { Suspense, useEffect, useMemo, useState } from "react";
-import Image from "next/image";
+import { LifeAgentCoverImage } from "@/components/LifeAgentCoverImage";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { VerificationBadge } from "@/components/VerificationBadge";
 import { useAuth } from "@/contexts/AuthContext";
-import { lifeAgentCoverShouldBypassOptimizer, resolveLifeAgentCoverUrl } from "@/lib/life-agent-covers";
+import { resolveLifeAgentCoverUrl } from "@/lib/life-agent-covers";
 
 type LifeAgentPurchased = {
   id: string;
@@ -41,14 +41,13 @@ function PurchasedGrid({ items }: { items: LifeAgentPurchased[] }) {
             <Link href={`/life-agents/${row.id}/chat`} className="group flex h-full min-h-0">
               <div className="flex h-full min-h-[280px] w-full flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/70 transition duration-200 group-hover:shadow-md group-hover:ring-emerald-200/70 sm:min-h-[300px]">
                 <div className="relative aspect-[4/5] w-full shrink-0 overflow-hidden bg-slate-100">
-                  <Image
+                  <LifeAgentCoverImage
                     src={coverUrl}
                     alt=""
                     fill
                     className="object-cover"
                     sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 220px"
                     priority={index < 8}
-                    unoptimized={lifeAgentCoverShouldBypassOptimizer(coverUrl)}
                   />
                   {(row.verificationStatus === "verified" || row.verificationStatus === "pending") && (
                     <div className="absolute right-2 top-2 rounded-full bg-white/90 px-1.5 py-0.5 shadow-sm backdrop-blur-sm">

@@ -3,12 +3,12 @@
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
+import { LifeAgentCoverImage } from "@/components/LifeAgentCoverImage";
 import { AnimatePresence, motion } from "framer-motion";
 import { VoiceMessageBubble, VoiceReplyToggle } from "@/components/voice";
 import { LifeAgentMessageComposer } from "@/components/LifeAgentMessageComposer";
 import { useAuth } from "@/contexts/AuthContext";
-import { lifeAgentCoverShouldBypassOptimizer, resolveLifeAgentCoverUrl } from "@/lib/life-agent-covers";
+import { resolveLifeAgentCoverUrl } from "@/lib/life-agent-covers";
 
 type Profile = {
   id: string;
@@ -766,13 +766,12 @@ export default function LifeAgentChatPage() {
           <div className="flex min-w-0 flex-1 items-center justify-center gap-2.5 px-1">
             <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full bg-slate-100 ring-1 ring-black/5">
               {agentCoverUrl ? (
-                <Image
+                <LifeAgentCoverImage
                   src={agentCoverUrl}
                   alt=""
                   fill
                   className="object-cover"
                   sizes="36px"
-                  unoptimized={lifeAgentCoverShouldBypassOptimizer(agentCoverUrl)}
                 />
               ) : (
                 <span className="flex h-full w-full items-center justify-center text-xs font-bold text-slate-500">
@@ -819,13 +818,12 @@ export default function LifeAgentChatPage() {
                     {message.role === "assistant" ? (
                       <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full bg-slate-100 ring-1 ring-black/5">
                         {agentCoverUrl ? (
-                          <Image
+                          <LifeAgentCoverImage
                             src={agentCoverUrl}
                             alt=""
                             fill
                             className="object-cover"
                             sizes="32px"
-                            unoptimized={lifeAgentCoverShouldBypassOptimizer(agentCoverUrl)}
                           />
                         ) : (
                           <span className="flex h-full w-full items-center justify-center text-[10px] font-bold text-slate-500">

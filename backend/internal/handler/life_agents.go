@@ -43,7 +43,7 @@ func coalesceVerificationStatus(v string) string {
 	}
 }
 
-// 与前端 public/life-agent-cover-presets/*.png 一致
+// 用户/接口可保存的预设键（产品侧枚举）；与是否已部署静态 PNG 无关。
 var allowedLifeAgentCoverPresets = map[string]struct{}{
 	"01-student-panda":  {},
 	"02-robot-pro":      {},
@@ -53,6 +53,12 @@ var allowedLifeAgentCoverPresets = map[string]struct{}{
 	"06-wellness-cloud": {},
 	"07-city-bear":      {},
 	"08-service-dog":    {},
+}
+
+// 仓库里确有 public/life-agent-cover-presets/{key}.png 时才加入；与前端 SHIPPED_LIFE_AGENT_PRESET_PNG_KEYS 同步。
+// lifeAgentCoverURL 只对本 map 中的键返回 .png，否则一律默认 SVG，避免长期 404 裂图。
+var lifeAgentShippedCoverPresetPNGs = map[string]struct{}{
+	// 例如部署了 03-scholar-owl.png 后追加: "03-scholar-owl": {},
 }
 
 func validateLifeAgentCoverImageURL(u string) bool {
@@ -74,8 +80,13 @@ func lifeAgentCoverURL(p *models.LifeAgentProfile) string {
 	if p.CoverImageURL != nil && strings.TrimSpace(*p.CoverImageURL) != "" {
 		return strings.TrimSpace(*p.CoverImageURL)
 	}
-	if p.CoverPresetKey != nil && strings.TrimSpace(*p.CoverPresetKey) != "" {
-		return "/life-agent-cover-presets/" + strings.TrimSpace(*p.CoverPresetKey) + ".png"
+	if p.CoverPresetKey != nil {
+		k := strings.TrimSpace(*p.CoverPresetKey)
+		if k != "" {
+			if _, ok := lifeAgentShippedCoverPresetPNGs[k]; ok {
+				return "/life-agent-cover-presets/" + k + ".png"
+			}
+		}
 	}
 	return lifeAgentDefaultCoverURL
 }

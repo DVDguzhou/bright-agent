@@ -94,7 +94,7 @@ func UpsertProfile(userID, coverPreset string, p Profile) error {
 			"long_bio":         longBio,
 			"school":           strOrNil(p.School),
 			"published":        true,
-			"cover_preset_key": coverPreset,
+			"cover_preset_key": strOrNil(coverPreset),
 			"expertise_tags":   expertiseTagsFor(p),
 			"sample_questions": sampleQuestionsFor(p),
 		}
@@ -117,7 +117,7 @@ func UpsertProfile(userID, coverPreset string, p Profile) error {
 			SampleQuestions:  sampleQuestionsFor(p),
 			School:           strOrNil(p.School),
 			Education:        strPtr("硕士研究生（已录取或就读）"),
-			CoverPresetKey:   strPtr(coverPreset),
+			CoverPresetKey:   strOrNil(coverPreset),
 			Published:        true,
 		}
 		if err := db.DB.Create(&profile).Error; err != nil {

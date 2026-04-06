@@ -1,10 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { lifeAgentCoverShouldBypassOptimizer, resolveLifeAgentCoverUrl } from "@/lib/life-agent-covers";
+import { LifeAgentCoverImage } from "@/components/LifeAgentCoverImage";
+import { resolveLifeAgentCoverUrl } from "@/lib/life-agent-covers";
 import {
   buildOptimizationSuggestions,
   computeCompletion,
@@ -173,13 +173,12 @@ export default function LifeAgentManageHomePage() {
           <div className="mt-3 flex items-start justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
               <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl ring-1 ring-black/5">
-                <Image
+                <LifeAgentCoverImage
                   src={coverSrc}
                   alt=""
                   fill
                   className="object-cover"
                   sizes="64px"
-                  unoptimized={lifeAgentCoverShouldBypassOptimizer(coverSrc)}
                 />
               </div>
               <div className="min-w-0">

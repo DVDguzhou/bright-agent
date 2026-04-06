@@ -4,10 +4,10 @@ import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
 import { RatingStars } from "@/components/RatingStars";
 import { VerificationBadge } from "@/components/VerificationBadge";
-import { lifeAgentCoverShouldBypassOptimizer, resolveLifeAgentCoverUrl } from "@/lib/life-agent-covers";
+import { LifeAgentCoverImage } from "@/components/LifeAgentCoverImage";
+import { resolveLifeAgentCoverUrl } from "@/lib/life-agent-covers";
 import { isFavoriteAgentId, toggleFavoriteAgentId } from "@/lib/life-agent-favorites";
 
 type DetailData = {
@@ -223,14 +223,13 @@ export default function LifeAgentDetailPage() {
       <div className="relative -mx-4 -mt-4 sm:-mx-6 sm:-mt-6 lg:-mx-8">
         <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-100 sm:aspect-[2/1] sm:max-h-[420px]">
           {heroCoverUrl && (
-            <Image
+            <LifeAgentCoverImage
               src={heroCoverUrl}
               alt=""
               fill
               className="object-cover object-center"
               sizes="100vw"
               priority
-              unoptimized={lifeAgentCoverShouldBypassOptimizer(heroCoverUrl)}
             />
           )}
           <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/20" />
@@ -445,13 +444,12 @@ export default function LifeAgentDetailPage() {
                 <div className="flex gap-3 pr-10">
                   <div className="relative h-[4.5rem] w-[4.5rem] shrink-0 overflow-hidden rounded-lg bg-slate-100 ring-1 ring-black/5">
                     {heroCoverUrl ? (
-                      <Image
+                      <LifeAgentCoverImage
                         src={heroCoverUrl}
                         alt=""
                         fill
                         className="object-cover"
                         sizes="72px"
-                        unoptimized={lifeAgentCoverShouldBypassOptimizer(heroCoverUrl)}
                       />
                     ) : null}
                   </div>

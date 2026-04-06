@@ -51,7 +51,8 @@ func main() {
 	}
 
 	user := yantuseed.EnsureImportUser()
-	cover := "03-scholar-owl"
+	// 不写 preset 或与 seed 相同策略；展示 URL 由 lifeAgentShippedCoverPresetPNGs 控制
+	cover := ""
 
 	for _, p := range paths {
 		if err := importOneHTML(p, user.ID, cover); err != nil {
@@ -131,7 +132,7 @@ func importOneHTML(path, userID, coverPreset string) error {
 			"long_bio":         longBio,
 			"school":           strOrNil(parsed.School),
 			"published":        true,
-			"cover_preset_key": coverPreset,
+			"cover_preset_key": strOrNil(coverPreset),
 		}
 		if err := db.DB.Model(&profile).Updates(updates).Error; err != nil {
 			return err
@@ -156,7 +157,7 @@ func importOneHTML(path, userID, coverPreset string) error {
 			},
 			School:         strOrNil(parsed.School),
 			Education:      strPtr("硕士研究生（已录取或就读）"),
-			CoverPresetKey: strPtr(coverPreset),
+			CoverPresetKey: strOrNil(coverPreset),
 			Published:      true,
 		}
 		if err := db.DB.Create(&profile).Error; err != nil {
