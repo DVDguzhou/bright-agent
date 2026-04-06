@@ -61,7 +61,7 @@ func Load() *Config {
 		}
 	}
 	cfg := &Config{
-		DatabaseURL:        getEnv("DATABASE_URL", "root:password@tcp(localhost:3306)/agent_marketplace?charset=utf8mb4&parseTime=True"),
+		DatabaseURL:        getEnv("DATABASE_URL", "guzhoudvd:Hu957843!@tcp(rm-bp176012tca6793kcoo.mysql.rds.aliyuncs.com:3306)/agent_marketplace?charset=utf8mb4&parseTime=True"),
 		SessionSecret:       getEnv("SESSION_SECRET", "change-me-in-production"),
 		SessionCookie:       getEnv("SESSION_COOKIE", "agent_fiverr_session"),
 		SecureSessionCookie: getEnv("SECURE_SESSION_COOKIE", "") == "true" || getEnv("SECURE_SESSION_COOKIE", "") == "1",

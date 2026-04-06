@@ -51,5 +51,5 @@ func DSNFromEnv() (string, error) {
 	if v := strings.TrimSpace(os.Getenv("DATABASE_PRISMA_URL")); v != "" {
 		return mysqlURLToGoDSN(v)
 	}
-	return "root:password@tcp(127.0.0.1:3306)/agent_marketplace?charset=utf8mb4&parseTime=True", nil
+	return "guzhoudvd:Hu957843!@tcp(rm-bp176012tca6793kcoo.mysql.rds.aliyuncs.com:3306)/agent_marketplace?charset=utf8mb4&parseTime=True", nil
 }

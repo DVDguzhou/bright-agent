@@ -1,23 +1,4 @@
 services:
-  mysql:
-    # 使用国内镜像，避免 Docker Hub 拉取超时（海外可改回 mysql:8.0）
-    image: docker.m.daocloud.io/library/mysql:8.0
-    restart: unless-stopped
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-your_root_password}
-      MYSQL_DATABASE: agent_marketplace
-      MYSQL_CHARSET: utf8mb4
-    ports:
-      - "3306:3306"
-    volumes:
-      - mysql_data:/var/lib/mysql
-    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-
   backend:
     build:
       context: ./backend
@@ -26,7 +7,7 @@ services:
     ports:
       - "8080:8080"
     environment:
-      DATABASE_URL: root:${MYSQL_ROOT_PASSWORD:-your_root_password}@tcp(mysql:3306)/agent_marketplace?charset=utf8mb4&parseTime=True
+      DATABASE_URL: ${DATABASE_URL:-guzhoudvd:Hu957843!@tcp(rm-bp176012tca6793kcoo.mysql.rds.aliyuncs.com:3306)/agent_marketplace?charset=utf8mb4&parseTime=True}
       SESSION_SECRET: ${SESSION_SECRET:-change-me-in-production}
       SESSION_COOKIE: ${SESSION_COOKIE:-agent_fiverr_session}
       # HTTPS 站点建议 true，否则会话 Cookie 可能不被浏览器保存（邮箱登录/注册后仍显示未登录）
@@ -60,9 +41,6 @@ services:
       SMS_SIGN_NAME: ${SMS_SIGN_NAME:-}
       SMS_TEMPLATE_CODE: ${SMS_TEMPLATE_CODE:-}
       PHONE_CODE_TTL: ${PHONE_CODE_TTL:-5m}
-    depends_on:
-      mysql:
-        condition: service_healthy
 
   frontend:
     build:
@@ -80,5 +58,3 @@ services:
     depends_on:
       - backend
 
-volumes:
-  mysql_data:
