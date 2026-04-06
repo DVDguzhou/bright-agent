@@ -67,6 +67,9 @@ func validateLifeAgentCoverImageURL(u string) bool {
 		strings.HasPrefix(u, "/life-agent-cover-presets/")
 }
 
+// 与前端 public/life-agent-cover-presets/default-cover.svg 一致
+const lifeAgentDefaultCoverURL = "/life-agent-cover-presets/default-cover.svg"
+
 func lifeAgentCoverURL(p *models.LifeAgentProfile) string {
 	if p.CoverImageURL != nil && strings.TrimSpace(*p.CoverImageURL) != "" {
 		return strings.TrimSpace(*p.CoverImageURL)
@@ -74,7 +77,7 @@ func lifeAgentCoverURL(p *models.LifeAgentProfile) string {
 	if p.CoverPresetKey != nil && strings.TrimSpace(*p.CoverPresetKey) != "" {
 		return "/life-agent-cover-presets/" + strings.TrimSpace(*p.CoverPresetKey) + ".png"
 	}
-	return ""
+	return lifeAgentDefaultCoverURL
 }
 
 func buildLifeAgentRatingState(profileID, buyerID string) gin.H {

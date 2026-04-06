@@ -340,7 +340,7 @@ export function computeCompletion(profile: ManageProfile) {
     (profile.sampleQuestions ?? []).length >= 3,
     (profile.exampleReplies ?? []).length >= 2,
     (profile.knowledgeEntries ?? []).length >= 3,
-    Boolean(profile.coverUrl || profile.coverImageUrl || profile.coverPresetKey),
+    Boolean((profile.coverImageUrl && profile.coverImageUrl.trim()) || (profile.coverPresetKey && profile.coverPresetKey.trim())),
     Boolean(profile.hasVoiceClone),
     Boolean(profile.regions?.length),
     profile.published,
