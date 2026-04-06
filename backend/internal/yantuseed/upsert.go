@@ -115,10 +115,10 @@ func UpsertProfile(userID, coverPreset string, p Profile) error {
 			PricePerQuestion: 990,
 			ExpertiseTags:    expertiseTagsFor(p),
 			SampleQuestions:  sampleQuestionsFor(p),
-			School:         strOrNil(p.School),
-			Education:      strPtr("硕士研究生（已录取或就读）"),
-			CoverPresetKey: strPtr(coverPreset),
-			Published:      true,
+			School:           strOrNil(p.School),
+			Education:        strPtr("硕士研究生（已录取或就读）"),
+			CoverPresetKey:   strPtr(coverPreset),
+			Published:        true,
 		}
 		if err := db.DB.Create(&profile).Error; err != nil {
 			return err
@@ -146,13 +146,17 @@ func UpsertProfile(userID, coverPreset string, p Profile) error {
 	return nil
 }
 
-// Profiles 为当前仓库内置的榜样正文：研途榜样 3 人 + 浙大数院飞跃手册（2021）节选（考研+保研+境外升学）。
+// Profiles 为当前仓库内置的榜样正文：研途榜样 3 人 + 浙大数院飞跃手册（2021）全书目录内学长学姐（考研+保研+境内/境外升学+院外受邀金工）。
 func Profiles() []Profile {
-	n := 3 + len(zjuFeyue2021Profiles) + len(zjuFeyue2021ProfilesMore) + len(zjuFeyue2021ProfilesAbroad)
+	n := 3 + len(zjuFeyue2021Profiles) + len(zjuFeyue2021ProfilesMore) + len(zjuFeyue2021ProfilesAbroad) +
+		len(zjuFeyue2021ProfilesDomesticRemain1) + len(zjuFeyue2021ProfilesDomesticRemain2) + len(zjuFeyue2021ProfilesAbroadMore)
 	out := make([]Profile, 0, n)
 	out = append(out, yaoShengJie, zhangGuiShuo, yangChenYang)
 	out = append(out, zjuFeyue2021Profiles...)
 	out = append(out, zjuFeyue2021ProfilesMore...)
+	out = append(out, zjuFeyue2021ProfilesDomesticRemain1...)
+	out = append(out, zjuFeyue2021ProfilesDomesticRemain2...)
 	out = append(out, zjuFeyue2021ProfilesAbroad...)
+	out = append(out, zjuFeyue2021ProfilesAbroadMore...)
 	return out
 }
