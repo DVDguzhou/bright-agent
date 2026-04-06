@@ -7,7 +7,7 @@ import {
   type ReactEventHandler,
   type SyntheticEvent,
 } from "react";
-import { DEFAULT_COVER_INLINE_SRC, normalizeLifeAgentCoverImgSrc } from "@/lib/life-agent-covers";
+import { nextLifeAgentCoverFallbackSrc, normalizeLifeAgentCoverImgSrc } from "@/lib/life-agent-covers";
 
 export type LifeAgentCoverImageProps = Omit<ImgHTMLAttributes<HTMLImageElement>, "src" | "onError"> & {
   src: string;
@@ -20,7 +20,8 @@ export type LifeAgentCoverImageProps = Omit<ImgHTMLAttributes<HTMLImageElement>,
 };
 
 /**
- * 人生 Agent 封面：原生 img；默认封面走 data URL，不依赖 public 静态路径；其它 URL 失败时回退内联默认图。
+ * 人生 Agent 封面：原生 img；默认可用 public 下 default-cover.png / default-cover.svg，
+ * 加载失败时按 PNG → SVG → 极小内联占位 链式回退。
  */
 export function LifeAgentCoverImage({
   src,
@@ -51,9 +52,7 @@ export function LifeAgentCoverImage({
       {...(priority ? ({ fetchPriority: "high" } as ImgHTMLAttributes<HTMLImageElement>) : {})}
       onError={(e: SyntheticEvent<HTMLImageElement>) => {
         onError?.(e);
-        if (resolved !== DEFAULT_COVER_INLINE_SRC) {
-          setResolved(DEFAULT_COVER_INLINE_SRC);
-        }
+        setResolved((cur) => nextLifeAgentCoverFallbackSrc(cur));
       }}
     />
   );

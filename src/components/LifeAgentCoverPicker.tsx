@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { DEFAULT_COVER_INLINE_SRC } from "@/lib/life-agent-covers";
+import { DEFAULT_COVER_PNG_URL } from "@/lib/life-agent-covers";
 
 type Props = {
   coverImageUrl: string;
@@ -15,7 +15,7 @@ export function LifeAgentCoverPicker({ coverImageUrl, onChange, disabled }: Prop
   const [uploadErr, setUploadErr] = useState("");
 
   const showCustom = Boolean(coverImageUrl.trim());
-  const previewSrc = showCustom ? coverImageUrl : DEFAULT_COVER_INLINE_SRC;
+  const previewSrc = showCustom ? coverImageUrl : DEFAULT_COVER_PNG_URL;
 
   const onPickFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

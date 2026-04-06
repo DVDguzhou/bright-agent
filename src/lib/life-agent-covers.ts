@@ -1,24 +1,45 @@
-/** 接口与后端 lifeAgentDefaultCoverURL 仍使用此路径；前端展示请用 DEFAULT_COVER_INLINE_SRC 或 normalizeLifeAgentCoverImgSrc */
-export const DEFAULT_COVER_URL = "/life-agent-cover-presets/default-cover.svg";
+/** 与 backend lifeAgentDefaultCoverURL 一致：主默认图为 PNG（public 内文件） */
+export const DEFAULT_COVER_PNG_URL = "/life-agent-cover-presets/default-cover.png";
 
-/** 不发起 HTTP 请求，避免静态资源未同步、反代、Capacitor 等环境下裂图 */
-export const DEFAULT_COVER_INLINE_SRC =
+/** 矢量默认图，PNG 不可用时由 LifeAgentCoverImage 链式回退 */
+export const DEFAULT_COVER_SVG_URL = "/life-agent-cover-presets/default-cover.svg";
+
+/** 兼容旧字段与后端 JSON：统一指主默认 PNG */
+export const DEFAULT_COVER_URL = DEFAULT_COVER_PNG_URL;
+
+/** PNG、SVG 均加载失败时的最后占位（极小 data URL） */
+export const DEFAULT_COVER_FINAL_FALLBACK_SRC =
   "data:image/svg+xml;charset=utf-8," +
   encodeURIComponent(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1000" viewBox="0 0 800 1000"><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#e8eeff"/><stop offset="55%" stop-color="#dbeafe"/><stop offset="100%" stop-color="#cffafe"/></linearGradient></defs><rect width="800" height="1000" fill="url(#g)"/><circle cx="400" cy="380" r="120" fill="#93c5fd" opacity="0.35"/><circle cx="520" cy="300" r="56" fill="#67e8f9" opacity="0.4"/><text x="400" y="560" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif" font-size="36" font-weight="600" fill="#1e3a8a">人生 Agent</text><text x="400" y="620" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif" font-size="22" fill="#475569">默认封面</text></svg>`,
+    `<svg xmlns="http://www.w3.org/2000/svg" width="8" height="10" viewBox="0 0 8 10"><rect width="8" height="10" fill="#e2e8f0"/></svg>`,
   );
 
-/** 将接口返回的默认路径（或空）换成内联图，保证任意部署形态下都能显示 */
+/** 加载失败时的下一级回退：自定义坏链 → PNG → SVG → 内联占位 */
+export function nextLifeAgentCoverFallbackSrc(current: string): string {
+  const s = current.trim();
+  if (s === DEFAULT_COVER_FINAL_FALLBACK_SRC) return s;
+  if (s === DEFAULT_COVER_SVG_URL) return DEFAULT_COVER_FINAL_FALLBACK_SRC;
+  if (s === DEFAULT_COVER_PNG_URL) return DEFAULT_COVER_SVG_URL;
+  return DEFAULT_COVER_PNG_URL;
+}
+
+/**
+ * 将接口返回的默认路径（或空）规范为主默认 PNG；
+ * 历史 `.svg` 默认路径也会改指向 PNG，便于统一用你的 default-cover.png。
+ */
 export function normalizeLifeAgentCoverImgSrc(src: string | null | undefined): string {
   const s = (src ?? "").trim();
-  if (!s) return DEFAULT_COVER_INLINE_SRC;
+  if (!s) return DEFAULT_COVER_PNG_URL;
   if (s.startsWith("data:image/")) return s;
-  if (s === DEFAULT_COVER_URL || s.endsWith("/default-cover.svg")) {
-    return DEFAULT_COVER_INLINE_SRC;
+  if (s === DEFAULT_COVER_PNG_URL || s.endsWith("/default-cover.png")) return DEFAULT_COVER_PNG_URL;
+  if (s === DEFAULT_COVER_SVG_URL || s.endsWith("/default-cover.svg")) {
+    return DEFAULT_COVER_PNG_URL;
   }
   try {
     const abs = s.startsWith("http://") || s.startsWith("https://") ? new URL(s) : new URL(s, "https://placeholder.local");
-    if (abs.pathname.endsWith("/default-cover.svg")) return DEFAULT_COVER_INLINE_SRC;
+    const p = abs.pathname;
+    if (p.endsWith("/default-cover.png")) return DEFAULT_COVER_PNG_URL;
+    if (p.endsWith("/default-cover.svg")) return DEFAULT_COVER_PNG_URL;
   } catch {
     /* ignore */
   }
@@ -34,8 +55,7 @@ export const SHIPPED_LIFE_AGENT_PRESET_PNG_KEYS = new Set<string>([
 ]);
 
 /**
- * 解析封面地址：自定义上传 →（仅对已部署 PNG 的 preset）预设图 → 统一默认图。
- * coverUrl 来自接口时通常已含默认值；此处保证仅拿到 image/preset 字段时与后端一致。
+ * 解析封面地址：自定义上传 →（仅对已部署 PNG 的 preset）预设图 → 主默认 PNG。
  */
 export function resolveLifeAgentCoverUrl(coverImageUrl?: string | null, coverPresetKey?: string | null): string {
   const img = (coverImageUrl ?? "").trim();
@@ -44,7 +64,7 @@ export function resolveLifeAgentCoverUrl(coverImageUrl?: string | null, coverPre
   if (preset && SHIPPED_LIFE_AGENT_PRESET_PNG_KEYS.has(preset)) {
     return `/life-agent-cover-presets/${preset}.png`;
   }
-  return DEFAULT_COVER_INLINE_SRC;
+  return DEFAULT_COVER_PNG_URL;
 }
 
 export function lifeAgentCoverShouldBypassOptimizer(src: string): boolean {

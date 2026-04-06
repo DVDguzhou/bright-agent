@@ -73,8 +73,8 @@ func validateLifeAgentCoverImageURL(u string) bool {
 		strings.HasPrefix(u, "/life-agent-cover-presets/")
 }
 
-// 与前端 public/life-agent-cover-presets/default-cover.svg 一致
-const lifeAgentDefaultCoverURL = "/life-agent-cover-presets/default-cover.svg"
+// 与前端 public/life-agent-cover-presets/default-cover.png 一致（另有 default-cover.svg 作备用资源）
+const lifeAgentDefaultCoverURL = "/life-agent-cover-presets/default-cover.png"
 
 func lifeAgentCoverURL(p *models.LifeAgentProfile) string {
 	if p.CoverImageURL != nil && strings.TrimSpace(*p.CoverImageURL) != "" {
