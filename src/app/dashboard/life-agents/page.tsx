@@ -146,6 +146,7 @@ export default function LifeAgentsManagePage() {
             emptyTitle=""
             emptySubtitle=""
             profileHref={(id) => `/dashboard/life-agents/${id}`}
+            windowed={false}
           />
         ) : profiles.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-slate-200 bg-white px-6 py-12 text-center">
@@ -173,6 +174,8 @@ export default function LifeAgentsManagePage() {
             emptyTitle="没有匹配的 Agent"
             emptySubtitle="换个关键词试试，或清空搜索框查看全部。"
             profileHref={(id) => `/dashboard/life-agents/${id}`}
+            windowed={false}
+            windowResetKey={query}
           />
         )}
       </section>

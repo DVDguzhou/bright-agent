@@ -7,6 +7,7 @@ import { VoiceInputButton } from "@/components/voice";
 import { LifeAgentDiscoverCardGrid } from "@/components/LifeAgentDiscoverCardGrid";
 import { addSearchHistory, clearSearchHistory, getSearchHistory } from "@/lib/life-agent-search-history";
 import { rankLifeAgentsBySearchQuery, type LifeAgentListItem } from "@/lib/life-agent-feed-search";
+import { fetchAllPublishedLifeAgents } from "@/lib/life-agents-list-api";
 
 const GUESS_LEFT = ["考研经验咨询", "秋招改简历", "转行互联网", "雅思怎么准备", "体制内跳槽"];
 const GUESS_RIGHT: { text: string; hot?: boolean }[] = [
@@ -123,10 +124,9 @@ function SearchResultsView({ query }: { query: string }) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 15000);
 
-    fetch("/api/life-agents", { credentials: "include", signal: controller.signal })
-      .then((res) => res.json())
-      .then((data) => {
-        setProfiles(Array.isArray(data) ? data : []);
+    fetchAllPublishedLifeAgents(controller.signal)
+      .then((items) => {
+        setProfiles(items);
         setLoadError(null);
       })
       .catch((err) => {
@@ -190,6 +190,7 @@ function SearchResultsView({ query }: { query: string }) {
             loading={loading}
             emptyTitle="没有匹配的 Agent"
             emptySubtitle="换个关键词试试，或减少筛选条件。"
+            windowResetKey={query}
           />
         )}
       </div>

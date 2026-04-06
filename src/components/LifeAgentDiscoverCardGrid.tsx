@@ -3,20 +3,171 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import Image from "next/image";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import { RatingStars } from "@/components/RatingStars";
 import { VerificationBadge } from "@/components/VerificationBadge";
 import { lifeAgentCoverShouldBypassOptimizer, resolveLifeAgentCoverUrl } from "@/lib/life-agent-covers";
 import type { LifeAgentListItem } from "@/lib/life-agent-feed-search";
+import { useWindowedSlice } from "@/lib/use-windowed-slice";
 
 const anonymous = "佚";
+
+function useGridColumnCount() {
+  const [n, setN] = useState(2);
+  useEffect(() => {
+    const read = () => {
+      if (typeof window === "undefined") return 2;
+      if (window.matchMedia("(min-width: 1280px)").matches) return 5;
+      if (window.matchMedia("(min-width: 1024px)").matches) return 4;
+      if (window.matchMedia("(min-width: 640px)").matches) return 3;
+      return 2;
+    };
+    const update = () => setN(read());
+    update();
+    const mqs = [
+      window.matchMedia("(min-width: 1280px)"),
+      window.matchMedia("(min-width: 1024px)"),
+      window.matchMedia("(min-width: 640px)"),
+    ];
+    const handler = () => update();
+    mqs.forEach((m) => {
+      if (m.addEventListener) m.addEventListener("change", handler);
+      else m.addListener(handler);
+    });
+    return () =>
+      mqs.forEach((m) => {
+        if (m.removeEventListener) m.removeEventListener("change", handler);
+        else m.removeListener(handler);
+      });
+  }, []);
+  return n;
+}
+
+function chunkIntoRows<T>(items: T[], cols: number): T[][] {
+  if (cols < 1) return [];
+  const rows: T[][] = [];
+  for (let i = 0; i < items.length; i += cols) {
+    rows.push(items.slice(i, i + cols));
+  }
+  return rows;
+}
+
+function LifeAgentDiscoverCard({
+  profile,
+  globalIndex,
+  profileHref,
+}: {
+  profile: LifeAgentListItem;
+  globalIndex: number;
+  profileHref: (id: string) => string;
+}) {
+  const areaLabel = [profile.city, profile.province].filter(Boolean).join(" · ");
+  const tags = (profile.expertiseTags ?? []).slice(0, 2);
+  const coverUrl = profile.coverUrl || resolveLifeAgentCoverUrl(profile.coverImageUrl, profile.coverPresetKey);
+  const stagger = globalIndex < 8;
+  return (
+    <motion.article
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: stagger ? globalIndex * 0.04 : 0, duration: stagger ? 0.4 : 0.18 }}
+      className="min-h-0 [content-visibility:auto] [contain-intrinsic-size:auto_300px]"
+    >
+      <Link href={profileHref(profile.id)} className="group flex h-full min-h-0">
+        <div className="flex h-full min-h-[280px] w-full flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/70 transition duration-200 group-hover:shadow-md group-hover:ring-blue-200/60 sm:min-h-[300px]">
+          <div className="relative aspect-[4/5] w-full shrink-0 overflow-hidden bg-slate-100">
+            {typeof profile.published === "boolean" && (
+              <div
+                className={`absolute left-2 top-2 z-[1] rounded-full px-2 py-0.5 text-[10px] font-bold shadow-sm ${
+                  profile.published ? "bg-emerald-600 text-white" : "bg-white/95 text-slate-600 ring-1 ring-slate-200/80"
+                }`}
+              >
+                {profile.published ? "已发布" : "未发布"}
+              </div>
+            )}
+            <Image
+              src={coverUrl}
+              alt=""
+              fill
+              className="object-cover"
+              sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 220px"
+              priority={globalIndex < 6}
+              loading={globalIndex < 6 ? undefined : "lazy"}
+              unoptimized={lifeAgentCoverShouldBypassOptimizer(coverUrl)}
+            />
+            {(profile.verificationStatus === "verified" || profile.verificationStatus === "pending") && (
+              <div className="absolute right-2 top-2 rounded-full bg-white/90 px-1.5 py-0.5 shadow-sm backdrop-blur-sm">
+                <VerificationBadge status={profile.verificationStatus ?? "none"} size="sm" />
+              </div>
+            )}
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/45 via-black/15 to-transparent p-2.5 pt-12">
+              <span className="line-clamp-2 text-[13px] font-semibold leading-snug text-white drop-shadow-md">
+                {profile.headline}
+              </span>
+            </div>
+          </div>
+          <div className="flex min-h-0 flex-1 flex-col px-2.5 pb-2.5 pt-2 sm:p-3">
+            <h3 className="line-clamp-2 min-h-[2.75rem] text-[13px] font-semibold leading-snug text-slate-900 sm:text-sm">
+              {profile.displayName}
+            </h3>
+            <p className="line-clamp-1 min-h-[1.125rem] text-[11px] text-slate-400">{areaLabel || "\u00a0"}</p>
+            <div className="flex items-center justify-between gap-2 pt-0.5">
+              <div className="flex min-w-0 items-center gap-1 text-[11px] text-slate-500">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-200/90 text-[10px] font-bold text-slate-600">
+                  {(profile.displayName ?? anonymous).slice(0, 1)}
+                </span>
+                <span className="truncate">{profile.creator.name ?? anonymous}</span>
+              </div>
+              <span className="shrink-0 text-sm font-bold text-blue-600">
+                ¥{(profile.pricePerQuestion / 100).toFixed(0)}
+                <span className="text-[10px] font-medium text-slate-400">/问</span>
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 border-t border-slate-100 pt-2 text-[11px] text-slate-500">
+              <RatingStars score={profile.ratings?.averageScore ?? 0} size="sm" />
+              <span>
+                {profile.ratings && profile.ratings.raters > 0 ? profile.ratings.averageScore.toFixed(1) : "—"}
+              </span>
+              {profile.ratings && profile.ratings.raters > 0 ? (
+                <span className="text-slate-400">· {profile.ratings.raters} 人评</span>
+              ) : null}
+            </div>
+            <div className="flex-1" aria-hidden />
+            <div className="flex min-h-[1.375rem] flex-wrap content-end gap-1">
+              {tags.map((tag: string) => (
+                <span
+                  key={tag}
+                  className="rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-medium text-blue-600/90"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </Link>
+    </motion.article>
+  );
+}
 
 type Props = {
   profiles: LifeAgentListItem[];
   loading: boolean;
   emptyTitle: string;
   emptySubtitle: string;
-  /** 默认公开详情页；管理列表可指向 `/dashboard/life-agents/:id` */
   profileHref?: (id: string) => string;
+  windowResetKey?: string | number;
+  /** 为 false 时一次性渲染全部（管理页等） */
+  windowed?: boolean;
+  /**
+   * 为 true 时用窗口级虚拟列表按「行」回收离屏 DOM；
+   * 未传时：与 windowed 联动，`windowed={false}`（管理页）默认关虚拟列表。
+   */
+  virtualized?: boolean;
+  /** 分页：触底加载下一页（与 hasMoreFromServer 配合） */
+  onLoadMore?: () => void | Promise<void>;
+  hasMoreFromServer?: boolean;
+  loadingMore?: boolean;
 };
 
 export function LifeAgentDiscoverCardGrid({
@@ -25,7 +176,69 @@ export function LifeAgentDiscoverCardGrid({
   emptyTitle,
   emptySubtitle,
   profileHref = (id) => `/life-agents/${id}`,
+  windowResetKey,
+  windowed = true,
+  virtualized: virtualizedProp,
+  onLoadMore,
+  hasMoreFromServer = false,
+  loadingMore = false,
 }: Props) {
+  const virtualized = virtualizedProp ?? windowed !== false;
+  const colCount = useGridColumnCount();
+  const rows = useMemo(() => chunkIntoRows(profiles, colCount), [profiles, colCount]);
+  const rowKeys = useMemo(() => rows.map((r, i) => `${i}:${r.map((p) => p.id).join("|")}`), [rows]);
+
+  const rowVirtualizer = useWindowVirtualizer({
+    count: rows.length,
+    estimateSize: () => 312,
+    overscan: 4,
+    gap: 12,
+    enabled: virtualized && !loading && profiles.length > 0,
+    getItemKey: (i) => rowKeys[i] ?? String(i),
+  });
+
+  const loadMoreSentinelRef = useRef<HTMLDivElement | null>(null);
+  const onLoadMoreRef = useRef(onLoadMore);
+  onLoadMoreRef.current = onLoadMore;
+
+  const tryLoadMore = useCallback(() => {
+    const fn = onLoadMoreRef.current;
+    if (!fn || !hasMoreFromServer || loadingMore) return;
+    void Promise.resolve(fn());
+  }, [hasMoreFromServer, loadingMore]);
+
+  useEffect(() => {
+    if (!hasMoreFromServer || !onLoadMore) return;
+    const el = loadMoreSentinelRef.current;
+    if (!el) return;
+    let debounce: ReturnType<typeof setTimeout> | null = null;
+    const io = new IntersectionObserver(
+      (entries) => {
+        const hit = entries.some((e) => e.isIntersecting);
+        if (!hit) return;
+        if (debounce) clearTimeout(debounce);
+        debounce = setTimeout(() => {
+          debounce = null;
+          tryLoadMore();
+        }, 200);
+      },
+      { root: null, rootMargin: "480px 0px", threshold: 0 },
+    );
+    io.observe(el);
+    return () => {
+      if (debounce) clearTimeout(debounce);
+      io.disconnect();
+    };
+  }, [hasMoreFromServer, onLoadMore, tryLoadMore, rows.length, loadingMore]);
+
+  const { slice, hasMore, sentinelRef } = useWindowedSlice(profiles, {
+    enabled: !virtualized && windowed,
+    resetKey: windowResetKey,
+    initial: 12,
+    page: 12,
+  });
+  const toRender = !virtualized && windowed ? slice : profiles;
+
   if (loading) {
     return (
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4 xl:grid-cols-5">
@@ -57,97 +270,69 @@ export function LifeAgentDiscoverCardGrid({
     );
   }
 
+  if (!virtualized) {
+    return (
+      <div className="space-y-3">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4 xl:grid-cols-5">
+          {toRender.map((profile, index) => (
+            <LifeAgentDiscoverCard key={profile.id} profile={profile} globalIndex={index} profileHref={profileHref} />
+          ))}
+        </div>
+        {windowed && hasMore ? (
+          <div ref={sentinelRef} className="flex min-h-[52px] items-center justify-center py-2" aria-hidden>
+            <span className="text-xs text-slate-400">向下滑动加载更多…</span>
+          </div>
+        ) : null}
+      </div>
+    );
+  }
+
+  const totalSize = rowVirtualizer.getTotalSize();
+  const virtualItems = rowVirtualizer.getVirtualItems();
+
   return (
-    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4 xl:grid-cols-5">
-      {profiles.map((profile, index) => {
-        const areaLabel = [profile.city, profile.province].filter(Boolean).join(" · ");
-        const tags = (profile.expertiseTags ?? []).slice(0, 2);
-        const coverUrl = profile.coverUrl || resolveLifeAgentCoverUrl(profile.coverImageUrl, profile.coverPresetKey);
-        return (
-          <motion.article
-            key={profile.id}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index < 8 ? index * 0.04 : 0 }}
-            className="min-h-0"
-          >
-            <Link href={profileHref(profile.id)} className="group flex h-full min-h-0">
-              <div className="flex h-full min-h-[280px] w-full flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/70 transition duration-200 group-hover:shadow-md group-hover:ring-blue-200/60 sm:min-h-[300px]">
-                <div className="relative aspect-[4/5] w-full shrink-0 overflow-hidden bg-slate-100">
-                  {typeof profile.published === "boolean" && (
-                    <div
-                      className={`absolute left-2 top-2 z-[1] rounded-full px-2 py-0.5 text-[10px] font-bold shadow-sm ${
-                        profile.published ? "bg-emerald-600 text-white" : "bg-white/95 text-slate-600 ring-1 ring-slate-200/80"
-                      }`}
-                    >
-                      {profile.published ? "已发布" : "未发布"}
-                    </div>
-                  )}
-                  <Image
-                    src={coverUrl}
-                    alt=""
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 220px"
-                    priority={index < 8}
-                    unoptimized={lifeAgentCoverShouldBypassOptimizer(coverUrl)}
-                  />
-                  {(profile.verificationStatus === "verified" || profile.verificationStatus === "pending") && (
-                    <div className="absolute right-2 top-2 rounded-full bg-white/90 px-1.5 py-0.5 shadow-sm backdrop-blur-sm">
-                      <VerificationBadge status={profile.verificationStatus ?? "none"} size="sm" />
-                    </div>
-                  )}
-                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/45 via-black/15 to-transparent p-2.5 pt-12">
-                    <span className="line-clamp-2 text-[13px] font-semibold leading-snug text-white drop-shadow-md">
-                      {profile.headline}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex min-h-0 flex-1 flex-col px-2.5 pb-2.5 pt-2 sm:p-3">
-                  <h3 className="line-clamp-2 min-h-[2.75rem] text-[13px] font-semibold leading-snug text-slate-900 sm:text-sm">
-                    {profile.displayName}
-                  </h3>
-                  <p className="line-clamp-1 min-h-[1.125rem] text-[11px] text-slate-400">{areaLabel || "\u00a0"}</p>
-                  <div className="flex items-center justify-between gap-2 pt-0.5">
-                    <div className="flex min-w-0 items-center gap-1 text-[11px] text-slate-500">
-                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-200/90 text-[10px] font-bold text-slate-600">
-                        {(profile.displayName ?? anonymous).slice(0, 1)}
-                      </span>
-                      <span className="truncate">{profile.creator.name ?? anonymous}</span>
-                    </div>
-                    <span className="shrink-0 text-sm font-bold text-blue-600">
-                      ¥{(profile.pricePerQuestion / 100).toFixed(0)}
-                      <span className="text-[10px] font-medium text-slate-400">/问</span>
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1.5 border-t border-slate-100 pt-2 text-[11px] text-slate-500">
-                    <RatingStars score={profile.ratings?.averageScore ?? 0} size="sm" />
-                    <span>
-                      {profile.ratings && profile.ratings.raters > 0
-                        ? profile.ratings.averageScore.toFixed(1)
-                        : "—"}
-                    </span>
-                    {profile.ratings && profile.ratings.raters > 0 ? (
-                      <span className="text-slate-400">· {profile.ratings.raters} 人评</span>
-                    ) : null}
-                  </div>
-                  <div className="flex-1" aria-hidden />
-                  <div className="flex min-h-[1.375rem] flex-wrap content-end gap-1">
-                    {tags.map((tag: string) => (
-                      <span
-                        key={tag}
-                        className="rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-medium text-blue-600/90"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                </div>
+    <div className="space-y-3">
+      <div className="relative w-full" style={{ height: totalSize }}>
+        {virtualItems.map((virtualRow) => {
+          const row = rows[virtualRow.index];
+          if (!row) return null;
+          return (
+            <div
+              key={virtualRow.key}
+              data-index={virtualRow.index}
+              ref={rowVirtualizer.measureElement}
+              className="absolute left-0 top-0 w-full"
+              style={{
+                transform: `translateY(${virtualRow.start}px)`,
+              }}
+            >
+              <div
+                className="grid gap-2 sm:gap-3"
+                style={{ gridTemplateColumns: `repeat(${colCount}, minmax(0, 1fr))` }}
+              >
+                {row.map((profile, colIdx) => {
+                  const globalIndex = virtualRow.index * colCount + colIdx;
+                  return (
+                    <LifeAgentDiscoverCard
+                      key={profile.id}
+                      profile={profile}
+                      globalIndex={globalIndex}
+                      profileHref={profileHref}
+                    />
+                  );
+                })}
               </div>
-            </Link>
-          </motion.article>
-        );
-      })}
+            </div>
+          );
+        })}
+      </div>
+      {onLoadMore && (hasMoreFromServer || loadingMore) ? (
+        <div ref={loadMoreSentinelRef} className="flex min-h-[52px] items-center justify-center py-2" aria-hidden>
+          <span className="text-xs text-slate-400">
+            {loadingMore ? "加载更多…" : hasMoreFromServer ? "向下滑动加载更多…" : ""}
+          </span>
+        </div>
+      ) : null}
     </div>
   );
 }

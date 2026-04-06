@@ -16,6 +16,7 @@ import {
   writeMapShareEnabled,
   writeMapShareProfileId,
 } from "@/lib/map-gps-storage";
+import { fetchAllPublishedLifeAgents } from "@/lib/life-agents-list-api";
 
 const LifeAgentsMapView = dynamic(() => import("@/components/LifeAgentsMapView"), {
   ssr: false,
@@ -26,16 +27,6 @@ const LifeAgentsMapView = dynamic(() => import("@/components/LifeAgentsMapView")
     />
   ),
 });
-
-type ApiAgent = {
-  id: string;
-  displayName: string;
-  headline?: string;
-  city?: string;
-  province?: string;
-  county?: string;
-  regions?: string[];
-};
 
 export default function MapPage() {
   const { user, loading: authLoading } = useAuth();
@@ -72,19 +63,17 @@ export default function MapPage() {
   }, []);
 
   useEffect(() => {
-    fetch("/api/life-agents", { credentials: "include" })
-      .then((r) => r.json())
-      .then((data: unknown) => {
-        const list = Array.isArray(data) ? data : [];
-        const mapped: MapAgentMarker[] = (list as ApiAgent[]).map((row) => ({
-          id: String(row.id ?? ""),
-          displayName: String(row.displayName ?? "Agent"),
+    fetchAllPublishedLifeAgents()
+      .then((list) => {
+        const mapped: MapAgentMarker[] = list.map((row) => ({
+          id: row.id,
+          displayName: row.displayName || "Agent",
           headline: row.headline,
           city: row.city,
           province: row.province,
           county: row.county,
           regions: row.regions,
-        })).filter((a) => a.id);
+        }));
         setAgents(mapped);
         setLoadError(null);
       })

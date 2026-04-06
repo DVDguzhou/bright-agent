@@ -29,6 +29,7 @@
     "@capacitor/ios": "^8.0.1",
     "@capacitor/keyboard": "^8.0.1",
     "@prisma/client": "^5.22.0",
+    "@tanstack/react-virtual": "^3.13.23",
     "bcryptjs": "^2.4.3",
     "framer-motion": "^12.35.0",
     "iconv-lite": "^0.7.2",

@@ -1,6 +1,7 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useWindowedSlice } from "@/lib/use-windowed-slice";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
@@ -10,6 +11,7 @@ import { lifeAgentCoverShouldBypassOptimizer, resolveLifeAgentCoverUrl } from "@
 import { getFavoriteAgentIds } from "@/lib/life-agent-favorites";
 import { LifeAgentDiscoverCardGrid } from "@/components/LifeAgentDiscoverCardGrid";
 import { rankLifeAgentsBySearchQuery, type LifeAgentListItem } from "@/lib/life-agent-feed-search";
+import { fetchAllPublishedLifeAgents, fetchLifeAgentsPage } from "@/lib/life-agents-list-api";
 
 type PurchasedAgentRow = {
   id: string;
@@ -44,8 +46,16 @@ const UI = {
 function LifeAgentsPageContent() {
   const searchParams = useSearchParams();
   const feedTab = searchParams.get("tab");
-  const [profiles, setProfiles] = useState<LifeAgentListItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [discoverItems, setDiscoverItems] = useState<LifeAgentListItem[]>([]);
+  const [discoverNextCursor, setDiscoverNextCursor] = useState<string | null>(null);
+  const [discoverLoading, setDiscoverLoading] = useState(true);
+  const [discoverLoadingMore, setDiscoverLoadingMore] = useState(false);
+  const [favoritesSource, setFavoritesSource] = useState<LifeAgentListItem[]>([]);
+  const [favoritesLoading, setFavoritesLoading] = useState(false);
+  const [favoritesFetched, setFavoritesFetched] = useState(false);
+
+  const discoverItemsRef = useRef(discoverItems);
+  discoverItemsRef.current = discoverItems;
 
   const [loadError, setLoadError] = useState<string | null>(null);
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
@@ -95,39 +105,114 @@ function LifeAgentsPageContent() {
   }, [feedTab]);
 
   useEffect(() => {
-    setLoadError(null);
+    if (feedTab === "favorites" || feedTab === "purchased") {
+      setDiscoverLoading(false);
+      return;
+    }
+    if (discoverItemsRef.current.length > 0) {
+      setDiscoverLoading(false);
+      return;
+    }
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 秒超时
-
-    fetch("/api/life-agents", { credentials: "include", signal: controller.signal })
-      .then((res) => res.json())
-      .then((data) => {
-        setProfiles(Array.isArray(data) ? data : []);
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+    setLoadError(null);
+    setDiscoverLoading(true);
+    fetchLifeAgentsPage(48, undefined, controller.signal)
+      .then(({ items, nextCursor }) => {
+        setDiscoverItems(items);
+        setDiscoverNextCursor(nextCursor || null);
         setLoadError(null);
       })
       .catch((err) => {
-        setProfiles([]);
+        setDiscoverItems([]);
+        setDiscoverNextCursor(null);
         setLoadError(
           err.name === "AbortError"
             ? "请求超时，请检查后端是否启动或稍后重试"
-            : "加载失败，请刷新页面重试"
+            : "加载失败，请刷新页面重试",
         );
       })
       .finally(() => {
         clearTimeout(timeoutId);
-        setLoading(false);
+        setDiscoverLoading(false);
       });
-  }, []);
+    return () => {
+      clearTimeout(timeoutId);
+      controller.abort();
+    };
+  }, [feedTab]);
 
-  const filteredProfiles = useMemo(() => rankLifeAgentsBySearchQuery(profiles, ""), [profiles]);
+  useEffect(() => {
+    if (feedTab !== "favorites") return;
+    if (favoritesFetched) return;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 60000);
+    setFavoritesLoading(true);
+    setLoadError(null);
+    fetchAllPublishedLifeAgents(controller.signal)
+      .then((all) => {
+        setFavoritesSource(all);
+        setLoadError(null);
+      })
+      .catch((err) => {
+        setFavoritesSource([]);
+        setLoadError(
+          err.name === "AbortError"
+            ? "请求超时，请检查后端是否启动或稍后重试"
+            : "加载失败，请刷新页面重试",
+        );
+      })
+      .finally(() => {
+        clearTimeout(timeoutId);
+        setFavoritesLoading(false);
+        setFavoritesFetched(true);
+      });
+    return () => {
+      clearTimeout(timeoutId);
+      controller.abort();
+    };
+  }, [feedTab, favoritesFetched]);
+
+  const loadMoreDiscover = useCallback(async () => {
+    if (!discoverNextCursor || discoverLoadingMore) return;
+    setDiscoverLoadingMore(true);
+    try {
+      const { items, nextCursor } = await fetchLifeAgentsPage(48, discoverNextCursor);
+      setDiscoverItems((prev) => {
+        const seen = new Set(prev.map((p) => p.id));
+        const merged = [...prev];
+        for (const it of items) {
+          if (!seen.has(it.id)) {
+            seen.add(it.id);
+            merged.push(it);
+          }
+        }
+        return merged;
+      });
+      setDiscoverNextCursor(nextCursor || null);
+    } catch {
+      // 静默失败；用户可继续滚动重试
+    } finally {
+      setDiscoverLoadingMore(false);
+    }
+  }, [discoverNextCursor, discoverLoadingMore]);
 
   const displayProfiles = useMemo(() => {
     if (feedTab === "favorites") {
       const idSet = new Set(favoriteIds);
-      return profiles.filter((p) => idSet.has(p.id));
+      return rankLifeAgentsBySearchQuery(
+        favoritesSource.filter((p) => idSet.has(p.id)),
+        "",
+      );
     }
-    return filteredProfiles;
-  }, [feedTab, favoriteIds, profiles, filteredProfiles]);
+    if (feedTab === "purchased") return [];
+    return rankLifeAgentsBySearchQuery(discoverItems, "");
+  }, [feedTab, favoriteIds, favoritesSource, discoverItems]);
+
+  const gridLoading =
+    feedTab === "favorites" ? favoritesLoading : feedTab === "purchased" ? false : discoverLoading;
+
+  const feedWindowKey = feedTab === "favorites" ? "favorites" : feedTab === "purchased" ? "purchased" : "discover";
 
   return (
     <div className="-mx-1 space-y-4 pb-4 sm:mx-0 sm:space-y-5">
@@ -154,9 +239,9 @@ function LifeAgentsPageContent() {
                 ? purchasedLoading
                   ? UI.loading
                   : `${purchasedItems.length}${UI.countSuffix}`
-                : loading
+                : gridLoading
                   ? UI.loading
-                  : `${displayProfiles.length}/${profiles.length}${UI.countSuffix}`}
+                  : `${displayProfiles.length}/${favoritesSource.length}${UI.countSuffix}`}
             </span>
           </div>
         ) : null}
@@ -210,67 +295,12 @@ function LifeAgentsPageContent() {
               </Link>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4 xl:grid-cols-5">
-              {purchasedItems.map((row, index) => {
-                const coverUrl = resolveLifeAgentCoverUrl(undefined, undefined);
-                return (
-                  <motion.article
-                    key={row.id}
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index < 8 ? index * 0.04 : 0 }}
-                    className="min-h-0"
-                  >
-                    <Link href={`/life-agents/${row.id}/chat`} className="group flex h-full min-h-0">
-                      <div className="flex h-full min-h-[280px] w-full flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/70 transition duration-200 group-hover:shadow-md group-hover:ring-emerald-200/70 sm:min-h-[300px]">
-                        <div className="relative aspect-[4/5] w-full shrink-0 overflow-hidden bg-slate-100">
-                          <Image
-                            src={coverUrl}
-                            alt=""
-                            fill
-                            className="object-cover"
-                            sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 220px"
-                            priority={index < 8}
-                            unoptimized={lifeAgentCoverShouldBypassOptimizer(coverUrl)}
-                          />
-                          {(row.verificationStatus === "verified" || row.verificationStatus === "pending") && (
-                            <div className="absolute right-2 top-2 rounded-full bg-white/90 px-1.5 py-0.5 shadow-sm backdrop-blur-sm">
-                              <VerificationBadge status={row.verificationStatus ?? "none"} size="sm" />
-                            </div>
-                          )}
-                          <div className="absolute left-2 top-2 rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
-                            剩余 {row.remainingQuestions} 次
-                          </div>
-                          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/45 via-black/15 to-transparent p-2.5 pt-12">
-                            <span className="line-clamp-2 text-[13px] font-semibold leading-snug text-white drop-shadow-md">
-                              {row.headline}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="flex min-h-0 flex-1 flex-col px-2.5 pb-2.5 pt-2 sm:p-3">
-                          <h3 className="line-clamp-2 min-h-[2.75rem] text-[13px] font-semibold leading-snug text-slate-900 sm:text-sm">
-                            {row.displayName}
-                          </h3>
-                          <p className="mt-1 text-[11px] text-slate-400">点击进入对话</p>
-                          <div className="mt-auto flex items-center justify-between border-t border-slate-100 pt-2 text-[11px] text-slate-500">
-                            <span>按次咨询</span>
-                            <span className="font-bold text-emerald-600">
-                              ¥{(row.pricePerQuestion / 100).toFixed(0)}
-                              <span className="text-[10px] font-medium text-slate-400">/问</span>
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </Link>
-                  </motion.article>
-                );
-              })}
-            </div>
+            <PurchasedAgentsWindowedGrid rows={purchasedItems} />
           )
         ) : (
           <LifeAgentDiscoverCardGrid
             profiles={displayProfiles}
-            loading={loading}
+            loading={gridLoading}
             emptyTitle={loadError ? "加载失败" : feedTab === "favorites" ? "暂无收藏" : UI.emptyTitle}
             emptySubtitle={
               loadError
@@ -279,9 +309,84 @@ function LifeAgentsPageContent() {
                   ? "去「发现」逛逛，在喜欢的 Agent 详情页点亮收藏。"
                   : UI.emptySubtitle
             }
+            windowResetKey={feedWindowKey}
+            onLoadMore={feedTab !== "favorites" && feedTab !== "purchased" ? loadMoreDiscover : undefined}
+            hasMoreFromServer={feedTab !== "favorites" && feedTab !== "purchased" && !!discoverNextCursor}
+            loadingMore={discoverLoadingMore}
           />
         )}
       </section>
+    </div>
+  );
+}
+
+/** 已购列表：与发现页一致，分批挂载卡片，避免一次渲染过多 */
+function PurchasedAgentsWindowedGrid({ rows }: { rows: PurchasedAgentRow[] }) {
+  const { slice, hasMore, sentinelRef } = useWindowedSlice(rows, { initial: 12, page: 12 });
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4 xl:grid-cols-5">
+        {slice.map((row, index) => {
+          const coverUrl = resolveLifeAgentCoverUrl(undefined, undefined);
+          return (
+            <motion.article
+              key={row.id}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index < 8 ? index * 0.04 : 0 }}
+              className="min-h-0 [content-visibility:auto] [contain-intrinsic-size:auto_300px]"
+            >
+              <Link href={`/life-agents/${row.id}/chat`} className="group flex h-full min-h-0">
+                <div className="flex h-full min-h-[280px] w-full flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/70 transition duration-200 group-hover:shadow-md group-hover:ring-emerald-200/70 sm:min-h-[300px]">
+                  <div className="relative aspect-[4/5] w-full shrink-0 overflow-hidden bg-slate-100">
+                    <Image
+                      src={coverUrl}
+                      alt=""
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 220px"
+                      priority={index < 6}
+                      loading={index < 6 ? undefined : "lazy"}
+                      unoptimized={lifeAgentCoverShouldBypassOptimizer(coverUrl)}
+                    />
+                    {(row.verificationStatus === "verified" || row.verificationStatus === "pending") && (
+                      <div className="absolute right-2 top-2 rounded-full bg-white/90 px-1.5 py-0.5 shadow-sm backdrop-blur-sm">
+                        <VerificationBadge status={row.verificationStatus ?? "none"} size="sm" />
+                      </div>
+                    )}
+                    <div className="absolute left-2 top-2 rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
+                      剩余 {row.remainingQuestions} 次
+                    </div>
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/45 via-black/15 to-transparent p-2.5 pt-12">
+                      <span className="line-clamp-2 text-[13px] font-semibold leading-snug text-white drop-shadow-md">
+                        {row.headline}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex min-h-0 flex-1 flex-col px-2.5 pb-2.5 pt-2 sm:p-3">
+                    <h3 className="line-clamp-2 min-h-[2.75rem] text-[13px] font-semibold leading-snug text-slate-900 sm:text-sm">
+                      {row.displayName}
+                    </h3>
+                    <p className="mt-1 text-[11px] text-slate-400">点击进入对话</p>
+                    <div className="mt-auto flex items-center justify-between border-t border-slate-100 pt-2 text-[11px] text-slate-500">
+                      <span>按次咨询</span>
+                      <span className="font-bold text-emerald-600">
+                        ¥{(row.pricePerQuestion / 100).toFixed(0)}
+                        <span className="text-[10px] font-medium text-slate-400">/问</span>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            </motion.article>
+          );
+        })}
+      </div>
+      {hasMore ? (
+        <div ref={sentinelRef} className="flex min-h-[52px] items-center justify-center py-2" aria-hidden>
+          <span className="text-xs text-slate-400">向下滑动加载更多…</span>
+        </div>
+      ) : null}
     </div>
   );
 }

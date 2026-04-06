@@ -1,12 +1,16 @@
 package handler
 
 import (
+	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/agent-marketplace/backend/internal/config"
 	"github.com/agent-marketplace/backend/internal/db"
@@ -210,107 +214,177 @@ func buildLifeAgentSessionTitle(message string) string {
 	return title
 }
 
+func encodeLifeAgentListCursor(t time.Time, id string) string {
+	raw := t.UTC().Format(time.RFC3339Nano) + "\n" + id
+	return base64.RawURLEncoding.EncodeToString([]byte(raw))
+}
+
+func decodeLifeAgentListCursor(s string) (time.Time, string, error) {
+	var zero time.Time
+	b, err := base64.RawURLEncoding.DecodeString(strings.TrimSpace(s))
+	if err != nil {
+		return zero, "", err
+	}
+	i := bytes.IndexByte(b, '\n')
+	if i < 0 {
+		return zero, "", fmt.Errorf("life agent list cursor: no separator")
+	}
+	t, err := time.Parse(time.RFC3339Nano, string(b[:i]))
+	if err != nil {
+		return zero, "", err
+	}
+	id := string(b[i+1:])
+	if strings.TrimSpace(id) == "" {
+		return zero, "", fmt.Errorf("life agent list cursor: empty id")
+	}
+	return t, id, nil
+}
+
+// lifeAgentListResponseItems 将一批已排序的 profile 转为广场列表 JSON（含聚合统计）。
+func lifeAgentListResponseItems(profiles []models.LifeAgentProfile) []gin.H {
+	if len(profiles) == 0 {
+		return []gin.H{}
+	}
+	ids := make([]string, len(profiles))
+	userIDs := make(map[string]bool)
+	for i, p := range profiles {
+		ids[i] = p.ID
+		userIDs[p.UserID] = true
+	}
+	uniqueUserIDs := make([]string, 0, len(userIDs))
+	for uid := range userIDs {
+		uniqueUserIDs = append(uniqueUserIDs, uid)
+	}
+	var users []models.User
+	db.DB.Where("id IN ?", uniqueUserIDs).Find(&users)
+	userMap := make(map[string]models.User)
+	for _, u := range users {
+		userMap[u.ID] = u
+	}
+	type aggRow struct {
+		ProfileID string `gorm:"column:profile_id"`
+		Cnt       int64  `gorm:"column:cnt"`
+	}
+	kMap := make(map[string]int64)
+	var kRows []aggRow
+	db.DB.Raw("SELECT profile_id, COUNT(*) AS cnt FROM life_agent_knowledge_entries WHERE profile_id IN ? GROUP BY profile_id", ids).Scan(&kRows)
+	for _, r := range kRows {
+		kMap[r.ProfileID] = r.Cnt
+	}
+	qpMap := make(map[string]int64)
+	var qpRows []aggRow
+	db.DB.Raw("SELECT profile_id, COUNT(*) AS cnt FROM life_agent_question_packs WHERE profile_id IN ? GROUP BY profile_id", ids).Scan(&qpRows)
+	for _, r := range qpRows {
+		qpMap[r.ProfileID] = r.Cnt
+	}
+	sessMap := make(map[string]int64)
+	var sessRows []aggRow
+	db.DB.Raw("SELECT profile_id, COUNT(*) AS cnt FROM life_agent_chat_sessions WHERE profile_id IN ? GROUP BY profile_id", ids).Scan(&sessRows)
+	for _, r := range sessRows {
+		sessMap[r.ProfileID] = r.Cnt
+	}
+	type ratingAgg struct {
+		ProfileID string  `gorm:"column:profile_id"`
+		Raters    int64   `gorm:"column:raters"`
+		Avg       float64 `gorm:"column:avg"`
+	}
+	ratingMap := make(map[string]gin.H)
+	var ratingRows []ratingAgg
+	db.DB.Raw("SELECT profile_id, COUNT(*) AS raters, COALESCE(AVG(score),0) AS avg FROM life_agent_ratings WHERE profile_id IN ? GROUP BY profile_id", ids).Scan(&ratingRows)
+	for _, r := range ratingRows {
+		ratingMap[r.ProfileID] = gin.H{"averageScore": r.Avg, "raters": r.Raters, "recent": []gin.H{}}
+	}
+	for _, id := range ids {
+		if _, ok := ratingMap[id]; !ok {
+			ratingMap[id] = gin.H{"averageScore": 0.0, "raters": 0, "recent": []gin.H{}}
+		}
+	}
+	resp := make([]gin.H, 0, len(profiles))
+	for _, p := range profiles {
+		u := userMap[p.UserID]
+		ratingsSummary := ratingMap[p.ID]
+		cu := lifeAgentCoverURL(&p)
+		resp = append(resp, gin.H{
+			"id":                 p.ID,
+			"displayName":        p.DisplayName,
+			"headline":           p.Headline,
+			"shortBio":           p.ShortBio,
+			"audience":           p.Audience,
+			"welcomeMessage":     p.WelcomeMessage,
+			"pricePerQuestion":   p.PricePerQuestion,
+			"expertiseTags":      p.ExpertiseTags,
+			"sampleQuestions":    p.SampleQuestions,
+			"education":          ptrStr(p.Education),
+			"income":             ptrStr(p.Income),
+			"job":                ptrStr(p.Job),
+			"school":             ptrStr(p.School),
+			"country":            ptrStr(p.Country),
+			"province":           ptrStr(p.Province),
+			"city":               ptrStr(p.City),
+			"county":             ptrStr(p.County),
+			"regions":            p.Regions,
+			"verificationStatus": coalesceVerificationStatus(p.VerificationStatus),
+			"creator":            gin.H{"id": u.ID, "name": u.Name},
+			"knowledgeCount":     kMap[p.ID],
+			"soldQuestionPacks":  qpMap[p.ID],
+			"sessionCount":       sessMap[p.ID],
+			"ratings":            ratingsSummary,
+			"coverImageUrl":      ptrStr(p.CoverImageURL),
+			"coverPresetKey":     ptrStr(p.CoverPresetKey),
+			"coverUrl":           cu,
+		})
+	}
+	return resp
+}
+
 func LifeAgentsList(cfg *config.Config) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		limitStr := strings.TrimSpace(c.Query("limit"))
+		if limitStr == "" {
+			var profiles []models.LifeAgentProfile
+			if err := db.DB.Where("published = ?", true).Order("updated_at DESC").Order("id DESC").Find(&profiles).Error; err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "INTERNAL_ERROR"})
+				return
+			}
+			c.JSON(http.StatusOK, lifeAgentListResponseItems(profiles))
+			return
+		}
+
+		limit, err := strconv.Atoi(limitStr)
+		if err != nil || limit < 1 {
+			limit = 24
+		}
+		if limit > 100 {
+			limit = 100
+		}
+
+		q := db.DB.Where("published = ?", true)
+		if cur := strings.TrimSpace(c.Query("cursor")); cur != "" {
+			t, id, derr := decodeLifeAgentListCursor(cur)
+			if derr != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "INVALID_CURSOR"})
+				return
+			}
+			q = q.Where("(updated_at < ?) OR (updated_at = ? AND id < ?)", t, t, id)
+		}
+
 		var profiles []models.LifeAgentProfile
-		if err := db.DB.Where("published = ?", true).Order("updated_at DESC").Find(&profiles).Error; err != nil {
+		if err := q.Order("updated_at DESC").Order("id DESC").Limit(limit + 1).Find(&profiles).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "INTERNAL_ERROR"})
 			return
 		}
-		if len(profiles) == 0 {
-			c.JSON(http.StatusOK, []gin.H{})
-			return
+
+		nextCursor := ""
+		if len(profiles) > limit {
+			profiles = profiles[:limit]
+			last := profiles[len(profiles)-1]
+			nextCursor = encodeLifeAgentListCursor(last.UpdatedAt, last.ID)
 		}
-		ids := make([]string, len(profiles))
-		userIDs := make(map[string]bool)
-		for i, p := range profiles {
-			ids[i] = p.ID
-			userIDs[p.UserID] = true
-		}
-		uniqueUserIDs := make([]string, 0, len(userIDs))
-		for uid := range userIDs {
-			uniqueUserIDs = append(uniqueUserIDs, uid)
-		}
-		var users []models.User
-		db.DB.Where("id IN ?", uniqueUserIDs).Find(&users)
-		userMap := make(map[string]models.User)
-		for _, u := range users {
-			userMap[u.ID] = u
-		}
-		type aggRow struct {
-			ProfileID string `gorm:"column:profile_id"`
-			Cnt       int64  `gorm:"column:cnt"`
-		}
-		kMap := make(map[string]int64)
-		var kRows []aggRow
-		db.DB.Raw("SELECT profile_id, COUNT(*) AS cnt FROM life_agent_knowledge_entries WHERE profile_id IN ? GROUP BY profile_id", ids).Scan(&kRows)
-		for _, r := range kRows {
-			kMap[r.ProfileID] = r.Cnt
-		}
-		qpMap := make(map[string]int64)
-		var qpRows []aggRow
-		db.DB.Raw("SELECT profile_id, COUNT(*) AS cnt FROM life_agent_question_packs WHERE profile_id IN ? GROUP BY profile_id", ids).Scan(&qpRows)
-		for _, r := range qpRows {
-			qpMap[r.ProfileID] = r.Cnt
-		}
-		sessMap := make(map[string]int64)
-		var sessRows []aggRow
-		db.DB.Raw("SELECT profile_id, COUNT(*) AS cnt FROM life_agent_chat_sessions WHERE profile_id IN ? GROUP BY profile_id", ids).Scan(&sessRows)
-		for _, r := range sessRows {
-			sessMap[r.ProfileID] = r.Cnt
-		}
-		type ratingAgg struct {
-			ProfileID string  `gorm:"column:profile_id"`
-			Raters    int64   `gorm:"column:raters"`
-			Avg       float64 `gorm:"column:avg"`
-		}
-		ratingMap := make(map[string]gin.H)
-		var ratingRows []ratingAgg
-		db.DB.Raw("SELECT profile_id, COUNT(*) AS raters, COALESCE(AVG(score),0) AS avg FROM life_agent_ratings WHERE profile_id IN ? GROUP BY profile_id", ids).Scan(&ratingRows)
-		for _, r := range ratingRows {
-			ratingMap[r.ProfileID] = gin.H{"averageScore": r.Avg, "raters": r.Raters, "recent": []gin.H{}}
-		}
-		for _, id := range ids {
-			if _, ok := ratingMap[id]; !ok {
-				ratingMap[id] = gin.H{"averageScore": 0.0, "raters": 0, "recent": []gin.H{}}
-			}
-		}
-		var resp []gin.H
-		for _, p := range profiles {
-			u := userMap[p.UserID]
-			ratingsSummary := ratingMap[p.ID]
-			cu := lifeAgentCoverURL(&p)
-			resp = append(resp, gin.H{
-				"id":                 p.ID,
-				"displayName":        p.DisplayName,
-				"headline":           p.Headline,
-				"shortBio":           p.ShortBio,
-				"audience":           p.Audience,
-				"welcomeMessage":     p.WelcomeMessage,
-				"pricePerQuestion":   p.PricePerQuestion,
-				"expertiseTags":      p.ExpertiseTags,
-				"sampleQuestions":    p.SampleQuestions,
-				"education":          ptrStr(p.Education),
-				"income":             ptrStr(p.Income),
-				"job":                ptrStr(p.Job),
-				"school":             ptrStr(p.School),
-				"country":            ptrStr(p.Country),
-				"province":           ptrStr(p.Province),
-				"city":               ptrStr(p.City),
-				"county":             ptrStr(p.County),
-				"regions":            p.Regions,
-				"verificationStatus": coalesceVerificationStatus(p.VerificationStatus),
-				"creator":            gin.H{"id": u.ID, "name": u.Name},
-				"knowledgeCount":     kMap[p.ID],
-				"soldQuestionPacks":  qpMap[p.ID],
-				"sessionCount":       sessMap[p.ID],
-				"ratings":            ratingsSummary,
-				"coverImageUrl":      ptrStr(p.CoverImageURL),
-				"coverPresetKey":     ptrStr(p.CoverPresetKey),
-				"coverUrl":           cu,
-			})
-		}
-		c.JSON(http.StatusOK, resp)
+
+		c.JSON(http.StatusOK, gin.H{
+			"items":      lifeAgentListResponseItems(profiles),
+			"nextCursor": nextCursor,
+		})
 	}
 }
 
