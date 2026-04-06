@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import { RatingStars } from "@/components/RatingStars";
 import { VerificationBadge } from "@/components/VerificationBadge";
@@ -57,23 +57,21 @@ function LifeAgentDiscoverCard({
   profile,
   globalIndex,
   profileHref,
+  /** 虚拟列表回收节点时禁用入场动画，避免反复 mount 触发动效与布局抖动 */
+  skipMountAnimation,
 }: {
   profile: LifeAgentListItem;
   globalIndex: number;
   profileHref: (id: string) => string;
+  skipMountAnimation?: boolean;
 }) {
   const areaLabel = [profile.city, profile.province].filter(Boolean).join(" · ");
   const tags = (profile.expertiseTags ?? []).slice(0, 2);
   const coverUrl = profile.coverUrl || resolveLifeAgentCoverUrl(profile.coverImageUrl, profile.coverPresetKey);
   const stagger = globalIndex < 8;
-  return (
-    <motion.article
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: stagger ? globalIndex * 0.04 : 0, duration: stagger ? 0.4 : 0.18 }}
-      className="min-h-0 [content-visibility:auto] [contain-intrinsic-size:auto_300px]"
-    >
-      <Link href={profileHref(profile.id)} className="group flex h-full min-h-0">
+  const shellClass = "min-h-0 [content-visibility:auto] [contain-intrinsic-size:auto_300px]";
+  const inner = (
+    <Link href={profileHref(profile.id)} className="group flex h-full min-h-0">
         <div className="flex h-full min-h-[280px] w-full flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/70 transition duration-200 group-hover:shadow-md group-hover:ring-blue-200/60 sm:min-h-[300px]">
           <div className="relative aspect-[4/5] w-full shrink-0 overflow-hidden bg-slate-100">
             {typeof profile.published === "boolean" && (
@@ -146,6 +144,18 @@ function LifeAgentDiscoverCard({
           </div>
         </div>
       </Link>
+  );
+  if (skipMountAnimation) {
+    return <article className={shellClass}>{inner}</article>;
+  }
+  return (
+    <motion.article
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: stagger ? globalIndex * 0.04 : 0, duration: stagger ? 0.4 : 0.18 }}
+      className={shellClass}
+    >
+      {inner}
     </motion.article>
   );
 }
@@ -190,12 +200,17 @@ export function LifeAgentDiscoverCardGrid({
 
   const rowVirtualizer = useWindowVirtualizer({
     count: rows.length,
-    estimateSize: () => 312,
+    estimateSize: () => 328,
     overscan: 4,
     gap: 12,
     enabled: virtualized && !loading && profiles.length > 0,
     getItemKey: (i) => rowKeys[i] ?? String(i),
   });
+
+  // 库在「上方行」高度实测与估算不一致时会改 window.scrollY；向上滑时与惯性滚动对抗，体感像减速（该选项不在 VirtualizerOptions 里，需写实例属性）
+  useLayoutEffect(() => {
+    rowVirtualizer.shouldAdjustScrollPositionOnItemSizeChange = () => false;
+  }, [rowVirtualizer]);
 
   const loadMoreSentinelRef = useRef<HTMLDivElement | null>(null);
   const onLoadMoreRef = useRef(onLoadMore);
@@ -318,6 +333,7 @@ export function LifeAgentDiscoverCardGrid({
                       profile={profile}
                       globalIndex={globalIndex}
                       profileHref={profileHref}
+                      skipMountAnimation
                     />
                   );
                 })}
