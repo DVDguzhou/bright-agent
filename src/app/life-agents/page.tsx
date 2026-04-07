@@ -13,6 +13,10 @@ import { LifeAgentDiscoverCardGrid } from "@/components/LifeAgentDiscoverCardGri
 import { rankLifeAgentsBySearchQuery, type LifeAgentListItem } from "@/lib/life-agent-feed-search";
 import { fetchAllPublishedLifeAgents, fetchLifeAgentsPage } from "@/lib/life-agents-list-api";
 import { useAuth } from "@/contexts/AuthContext";
+import {
+  useLifeAgentsFeedGestures,
+  useMobileTouchNavEnabled,
+} from "@/hooks/use-life-agents-feed-gestures";
 
 type PurchasedAgentRow = {
   id: string;
@@ -65,6 +69,107 @@ function LifeAgentsPageContent() {
   const [purchasedLoading, setPurchasedLoading] = useState(false);
   const [purchasedUnauthorized, setPurchasedUnauthorized] = useState(false);
 
+  const touchNavEnabled = useMobileTouchNavEnabled();
+
+  const loadPurchasedList = useCallback(async () => {
+    setPurchasedLoading(true);
+    setPurchasedUnauthorized(false);
+    try {
+      const r = await fetch("/api/life-agents/purchased", { credentials: "include" });
+      if (r.status === 401) {
+        setPurchasedUnauthorized(true);
+        setPurchasedItems([]);
+        return;
+      }
+      const d = await r.json().catch(() => []);
+      const raw = Array.isArray(d) ? d : [];
+      const items: PurchasedAgentRow[] = raw.map((row: Record<string, unknown>) => ({
+        id: String(row.id ?? ""),
+        displayName: String(row.displayName ?? ""),
+        headline: String(row.headline ?? ""),
+        pricePerQuestion: typeof row.pricePerQuestion === "number" ? row.pricePerQuestion : 0,
+        remainingQuestions: typeof row.remainingQuestions === "number" ? row.remainingQuestions : 0,
+        verificationStatus: typeof row.verificationStatus === "string" ? row.verificationStatus : undefined,
+      })).filter((row) => row.id);
+      setPurchasedUnauthorized(false);
+      setPurchasedItems(items);
+    } catch {
+      setPurchasedUnauthorized(false);
+      setPurchasedItems([]);
+    } finally {
+      setPurchasedLoading(false);
+    }
+  }, []);
+
+  const loadFavoritesFullList = useCallback(async () => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 60000);
+    setFavoritesLoading(true);
+    setLoadError(null);
+    try {
+      const all = await fetchAllPublishedLifeAgents(controller.signal);
+      setFavoritesSource(all);
+      setLoadError(null);
+    } catch (err) {
+      setFavoritesSource([]);
+      setLoadError(
+        err instanceof Error && err.name === "AbortError"
+          ? "请求超时，请检查后端是否启动或稍后重试"
+          : "加载失败，请刷新页面重试",
+      );
+    } finally {
+      clearTimeout(timeoutId);
+      setFavoritesLoading(false);
+      setFavoritesFetched(true);
+    }
+  }, []);
+
+  const refreshDiscover = useCallback(() => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+    setLoadError(null);
+    setDiscoverLoading(true);
+    setDiscoverItems([]);
+    setDiscoverNextCursor(null);
+    return fetchLifeAgentsPage(48, undefined, controller.signal)
+      .then(({ items, nextCursor }) => {
+        setDiscoverItems(items);
+        setDiscoverNextCursor(nextCursor || null);
+        setLoadError(null);
+      })
+      .catch((err) => {
+        setDiscoverItems([]);
+        setDiscoverNextCursor(null);
+        setLoadError(
+          err.name === "AbortError"
+            ? "请求超时，请检查后端是否启动或稍后重试"
+            : "加载失败，请刷新页面重试",
+        );
+      })
+      .finally(() => {
+        clearTimeout(timeoutId);
+        setDiscoverLoading(false);
+      });
+  }, []);
+
+  const onPullRefresh = useCallback(async () => {
+    if (feedTab === "purchased") {
+      await loadPurchasedList();
+      return;
+    }
+    if (feedTab === "favorites") {
+      await loadFavoritesFullList();
+      return;
+    }
+    await refreshDiscover();
+  }, [feedTab, loadFavoritesFullList, loadPurchasedList, refreshDiscover]);
+
+  const { pullOffset, refreshing: pullRefreshing } = useLifeAgentsFeedGestures({
+    feedTab,
+    enabled: touchNavEnabled,
+    onPullRefresh,
+  });
+
   useEffect(() => {
     const sync = () => setFavoriteIds(getFavoriteAgentIds());
     sync();
@@ -74,37 +179,8 @@ function LifeAgentsPageContent() {
 
   useEffect(() => {
     if (feedTab !== "purchased") return;
-    let cancelled = false;
-    setPurchasedLoading(true);
-    setPurchasedUnauthorized(false);
-    fetch("/api/life-agents/purchased", { credentials: "include" })
-      .then(async (r) => {
-        if (r.status === 401) {
-          return { unauthorized: true as const, items: [] as PurchasedAgentRow[] };
-        }
-        const d = await r.json().catch(() => []);
-        const raw = Array.isArray(d) ? d : [];
-        const items: PurchasedAgentRow[] = raw.map((row: Record<string, unknown>) => ({
-          id: String(row.id ?? ""),
-          displayName: String(row.displayName ?? ""),
-          headline: String(row.headline ?? ""),
-          pricePerQuestion: typeof row.pricePerQuestion === "number" ? row.pricePerQuestion : 0,
-          remainingQuestions: typeof row.remainingQuestions === "number" ? row.remainingQuestions : 0,
-          verificationStatus: typeof row.verificationStatus === "string" ? row.verificationStatus : undefined,
-        })).filter((row) => row.id);
-        return { unauthorized: false as const, items };
-      })
-      .catch(() => ({ unauthorized: false as const, items: [] as PurchasedAgentRow[] }))
-      .then((res) => {
-        if (cancelled) return;
-        setPurchasedUnauthorized(res.unauthorized);
-        setPurchasedItems(res.items);
-        setPurchasedLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [feedTab]);
+    void loadPurchasedList();
+  }, [feedTab, loadPurchasedList]);
 
   useEffect(() => {
     if (feedTab === "favorites" || feedTab === "purchased") {
@@ -147,33 +223,8 @@ function LifeAgentsPageContent() {
   useEffect(() => {
     if (feedTab !== "favorites") return;
     if (favoritesFetched) return;
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 60000);
-    setFavoritesLoading(true);
-    setLoadError(null);
-    fetchAllPublishedLifeAgents(controller.signal)
-      .then((all) => {
-        setFavoritesSource(all);
-        setLoadError(null);
-      })
-      .catch((err) => {
-        setFavoritesSource([]);
-        setLoadError(
-          err.name === "AbortError"
-            ? "请求超时，请检查后端是否启动或稍后重试"
-            : "加载失败，请刷新页面重试",
-        );
-      })
-      .finally(() => {
-        clearTimeout(timeoutId);
-        setFavoritesLoading(false);
-        setFavoritesFetched(true);
-      });
-    return () => {
-      clearTimeout(timeoutId);
-      controller.abort();
-    };
-  }, [feedTab, favoritesFetched]);
+    void loadFavoritesFullList();
+  }, [feedTab, favoritesFetched, loadFavoritesFullList]);
 
   const loadMoreDiscover = useCallback(async () => {
     if (!discoverNextCursor || discoverLoadingMore) return;
@@ -218,6 +269,43 @@ function LifeAgentsPageContent() {
 
   return (
     <div className="-mx-1 space-y-4 pb-4 sm:mx-0 sm:space-y-5">
+      {touchNavEnabled ? (
+        <>
+          {(pullOffset > 0 || pullRefreshing) && (
+            <div
+              className="pointer-events-none fixed inset-x-0 z-[45] flex justify-center"
+              style={{ top: "calc(env(safe-area-inset-top) + 48px)" }}
+              aria-live="polite"
+            >
+              <div
+                className="flex items-center gap-2 rounded-full border border-purple-200/50 bg-white/95 px-3 py-1.5 text-xs font-medium text-slate-600 shadow-lg backdrop-blur-md"
+                style={{
+                  transform: `translateY(${Math.min(12, pullOffset * 0.12)}px)`,
+                  opacity: pullRefreshing ? 1 : Math.min(1, pullOffset / 72 + 0.2),
+                }}
+              >
+                {pullRefreshing ? (
+                  <>
+                    <span
+                      className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-purple-200 border-t-purple-700"
+                      aria-hidden
+                    />
+                    刷新中…
+                  </>
+                ) : (
+                  <>松手刷新</>
+                )}
+              </div>
+            </div>
+          )}
+          <p className="sr-only">
+            在页面顶部下拉可刷新当前列表；在空白处左右滑动可在收藏、发现、已购之间切换。
+          </p>
+          <p className="px-1 pb-1 text-center text-[11px] leading-snug text-slate-400 lg:hidden">
+            顶部下拉刷新 · 左右滑动切换「收藏 / 发现 / 已购」
+          </p>
+        </>
+      ) : null}
       <section>
         {feedTab === "favorites" ? (
           <div className="mb-3 rounded-[20px] border border-fuchsia-200/[0.35] bg-gradient-to-r from-fuchsia-50/[0.85] to-violet-50/[0.75] px-4 py-3 text-sm text-purple-950/90 shadow-[0_4px_22px_rgba(124,58,237,0.06)] backdrop-blur-sm">

@@ -9,6 +9,8 @@ import { VerificationBadge } from "@/components/VerificationBadge";
 import { LifeAgentCoverImage } from "@/components/LifeAgentCoverImage";
 import { resolveLifeAgentCoverUrl } from "@/lib/life-agent-covers";
 import { isFavoriteAgentId, toggleFavoriteAgentId } from "@/lib/life-agent-favorites";
+import { useEdgeSwipeBack } from "@/hooks/use-edge-swipe-back";
+import { useMobileTouchNavEnabled } from "@/hooks/use-life-agents-feed-gestures";
 
 type DetailData = {
   id: string;
@@ -76,6 +78,8 @@ const MAX_QUESTIONS = 500;
 export default function LifeAgentDetailPage() {
   const params = useParams();
   const id = params.id as string;
+  const touchNavEnabled = useMobileTouchNavEnabled();
+  useEdgeSwipeBack(touchNavEnabled);
   const [profile, setProfile] = useState<DetailData | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [purchaseCount, setPurchaseCount] = useState(1);

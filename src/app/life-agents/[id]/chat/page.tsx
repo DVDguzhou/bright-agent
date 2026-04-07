@@ -9,6 +9,8 @@ import { VoiceMessageBubble, VoiceReplyToggle } from "@/components/voice";
 import { LifeAgentMessageComposer } from "@/components/LifeAgentMessageComposer";
 import { useAuth } from "@/contexts/AuthContext";
 import { resolveLifeAgentCoverUrl } from "@/lib/life-agent-covers";
+import { useEdgeSwipeBack } from "@/hooks/use-edge-swipe-back";
+import { useMobileTouchNavEnabled } from "@/hooks/use-life-agents-feed-gestures";
 
 type Profile = {
   id: string;
@@ -78,6 +80,8 @@ export default function LifeAgentChatPage() {
   const searchParams = useSearchParams();
   const { user } = useAuth();
   const id = params.id as string;
+  const touchNavEnabled = useMobileTouchNavEnabled();
+  useEdgeSwipeBack(touchNavEnabled);
   const initialRequestedSessionIdRef = useRef(searchParams.get("sessionId"));
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
