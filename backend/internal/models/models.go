@@ -277,6 +277,19 @@ type LifeAgentChatMessage struct {
 
 func (LifeAgentChatMessage) TableName() string { return "life_agent_chat_messages" }
 
+// LifeAgentCoEditState 创建者在「对话调教」页的对话与上次变更快照（与买家咨询会话 life_agent_chat_sessions 分离）
+type LifeAgentCoEditState struct {
+	ID          string    `gorm:"primaryKey;size:36"`
+	ProfileID   string    `gorm:"column:profile_id;size:36;not null;uniqueIndex"`
+	UserID      string    `gorm:"column:user_id;size:36;not null;index"`
+	ChatHistory string    `gorm:"column:chat_history;type:json;not null"`
+	LastChange  *string   `gorm:"column:last_change;type:json"`
+	CreatedAt   time.Time `gorm:"column:created_at"`
+	UpdatedAt   time.Time `gorm:"column:updated_at"`
+}
+
+func (LifeAgentCoEditState) TableName() string { return "life_agent_co_edit_states" }
+
 type LifeAgentQuestionPack struct {
 	ID            string    `gorm:"primaryKey;size:36"`
 	ProfileID     string    `gorm:"column:profile_id;size:36;not null;index"`

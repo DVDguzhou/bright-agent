@@ -94,6 +94,7 @@ func Init(dsn string) error {
 		&models.LifeAgentTopicSummary{},
 		&models.LifeAgentChatSession{},
 		&models.LifeAgentChatMessage{},
+		&models.LifeAgentCoEditState{},
 		&models.LifeAgentQuestionPack{},
 		&models.LifeAgentFeedback{},
 		&models.LifeAgentRating{},

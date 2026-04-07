@@ -45,6 +45,7 @@ export default function LifeAgentCoEditPage() {
   const [lastChange, setLastChange] = useState<LastChange | null>(null);
   const [banner, setBanner] = useState<string | null>(null);
   const [moreOpen, setMoreOpen] = useState(false);
+  const [coEditReady, setCoEditReady] = useState(false);
   const chatHistoryRef = useRef<ChatRow[]>([]);
   const endRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
@@ -53,6 +54,12 @@ export default function LifeAgentCoEditPage() {
   useEffect(() => {
     chatHistoryRef.current = chatHistory;
   }, [chatHistory]);
+
+  useEffect(() => {
+    setCoEditReady(false);
+    setChatHistory([]);
+    setLastChange(null);
+  }, [id]);
 
   useEffect(() => {
     let cancelled = false;
@@ -69,24 +76,83 @@ export default function LifeAgentCoEditPage() {
   }, [id]);
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(storageKey(id));
-      if (!raw) return;
-      const parsed = JSON.parse(raw) as { chatHistory?: ChatRow[]; lastChange?: LastChange | null };
-      if (Array.isArray(parsed.chatHistory)) setChatHistory(parsed.chatHistory);
-      if (parsed.lastChange) setLastChange(parsed.lastChange);
-    } catch {
-      // ignore broken local state
-    }
-  }, [id]);
+    if (!data || data.profile.id !== id) return;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await fetch(`/api/life-agents/${id}/co-edit-state`, { credentials: "include" });
+        let payload: { chatHistory?: unknown; lastChange?: unknown } | null = null;
+        if (res.ok) {
+          payload = (await res.json()) as { chatHistory?: unknown; lastChange?: unknown };
+        }
+        if (cancelled) return;
+
+        let localParsed: { chatHistory?: ChatRow[]; lastChange?: LastChange | null } | null = null;
+        try {
+          const raw = localStorage.getItem(storageKey(id));
+          if (raw) localParsed = JSON.parse(raw) as { chatHistory?: ChatRow[]; lastChange?: LastChange | null };
+        } catch {
+          // ignore
+        }
+
+        const serverH = Array.isArray(payload?.chatHistory) ? (payload!.chatHistory as ChatRow[]) : [];
+        const localH = Array.isArray(localParsed?.chatHistory) ? localParsed!.chatHistory! : [];
+
+        if (serverH.length > 0) {
+          setChatHistory(serverH);
+          setLastChange((payload?.lastChange as LastChange | null | undefined) ?? null);
+        } else if (localH.length > 0) {
+          setChatHistory(localH);
+          setLastChange(localParsed?.lastChange ?? null);
+        } else {
+          setChatHistory([]);
+          setLastChange(null);
+        }
+      } catch {
+        if (!cancelled) {
+          try {
+            const raw = localStorage.getItem(storageKey(id));
+            if (raw) {
+              const parsed = JSON.parse(raw) as { chatHistory?: ChatRow[]; lastChange?: LastChange | null };
+              if (Array.isArray(parsed.chatHistory)) setChatHistory(parsed.chatHistory);
+              if (parsed.lastChange !== undefined) setLastChange(parsed.lastChange);
+            }
+          } catch {
+            // ignore
+          }
+        }
+      } finally {
+        if (!cancelled) setCoEditReady(true);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [data, id]);
 
   useEffect(() => {
+    if (!coEditReady || !data || data.profile.id !== id) return;
     try {
       localStorage.setItem(storageKey(id), JSON.stringify({ chatHistory, lastChange }));
     } catch {
       // ignore quota error
     }
-  }, [chatHistory, id, lastChange]);
+  }, [chatHistory, lastChange, coEditReady, data, id]);
+
+  useEffect(() => {
+    if (!coEditReady || !data || data.profile.id !== id) return;
+    const t = window.setTimeout(() => {
+      void fetch(`/api/life-agents/${id}/co-edit-state`, {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chatHistory, lastChange }),
+      }).catch(() => {
+        /* 离线时仅依赖 localStorage */
+      });
+    }, 650);
+    return () => window.clearTimeout(t);
+  }, [chatHistory, lastChange, coEditReady, data, id]);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -221,7 +287,7 @@ export default function LifeAgentCoEditPage() {
         <div className="shrink-0 px-3 py-1.5 text-xs text-purple-900/50 sm:px-4">
           <div className="mx-auto flex max-w-3xl items-center justify-between gap-2">
             <span>像聊天一样改资料，发送后会自动同步当前 Agent 状态。</span>
-            <span>历史保存在当前设备</span>
+            <span>历史已保存到服务器，并同步本机缓存</span>
           </div>
         </div>
 
