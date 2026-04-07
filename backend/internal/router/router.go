@@ -63,6 +63,7 @@ func Setup(cfg *config.Config) *gin.Engine {
 			lifeAgents.DELETE("/:id/invoke-keys/:keyId", middleware.RequireAuth(cfg), handler.LifeAgentsInvokeKeysDelete(cfg))
 			lifeAgents.POST("/:id/api/chat", handler.LifeAgentsChatAPI(cfg))
 			lifeAgents.POST("/:id/modify-via-chat", middleware.RequireAuth(cfg), handler.LifeAgentsModifyViaChat(cfg))
+			lifeAgents.POST("/:id/import-chat", middleware.RequireAuth(cfg), handler.LifeAgentsImportChat(cfg))
 			lifeAgents.POST("/:id/purchase", middleware.RequireAuth(cfg), handler.LifeAgentsPurchase(cfg))
 			lifeAgents.GET("/:id/chat/sessions", middleware.RequireAuth(cfg), handler.LifeAgentsChatSessions(cfg))
 			lifeAgents.GET("/:id/chat/sessions/:sessionId", middleware.RequireAuth(cfg), handler.LifeAgentsChatSessionDetail(cfg))

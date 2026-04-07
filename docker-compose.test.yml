@@ -58,6 +58,7 @@ services:
       SMS_SIGN_NAME: ${SMS_SIGN_NAME:-}
       SMS_TEMPLATE_CODE: ${SMS_TEMPLATE_CODE:-}
       PHONE_CODE_TTL: ${PHONE_CODE_TTL:-5m}
+      MAX_CHAT_IMPORT_MESSAGES: ${MAX_CHAT_IMPORT_MESSAGES:-100}
     depends_on:
       mysql:
         condition: service_healthy
