@@ -1,0 +1,81 @@
+# 测试环境：本地 Docker MySQL + backend + frontend
+# 启动：docker compose -f docker-compose.test.yml up -d --build
+# 自动读取同目录下的 .env 文件
+services:
+  mysql:
+    image: docker.m.daocloud.io/library/mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-test123456}
+      MYSQL_DATABASE: agent_marketplace_test
+      MYSQL_CHARSET: utf8mb4
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_test_data:/var/lib/mysql
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-root:test123456@tcp(mysql:3306)/agent_marketplace_test?charset=utf8mb4&parseTime=True}
+      SESSION_SECRET: ${SESSION_SECRET:-test-secret-do-not-use-in-prod}
+      SESSION_COOKIE: ${SESSION_COOKIE:-agent_fiverr_session}
+      SECURE_SESSION_COOKIE: ${SECURE_SESSION_COOKIE:-}
+      BASE_URL: ${BASE_URL:-http://localhost:8080}
+      FRONTEND_URL: ${FRONTEND_URL:-}
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-}
+      CORS_ORIGINS: ${CORS_ORIGINS:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-qwen-plus}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-https://dashscope.aliyuncs.com/compatible-mode/v1}
+      LLM_ENABLE_WEB_SEARCH: ${LLM_ENABLE_WEB_SEARCH:-}
+      TTS_PROVIDER: ${TTS_PROVIDER:-}
+      DASHSCOPE_API_KEY: ${DASHSCOPE_API_KEY:-}
+      DASHSCOPE_TTS_URL: ${DASHSCOPE_TTS_URL:-}
+      DASHSCOPE_TTS_MODEL: ${DASHSCOPE_TTS_MODEL:-}
+      DASHSCOPE_TTS_VOICE: ${DASHSCOPE_TTS_VOICE:-}
+      DASHSCOPE_TTS_LANGUAGE: ${DASHSCOPE_TTS_LANGUAGE:-}
+      DASHSCOPE_VC_MODEL: ${DASHSCOPE_VC_MODEL:-}
+      DASHSCOPE_VOICE_ENROLL_URL: ${DASHSCOPE_VOICE_ENROLL_URL:-}
+      OPENAI_TTS_API_KEY: ${OPENAI_TTS_API_KEY:-}
+      TTS_DEBUG: ${TTS_DEBUG:-}
+      WECHAT_APP_ID: ${WECHAT_APP_ID:-}
+      WECHAT_APP_SECRET: ${WECHAT_APP_SECRET:-}
+      WECHAT_REDIRECT_URI: ${WECHAT_REDIRECT_URI:-}
+      SMS_ACCESS_KEY_ID: ${SMS_ACCESS_KEY_ID:-}
+      SMS_ACCESS_KEY_SECRET: ${SMS_ACCESS_KEY_SECRET:-}
+      SMS_SIGN_NAME: ${SMS_SIGN_NAME:-}
+      SMS_TEMPLATE_CODE: ${SMS_TEMPLATE_CODE:-}
+      PHONE_CODE_TTL: ${PHONE_CODE_TTL:-5m}
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        API_BACKEND_URL: http://backend:8080
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      API_BACKEND_URL: http://backend:8080
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+    depends_on:
+      - backend
+
+volumes:
+  mysql_test_data:
