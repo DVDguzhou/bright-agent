@@ -164,10 +164,24 @@ export default function LifeAgentCoEditPage() {
   const runModify = async (msg: string) => {
     if (!data) return;
     const previousProfile = data.profile;
-    const nextHistory = [...chatHistoryRef.current, { role: "user" as const, content: msg }];
+    const userHistory = [...chatHistoryRef.current, { role: "user" as const, content: msg }];
+    const assistantRowIndex = userHistory.length;
     setModifyLoading(true);
     setBanner(null);
-    setChatHistory(nextHistory);
+    setChatHistory([...userHistory, { role: "assistant", content: "" }]);
+
+    const replaceAssistantMessage = (text: string) => {
+      setChatHistory((prev) => {
+        const trimmed =
+          prev.length > 0 &&
+          prev[prev.length - 1].role === "assistant" &&
+          prev[prev.length - 1].content === ""
+            ? prev.slice(0, -1)
+            : prev;
+        return [...trimmed, { role: "assistant" as const, content: text }];
+      });
+    };
+
     try {
       const res = await fetch(`/api/life-agents/${id}/modify-via-chat`, {
         method: "POST",
@@ -175,26 +189,111 @@ export default function LifeAgentCoEditPage() {
         credentials: "include",
         body: JSON.stringify({
           message: msg,
-          chatHistory: nextHistory.map((item) => ({ role: item.role, content: item.content })),
+          chatHistory: userHistory.map((item) => ({ role: item.role, content: item.content })),
         }),
       });
-      const next = await res.json().catch(() => null);
-      if (!res.ok || !next?.profile) {
-        setChatHistory((prev) => [...prev, { role: "assistant", content: next?.detail || "修改失败，请重试" }]);
+
+      const ct = res.headers.get("content-type") || "";
+
+      if (!res.ok) {
+        const errBody = (await res.json().catch(() => null)) as { detail?: string } | null;
+        replaceAssistantMessage(
+          typeof errBody?.detail === "string" ? errBody.detail : "修改失败，请重试"
+        );
+        return;
+      }
+
+      if (ct.includes("text/event-stream") && res.body) {
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        let donePayload: { assistantMessage?: string; profile?: ManageProfile } | null = null;
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const parts = buffer.split("\n\n");
+          buffer = parts.pop() || "";
+
+          for (const part of parts) {
+            let eventType = "";
+            let eventData = "";
+            for (const line of part.split("\n")) {
+              if (line.startsWith("event: ")) eventType = line.slice(7).trim();
+              else if (line.startsWith("data: ")) eventData = line.slice(6);
+            }
+            if (!eventData) continue;
+            try {
+              const parsed = JSON.parse(eventData) as Record<string, unknown>;
+              if (eventType === "content" && typeof parsed.content === "string") {
+                setChatHistory((prev) =>
+                  prev.map((row, i) =>
+                    i === assistantRowIndex ? { ...row, content: row.content + parsed.content } : row
+                  )
+                );
+              } else if (eventType === "done") {
+                donePayload = parsed as { assistantMessage?: string; profile?: ManageProfile };
+              }
+            } catch {
+              // ignore malformed SSE
+            }
+          }
+        }
+
+        const next = donePayload;
+        if (!next?.profile) {
+          replaceAssistantMessage("修改失败，请重试");
+          return;
+        }
+        const summary = summarizeProfileChanges(previousProfile, next.profile);
+        setLastChange({
+          before: previousProfile,
+          after: next.profile,
+          summary,
+          message: msg,
+          appliedAt: new Date().toISOString(),
+        });
+        const profileAfter = next.profile;
+        setData((prev) => (prev ? { ...prev, profile: profileAfter } : prev));
+        setChatHistory((prev) =>
+          prev.map((row, i) =>
+            i === assistantRowIndex
+              ? {
+                  ...row,
+                  content: next.assistantMessage || row.content || "我已经按你的要求完成修改。",
+                }
+              : row
+          )
+        );
+        return;
+      }
+
+      const next = (await res.json().catch(() => null)) as {
+        assistantMessage?: string;
+        profile?: ManageProfile;
+        detail?: string;
+      } | null;
+      if (!next?.profile) {
+        replaceAssistantMessage(next?.detail || "修改失败，请重试");
         return;
       }
       const summary = summarizeProfileChanges(previousProfile, next.profile);
-      setChatHistory((prev) => [...prev, { role: "assistant", content: next.assistantMessage || "我已经按你的要求完成修改。" }]);
+      setChatHistory((prev) => [
+        ...prev.slice(0, -1),
+        { role: "assistant", content: next.assistantMessage || "我已经按你的要求完成修改。" },
+      ]);
+      const profileAfter = next.profile;
       setLastChange({
         before: previousProfile,
-        after: next.profile,
+        after: profileAfter,
         summary,
         message: msg,
         appliedAt: new Date().toISOString(),
       });
-      setData((prev) => (prev ? { ...prev, profile: next.profile } : prev));
+      setData((prev) => (prev ? { ...prev, profile: profileAfter } : prev));
     } catch {
-      setChatHistory((prev) => [...prev, { role: "assistant", content: "请求失败，请检查网络后重试" }]);
+      replaceAssistantMessage("请求失败，请检查网络后重试");
     } finally {
       setModifyLoading(false);
     }

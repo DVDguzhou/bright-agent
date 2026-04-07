@@ -1248,6 +1248,23 @@ func LifeAgentsModifyViaChat(cfg *config.Config) gin.HandlerFunc {
 			return
 		}
 		reply := intent.Reply
+
+		c.Header("Content-Type", "text/event-stream")
+		c.Header("Cache-Control", "no-cache")
+		c.Header("Connection", "keep-alive")
+		c.Header("X-Accel-Buffering", "no")
+		c.Status(http.StatusOK)
+
+		writeModifySSE := func(eventType string, payload interface{}) {
+			data, _ := json.Marshal(payload)
+			fmt.Fprintf(c.Writer, "event: %s\ndata: %s\n\n", eventType, data)
+			c.Writer.Flush()
+		}
+
+		lifeagent.EmitReplyChunks(reply, func(chunk string) {
+			writeModifySSE("content", gin.H{"content": chunk})
+		})
+
 		if intent.Changes != nil {
 			ch := intent.Changes
 			upd := db.DB.Model(&p)
@@ -1329,7 +1346,7 @@ func LifeAgentsModifyViaChat(cfg *config.Config) gin.HandlerFunc {
 		db.DB.Where("id = ?", id).First(&p)
 		db.DB.Where("profile_id = ?", id).Order("sort_order").Find(&entries)
 		profileResp := buildManageProfileResp(&p, entries)
-		c.JSON(http.StatusOK, gin.H{
+		writeModifySSE("done", gin.H{
 			"assistantMessage": reply,
 			"profile":          profileResp,
 		})
@@ -1925,10 +1942,14 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 		if reply, replyRefs, ok := lifeagent.ResolveGroundedFactReply(profileForAI, factsForAI, body.Message); ok {
 			content = reply
 			refs = replyRefs
-			writeSSE("content", gin.H{"content": content})
+			lifeagent.EmitReplyChunks(content, func(chunk string) {
+				writeSSE("content", gin.H{"content": chunk})
+			})
 		} else if lifeagent.ClassifyQuestionIntent(body.Message) {
 			content = lifeagent.BuildIdentityReply(profileForAI)
-			writeSSE("content", gin.H{"content": content})
+			lifeagent.EmitReplyChunks(content, func(chunk string) {
+				writeSSE("content", gin.H{"content": chunk})
+			})
 		} else {
 			content, refs, _ = lifeagent.BuildReplyWithLLMStream(
 				c.Request.Context(),

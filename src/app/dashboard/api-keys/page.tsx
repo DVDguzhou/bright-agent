@@ -360,15 +360,22 @@ export default function ApiKeysPage() {
                             </dl>
                           </div>
                           <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-4">
-                            <h3 className="text-sm font-semibold text-slate-800">调用示例（JSON）</h3>
+                            <h3 className="text-sm font-semibold text-slate-800">调用示例（SSE 流式）</h3>
                             <pre className="mt-2 max-h-40 overflow-auto rounded-lg bg-slate-900/90 p-3 text-[11px] leading-relaxed text-slate-100">
-                              {`curl -s -X POST "${origin || "https://你的域名"}/api/life-agents/${a.profileId}/api/chat" \\
+                              {`curl -N -s -X POST "${origin || "https://你的域名"}/api/life-agents/${a.profileId}/api/chat" \\
   -H "Authorization: Bearer lai_sk_你的密钥" \\
   -H "Content-Type: application/json" \\
   -d '{"message":"你好","sessionId":""}'`}
                             </pre>
                             <p className="mt-2 text-[11px] text-slate-500">
-                              首次不传 sessionId 会新建会话；后续传入上次返回的 sessionId 可连续对话。
+                              成功时为 <span className="font-mono text-slate-600">text/event-stream</span>：
+                              <span className="font-mono text-slate-600"> event: content</span> 推送增量正文，
+                              <span className="font-mono text-slate-600"> event: done</span> 携带完整{" "}
+                              <span className="font-mono text-slate-600">reply</span>、
+                              <span className="font-mono text-slate-600">sessionId</span>、
+                              <span className="font-mono text-slate-600">references</span> 等。curl 请加{" "}
+                              <span className="font-mono text-slate-600">-N</span> 以免缓冲看不到流式输出。
+                              首次不传 sessionId 会新建会话；后续传入上次 done 里的 sessionId 可连续对话。
                             </p>
                           </div>
                         </div>

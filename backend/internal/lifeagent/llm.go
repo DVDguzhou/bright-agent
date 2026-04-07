@@ -65,14 +65,28 @@ func BuildReplyWithLLM(ctx context.Context, apiKey, model, baseURL string, enabl
 	return content, references, nil
 }
 
+// EmitReplyChunks 将完整正文按小块顺序回调，便于 SSE 等与主对话一致的「逐段出现」效果。
+func EmitReplyChunks(content string, onChunk func(chunk string)) {
+	if onChunk == nil || content == "" {
+		return
+	}
+	const chunkRunes = 10
+	runes := []rune(content)
+	for i := 0; i < len(runes); i += chunkRunes {
+		end := i + chunkRunes
+		if end > len(runes) {
+			end = len(runes)
+		}
+		onChunk(string(runes[i:end]))
+	}
+}
+
 // BuildReplyWithLLMStream 双阶段生成最终正文后，按小块推流（首 token 前已完成草稿+仲裁，非真·单路 stream）。
-// DashScope 联网搜索与无 LLM 时回退到 BuildReplyWithLLM 并一次性推送。
+// DashScope 联网搜索与无 LLM 时回退到 BuildReplyWithLLM，仍按 EmitReplyChunks 分块输出。
 func BuildReplyWithLLMStream(ctx context.Context, apiKey, model, baseURL string, enableWebSearch bool, profile ProfileForAI, facts []StructuredFactForAI, topics []TopicSummaryForAI, entries []KnowledgeEntryForAI, history []ChatMessageForAI, message string, onChunk func(chunk string), opts *ChatOptions) (content string, references []map[string]string, err error) {
 	if !isLLMEnabled(apiKey, model, baseURL) || (enableWebSearch && isDashScope(baseURL)) {
 		content, references, err = BuildReplyWithLLM(ctx, apiKey, model, baseURL, enableWebSearch, profile, facts, topics, entries, history, message, opts)
-		if onChunk != nil && content != "" {
-			onChunk(content)
-		}
+		EmitReplyChunks(content, onChunk)
 		return
 	}
 
@@ -85,30 +99,16 @@ func BuildReplyWithLLMStream(ctx context.Context, apiKey, model, baseURL string,
 	if err != nil {
 		log.Printf("[LLM-stream] two-phase failed: %v", err)
 		content, references = BuildReply(profile, facts, topics, entries, history, message)
-		if onChunk != nil && content != "" {
-			onChunk(content)
-		}
+		EmitReplyChunks(content, onChunk)
 		return content, references, nil
 	}
 	if content == "" {
 		content, references = BuildReply(profile, facts, topics, entries, history, message)
-		if onChunk != nil && content != "" {
-			onChunk(content)
-		}
+		EmitReplyChunks(content, onChunk)
 		return content, references, nil
 	}
 
-	if onChunk != nil {
-		const chunkRunes = 10
-		runes := []rune(content)
-		for i := 0; i < len(runes); i += chunkRunes {
-			end := i + chunkRunes
-			if end > len(runes) {
-				end = len(runes)
-			}
-			onChunk(string(runes[i:end]))
-		}
-	}
+	EmitReplyChunks(content, onChunk)
 	return content, references, nil
 }
 

@@ -1,9 +1,9 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useWindowedSlice } from "@/lib/use-windowed-slice";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { VerificationBadge } from "@/components/VerificationBadge";
 import { LifeAgentCoverImage } from "@/components/LifeAgentCoverImage";
@@ -48,8 +48,21 @@ const UI = {
   anonymous: "佚",
 } as const;
 
+function tabIndexFromFeedTab(tab: string | null): number {
+  if (tab === "favorites") return 0;
+  if (tab === "purchased") return 2;
+  return 1;
+}
+
+function pathForTabIndex(i: number): string {
+  if (i === 0) return "/life-agents?tab=favorites";
+  if (i === 2) return "/life-agents?tab=purchased";
+  return "/life-agents";
+}
+
 function LifeAgentsPageContent() {
   const { user: authUser } = useAuth();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const feedTab = searchParams.get("tab");
   const [discoverItems, setDiscoverItems] = useState<LifeAgentListItem[]>([]);
@@ -70,6 +83,94 @@ function LifeAgentsPageContent() {
   const [purchasedUnauthorized, setPurchasedUnauthorized] = useState(false);
 
   const touchNavEnabled = useMobileTouchNavEnabled();
+
+  const [visitedMask, setVisitedMask] = useState(() => 1 << tabIndexFromFeedTab(feedTab));
+  const pagerRef = useRef<HTMLDivElement>(null);
+  const [panelWidth, setPanelWidth] = useState(0);
+  const skipScrollFromUrlRef = useRef(false);
+  const replaceDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastPagerIdxRef = useRef(-1);
+
+  const visitPanel = useCallback((i: number) => {
+    setVisitedMask((m) => {
+      let n = m | (1 << i);
+      if (i > 0) n |= 1 << (i - 1);
+      if (i < 2) n |= 1 << (i + 1);
+      return n;
+    });
+  }, []);
+
+  useEffect(() => {
+    if (touchNavEnabled) return;
+    setVisitedMask(1 << tabIndexFromFeedTab(feedTab));
+  }, [touchNavEnabled, feedTab]);
+
+  useLayoutEffect(() => {
+    if (!touchNavEnabled) return;
+    const el = pagerRef.current;
+    if (!el) return;
+    const measure = () => setPanelWidth(el.clientWidth);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [touchNavEnabled]);
+
+  useEffect(() => {
+    if (!touchNavEnabled || panelWidth <= 0) return;
+    const el = pagerRef.current;
+    if (!el) return;
+    if (skipScrollFromUrlRef.current) {
+      skipScrollFromUrlRef.current = false;
+      return;
+    }
+    const idx = tabIndexFromFeedTab(feedTab);
+    el.scrollTo({ left: idx * panelWidth, behavior: "auto" });
+    lastPagerIdxRef.current = idx;
+    visitPanel(idx);
+  }, [touchNavEnabled, feedTab, panelWidth, visitPanel]);
+
+  useEffect(() => {
+    if (!touchNavEnabled || panelWidth <= 0) return;
+    const el = pagerRef.current;
+    if (!el) return;
+
+    const onScroll = () => {
+      const idx = Math.min(2, Math.max(0, Math.round(el.scrollLeft / panelWidth)));
+      if (idx !== lastPagerIdxRef.current) {
+        lastPagerIdxRef.current = idx;
+        visitPanel(idx);
+      }
+      window.dispatchEvent(
+        new CustomEvent("la-feed-pager", {
+          detail: {
+            scrollLeft: el.scrollLeft,
+            panelWidth,
+            index: idx,
+            progress: el.scrollLeft / Math.max(1, panelWidth),
+          },
+        }),
+      );
+
+      if (replaceDebounceRef.current) clearTimeout(replaceDebounceRef.current);
+      replaceDebounceRef.current = setTimeout(() => {
+        replaceDebounceRef.current = null;
+        const i = Math.min(2, Math.max(0, Math.round(el.scrollLeft / panelWidth)));
+        const href = pathForTabIndex(i);
+        const cur = `${window.location.pathname}${window.location.search}`;
+        if (href !== cur) {
+          skipScrollFromUrlRef.current = true;
+          router.replace(href, { scroll: false });
+        }
+      }, 100);
+    };
+
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      el.removeEventListener("scroll", onScroll);
+      if (replaceDebounceRef.current) clearTimeout(replaceDebounceRef.current);
+    };
+  }, [touchNavEnabled, panelWidth, router, visitPanel]);
 
   const loadPurchasedList = useCallback(async () => {
     setPurchasedLoading(true);
@@ -165,7 +266,6 @@ function LifeAgentsPageContent() {
   }, [feedTab, loadFavoritesFullList, loadPurchasedList, refreshDiscover]);
 
   const { pullOffset, refreshing: pullRefreshing } = useLifeAgentsFeedGestures({
-    feedTab,
     enabled: touchNavEnabled,
     onPullRefresh,
   });
@@ -178,12 +278,14 @@ function LifeAgentsPageContent() {
   }, []);
 
   useEffect(() => {
-    if (feedTab !== "purchased") return;
+    if ((visitedMask & 4) === 0) return;
+    if (!touchNavEnabled && feedTab !== "purchased") return;
     void loadPurchasedList();
-  }, [feedTab, loadPurchasedList]);
+  }, [visitedMask & 4, touchNavEnabled, feedTab, loadPurchasedList]);
 
   useEffect(() => {
-    if (feedTab === "favorites" || feedTab === "purchased") {
+    if ((visitedMask & 2) === 0) return;
+    if (!touchNavEnabled && (feedTab === "favorites" || feedTab === "purchased")) {
       setDiscoverLoading(false);
       return;
     }
@@ -218,13 +320,14 @@ function LifeAgentsPageContent() {
       clearTimeout(timeoutId);
       controller.abort();
     };
-  }, [feedTab]);
+  }, [visitedMask & 2, touchNavEnabled, feedTab]);
 
   useEffect(() => {
-    if (feedTab !== "favorites") return;
+    if ((visitedMask & 1) === 0) return;
+    if (!touchNavEnabled && feedTab !== "favorites") return;
     if (favoritesFetched) return;
     void loadFavoritesFullList();
-  }, [feedTab, favoritesFetched, loadFavoritesFullList]);
+  }, [visitedMask & 1, touchNavEnabled, feedTab, favoritesFetched, loadFavoritesFullList]);
 
   const loadMoreDiscover = useCallback(async () => {
     if (!discoverNextCursor || discoverLoadingMore) return;
@@ -250,22 +353,119 @@ function LifeAgentsPageContent() {
     }
   }, [discoverNextCursor, discoverLoadingMore]);
 
-  const displayProfiles = useMemo(() => {
-    if (feedTab === "favorites") {
-      const idSet = new Set(favoriteIds);
-      return rankLifeAgentsBySearchQuery(
-        favoritesSource.filter((p) => idSet.has(p.id)),
-        "",
-      );
-    }
-    if (feedTab === "purchased") return [];
-    return rankLifeAgentsBySearchQuery(discoverItems, "");
-  }, [feedTab, favoriteIds, favoritesSource, discoverItems]);
+  const displayProfilesFavorites = useMemo(() => {
+    const idSet = new Set(favoriteIds);
+    return rankLifeAgentsBySearchQuery(
+      favoritesSource.filter((p) => idSet.has(p.id)),
+      "",
+    );
+  }, [favoriteIds, favoritesSource]);
 
-  const gridLoading =
+  const displayProfilesDiscover = useMemo(
+    () => rankLifeAgentsBySearchQuery(discoverItems, ""),
+    [discoverItems],
+  );
+
+  const displayProfilesDesktop = useMemo(() => {
+    if (feedTab === "favorites") return displayProfilesFavorites;
+    if (feedTab === "purchased") return [];
+    return displayProfilesDiscover;
+  }, [feedTab, displayProfilesFavorites, displayProfilesDiscover]);
+
+  const gridLoadingDesktop =
     feedTab === "favorites" ? favoritesLoading : feedTab === "purchased" ? false : discoverLoading;
 
-  const feedWindowKey = feedTab === "favorites" ? "favorites" : feedTab === "purchased" ? "purchased" : "discover";
+  const feedWindowKeyDesktop =
+    feedTab === "favorites" ? "favorites" : feedTab === "purchased" ? "purchased" : "discover";
+
+  const loadErrorBanner = loadError ? (
+    <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-amber-800">
+      {loadError}
+      <button
+        type="button"
+        onClick={() => window.location.reload()}
+        className="ml-3 text-sm font-medium text-amber-700 underline hover:no-underline"
+      >
+        刷新页面
+      </button>
+    </div>
+  ) : null;
+
+  const favoritesIntro = (
+    <div className="mb-3 rounded-[20px] border border-fuchsia-200/[0.35] bg-gradient-to-r from-fuchsia-50/[0.85] to-violet-50/[0.75] px-4 py-3 text-sm text-purple-950/90 shadow-[0_4px_22px_rgba(124,58,237,0.06)] backdrop-blur-sm">
+      <p className="font-medium">我的收藏</p>
+      <p className="mt-1 text-xs text-purple-900/75">
+        {authUser
+          ? "在 Agent 详情页封面右上角点星形即可收藏，已登录时收藏会保存到你的账号。"
+          : "在 Agent 详情页封面右上角点星形即可收藏；登录后收藏会同步到账号，未登录时仅保存在本机浏览器。"}
+      </p>
+    </div>
+  );
+
+  const purchasedIntro = (
+    <div className="mb-3 rounded-[20px] border border-purple-200/[0.28] bg-gradient-to-r from-violet-50/[0.9] to-fuchsia-50/[0.7] px-4 py-3 text-sm text-purple-950/90 shadow-[0_4px_22px_rgba(124,58,237,0.06)] backdrop-blur-sm">
+      <p className="font-medium">已购买咨询额度</p>
+      <p className="mt-1 text-xs text-purple-900/75">以下为仍有剩余提问次数的 Agent，点击卡片可进入对话。</p>
+    </div>
+  );
+
+  const favoritesHeading = (
+    <div className="mb-3 flex flex-wrap items-center justify-between gap-3 px-1">
+      <h2 className="text-base font-semibold text-purple-950/90 sm:text-lg">我的收藏</h2>
+      <span className="shrink-0 rounded-full bg-violet-100/90 px-2.5 py-0.5 text-[11px] text-purple-800 sm:text-xs">
+        {favoritesLoading ? UI.loading : `${displayProfilesFavorites.length}/${favoritesSource.length}${UI.countSuffix}`}
+      </span>
+    </div>
+  );
+
+  const purchasedHeading = (
+    <div className="mb-3 flex flex-wrap items-center justify-between gap-3 px-1">
+      <h2 className="text-base font-semibold text-purple-950/90 sm:text-lg">已购买</h2>
+      <span className="shrink-0 rounded-full bg-violet-100/90 px-2.5 py-0.5 text-[11px] text-purple-800 sm:text-xs">
+        {purchasedLoading ? UI.loading : `${purchasedItems.length}${UI.countSuffix}`}
+      </span>
+    </div>
+  );
+
+  const purchasedBody =
+    purchasedLoading ? (
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4 xl:grid-cols-5">
+        {[1, 2, 3, 4, 5, 6].map((item) => (
+          <div
+            key={item}
+            className="flex min-h-0 flex-col overflow-hidden rounded-[22px] border border-purple-200/[0.18] bg-white/[0.96] shadow-[0_4px_22px_rgba(124,58,237,0.06)]"
+          >
+            <div className="aspect-[4/5] w-full shrink-0 animate-pulse bg-gradient-to-br from-violet-100/80 to-fuchsia-100/50" />
+            <div className="flex flex-1 flex-col gap-2 p-2.5">
+              <div className="min-h-[2.75rem] animate-pulse rounded-md bg-slate-100" />
+              <div className="h-3 w-2/3 animate-pulse rounded bg-slate-100" />
+              <div className="h-4 animate-pulse rounded bg-slate-50" />
+            </div>
+          </div>
+        ))}
+      </div>
+    ) : purchasedUnauthorized ? (
+      <div className="rounded-[22px] border border-dashed border-purple-200/40 bg-white/[0.97] px-6 py-12 text-center shadow-[0_6px_28px_rgba(124,58,237,0.06)] backdrop-blur-sm">
+        <p className="text-base font-semibold text-purple-950/90">请先登录</p>
+        <p className="mt-2 text-sm text-slate-500">登录后可查看你已购买提问额度的 Agent。</p>
+        <Link href="/login" className="btn-primary mt-5 inline-flex">
+          去登录
+        </Link>
+      </div>
+    ) : purchasedItems.length === 0 ? (
+      <div className="rounded-[22px] border border-dashed border-purple-200/40 bg-white/[0.97] px-6 py-12 text-center shadow-[0_6px_28px_rgba(124,58,237,0.06)] backdrop-blur-sm">
+        <p className="text-base font-semibold text-purple-950/90">暂无已购额度</p>
+        <p className="mt-2 text-sm text-slate-500">购买提问包后，对应 Agent 会出现在这里。</p>
+        <Link href="/life-agents" className="mt-5 inline-block text-sm font-semibold text-purple-700 underline decoration-purple-300/70 underline-offset-2 hover:text-purple-900">
+          去发现页逛逛
+        </Link>
+      </div>
+    ) : (
+      <PurchasedAgentsWindowedGrid rows={purchasedItems} />
+    );
+
+  const pagerSectionClass =
+    "box-border w-full min-w-[100%] shrink-0 space-y-4 px-1 sm:px-0 max-lg:snap-center max-lg:snap-always";
 
   return (
     <div className="-mx-1 space-y-4 pb-4 sm:mx-0 sm:space-y-5">
@@ -298,110 +498,86 @@ function LifeAgentsPageContent() {
               </div>
             </div>
           )}
-          <p className="sr-only">列表处于顶部时下拉可刷新；左右滑动可切换收藏、发现与已购。</p>
+          <p className="sr-only">顶部下拉可刷新；横向滑动页面可切换收藏、发现与已购。</p>
         </>
       ) : null}
-      <section>
-        {feedTab === "favorites" ? (
-          <div className="mb-3 rounded-[20px] border border-fuchsia-200/[0.35] bg-gradient-to-r from-fuchsia-50/[0.85] to-violet-50/[0.75] px-4 py-3 text-sm text-purple-950/90 shadow-[0_4px_22px_rgba(124,58,237,0.06)] backdrop-blur-sm">
-            <p className="font-medium">我的收藏</p>
-            <p className="mt-1 text-xs text-purple-900/75">
-              {authUser
-                ? "在 Agent 详情页封面右上角点星形即可收藏，已登录时收藏会保存到你的账号。"
-                : "在 Agent 详情页封面右上角点星形即可收藏；登录后收藏会同步到账号，未登录时仅保存在本机浏览器。"}
-            </p>
-          </div>
-        ) : feedTab === "purchased" ? (
-          <div className="mb-3 rounded-[20px] border border-purple-200/[0.28] bg-gradient-to-r from-violet-50/[0.9] to-fuchsia-50/[0.7] px-4 py-3 text-sm text-purple-950/90 shadow-[0_4px_22px_rgba(124,58,237,0.06)] backdrop-blur-sm">
-            <p className="font-medium">已购买咨询额度</p>
-            <p className="mt-1 text-xs text-purple-900/75">以下为仍有剩余提问次数的 Agent，点击卡片可进入对话。</p>
-          </div>
-        ) : null}
 
-        {feedTab === "favorites" || feedTab === "purchased" ? (
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-3 px-1">
-            <h2 className="text-base font-semibold text-purple-950/90 sm:text-lg">
-              {feedTab === "favorites" ? "我的收藏" : "已购买"}
-            </h2>
-            <span className="shrink-0 rounded-full bg-violet-100/90 px-2.5 py-0.5 text-[11px] text-purple-800 sm:text-xs">
-              {feedTab === "purchased"
-                ? purchasedLoading
-                  ? UI.loading
-                  : `${purchasedItems.length}${UI.countSuffix}`
-                : gridLoading
-                  ? UI.loading
-                  : `${displayProfiles.length}/${favoritesSource.length}${UI.countSuffix}`}
-            </span>
-          </div>
-        ) : null}
-
-        {loadError && (
-          <div className="mb-6 rounded-2xl bg-amber-50 border border-amber-200 px-4 py-3 text-amber-800">
-            {loadError}
-            <button
-              type="button"
-              onClick={() => window.location.reload()}
-              className="ml-3 text-sm font-medium text-amber-700 underline hover:no-underline"
+      {touchNavEnabled ? (
+        <>
+          {loadErrorBanner}
+          <div className="w-full overflow-hidden">
+            <div
+              ref={pagerRef}
+              className="flex overflow-x-auto overscroll-x-contain [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x snap-mandatory touch-pan-x"
             >
-              刷新页面
-            </button>
+            <section className={pagerSectionClass} aria-label="收藏">
+              {favoritesIntro}
+              {favoritesHeading}
+              <LifeAgentDiscoverCardGrid
+                profiles={displayProfilesFavorites}
+                loading={favoritesLoading}
+                emptyTitle={loadError ? "加载失败" : "暂无收藏"}
+                emptySubtitle={
+                  loadError
+                    ? "请确认 Go 后端已启动（默认端口 8080），或刷新页面重试"
+                    : "去「发现」逛逛，在喜欢的 Agent 详情页点亮收藏。"
+                }
+                windowResetKey="favorites"
+                virtualized={false}
+              />
+            </section>
+            <section className={pagerSectionClass} aria-label="发现">
+              <LifeAgentDiscoverCardGrid
+                profiles={displayProfilesDiscover}
+                loading={discoverLoading}
+                emptyTitle={loadError ? "加载失败" : UI.emptyTitle}
+                emptySubtitle={
+                  loadError ? "请确认 Go 后端已启动（默认端口 8080），或刷新页面重试" : UI.emptySubtitle
+                }
+                windowResetKey="discover"
+                onLoadMore={loadMoreDiscover}
+                hasMoreFromServer={!!discoverNextCursor}
+                loadingMore={discoverLoadingMore}
+                virtualized={false}
+              />
+            </section>
+            <section className={pagerSectionClass} aria-label="已购买">
+              {purchasedIntro}
+              {purchasedHeading}
+              {purchasedBody}
+            </section>
+            </div>
           </div>
-        )}
-        {feedTab === "purchased" ? (
-          purchasedLoading ? (
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4 xl:grid-cols-5">
-              {[1, 2, 3, 4, 5, 6].map((item) => (
-                <div
-                  key={item}
-                  className="flex min-h-0 flex-col overflow-hidden rounded-[22px] border border-purple-200/[0.18] bg-white/[0.96] shadow-[0_4px_22px_rgba(124,58,237,0.06)]"
-                >
-                  <div className="aspect-[4/5] w-full shrink-0 animate-pulse bg-gradient-to-br from-violet-100/80 to-fuchsia-100/50" />
-                  <div className="flex flex-1 flex-col gap-2 p-2.5">
-                    <div className="min-h-[2.75rem] animate-pulse rounded-md bg-slate-100" />
-                    <div className="h-3 w-2/3 animate-pulse rounded bg-slate-100" />
-                    <div className="h-4 animate-pulse rounded bg-slate-50" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : purchasedUnauthorized ? (
-            <div className="rounded-[22px] border border-dashed border-purple-200/40 bg-white/[0.97] px-6 py-12 text-center shadow-[0_6px_28px_rgba(124,58,237,0.06)] backdrop-blur-sm">
-              <p className="text-base font-semibold text-purple-950/90">请先登录</p>
-              <p className="mt-2 text-sm text-slate-500">登录后可查看你已购买提问额度的 Agent。</p>
-              <Link href="/login" className="btn-primary mt-5 inline-flex">
-                去登录
-              </Link>
-            </div>
-          ) : purchasedItems.length === 0 ? (
-            <div className="rounded-[22px] border border-dashed border-purple-200/40 bg-white/[0.97] px-6 py-12 text-center shadow-[0_6px_28px_rgba(124,58,237,0.06)] backdrop-blur-sm">
-              <p className="text-base font-semibold text-purple-950/90">暂无已购额度</p>
-              <p className="mt-2 text-sm text-slate-500">购买提问包后，对应 Agent 会出现在这里。</p>
-              <Link href="/life-agents" className="mt-5 inline-block text-sm font-semibold text-purple-700 underline decoration-purple-300/70 underline-offset-2 hover:text-purple-900">
-                去发现页逛逛
-              </Link>
-            </div>
+        </>
+      ) : (
+        <section>
+          {feedTab === "favorites" ? favoritesIntro : feedTab === "purchased" ? purchasedIntro : null}
+          {feedTab === "favorites" || feedTab === "purchased" ? (
+            feedTab === "favorites" ? favoritesHeading : purchasedHeading
+          ) : null}
+          {loadErrorBanner}
+          {feedTab === "purchased" ? (
+            purchasedBody
           ) : (
-            <PurchasedAgentsWindowedGrid rows={purchasedItems} />
-          )
-        ) : (
-          <LifeAgentDiscoverCardGrid
-            profiles={displayProfiles}
-            loading={gridLoading}
-            emptyTitle={loadError ? "加载失败" : feedTab === "favorites" ? "暂无收藏" : UI.emptyTitle}
-            emptySubtitle={
-              loadError
-                ? "请确认 Go 后端已启动（默认端口 8080），或刷新页面重试"
-                : feedTab === "favorites"
-                  ? "去「发现」逛逛，在喜欢的 Agent 详情页点亮收藏。"
-                  : UI.emptySubtitle
-            }
-            windowResetKey={feedWindowKey}
-            onLoadMore={feedTab !== "favorites" && feedTab !== "purchased" ? loadMoreDiscover : undefined}
-            hasMoreFromServer={feedTab !== "favorites" && feedTab !== "purchased" && !!discoverNextCursor}
-            loadingMore={discoverLoadingMore}
-          />
-        )}
-      </section>
+            <LifeAgentDiscoverCardGrid
+              profiles={displayProfilesDesktop}
+              loading={gridLoadingDesktop}
+              emptyTitle={loadError ? "加载失败" : feedTab === "favorites" ? "暂无收藏" : UI.emptyTitle}
+              emptySubtitle={
+                loadError
+                  ? "请确认 Go 后端已启动（默认端口 8080），或刷新页面重试"
+                  : feedTab === "favorites"
+                    ? "去「发现」逛逛，在喜欢的 Agent 详情页点亮收藏。"
+                    : UI.emptySubtitle
+              }
+              windowResetKey={feedWindowKeyDesktop}
+              onLoadMore={feedTab !== "favorites" && feedTab !== "purchased" ? loadMoreDiscover : undefined}
+              hasMoreFromServer={feedTab !== "favorites" && feedTab !== "purchased" && !!discoverNextCursor}
+              loadingMore={discoverLoadingMore}
+            />
+          )}
+        </section>
+      )}
     </div>
   );
 }

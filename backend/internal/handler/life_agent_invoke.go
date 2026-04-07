@@ -5,7 +5,8 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
-	"log"
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -310,31 +311,46 @@ func LifeAgentsChatAPI(cfg *config.Config) gin.HandlerFunc {
 			NotSuitableFor:   ptrStr(p.NotSuitableFor),
 		}
 
+		c.Header("Content-Type", "text/event-stream")
+		c.Header("Cache-Control", "no-cache")
+		c.Header("Connection", "keep-alive")
+		c.Header("X-Accel-Buffering", "no")
+		c.Status(http.StatusOK)
+
+		writeSSE := func(eventType string, payload interface{}) {
+			data, _ := json.Marshal(payload)
+			fmt.Fprintf(c.Writer, "event: %s\ndata: %s\n\n", eventType, data)
+			c.Writer.Flush()
+		}
+
 		var content string
 		var refs []map[string]string
 		if reply, replyRefs, ok := lifeagent.ResolveGroundedFactReply(profileForAI, factsForAI, body.Message); ok {
 			content = reply
 			refs = replyRefs
+			lifeagent.EmitReplyChunks(content, func(chunk string) {
+				writeSSE("content", gin.H{"content": chunk})
+			})
 		} else if lifeagent.ClassifyQuestionIntent(body.Message) {
 			content = lifeagent.BuildIdentityReply(profileForAI)
+			lifeagent.EmitReplyChunks(content, func(chunk string) {
+				writeSSE("content", gin.H{"content": chunk})
+			})
 		} else {
-			var err error
-			content, refs, err = lifeagent.BuildReplyWithLLM(
+			content, refs, _ = lifeagent.BuildReplyWithLLMStream(
 				c.Request.Context(),
 				cfg.OpenAIApiKey, cfg.OpenAIModel, cfg.OpenAIBaseURL,
 				cfg.LLMEnableWebSearch,
 				profileForAI,
 				factsForAI, topicsForAI, entriesForAI, hist, body.Message,
+				func(chunk string) {
+					writeSSE("content", gin.H{"content": chunk})
+				},
 				&lifeagent.ChatOptions{
 					SessionSummary:     sessionSummary,
 					CrossSessionMemory: crossMemory,
 				},
 			)
-			if err != nil {
-				log.Printf("life-agents api chat: LLM error: %v", err)
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "LLM_ERROR"})
-				return
-			}
 		}
 
 		refsMap := make([]map[string]interface{}, len(refs))
@@ -390,7 +406,7 @@ func LifeAgentsChatAPI(cfg *config.Config) gin.HandlerFunc {
 		db.DB.Model(&p).UpdateColumn("api_total_calls", p.ApiTotalCalls+1)
 
 		price := effectiveLifeAgentAPIPriceCents(&p)
-		c.JSON(http.StatusOK, gin.H{
+		writeSSE("done", gin.H{
 			"sessionId":              sessionID,
 			"messageId":              assistantMsgID,
 			"reply":                  content,

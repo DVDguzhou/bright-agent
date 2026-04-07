@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
+import { useMobileTouchNavEnabled } from "@/hooks/use-life-agents-feed-gestures";
 
 // 人生 Agent: 智能体/对话
 const IconAgent = ({ className }: { className?: string }) => (
@@ -133,6 +134,46 @@ export function Nav() {
   const isFeedFavorites = isDiscoverEntryPage && feedTab === "favorites";
   const isFeedPurchased = isDiscoverEntryPage && feedTab === "purchased";
   const isDashboardHomePage = pathname === "/dashboard";
+
+  const touchFeedPager = useMobileTouchNavEnabled() && isDiscoverEntryPage;
+  const feedTabFavRef = useRef<HTMLAnchorElement | null>(null);
+  const feedTabDiscRef = useRef<HTMLAnchorElement | null>(null);
+  const feedTabPurRef = useRef<HTMLAnchorElement | null>(null);
+  const [feedTabUnderlineX, setFeedTabUnderlineX] = useState<number | null>(null);
+
+  const updateFeedUnderlineFromProgress = useCallback((progress: number) => {
+    const fav = feedTabFavRef.current;
+    const disc = feedTabDiscRef.current;
+    const pur = feedTabPurRef.current;
+    if (!fav || !disc || !pur) return;
+    const a = fav.offsetLeft + fav.offsetWidth / 2;
+    const b = disc.offsetLeft + disc.offsetWidth / 2;
+    const c = pur.offsetLeft + pur.offsetWidth / 2;
+    let x: number;
+    if (progress <= 1) x = a + (b - a) * progress;
+    else x = b + (c - b) * (progress - 1);
+    setFeedTabUnderlineX(x);
+  }, []);
+
+  useEffect(() => {
+    if (!touchFeedPager) {
+      setFeedTabUnderlineX(null);
+      return;
+    }
+    const onPager = (e: Event) => {
+      const p = (e as CustomEvent<{ progress?: number }>).detail?.progress;
+      if (typeof p !== "number") return;
+      updateFeedUnderlineFromProgress(p);
+    };
+    window.addEventListener("la-feed-pager", onPager);
+    return () => window.removeEventListener("la-feed-pager", onPager);
+  }, [touchFeedPager, updateFeedUnderlineFromProgress]);
+
+  useLayoutEffect(() => {
+    if (!touchFeedPager) return;
+    const idx = feedTab === "favorites" ? 0 : feedTab === "purchased" ? 2 : 1;
+    updateFeedUnderlineFromProgress(idx);
+  }, [touchFeedPager, feedTab, updateFeedUnderlineFromProgress]);
 
   useEffect(() => {
     if (!mobileDrawerOpen) return;
@@ -267,22 +308,39 @@ export function Nav() {
                   </svg>
                 )}
               </button>
-              <div className="flex min-w-0 flex-1 items-center justify-center gap-2 sm:gap-4">
-                <Link href="/life-agents?tab=favorites" className={`relative ${feedTabClass(isFeedFavorites)}`} scroll={false}>
+              <div className="relative flex min-w-0 flex-1 items-center justify-center gap-2 sm:gap-4">
+                {touchFeedPager && feedTabUnderlineX !== null ? (
+                  <span
+                    className="pointer-events-none absolute bottom-0 h-[2px] w-8 rounded-full bg-gradient-to-r from-[#FF80AB] to-[#BA68C8] transition-[left] duration-75 ease-out sm:w-9"
+                    style={{ left: feedTabUnderlineX, transform: "translateX(-50%)" }}
+                    aria-hidden
+                  />
+                ) : null}
+                <Link
+                  ref={feedTabFavRef}
+                  href="/life-agents?tab=favorites"
+                  className={`relative ${feedTabClass(isFeedFavorites)}`}
+                  scroll={false}
+                >
                   收藏
-                  {isFeedFavorites ? (
+                  {!touchFeedPager && isFeedFavorites ? (
                     <span className="absolute bottom-0 left-1 right-1 h-0.5 rounded-full bg-gradient-to-r from-[#FF80AB] to-[#BA68C8]" aria-hidden />
                   ) : null}
                 </Link>
-                <Link href="/life-agents" className={`relative ${feedTabClass(isFeedDiscover)}`} scroll={false}>
+                <Link ref={feedTabDiscRef} href="/life-agents" className={`relative ${feedTabClass(isFeedDiscover)}`} scroll={false}>
                   发现
-                  {isFeedDiscover ? (
+                  {!touchFeedPager && isFeedDiscover ? (
                     <span className="absolute bottom-0 left-1 right-1 h-0.5 rounded-full bg-gradient-to-r from-[#FF80AB] to-[#BA68C8]" aria-hidden />
                   ) : null}
                 </Link>
-                <Link href="/life-agents?tab=purchased" className={`relative ${feedTabClass(isFeedPurchased)}`} scroll={false}>
+                <Link
+                  ref={feedTabPurRef}
+                  href="/life-agents?tab=purchased"
+                  className={`relative ${feedTabClass(isFeedPurchased)}`}
+                  scroll={false}
+                >
                   已购买
-                  {isFeedPurchased ? (
+                  {!touchFeedPager && isFeedPurchased ? (
                     <span className="absolute bottom-0 left-1 right-1 h-0.5 rounded-full bg-gradient-to-r from-[#FF80AB] to-[#BA68C8]" aria-hidden />
                   ) : null}
                 </Link>

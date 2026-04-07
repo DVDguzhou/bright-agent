@@ -1,41 +1,26 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 
-const SWIPE_TAB_MIN_DX = 48;
-const SWIPE_TAB_MAX_DEVY = 130;
 const PULL_MIN_DY = 72;
 const PTR_MAX_SCROLL = 10;
 const PULL_RESIST = 0.5;
 const PULL_CAP = 100;
 
-function hrefFromTabIndex(i: number): string {
-  if (i === 0) return "/life-agents?tab=favorites";
-  if (i === 2) return "/life-agents?tab=purchased";
-  return "/life-agents";
-}
-
 type Active = {
   x0: number;
   y0: number;
-  intent: "unknown" | "horizontal" | "vertical" | "pull";
+  intent: "unknown" | "vertical" | "pull";
   ptrArmed: boolean;
 };
 
+/** 仅下拉刷新；横向切 Tab 由页面内 scroll-snap 分页处理 */
 export function useLifeAgentsFeedGestures(opts: {
-  feedTab: string | null;
   /** 仅触摸 + 窄屏时启用 */
   enabled: boolean;
   onPullRefresh: () => void | Promise<void>;
 }) {
-  const router = useRouter();
-  const { feedTab, enabled, onPullRefresh } = opts;
-
-  const tabIndex =
-    feedTab === "favorites" ? 0 : feedTab === "purchased" ? 2 : 1;
-  const tabIndexRef = useRef(tabIndex);
-  tabIndexRef.current = tabIndex;
+  const { enabled, onPullRefresh } = opts;
 
   const [pullOffset, setPullOffset] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
@@ -43,12 +28,6 @@ export function useLifeAgentsFeedGestures(opts: {
   const refreshingRef = useRef(false);
   const onPullRefreshRef = useRef(onPullRefresh);
   onPullRefreshRef.current = onPullRefresh;
-
-  const navigateTab = useCallback((nextIdx: number) => {
-    const cur = tabIndexRef.current;
-    if (nextIdx < 0 || nextIdx > 2 || nextIdx === cur) return;
-    router.push(hrefFromTabIndex(nextIdx), { scroll: false });
-  }, [router]);
 
   useEffect(() => {
     if (!enabled) {
@@ -77,12 +56,11 @@ export function useLifeAgentsFeedGestures(opts: {
       const dy = t.clientY - a.y0;
 
       if (a.intent === "unknown") {
-        // 先认横向：列表/卡片上滑动时也能切 Tab（略宽于纵向判定）
-        if (Math.abs(dx) > 18 && Math.abs(dx) > Math.abs(dy) * 1.08) {
-          a.intent = "horizontal";
+        if (Math.abs(dx) > 14 && Math.abs(dx) > Math.abs(dy) * 1.15) {
+          a.intent = "vertical";
           return;
         }
-        if (Math.abs(dy) > 26 && Math.abs(dy) > Math.abs(dx) * 1.4) {
+        if (Math.abs(dy) > 12 && Math.abs(dy) > Math.abs(dx) * 1.2) {
           a.intent = "vertical";
           return;
         }
@@ -101,7 +79,7 @@ export function useLifeAgentsFeedGestures(opts: {
       }
     };
 
-    const finishPullOrSwipe = async (e: TouchEvent) => {
+    const finishPull = async (e: TouchEvent) => {
       const a = activeRef.current;
       activeRef.current = null;
       if (!a) return;
@@ -125,47 +103,13 @@ export function useLifeAgentsFeedGestures(opts: {
             refreshingRef.current = false;
           }
         }
-        return;
-      }
-
-      if (a.intent === "horizontal") {
-        const dx = t.clientX - a.x0;
-        const devY = Math.abs(t.clientY - a.y0);
-        if (devY > SWIPE_TAB_MAX_DEVY) return;
-        const cur = tabIndexRef.current;
-        let navigated = false;
-        if (dx <= -SWIPE_TAB_MIN_DX && cur < 2) {
-          navigateTab(cur + 1);
-          navigated = true;
-        } else if (dx >= SWIPE_TAB_MIN_DX && cur > 0) {
-          navigateTab(cur - 1);
-          navigated = true;
-        }
-        if (navigated) e.preventDefault();
-        return;
-      }
-
-      // 快速横滑可能未进入 move 判定，结束时按位移补判
-      if (a.intent === "unknown") {
-        const dx = t.clientX - a.x0;
-        const devY = Math.abs(t.clientY - a.y0);
-        if (devY <= 95 && Math.abs(dx) >= 52) {
-          const cur = tabIndexRef.current;
-          let navigated = false;
-          if (dx <= -52 && cur < 2) {
-            navigateTab(cur + 1);
-            navigated = true;
-          } else if (dx >= 52 && cur > 0) {
-            navigateTab(cur - 1);
-            navigated = true;
-          }
-          if (navigated) e.preventDefault();
-        }
+      } else {
+        setPullOffset(0);
       }
     };
 
     const onTouchEnd = (e: TouchEvent) => {
-      void finishPullOrSwipe(e);
+      void finishPull(e);
     };
 
     const onTouchCancel = () => {
@@ -175,8 +119,7 @@ export function useLifeAgentsFeedGestures(opts: {
 
     document.addEventListener("touchstart", onTouchStart, { passive: true });
     document.addEventListener("touchmove", onTouchMove, { passive: true });
-    // passive: false 以便横滑切 Tab 后 preventDefault，减少误点进卡片链接
-    document.addEventListener("touchend", onTouchEnd, { passive: false });
+    document.addEventListener("touchend", onTouchEnd, { passive: true });
     document.addEventListener("touchcancel", onTouchCancel, { passive: true });
 
     return () => {
@@ -185,7 +128,7 @@ export function useLifeAgentsFeedGestures(opts: {
       document.removeEventListener("touchend", onTouchEnd);
       document.removeEventListener("touchcancel", onTouchCancel);
     };
-  }, [enabled, navigateTab]);
+  }, [enabled]);
 
   return { pullOffset, refreshing };
 }
