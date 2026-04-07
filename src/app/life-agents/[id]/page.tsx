@@ -236,7 +236,9 @@ export default function LifeAgentDetailPage() {
           <div className="absolute right-3 top-3 flex items-center gap-2 sm:right-4 sm:top-4">
             <button
               type="button"
-              onClick={() => setStarred(toggleFavoriteAgentId(profile.id))}
+              onClick={() => {
+                void toggleFavoriteAgentId(profile.id).then(setStarred);
+              }}
               className="flex h-9 w-9 items-center justify-center rounded-full bg-black/30 text-white backdrop-blur-sm transition hover:bg-black/50"
               aria-label={starred ? "取消收藏" : "收藏"}
               title={starred ? "取消收藏" : "收藏"}

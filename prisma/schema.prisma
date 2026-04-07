@@ -60,6 +60,7 @@ model User {
   lifeAgentProfiles LifeAgentProfile[]
   lifeAgentChatSessions LifeAgentChatSession[]
   lifeAgentQuestionPacks LifeAgentQuestionPack[]
+  lifeAgentFavorites LifeAgentFavorite[]
 
   @@map("users")
 }
@@ -256,8 +257,23 @@ model LifeAgentProfile {
   chatSessions   LifeAgentChatSession[]
   questionPacks  LifeAgentQuestionPack[]
   invokeKeys     LifeAgentInvokeKey[]
+  favoritedBy    LifeAgentFavorite[]
 
   @@map("life_agent_profiles")
+}
+
+model LifeAgentFavorite {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  profileId String   @map("profile_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user    User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  profile LifeAgentProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, profileId])
+  @@index([userId])
+  @@map("life_agent_favorites")
 }
 
 model LifeAgentInvokeKey {

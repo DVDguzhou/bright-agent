@@ -12,6 +12,7 @@ import { getFavoriteAgentIds } from "@/lib/life-agent-favorites";
 import { LifeAgentDiscoverCardGrid } from "@/components/LifeAgentDiscoverCardGrid";
 import { rankLifeAgentsBySearchQuery, type LifeAgentListItem } from "@/lib/life-agent-feed-search";
 import { fetchAllPublishedLifeAgents, fetchLifeAgentsPage } from "@/lib/life-agents-list-api";
+import { useAuth } from "@/contexts/AuthContext";
 
 type PurchasedAgentRow = {
   id: string;
@@ -44,6 +45,7 @@ const UI = {
 } as const;
 
 function LifeAgentsPageContent() {
+  const { user: authUser } = useAuth();
   const searchParams = useSearchParams();
   const feedTab = searchParams.get("tab");
   const [discoverItems, setDiscoverItems] = useState<LifeAgentListItem[]>([]);
@@ -220,7 +222,11 @@ function LifeAgentsPageContent() {
         {feedTab === "favorites" ? (
           <div className="mb-3 rounded-[20px] border border-fuchsia-200/[0.35] bg-gradient-to-r from-fuchsia-50/[0.85] to-violet-50/[0.75] px-4 py-3 text-sm text-purple-950/90 shadow-[0_4px_22px_rgba(124,58,237,0.06)] backdrop-blur-sm">
             <p className="font-medium">我的收藏</p>
-            <p className="mt-1 text-xs text-purple-900/75">在 Agent 详情页封面右上角点星形即可收藏，数据保存在本机浏览器。</p>
+            <p className="mt-1 text-xs text-purple-900/75">
+              {authUser
+                ? "在 Agent 详情页封面右上角点星形即可收藏，已登录时收藏会保存到你的账号。"
+                : "在 Agent 详情页封面右上角点星形即可收藏；登录后收藏会同步到账号，未登录时仅保存在本机浏览器。"}
+            </p>
           </div>
         ) : feedTab === "purchased" ? (
           <div className="mb-3 rounded-[20px] border border-purple-200/[0.28] bg-gradient-to-r from-violet-50/[0.9] to-fuchsia-50/[0.7] px-4 py-3 text-sm text-purple-950/90 shadow-[0_4px_22px_rgba(124,58,237,0.06)] backdrop-blur-sm">

@@ -1,6 +1,11 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
+import {
+  beginServerFavoriteSession,
+  clearServerFavoriteCache,
+  hydrateServerFavorites,
+} from "@/lib/life-agent-favorites";
 
 type User = {
   id: string;
@@ -32,6 +37,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     fetchUser();
   }, []);
+
+  useEffect(() => {
+    if (loading || typeof window === "undefined") return;
+    if (user) {
+      beginServerFavoriteSession();
+      void hydrateServerFavorites();
+    } else {
+      clearServerFavoriteCache();
+      window.dispatchEvent(new Event("la-favorite-change"));
+    }
+  }, [user, loading]);
 
   return (
     <AuthContext.Provider value={{ user, loading, refetch: fetchUser }}>
