@@ -866,7 +866,7 @@ export default function CreateLifeAgentPage() {
 
   if (!user) {
     return (
-      <div className="life-agent-create-skin min-h-[min(100dvh,720px)] bg-gradient-to-b from-[#F3EFFF] via-violet-50/50 to-white px-4 py-12">
+      <div className="min-h-[min(100dvh,720px)] bg-gradient-to-b from-[#F3EFFF] via-violet-50/50 to-white px-4 py-12">
         <div className="mx-auto max-w-2xl rounded-[28px] border border-purple-200/50 bg-white/95 p-10 text-center shadow-[0_10px_30px_rgba(168,139,235,0.14)] backdrop-blur-md">
           <h1 className="text-3xl font-bold text-purple-950/90">先登录，再创建你的人生 Agent</h1>
           <p className="mt-3 text-slate-600">
@@ -901,7 +901,7 @@ export default function CreateLifeAgentPage() {
   return (
     <div
       className={
-        "life-agent-create-skin flex min-w-0 flex-col overflow-hidden " +
+        "flex min-w-0 flex-col overflow-hidden " +
         /* 窄屏：占满视口并禁止整页滚动，避免 sticky 顶栏盖住「基础资料」等首行（main 的 padding + min-h-dvh 常会多出一点可滚动高度） */
         "max-lg:fixed max-lg:inset-0 max-lg:z-30 max-lg:m-0 max-lg:w-full max-lg:bg-gradient-to-b max-lg:from-[#F3EFFF] max-lg:via-fuchsia-50/30 max-lg:to-white max-lg:min-h-0 " +
         /* 宽屏：薰衣草顶到底部留白 */
