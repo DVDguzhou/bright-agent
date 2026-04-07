@@ -7,9 +7,10 @@ type Props = {
   coverImageUrl: string;
   onChange: (coverImageUrl: string) => void;
   disabled?: boolean;
+  accent?: "default" | "pastel";
 };
 
-export function LifeAgentCoverPicker({ coverImageUrl, onChange, disabled }: Props) {
+export function LifeAgentCoverPicker({ coverImageUrl, onChange, disabled, accent = "default" }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadErr, setUploadErr] = useState("");
@@ -52,12 +53,18 @@ export function LifeAgentCoverPicker({ coverImageUrl, onChange, disabled }: Prop
     }
   };
 
+  const pastel = accent === "pastel";
+
   return (
     <div className="space-y-3">
-      <p className="text-sm font-medium text-slate-800">封面图</p>
+      <p className={`text-sm font-medium ${pastel ? "text-purple-950/90" : "text-slate-800"}`}>封面图</p>
       <p className="text-xs text-slate-500">默认使用统一封面，也可上传自己的图片。</p>
 
-      <div className="relative mx-auto aspect-[4/5] w-full max-w-[200px] overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
+      <div
+        className={`relative mx-auto aspect-[4/5] w-full max-w-[200px] overflow-hidden rounded-2xl border bg-slate-50 ${
+          pastel ? "border-purple-200/60 shadow-[0_8px_28px_rgba(168,139,235,0.12)]" : "border-slate-200"
+        }`}
+      >
         <img src={previewSrc} alt="封面预览" className="absolute inset-0 h-full w-full object-cover" />
       </div>
 
@@ -67,7 +74,11 @@ export function LifeAgentCoverPicker({ coverImageUrl, onChange, disabled }: Prop
           type="button"
           disabled={disabled || uploading}
           onClick={() => inputRef.current?.click()}
-          className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:border-rose-300 hover:text-rose-700 disabled:opacity-50"
+          className={
+            pastel
+              ? "rounded-xl border border-purple-100/90 bg-white/90 px-4 py-2 text-sm font-medium text-slate-700 shadow-sm hover:border-fuchsia-300 hover:text-purple-900 disabled:opacity-50"
+              : "rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:border-rose-300 hover:text-rose-700 disabled:opacity-50"
+          }
         >
           {uploading ? "上传中…" : "上传自己的封面"}
         </button>

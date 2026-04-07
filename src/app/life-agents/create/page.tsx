@@ -866,9 +866,9 @@ export default function CreateLifeAgentPage() {
 
   if (!user) {
     return (
-      <div className="life-agent-create-skin min-h-[min(100dvh,720px)] bg-gradient-to-b from-sky-200/90 via-[#E0F7FA] to-white px-4 py-12">
-        <div className="mx-auto max-w-2xl rounded-[28px] border border-cyan-100/80 bg-white/90 p-10 text-center shadow-[0_10px_44px_-14px_rgba(34,211,238,0.28)] backdrop-blur-md">
-          <h1 className="text-3xl font-bold text-slate-800">先登录，再创建你的人生 Agent</h1>
+      <div className="life-agent-create-skin min-h-[min(100dvh,720px)] bg-gradient-to-b from-[#F3EFFF] via-violet-50/50 to-white px-4 py-12">
+        <div className="mx-auto max-w-2xl rounded-[28px] border border-purple-200/50 bg-white/95 p-10 text-center shadow-[0_10px_30px_rgba(168,139,235,0.14)] backdrop-blur-md">
+          <h1 className="text-3xl font-bold text-purple-950/90">先登录，再创建你的人生 Agent</h1>
           <p className="mt-3 text-slate-600">
             你可以先注册账号，然后把自己的本地经验、踩坑总结和亲身经历整理成可聊天的 Agent。
           </p>
@@ -903,17 +903,17 @@ export default function CreateLifeAgentPage() {
       className={
         "life-agent-create-skin flex min-w-0 flex-col overflow-hidden " +
         /* 窄屏：占满视口并禁止整页滚动，避免 sticky 顶栏盖住「基础资料」等首行（main 的 padding + min-h-dvh 常会多出一点可滚动高度） */
-        "max-lg:fixed max-lg:inset-0 max-lg:z-30 max-lg:m-0 max-lg:w-full max-lg:bg-gradient-to-b max-lg:from-sky-200/95 max-lg:via-[#E0F7FA] max-lg:to-white max-lg:min-h-0 " +
-        /* 宽屏：与原布局一致（加深顶部色带，避免和 body 的 slate-50 混在一起看不出来） */
-        "lg:relative lg:z-auto lg:-mt-8 lg:-mb-8 lg:min-h-[calc(100dvh-4rem)] lg:bg-gradient-to-b lg:from-sky-200/90 lg:via-cyan-50 lg:to-white max-lg:min-h-0"
+        "max-lg:fixed max-lg:inset-0 max-lg:z-30 max-lg:m-0 max-lg:w-full max-lg:bg-gradient-to-b max-lg:from-[#F3EFFF] max-lg:via-fuchsia-50/30 max-lg:to-white max-lg:min-h-0 " +
+        /* 宽屏：薰衣草顶到底部留白 */
+        "lg:relative lg:z-auto lg:-mt-8 lg:-mb-8 lg:min-h-[calc(100dvh-4rem)] lg:bg-gradient-to-b lg:from-[#F3EFFF] lg:via-violet-50/40 lg:to-white max-lg:min-h-0"
       }
     >
       {/* 顶替全局顶栏：窄屏随全屏容器固定；宽屏 sticky 防止长表单滚动时丢失上下文 */}
-      <header className="z-40 shrink-0 border-b border-cyan-100/70 bg-white/80 px-3 pb-2 pt-[max(0.5rem,env(safe-area-inset-top))] shadow-[0_4px_24px_-12px_rgba(34,211,238,0.15)] backdrop-blur-xl max-lg:relative sm:px-6 sm:pb-3 sm:pt-[max(0.75rem,env(safe-area-inset-top))] lg:sticky lg:top-0">
+      <header className="z-40 shrink-0 border-b border-purple-100/80 bg-white/85 px-3 pb-2 pt-[max(0.5rem,env(safe-area-inset-top))] shadow-[0_4px_24px_-12px_rgba(168,139,235,0.12)] backdrop-blur-xl max-lg:relative sm:px-6 sm:pb-3 sm:pt-[max(0.75rem,env(safe-area-inset-top))] lg:sticky lg:top-0">
         <div className="mx-auto grid max-w-5xl grid-cols-[2.5rem_1fr_2.5rem] items-center gap-2 sm:grid-cols-[3rem_1fr_3rem]">
           <Link
             href="/life-agents"
-            className="flex h-10 w-10 items-center justify-center rounded-full text-cyan-800/80 transition hover:bg-cyan-50"
+            className="flex h-10 w-10 items-center justify-center rounded-full text-purple-800/80 transition hover:bg-purple-50"
             aria-label="返回"
           >
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -921,8 +921,8 @@ export default function CreateLifeAgentPage() {
             </svg>
           </Link>
           <div className="flex min-w-0 flex-col items-center justify-center gap-0.5 text-center sm:flex-row sm:gap-2">
-            <h1 className="text-[15px] font-semibold text-slate-800 sm:text-base">创建 Agent</h1>
-            <span className="shrink-0 rounded-full bg-gradient-to-r from-cyan-100 to-sky-100 px-2.5 py-0.5 text-xs font-semibold text-cyan-800 shadow-sm">
+            <h1 className="text-[15px] font-semibold text-purple-950/90 sm:text-base">创建 Agent</h1>
+            <span className="shrink-0 rounded-full bg-gradient-to-r from-violet-100 to-fuchsia-100 px-2.5 py-0.5 text-xs font-semibold text-purple-900 shadow-sm ring-1 ring-purple-200/40">
               {step}/5
             </span>
           </div>
@@ -933,7 +933,7 @@ export default function CreateLifeAgentPage() {
             {[1, 2, 3, 4, 5].map((s) => (
               <div
                 key={s}
-                className={`h-1 flex-1 rounded-full transition-all ${s <= step ? "bg-gradient-to-r from-teal-300 via-cyan-400 to-sky-400 shadow-[0_0_8px_rgba(34,211,238,0.45)]" : "bg-sky-100/90"}`}
+                className={`h-1 flex-1 rounded-full transition-all ${s <= step ? "bg-gradient-to-r from-[#FFF176] via-[#FF80AB] to-[#BA68C8] shadow-[0_0_10px_rgba(168,139,235,0.45)]" : "bg-purple-100/80"}`}
               />
             ))}
           </div>
@@ -943,7 +943,7 @@ export default function CreateLifeAgentPage() {
       {step === 1 && (
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
           {/* 单行提示 */}
-          <div className="shrink-0 flex items-center justify-between gap-2 px-3 py-1.5 text-xs text-cyan-900/55">
+          <div className="shrink-0 flex items-center justify-between gap-2 px-3 py-1.5 text-xs text-purple-900/50">
             <span>基础资料 {completedChatCount}/{PROFILE_CHAT_FIELDS.length}</span>
             <span>可回复「跳过」略过</span>
           </div>
@@ -959,21 +959,21 @@ export default function CreateLifeAgentPage() {
               {chatHistory.map((msg, i) => (
                 <div key={i} className={`flex items-end gap-2 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                   {msg.role === "assistant" ? (
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-sky-200 to-cyan-100 text-[10px] font-bold text-cyan-900/70 ring-2 ring-white shadow-sm">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#BA68C8] to-[#FF80AB] text-[10px] font-bold text-white ring-2 ring-white shadow-sm">
                       AI
                     </div>
                   ) : null}
                   <div
                     className={`max-w-[78%] rounded-[22px] px-3.5 py-2.5 text-[15px] leading-relaxed shadow-sm sm:max-w-[72%] ${
                       msg.role === "user"
-                        ? "rounded-br-md bg-gradient-to-br from-cyan-400 via-sky-400 to-blue-400 text-white shadow-[0_6px_20px_-6px_rgba(34,211,238,0.55)]"
-                        : "rounded-bl-md border border-cyan-100/60 bg-white/90 text-slate-800 backdrop-blur-sm"
+                        ? "rounded-br-md bg-gradient-to-br from-[#FF85D0] to-[#A88BEB] text-white shadow-[0_6px_20px_-6px_rgba(168,139,235,0.45)]"
+                        : "rounded-bl-md border border-purple-100/70 bg-white/95 text-slate-800 shadow-[0_4px_20px_rgba(168,139,235,0.08)] backdrop-blur-sm"
                     }`}
                   >
                     <p className="whitespace-pre-wrap">{msg.content}</p>
                   </div>
                   {msg.role === "user" ? (
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-pink-300 via-orange-200 to-amber-200 text-xs font-bold text-white shadow-sm ring-2 ring-white">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#FFF176] to-[#FF80AB] text-xs font-bold text-slate-900 shadow-sm ring-2 ring-white">
                       我
                     </div>
                   ) : null}
@@ -982,20 +982,20 @@ export default function CreateLifeAgentPage() {
 
               {chatDone && (
                 <div className="space-y-3 pt-2">
-                  <div className="rounded-2xl border border-cyan-100/70 bg-gradient-to-r from-cyan-50/90 to-teal-50/80 px-4 py-3 text-sm text-teal-800 shadow-sm">
+                  <div className="rounded-2xl border border-purple-100/70 bg-gradient-to-r from-violet-50/95 to-fuchsia-50/80 px-4 py-3 text-sm text-purple-900/85 shadow-[0_6px_24px_rgba(168,139,235,0.1)]">
                     基础资料已整理好，下一步补充真实经历。
                   </div>
-                  <div className="grid gap-3 rounded-[22px] border border-cyan-100/60 bg-white/90 p-4 text-sm shadow-[0_8px_32px_-16px_rgba(34,211,238,0.2)] backdrop-blur-sm sm:grid-cols-2">
+                  <div className="grid gap-3 rounded-[22px] border border-purple-100/60 bg-white/95 p-4 text-sm shadow-[0_8px_32px_-16px_rgba(168,139,235,0.16)] backdrop-blur-sm sm:grid-cols-2">
                     <div>
-                      <p className="text-xs text-cyan-700/50">Agent 名称</p>
+                      <p className="text-xs text-purple-600/55">Agent 名称</p>
                       <p className="text-slate-700">{form.displayName || "未填写"}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-cyan-700/50">一句话介绍</p>
+                      <p className="text-xs text-purple-600/55">一句话介绍</p>
                       <p className="text-slate-700">{form.headline || "未填写"}</p>
                     </div>
                     <div className="sm:col-span-2">
-                      <p className="text-xs text-cyan-700/50">擅长标签</p>
+                      <p className="text-xs text-purple-600/55">擅长标签</p>
                       <p className="text-slate-700">{form.expertiseTags || "未填写"}</p>
                     </div>
                   </div>
@@ -1025,7 +1025,7 @@ export default function CreateLifeAgentPage() {
 
           {/* 输入栏（与 Agent 聊天页同款） */}
           {!chatDone && (
-            <div className="shrink-0 border-t border-cyan-100/60 bg-white/85 px-3 pb-[env(safe-area-inset-bottom)] pt-2 shadow-[0_-6px_24px_-12px_rgba(34,211,238,0.12)] backdrop-blur-lg sm:px-4">
+            <div className="shrink-0 border-t border-purple-100/60 bg-white/90 px-3 pb-[env(safe-area-inset-bottom)] pt-2 shadow-[0_-6px_24px_-12px_rgba(168,139,235,0.1)] backdrop-blur-lg sm:px-4">
               <div className="mx-auto max-w-3xl">
                 <LifeAgentMessageComposer
                   formRef={profileFormRef}
@@ -1045,10 +1045,10 @@ export default function CreateLifeAgentPage() {
                   onMoreClick={() => setProfileMoreOpen((o) => !o)}
                   onCloseMorePanel={() => setProfileMoreOpen(false)}
                   morePanel={
-                    <div className="rounded-2xl border border-cyan-100/80 bg-white/95 p-2 shadow-[0_12px_40px_-12px_rgba(34,211,238,0.25)] backdrop-blur-md">
+                    <div className="rounded-2xl border border-purple-100/80 bg-white/95 p-2 shadow-[0_12px_40px_-12px_rgba(168,139,235,0.2)] backdrop-blur-md">
                       <Link
                         href="/life-agents"
-                        className="block rounded-xl px-3 py-2.5 text-sm text-slate-700 hover:bg-cyan-50/80"
+                        className="block rounded-xl px-3 py-2.5 text-sm text-slate-700 hover:bg-purple-50/90"
                         onClick={() => setProfileMoreOpen(false)}
                       >
                         返回发现页
@@ -1065,7 +1065,7 @@ export default function CreateLifeAgentPage() {
       {step === 2 && (
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
           {/* 单行提示 */}
-          <div className="shrink-0 flex items-center justify-between gap-2 px-3 py-1.5 text-xs text-cyan-900/55">
+          <div className="shrink-0 flex items-center justify-between gap-2 px-3 py-1.5 text-xs text-purple-900/50">
             <span>记忆经验 · 已记录 {experienceHistory.filter((msg) => msg.role === "user").length} 轮</span>
             <span>越具体，Agent 越像你</span>
           </div>
@@ -1081,21 +1081,21 @@ export default function CreateLifeAgentPage() {
               {experienceHistory.map((msg, i) => (
                 <div key={i} className={`flex items-end gap-2 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                   {msg.role === "assistant" ? (
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-sky-200 to-cyan-100 text-[10px] font-bold text-cyan-900/70 ring-2 ring-white shadow-sm">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#BA68C8] to-[#FF80AB] text-[10px] font-bold text-white ring-2 ring-white shadow-sm">
                       AI
                     </div>
                   ) : null}
                   <div
                     className={`max-w-[78%] rounded-[22px] px-3.5 py-2.5 text-[15px] leading-relaxed shadow-sm sm:max-w-[72%] ${
                       msg.role === "user"
-                        ? "rounded-br-md bg-gradient-to-br from-cyan-400 via-sky-400 to-blue-400 text-white shadow-[0_6px_20px_-6px_rgba(34,211,238,0.55)]"
-                        : "rounded-bl-md border border-cyan-100/60 bg-white/90 text-slate-800 backdrop-blur-sm"
+                        ? "rounded-br-md bg-gradient-to-br from-[#FF85D0] to-[#A88BEB] text-white shadow-[0_6px_20px_-6px_rgba(168,139,235,0.45)]"
+                        : "rounded-bl-md border border-purple-100/70 bg-white/95 text-slate-800 shadow-[0_4px_20px_rgba(168,139,235,0.08)] backdrop-blur-sm"
                     }`}
                   >
                     <p className="whitespace-pre-wrap">{msg.content}</p>
                   </div>
                   {msg.role === "user" ? (
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-pink-300 via-orange-200 to-amber-200 text-xs font-bold text-white shadow-sm ring-2 ring-white">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#FFF176] to-[#FF80AB] text-xs font-bold text-slate-900 shadow-sm ring-2 ring-white">
                       我
                     </div>
                   ) : null}
@@ -1104,7 +1104,7 @@ export default function CreateLifeAgentPage() {
 
               {experienceDone && (
                 <div className="space-y-3 pt-2">
-                  <div className="rounded-2xl border border-cyan-100/70 bg-gradient-to-r from-cyan-50/90 to-sky-50/90 px-4 py-3 text-sm text-sky-900/80 shadow-sm">
+                  <div className="rounded-2xl border border-purple-100/70 bg-gradient-to-r from-violet-50/95 to-fuchsia-50/80 px-4 py-3 text-sm text-purple-900/85 shadow-[0_6px_24px_rgba(168,139,235,0.1)]">
                     经验记录得差不多了，可以进入下一步设置回答风格。
                   </div>
                   <div className="flex flex-col gap-2 sm:flex-row">
@@ -1137,7 +1137,7 @@ export default function CreateLifeAgentPage() {
 
           {/* 输入栏（与 Agent 聊天页同款） */}
           {!experienceDone && (
-            <div className="shrink-0 border-t border-cyan-100/60 bg-white/85 px-3 pb-[env(safe-area-inset-bottom)] pt-2 shadow-[0_-6px_24px_-12px_rgba(34,211,238,0.12)] backdrop-blur-lg sm:px-4">
+            <div className="shrink-0 border-t border-purple-100/60 bg-white/90 px-3 pb-[env(safe-area-inset-bottom)] pt-2 shadow-[0_-6px_24px_-12px_rgba(168,139,235,0.1)] backdrop-blur-lg sm:px-4">
               {experienceHistory.filter((m) => m.role === "user").length >= 4 && (
                 <div className="mx-auto mb-2 max-w-3xl text-center">
                   <button
@@ -1146,7 +1146,7 @@ export default function CreateLifeAgentPage() {
                       setExperienceDone(true);
                       setError("");
                     }}
-                    className="text-sm text-cyan-800/60 underline decoration-cyan-300/80 underline-offset-2 hover:text-cyan-700"
+                    className="text-sm text-purple-800/65 underline decoration-fuchsia-300/70 underline-offset-2 hover:text-purple-900"
                   >
                     已记录 4 轮，跳过直接进入下一步
                   </button>
@@ -1171,10 +1171,10 @@ export default function CreateLifeAgentPage() {
                   onMoreClick={() => setExperienceMoreOpen((o) => !o)}
                   onCloseMorePanel={() => setExperienceMoreOpen(false)}
                   morePanel={
-                    <div className="rounded-2xl border border-cyan-100/80 bg-white/95 p-2 shadow-[0_12px_40px_-12px_rgba(34,211,238,0.25)] backdrop-blur-md">
+                    <div className="rounded-2xl border border-purple-100/80 bg-white/95 p-2 shadow-[0_12px_40px_-12px_rgba(168,139,235,0.2)] backdrop-blur-md">
                       <Link
                         href="/life-agents"
-                        className="block rounded-xl px-3 py-2.5 text-sm text-slate-700 hover:bg-cyan-50/80"
+                        className="block rounded-xl px-3 py-2.5 text-sm text-slate-700 hover:bg-purple-50/90"
                         onClick={() => setExperienceMoreOpen(false)}
                       >
                         返回发现页
@@ -1199,8 +1199,8 @@ export default function CreateLifeAgentPage() {
         >
           <div className="flex-1 overflow-y-auto">
             <div className="mx-auto max-w-4xl space-y-6 px-4 py-6 sm:px-6">
-          <section className="border-b border-cyan-100/70 pb-6">
-              <h2 className="text-xl font-semibold text-slate-800">让回答更像你本人</h2>
+          <section className="border-b border-purple-100/70 pb-6">
+              <h2 className="text-xl font-semibold text-purple-950/90">让回答更像你本人</h2>
               <p className="mt-1 text-slate-600">
                 这里决定 Agent 说话的感觉。别只填标签，还要告诉它你平时怎么开口、讨厌什么套话。
               </p>
@@ -1331,13 +1331,13 @@ export default function CreateLifeAgentPage() {
                   <button
                     type="button"
                     onClick={() => setShowAdvanced((v) => !v)}
-                    className="flex items-center gap-2 text-sm font-medium text-cyan-900/70 hover:text-cyan-900"
+                    className="flex items-center gap-2 text-sm font-medium text-purple-900/70 hover:text-purple-950"
                   >
                     {showAdvanced ? "▼" : "▶"} 高级选项：示范回答、禁止套话
-                    {showAdvanced && <span className="text-xs font-normal text-cyan-800/45">（不设置则默认无）</span>}
+                    {showAdvanced && <span className="text-xs font-normal text-purple-800/45">（不设置则默认无）</span>}
                   </button>
                   {showAdvanced && (
-                    <div className="mt-4 space-y-4 rounded-[22px] border border-cyan-100/80 bg-white/90 p-4 shadow-[0_8px_32px_-16px_rgba(34,211,238,0.15)] backdrop-blur-sm">
+                    <div className="mt-4 space-y-4 rounded-[22px] border border-purple-100/80 bg-white/90 p-4 shadow-[0_8px_32px_-16px_rgba(168,139,235,0.15)] backdrop-blur-sm">
                       <div>
                         <label className="mb-2 block text-sm font-medium text-slate-700">你最讨厌的 AI 套话</label>
                         <textarea
@@ -1389,7 +1389,7 @@ export default function CreateLifeAgentPage() {
             </div>
           </div>
 
-          <div className="shrink-0 border-t border-cyan-100/70 bg-white/90 px-4 py-4 pb-24 shadow-[0_-8px_32px_-14px_rgba(34,211,238,0.12)] backdrop-blur-lg sm:px-6 lg:pb-6">
+          <div className="shrink-0 border-t border-purple-100/70 bg-white/90 px-4 py-4 pb-24 shadow-[0_-8px_32px_-14px_rgba(168,139,235,0.12)] backdrop-blur-lg sm:px-6 lg:pb-6">
             <div className="mx-auto flex max-w-4xl flex-col gap-3 sm:flex-row sm:justify-between">
               <button
                 type="button"
@@ -1414,6 +1414,7 @@ export default function CreateLifeAgentPage() {
           <div className="flex-1 overflow-y-auto px-4 py-6 sm:px-6">
             <div className="mx-auto max-w-2xl">
               <VoiceRecordPanel
+                accent="pastel"
                 onComplete={(blob) => {
                   const reader = new FileReader();
                   reader.onerror = () => {
@@ -1451,7 +1452,7 @@ export default function CreateLifeAgentPage() {
               ) : null}
             </div>
           </div>
-          <div className="shrink-0 border-t border-cyan-100/70 bg-white/90 px-4 py-4 pb-24 shadow-[0_-8px_32px_-14px_rgba(34,211,238,0.12)] backdrop-blur-lg sm:px-6 lg:pb-6">
+          <div className="shrink-0 border-t border-purple-100/70 bg-white/90 px-4 py-4 pb-24 shadow-[0_-8px_32px_-14px_rgba(168,139,235,0.12)] backdrop-blur-lg sm:px-6 lg:pb-6">
             <div className="mx-auto flex max-w-2xl justify-between">
               <button
                 type="button"
@@ -1469,16 +1470,17 @@ export default function CreateLifeAgentPage() {
         <form onSubmit={submit} className="flex min-h-0 flex-1 flex-col">
           <div className="flex-1 overflow-y-auto">
             <div className="mx-auto max-w-3xl space-y-6 px-4 py-6 sm:px-6">
-          <section className="border-b border-cyan-100/70 pb-6">
+          <section className="border-b border-purple-100/70 pb-6">
             <LifeAgentCoverPicker
+              accent="pastel"
               coverImageUrl={coverImageUrl}
               onChange={(u) => setCoverImageUrl(u)}
               disabled={loading}
             />
           </section>
 
-          <section className="border-b border-cyan-100/70 pb-6">
-            <h2 className="text-xl font-semibold text-slate-800">设置收费</h2>
+          <section className="border-b border-purple-100/70 pb-6">
+            <h2 className="text-xl font-semibold text-purple-950/90">设置收费</h2>
             <div className="mt-5 max-w-sm">
               <label className="mb-2 block text-sm font-medium text-slate-700">每次提问价格（元）</label>
               <input
@@ -1493,20 +1495,20 @@ export default function CreateLifeAgentPage() {
             </div>
           </section>
 
-          <section className="border-b border-cyan-100/70 py-6">
-            <p className="font-medium text-slate-800">申请官方认证</p>
+          <section className="border-b border-purple-100/70 py-6">
+            <p className="font-medium text-purple-950/90">申请官方认证</p>
             <p className="mt-2 text-sm leading-6 text-slate-600">
               平台会核实你的经历真实性，认证后会显示认证标识。你可以在发布前或发布后联系官方申请。
             </p>
             <p className="mt-3 text-sm text-slate-700">
               {OFFICIAL_CONTACT.description}：{" "}
-              <a href={`mailto:${OFFICIAL_CONTACT.email}`} className="font-medium text-cyan-700 underline decoration-cyan-300/70 underline-offset-2 hover:text-cyan-800">
+              <a href={`mailto:${OFFICIAL_CONTACT.email}`} className="font-medium text-purple-700 underline decoration-fuchsia-300/70 underline-offset-2 hover:text-purple-900">
                 {OFFICIAL_CONTACT.email}
               </a>
             </p>
           </section>
 
-          <section className="border-b border-cyan-100/70 py-6">
+          <section className="border-b border-purple-100/70 py-6">
             <label className="mb-2 block text-sm font-medium text-slate-700">
               有什么你不能回答或不想回答的问题？（选填）
             </label>
@@ -1520,7 +1522,7 @@ export default function CreateLifeAgentPage() {
           </section>
 
           <section className="py-6">
-            <h3 className="font-medium text-slate-800">已记录的经验预览</h3>
+            <h3 className="font-medium text-purple-950/90">已记录的经验预览</h3>
             <ul className="mt-3 space-y-2 text-sm text-slate-600">
               {knowledgeEntries.slice(0, 5).map((e, i) => (
                 <li key={i}>
@@ -1532,7 +1534,7 @@ export default function CreateLifeAgentPage() {
                 <li className="text-slate-500">... 共 {knowledgeEntries.length} 条</li>
               )}
             </ul>
-            <div className="mt-5 rounded-[22px] border border-cyan-100/70 bg-gradient-to-br from-white/90 to-cyan-50/40 p-4 text-sm text-slate-600 shadow-sm">
+            <div className="mt-5 rounded-[22px] border border-purple-100/70 bg-gradient-to-br from-white/95 to-violet-50/60 p-4 text-sm text-slate-600 shadow-[0_8px_28px_rgba(168,139,235,0.1)]">
               <p>
                 <span className="font-medium text-slate-800">擅长标签：</span>
                 {form.expertiseTags || "未填写"}
@@ -1550,7 +1552,7 @@ export default function CreateLifeAgentPage() {
             </div>
           </div>
 
-          <div className="shrink-0 border-t border-cyan-100/70 bg-white/90 px-4 py-4 pb-24 shadow-[0_-8px_32px_-14px_rgba(34,211,238,0.12)] backdrop-blur-lg sm:px-6 lg:pb-6">
+          <div className="shrink-0 border-t border-purple-100/70 bg-white/90 px-4 py-4 pb-24 shadow-[0_-8px_32px_-14px_rgba(168,139,235,0.12)] backdrop-blur-lg sm:px-6 lg:pb-6">
             <div className="mx-auto flex max-w-3xl flex-col gap-3 sm:flex-row sm:justify-between">
               <button
                 type="button"

@@ -116,31 +116,33 @@ body {
     @apply input-glow w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-sky-400;
   }
 
-  /* Life agent 创建页：浅天蓝渐变 + pastel 强调（与产品主色区分开） */
+  /* Life agent 创建页：薰衣草底 + 黄→粉→紫（参考「人生K线图」类 UI） */
   .life-agent-create-skin .btn-primary {
-    @apply rounded-2xl;
-    background: linear-gradient(135deg, #5eead4 0%, #22d3ee 42%, #38bdf8 100%);
-    box-shadow: 0 14px 36px -16px rgba(34, 211, 238, 0.55);
+    @apply rounded-2xl font-semibold text-slate-900;
+    background: linear-gradient(to right, #fff176, #ff80ab, #ba68c8);
+    box-shadow: 0 10px 30px rgba(168, 139, 235, 0.22);
   }
 
   .life-agent-create-skin .btn-primary:hover {
-    box-shadow: 0 18px 42px -16px rgba(56, 189, 248, 0.48);
+    box-shadow: 0 14px 36px rgba(168, 139, 235, 0.3);
   }
 
   .life-agent-create-skin .btn-secondary {
-    @apply rounded-2xl border-cyan-100/90 bg-white/80 text-slate-600 shadow-sm backdrop-blur-sm;
+    @apply rounded-2xl border-purple-100/90 bg-white/90 text-slate-700 shadow-sm backdrop-blur-sm;
+    box-shadow: 0 6px 20px rgba(168, 139, 235, 0.08);
   }
 
   .life-agent-create-skin .btn-secondary:hover {
-    @apply border-cyan-200/90 text-cyan-800 shadow-md;
+    @apply border-fuchsia-200/80 text-purple-900 shadow-md;
   }
 
   .life-agent-create-skin .input-shell {
-    @apply rounded-2xl border-cyan-100/80 bg-white/85 backdrop-blur-sm focus:border-cyan-300;
+    @apply rounded-2xl border-purple-100/80 bg-white/90 backdrop-blur-sm focus:border-fuchsia-300;
+    box-shadow: 0 4px 18px rgba(168, 139, 235, 0.06);
   }
 
   .life-agent-create-skin .input-glow:focus {
-    box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.2);
+    box-shadow: 0 0 0 4px rgba(168, 139, 235, 0.2);
   }
 
   .section-title {

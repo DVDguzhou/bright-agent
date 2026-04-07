@@ -11,6 +11,8 @@ type VoiceRecordPanelProps = {
   onSkip?: () => void;
   minDurationSeconds?: number;
   maxDurationSeconds?: number;
+  /** 与人生 Agent 创建页薰衣草 UI 一致 */
+  accent?: "default" | "pastel";
 };
 
 export function VoiceRecordPanel({
@@ -18,6 +20,7 @@ export function VoiceRecordPanel({
   onSkip,
   minDurationSeconds = 10,
   maxDurationSeconds = 30,
+  accent = "default",
 }: VoiceRecordPanelProps) {
   const [hasRecorded, setHasRecorded] = useState(false);
   const [envIssue, setEnvIssue] = useState<string | null>(null);
@@ -55,9 +58,25 @@ export function VoiceRecordPanel({
     setHasRecorded(false);
   }, [reset]);
 
+  const shell =
+    accent === "pastel"
+      ? "rounded-[22px] border border-purple-100/80 bg-white/95 p-6 shadow-[0_10px_30px_rgba(168,139,235,0.12)]"
+      : "rounded-2xl border border-slate-200 bg-white p-6 shadow-sm";
+  const micIdle =
+    accent === "pastel"
+      ? "bg-gradient-to-br from-[#BA68C8] to-[#FF80AB] text-white shadow-lg shadow-fuchsia-500/25 hover:opacity-95"
+      : "bg-sky-500 text-white hover:bg-sky-600";
+  const successBox =
+    accent === "pastel"
+      ? "bg-gradient-to-r from-violet-50 to-fuchsia-50/80 border border-purple-100/60"
+      : "bg-emerald-50";
+  const successIcon = accent === "pastel" ? "text-purple-600" : "text-emerald-600";
+  const successText = accent === "pastel" ? "text-purple-900/85" : "text-emerald-800";
+  const titleClass = accent === "pastel" ? "text-lg font-semibold text-purple-950/90" : "text-lg font-semibold text-slate-900";
+
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-      <h3 className="text-lg font-semibold text-slate-900">采集你的音色</h3>
+    <div className={shell}>
+      <h3 className={titleClass}>采集你的音色</h3>
       <p className="mt-2 text-sm text-slate-600">
         请朗读下面这段话，系统会采集你的声音特征，生成 Agent 的专属音色。建议在安静环境下录制，时长 {minDurationSeconds}–{maxDurationSeconds} 秒。
       </p>
@@ -69,11 +88,23 @@ export function VoiceRecordPanel({
         </div>
       ) : null}
 
-      <div className="mt-5 rounded-xl bg-slate-50 p-4">
+      <div
+        className={
+          accent === "pastel"
+            ? "mt-5 rounded-xl border border-purple-100/50 bg-violet-50/40 p-4"
+            : "mt-5 rounded-xl bg-slate-50 p-4"
+        }
+      >
         <p className="text-[15px] leading-7 text-slate-700">{SAMPLE_TEXT}</p>
       </div>
 
-      <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50/80 px-4 py-3 text-sm text-slate-600">
+      <div
+        className={
+          accent === "pastel"
+            ? "mt-4 rounded-xl border border-purple-100/50 bg-white/60 px-4 py-3 text-sm text-slate-600"
+            : "mt-4 rounded-xl border border-slate-200 bg-slate-50/80 px-4 py-3 text-sm text-slate-600"
+        }
+      >
         <p>建议使用 Chrome 或 Edge，并确保当前页面通过 HTTPS 或 localhost 打开。</p>
         <p className="mt-1">录音样本不会跟随草稿自动保存；如果刷新或离开页面，回来后需要重新录制。</p>
         <p className="mt-1">如果创建成功后仍没有生成音色，通常是服务端音色注册失败，可稍后在设置页补录。</p>
@@ -89,7 +120,7 @@ export function VoiceRecordPanel({
               className={`flex h-20 w-20 items-center justify-center rounded-full transition-all ${
                 isRecording
                   ? "bg-rose-500 text-white shadow-lg shadow-rose-500/30 animate-pulse"
-                  : "bg-sky-500 text-white hover:bg-sky-600"
+                  : micIdle
               }`}
             >
               {isRecording ? (
@@ -123,11 +154,11 @@ export function VoiceRecordPanel({
           </>
         ) : (
           <>
-            <div className="flex items-center gap-3 rounded-xl bg-emerald-50 px-4 py-3">
-              <svg className="h-6 w-6 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+            <div className={`flex items-center gap-3 rounded-xl px-4 py-3 ${successBox}`}>
+              <svg className={`h-6 w-6 ${successIcon}`} fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
-              <p className="text-sm font-medium text-emerald-800">录制完成，时长 {duration} 秒</p>
+              <p className={`text-sm font-medium ${successText}`}>录制完成，时长 {duration} 秒</p>
             </div>
             <div className="flex gap-3">
               <button type="button" onClick={handleRetry} className="btn-secondary">
