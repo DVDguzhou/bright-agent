@@ -866,7 +866,7 @@ export default function CreateLifeAgentPage() {
 
   if (!user) {
     return (
-      <div className="life-agent-create-skin min-h-[min(100dvh,720px)] bg-gradient-to-b from-[#E0F7FA] via-sky-50/70 to-white px-4 py-12">
+      <div className="life-agent-create-skin min-h-[min(100dvh,720px)] bg-gradient-to-b from-sky-200/90 via-[#E0F7FA] to-white px-4 py-12">
         <div className="mx-auto max-w-2xl rounded-[28px] border border-cyan-100/80 bg-white/90 p-10 text-center shadow-[0_10px_44px_-14px_rgba(34,211,238,0.28)] backdrop-blur-md">
           <h1 className="text-3xl font-bold text-slate-800">先登录，再创建你的人生 Agent</h1>
           <p className="mt-3 text-slate-600">
@@ -903,9 +903,9 @@ export default function CreateLifeAgentPage() {
       className={
         "life-agent-create-skin flex min-w-0 flex-col overflow-hidden " +
         /* 窄屏：占满视口并禁止整页滚动，避免 sticky 顶栏盖住「基础资料」等首行（main 的 padding + min-h-dvh 常会多出一点可滚动高度） */
-        "max-lg:fixed max-lg:inset-0 max-lg:z-30 max-lg:m-0 max-lg:w-full max-lg:bg-gradient-to-b max-lg:from-[#E0F7FA] max-lg:via-sky-50/60 max-lg:to-white max-lg:min-h-0 " +
-        /* 宽屏：与原布局一致 */
-        "lg:relative lg:z-auto lg:-mx-4 lg:-mt-8 lg:-mb-8 lg:min-h-[calc(100dvh-4rem)] lg:bg-gradient-to-b lg:from-[#E0F7FA]/90 lg:via-sky-50/40 lg:to-white max-lg:min-h-0"
+        "max-lg:fixed max-lg:inset-0 max-lg:z-30 max-lg:m-0 max-lg:w-full max-lg:bg-gradient-to-b max-lg:from-sky-200/95 max-lg:via-[#E0F7FA] max-lg:to-white max-lg:min-h-0 " +
+        /* 宽屏：与原布局一致（加深顶部色带，避免和 body 的 slate-50 混在一起看不出来） */
+        "lg:relative lg:z-auto lg:-mt-8 lg:-mb-8 lg:min-h-[calc(100dvh-4rem)] lg:bg-gradient-to-b lg:from-sky-200/90 lg:via-cyan-50 lg:to-white max-lg:min-h-0"
       }
     >
       {/* 顶替全局顶栏：窄屏随全屏容器固定；宽屏 sticky 防止长表单滚动时丢失上下文 */}
