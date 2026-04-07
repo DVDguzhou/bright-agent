@@ -186,11 +186,11 @@ export default function LifeAgentDetailPage() {
   if (!loaded) {
     return (
       <div className="mx-auto max-w-lg">
-        <div className="aspect-[4/3] animate-pulse bg-slate-100" />
+        <div className="aspect-[4/3] animate-pulse bg-gradient-to-br from-violet-100/90 to-fuchsia-100/50" />
         <div className="space-y-3 p-4">
-          <div className="h-6 w-1/3 animate-pulse rounded bg-slate-100" />
-          <div className="h-5 w-2/3 animate-pulse rounded bg-slate-100" />
-          <div className="h-4 w-full animate-pulse rounded bg-slate-50" />
+          <div className="h-6 w-1/3 animate-pulse rounded bg-violet-100/80" />
+          <div className="h-5 w-2/3 animate-pulse rounded bg-violet-100/80" />
+          <div className="h-4 w-full animate-pulse rounded bg-violet-50/60" />
         </div>
       </div>
     );
@@ -199,9 +199,9 @@ export default function LifeAgentDetailPage() {
   if (!profile) {
     return (
       <div className="mx-auto max-w-lg space-y-4 px-4 pt-12 text-center">
-        <p className="text-lg font-medium text-slate-900">未找到该 Agent</p>
+        <p className="text-lg font-medium text-purple-950/90">未找到该 Agent</p>
         <p className="text-slate-500">链接可能已失效，请从列表重新进入。</p>
-        <Link href="/life-agents" className="mt-4 inline-block rounded-full bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white">
+        <Link href="/life-agents" className="btn-primary mt-4 inline-flex">
           返回列表
         </Link>
       </div>
@@ -221,7 +221,7 @@ export default function LifeAgentDetailPage() {
     <>
       {/* ===== 全宽封面 ===== */}
       <div className="relative -mx-4 -mt-4 sm:-mx-6 sm:-mt-6 lg:-mx-8">
-        <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-100 sm:aspect-[2/1] sm:max-h-[420px]">
+        <div className="relative aspect-[4/3] w-full overflow-hidden bg-violet-100/50 sm:aspect-[2/1] sm:max-h-[420px]">
           {heroCoverUrl && (
             <LifeAgentCoverImage
               src={heroCoverUrl}
@@ -268,12 +268,12 @@ export default function LifeAgentDetailPage() {
       <div className="mx-auto max-w-2xl space-y-2 pb-24 sm:pb-28">
 
         {/* --- 价格 + 名称 --- */}
-        <div className="-mx-4 bg-white px-4 pb-4 pt-5 sm:-mx-6 sm:px-6">
-          <p className="text-2xl font-bold text-blue-600">
+        <div className="-mx-4 bg-white/[0.98] px-4 pb-4 pt-5 backdrop-blur-sm sm:-mx-6 sm:px-6">
+          <p className="text-2xl font-bold text-purple-700">
             ¥{(profile.pricePerQuestion / 100).toFixed(2)}
             <span className="ml-1 text-sm font-medium text-slate-400">/次提问</span>
           </p>
-          <h1 className="mt-3 text-lg font-bold leading-snug text-slate-900 sm:text-xl">
+          <h1 className="mt-3 text-lg font-bold leading-snug text-purple-950/90 sm:text-xl">
             {profile.displayName}
           </h1>
           <p className="mt-1.5 text-sm leading-relaxed text-slate-500">{profile.headline}</p>
@@ -281,7 +281,7 @@ export default function LifeAgentDetailPage() {
           {allTags.length > 0 && (
             <div className="mt-3 flex flex-wrap gap-1.5">
               {allTags.map((tag) => (
-                <span key={tag} className="rounded-md bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-600">
+                <span key={tag} className="rounded-md bg-violet-50/95 px-2 py-0.5 text-xs font-medium text-purple-700">
                   {tag}
                 </span>
               ))}
@@ -289,12 +289,12 @@ export default function LifeAgentDetailPage() {
           )}
 
           {/* 小数据条 */}
-          <div className="mt-4 flex items-center gap-4 border-t border-slate-100 pt-3 text-xs text-slate-400">
+          <div className="mt-4 flex items-center gap-4 border-t border-purple-100/60 pt-3 text-xs text-slate-400">
             <span>{profile.stats.soldQuestionPacks} 次已售</span>
             <span>{profile.stats.sessionCount} 场聊天</span>
             <span>{profile.stats.knowledgeCount} 条知识</span>
             {profile.viewerState.remainingQuestions > 0 && (
-              <span className="ml-auto font-medium text-blue-600">
+              <span className="ml-auto font-medium text-purple-700">
                 剩余 {profile.viewerState.remainingQuestions} 次
               </span>
             )}
@@ -302,9 +302,9 @@ export default function LifeAgentDetailPage() {
         </div>
 
         {/* --- 创作者卡片 --- */}
-        <div className="-mx-4 bg-white px-4 py-4 sm:-mx-6 sm:px-6">
+        <div className="-mx-4 bg-white/[0.98] px-4 py-4 backdrop-blur-sm sm:-mx-6 sm:px-6">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-sky-400 text-base font-bold text-white">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#BA68C8] to-[#FF80AB] text-base font-bold text-white shadow-sm">
               {(profile.displayName ?? "?").slice(0, 1)}
             </div>
             <div className="min-w-0 flex-1">
@@ -347,19 +347,19 @@ export default function LifeAgentDetailPage() {
         )}
 
         {/* --- 适合人群 --- */}
-        <div className="-mx-4 bg-white px-4 py-4 sm:-mx-6 sm:px-6">
-          <h2 className="text-sm font-semibold text-slate-900">适合咨询的人群</h2>
+        <div className="-mx-4 bg-white/[0.98] px-4 py-4 backdrop-blur-sm sm:-mx-6 sm:px-6">
+          <h2 className="text-sm font-semibold text-purple-950/90">适合咨询的人群</h2>
           <p className="mt-2 text-sm leading-7 text-slate-600">{profile.audience}</p>
         </div>
 
         {/* --- 你可以问 --- */}
         {(profile.sampleQuestions ?? []).length > 0 && (
-          <div className="-mx-4 bg-white px-4 py-4 sm:-mx-6 sm:px-6">
-            <h2 className="text-sm font-semibold text-slate-900">你可以问这些问题</h2>
+          <div className="-mx-4 bg-white/[0.98] px-4 py-4 backdrop-blur-sm sm:-mx-6 sm:px-6">
+            <h2 className="text-sm font-semibold text-purple-950/90">你可以问这些问题</h2>
             <div className="mt-3 space-y-2">
               {profile.sampleQuestions.map((q, i) => (
-                <div key={i} className="flex items-start gap-2 rounded-xl bg-slate-50 px-3 py-2.5">
-                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-blue-100 text-[10px] font-bold text-blue-600">
+                <div key={i} className="flex items-start gap-2 rounded-xl border border-purple-100/50 bg-violet-50/50 px-3 py-2.5 backdrop-blur-sm">
+                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-fuchsia-100/90 text-[10px] font-bold text-purple-700">
                     {i + 1}
                   </span>
                   <span className="text-sm leading-relaxed text-slate-700">{q}</span>
@@ -370,16 +370,16 @@ export default function LifeAgentDetailPage() {
         )}
 
         {/* --- 欢迎语 --- */}
-        <div className="-mx-4 bg-white px-4 py-4 sm:-mx-6 sm:px-6">
-          <h2 className="text-sm font-semibold text-slate-900">开场欢迎语</h2>
-          <div className="mt-2 rounded-xl bg-blue-50/60 px-3.5 py-3 text-sm leading-6 text-slate-700">
+        <div className="-mx-4 bg-white/[0.98] px-4 py-4 backdrop-blur-sm sm:-mx-6 sm:px-6">
+          <h2 className="text-sm font-semibold text-purple-950/90">开场欢迎语</h2>
+          <div className="mt-2 rounded-xl border border-purple-100/50 bg-gradient-to-br from-violet-50/80 to-fuchsia-50/50 px-3.5 py-3 text-sm leading-6 text-slate-700 backdrop-blur-sm">
             {profile.welcomeMessage}
           </div>
         </div>
 
         {/* --- 评价 --- */}
-        <div className="-mx-4 bg-white px-4 py-4 sm:-mx-6 sm:px-6">
-          <h2 className="text-sm font-semibold text-slate-900">用户评价</h2>
+        <div className="-mx-4 bg-white/[0.98] px-4 py-4 backdrop-blur-sm sm:-mx-6 sm:px-6">
+          <h2 className="text-sm font-semibold text-purple-950/90">用户评价</h2>
           <div className="mt-3 flex items-center gap-3">
             <span className="text-3xl font-bold text-slate-900">
               {profile.ratings && profile.ratings.raters > 0
@@ -396,7 +396,7 @@ export default function LifeAgentDetailPage() {
             </div>
           </div>
           {profile.ratings?.recent && profile.ratings.recent.length > 0 && (
-            <div className="mt-4 space-y-3 border-t border-slate-100 pt-3">
+            <div className="mt-4 space-y-3 border-t border-purple-100/60 pt-3">
               {profile.ratings.recent.slice(0, 5).map((r) => (
                 <div key={r.id} className="text-sm">
                   <div className="flex items-center gap-2">
@@ -423,7 +423,7 @@ export default function LifeAgentDetailPage() {
               onClick={() => setShowPurchase(false)}
             />
             <div
-              className="fixed inset-x-0 bottom-0 z-[210] flex max-h-[90vh] flex-col rounded-t-[20px] bg-[#f4f4f4] shadow-[0_-8px_32px_rgba(0,0,0,0.12)]"
+              className="fixed inset-x-0 bottom-0 z-[210] flex max-h-[90vh] flex-col rounded-t-[22px] bg-gradient-to-b from-[#f3efff] via-[#ebe4f7] to-[#e4daf5] shadow-[0_-10px_40px_-8px_rgba(124,58,237,0.18)]"
               role="dialog"
               aria-modal="true"
               aria-labelledby="la-purchase-title"
@@ -440,9 +440,9 @@ export default function LifeAgentDetailPage() {
               </button>
 
               {/* 顶部商品区（白底） */}
-              <div className="shrink-0 rounded-t-[20px] bg-white px-4 pb-4 pt-5">
+              <div className="shrink-0 rounded-t-[22px] border-b border-purple-200/[0.2] bg-white/[0.98] px-4 pb-4 pt-5 backdrop-blur-md">
                 <div className="flex gap-3 pr-10">
-                  <div className="relative h-[4.5rem] w-[4.5rem] shrink-0 overflow-hidden rounded-lg bg-slate-100 ring-1 ring-black/5">
+                  <div className="relative h-[4.5rem] w-[4.5rem] shrink-0 overflow-hidden rounded-lg bg-violet-100/50 ring-1 ring-purple-200/30">
                     {heroCoverUrl ? (
                       <LifeAgentCoverImage
                         src={heroCoverUrl}
@@ -458,7 +458,7 @@ export default function LifeAgentDetailPage() {
                       {profile.displayName}
                     </p>
                     <p className="mt-1 line-clamp-1 text-xs text-slate-500">{profile.headline}</p>
-                    <p className="mt-2 text-[22px] font-bold leading-none text-[#ff4400]">
+                    <p className="mt-2 text-[22px] font-bold leading-none text-purple-800">
                       ¥{(profile.pricePerQuestion / 100).toFixed(2)}
                       <span className="ml-1 text-xs font-normal text-slate-400">/ 次提问</span>
                     </p>
@@ -468,14 +468,14 @@ export default function LifeAgentDetailPage() {
 
               {/* 中间可滚动：白卡片分区 */}
               <div className="min-h-0 flex-1 space-y-2 overflow-y-auto px-3 py-2 pb-[calc(5.5rem+env(safe-area-inset-bottom))]">
-                <div className="flex items-center justify-between rounded-xl bg-white px-4 py-3.5 text-sm shadow-sm">
+                <div className="flex items-center justify-between rounded-xl border border-purple-200/[0.2] bg-white/[0.98] px-4 py-3.5 text-sm shadow-[0_3px_16px_rgba(124,58,237,0.06)] backdrop-blur-sm">
                   <span className="text-slate-600">服务类型</span>
                   <span className="font-medium text-[#111]">按次付费 · 提问咨询</span>
                 </div>
 
-                <div className="flex items-center justify-between rounded-xl bg-white px-4 py-3.5 text-sm shadow-sm">
+                <div className="flex items-center justify-between rounded-xl border border-purple-200/[0.2] bg-white/[0.98] px-4 py-3.5 text-sm shadow-[0_3px_16px_rgba(124,58,237,0.06)] backdrop-blur-sm">
                   <span className="text-[#111]">购买数量</span>
-                  <div className="flex items-center rounded-lg border border-slate-200 bg-slate-50">
+                  <div className="flex items-center rounded-lg border border-purple-200/[0.25] bg-violet-50/50">
                     <button
                       type="button"
                       disabled={purchaseCount <= MIN_QUESTIONS}
@@ -498,17 +498,17 @@ export default function LifeAgentDetailPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between rounded-xl bg-white px-4 py-3.5 text-sm shadow-sm">
+                <div className="flex items-center justify-between rounded-xl border border-purple-200/[0.2] bg-white/[0.98] px-4 py-3.5 text-sm shadow-[0_3px_16px_rgba(124,58,237,0.06)] backdrop-blur-sm">
                   <span className="text-slate-600">应付合计</span>
-                  <span className="text-lg font-bold text-[#ff4400]">¥{totalPrice.toFixed(2)}</span>
+                  <span className="text-lg font-bold text-purple-800">¥{totalPrice.toFixed(2)}</span>
                 </div>
 
-                <div className="overflow-hidden rounded-xl bg-white shadow-sm">
-                  <p className="border-b border-slate-100 px-4 py-2 text-xs text-slate-400">支付方式</p>
+                <div className="overflow-hidden rounded-xl border border-purple-200/[0.2] bg-white/[0.98] shadow-[0_3px_16px_rgba(124,58,237,0.06)] backdrop-blur-sm">
+                  <p className="border-b border-purple-100/60 px-4 py-2 text-xs text-slate-400">支付方式</p>
                   <button
                     type="button"
                     onClick={() => setPayMethod("balance")}
-                    className="flex w-full items-center gap-3 border-b border-slate-50 px-4 py-3.5 text-left text-sm"
+                    className="flex w-full items-center gap-3 border-b border-purple-50/80 px-4 py-3.5 text-left text-sm"
                   >
                     <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-400 text-xs font-bold text-white">
                       余
@@ -550,17 +550,17 @@ export default function LifeAgentDetailPage() {
                 </div>
 
                 {message ? (
-                  <p className="px-1 text-center text-sm text-[#ff4400]">{message}</p>
+                  <p className="px-1 text-center text-sm text-orange-800/90">{message}</p>
                 ) : null}
               </div>
 
               {/* 底部固定：闲鱼式橙色胶囊按钮 */}
-              <div className="shrink-0 border-t border-slate-200/80 bg-white px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3">
+              <div className="shrink-0 border-t border-purple-200/[0.25] bg-white/[0.96] px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-md">
                 <button
                   type="button"
                   onClick={purchase}
                   disabled={purchasing}
-                  className="w-full rounded-full bg-[#ff4400] py-3.5 text-base font-bold text-white shadow-sm transition active:opacity-90 disabled:opacity-50"
+                  className="btn-primary w-full py-3.5 text-base font-bold disabled:opacity-50"
                 >
                   {purchasing ? "提交中…" : `确认购买 ¥${totalPrice.toFixed(2)}`}
                 </button>
@@ -571,32 +571,27 @@ export default function LifeAgentDetailPage() {
         )}
 
       {/* ===== 底部固定操作栏 ===== */}
-      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-slate-100 bg-white/95 backdrop-blur-md">
+      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-purple-200/[0.2] bg-white/[0.94] backdrop-blur-lg shadow-[0_-4px_28px_-8px_rgba(124,58,237,0.08)]">
         <div className="mx-auto flex max-w-2xl items-center gap-3 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 sm:px-6">
           <div className="min-w-0 flex-1">
-            <p className="text-lg font-bold text-blue-600">
+            <p className="text-lg font-bold text-purple-700">
               ¥{(profile.pricePerQuestion / 100).toFixed(2)}
               <span className="ml-1 text-xs font-normal text-slate-400">/次</span>
             </p>
           </div>
           <button
+            type="button"
             onClick={() => setShowPurchase(!showPurchase)}
-            className="shrink-0 rounded-xl border border-blue-200 bg-blue-50 px-5 py-2.5 text-sm font-semibold text-blue-600 transition hover:bg-blue-100"
+            className="btn-secondary shrink-0 px-5 py-2.5 text-sm font-semibold"
           >
             购买提问
           </button>
           {profile.viewerState.isLoggedIn ? (
-            <Link
-              href={`/life-agents/${profile.id}/chat`}
-              className="shrink-0 rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
-            >
+            <Link href={`/life-agents/${profile.id}/chat`} className="btn-primary shrink-0 px-6 py-2.5 text-sm font-semibold">
               进入聊天
             </Link>
           ) : (
-            <Link
-              href="/login"
-              className="shrink-0 rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
-            >
+            <Link href="/login" className="btn-primary shrink-0 px-6 py-2.5 text-sm font-semibold">
               登录后咨询
             </Link>
           )}

@@ -70,16 +70,16 @@ export function LifeAgentMessageComposer({
     <form
       ref={formRef}
       onSubmit={onSubmit}
-      className={`bg-white px-0 pb-0 pt-1 sm:px-0 ${formClassName}`.trim()}
+      className={`bg-transparent px-0 pb-0 pt-1 sm:px-0 ${formClassName}`.trim()}
     >
       <div ref={wrapRef} className="relative mx-auto w-full max-w-3xl">
         {emojiOpen ? (
-          <div className="absolute bottom-full left-0 right-0 z-20 mb-2 flex flex-wrap gap-1.5 rounded-2xl border border-slate-100 bg-white p-3 shadow-lg">
+          <div className="absolute bottom-full left-0 right-0 z-20 mb-2 flex flex-wrap gap-1.5 rounded-2xl border border-purple-200/[0.22] bg-white/[0.98] p-3 shadow-[0_8px_32px_-8px_rgba(124,58,237,0.12)] backdrop-blur-md">
             {QUICK_EMOJIS.map((em) => (
               <button
                 key={em}
                 type="button"
-                className="flex h-9 w-9 items-center justify-center rounded-lg text-lg transition hover:bg-slate-50"
+                className="flex h-9 w-9 items-center justify-center rounded-lg text-lg transition hover:bg-purple-50/90"
                 onClick={() => {
                   onChange(value + em);
                   setEmojiOpen(false);
@@ -93,14 +93,14 @@ export function LifeAgentMessageComposer({
         {moreOpen && morePanel ? (
           <div className="absolute bottom-full left-0 right-0 z-20 mb-2">{morePanel}</div>
         ) : null}
-        <div className="flex items-end gap-1.5 rounded-full border border-slate-200 bg-white py-1.5 pl-2 pr-1 shadow-sm sm:gap-2 sm:py-2 sm:pl-3">
+        <div className="flex items-end gap-1.5 rounded-full border border-purple-200/[0.25] bg-white/[0.96] py-1.5 pl-2 pr-1 shadow-[0_3px_18px_rgba(124,58,237,0.06)] backdrop-blur-md sm:gap-2 sm:py-2 sm:pl-3">
           <VoiceInputButton
             onTranscript={(text, isFinal) => {
               if (isFinal && text.trim()) onVoiceFinal?.(text);
             }}
             disabled={disabled}
             size="sm"
-            className="!h-9 !w-9 shrink-0 border-slate-200 sm:!h-10 sm:!w-10"
+            className="!h-9 !w-9 shrink-0 border-purple-200/40 sm:!h-10 sm:!w-10"
           />
           <textarea
             ref={textareaRef}
@@ -136,7 +136,7 @@ export function LifeAgentMessageComposer({
               });
             }}
             disabled={disabled}
-            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 disabled:opacity-40"
+            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-purple-800/50 transition hover:bg-purple-50/90 disabled:opacity-40"
             aria-label="表情"
           >
             <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24" aria-hidden>
@@ -152,7 +152,7 @@ export function LifeAgentMessageComposer({
                 onMoreClick?.();
               }}
               disabled={disabled}
-              className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 disabled:opacity-40"
+              className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-purple-800/50 transition hover:bg-purple-50/90 disabled:opacity-40"
               aria-label="更多功能"
             >
               <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden>

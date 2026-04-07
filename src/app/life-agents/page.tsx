@@ -218,23 +218,23 @@ function LifeAgentsPageContent() {
     <div className="-mx-1 space-y-4 pb-4 sm:mx-0 sm:space-y-5">
       <section>
         {feedTab === "favorites" ? (
-          <div className="mb-3 rounded-xl border border-rose-100 bg-rose-50/80 px-4 py-3 text-sm text-rose-900">
+          <div className="mb-3 rounded-[20px] border border-fuchsia-200/[0.35] bg-gradient-to-r from-fuchsia-50/[0.85] to-violet-50/[0.75] px-4 py-3 text-sm text-purple-950/90 shadow-[0_4px_22px_rgba(124,58,237,0.06)] backdrop-blur-sm">
             <p className="font-medium">我的收藏</p>
-            <p className="mt-1 text-xs text-rose-800/90">在 Agent 详情页封面右上角点星形即可收藏，数据保存在本机浏览器。</p>
+            <p className="mt-1 text-xs text-purple-900/75">在 Agent 详情页封面右上角点星形即可收藏，数据保存在本机浏览器。</p>
           </div>
         ) : feedTab === "purchased" ? (
-          <div className="mb-3 rounded-xl border border-emerald-100 bg-emerald-50/80 px-4 py-3 text-sm text-emerald-950">
+          <div className="mb-3 rounded-[20px] border border-purple-200/[0.28] bg-gradient-to-r from-violet-50/[0.9] to-fuchsia-50/[0.7] px-4 py-3 text-sm text-purple-950/90 shadow-[0_4px_22px_rgba(124,58,237,0.06)] backdrop-blur-sm">
             <p className="font-medium">已购买咨询额度</p>
-            <p className="mt-1 text-xs text-emerald-900/90">以下为仍有剩余提问次数的 Agent，点击卡片可进入对话。</p>
+            <p className="mt-1 text-xs text-purple-900/75">以下为仍有剩余提问次数的 Agent，点击卡片可进入对话。</p>
           </div>
         ) : null}
 
         {feedTab === "favorites" || feedTab === "purchased" ? (
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3 px-1">
-            <h2 className="text-base font-semibold text-slate-900 sm:text-lg">
+            <h2 className="text-base font-semibold text-purple-950/90 sm:text-lg">
               {feedTab === "favorites" ? "我的收藏" : "已购买"}
             </h2>
-            <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] text-slate-600 sm:text-xs">
+            <span className="shrink-0 rounded-full bg-violet-100/90 px-2.5 py-0.5 text-[11px] text-purple-800 sm:text-xs">
               {feedTab === "purchased"
                 ? purchasedLoading
                   ? UI.loading
@@ -264,9 +264,9 @@ function LifeAgentsPageContent() {
               {[1, 2, 3, 4, 5, 6].map((item) => (
                 <div
                   key={item}
-                  className="flex min-h-0 flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/60"
+                  className="flex min-h-0 flex-col overflow-hidden rounded-[22px] border border-purple-200/[0.18] bg-white/[0.96] shadow-[0_4px_22px_rgba(124,58,237,0.06)]"
                 >
-                  <div className="aspect-[4/5] w-full shrink-0 animate-pulse bg-gradient-to-br from-slate-100 to-slate-200/90" />
+                  <div className="aspect-[4/5] w-full shrink-0 animate-pulse bg-gradient-to-br from-violet-100/80 to-fuchsia-100/50" />
                   <div className="flex flex-1 flex-col gap-2 p-2.5">
                     <div className="min-h-[2.75rem] animate-pulse rounded-md bg-slate-100" />
                     <div className="h-3 w-2/3 animate-pulse rounded bg-slate-100" />
@@ -276,21 +276,18 @@ function LifeAgentsPageContent() {
               ))}
             </div>
           ) : purchasedUnauthorized ? (
-            <div className="rounded-2xl border border-dashed border-slate-200 bg-white px-6 py-12 text-center">
-              <p className="text-base font-semibold text-slate-900">请先登录</p>
+            <div className="rounded-[22px] border border-dashed border-purple-200/40 bg-white/[0.97] px-6 py-12 text-center shadow-[0_6px_28px_rgba(124,58,237,0.06)] backdrop-blur-sm">
+              <p className="text-base font-semibold text-purple-950/90">请先登录</p>
               <p className="mt-2 text-sm text-slate-500">登录后可查看你已购买提问额度的 Agent。</p>
-              <Link
-                href="/login"
-                className="mt-5 inline-block rounded-full bg-slate-900 px-6 py-2.5 text-sm font-semibold text-white"
-              >
+              <Link href="/login" className="btn-primary mt-5 inline-flex">
                 去登录
               </Link>
             </div>
           ) : purchasedItems.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-slate-200 bg-white px-6 py-12 text-center">
-              <p className="text-base font-semibold text-slate-900">暂无已购额度</p>
+            <div className="rounded-[22px] border border-dashed border-purple-200/40 bg-white/[0.97] px-6 py-12 text-center shadow-[0_6px_28px_rgba(124,58,237,0.06)] backdrop-blur-sm">
+              <p className="text-base font-semibold text-purple-950/90">暂无已购额度</p>
               <p className="mt-2 text-sm text-slate-500">购买提问包后，对应 Agent 会出现在这里。</p>
-              <Link href="/life-agents" className="mt-5 inline-block text-sm font-semibold text-blue-600 hover:underline">
+              <Link href="/life-agents" className="mt-5 inline-block text-sm font-semibold text-purple-700 underline decoration-purple-300/70 underline-offset-2 hover:text-purple-900">
                 去发现页逛逛
               </Link>
             </div>
@@ -337,8 +334,8 @@ function PurchasedAgentsWindowedGrid({ rows }: { rows: PurchasedAgentRow[] }) {
               className="min-h-0 [content-visibility:auto] [contain-intrinsic-size:auto_300px]"
             >
               <Link href={`/life-agents/${row.id}/chat`} className="group flex h-full min-h-0">
-                <div className="flex h-full min-h-[280px] w-full flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/70 transition duration-200 group-hover:shadow-md group-hover:ring-emerald-200/70 sm:min-h-[300px]">
-                  <div className="relative aspect-[4/5] w-full shrink-0 overflow-hidden bg-slate-100">
+                <div className="flex h-full min-h-[280px] w-full flex-col overflow-hidden rounded-[22px] border border-purple-200/[0.22] bg-white/[0.98] shadow-[0_5px_28px_-8px_rgba(124,58,237,0.09)] backdrop-blur-sm transition duration-200 group-hover:border-fuchsia-200/35 group-hover:shadow-[0_10px_36px_-10px_rgba(168,139,235,0.14)] sm:min-h-[300px]">
+                  <div className="relative aspect-[4/5] w-full shrink-0 overflow-hidden bg-violet-100/40">
                     <LifeAgentCoverImage
                       src={coverUrl}
                       alt=""
@@ -363,13 +360,13 @@ function PurchasedAgentsWindowedGrid({ rows }: { rows: PurchasedAgentRow[] }) {
                     </div>
                   </div>
                   <div className="flex min-h-0 flex-1 flex-col px-2.5 pb-2.5 pt-2 sm:p-3">
-                    <h3 className="line-clamp-2 min-h-[2.75rem] text-[13px] font-semibold leading-snug text-slate-900 sm:text-sm">
+                    <h3 className="line-clamp-2 min-h-[2.75rem] text-[13px] font-semibold leading-snug text-purple-950/90 sm:text-sm">
                       {row.displayName}
                     </h3>
                     <p className="mt-1 text-[11px] text-slate-400">点击进入对话</p>
-                    <div className="mt-auto flex items-center justify-between border-t border-slate-100 pt-2 text-[11px] text-slate-500">
+                    <div className="mt-auto flex items-center justify-between border-t border-purple-100/60 pt-2 text-[11px] text-slate-500">
                       <span>按次咨询</span>
-                      <span className="font-bold text-emerald-600">
+                      <span className="font-bold text-purple-700">
                         ¥{(row.pricePerQuestion / 100).toFixed(0)}
                         <span className="text-[10px] font-medium text-slate-400">/问</span>
                       </span>
@@ -396,7 +393,7 @@ export default function LifeAgentsPage() {
       fallback={
         <div className="-mx-1 grid grid-cols-2 gap-2 pb-4 sm:mx-0 sm:grid-cols-3">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="aspect-[4/5] animate-pulse rounded-2xl bg-slate-200/80" />
+            <div key={i} className="aspect-[4/5] animate-pulse rounded-[22px] bg-gradient-to-br from-violet-100/90 to-fuchsia-100/60" />
           ))}
         </div>
       }

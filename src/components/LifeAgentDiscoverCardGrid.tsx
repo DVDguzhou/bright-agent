@@ -72,8 +72,8 @@ function LifeAgentDiscoverCard({
   const shellClass = "min-h-0 [content-visibility:auto] [contain-intrinsic-size:auto_300px]";
   const inner = (
     <Link href={profileHref(profile.id)} className="group flex h-full min-h-0">
-        <div className="flex h-full min-h-[280px] w-full flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/70 transition duration-200 group-hover:shadow-md group-hover:ring-blue-200/60 sm:min-h-[300px]">
-          <div className="relative aspect-[4/5] w-full shrink-0 overflow-hidden bg-slate-100">
+        <div className="flex h-full min-h-[280px] w-full flex-col overflow-hidden rounded-[22px] border border-purple-200/[0.22] bg-white/[0.98] shadow-[0_5px_28px_-8px_rgba(124,58,237,0.09)] backdrop-blur-sm transition duration-200 group-hover:border-fuchsia-200/35 group-hover:shadow-[0_10px_36px_-10px_rgba(168,139,235,0.14)] sm:min-h-[300px]">
+          <div className="relative aspect-[4/5] w-full shrink-0 overflow-hidden bg-violet-100/40">
             {typeof profile.published === "boolean" && (
               <div
                 className={`absolute left-2 top-2 z-[1] rounded-full px-2 py-0.5 text-[10px] font-bold shadow-sm ${
@@ -104,23 +104,23 @@ function LifeAgentDiscoverCard({
             </div>
           </div>
           <div className="flex min-h-0 flex-1 flex-col px-2.5 pb-2.5 pt-2 sm:p-3">
-            <h3 className="line-clamp-2 min-h-[2.75rem] text-[13px] font-semibold leading-snug text-slate-900 sm:text-sm">
+            <h3 className="line-clamp-2 min-h-[2.75rem] text-[13px] font-semibold leading-snug text-purple-950/90 sm:text-sm">
               {profile.displayName}
             </h3>
             <p className="line-clamp-1 min-h-[1.125rem] text-[11px] text-slate-400">{areaLabel || "\u00a0"}</p>
             <div className="flex items-center justify-between gap-2 pt-0.5">
               <div className="flex min-w-0 items-center gap-1 text-[11px] text-slate-500">
-                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-200/90 text-[10px] font-bold text-slate-600">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-100 to-fuchsia-100 text-[10px] font-bold text-purple-800">
                   {(profile.displayName ?? anonymous).slice(0, 1)}
                 </span>
                 <span className="truncate">{profile.creator.name ?? anonymous}</span>
               </div>
-              <span className="shrink-0 text-sm font-bold text-blue-600">
+              <span className="shrink-0 text-sm font-bold text-purple-700">
                 ¥{(profile.pricePerQuestion / 100).toFixed(0)}
                 <span className="text-[10px] font-medium text-slate-400">/问</span>
               </span>
             </div>
-            <div className="flex items-center gap-1.5 border-t border-slate-100 pt-2 text-[11px] text-slate-500">
+            <div className="flex items-center gap-1.5 border-t border-purple-100/60 pt-2 text-[11px] text-slate-500">
               <RatingStars score={profile.ratings?.averageScore ?? 0} size="sm" />
               <span>
                 {profile.ratings && profile.ratings.raters > 0 ? profile.ratings.averageScore.toFixed(1) : "—"}
@@ -134,7 +134,7 @@ function LifeAgentDiscoverCard({
               {tags.map((tag: string) => (
                 <span
                   key={tag}
-                  className="rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-medium text-blue-600/90"
+                  className="rounded-md bg-violet-50/90 px-1.5 py-0.5 text-[10px] font-medium text-purple-700/90"
                 >
                   {tag}
                 </span>
@@ -259,9 +259,9 @@ export function LifeAgentDiscoverCardGrid({
         {[1, 2, 3, 4, 5, 6].map((item) => (
           <div
             key={item}
-            className="flex min-h-0 flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/60"
+            className="flex min-h-0 flex-col overflow-hidden rounded-[22px] border border-purple-200/[0.18] bg-white/[0.96] shadow-[0_4px_22px_rgba(124,58,237,0.06)]"
           >
-            <div className="aspect-[4/5] w-full shrink-0 animate-pulse bg-gradient-to-br from-slate-100 to-slate-200/90" />
+            <div className="aspect-[4/5] w-full shrink-0 animate-pulse bg-gradient-to-br from-violet-100/80 to-fuchsia-100/50" />
             <div className="flex flex-1 flex-col gap-2 p-2.5">
               <div className="min-h-[2.75rem] animate-pulse rounded-md bg-slate-100" />
               <div className="h-3 w-2/3 animate-pulse rounded bg-slate-100" />
@@ -277,8 +277,8 @@ export function LifeAgentDiscoverCardGrid({
 
   if (profiles.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-slate-200 bg-white px-6 py-12 text-center">
-        <p className="text-base font-semibold text-slate-900">{emptyTitle}</p>
+      <div className="rounded-[22px] border border-dashed border-purple-200/40 bg-white/[0.97] px-6 py-12 text-center shadow-[0_6px_28px_rgba(124,58,237,0.06)] backdrop-blur-sm">
+        <p className="text-base font-semibold text-purple-950/90">{emptyTitle}</p>
         <p className="mt-2 text-sm text-slate-500">{emptySubtitle}</p>
       </div>
     );
