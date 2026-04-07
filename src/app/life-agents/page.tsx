@@ -298,12 +298,7 @@ function LifeAgentsPageContent() {
               </div>
             </div>
           )}
-          <p className="sr-only">
-            在页面顶部下拉可刷新当前列表；在空白处左右滑动可在收藏、发现、已购之间切换。
-          </p>
-          <p className="px-1 pb-1 text-center text-[11px] leading-snug text-slate-400 lg:hidden">
-            顶部下拉刷新 · 左右滑动切换「收藏 / 发现 / 已购」
-          </p>
+          <p className="sr-only">列表处于顶部时下拉可刷新；左右滑动可切换收藏、发现与已购。</p>
         </>
       ) : null}
       <section>

@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
-const SWIPE_TAB_MIN_DX = 56;
-const SWIPE_TAB_MAX_DEVY = 100;
+const SWIPE_TAB_MIN_DX = 48;
+const SWIPE_TAB_MAX_DEVY = 130;
 const PULL_MIN_DY = 72;
 const PTR_MAX_SCROLL = 10;
 const PULL_RESIST = 0.5;
@@ -21,14 +21,7 @@ type Active = {
   y0: number;
   intent: "unknown" | "horizontal" | "vertical" | "pull";
   ptrArmed: boolean;
-  startedOnInteractive: boolean;
 };
-
-function isInteractiveTarget(target: EventTarget | null): boolean {
-  const el = target as HTMLElement | null;
-  if (!el?.closest) return false;
-  return !!el.closest("a,button,input,textarea,select,[role='button'],label");
-}
 
 export function useLifeAgentsFeedGestures(opts: {
   feedTab: string | null;
@@ -73,7 +66,6 @@ export function useLifeAgentsFeedGestures(opts: {
         y0: t.clientY,
         intent: "unknown",
         ptrArmed: scrollTop() <= PTR_MAX_SCROLL,
-        startedOnInteractive: isInteractiveTarget(e.target),
       };
     };
 
@@ -85,19 +77,16 @@ export function useLifeAgentsFeedGestures(opts: {
       const dy = t.clientY - a.y0;
 
       if (a.intent === "unknown") {
-        if (Math.abs(dy) > 14 && Math.abs(dy) > Math.abs(dx) * 1.25) {
-          a.intent = "vertical";
-          return;
-        }
-        if (
-          !a.startedOnInteractive &&
-          Math.abs(dx) > 14 &&
-          Math.abs(dx) > Math.abs(dy) * 1.25
-        ) {
+        // 先认横向：列表/卡片上滑动时也能切 Tab（略宽于纵向判定）
+        if (Math.abs(dx) > 18 && Math.abs(dx) > Math.abs(dy) * 1.08) {
           a.intent = "horizontal";
           return;
         }
-        if (a.ptrArmed && scrollTop() <= PTR_MAX_SCROLL && dy > 16 && dy > Math.abs(dx) * 0.85) {
+        if (Math.abs(dy) > 26 && Math.abs(dy) > Math.abs(dx) * 1.4) {
+          a.intent = "vertical";
+          return;
+        }
+        if (a.ptrArmed && scrollTop() <= PTR_MAX_SCROLL && dy > 18 && dy > Math.abs(dx) * 0.92) {
           a.intent = "pull";
         }
       }
@@ -139,13 +128,39 @@ export function useLifeAgentsFeedGestures(opts: {
         return;
       }
 
-      if (a.intent === "horizontal" && !a.startedOnInteractive) {
+      if (a.intent === "horizontal") {
         const dx = t.clientX - a.x0;
         const devY = Math.abs(t.clientY - a.y0);
         if (devY > SWIPE_TAB_MAX_DEVY) return;
         const cur = tabIndexRef.current;
-        if (dx <= -SWIPE_TAB_MIN_DX) navigateTab(cur + 1);
-        else if (dx >= SWIPE_TAB_MIN_DX) navigateTab(cur - 1);
+        let navigated = false;
+        if (dx <= -SWIPE_TAB_MIN_DX && cur < 2) {
+          navigateTab(cur + 1);
+          navigated = true;
+        } else if (dx >= SWIPE_TAB_MIN_DX && cur > 0) {
+          navigateTab(cur - 1);
+          navigated = true;
+        }
+        if (navigated) e.preventDefault();
+        return;
+      }
+
+      // 快速横滑可能未进入 move 判定，结束时按位移补判
+      if (a.intent === "unknown") {
+        const dx = t.clientX - a.x0;
+        const devY = Math.abs(t.clientY - a.y0);
+        if (devY <= 95 && Math.abs(dx) >= 52) {
+          const cur = tabIndexRef.current;
+          let navigated = false;
+          if (dx <= -52 && cur < 2) {
+            navigateTab(cur + 1);
+            navigated = true;
+          } else if (dx >= 52 && cur > 0) {
+            navigateTab(cur - 1);
+            navigated = true;
+          }
+          if (navigated) e.preventDefault();
+        }
       }
     };
 
@@ -160,7 +175,8 @@ export function useLifeAgentsFeedGestures(opts: {
 
     document.addEventListener("touchstart", onTouchStart, { passive: true });
     document.addEventListener("touchmove", onTouchMove, { passive: true });
-    document.addEventListener("touchend", onTouchEnd, { passive: true });
+    // passive: false 以便横滑切 Tab 后 preventDefault，减少误点进卡片链接
+    document.addEventListener("touchend", onTouchEnd, { passive: false });
     document.addEventListener("touchcancel", onTouchCancel, { passive: true });
 
     return () => {
