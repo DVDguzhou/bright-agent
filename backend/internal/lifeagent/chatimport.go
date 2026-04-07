@@ -252,7 +252,7 @@ func parseChatCSV(content []byte) ([]ChatMessage, error) {
 			tsCol = i
 		case strings.Contains(hl, "sender") || strings.Contains(hl, "发送") || strings.Contains(hl, "昵称") || strings.Contains(hl, "nickname") || strings.Contains(hl, "talker"):
 			senderCol = i
-		case strings.Contains(hl, "content") || strings.Contains(hl, "内容") || strings.Contains(hl, "message") || strings.Contains(hl, "消息"):
+		case strings.Contains(hl, "content") || strings.Contains(hl, "内容") || strings.Contains(hl, "message") || strings.Contains(hl, "消息") || hl == "msg":
 			contentCol = i
 		}
 	}

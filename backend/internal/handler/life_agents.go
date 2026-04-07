@@ -1490,7 +1490,7 @@ func LifeAgentsManage(cfg *config.Config) gin.HandlerFunc {
 			Comment          *string `json:"comment"`
 			CreatedAt        string  `json:"createdAt"`
 		}
-		var fbList []fbResp
+		fbList := make([]fbResp, 0, len(recentFb))
 		for _, f := range recentFb {
 			fbList = append(fbList, fbResp{
 				ID: f.ID, FeedbackType: f.FeedbackType,
@@ -1508,7 +1508,7 @@ func LifeAgentsManage(cfg *config.Config) gin.HandlerFunc {
 			CreatedAt     string `json:"createdAt"`
 			Buyer         gin.H  `json:"buyer"`
 		}
-		var packResps []packResp
+		packResps := make([]packResp, 0, len(packs))
 		for _, pk := range packs {
 			var b models.User
 			db.DB.Where("id = ?", pk.BuyerID).First(&b)
@@ -1526,7 +1526,7 @@ func LifeAgentsManage(cfg *config.Config) gin.HandlerFunc {
 			UpdatedAt    string `json:"updatedAt"`
 			Buyer        gin.H  `json:"buyer"`
 		}
-		var sessResps []sessResp
+		sessResps := make([]sessResp, 0, len(sessions))
 		for _, s := range sessions {
 			var b models.User
 			db.DB.Where("id = ?", s.BuyerID).First(&b)
