@@ -557,7 +557,7 @@ export default function LifeAgentChatPage() {
                 >
                   ← 返回详情页
                 </Link>
-                <h1 className="mt-3 text-xl font-semibold text-purple-950/90">{profile.displayName}</h1>
+                <h1 className="mt-3 text-xl font-semibold text-slate-900">{profile.displayName}</h1>
                 <p className="mt-1 text-sm text-slate-600">{profile.headline}</p>
 
                 {profile.hasVoiceClone && (

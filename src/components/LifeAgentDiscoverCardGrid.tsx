@@ -104,7 +104,7 @@ function LifeAgentDiscoverCard({
             </div>
           </div>
           <div className="flex min-h-0 flex-1 flex-col px-2.5 pb-2.5 pt-2 sm:p-3">
-            <h3 className="line-clamp-2 min-h-[2.75rem] text-[13px] font-semibold leading-snug text-purple-950/90 sm:text-sm">
+            <h3 className="line-clamp-2 min-h-[2.75rem] text-[13px] font-semibold leading-snug text-slate-900 sm:text-sm">
               {profile.displayName}
             </h3>
             <p className="line-clamp-1 min-h-[1.125rem] text-[11px] text-slate-400">{areaLabel || "\u00a0"}</p>

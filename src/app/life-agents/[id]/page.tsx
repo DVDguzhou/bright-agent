@@ -275,7 +275,7 @@ export default function LifeAgentDetailPage() {
             ¥{(profile.pricePerQuestion / 100).toFixed(2)}
             <span className="ml-1 text-sm font-medium text-slate-400">/次提问</span>
           </p>
-          <h1 className="mt-3 text-lg font-bold leading-snug text-purple-950/90 sm:text-xl">
+          <h1 className="mt-3 text-lg font-bold leading-snug text-slate-900 sm:text-xl">
             {profile.displayName}
           </h1>
           <p className="mt-1.5 text-sm leading-relaxed text-slate-500">{profile.headline}</p>
