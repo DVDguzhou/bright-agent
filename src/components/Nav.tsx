@@ -235,7 +235,7 @@ export function Nav() {
       <motion.nav
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className={`sticky top-0 z-50 border-b border-purple-100/80 bg-white/90 supports-[backdrop-filter]:backdrop-blur-xl overflow-x-hidden shadow-[0_4px_20px_-8px_rgba(168,139,235,0.12)] pt-[env(safe-area-inset-top)] ${
+        className={`sticky top-0 z-50 border-b border-purple-200/[0.2] bg-white/[0.92] supports-[backdrop-filter]:backdrop-blur-xl overflow-x-hidden shadow-[0_4px_24px_-8px_rgba(124,58,237,0.07)] pt-[env(safe-area-inset-top)] ${
           hideGlobalTopNav ? "hidden" : isLifeAgentChatPage ? "hidden lg:block" : ""
         }`}
       >
@@ -514,7 +514,7 @@ export function Nav() {
             </svg>
           </Link>
 
-          <div className="fixed bottom-0 left-0 right-0 z-50 flex lg:hidden items-end justify-around border-t border-purple-100/80 bg-white/95 supports-[backdrop-filter]:backdrop-blur-xl pb-[env(safe-area-inset-bottom)] pt-2 shadow-[0_-4px_24px_-8px_rgba(168,139,235,0.1)]">
+          <div className="fixed bottom-0 left-0 right-0 z-50 flex lg:hidden items-end justify-around border-t border-purple-200/[0.2] bg-white/[0.94] supports-[backdrop-filter]:backdrop-blur-xl pb-[env(safe-area-inset-bottom)] pt-2 shadow-[0_-4px_28px_-8px_rgba(124,58,237,0.075)]">
             {(() => {
               const [lifeAgentsLink, messagesLink, licenseLink] = navLinks;
               const renderTab = (

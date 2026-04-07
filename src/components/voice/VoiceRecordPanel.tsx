@@ -60,7 +60,7 @@ export function VoiceRecordPanel({
 
   const shell =
     accent === "pastel"
-      ? "rounded-[22px] border border-purple-100/80 bg-white/95 p-6 shadow-[0_10px_30px_rgba(168,139,235,0.12)]"
+      ? "rounded-[22px] border border-purple-200/[0.22] bg-white/[0.97] p-6 shadow-[0_6px_32px_rgba(124,58,237,0.08)] backdrop-blur-sm"
       : "rounded-2xl border border-slate-200 bg-white p-6 shadow-sm";
   const micIdle =
     accent === "pastel"
@@ -68,7 +68,7 @@ export function VoiceRecordPanel({
       : "bg-sky-500 text-white hover:bg-sky-600";
   const successBox =
     accent === "pastel"
-      ? "bg-gradient-to-r from-violet-50 to-fuchsia-50/80 border border-purple-100/60"
+      ? "border border-purple-200/[0.18] bg-gradient-to-r from-violet-50/[0.9] to-fuchsia-50/[0.75] backdrop-blur-[2px]"
       : "bg-emerald-50";
   const successIcon = accent === "pastel" ? "text-purple-600" : "text-emerald-600";
   const successText = accent === "pastel" ? "text-purple-900/85" : "text-emerald-800";
@@ -91,7 +91,7 @@ export function VoiceRecordPanel({
       <div
         className={
           accent === "pastel"
-            ? "mt-5 rounded-xl border border-purple-100/50 bg-violet-50/40 p-4"
+            ? "mt-5 rounded-xl border border-purple-200/[0.16] bg-violet-50/[0.45] p-4 backdrop-blur-sm"
             : "mt-5 rounded-xl bg-slate-50 p-4"
         }
       >
@@ -101,7 +101,7 @@ export function VoiceRecordPanel({
       <div
         className={
           accent === "pastel"
-            ? "mt-4 rounded-xl border border-purple-100/50 bg-white/60 px-4 py-3 text-sm text-slate-600"
+            ? "mt-4 rounded-xl border border-purple-200/[0.16] bg-white/[0.82] px-4 py-3 text-sm text-slate-600 backdrop-blur-sm"
             : "mt-4 rounded-xl border border-slate-200 bg-slate-50/80 px-4 py-3 text-sm text-slate-600"
         }
       >

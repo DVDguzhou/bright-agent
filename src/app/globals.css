@@ -74,14 +74,24 @@ body {
 
 @layer components {
   .glass-card {
-    @apply relative overflow-hidden rounded-2xl border border-purple-100/70 shadow-sm;
-    background: linear-gradient(135deg, #fff 0%, #faf5ff 100%);
-    box-shadow: 0 8px 28px rgba(168, 139, 235, 0.08);
+    @apply relative overflow-hidden rounded-2xl shadow-sm backdrop-blur-md;
+    border: 1px solid rgba(186, 104, 200, 0.11);
+    background: linear-gradient(
+      165deg,
+      rgba(255, 255, 255, 0.97) 0%,
+      rgba(253, 251, 255, 0.95) 42%,
+      rgba(248, 244, 255, 0.92) 100%
+    );
+    box-shadow:
+      0 4px 28px rgba(124, 58, 237, 0.055),
+      0 1px 0 rgba(255, 255, 255, 0.75) inset;
   }
 
   .glass-card:hover {
-    @apply border-fuchsia-200/70;
-    box-shadow: 0 20px 45px -24px rgba(168, 139, 235, 0.25);
+    border-color: rgba(217, 70, 239, 0.16);
+    box-shadow:
+      0 12px 40px -8px rgba(168, 139, 235, 0.14),
+      0 1px 0 rgba(255, 255, 255, 0.8) inset;
   }
 
   .btn-primary {
@@ -110,13 +120,22 @@ body {
   }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center rounded-2xl border border-purple-100/90 bg-white/90 px-5 py-3 font-medium text-slate-700 shadow-sm backdrop-blur-sm transition-all duration-300 hover:border-fuchsia-200/80 hover:text-purple-900 hover:shadow-md;
-    box-shadow: 0 6px 20px rgba(168, 139, 235, 0.08);
+    @apply inline-flex items-center justify-center rounded-2xl border px-5 py-3 font-medium text-slate-700 shadow-sm backdrop-blur-md transition-all duration-300;
+    border-color: rgba(186, 104, 200, 0.14);
+    background: rgba(255, 255, 255, 0.94);
+    box-shadow: 0 4px 22px rgba(168, 139, 235, 0.06);
+  }
+
+  .btn-secondary:hover {
+    @apply text-purple-900 shadow-md;
+    border-color: rgba(232, 121, 249, 0.28);
   }
 
   .input-shell {
-    @apply input-glow w-full rounded-2xl border border-purple-100/80 bg-white/90 px-4 py-3 text-slate-900 outline-none backdrop-blur-sm transition-all placeholder:text-slate-400 focus:border-fuchsia-300;
-    box-shadow: 0 4px 18px rgba(168, 139, 235, 0.06);
+    @apply input-glow w-full rounded-2xl border px-4 py-3 text-slate-900 outline-none backdrop-blur-md transition-all placeholder:text-slate-400 focus:border-fuchsia-300;
+    border-color: rgba(186, 104, 200, 0.13);
+    background: rgba(255, 255, 255, 0.93);
+    box-shadow: 0 2px 14px rgba(168, 139, 235, 0.045);
   }
 
   .section-title {
