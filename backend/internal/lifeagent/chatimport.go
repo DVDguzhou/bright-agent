@@ -15,6 +15,7 @@ type ChatMessage struct {
 	Timestamp string `json:"timestamp"`
 	Sender    string `json:"sender"`
 	Content   string `json:"content"`
+	IsSender  bool   `json:"isSender,omitempty"` // true = message from the account owner (WeChatMsg is_sender=1)
 }
 
 // ChatParseResult holds the parsed and analyzed result from a chat export.
@@ -99,10 +100,26 @@ func ParseChatRecords(format string, content []byte, maxMessages int) (*ChatPars
 }
 
 // AnalyzeForTarget computes statistics for a specific sender.
+// When targetName is "我", it matches messages with IsSender=true (WeChatMsg is_sender=1).
 func AnalyzeForTarget(result *ChatParseResult, targetName string, maxSamples int) {
+	// If targetName is "我" and any message has IsSender flag, use that for matching
+	useIsSender := false
+	if targetName == "我" {
+		for _, m := range result.Messages {
+			if m.IsSender {
+				useIsSender = true
+				break
+			}
+		}
+	}
+
 	var targetMsgs []ChatMessage
 	for _, m := range result.Messages {
-		if m.Sender == targetName {
+		if useIsSender {
+			if m.IsSender {
+				targetMsgs = append(targetMsgs, m)
+			}
+		} else if m.Sender == targetName {
 			targetMsgs = append(targetMsgs, m)
 		}
 	}
@@ -244,10 +261,12 @@ func parseChatCSV(content []byte) ([]ChatMessage, error) {
 
 	// Try to detect columns from header
 	header := records[0]
-	tsCol, senderCol, contentCol := -1, -1, -1
+	tsCol, senderCol, contentCol, isSenderCol := -1, -1, -1, -1
 	for i, h := range header {
 		hl := strings.ToLower(strings.TrimSpace(h))
 		switch {
+		case hl == "is_sender" || hl == "issender":
+			isSenderCol = i
 		case strings.Contains(hl, "time") || strings.Contains(hl, "时间") || strings.Contains(hl, "date"):
 			tsCol = i
 		case strings.Contains(hl, "sender") || strings.Contains(hl, "发送") || strings.Contains(hl, "昵称") || strings.Contains(hl, "nickname") || strings.Contains(hl, "talker"):
@@ -275,6 +294,7 @@ func parseChatCSV(content []byte) ([]ChatMessage, error) {
 	var messages []ChatMessage
 	for _, row := range records[startRow:] {
 		ts, sender, cont := "", "", ""
+		isSender := false
 		if tsCol < len(row) {
 			ts = strings.TrimSpace(row[tsCol])
 		}
@@ -284,6 +304,10 @@ func parseChatCSV(content []byte) ([]ChatMessage, error) {
 		if contentCol < len(row) {
 			cont = strings.TrimSpace(row[contentCol])
 		}
+		if isSenderCol >= 0 && isSenderCol < len(row) {
+			v := strings.TrimSpace(row[isSenderCol])
+			isSender = v == "1" || strings.EqualFold(v, "true")
+		}
 		if cont == "" {
 			continue
 		}
@@ -291,6 +315,7 @@ func parseChatCSV(content []byte) ([]ChatMessage, error) {
 			Timestamp: ts,
 			Sender:    sender,
 			Content:   cont,
+			IsSender:  isSender,
 		})
 	}
 	return messages, nil

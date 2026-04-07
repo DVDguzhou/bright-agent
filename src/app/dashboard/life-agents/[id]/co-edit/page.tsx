@@ -722,6 +722,7 @@ export default function LifeAgentCoEditPage() {
           onClose={() => setImportOpen(false)}
           onSubmit={handleImportChat}
           loading={importLoading}
+          agentId={id}
         />
       ) : null}
     </div>
@@ -732,16 +733,56 @@ function ImportChatModal({
   onClose,
   onSubmit,
   loading,
+  agentId,
 }: {
   onClose: () => void;
   onSubmit: (file: File, targetName: string) => void;
   loading: boolean;
+  agentId: string;
 }) {
   const [file, setFile] = useState<File | null>(null);
-  const [targetName, setTargetName] = useState("我");
+  const [targetName, setTargetName] = useState("");
+  const [senders, setSenders] = useState<string[] | null>(null);
+  const [totalMessages, setTotalMessages] = useState(0);
+  const [parsing, setParsing] = useState(false);
+  const [parseError, setParseError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const accept = ".html,.htm,.csv,.txt";
+
+  const handleFileChange = async (f: File) => {
+    setFile(f);
+    setSenders(null);
+    setTargetName("");
+    setParseError(null);
+    setParsing(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", f);
+      const res = await fetch(`/api/life-agents/${agentId}/parse-chat`, {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ detail: "解析失败" }));
+        setParseError(err.detail || "解析失败，请检查文件格式");
+        return;
+      }
+      const data = await res.json();
+      const list: string[] = data.senders ?? [];
+      setSenders(list);
+      setTotalMessages(data.totalMessages ?? 0);
+      if (list.length === 1) {
+        setTargetName(list[0]);
+      }
+    } catch {
+      setParseError("网络错误，请重试");
+    } finally {
+      setParsing(false);
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
@@ -762,39 +803,53 @@ function ImportChatModal({
             type="file"
             accept={accept}
             className="hidden"
-            onChange={(e) => setFile(e.target.files?.[0] || null)}
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) handleFileChange(f);
+            }}
           />
           <button
             type="button"
             className="flex w-full items-center gap-2 rounded-xl border border-dashed border-purple-300/60 bg-purple-50/40 px-4 py-3 text-sm text-slate-600 transition hover:border-purple-400 hover:bg-purple-50/80"
             onClick={() => fileRef.current?.click()}
+            disabled={parsing || loading}
           >
             <svg className="h-5 w-5 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
             </svg>
-            {file ? file.name : "点击选择 HTML / CSV / TXT 文件"}
+            {parsing ? "解析中..." : file ? file.name : "点击选择 HTML / CSV / TXT 文件"}
           </button>
           <p className="mt-1 text-xs text-slate-400">
             支持 WeChatMsg、留痕等工具导出的 HTML、CSV、TXT 格式
           </p>
         </div>
 
-        {/* Target name */}
-        <div className="mb-5">
-          <label className="mb-1.5 block text-sm font-medium text-slate-700">
-            Agent 本人在聊天中的昵称
-          </label>
-          <input
-            type="text"
-            value={targetName}
-            onChange={(e) => setTargetName(e.target.value)}
-            placeholder="例如：我、小北、张三"
-            className="w-full rounded-xl border border-purple-200/50 bg-white px-3.5 py-2.5 text-sm text-slate-800 outline-none transition focus:border-purple-400 focus:ring-2 focus:ring-purple-200/50"
-          />
-          <p className="mt-1 text-xs text-slate-400">
-            用于识别哪些消息是 Agent 本人发的，将分析其说话风格
-          </p>
-        </div>
+        {/* Parse error */}
+        {parseError ? (
+          <div className="mb-4 rounded-xl bg-red-50 px-3.5 py-2.5 text-sm text-red-600">{parseError}</div>
+        ) : null}
+
+        {/* Sender selector — shown after successful parse */}
+        {senders && senders.length > 0 ? (
+          <div className="mb-5">
+            <label className="mb-1.5 block text-sm font-medium text-slate-700">
+              选择 Agent 本人的昵称
+            </label>
+            <select
+              value={targetName}
+              onChange={(e) => setTargetName(e.target.value)}
+              className="w-full rounded-xl border border-purple-200/50 bg-white px-3.5 py-2.5 text-sm text-slate-800 outline-none transition focus:border-purple-400 focus:ring-2 focus:ring-purple-200/50"
+            >
+              <option value="">请选择…</option>
+              {senders.map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+            <p className="mt-1 text-xs text-slate-400">
+              共解析到 {totalMessages} 条消息，{senders.length} 位参与者。选择 Agent 本人的昵称，将只分析该人的发言风格。
+            </p>
+          </div>
+        ) : null}
 
         {/* Actions */}
         <div className="flex items-center justify-end gap-3">
@@ -809,10 +864,10 @@ function ImportChatModal({
           <button
             type="button"
             className="rounded-xl bg-gradient-to-r from-violet-500 to-fuchsia-500 px-5 py-2 text-sm font-medium text-white shadow-md transition hover:shadow-lg disabled:opacity-50"
-            disabled={!file || !targetName.trim() || loading}
+            disabled={!file || !targetName || loading || parsing}
             onClick={() => {
-              if (file && targetName.trim()) {
-                onSubmit(file, targetName.trim());
+              if (file && targetName) {
+                onSubmit(file, targetName);
               }
             }}
           >

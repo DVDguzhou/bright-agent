@@ -2244,6 +2244,63 @@ func LifeAgentsFeedbackSummary(cfg *config.Config) gin.HandlerFunc {
 	}
 }
 
+// LifeAgentsParseChatPreview parses an uploaded chat file and returns the list
+// of senders so the user can pick which talker they are before full analysis.
+func LifeAgentsParseChatPreview(cfg *config.Config) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		user := middleware.MustGetUser(c)
+		if user == nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "UNAUTHORIZED"})
+			return
+		}
+		id := c.Param("id")
+		var p models.LifeAgentProfile
+		if err := db.DB.Where("id = ?", id).First(&p).Error; err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "NOT_FOUND"})
+			return
+		}
+		if p.UserID != user.ID {
+			c.JSON(http.StatusForbidden, gin.H{"error": "FORBIDDEN"})
+			return
+		}
+
+		file, header, err := c.Request.FormFile("file")
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "FILE_REQUIRED", "detail": "请上传聊天记录文件"})
+			return
+		}
+		defer file.Close()
+
+		content, err := io.ReadAll(file)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "FILE_READ_ERROR", "detail": err.Error()})
+			return
+		}
+
+		format := lifeagent.DetectChatFormat(header.Filename, content)
+		maxMessages := cfg.MaxChatImportMessages
+		if maxMessages <= 0 {
+			maxMessages = 100
+		}
+
+		parseResult, err := lifeagent.ParseChatRecords(format, content, maxMessages)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "PARSE_ERROR", "detail": err.Error()})
+			return
+		}
+		if parseResult.TotalMessages == 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "NO_MESSAGES", "detail": "未从文件中解析到任何消息，请检查文件格式"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"format":        parseResult.Format,
+			"totalMessages": parseResult.TotalMessages,
+			"senders":       parseResult.Senders,
+		})
+	}
+}
+
 // LifeAgentsImportChat handles uploading and analyzing WeChat chat records
 // to extract persona style and knowledge for the life agent.
 func LifeAgentsImportChat(cfg *config.Config) gin.HandlerFunc {
