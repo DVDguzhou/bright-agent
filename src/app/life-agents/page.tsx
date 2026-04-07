@@ -508,7 +508,7 @@ function LifeAgentsPageContent() {
           <div className="w-full overflow-hidden">
             <div
               ref={pagerRef}
-              className="flex overflow-x-auto overscroll-x-contain [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x snap-mandatory touch-pan-x"
+              className="flex overflow-x-auto overscroll-x-contain [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x snap-mandatory [touch-action:pan-x_pan-y]"
             >
             <section className={pagerSectionClass} aria-label="收藏">
               {favoritesIntro}
