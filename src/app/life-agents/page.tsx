@@ -14,11 +14,7 @@ import { rankLifeAgentsBySearchQuery, type LifeAgentListItem } from "@/lib/life-
 import { fetchAllPublishedLifeAgents, fetchLifeAgentsPage } from "@/lib/life-agents-list-api";
 import { cleanLifeAgentIntroText } from "@/lib/life-agent-intro-clean";
 import { useAuth } from "@/contexts/AuthContext";
-import {
-  useLifeAgentsFeedGestures,
-  useLifeAgentsPullRefreshEnabled,
-  useMobileTouchNavEnabled,
-} from "@/hooks/use-life-agents-feed-gestures";
+import { useLifeAgentsFeedGestures, useMobileTouchNavEnabled } from "@/hooks/use-life-agents-feed-gestures";
 
 type PurchasedAgentRow = {
   id: string;
@@ -88,7 +84,6 @@ function LifeAgentsPageContent() {
   const [purchasedUnauthorized, setPurchasedUnauthorized] = useState(false);
 
   const touchNavEnabled = useMobileTouchNavEnabled();
-  const pullRefreshEnabled = useLifeAgentsPullRefreshEnabled();
 
   const [visitedMask, setVisitedMask] = useState(() => 1 << tabIndexFromFeedTab(feedTab));
   const pagerRef = useRef<HTMLDivElement>(null);
@@ -275,7 +270,7 @@ function LifeAgentsPageContent() {
   }, [feedTab, loadFavoritesFullList, loadPurchasedList, refreshDiscover]);
 
   const { pullOffset, refreshing: pullRefreshing } = useLifeAgentsFeedGestures({
-    enabled: pullRefreshEnabled,
+    enabled: true,
     onPullRefresh,
   });
 
@@ -439,18 +434,6 @@ function LifeAgentsPageContent() {
   const discoverToolbar = (
     <div className="mb-3 flex flex-wrap items-center justify-between gap-3 px-1 sm:px-0">
       <h2 className="text-base font-semibold text-purple-950/90 sm:text-lg">发现</h2>
-      <button
-        type="button"
-        onClick={() => void refreshDiscover()}
-        disabled={discoverLoading || pullRefreshing}
-        className="inline-flex items-center gap-1.5 rounded-full border border-purple-200/60 bg-white/90 px-3 py-1.5 text-xs font-medium text-purple-800 shadow-sm backdrop-blur-sm transition hover:border-fuchsia-200/50 hover:bg-violet-50/90 disabled:pointer-events-none disabled:opacity-50"
-        aria-label="刷新列表"
-      >
-        <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} aria-hidden>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-        </svg>
-        {discoverLoading || pullRefreshing ? "刷新中…" : "刷新"}
-      </button>
     </div>
   );
 
@@ -496,42 +479,35 @@ function LifeAgentsPageContent() {
 
   return (
     <div className="-mx-1 space-y-4 pb-4 sm:mx-0 sm:space-y-5">
-      {pullRefreshEnabled ? (
-        <>
-          {(pullOffset > 0 || pullRefreshing) && (
+      <>
+        {(pullOffset > 0 || pullRefreshing) && (
+          <div
+            className="pointer-events-none fixed inset-x-0 z-[45] flex justify-center"
+            style={{ top: "calc(env(safe-area-inset-top) + 48px)" }}
+            aria-live="polite"
+          >
             <div
-              className="pointer-events-none fixed inset-x-0 z-[45] flex justify-center"
-              style={{ top: "calc(env(safe-area-inset-top) + 48px)" }}
-              aria-live="polite"
+              className="flex items-center gap-2 rounded-full border border-purple-200/50 bg-white/95 px-3 py-1.5 text-xs font-medium text-slate-600 shadow-lg backdrop-blur-md"
+              style={{
+                transform: `translateY(${Math.min(12, pullOffset * 0.12)}px)`,
+                opacity: pullRefreshing ? 1 : Math.min(1, pullOffset / 72 + 0.2),
+              }}
             >
-              <div
-                className="flex items-center gap-2 rounded-full border border-purple-200/50 bg-white/95 px-3 py-1.5 text-xs font-medium text-slate-600 shadow-lg backdrop-blur-md"
-                style={{
-                  transform: `translateY(${Math.min(12, pullOffset * 0.12)}px)`,
-                  opacity: pullRefreshing ? 1 : Math.min(1, pullOffset / 72 + 0.2),
-                }}
-              >
-                {pullRefreshing ? (
-                  <>
-                    <span
-                      className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-purple-200 border-t-purple-700"
-                      aria-hidden
-                    />
-                    刷新中…
-                  </>
-                ) : (
-                  <>松手刷新</>
-                )}
-              </div>
+              {pullRefreshing ? (
+                <>
+                  <span
+                    className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-purple-200 border-t-purple-700"
+                    aria-hidden
+                  />
+                  刷新中…
+                </>
+              ) : (
+                <>松手刷新</>
+              )}
             </div>
-          )}
-          <p className="sr-only">
-            {touchNavEnabled
-              ? "顶部下拉可刷新当前列表；横向滑动页面可切换收藏、发现与已购。"
-              : "顶部下拉可刷新发现列表。"}
-          </p>
-        </>
-      ) : null}
+          </div>
+        )}
+      </>
 
       {touchNavEnabled ? (
         <>
