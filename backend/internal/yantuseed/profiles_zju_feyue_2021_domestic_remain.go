@@ -3,11 +3,11 @@ package yantuseed
 // 飞跃手册 2021「境内升学」篇补全：金融 2 人 + 基础数学/应数/运筹 7 人（与 profiles_zju_feyue_2021_more 等不重复）。
 
 var fanChenXin = Profile{
-	DisplayName:   "范晨欣",
+	DisplayName:   "欣欣一个人",
 	School:        "中国人民大学",
 	MajorLine:     "汉青金融专硕",
 	ScoreLine:     "Overall GPA 4.23/5，Rank 17/111，托福80",
-	ArticleTitle:  "飞跃手册2021 | 范晨欣 金融专硕@中国人民大学（保研篇·金融）",
+	ArticleTitle:  "飞跃手册2021 | 欣欣一个人 金融专硕@中国人民大学（保研篇·金融）",
 	LongBioPrefix: zjuFeyue2021LongBioPrefix,
 	ExpertiseTags: []string{"保研", "金融", "中国人民大学", "浙江大学", "飞跃手册"},
 	SampleQuestions: []string{
@@ -29,11 +29,11 @@ var fanChenXin = Profile{
 }
 
 var chenYiFei = Profile{
-	DisplayName:   "陈逸飞",
+	DisplayName:   "fly飞飞不飞",
 	School:        "北京大学",
 	MajorLine:     "光华金融硕士",
 	ScoreLine:     "统计本科 Overall 4.55/5，Rank 1/54，托福107",
-	ArticleTitle:  "飞跃手册2021 | 陈逸飞 金融专硕@北京大学（保研篇·金融）",
+	ArticleTitle:  "飞跃手册2021 | fly飞飞不飞 金融专硕@北京大学（保研篇·金融）",
 	LongBioPrefix: zjuFeyue2021LongBioPrefix,
 	ExpertiseTags: []string{"保研", "金融", "北京大学", "统计", "浙江大学", "飞跃手册"},
 	SampleQuestions: []string{
@@ -55,11 +55,11 @@ var chenYiFei = Profile{
 }
 
 var fengWeiJia = Profile{
-	DisplayName:   "丰伟佳",
+	DisplayName:   "丰丰OvO",
 	School:        "浙江大学",
 	MajorLine:     "应用数学硕士",
 	ScoreLine:     "信计 Rank 9/40，托福101，六级607",
-	ArticleTitle:  "飞跃手册2021 | 丰伟佳 应用数学硕士@浙江大学（保研篇·应数）",
+	ArticleTitle:  "飞跃手册2021 | 丰丰OvO 应用数学硕士@浙江大学（保研篇·应数）",
 	LongBioPrefix: zjuFeyue2021LongBioPrefix,
 	ExpertiseTags: []string{"保研", "应用数学", "浙江大学", "飞跃手册"},
 	SampleQuestions: []string{
@@ -79,11 +79,11 @@ var fengWeiJia = Profile{
 }
 
 var hongYuSu = Profile{
-	DisplayName:   "洪钰溯",
+	DisplayName:   "溯溯回溯中",
 	School:        "浙江大学",
 	MajorLine:     "数据科学中心直博",
 	ScoreLine:     "数应 Overall 3.96/5，Major 4.12/5，托福102，GRE 159+170+3.5",
-	ArticleTitle:  "飞跃手册2021 | 洪钰溯 应用数学直博@浙江大学数据科学中心（保研篇）",
+	ArticleTitle:  "飞跃手册2021 | 溯溯回溯中 应用数学直博@浙江大学数据科学中心（保研篇）",
 	LongBioPrefix: zjuFeyue2021LongBioPrefix,
 	ExpertiseTags: []string{"保研", "数据科学", "运筹", "暑研", "浙江大学", "飞跃手册"},
 	SampleQuestions: []string{
@@ -102,11 +102,11 @@ var hongYuSu = Profile{
 }
 
 var liLiang = Profile{
-	DisplayName:   "李亮",
+	DisplayName:   "阿亮别闹",
 	School:        "浙江大学",
 	MajorLine:     "数院 4+2 项目",
 	ScoreLine:     "数应 Overall 4.20/5，Major 4.18/5，六级610/557",
-	ArticleTitle:  "飞跃手册2021 | 李亮 应用数学硕士@浙江大学（保研篇·4+2）",
+	ArticleTitle:  "飞跃手册2021 | 阿亮别闹 应用数学硕士@浙江大学（保研篇·4+2）",
 	LongBioPrefix: zjuFeyue2021LongBioPrefix,
 	ExpertiseTags: []string{"保研", "应用数学", "浙江大学", "飞跃手册"},
 	SampleQuestions: []string{
@@ -125,11 +125,11 @@ var liLiang = Profile{
 }
 
 var liRuoCheng = Profile{
-	DisplayName:   "李若澄",
+	DisplayName:   "澄澄子呀",
 	School:        "浙江大学",
 	MajorLine:     "应用数学学硕",
 	ScoreLine:     "数应 Overall 3.98/5，Major 4.11/5，雅思6.5",
-	ArticleTitle:  "飞跃手册2021 | 李若澄 应用数学学硕@浙江大学（保研篇·应数）",
+	ArticleTitle:  "飞跃手册2021 | 澄澄子呀 应用数学学硕@浙江大学（保研篇·应数）",
 	LongBioPrefix: zjuFeyue2021LongBioPrefix,
 	ExpertiseTags: []string{"保研", "应用数学", "交换", "浙江大学", "飞跃手册"},
 	SampleQuestions: []string{
@@ -148,11 +148,11 @@ var liRuoCheng = Profile{
 }
 
 var xuMingMing = Profile{
-	DisplayName:   "徐明茗",
+	DisplayName:   "mio茗一下",
 	School:        "浙江大学",
 	MajorLine:     "运筹学学硕",
 	ScoreLine:     "数应 Overall 4.41，Major 4.54，Rank 约3–8",
-	ArticleTitle:  "飞跃手册2021 | 徐明茗 运筹学学硕@浙江大学（保研篇）",
+	ArticleTitle:  "飞跃手册2021 | mio茗一下 运筹学学硕@浙江大学（保研篇）",
 	LongBioPrefix: zjuFeyue2021LongBioPrefix,
 	ExpertiseTags: []string{"保研", "运筹学", "浙江大学", "飞跃手册"},
 	SampleQuestions: []string{
@@ -168,11 +168,11 @@ var xuMingMing = Profile{
 }
 
 var yingHao = Profile{
-	DisplayName:   "应浩",
+	DisplayName:   "应一声就好",
 	School:        "浙江大学",
 	MajorLine:     "基础数学直博",
 	ScoreLine:     "求数 Overall 4.41，Major 4.36，Rank 3/18，托福86",
-	ArticleTitle:  "飞跃手册2021 | 应浩 基础数学直博@浙江大学（保研篇·基础数学）",
+	ArticleTitle:  "飞跃手册2021 | 应一声就好 基础数学直博@浙江大学（保研篇·基础数学）",
 	LongBioPrefix: zjuFeyue2021LongBioPrefix,
 	ExpertiseTags: []string{"保研", "基础数学", "求是数学班", "浙江大学", "飞跃手册"},
 	SampleQuestions: []string{
@@ -192,11 +192,11 @@ var yingHao = Profile{
 }
 
 var chenYiRan = Profile{
-	DisplayName:   "陈毅然",
+	DisplayName:   "毅然拒绝内卷",
 	School:        "复旦大学",
 	MajorLine:     "应用数学学硕",
 	ScoreLine:     "数应 Overall 4.19/5，Rank 19–111 段",
-	ArticleTitle:  "飞跃手册2021 | 陈毅然 应用数学硕士@复旦大学（保研篇·外校）",
+	ArticleTitle:  "飞跃手册2021 | 毅然拒绝内卷 应用数学硕士@复旦大学（保研篇·外校）",
 	LongBioPrefix: zjuFeyue2021LongBioPrefix,
 	ExpertiseTags: []string{"保研", "应用数学", "复旦大学", "浙江大学", "飞跃手册"},
 	SampleQuestions: []string{

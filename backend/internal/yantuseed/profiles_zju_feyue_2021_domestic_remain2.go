@@ -3,11 +3,11 @@ package yantuseed
 // 飞跃手册 2021「境内升学」篇补全（下）：计算数学 5 人 + 统计 6 人 + 其他专业 2 人。
 
 var guanNing = Profile{
-	DisplayName:   "关宁",
+	DisplayName:   "ning_关关",
 	School:        "浙江大学",
 	MajorLine:     "计算数学直博",
 	ScoreLine:     "信计 Overall 4.51/5，Rank 4/40，托福95+",
-	ArticleTitle:  "飞跃手册2021 | 关宁 计算数学直博@浙江大学（保研篇）",
+	ArticleTitle:  "飞跃手册2021 | ning_关关 计算数学直博@浙江大学（保研篇）",
 	LongBioPrefix: zjuFeyue2021LongBioPrefix,
 	ExpertiseTags: []string{"保研", "计算数学", "浙江大学", "飞跃手册"},
 	SampleQuestions: []string{
@@ -27,11 +27,11 @@ SRTP 与建模可试方向与兴趣；可跨院系选课但注意绩点代价。
 }
 
 var liangKaiYi = Profile{
-	DisplayName:   "梁凯毅",
+	DisplayName:   "KY梁同学",
 	School:        "浙江大学",
 	MajorLine:     "计算数学直博",
 	ScoreLine:     "信计 Overall 4.05，Major 4.08，Rank 11/40，雅思7.5",
-	ArticleTitle:  "飞跃手册2021 | 梁凯毅 计算数学直博@浙江大学（保研篇）",
+	ArticleTitle:  "飞跃手册2021 | KY梁同学 计算数学直博@浙江大学（保研篇）",
 	LongBioPrefix: zjuFeyue2021LongBioPrefix,
 	ExpertiseTags: []string{"保研", "计算数学", "浙江大学", "飞跃手册"},
 	SampleQuestions: []string{
@@ -50,11 +50,11 @@ var liangKaiYi = Profile{
 }
 
 var liuJiYu = Profile{
-	DisplayName:   "刘骥宇",
+	DisplayName:   "不是鲫鱼是骥宇",
 	School:        "浙江大学",
 	MajorLine:     "计算数学直博",
 	ScoreLine:     "信计 Overall 4.40/5.0，Major 4.43/5.0，Rank 7/40，六级560",
-	ArticleTitle:  "飞跃手册2021 | 刘骥宇 计算数学直博@浙江大学（保研篇）",
+	ArticleTitle:  "飞跃手册2021 | 不是鲫鱼是骥宇 计算数学直博@浙江大学（保研篇）",
 	LongBioPrefix: zjuFeyue2021LongBioPrefix,
 	ExpertiseTags: []string{"保研", "计算数学", "编程", "浙江大学", "飞跃手册"},
 	SampleQuestions: []string{
@@ -73,11 +73,11 @@ var liuJiYu = Profile{
 }
 
 var qiuYunHao = Profile{
-	DisplayName:   "邱云昊",
+	DisplayName:   "昊昊不下饭",
 	School:        "浙江大学",
 	MajorLine:     "计算数学直博",
 	ScoreLine:     "数应 Overall 4.43/5，Major 4.5/5，Rank 3/111",
-	ArticleTitle:  "飞跃手册2021 | 邱云昊 计算数学直博@浙江大学（保研篇）",
+	ArticleTitle:  "飞跃手册2021 | 昊昊不下饭 计算数学直博@浙江大学（保研篇）",
 	LongBioPrefix: zjuFeyue2021LongBioPrefix,
 	ExpertiseTags: []string{"保研", "计算数学", "深度学习", "浙江大学", "飞跃手册"},
 	SampleQuestions: []string{
@@ -98,11 +98,11 @@ var qiuYunHao = Profile{
 }
 
 var wangMingZe = Profile{
-	DisplayName:   "王铭泽",
+	DisplayName:   "铭泽MZday",
 	School:        "北京大学",
 	MajorLine:     "计算数学博士",
 	ScoreLine:     "数应 学业与保研综合排名 1/111，夏令营申报时 6/111",
-	ArticleTitle:  "飞跃手册2021 | 王铭泽 计算数学博士@北京大学（保研篇·外校）",
+	ArticleTitle:  "飞跃手册2021 | 铭泽MZday 计算数学博士@北京大学（保研篇·外校）",
 	LongBioPrefix: zjuFeyue2021LongBioPrefix,
 	ExpertiseTags: []string{"保研", "计算数学", "交叉学科", "北京大学", "浙江大学", "飞跃手册"},
 	SampleQuestions: []string{
@@ -121,11 +121,11 @@ var wangMingZe = Profile{
 }
 
 var liHongYi = Profile{
-	DisplayName:   "李泓毅",
+	DisplayName:   "泓毅hyi",
 	School:        "浙江大学",
 	MajorLine:     "概率论与数理统计直博",
 	ScoreLine:     "数应 Overall 4.18，Major 4.19，托福93，GRE319",
-	ArticleTitle:  "飞跃手册2021 | 李泓毅 概率论与数理统计直博@浙江大学（保研篇）",
+	ArticleTitle:  "飞跃手册2021 | 泓毅hyi 概率论与数理统计直博@浙江大学（保研篇）",
 	LongBioPrefix: zjuFeyue2021LongBioPrefix,
 	ExpertiseTags: []string{"保研", "统计学", "浙江大学", "飞跃手册"},
 	SampleQuestions: []string{
@@ -144,11 +144,11 @@ var liHongYi = Profile{
 }
 
 var xuRuiZhe = Profile{
-	DisplayName:   "徐睿哲",
+	DisplayName:   "zzz睿哲",
 	School:        "浙江大学",
 	MajorLine:     "概率论与数理统计直博",
 	ScoreLine:     "数应 Overall 3.96，Major 4.05，Rank 24/113，六级565",
-	ArticleTitle:  "飞跃手册2021 | 徐睿哲 概率论与数理统计直博@浙江大学（保研篇）",
+	ArticleTitle:  "飞跃手册2021 | zzz睿哲 概率论与数理统计直博@浙江大学（保研篇）",
 	LongBioPrefix: zjuFeyue2021LongBioPrefix,
 	ExpertiseTags: []string{"保研", "统计学", "浙江大学", "飞跃手册"},
 	SampleQuestions: []string{
@@ -164,11 +164,11 @@ var xuRuiZhe = Profile{
 }
 
 var zhaoZiNan = Profile{
-	DisplayName:   "赵子楠",
+	DisplayName:   "楠楠南下中",
 	School:        "浙江大学",
 	MajorLine:     "概率论与数理统计直博",
 	ScoreLine:     "统计 Overall 4.36，Major 4.39，Rank 7/49，托福87",
-	ArticleTitle:  "飞跃手册2021 | 赵子楠 概率论与数理统计直博@浙江大学（保研篇）",
+	ArticleTitle:  "飞跃手册2021 | 楠楠南下中 概率论与数理统计直博@浙江大学（保研篇）",
 	LongBioPrefix: zjuFeyue2021LongBioPrefix,
 	ExpertiseTags: []string{"保研", "统计学", "港校暑研", "浙江大学", "飞跃手册"},
 	SampleQuestions: []string{
@@ -187,11 +187,11 @@ var zhaoZiNan = Profile{
 }
 
 var quanGuoRui = Profile{
-	DisplayName:   "全国瑞",
+	DisplayName:   "瑞瑞想当咸鱼",
 	School:        "中国人民大学",
 	MajorLine:     "统计学专硕（ISBD）",
 	ScoreLine:     "统计 Overall 4.37/5，Major 4.41/5，Rank 5/54",
-	ArticleTitle:  "飞跃手册2021 | 全国瑞 统计学专硕@中国人民大学（保研篇）",
+	ArticleTitle:  "飞跃手册2021 | 瑞瑞想当咸鱼 统计学专硕@中国人民大学（保研篇）",
 	LongBioPrefix: zjuFeyue2021LongBioPrefix,
 	ExpertiseTags: []string{"保研", "统计学", "中国人民大学", "浙江大学", "飞跃手册"},
 	SampleQuestions: []string{
@@ -210,11 +210,11 @@ var quanGuoRui = Profile{
 }
 
 var heYiJun = Profile{
-	DisplayName:   "何怡君",
+	DisplayName:   "君君不敢菌",
 	School:        "复旦大学",
 	MajorLine:     "管院 DSBA 应用统计专硕",
 	ScoreLine:     "统计 Overall 4.43/5（申请时），Rank 4/54",
-	ArticleTitle:  "飞跃手册2021 | 何怡君 应用统计(DSBA)专硕@复旦大学（保研篇）",
+	ArticleTitle:  "飞跃手册2021 | 君君不敢菌 应用统计(DSBA)专硕@复旦大学（保研篇）",
 	LongBioPrefix: zjuFeyue2021LongBioPrefix,
 	ExpertiseTags: []string{"保研", "数据科学", "复旦大学", "浙江大学", "飞跃手册"},
 	SampleQuestions: []string{
@@ -233,11 +233,11 @@ var heYiJun = Profile{
 }
 
 var maYun = Profile{
-	DisplayName:   "马沄",
+	DisplayName:   "马马马卷云",
 	School:        "清华大学",
 	MajorLine:     "统计学研究中心直博",
 	ScoreLine:     "求数 Overall 4.36/5，Major 4.30/5，申请时竺院2/20、数院5/18",
-	ArticleTitle:  "飞跃手册2021 | 马沄 统计学直博@清华大学（保研篇）",
+	ArticleTitle:  "飞跃手册2021 | 马马马卷云 统计学直博@清华大学（保研篇）",
 	LongBioPrefix: zjuFeyue2021LongBioPrefix,
 	ExpertiseTags: []string{"保研", "统计学", "清华大学", "求是数学班", "浙江大学", "飞跃手册"},
 	SampleQuestions: []string{
@@ -256,11 +256,11 @@ var maYun = Profile{
 }
 
 var chenXiaMin = Profile{
-	DisplayName:   "陈夏忞",
+	DisplayName:   "忞忞很少上线",
 	School:        "上海财经大学",
 	MajorLine:     "交叉信息研究院管理工程硕博连读",
 	ScoreLine:     "数应（金融交叉）Rank 约前30%",
-	ArticleTitle:  "飞跃手册2021 | 陈夏忞 管理工程硕博连读@上海财经大学（保研篇·其他）",
+	ArticleTitle:  "飞跃手册2021 | 忞忞很少上线 管理工程硕博连读@上海财经大学（保研篇·其他）",
 	LongBioPrefix: zjuFeyue2021LongBioPrefix,
 	ExpertiseTags: []string{"保研", "运筹", "上海财经大学", "浙江大学", "飞跃手册"},
 	SampleQuestions: []string{
@@ -279,11 +279,11 @@ var chenXiaMin = Profile{
 }
 
 var liuXunZi = Profile{
-	DisplayName:   "刘洵孜",
+	DisplayName:   "下雨了楹楹",
 	School:        "复旦大学",
 	MajorLine:     "GMiM 专硕（LBS & 复旦双学位）",
 	ScoreLine:     "数金交叉 Overall 4.49/5，Major 4.55/5，Rank 4/123",
-	ArticleTitle:  "飞跃手册2021 | 刘洵孜 GMiM 专硕@LBS&复旦大学（保研篇·其他）",
+	ArticleTitle:  "飞跃手册2021 | 下雨了楹楹 GMiM 专硕@LBS&复旦大学（保研篇·其他）",
 	LongBioPrefix: zjuFeyue2021LongBioPrefix,
 	ExpertiseTags: []string{"保研", "经管", "复旦大学", "LBS", "浙江大学", "飞跃手册"},
 	SampleQuestions: []string{

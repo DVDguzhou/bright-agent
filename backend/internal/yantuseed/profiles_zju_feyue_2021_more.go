@@ -3,10 +3,10 @@ package yantuseed
 // 飞跃手册 2021 再收录 10 人：保研·计算机 5 人 + 考研篇 5 人。
 
 var ganYuYou = Profile{
-	DisplayName:   "甘雨由",
+	DisplayName:   "雨由由呀",
 	School:        "浙江大学",
 	MajorLine:     "计算机科学与技术直博",
-	ArticleTitle:  "飞跃手册2021 | 甘雨由 计算机科学与技术直博@浙江大学（保研篇）",
+	ArticleTitle:  "飞跃手册2021 | 雨由由呀 计算机科学与技术直博@浙江大学（保研篇）",
 	LongBioPrefix: zjuFeyue2021LongBioPrefix,
 	ExpertiseTags: []string{"保研", "计算机", "浙江大学", "飞跃手册"},
 	ScoreLine:     "Overall GPA 4.31，Major GPA 4.45，Rank 6/111",
@@ -40,10 +40,10 @@ Overall GPA 4.31，Major GPA 4.45
 }
 
 var liuYuChen = Profile{
-	DisplayName:   "刘雨辰",
+	DisplayName:   "辰辰今天摸鱼",
 	School:        "浙江大学",
 	MajorLine:     "计算机科学与技术直博",
-	ArticleTitle:  "飞跃手册2021 | 刘雨辰 计算机科学与技术直博@浙江大学（保研篇）",
+	ArticleTitle:  "飞跃手册2021 | 辰辰今天摸鱼 计算机科学与技术直博@浙江大学（保研篇）",
 	LongBioPrefix: zjuFeyue2021LongBioPrefix,
 	ExpertiseTags: []string{"保研", "计算机", "浙江大学", "飞跃手册"},
 	ScoreLine:     "Overall GPA 4.09/5，Rank 13/18（申请时），托福 97",
@@ -85,10 +85,10 @@ Overall GPA / Major GPA：4.09/5
 }
 
 var linYuXin = Profile{
-	DisplayName:   "林雨欣",
+	DisplayName:   "林林七点半",
 	School:        "浙江大学",
 	MajorLine:     "计算机科学与技术学硕（CAD&CG / Graphics）",
-	ArticleTitle:  "飞跃手册2021 | 林雨欣 计算机科学与技术学硕@浙江大学（保研篇·跨保）",
+	ArticleTitle:  "飞跃手册2021 | 林林七点半 计算机科学与技术学硕@浙江大学（保研篇·跨保）",
 	LongBioPrefix: zjuFeyue2021LongBioPrefix,
 	ExpertiseTags: []string{"保研", "跨专业", "计算机图形学", "浙江大学", "飞跃手册"},
 	ScoreLine:     "Major GPA 4.73/5",
@@ -139,10 +139,10 @@ Major GPA：4.73/5
 }
 
 var linHaoRan = Profile{
-	DisplayName:   "林浩然",
+	DisplayName:   "浩仔不跑路",
 	School:        "浙江大学",
 	MajorLine:     "网络空间安全学硕",
-	ArticleTitle:  "飞跃手册2021 | 林浩然 网络空间安全学硕@浙江大学（保研篇）",
+	ArticleTitle:  "飞跃手册2021 | 浩仔不跑路 网络空间安全学硕@浙江大学（保研篇）",
 	LongBioPrefix: zjuFeyue2021LongBioPrefix,
 	ExpertiseTags: []string{"保研", "计算机", "网安", "浙江大学", "飞跃手册"},
 	ScoreLine:     "Overall GPA 4.65/5（92.5/100）",
@@ -178,10 +178,10 @@ Overall GPA：4.65/5(92.5/100)
 }
 
 var liuLuPing = Profile{
-	DisplayName:   "刘路平",
+	DisplayName:   "路平_Ping",
 	School:        "浙江大学",
 	MajorLine:     "人工智能硕士（软件学院）",
-	ArticleTitle:  "飞跃手册2021 | 刘路平 人工智能硕士@浙江大学（保研篇）",
+	ArticleTitle:  "飞跃手册2021 | 路平_Ping 人工智能硕士@浙江大学（保研篇）",
 	LongBioPrefix: zjuFeyue2021LongBioPrefix,
 	ExpertiseTags: []string{"保研", "人工智能", "浙江大学", "飞跃手册"},
 	ScoreLine:     "Overall GPA 4.28，Major GPA 4.26，Rank 5/18，托福 91",
@@ -218,11 +218,11 @@ Overall GPA 4.28，Major GPA 4.26
 }
 
 var chenMingYang = Profile{
-	DisplayName:   "陈铭洋",
+	DisplayName:   "铭洋MYang",
 	School:        "浙江大学",
 	MajorLine:     "计算数学硕士",
 	ScoreLine:     "考研 390/500，成绩排名 9",
-	ArticleTitle:  "飞跃手册2021 | 陈铭洋 计算数学硕士@浙江大学（考研篇）",
+	ArticleTitle:  "飞跃手册2021 | 铭洋MYang 计算数学硕士@浙江大学（考研篇）",
 	LongBioPrefix: zjuFeyue2021LongBioPrefix,
 	SampleQuestions: []string{
 		"浙大数院考研专业课怎么安排裴礼文和丘维声？",
@@ -243,11 +243,11 @@ var chenMingYang = Profile{
 }
 
 var caoLeYi = Profile{
-	DisplayName:   "曹乐怡",
+	DisplayName:   "乐乐今天开心",
 	School:        "中国人民大学",
 	MajorLine:     "应用统计专硕",
 	ScoreLine:     "初试442（72+87+140+143），复试251/350",
-	ArticleTitle:  "飞跃手册2021 | 曹乐怡 应用统计专硕@中国人民大学（考研篇）",
+	ArticleTitle:  "飞跃手册2021 | 乐乐今天开心 应用统计专硕@中国人民大学（考研篇）",
 	LongBioPrefix: zjuFeyue2021LongBioPrefix,
 	ExpertiseTags: []string{"考研", "应用统计", "中国人民大学", "数学三", "浙江大学", "飞跃手册"},
 	SampleQuestions: []string{
@@ -282,10 +282,10 @@ var caoLeYi = Profile{
 }
 
 var dangYun = Profile{
-	DisplayName:   "党云",
+	DisplayName:   "云朵☁️轻一点",
 	School:        "浙江大学",
 	MajorLine:     "金融专硕",
-	ArticleTitle:  "飞跃手册2021 | 党云 金融专硕@浙江大学（考研篇）",
+	ArticleTitle:  "飞跃手册2021 | 云朵☁️轻一点 金融专硕@浙江大学（考研篇）",
 	LongBioPrefix: zjuFeyue2021LongBioPrefix,
 	ExpertiseTags: []string{"考研", "金融专硕", "浙江大学", "飞跃手册"},
 	SampleQuestions: []string{
@@ -307,11 +307,11 @@ var dangYun = Profile{
 }
 
 var liHengJia = Profile{
-	DisplayName:   "李恒佳",
+	DisplayName:   "HJ·碎碎念",
 	School:        "浙江大学",
 	MajorLine:     "电子信息专业硕士",
 	ScoreLine:     "考研 406/500",
-	ArticleTitle:  "飞跃手册2021 | 李恒佳 电子信息专硕@浙江大学（考研篇·转码）",
+	ArticleTitle:  "飞跃手册2021 | HJ·碎碎念 电子信息专硕@浙江大学（考研篇·转码）",
 	LongBioPrefix: zjuFeyue2021LongBioPrefix,
 	ExpertiseTags: []string{"考研", "计算机", "408", "浙江大学", "转码", "飞跃手册"},
 	SampleQuestions: []string{
@@ -341,10 +341,10 @@ var liHengJia = Profile{
 }
 
 var chenQiangChao = Profile{
-	DisplayName:   "陈强超",
+	DisplayName:   "强超强待机",
 	School:        "浙江大学",
 	MajorLine:     "法律硕士（非法学）",
-	ArticleTitle:  "飞跃手册2021 | 陈强超 法律硕士（非法学）@浙江大学（考研篇）",
+	ArticleTitle:  "飞跃手册2021 | 强超强待机 法律硕士（非法学）@浙江大学（考研篇）",
 	LongBioPrefix: zjuFeyue2021LongBioPrefix,
 	ExpertiseTags: []string{"考研", "法硕", "浙江大学", "飞跃手册"},
 	SampleQuestions: []string{
