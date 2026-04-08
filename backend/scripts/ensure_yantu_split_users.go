@@ -115,6 +115,6 @@ func main() {
 		fmt.Printf("ensure_yantu_split_users dry-run：将新建约 %d 个，已存在跳过 %d\n", created, skipped)
 	} else {
 		fmt.Printf("ensure_yantu_split_users 完成：新建 %d，已存在跳过 %d，重置密码 %d\n", created, skipped, updated)
-		fmt.Println("下一步：go run ./scripts/split_yantu_profiles_to_accounts.go（把档案从 yantu-import 迁到上述账号）")
+		fmt.Println("下一步：若档案仍在 yantu-import，可 go run ./scripts/split_yantu_profiles_to_accounts.go；或直接 go run ./scripts/seed_yantu_text.go 一并迁户并更新正文。")
 	}
 }

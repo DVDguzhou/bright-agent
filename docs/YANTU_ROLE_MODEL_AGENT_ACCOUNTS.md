@@ -12,9 +12,12 @@
 | 密码 | `password123` |
 | 显示名 | 研途榜样导入 |
 
-以下每一行人生 Agent 建议**迁移到右侧「新登录邮箱」对应用户**。仓库内脚本 `split_yantu_profiles_to_accounts.go` 会按 `yantuseed.Profiles()` 与本表顺序，把仍挂在 `yantu-import@demo.com` 下的档案 `user_id` 改到对应 `@163.com` 用户（详见下文「数据迁移」）。**仅重复运行 `seed_yantu_text.go` 不会完成拆分**，档案仍归属导入账号。
+以下每一行人生 Agent 的**归属用户**为右侧「新登录邮箱」对应账号。
 
-若库里 **@163.com 用户已被删光、但档案仍在研途导入账号下**，请先执行 `ensure_yantu_split_users.go` **批量重建** 这 63 个登录账号，再跑拆分脚本（见下文「仅剩研途导入账号时」）。
+- **`go run ./scripts/seed_yantu_text.go`（推荐）**：按 `yantuseed.Profiles()` 与本表顺序，为每条档案 **ensure** 对应 `@163.com` 用户（不存在则创建，默认口令 `YantuLa2026!`，可用环境变量 `YANTU_SPLIT_PASSWORD` 覆盖），再 upsert 档案与知识库。若某条仍挂在 `yantu-import@demo.com`，**同一次运行会先** 把该条 `user_id` 迁到表中邮箱，再更新内容（并同步共编 `user_id`）。
+- **手工迁移**：`ensure_yantu_split_users.go` + `split_yantu_profiles_to_accounts.go` 仍可用，与上表顺序一致；适合不想重跑全文 seed、只迁归属的场景。
+
+若库里 **@163.com 用户已被删光、但档案仍在研途导入账号下**，可先 **重跑 `seed_yantu_text.go`**（会重建缺失的 @163.com 并迁户），或执行 `ensure_yantu_split_users.go` **批量重建** 后再跑拆分脚本（见下文「仅剩研途导入账号时」）。
 
 ## 新账号约定
 
@@ -126,7 +129,7 @@
    - 已存在的邮箱**不会**被删；仅跳过。若需把已存在账号的密码改回默认（谨慎）：`YANTU_ENSURE_RESET_PASSWORD=1 go run ./scripts/ensure_yantu_split_users.go`
 3. **把档案迁到各 @163.com**：先预览 `YANTU_SPLIT_DRY_RUN=1 go run ./scripts/split_yantu_profiles_to_accounts.go`，再正式 `go run ./scripts/split_yantu_profiles_to_accounts.go`。
 
-若 **导入账号下已没有这 63 个档案**，请先 `go run ./scripts/seed_yantu_text.go` 再执行上述 2、3 步。
+若 **导入账号下已没有这 63 个档案**、但拆分用户也不全，可先 `go run ./scripts/seed_yantu_text.go`（会按表补齐用户与档案）；仅缺用户、档案已在各号下时，再执行上述 2、3 步即可。
 
 ## 补充说明
 
