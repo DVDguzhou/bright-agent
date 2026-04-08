@@ -4,6 +4,7 @@ import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } fro
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { LifeAgentMessageComposer } from "@/components/LifeAgentMessageComposer";
+import { WeflowImportGuide } from "@/components/WeflowImportGuide";
 import {
   buildPatchPayloadFromProfile,
   fetchManageData,
@@ -788,14 +789,39 @@ function ImportChatModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-3" onClick={onClose}>
       <div
-        className="mx-4 w-full max-w-md rounded-2xl border border-purple-200/30 bg-white p-6 shadow-2xl"
+        className="mx-auto w-full max-w-md max-h-[min(92vh,720px)] overflow-y-auto overscroll-contain rounded-2xl border border-purple-200/30 bg-white p-5 shadow-2xl sm:max-w-2xl sm:p-6"
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="mb-1 text-lg font-semibold text-slate-800">导入聊天记录</h3>
-        <p className="mb-4 text-sm text-slate-500">
-          上传微信聊天记录文件，AI 将自动分析聊天风格、语气，并补充知识库。
+        <p className="mb-3 text-sm text-slate-500">
+          上传导出文件后，AI 会分析聊天风格与语气，并用于优化 Agent 人设与知识。
+        </p>
+
+        <details className="mb-4 rounded-xl border border-purple-100 bg-purple-50/50 px-3.5 py-2.5 text-sm open:bg-purple-50/80">
+          <summary className="cursor-pointer select-none font-medium text-violet-900 outline-none [&::-webkit-details-marker]:hidden">
+            <span className="inline-flex items-center gap-2">
+              <svg className="h-4 w-4 shrink-0 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} aria-hidden>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z" />
+              </svg>
+              用 WeFlow 导出 CSV：图文步骤
+            </span>
+          </summary>
+          <WeflowImportGuide />
+        </details>
+        <p className="mb-4 text-xs text-slate-500">
+          也支持 WeChatMsg、留痕等导出的 <strong className="font-medium text-slate-700">HTML / TXT</strong>。上传后在下方选择{" "}
+          <strong className="font-medium text-slate-700">Agent 本人的昵称</strong>。开发者可另见{" "}
+          <a
+            href="https://github.com/hicccc77/WeFlow/blob/main/docs/HTTP-API.md"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-violet-600 underline decoration-violet-300 underline-offset-2 hover:text-violet-700"
+          >
+            WeFlow HTTP API
+          </a>
+          。
         </p>
 
         {/* File input */}
@@ -823,7 +849,7 @@ function ImportChatModal({
             {parsing ? "解析中..." : file ? file.name : "点击选择 HTML / CSV / TXT 文件"}
           </button>
           <p className="mt-1 text-xs text-slate-400">
-            支持 WeChatMsg、留痕等工具导出的 HTML、CSV、TXT 格式
+            WeFlow 请上传 <code className="text-[11px]">texts</code> 内 WeClone CSV；亦支持 WeChatMsg、留痕等 HTML / CSV / TXT
           </p>
         </div>
 
