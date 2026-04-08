@@ -13,6 +13,10 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+func normalizeAuthEmail(s string) string {
+	return strings.ToLower(strings.TrimSpace(s))
+}
+
 func Login(cfg *config.Config) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var body struct {
@@ -23,8 +27,13 @@ func Login(cfg *config.Config) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "VALIDATION_ERROR"})
 			return
 		}
+		email := normalizeAuthEmail(body.Email)
+		if isPlaceholderAuthEmail(email) {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "USE_OTHER_LOGIN"})
+			return
+		}
 		var u models.User
-		if err := db.DB.Where("email = ?", body.Email).First(&u).Error; err != nil {
+		if err := db.DB.Where("email = ?", email).First(&u).Error; err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "INVALID_CREDENTIALS"})
 			return
 		}
@@ -57,8 +66,13 @@ func Signup(cfg *config.Config) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "VALIDATION_ERROR"})
 			return
 		}
+		email := normalizeAuthEmail(body.Email)
+		if isPlaceholderAuthEmail(email) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "INVALID_EMAIL"})
+			return
+		}
 		var existingUser models.User
-		if db.DB.Where("email = ?", body.Email).First(&existingUser).Error == nil {
+		if db.DB.Where("email = ?", email).First(&existingUser).Error == nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "EMAIL_EXISTS"})
 			return
 		}
@@ -79,7 +93,7 @@ func Signup(cfg *config.Config) gin.HandlerFunc {
 		}
 		u := models.User{
 			ID:        models.GenID(),
-			Email:     body.Email,
+			Email:     email,
 			Password:  string(hash),
 			Name:      ptr(cleanName),
 			AvatarURL: normalizeOptionalText(body.AvatarURL),

@@ -101,6 +101,8 @@ export default function SignupPage() {
             ? "该邮箱已被注册"
             : data.error === "NAME_EXISTS"
             ? "该用户名已被使用，请换一个"
+            : data.error === "INVALID_EMAIL"
+            ? "不能使用此类邮箱注册，请使用真实邮箱"
             : data.error === "VALIDATION_ERROR"
             ? "请检查输入"
             : "注册失败"

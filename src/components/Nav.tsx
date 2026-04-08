@@ -216,6 +216,22 @@ export function Nav() {
             个人主页
           </motion.span>
         </Link>
+        <Link
+          href="/dashboard/account"
+          className={
+            vertical
+              ? linkClass(pathname === "/dashboard/account")
+              : "inline-flex items-center gap-2 rounded-lg px-2 py-2 text-slate-600 transition-colors hover:text-purple-800"
+          }
+          title="账号与安全"
+        >
+          <motion.span
+            className={`text-sm transition-colors ${vertical ? "text-slate-600 hover:text-purple-800" : "hidden lg:inline text-slate-600"}`}
+            whileHover={{ scale: vertical ? 1 : 1.02 }}
+          >
+            账号
+          </motion.span>
+        </Link>
         {!vertical && (
           <span className="text-slate-500 text-sm hidden 2xl:inline truncate max-w-[120px]">
             {user.email}
@@ -521,6 +537,16 @@ export function Nav() {
                     >
                       <IconDashboard className="h-5 w-5 text-slate-600" />
                       我的
+                    </Link>
+                    <Link
+                      href="/dashboard/account"
+                      onClick={() => setMobileDrawerOpen(false)}
+                      className="mb-2 flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-slate-800 hover:bg-purple-50/80"
+                    >
+                      <svg className="h-5 w-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                      账号与安全
                     </Link>
                     <button
                       type="button"

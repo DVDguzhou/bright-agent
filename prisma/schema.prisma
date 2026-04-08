@@ -49,6 +49,8 @@ model User {
   wechatOpenId String?  @unique @map("wechat_open_id") @db.VarChar(64) // 微信开放平台 openid
   roleFlags    Json?    @map("role_flags") // {is_buyer, is_seller}
   createdAt    DateTime @default(now()) @map("created_at")
+  passwordResetToken     String?   @map("password_reset_token") @db.VarChar(64)
+  passwordResetExpiresAt DateTime? @map("password_reset_expires_at")
 
   userApiKeys   UserApiKey[]
   ownedAgents   Agent[]       @relation("AgentOwner")

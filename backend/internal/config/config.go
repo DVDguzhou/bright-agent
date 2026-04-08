@@ -52,6 +52,13 @@ type Config struct {
 	SMSTemplate  string       // 验证码模板 Code
 	// 聊天记录导入
 	MaxChatImportMessages int // 导入聊天记录时最多处理的消息条数，默认 100
+	// 邮箱（找回密码）：不配置 SMTP 时仍可登录/注册，但无法发送重置邮件
+	SMTPHost         string
+	SMTPPort         int
+	SMTPUser         string
+	SMTPPassword     string
+	SMTPFrom         string // 发件人地址，如 noreply@example.com
+	PasswordResetTTL time.Duration
 }
 
 func Load() *Config {
@@ -108,9 +115,20 @@ func Load() *Config {
 		SMSSignName:     getEnv("SMS_SIGN_NAME", ""),
 		SMSTemplate:     getEnv("SMS_TEMPLATE_CODE", ""),
 		MaxChatImportMessages: parseIntEnv("MAX_CHAT_IMPORT_MESSAGES", 100),
+		SMTPHost:              stripOuterQuotes(getEnv("SMTP_HOST", "")),
+		SMTPPort:              parseIntEnv("SMTP_PORT", 587),
+		SMTPUser:              stripOuterQuotes(getEnv("SMTP_USER", "")),
+		SMTPPassword:          stripOuterQuotes(getEnv("SMTP_PASSWORD", "")),
+		SMTPFrom:              stripOuterQuotes(getEnv("SMTP_FROM", "")),
+		PasswordResetTTL:      parseDuration(getEnv("PASSWORD_RESET_TTL", "1h"), time.Hour),
 	}
 	cfg.SMSSender = buildSMSSender(cfg)
 	return cfg
+}
+
+// SMTPEnabled 是否可发送找回密码邮件
+func (c *Config) SMTPEnabled() bool {
+	return strings.TrimSpace(c.SMTPHost) != "" && strings.TrimSpace(c.SMTPFrom) != ""
 }
 
 func parseDuration(s string, defaultVal time.Duration) time.Duration {

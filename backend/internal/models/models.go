@@ -22,6 +22,9 @@ type User struct {
 	RoleFlags    JSONMap   `gorm:"column:role_flags;type:json"`
 	CreatedAt    time.Time `gorm:"column:created_at"`
 
+	PasswordResetToken     *string    `gorm:"column:password_reset_token;size:64;index"`
+	PasswordResetExpiresAt *time.Time `gorm:"column:password_reset_expires_at"`
+
 	// relations - no fk for simplicity, use manual queries
 }
 

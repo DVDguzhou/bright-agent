@@ -50,7 +50,16 @@ function LoginContent() {
       );
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(data.error === "INVALID_CREDENTIALS" ? "邮箱或密码错误" : "登录失败");
+        const code = data.error as string | undefined;
+        const msg =
+          code === "INVALID_CREDENTIALS"
+            ? "邮箱或密码错误"
+            : code === "USE_OTHER_LOGIN"
+            ? "该账号请使用微信或手机号登录"
+            : code === "VALIDATION_ERROR"
+            ? "请填写有效的邮箱和密码"
+            : "登录失败";
+        setError(msg);
         return;
       }
       await refetch();
@@ -226,6 +235,11 @@ function LoginContent() {
             placeholder="••••••••"
             required
           />
+          <div className="flex justify-end text-sm">
+            <Link href="/forgot-password" className="text-sky-700 hover:text-sky-600 transition-colors">
+              忘记密码？
+            </Link>
+          </div>
           <button
             type="submit"
             disabled={loading}
