@@ -92,4 +92,7 @@
 
 1. **与 HTML 单独导入的关系**：若你还运行过 `import_yantu_life_agents.go` 从微信 HTML 导入额外档案，其 `display_name` 可能不在上表；需按库中实际 `display_name` 增行补表。
 2. **安全**：请勿将含真实生产密码的表格提交到公开仓库；上线后应要求各账号修改密码或使用独立强口令。
-3. **数据迁移**：在 `backend` 目录设置 `DATABASE_URL`（及 `.env` 若沿用其它脚本）。先预览：`YANTU_SPLIT_DRY_RUN=1 go run ./scripts/split_yantu_profiles_to_accounts.go`；确认日志后执行：`go run ./scripts/split_yantu_profiles_to_accounts.go`。环境变量 `YANTU_SPLIT_PASSWORD` 默认 `YantuLa2026!`，用于**新建**缺失用户；**已存在的邮箱账号不会被脚本改密码**，若需统一初始口令请自行在库中或登录流程中处理。也可手工在 `users` 建账号后更新 `life_agent_profiles.user_id`。
+3. **数据迁移**：在 `backend` 目录设置 `DATABASE_URL`（及 `.env` 若沿用其它脚本）。先预览，再正式执行。
+   - **Bash**：`YANTU_SPLIT_DRY_RUN=1 go run ./scripts/split_yantu_profiles_to_accounts.go`，然后 `go run ./scripts/split_yantu_profiles_to_accounts.go`。
+   - **Windows PowerShell**（在 `backend` 下）：`$env:YANTU_SPLIT_DRY_RUN = "1"; go run ./scripts/split_yantu_profiles_to_accounts.go`；确认日志后：`Remove-Item Env:YANTU_SPLIT_DRY_RUN -ErrorAction SilentlyContinue; go run ./scripts/split_yantu_profiles_to_accounts.go`。可选：`$env:YANTU_SPLIT_PASSWORD = "你的口令"`。
+   环境变量 `YANTU_SPLIT_PASSWORD` 默认 `YantuLa2026!`，用于**新建**缺失用户；**已存在的邮箱账号不会被脚本改密码**，若需统一初始口令请自行在库中或登录流程中处理。也可手工在 `users` 建账号后更新 `life_agent_profiles.user_id`。**执行前请保证 MySQL 已启动且 `DATABASE_URL` 可达**，否则会在 `db init` 阶段报错。

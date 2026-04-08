@@ -7,9 +7,15 @@
 //	export YANTU_SPLIT_PASSWORD='YantuLa2026!'   # 可选，默认即此
 //	go run ./scripts/split_yantu_profiles_to_accounts.go
 //
-// 仅打印不写入：
+// 仅打印不写入（bash）：
 //
 //	YANTU_SPLIT_DRY_RUN=1 go run ./scripts/split_yantu_profiles_to_accounts.go
+//
+// Windows PowerShell：
+//
+//	$env:YANTU_SPLIT_DRY_RUN = "1"; go run ./scripts/split_yantu_profiles_to_accounts.go
+//	Remove-Item Env:YANTU_SPLIT_DRY_RUN -ErrorAction SilentlyContinue
+//	go run ./scripts/split_yantu_profiles_to_accounts.go
 package main
 
 import (
