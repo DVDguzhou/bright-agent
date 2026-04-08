@@ -12,6 +12,8 @@
 | 密码 | `password123` |
 | 显示名 | 研途榜样导入 |
 
+**和下面表格里 `@163.com` 的关系**：下表「新登录邮箱」是**本仓库为研途种子批量生成的拆分登录号**（占位邮箱 + 统一初始口令），迁户后每条人生 Agent 应归到对应 `@163.com` 用户。**要清空的是旧统一导入号 `yantu-import@demo.com` 上的数据**，不要误删各 `@163.com` 下的正式归属档案；删除脚本见下文「删除研途榜样种子数据」中的 **`YANTU_DELETE_IMPORT_USER_ALL_PROFILES`**。
+
 以下每一行人生 Agent 的**归属用户**为右侧「新登录邮箱」对应账号。
 
 - **`go run ./scripts/seed_yantu_text.go`（推荐）**：按 `yantuseed.Profiles()` 与本表顺序，为每条档案 **ensure** 对应 `@163.com` 用户（不存在则创建，默认口令 `YantuLa2026!`，可用环境变量 `YANTU_SPLIT_PASSWORD` 覆盖），再 upsert 档案与知识库。若某条仍挂在 `yantu-import@demo.com`，**同一次运行会先** 把该条 `user_id` 迁到表中邮箱，再更新内容（并同步共编 `user_id`）。
@@ -95,17 +97,19 @@
 
 ## 删除研途榜样种子数据（危险操作）
 
-脚本**只删除仍挂在 `yantu-import@demo.com` 下**、且 `display_name` 属于 `yantuseed.Profiles()` 的人生 Agent，并级联清理其知识库、买家会话与消息、反馈、评分、提问包、调用密钥、共编状态、收藏等。
+级联清理：知识库、买家会话与消息、反馈、评分、提问包、调用密钥、共编状态、收藏等。
 
-- **已拆分到 `@163.com` 的同名档案不会被删除**（避免清空各独立登录账号下的 Agent）。
-- 若导入账号已不存在或名下已无此类档案，脚本会提示并退出，不会动 `@163.com` 数据。
-- 不处理 display_name 不在种子列表中的档案（例如仅通过 `import_yantu_life_agents.go` 从 HTML 导入且昵称未与上表对齐的数据）。
+- **推荐：清空原研途导入号上「所有」人生 Agent**（不论昵称是否在种子表；**不动**文档里各 `@163.com` 拆分号及其数据）：  
+  `YANTU_DELETE_IMPORT_USER_ALL_PROFILES=1 go run ./scripts/delete_yantu_imported_data.go`  
+  先预览：`YANTU_DELETE_DRY_RUN=1 YANTU_DELETE_IMPORT_USER_ALL_PROFILES=1 go run ./scripts/delete_yantu_imported_data.go`
+- **默认（不推荐作「清空导入号」）**：只删 `yantu-import@demo.com` 下、且 `display_name` 在 `yantuseed.Profiles()` 内的档案；HTML 导入且昵称不在种子表的会保留。
+- **进阶**：`YANTU_DELETE_SEED_EVERYWHERE=1` 删除「种子昵称」匹配、且归属用户邮箱**不以** `@163.com` 结尾的档案（清导入号以外的重复副本）；**勿与** `YANTU_DELETE_IMPORT_USER_ALL_PROFILES` 同时设置。
 
-在 `backend` 目录、配置好 `DATABASE_URL` 后：
+在 `backend` 目录、配置好 `DATABASE_URL` 后（PowerShell 示例把 `export` 换成 `$env:VAR="1"`）：
 
-1. **先预览**：`YANTU_DELETE_DRY_RUN=1 go run ./scripts/delete_yantu_imported_data.go`（PowerShell：`$env:YANTU_DELETE_DRY_RUN="1"; go run ./scripts/delete_yantu_imported_data.go`）
-2. **正式删除**（仅研途导入账号名下）：`go run ./scripts/delete_yantu_imported_data.go`
-3. **可选**：仅当 `yantu-import@demo.com` 名下已无人生 Agent、且无 License、无人生 Agent 提问包时，删除该用户：`YANTU_DELETE_ORPHAN_USERS=1 go run ./scripts/delete_yantu_imported_data.go`（可与步骤 2 同一次执行）。**`@163.com` 账号永远不会被本脚本删除。**
+1. **预览清空导入号全部 Agent**：`YANTU_DELETE_DRY_RUN=1 YANTU_DELETE_IMPORT_USER_ALL_PROFILES=1 go run ./scripts/delete_yantu_imported_data.go`
+2. **正式清空导入号全部 Agent**：`YANTU_DELETE_IMPORT_USER_ALL_PROFILES=1 go run ./scripts/delete_yantu_imported_data.go`
+3. **可选**：导入号名下已无人生 Agent、且无 License、无人生 Agent 提问包时，删除该用户：`YANTU_DELETE_ORPHAN_USERS=1` 与上一步同一次执行。**`@163.com` 用户永远不会被删。**
 
 级联删除实现见 `internal/yantuseed/cascade_profile_delete.go`。
 
