@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { fetchWithTimeout } from "@/lib/fetchWithTimeout";
 
 type Tab = "email" | "wechat" | "phone";
+type EmailLoginMode = "code" | "password";
 
 export default function LoginPage() {
   return (
@@ -22,8 +23,12 @@ function LoginContent() {
   const searchParams = useSearchParams();
   const { refetch } = useAuth();
   const [tab, setTab] = useState<Tab>("email");
+  const [emailLoginMode, setEmailLoginMode] = useState<EmailLoginMode>("code");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [emailOtp, setEmailOtp] = useState("");
+  const [emailOtpSent, setEmailOtpSent] = useState(false);
+  const [emailOtpCountdown, setEmailOtpCountdown] = useState(0);
   const [phone, setPhone] = useState("");
   const [code, setCode] = useState("");
   const [codeSent, setCodeSent] = useState(false);
@@ -98,6 +103,103 @@ function LoginContent() {
     }
   };
 
+  const startCountdown = (setter: React.Dispatch<React.SetStateAction<number>>) => {
+    setter(60);
+    const timer = setInterval(() => {
+      setter((c) => {
+        if (c <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return c - 1;
+      });
+    }, 1000);
+  };
+
+  const sendEmailCode = async () => {
+    const em = email.trim();
+    if (!em || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) {
+      setError("请输入有效邮箱");
+      return;
+    }
+    setError("");
+    setLoading(true);
+    try {
+      const res = await fetch("/api/auth/email/send-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ email: em }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(
+          data.error === "EMAIL_SEND_FAILED"
+            ? "邮件发送失败，请稍后重试或检查发信配置"
+            : data.error === "VALIDATION_ERROR"
+            ? "请输入有效邮箱"
+            : "发送失败"
+        );
+        return;
+      }
+      setEmailOtpSent(true);
+      startCountdown(setEmailOtpCountdown);
+    } catch (e) {
+      setError("网络错误，请检查连接后重试");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const submitEmailOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const em = email.trim();
+    if (!em) {
+      setError("请输入邮箱");
+      return;
+    }
+    if (!emailOtp.trim()) {
+      setError("请输入验证码");
+      return;
+    }
+    setError("");
+    setLoading(true);
+    try {
+      const res = await fetchWithTimeout(
+        "/api/auth/email/verify",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ email: em, code: emailOtp.trim() }),
+        },
+        20000
+      );
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(
+          data.error === "INVALID_CODE"
+            ? "验证码错误或已过期"
+            : data.error === "VALIDATION_ERROR"
+            ? "请检查输入"
+            : "验证失败"
+        );
+        return;
+      }
+      await refetch();
+      router.push("/dashboard");
+      router.refresh();
+    } catch (e) {
+      const msg =
+        e instanceof Error && e.name === "AbortError"
+          ? "请求超时，请检查网络后重试"
+          : "网络错误，请检查连接后重试";
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const sendCode = async () => {
     const p = phone.replace(/\s/g, "").replace(/^\+86/, "");
     if (!/^1[3-9]\d{9}$/.test(p)) {
@@ -121,16 +223,7 @@ function LoginContent() {
         return;
       }
       setCodeSent(true);
-      setCountdown(60);
-      const timer = setInterval(() => {
-        setCountdown((c) => {
-          if (c <= 1) {
-            clearInterval(timer);
-            return 0;
-          }
-          return c - 1;
-        });
-      }, 1000);
+      startCountdown(setCountdown);
     } catch (e) {
       setError("网络错误，请检查连接后重试");
     } finally {
@@ -197,7 +290,10 @@ function LoginContent() {
           <button
             key={t.key}
             type="button"
-            onClick={() => setTab(t.key)}
+            onClick={() => {
+              setTab(t.key);
+              setError("");
+            }}
             className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${
               tab === t.key ? "bg-sky-100 text-sky-700" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
             }`}
@@ -215,7 +311,61 @@ function LoginContent() {
         </p>
       )}
 
-      {tab === "email" && (
+      {tab === "email" && emailLoginMode === "code" && (
+        <form onSubmit={submitEmailOtp} className="space-y-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <p className="text-sm text-slate-600">验证码将发送至邮箱，与手机号登录相同流程。</p>
+          <label className="block text-sm font-medium text-slate-700">邮箱</label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="input-shell"
+            placeholder="you@example.com"
+            required
+          />
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={emailOtp}
+              onChange={(e) => setEmailOtp(e.target.value)}
+              className="input-shell flex-1"
+              placeholder="邮箱验证码"
+              maxLength={6}
+              inputMode="numeric"
+              autoComplete="one-time-code"
+            />
+            <button
+              type="button"
+              onClick={sendEmailCode}
+              disabled={loading || emailOtpCountdown > 0}
+              className="px-4 py-2 rounded-lg bg-slate-100 text-slate-700 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+            >
+              {emailOtpCountdown > 0 ? `${emailOtpCountdown}s` : emailOtpSent ? "重新发送" : "获取验证码"}
+            </button>
+          </div>
+          <button
+            type="submit"
+            disabled={loading}
+            className="btn-primary w-full py-3 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? "验证中..." : "登录"}
+          </button>
+          <p className="text-center text-sm text-slate-500">
+            <button
+              type="button"
+              className="text-sky-700 hover:text-sky-600"
+              onClick={() => {
+                setEmailLoginMode("password");
+                setError("");
+              }}
+            >
+              使用密码登录
+            </button>
+          </p>
+        </form>
+      )}
+
+      {tab === "email" && emailLoginMode === "password" && (
         <form onSubmit={submitEmail} className="space-y-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
           <label className="block text-sm font-medium text-slate-700">邮箱</label>
           <input
@@ -247,6 +397,18 @@ function LoginContent() {
           >
             {loading ? "登录中..." : "登录"}
           </button>
+          <p className="text-center text-sm text-slate-500">
+            <button
+              type="button"
+              className="text-sky-700 hover:text-sky-600"
+              onClick={() => {
+                setEmailLoginMode("code");
+                setError("");
+              }}
+            >
+              使用邮箱验证码登录
+            </button>
+          </p>
         </form>
       )}
 
