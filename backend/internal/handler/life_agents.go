@@ -9,6 +9,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -66,7 +67,15 @@ func validateLifeAgentCoverImageURL(u string) bool {
 	if u == "" || len(u) > 512 {
 		return false
 	}
-	if !strings.HasPrefix(u, "/") || strings.Contains(u, "..") {
+	if strings.Contains(u, "..") {
+		return false
+	}
+	// 允许 Unsplash CDN 外链封面（免版税图库，见 https://unsplash.com/license）
+	if parsed, err := url.Parse(u); err == nil && parsed.Scheme == "https" && parsed.Host == "images.unsplash.com" &&
+		strings.HasPrefix(parsed.Path, "/photo-") {
+		return true
+	}
+	if !strings.HasPrefix(u, "/") {
 		return false
 	}
 	return strings.HasPrefix(u, "/uploads/life-agent-covers/") ||

@@ -27,8 +27,8 @@ func main() {
 		log.Fatal("db init:", err)
 	}
 	user := yantuseed.EnsureImportUser()
-	// 批量种子不写 preset：即便写入，lifeAgentShippedCoverPresetPNGs 为空时接口也会回退默认 SVG。
-	// 若要用卡通预设，请先把对应 .png 放进 public 并把键同步进前后端的「已部署 preset」表。
+	// cover 传空串时，UpsertProfile 会为每个 display_name 写入稳定 Unsplash 外链封面（见 internal/yantuseed/yantu_cover_photos.go）。
+	// 若要用预设键，传入非空 preset，并确保 public 内已有对应 PNG 且已同步 lifeAgentShippedCoverPresetPNGs。
 	cover := ""
 	for _, p := range yantuseed.Profiles() {
 		if err := yantuseed.UpsertProfile(user.ID, cover, p); err != nil {

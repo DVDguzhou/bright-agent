@@ -88,6 +88,13 @@
 | 62 | shine昕玥 | yantu-import@demo.com | glow_xy@163.com | YantuLa2026! |
 | 63 | 煦华慢半拍__ | yantu-import@demo.com | slow_xh@163.com | YantuLa2026! |
 
+## 封面图（Unsplash）
+
+- 每位人生 Agent 的 `cover_image_url` 可为 **Unsplash** 外链（免版税，[许可说明](https://unsplash.com/license)）；图池与按 `Profiles()` 顺序一一对应（`YantuSeedCoverURL`）见 `backend/internal/yantuseed/yantu_cover_photos.go`。
+- **新建/全量重灌种子**：`go run ./scripts/seed_yantu_text.go` 在 `cover` 为空时会自动写入上述封面并清空 `cover_preset_key`。
+- **仅给已有库补封面**（按 `display_name` 匹配 `Profiles()`）：在 `backend` 下执行 `go run ./scripts/set_yantu_unsplash_covers.go`；先预览：`YANTU_COVERS_DRY_RUN=1 go run ./scripts/set_yantu_unsplash_covers.go`（PowerShell：`$env:YANTU_COVERS_DRY_RUN="1"; go run ./scripts/set_yantu_unsplash_covers.go`）。
+- 后端校验允许 `https://images.unsplash.com/photo-...` 作为合法封面 URL（与站内上传路径并列）。
+
 ## 补充说明
 
 1. **与 HTML 单独导入的关系**：若你还运行过 `import_yantu_life_agents.go` 从微信 HTML 导入额外档案，其 `display_name` 可能不在上表；需按库中实际 `display_name` 增行补表。

@@ -58,6 +58,7 @@ func firstSentence(s string) string {
 }
 
 // UpsertProfile 按 display_name + user_id 幂等写入/更新档案与一条知识库。
+// coverPreset 非空时写入 cover_preset_key；为空时为该昵称分配稳定 Unsplash 封面 URL（见 YantuCoverPhotoURLs）。
 func UpsertProfile(userID, coverPreset string, p Profile) error {
 	if strings.TrimSpace(p.KnowledgeBody) == "" {
 		return fmt.Errorf("empty knowledge for %q", p.DisplayName)
@@ -86,6 +87,10 @@ func UpsertProfile(userID, coverPreset string, p Profile) error {
 
 	var profile models.LifeAgentProfile
 	errFound := db.DB.Where("user_id = ? AND display_name = ?", userID, p.DisplayName).First(&profile).Error
+	coverURL := ""
+	if strings.TrimSpace(coverPreset) == "" {
+		coverURL = YantuSeedCoverURL(p.DisplayName)
+	}
 	if errFound == nil {
 		db.DB.Where("profile_id = ?", profile.ID).Delete(&models.LifeAgentKnowledgeEntry{})
 		updates := map[string]interface{}{
@@ -94,15 +99,28 @@ func UpsertProfile(userID, coverPreset string, p Profile) error {
 			"long_bio":         longBio,
 			"school":           strOrNil(p.School),
 			"published":        true,
-			"cover_preset_key": strOrNil(coverPreset),
 			"expertise_tags":   expertiseTagsFor(p),
 			"sample_questions": sampleQuestionsFor(p),
+		}
+		if strings.TrimSpace(coverPreset) != "" {
+			updates["cover_preset_key"] = strOrNil(coverPreset)
+			updates["cover_image_url"] = nil
+		} else {
+			updates["cover_preset_key"] = nil
+			updates["cover_image_url"] = coverURL
 		}
 		if err := db.DB.Model(&profile).Updates(updates).Error; err != nil {
 			return err
 		}
 		fmt.Println("updated profile", p.DisplayName)
 	} else {
+		var coverImg *string
+		var presetKey *string
+		if strings.TrimSpace(coverPreset) != "" {
+			presetKey = strOrNil(coverPreset)
+		} else {
+			coverImg = strPtr(coverURL)
+		}
 		profile = models.LifeAgentProfile{
 			ID:               models.GenID(),
 			UserID:           userID,
@@ -117,7 +135,8 @@ func UpsertProfile(userID, coverPreset string, p Profile) error {
 			SampleQuestions:  sampleQuestionsFor(p),
 			School:           strOrNil(p.School),
 			Education:        strPtr("硕士研究生（已录取或就读）"),
-			CoverPresetKey:   strOrNil(coverPreset),
+			CoverImageURL:    coverImg,
+			CoverPresetKey:   presetKey,
 			Published:        true,
 		}
 		if err := db.DB.Create(&profile).Error; err != nil {
