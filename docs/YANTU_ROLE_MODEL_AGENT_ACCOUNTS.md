@@ -12,7 +12,9 @@
 | 密码 | `password123` |
 | 显示名 | 研途榜样导入 |
 
-以下每一行人生 Agent 建议**迁移到右侧「新登录邮箱」对应用户**。仓库内脚本 `backend/scripts/split_yantu_profiles_to_accounts.go` 会按 `yantuseed.Profiles()` 与本表顺序，把仍挂在 `yantu-import@demo.com` 下的档案 `user_id` 改到对应 `@163.com` 用户（详见下文「数据迁移」）。**仅重复运行 `seed_yantu_text.go` 不会完成拆分**，档案仍归属导入账号。
+以下每一行人生 Agent 建议**迁移到右侧「新登录邮箱」对应用户**。仓库内脚本 `split_yantu_profiles_to_accounts.go` 会按 `yantuseed.Profiles()` 与本表顺序，把仍挂在 `yantu-import@demo.com` 下的档案 `user_id` 改到对应 `@163.com` 用户（详见下文「数据迁移」）。**仅重复运行 `seed_yantu_text.go` 不会完成拆分**，档案仍归属导入账号。
+
+若库里 **@163.com 用户已被删光、但档案仍在研途导入账号下**，请先执行 `ensure_yantu_split_users.go` **批量重建** 这 63 个登录账号，再跑拆分脚本（见下文「仅剩研途导入账号时」）。
 
 ## 新账号约定
 
@@ -90,28 +92,47 @@
 
 ## 删除研途榜样种子数据（危险操作）
 
-按 `yantuseed.Profiles()` 中的 **display_name** 匹配并删除人生 Agent，级联清理知识库、买家会话与消息、反馈、评分、提问包、调用密钥、共编状态、收藏等。**不会**删除 display_name 不在种子列表中的档案（例如仅通过 `import_yantu_life_agents.go` 从 HTML 导入且昵称未与上表对齐的数据）。
+脚本**只删除仍挂在 `yantu-import@demo.com` 下**、且 `display_name` 属于 `yantuseed.Profiles()` 的人生 Agent，并级联清理其知识库、买家会话与消息、反馈、评分、提问包、调用密钥、共编状态、收藏等。
+
+- **已拆分到 `@163.com` 的同名档案不会被删除**（避免清空各独立登录账号下的 Agent）。
+- 若导入账号已不存在或名下已无此类档案，脚本会提示并退出，不会动 `@163.com` 数据。
+- 不处理 display_name 不在种子列表中的档案（例如仅通过 `import_yantu_life_agents.go` 从 HTML 导入且昵称未与上表对齐的数据）。
 
 在 `backend` 目录、配置好 `DATABASE_URL` 后：
 
 1. **先预览**：`YANTU_DELETE_DRY_RUN=1 go run ./scripts/delete_yantu_imported_data.go`（PowerShell：`$env:YANTU_DELETE_DRY_RUN="1"; go run ./scripts/delete_yantu_imported_data.go`）
-2. **正式删除档案**：`go run ./scripts/delete_yantu_imported_data.go`
-3. **可选**：仅当原导入账号 `yantu-import@demo.com` 名下已无人生 Agent、且无 License、无人生 Agent 提问包时，删除该用户：`YANTU_DELETE_ORPHAN_USERS=1 go run ./scripts/delete_yantu_imported_data.go`（与步骤 2 同一次执行即可）。**拆分用的 `@163.com` 账号不会被本脚本删除**，需保留登录入口时请放心使用上述开关。
+2. **正式删除**（仅研途导入账号名下）：`go run ./scripts/delete_yantu_imported_data.go`
+3. **可选**：仅当 `yantu-import@demo.com` 名下已无人生 Agent、且无 License、无人生 Agent 提问包时，删除该用户：`YANTU_DELETE_ORPHAN_USERS=1 go run ./scripts/delete_yantu_imported_data.go`（可与步骤 2 同一次执行）。**`@163.com` 账号永远不会被本脚本删除。**
 
 级联删除实现见 `internal/yantuseed/cascade_profile_delete.go`。
 
 ## 封面图（Unsplash）
 
 - 每位人生 Agent 的 `cover_image_url` 可为 **Unsplash** 外链（免版税，[许可说明](https://unsplash.com/license)）；图池与按 `Profiles()` 顺序一一对应（`YantuSeedCoverURL`）见 `backend/internal/yantuseed/yantu_cover_photos.go`。
+- 默认图偏 **头像用途**：方形 `720×720`，人物/宠物以 `crop=faces` 突出面部，少量渐变/风景用 `crop=entropy` 作匿名感占位；全部为 Unsplash 免版税素材，**非**真实用户本人照片。
 - **新建/全量重灌种子**：`go run ./scripts/seed_yantu_text.go` 在 `cover` 为空时会自动写入上述封面并清空 `cover_preset_key`。
 - **仅给已有库补封面**（按 `display_name` 匹配 `Profiles()`）：在 `backend` 下执行 `go run ./scripts/set_yantu_unsplash_covers.go`；先预览：`YANTU_COVERS_DRY_RUN=1 go run ./scripts/set_yantu_unsplash_covers.go`（PowerShell：`$env:YANTU_COVERS_DRY_RUN="1"; go run ./scripts/set_yantu_unsplash_covers.go`）。
 - 后端校验允许 `https://images.unsplash.com/photo-...` 作为合法封面 URL（与站内上传路径并列）。
+
+## 仅剩研途导入账号时：先重建 @163.com 再拆分
+
+适用：**63 个人生 Agent 仍在 `yantu-import@demo.com` 下**，但表中对应的 `@163.com` 用户不存在（或需先统一建好再迁移）。
+
+在 `backend` 目录、`DATABASE_URL` 可用时：
+
+1. **（可选）预览**：`YANTU_SPLIT_DRY_RUN=1 go run ./scripts/ensure_yantu_split_users.go`
+2. **创建缺失的 @163.com 用户**：`go run ./scripts/ensure_yantu_split_users.go`  
+   - 默认口令与下表一致：`YantuLa2026!`，可用 `YANTU_SPLIT_PASSWORD` 覆盖。  
+   - 已存在的邮箱**不会**被删；仅跳过。若需把已存在账号的密码改回默认（谨慎）：`YANTU_ENSURE_RESET_PASSWORD=1 go run ./scripts/ensure_yantu_split_users.go`
+3. **把档案迁到各 @163.com**：先预览 `YANTU_SPLIT_DRY_RUN=1 go run ./scripts/split_yantu_profiles_to_accounts.go`，再正式 `go run ./scripts/split_yantu_profiles_to_accounts.go`。
+
+若 **导入账号下已没有这 63 个档案**，请先 `go run ./scripts/seed_yantu_text.go` 再执行上述 2、3 步。
 
 ## 补充说明
 
 1. **与 HTML 单独导入的关系**：若你还运行过 `import_yantu_life_agents.go` 从微信 HTML 导入额外档案，其 `display_name` 可能不在上表；需按库中实际 `display_name` 增行补表。
 2. **安全**：请勿将含真实生产密码的表格提交到公开仓库；上线后应要求各账号修改密码或使用独立强口令。
-3. **数据迁移**：在 `backend` 目录设置 `DATABASE_URL`（及 `.env` 若沿用其它脚本）。先预览，再正式执行。
+3. **数据迁移**：在 `backend` 目录设置 `DATABASE_URL`（及 `.env` 若沿用其它脚本）。**@163.com 用户已存在时**可直接拆分：先预览再正式执行。
    - **Bash**：`YANTU_SPLIT_DRY_RUN=1 go run ./scripts/split_yantu_profiles_to_accounts.go`，然后 `go run ./scripts/split_yantu_profiles_to_accounts.go`。
    - **Windows PowerShell**（在 `backend` 下）：`$env:YANTU_SPLIT_DRY_RUN = "1"; go run ./scripts/split_yantu_profiles_to_accounts.go`；确认日志后：`Remove-Item Env:YANTU_SPLIT_DRY_RUN -ErrorAction SilentlyContinue; go run ./scripts/split_yantu_profiles_to_accounts.go`。可选：`$env:YANTU_SPLIT_PASSWORD = "你的口令"`。
-   环境变量 `YANTU_SPLIT_PASSWORD` 默认 `YantuLa2026!`，用于**新建**缺失用户；**已存在的邮箱账号不会被脚本改密码**，若需统一初始口令请自行在库中或登录流程中处理。也可手工在 `users` 建账号后更新 `life_agent_profiles.user_id`。**执行前请保证 MySQL 已启动且 `DATABASE_URL` 可达**，否则会在 `db init` 阶段报错。
+   环境变量 `YANTU_SPLIT_PASSWORD` 默认 `YantuLa2026!`，用于**新建**缺失用户；**已存在的邮箱账号默认不会改密码**（`ensure_yantu_split_users` 仅在 `YANTU_ENSURE_RESET_PASSWORD=1` 时重置）。**执行前请保证 MySQL 已启动且 `DATABASE_URL` 可达**，否则会在 `db init` 阶段报错。

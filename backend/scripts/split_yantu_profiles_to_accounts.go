@@ -1,5 +1,6 @@
 // 将仍挂在 yantu-import@demo.com 下的研途/飞跃手册人生 Agent，按 display_name 逐条迁到独立登录账号。
 // 邮箱列表与 docs/YANTU_ROLE_MODEL_AGENT_ACCOUNTS.md 中「新登录邮箱」一致，顺序与 yantuseed.Profiles() 一致。
+// 若 @163.com 用户大批缺失，请先 go run ./scripts/ensure_yantu_split_users.go 再执行本脚本。
 //
 // 在 backend 目录执行：
 //
@@ -19,6 +20,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -28,6 +30,7 @@ import (
 	"github.com/agent-marketplace/backend/internal/yantuseed"
 	"github.com/joho/godotenv"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 func strPtr(s string) *string { return &s }
@@ -76,7 +79,11 @@ func main() {
 
 		var u models.User
 		err := db.DB.Where("email = ?", email).First(&u).Error
-		if err != nil {
+		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Printf("[失败] 查询用户 %s: %v", email, err)
+			continue
+		}
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			u = models.User{
 				ID:        models.GenID(),
 				Email:     email,
@@ -114,6 +121,7 @@ func main() {
 			log.Printf("[失败] 更新 profile %s user_id: %v", prof.ID, err)
 			continue
 		}
+		_ = db.DB.Model(&models.LifeAgentCoEditState{}).Where("profile_id = ?", prof.ID).Update("user_id", u.ID)
 		log.Printf("已迁移 %q -> %s", p.DisplayName, email)
 	}
 

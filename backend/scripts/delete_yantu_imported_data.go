@@ -1,5 +1,7 @@
-// 删除仓库内置研途榜样 / 飞跃手册种子对应的人生 Agent（按 yantuseed.Profiles() 的 display_name 匹配），
-// 并级联清理会话、知识库、反馈、共编状态等。不删除通过 HTML 单独导入且 display_name 不在种子列表中的档案。
+// 删除仍挂在「研途导入账号」yantu-import@demo.com 下的种子人生 Agent：
+// 同时满足 display_name ∈ yantuseed.Profiles() 且 user_id = 该导入用户。
+// 已拆分到 @163.com 的同名档案不会被删除（避免误删各独立账号下的 Agent）。
+// 级联清理知识库、会话、反馈、共编状态等。不处理 HTML 单独导入且昵称不在种子列表中的档案。
 //
 // 在 backend 目录执行（需 DATABASE_URL）：
 //
@@ -53,17 +55,23 @@ func main() {
 		log.Fatal("db init:", err)
 	}
 
+	var importUser models.User
+	if err := db.DB.Where("email = ?", yantuseed.ImportUserEmail).First(&importUser).Error; err != nil {
+		fmt.Printf("未找到导入账号 %s，无需删除（若已拆分到 @163，档案不在该用户下）。\n", yantuseed.ImportUserEmail)
+		return
+	}
+
 	var profiles []models.LifeAgentProfile
-	if err := db.DB.Where("display_name IN ?", names).Find(&profiles).Error; err != nil {
+	if err := db.DB.Where("display_name IN ? AND user_id = ?", names, importUser.ID).Find(&profiles).Error; err != nil {
 		log.Fatal("query profiles:", err)
 	}
 
 	if len(profiles) == 0 {
-		fmt.Println("未找到匹配 display_name 的人生 Agent，无需删除。")
+		fmt.Printf("在 %s 下未找到待删的种子档案（可能已全部拆分到 @163 或已清空）。\n", yantuseed.ImportUserEmail)
 		return
 	}
 
-	fmt.Printf("将处理 %d 条人生 Agent 档案（种子昵称去重后 %d 个）\n", len(profiles), len(names))
+	fmt.Printf("将处理 %d 条人生 Agent 档案（仅 user=%s，种子昵称去重 %d 个）\n", len(profiles), yantuseed.ImportUserEmail, len(names))
 	for _, p := range profiles {
 		if dry {
 			fmt.Printf("[dry-run] 将删除 id=%s display_name=%q user_id=%s\n", p.ID, p.DisplayName, p.UserID)
