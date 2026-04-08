@@ -147,3 +147,21 @@ export function useMobileTouchNavEnabled(): boolean {
 
   return ok;
 }
+
+/** 下拉刷新：窄屏，或任意宽度但设备支持触摸（大屏平板横屏等） */
+export function useLifeAgentsPullRefreshEnabled(): boolean {
+  const [ok, setOk] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 1023px)");
+    const read = () => {
+      const touchLike = "ontouchstart" in window || navigator.maxTouchPoints > 0;
+      setOk(mq.matches || touchLike);
+    };
+    read();
+    mq.addEventListener("change", read);
+    return () => mq.removeEventListener("change", read);
+  }, []);
+
+  return ok;
+}

@@ -16,6 +16,7 @@ import { cleanLifeAgentIntroText } from "@/lib/life-agent-intro-clean";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   useLifeAgentsFeedGestures,
+  useLifeAgentsPullRefreshEnabled,
   useMobileTouchNavEnabled,
 } from "@/hooks/use-life-agents-feed-gestures";
 
@@ -87,6 +88,7 @@ function LifeAgentsPageContent() {
   const [purchasedUnauthorized, setPurchasedUnauthorized] = useState(false);
 
   const touchNavEnabled = useMobileTouchNavEnabled();
+  const pullRefreshEnabled = useLifeAgentsPullRefreshEnabled();
 
   const [visitedMask, setVisitedMask] = useState(() => 1 << tabIndexFromFeedTab(feedTab));
   const pagerRef = useRef<HTMLDivElement>(null);
@@ -273,7 +275,7 @@ function LifeAgentsPageContent() {
   }, [feedTab, loadFavoritesFullList, loadPurchasedList, refreshDiscover]);
 
   const { pullOffset, refreshing: pullRefreshing } = useLifeAgentsFeedGestures({
-    enabled: touchNavEnabled,
+    enabled: pullRefreshEnabled,
     onPullRefresh,
   });
 
@@ -434,6 +436,24 @@ function LifeAgentsPageContent() {
     </div>
   );
 
+  const discoverToolbar = (
+    <div className="mb-3 flex flex-wrap items-center justify-between gap-3 px-1 sm:px-0">
+      <h2 className="text-base font-semibold text-purple-950/90 sm:text-lg">发现</h2>
+      <button
+        type="button"
+        onClick={() => void refreshDiscover()}
+        disabled={discoverLoading || pullRefreshing}
+        className="inline-flex items-center gap-1.5 rounded-full border border-purple-200/60 bg-white/90 px-3 py-1.5 text-xs font-medium text-purple-800 shadow-sm backdrop-blur-sm transition hover:border-fuchsia-200/50 hover:bg-violet-50/90 disabled:pointer-events-none disabled:opacity-50"
+        aria-label="刷新列表"
+      >
+        <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} aria-hidden>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+        {discoverLoading || pullRefreshing ? "刷新中…" : "刷新"}
+      </button>
+    </div>
+  );
+
   const purchasedBody =
     purchasedLoading ? (
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4 xl:grid-cols-5">
@@ -476,7 +496,7 @@ function LifeAgentsPageContent() {
 
   return (
     <div className="-mx-1 space-y-4 pb-4 sm:mx-0 sm:space-y-5">
-      {touchNavEnabled ? (
+      {pullRefreshEnabled ? (
         <>
           {(pullOffset > 0 || pullRefreshing) && (
             <div
@@ -505,7 +525,11 @@ function LifeAgentsPageContent() {
               </div>
             </div>
           )}
-          <p className="sr-only">顶部下拉可刷新；横向滑动页面可切换收藏、发现与已购。</p>
+          <p className="sr-only">
+            {touchNavEnabled
+              ? "顶部下拉可刷新当前列表；横向滑动页面可切换收藏、发现与已购。"
+              : "顶部下拉可刷新发现列表。"}
+          </p>
         </>
       ) : null}
 
@@ -534,6 +558,7 @@ function LifeAgentsPageContent() {
               />
             </section>
             <section className={pagerSectionClass} aria-label="发现">
+              {discoverToolbar}
               <LifeAgentDiscoverCardGrid
                 profiles={displayProfilesDiscover}
                 loading={discoverLoading}
@@ -561,7 +586,9 @@ function LifeAgentsPageContent() {
           {feedTab === "favorites" ? favoritesIntro : feedTab === "purchased" ? purchasedIntro : null}
           {feedTab === "favorites" || feedTab === "purchased" ? (
             feedTab === "favorites" ? favoritesHeading : purchasedHeading
-          ) : null}
+          ) : (
+            discoverToolbar
+          )}
           {loadErrorBanner}
           {feedTab === "purchased" ? (
             purchasedBody
