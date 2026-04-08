@@ -307,6 +307,22 @@ function LoginContent() {
         <p className="mb-4 text-red-400 text-sm">
           {urlError === "invalid_code" && "授权失败，请重试"}
           {urlError === "wechat_not_configured" && "微信登录未配置"}
+          {urlError === "invalid_state" && "登录状态已失效，请重新点击微信登录"}
+          {urlError === "missing_code" && "未收到授权码，请重试"}
+          {urlError === "network_error" && "连接微信失败，请检查网络后重试"}
+          {urlError === "invalid_response" && "微信返回异常，请稍后重试"}
+          {urlError === "create_failed" && "创建账号失败，请稍后重试"}
+          {urlError &&
+            ![
+              "invalid_code",
+              "wechat_not_configured",
+              "invalid_state",
+              "missing_code",
+              "network_error",
+              "invalid_response",
+              "create_failed",
+            ].includes(urlError) &&
+            "登录出现问题，请重试"}
           {!urlError && error}
         </p>
       )}
