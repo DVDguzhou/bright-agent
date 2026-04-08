@@ -11,6 +11,7 @@ import {
   type ManageData,
   type ManageProfile,
 } from "@/app/dashboard/life-agents/_lib/manage";
+import { cleanLifeAgentIntroText } from "@/lib/life-agent-intro-clean";
 
 type ChatRow = { role: "user" | "assistant"; content: string };
 type LastChange = {
@@ -409,7 +410,9 @@ export default function LifeAgentCoEditPage() {
             <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
               <div className="rounded-xl border border-purple-100/40 bg-violet-50/40 px-3 py-2.5 backdrop-blur-sm">
                 <p className="text-[11px] text-purple-600/55">一句话介绍</p>
-                <p className="mt-1 line-clamp-2 text-sm text-slate-700">{profile.headline || "未设置"}</p>
+                <p className="mt-1 line-clamp-2 text-sm text-slate-700">
+                  {cleanLifeAgentIntroText(profile.headline, profile.displayName) || "未设置"}
+                </p>
               </div>
               <div className="rounded-xl border border-purple-100/40 bg-violet-50/40 px-3 py-2.5 backdrop-blur-sm">
                 <p className="text-[11px] text-purple-600/55">欢迎语</p>

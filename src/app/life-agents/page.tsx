@@ -12,6 +12,7 @@ import { getFavoriteAgentIds } from "@/lib/life-agent-favorites";
 import { LifeAgentDiscoverCardGrid } from "@/components/LifeAgentDiscoverCardGrid";
 import { rankLifeAgentsBySearchQuery, type LifeAgentListItem } from "@/lib/life-agent-feed-search";
 import { fetchAllPublishedLifeAgents, fetchLifeAgentsPage } from "@/lib/life-agents-list-api";
+import { cleanLifeAgentIntroText } from "@/lib/life-agent-intro-clean";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   useLifeAgentsFeedGestures,
@@ -590,6 +591,7 @@ function PurchasedAgentsWindowedGrid({ rows }: { rows: PurchasedAgentRow[] }) {
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4 xl:grid-cols-5">
         {slice.map((row, index) => {
           const coverUrl = resolveLifeAgentCoverUrl(undefined, undefined);
+          const headlineShown = cleanLifeAgentIntroText(row.headline, row.displayName);
           return (
             <motion.article
               key={row.id}
@@ -620,7 +622,7 @@ function PurchasedAgentsWindowedGrid({ rows }: { rows: PurchasedAgentRow[] }) {
                     </div>
                     <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/45 via-black/15 to-transparent p-2.5 pt-12">
                       <span className="line-clamp-2 text-[13px] font-semibold leading-snug text-white drop-shadow-md">
-                        {row.headline}
+                        {headlineShown}
                       </span>
                     </div>
                   </div>

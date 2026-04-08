@@ -11,6 +11,10 @@ import { resolveLifeAgentCoverUrl } from "@/lib/life-agent-covers";
 import { isFavoriteAgentId, toggleFavoriteAgentId } from "@/lib/life-agent-favorites";
 import { useEdgeSwipeBack } from "@/hooks/use-edge-swipe-back";
 import { useMobileTouchNavEnabled } from "@/hooks/use-life-agents-feed-gestures";
+import {
+  cleanLifeAgentIntroMultiline,
+  cleanLifeAgentIntroText,
+} from "@/lib/life-agent-intro-clean";
 
 type DetailData = {
   id: string;
@@ -163,6 +167,22 @@ export default function LifeAgentDetailPage() {
     ? profile.coverUrl || resolveLifeAgentCoverUrl(profile.coverImageUrl, profile.coverPresetKey)
     : null;
 
+  const cleanedIntro = useMemo(() => {
+    if (!profile) return null;
+    const dn = profile.displayName;
+    return {
+      headline: cleanLifeAgentIntroText(profile.headline, dn),
+      shortBio: cleanLifeAgentIntroText(profile.shortBio, dn),
+      school: cleanLifeAgentIntroText(profile.school, dn),
+      education: cleanLifeAgentIntroText(profile.education, dn),
+      job: cleanLifeAgentIntroText(profile.job, dn),
+      income: cleanLifeAgentIntroText(profile.income, dn),
+      audience: cleanLifeAgentIntroMultiline(profile.audience, dn),
+      welcomeMessage: cleanLifeAgentIntroMultiline(profile.welcomeMessage, dn),
+      sampleQuestions: (profile.sampleQuestions ?? []).map((q) => cleanLifeAgentIntroText(q, dn)),
+    };
+  }, [profile]);
+
   const purchase = async () => {
     if (!profile) return;
     const count = Math.min(MAX_QUESTIONS, Math.max(MIN_QUESTIONS, questionCount));
@@ -212,6 +232,7 @@ export default function LifeAgentDetailPage() {
     );
   }
 
+  const ci = cleanedIntro!;
   const areaText = [profile.country, profile.province, profile.city, profile.county].filter(Boolean).join(" · ");
   const allTags = [
     profile.personaArchetype,
@@ -282,7 +303,7 @@ export default function LifeAgentDetailPage() {
           <h1 className="mt-3 text-lg font-bold leading-snug text-slate-900 sm:text-xl">
             {profile.displayName}
           </h1>
-          <p className="mt-1.5 text-sm leading-relaxed text-slate-500">{profile.headline}</p>
+          <p className="mt-1.5 text-sm leading-relaxed text-slate-500">{ci.headline}</p>
 
           {allTags.length > 0 && (
             <div className="mt-3 flex flex-wrap gap-1.5">
@@ -320,16 +341,16 @@ export default function LifeAgentDetailPage() {
                 </span>
                 <VerificationBadge status={profile.verificationStatus ?? "none"} size="sm" />
               </div>
-              <p className="mt-0.5 line-clamp-1 text-xs text-slate-400">{profile.shortBio}</p>
+              <p className="mt-0.5 line-clamp-1 text-xs text-slate-400">{ci.shortBio}</p>
             </div>
           </div>
 
-          {(profile.school || profile.education || profile.job || profile.income || areaText) && (
+          {(ci.school || ci.education || ci.job || ci.income || areaText) && (
             <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
-              {profile.school && <span>🏫 {profile.school}</span>}
-              {profile.education && <span>📜 {profile.education}</span>}
-              {profile.job && <span>💼 {profile.job}</span>}
-              {profile.income && <span>💰 {profile.income}</span>}
+              {ci.school ? <span>🏫 {ci.school}</span> : null}
+              {ci.education ? <span>📜 {ci.education}</span> : null}
+              {ci.job ? <span>💼 {ci.job}</span> : null}
+              {ci.income ? <span>💰 {ci.income}</span> : null}
               {areaText && <span>📍 {areaText}</span>}
             </div>
           )}
@@ -355,15 +376,15 @@ export default function LifeAgentDetailPage() {
         {/* --- 适合人群 --- */}
         <div className="-mx-4 bg-white/[0.98] px-4 py-4 backdrop-blur-sm sm:-mx-6 sm:px-6">
           <h2 className="text-sm font-semibold text-purple-950/90">适合咨询的人群</h2>
-          <p className="mt-2 text-sm leading-7 text-slate-600">{profile.audience}</p>
+          <p className="mt-2 text-sm leading-7 text-slate-600">{ci.audience}</p>
         </div>
 
         {/* --- 你可以问 --- */}
-        {(profile.sampleQuestions ?? []).length > 0 && (
+        {ci.sampleQuestions.length > 0 && (
           <div className="-mx-4 bg-white/[0.98] px-4 py-4 backdrop-blur-sm sm:-mx-6 sm:px-6">
             <h2 className="text-sm font-semibold text-purple-950/90">你可以问这些问题</h2>
             <div className="mt-3 space-y-2">
-              {profile.sampleQuestions.map((q, i) => (
+              {ci.sampleQuestions.map((q, i) => (
                 <div key={i} className="flex items-start gap-2 rounded-xl border border-purple-100/50 bg-violet-50/50 px-3 py-2.5 backdrop-blur-sm">
                   <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-fuchsia-100/90 text-[10px] font-bold text-purple-700">
                     {i + 1}
@@ -379,7 +400,7 @@ export default function LifeAgentDetailPage() {
         <div className="-mx-4 bg-white/[0.98] px-4 py-4 backdrop-blur-sm sm:-mx-6 sm:px-6">
           <h2 className="text-sm font-semibold text-purple-950/90">开场欢迎语</h2>
           <div className="mt-2 rounded-xl border border-purple-100/50 bg-gradient-to-br from-violet-50/80 to-fuchsia-50/50 px-3.5 py-3 text-sm leading-6 text-slate-700 backdrop-blur-sm">
-            {profile.welcomeMessage}
+            {ci.welcomeMessage}
           </div>
         </div>
 
@@ -463,7 +484,7 @@ export default function LifeAgentDetailPage() {
                     <p id="la-purchase-title" className="line-clamp-2 text-[15px] font-semibold leading-snug text-[#111]">
                       {profile.displayName}
                     </p>
-                    <p className="mt-1 line-clamp-1 text-xs text-slate-500">{profile.headline}</p>
+                    <p className="mt-1 line-clamp-1 text-xs text-slate-500">{ci.headline}</p>
                     <p className="mt-2 text-[22px] font-bold leading-none text-purple-800">
                       ¥{(profile.pricePerQuestion / 100).toFixed(2)}
                       <span className="ml-1 text-xs font-normal text-slate-400">/ 次提问</span>

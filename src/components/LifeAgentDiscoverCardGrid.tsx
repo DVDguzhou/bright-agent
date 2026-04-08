@@ -9,6 +9,7 @@ import { VerificationBadge } from "@/components/VerificationBadge";
 import { LifeAgentCoverImage } from "@/components/LifeAgentCoverImage";
 import { resolveLifeAgentCoverUrl } from "@/lib/life-agent-covers";
 import type { LifeAgentListItem } from "@/lib/life-agent-feed-search";
+import { cleanLifeAgentIntroText } from "@/lib/life-agent-intro-clean";
 import { useWindowedSlice } from "@/lib/use-windowed-slice";
 
 const anonymous = "佚";
@@ -68,6 +69,7 @@ function LifeAgentDiscoverCard({
   const areaLabel = [profile.city, profile.province].filter(Boolean).join(" · ");
   const tags = (profile.expertiseTags ?? []).slice(0, 2);
   const coverUrl = profile.coverUrl || resolveLifeAgentCoverUrl(profile.coverImageUrl, profile.coverPresetKey);
+  const headlineShown = cleanLifeAgentIntroText(profile.headline, profile.displayName);
   const stagger = globalIndex < 8;
   const shellClass = "min-h-0 [content-visibility:auto] [contain-intrinsic-size:auto_300px]";
   const inner = (
@@ -99,7 +101,7 @@ function LifeAgentDiscoverCard({
             )}
             <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/45 via-black/15 to-transparent p-2.5 pt-12">
               <span className="line-clamp-2 text-[13px] font-semibold leading-snug text-white drop-shadow-md">
-                {profile.headline}
+                {headlineShown}
               </span>
             </div>
           </div>

@@ -13,6 +13,7 @@ import {
   formatShortTime,
   type ManageData,
 } from "@/app/dashboard/life-agents/_lib/manage";
+import { cleanLifeAgentIntroText } from "@/lib/life-agent-intro-clean";
 
 type LoadState = {
   data: ManageData | null;
@@ -185,7 +186,9 @@ export default function LifeAgentManageHomePage() {
                 <h1 className="break-words text-[26px] font-black leading-tight tracking-tight text-[#111] sm:text-[28px]">
                   {profile.displayName}
                 </h1>
-                <p className="mt-1 line-clamp-2 text-sm text-slate-500">{profile.headline}</p>
+                <p className="mt-1 line-clamp-2 text-sm text-slate-500">
+                  {cleanLifeAgentIntroText(profile.headline, profile.displayName)}
+                </p>
                 <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
                   <span
                     className={`rounded-full px-2 py-1 font-medium ${

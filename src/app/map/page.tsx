@@ -17,6 +17,7 @@ import {
   writeMapShareProfileId,
 } from "@/lib/map-gps-storage";
 import { fetchAllPublishedLifeAgents } from "@/lib/life-agents-list-api";
+import { cleanLifeAgentIntroText } from "@/lib/life-agent-intro-clean";
 
 const LifeAgentsMapView = dynamic(() => import("@/components/LifeAgentsMapView"), {
   ssr: false,
@@ -439,7 +440,9 @@ export default function MapPage() {
                                 <span className="min-w-0 flex-1">
                                   <span className="font-semibold text-slate-900">{b.displayName}</span>
                                   {b.headline ? (
-                                    <span className="mt-0.5 block text-xs text-slate-500">{b.headline}</span>
+                                    <span className="mt-0.5 block text-xs text-slate-500">
+                                      {cleanLifeAgentIntroText(b.headline, b.displayName)}
+                                    </span>
                                   ) : null}
                                 </span>
                               </label>

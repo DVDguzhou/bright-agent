@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
+import { cleanLifeAgentIntroMultiline, cleanLifeAgentIntroText } from "@/lib/life-agent-intro-clean";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { LifeAgentCoverImage } from "@/components/LifeAgentCoverImage";
@@ -168,9 +169,14 @@ export default function LifeAgentChatPage() {
         const data = await res.json();
         if (cancelled) return;
 
-        setProfile(data);
+        const profileForUi: Profile = {
+          ...data,
+          headline: cleanLifeAgentIntroText(data.headline, data.displayName),
+          welcomeMessage: cleanLifeAgentIntroMultiline(data.welcomeMessage, data.displayName),
+        };
+        setProfile(profileForUi);
         syncRatingForm(data.viewerState?.rating);
-        resetToWelcome(data.welcomeMessage);
+        resetToWelcome(profileForUi.welcomeMessage);
         setSessions([]);
 
         if (!data.viewerState?.isLoggedIn) return;
@@ -190,7 +196,7 @@ export default function LifeAgentChatPage() {
             (initialRequestedSessionIdRef.current &&
               normalizedSessions.find((session: SessionSummary) => session.id === initialRequestedSessionIdRef.current)) ||
             normalizedSessions[0];
-          await loadSession(initialSession.id, data.welcomeMessage);
+          await loadSession(initialSession.id, profileForUi.welcomeMessage);
         }
       } catch {
         if (!cancelled) setProfile(null);

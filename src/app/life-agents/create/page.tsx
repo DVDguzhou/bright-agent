@@ -21,6 +21,7 @@ import {
   saveLifeAgentCreateDraft,
   type LifeAgentCreateDraftV1,
 } from "@/lib/life-agent-create-draft";
+import { cleanLifeAgentIntroText } from "@/lib/life-agent-intro-clean";
 
 type KnowledgeEntry = {
   category: string;
@@ -992,7 +993,9 @@ export default function CreateLifeAgentPage() {
                     </div>
                     <div>
                       <p className="text-xs text-purple-600/55">一句话介绍</p>
-                      <p className="text-slate-700">{form.headline || "未填写"}</p>
+                      <p className="text-slate-700">
+                        {cleanLifeAgentIntroText(form.headline, form.displayName) || "未填写"}
+                      </p>
                     </div>
                     <div className="sm:col-span-2">
                       <p className="text-xs text-purple-600/55">擅长标签</p>

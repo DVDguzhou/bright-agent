@@ -6,6 +6,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { getDisplayAvatar } from "@/lib/avatar";
+import { cleanLifeAgentIntroText } from "@/lib/life-agent-intro-clean";
 
 type ChatHistoryItem = {
   id: string;
@@ -41,7 +42,8 @@ function previewText(item: ChatHistoryItem) {
   if (item.messageCount === 0) return "暂无消息";
   const t = (item.title ?? "").trim();
   if (t) return t.length > 80 ? `${t.slice(0, 80)}…` : t;
-  return item.profile.headline || "暂无消息";
+  const h = cleanLifeAgentIntroText(item.profile.headline, item.profile.displayName);
+  return h || "暂无消息";
 }
 
 export default function DashboardMessagesPage() {
