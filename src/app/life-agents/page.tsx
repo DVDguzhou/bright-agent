@@ -431,12 +431,6 @@ function LifeAgentsPageContent() {
     </div>
   );
 
-  const discoverToolbar = (
-    <div className="mb-3 flex flex-wrap items-center justify-between gap-3 px-1 sm:px-0">
-      <h2 className="text-base font-semibold text-purple-950/90 sm:text-lg">发现</h2>
-    </div>
-  );
-
   const purchasedBody =
     purchasedLoading ? (
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4 xl:grid-cols-5">
@@ -534,7 +528,6 @@ function LifeAgentsPageContent() {
               />
             </section>
             <section className={pagerSectionClass} aria-label="发现">
-              {discoverToolbar}
               <LifeAgentDiscoverCardGrid
                 profiles={displayProfilesDiscover}
                 loading={discoverLoading}
@@ -562,9 +555,7 @@ function LifeAgentsPageContent() {
           {feedTab === "favorites" ? favoritesIntro : feedTab === "purchased" ? purchasedIntro : null}
           {feedTab === "favorites" || feedTab === "purchased" ? (
             feedTab === "favorites" ? favoritesHeading : purchasedHeading
-          ) : (
-            discoverToolbar
-          )}
+          ) : null}
           {loadErrorBanner}
           {feedTab === "purchased" ? (
             purchasedBody
