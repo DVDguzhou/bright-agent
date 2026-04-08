@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 
-const PULL_MIN_DY = 72;
-const PTR_MAX_SCROLL = 10;
+const PULL_MIN_DY = 56;
+const PTR_MAX_SCROLL = 24;
 const PULL_RESIST = 0.5;
 const PULL_CAP = 100;
 
@@ -75,11 +75,8 @@ export function useLifeAgentsFeedGestures(opts: {
         }
       }
 
+      // 已进入 pull 后不要再根据 scrollTop 清空：iOS 弹性滚动会让 scrollTop 瞬间 > 阈值，指示条会抖一下就消失
       if (a.intent === "pull") {
-        if (scrollTop() > PTR_MAX_SCROLL) {
-          setPullOffset(0);
-          return;
-        }
         const pull = Math.min(PULL_CAP, Math.max(0, dy * PULL_RESIST));
         setPullOffset(pull);
       }
@@ -117,6 +114,11 @@ export function useLifeAgentsFeedGestures(opts: {
     const onPointerCancel = (e: PointerEvent) => {
       const a = activeRef.current;
       if (!a || e.pointerId !== a.pointerId) return;
+      // Safari 常在下拉时先发 cancel 再 up；若在 pull 态则仍按松手距离判断是否刷新
+      if (a.intent === "pull") {
+        void finishPull(e.clientY);
+        return;
+      }
       activeRef.current = null;
       setPullOffset(0);
     };
