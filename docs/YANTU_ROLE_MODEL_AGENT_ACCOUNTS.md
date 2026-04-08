@@ -12,7 +12,7 @@
 | 密码 | `password123` |
 | 显示名 | 研途榜样导入 |
 
-以下每一行人生 Agent 建议**迁移到右侧「新登录邮箱」对应用户**，并在库表中将该档案的 `user_id` 改为新用户 ID（需自行执行迁移脚本或管理操作；**本文件仅做账号规划与记录**）。
+以下每一行人生 Agent 建议**迁移到右侧「新登录邮箱」对应用户**。仓库内脚本 `backend/scripts/split_yantu_profiles_to_accounts.go` 会按 `yantuseed.Profiles()` 与本表顺序，把仍挂在 `yantu-import@demo.com` 下的档案 `user_id` 改到对应 `@163.com` 用户（详见下文「数据迁移」）。**仅重复运行 `seed_yantu_text.go` 不会完成拆分**，档案仍归属导入账号。
 
 ## 新账号约定
 
@@ -92,4 +92,4 @@
 
 1. **与 HTML 单独导入的关系**：若你还运行过 `import_yantu_life_agents.go` 从微信 HTML 导入额外档案，其 `display_name` 可能不在上表；需按库中实际 `display_name` 增行补表。
 2. **安全**：请勿将含真实生产密码的表格提交到公开仓库；上线后应要求各账号修改密码或使用独立强口令。
-3. **数据迁移**：在 `users` 表创建上表 `@163.com` 登录邮箱用户（bcrypt 哈希 `YantuLa2026!`）后，将 `life_agent_profiles` 中对应行的 `user_id` 更新为新用户 ID，并视需要调整 `users.name` 与 Agent 展示名一致。
+3. **数据迁移**：在 `backend` 目录设置 `DATABASE_URL`（及 `.env` 若沿用其它脚本）。先预览：`YANTU_SPLIT_DRY_RUN=1 go run ./scripts/split_yantu_profiles_to_accounts.go`；确认日志后执行：`go run ./scripts/split_yantu_profiles_to_accounts.go`。环境变量 `YANTU_SPLIT_PASSWORD` 默认 `YantuLa2026!`，用于**新建**缺失用户；**已存在的邮箱账号不会被脚本改密码**，若需统一初始口令请自行在库中或登录流程中处理。也可手工在 `users` 建账号后更新 `life_agent_profiles.user_id`。
