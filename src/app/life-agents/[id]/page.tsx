@@ -210,7 +210,7 @@ export default function LifeAgentDetailPage() {
   if (!loaded) {
     return (
       <div className="mx-auto max-w-lg">
-        <div className="aspect-[4/3] animate-pulse bg-gradient-to-br from-violet-100/90 to-fuchsia-100/50" />
+        <div className="mx-auto aspect-square w-full max-w-[min(88vw,320px)] animate-pulse rounded-[22px] bg-gradient-to-br from-violet-100/90 to-fuchsia-100/50" />
         <div className="space-y-3 p-4">
           <div className="h-6 w-1/3 animate-pulse rounded bg-violet-100/80" />
           <div className="h-5 w-2/3 animate-pulse rounded bg-violet-100/80" />
@@ -244,20 +244,21 @@ export default function LifeAgentDetailPage() {
 
   return (
     <>
-      {/* ===== 全宽封面 ===== */}
+      {/* ===== 方形头图（与 Unsplash 720×720 头像素材一致） ===== */}
       <div className="relative -mx-4 -mt-4 sm:-mx-6 sm:-mt-6 lg:-mx-8">
-        <div className="relative aspect-[4/3] w-full overflow-hidden bg-violet-100/50 sm:aspect-[2/1] sm:max-h-[420px]">
+        <div className="flex justify-center px-4 pb-1 pt-5 sm:px-6 sm:pb-2 sm:pt-7">
+          <div className="relative aspect-square w-full max-w-[min(88vw,320px)] overflow-hidden rounded-[22px] bg-violet-100/50 shadow-[0_10px_40px_-14px_rgba(124,58,237,0.18)] ring-1 ring-purple-200/25">
           {heroCoverUrl && (
             <LifeAgentCoverImage
               src={heroCoverUrl}
               alt=""
               fill
               className="object-cover object-center"
-              sizes="100vw"
+              sizes="(max-width: 640px) 88vw, 320px"
               priority
             />
           )}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/20" />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/15" />
           <div className="absolute right-3 top-3 flex items-center gap-2 sm:right-4 sm:top-4">
             <button
               type="button"
@@ -287,6 +288,7 @@ export default function LifeAgentDetailPage() {
                 <VerificationBadge status={profile.verificationStatus ?? "none"} size="sm" />
               </div>
             )}
+          </div>
           </div>
         </div>
       </div>

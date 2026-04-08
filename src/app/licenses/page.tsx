@@ -17,6 +17,9 @@ type LifeAgentPurchased = {
   pricePerQuestion: number;
   remainingQuestions: number;
   verificationStatus?: string;
+  coverUrl?: string;
+  coverImageUrl?: string;
+  coverPresetKey?: string;
 };
 
 function tabClass(active: boolean) {
@@ -30,7 +33,7 @@ function PurchasedGrid({ items }: { items: LifeAgentPurchased[] }) {
   return (
     <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4 xl:grid-cols-5">
       {items.map((row, index) => {
-        const coverUrl = resolveLifeAgentCoverUrl(undefined, undefined);
+        const coverUrl = row.coverUrl || resolveLifeAgentCoverUrl(row.coverImageUrl, row.coverPresetKey);
         const headlineShown = cleanLifeAgentIntroText(row.headline, row.displayName);
         return (
           <motion.article
@@ -41,8 +44,8 @@ function PurchasedGrid({ items }: { items: LifeAgentPurchased[] }) {
             className="min-h-0"
           >
             <Link href={`/life-agents/${row.id}/chat`} className="group flex h-full min-h-0">
-              <div className="flex h-full min-h-[280px] w-full flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/70 transition duration-200 group-hover:shadow-md group-hover:ring-emerald-200/70 sm:min-h-[300px]">
-                <div className="relative aspect-[4/5] w-full shrink-0 overflow-hidden bg-slate-100">
+              <div className="flex h-full min-h-[260px] w-full flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/70 transition duration-200 group-hover:shadow-md group-hover:ring-emerald-200/70 sm:min-h-[280px]">
+                <div className="relative aspect-square w-full shrink-0 overflow-hidden bg-slate-100">
                   <LifeAgentCoverImage
                     src={coverUrl}
                     alt=""
@@ -220,7 +223,7 @@ function LicensesPageContent() {
                 key={item}
                 className="flex min-h-0 flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/60"
               >
-                <div className="aspect-[4/5] w-full shrink-0 animate-pulse bg-gradient-to-br from-slate-100 to-slate-200/90" />
+                <div className="aspect-square w-full shrink-0 animate-pulse bg-gradient-to-br from-slate-100 to-slate-200/90" />
                 <div className="flex flex-1 flex-col gap-2 p-2.5">
                   <div className="min-h-[2.75rem] animate-pulse rounded-md bg-slate-100" />
                   <div className="h-3 w-2/3 animate-pulse rounded bg-slate-100" />

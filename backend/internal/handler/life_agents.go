@@ -807,6 +807,7 @@ func LifeAgentsPurchased(cfg *config.Config) gin.HandlerFunc {
 			var remaining int
 			db.DB.Raw("SELECT COALESCE(SUM(question_count - questions_used), 0) FROM life_agent_question_packs WHERE profile_id = ? AND buyer_id = ? AND status = ?",
 				pk.ProfileID, user.ID, "paid").Scan(&remaining)
+			cu := lifeAgentCoverURL(&p)
 			resp = append(resp, gin.H{
 				"id":                 p.ID,
 				"displayName":        p.DisplayName,
@@ -814,6 +815,9 @@ func LifeAgentsPurchased(cfg *config.Config) gin.HandlerFunc {
 				"pricePerQuestion":   p.PricePerQuestion,
 				"remainingQuestions": remaining,
 				"verificationStatus": coalesceVerificationStatus(p.VerificationStatus),
+				"coverImageUrl":      ptrStr(p.CoverImageURL),
+				"coverPresetKey":     ptrStr(p.CoverPresetKey),
+				"coverUrl":           cu,
 			})
 		}
 		c.JSON(http.StatusOK, resp)

@@ -26,6 +26,9 @@ type PurchasedAgentRow = {
   pricePerQuestion: number;
   remainingQuestions: number;
   verificationStatus?: string;
+  coverUrl?: string;
+  coverImageUrl?: string;
+  coverPresetKey?: string;
 };
 
 const UI = {
@@ -192,6 +195,9 @@ function LifeAgentsPageContent() {
         pricePerQuestion: typeof row.pricePerQuestion === "number" ? row.pricePerQuestion : 0,
         remainingQuestions: typeof row.remainingQuestions === "number" ? row.remainingQuestions : 0,
         verificationStatus: typeof row.verificationStatus === "string" ? row.verificationStatus : undefined,
+        coverUrl: typeof row.coverUrl === "string" ? row.coverUrl : undefined,
+        coverImageUrl: typeof row.coverImageUrl === "string" ? row.coverImageUrl : undefined,
+        coverPresetKey: typeof row.coverPresetKey === "string" ? row.coverPresetKey : undefined,
       })).filter((row) => row.id);
       setPurchasedUnauthorized(false);
       setPurchasedItems(items);
@@ -436,7 +442,7 @@ function LifeAgentsPageContent() {
             key={item}
             className="flex min-h-0 flex-col overflow-hidden rounded-[22px] border border-purple-200/[0.18] bg-white/[0.96] shadow-[0_4px_22px_rgba(124,58,237,0.06)]"
           >
-            <div className="aspect-[4/5] w-full shrink-0 animate-pulse bg-gradient-to-br from-violet-100/80 to-fuchsia-100/50" />
+            <div className="aspect-square w-full shrink-0 animate-pulse bg-gradient-to-br from-violet-100/80 to-fuchsia-100/50" />
             <div className="flex flex-1 flex-col gap-2 p-2.5">
               <div className="min-h-[2.75rem] animate-pulse rounded-md bg-slate-100" />
               <div className="h-3 w-2/3 animate-pulse rounded bg-slate-100" />
@@ -590,7 +596,7 @@ function PurchasedAgentsWindowedGrid({ rows }: { rows: PurchasedAgentRow[] }) {
     <div className="space-y-3">
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4 xl:grid-cols-5">
         {slice.map((row, index) => {
-          const coverUrl = resolveLifeAgentCoverUrl(undefined, undefined);
+          const coverUrl = row.coverUrl || resolveLifeAgentCoverUrl(row.coverImageUrl, row.coverPresetKey);
           const headlineShown = cleanLifeAgentIntroText(row.headline, row.displayName);
           return (
             <motion.article
@@ -601,8 +607,8 @@ function PurchasedAgentsWindowedGrid({ rows }: { rows: PurchasedAgentRow[] }) {
               className="min-h-0 [content-visibility:auto] [contain-intrinsic-size:auto_300px]"
             >
               <Link href={`/life-agents/${row.id}/chat`} className="group flex h-full min-h-0">
-                <div className="flex h-full min-h-[280px] w-full flex-col overflow-hidden rounded-[22px] border border-purple-200/[0.22] bg-white/[0.98] shadow-[0_5px_28px_-8px_rgba(124,58,237,0.09)] backdrop-blur-sm transition duration-200 group-hover:border-fuchsia-200/35 group-hover:shadow-[0_10px_36px_-10px_rgba(168,139,235,0.14)] sm:min-h-[300px]">
-                  <div className="relative aspect-[4/5] w-full shrink-0 overflow-hidden bg-violet-100/40">
+                <div className="flex h-full min-h-[260px] w-full flex-col overflow-hidden rounded-[22px] border border-purple-200/[0.22] bg-white/[0.98] shadow-[0_5px_28px_-8px_rgba(124,58,237,0.09)] backdrop-blur-sm transition duration-200 group-hover:border-fuchsia-200/35 group-hover:shadow-[0_10px_36px_-10px_rgba(168,139,235,0.14)] sm:min-h-[280px]">
+                  <div className="relative aspect-square w-full shrink-0 overflow-hidden bg-violet-100/40">
                     <LifeAgentCoverImage
                       src={coverUrl}
                       alt=""
@@ -660,7 +666,7 @@ export default function LifeAgentsPage() {
       fallback={
         <div className="-mx-1 grid grid-cols-2 gap-2 pb-4 sm:mx-0 sm:grid-cols-3">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="aspect-[4/5] animate-pulse rounded-[22px] bg-gradient-to-br from-violet-100/90 to-fuchsia-100/60" />
+            <div key={i} className="aspect-square animate-pulse rounded-[22px] bg-gradient-to-br from-violet-100/90 to-fuchsia-100/60" />
           ))}
         </div>
       }
