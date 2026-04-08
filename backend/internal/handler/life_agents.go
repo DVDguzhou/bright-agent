@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"strconv"
@@ -1489,7 +1490,7 @@ func LifeAgentsManage(cfg *config.Config) gin.HandlerFunc {
 			Comment          *string `json:"comment"`
 			CreatedAt        string  `json:"createdAt"`
 		}
-		var fbList []fbResp
+		fbList := make([]fbResp, 0, len(recentFb))
 		for _, f := range recentFb {
 			fbList = append(fbList, fbResp{
 				ID: f.ID, FeedbackType: f.FeedbackType,
@@ -1507,7 +1508,7 @@ func LifeAgentsManage(cfg *config.Config) gin.HandlerFunc {
 			CreatedAt     string `json:"createdAt"`
 			Buyer         gin.H  `json:"buyer"`
 		}
-		var packResps []packResp
+		packResps := make([]packResp, 0, len(packs))
 		for _, pk := range packs {
 			var b models.User
 			db.DB.Where("id = ?", pk.BuyerID).First(&b)
@@ -1525,7 +1526,7 @@ func LifeAgentsManage(cfg *config.Config) gin.HandlerFunc {
 			UpdatedAt    string `json:"updatedAt"`
 			Buyer        gin.H  `json:"buyer"`
 		}
-		var sessResps []sessResp
+		sessResps := make([]sessResp, 0, len(sessions))
 		for _, s := range sessions {
 			var b models.User
 			db.DB.Where("id = ?", s.BuyerID).First(&b)
@@ -2239,6 +2240,258 @@ func LifeAgentsFeedbackSummary(cfg *config.Config) gin.HandlerFunc {
 			},
 			"ratings": ratingsSummary,
 			"recent":  list,
+		})
+	}
+}
+
+// LifeAgentsParseChatPreview parses an uploaded chat file and returns the list
+// of senders so the user can pick which talker they are before full analysis.
+func LifeAgentsParseChatPreview(cfg *config.Config) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		user := middleware.MustGetUser(c)
+		if user == nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "UNAUTHORIZED"})
+			return
+		}
+		id := c.Param("id")
+		var p models.LifeAgentProfile
+		if err := db.DB.Where("id = ?", id).First(&p).Error; err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "NOT_FOUND"})
+			return
+		}
+		if p.UserID != user.ID {
+			c.JSON(http.StatusForbidden, gin.H{"error": "FORBIDDEN"})
+			return
+		}
+
+		file, header, err := c.Request.FormFile("file")
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "FILE_REQUIRED", "detail": "请上传聊天记录文件"})
+			return
+		}
+		defer file.Close()
+
+		content, err := io.ReadAll(file)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "FILE_READ_ERROR", "detail": err.Error()})
+			return
+		}
+
+		format := lifeagent.DetectChatFormat(header.Filename, content)
+		maxMessages := cfg.MaxChatImportMessages
+		if maxMessages <= 0 {
+			maxMessages = 100
+		}
+
+		parseResult, err := lifeagent.ParseChatRecords(format, content, maxMessages)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "PARSE_ERROR", "detail": err.Error()})
+			return
+		}
+		if parseResult.TotalMessages == 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "NO_MESSAGES", "detail": "未从文件中解析到任何消息，请检查文件格式"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"format":        parseResult.Format,
+			"totalMessages": parseResult.TotalMessages,
+			"senders":       parseResult.Senders,
+		})
+	}
+}
+
+// LifeAgentsImportChat handles uploading and analyzing WeChat chat records
+// to extract persona style and knowledge for the life agent.
+func LifeAgentsImportChat(cfg *config.Config) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		user := middleware.MustGetUser(c)
+		if user == nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "UNAUTHORIZED"})
+			return
+		}
+		id := c.Param("id")
+		var p models.LifeAgentProfile
+		if err := db.DB.Where("id = ?", id).First(&p).Error; err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "NOT_FOUND"})
+			return
+		}
+		if p.UserID != user.ID {
+			c.JSON(http.StatusForbidden, gin.H{"error": "FORBIDDEN"})
+			return
+		}
+
+		// Read uploaded file
+		file, header, err := c.Request.FormFile("file")
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "FILE_REQUIRED", "detail": "请上传聊天记录文件"})
+			return
+		}
+		defer file.Close()
+
+		targetName := strings.TrimSpace(c.PostForm("targetName"))
+		if targetName == "" {
+			targetName = "我"
+		}
+
+		// Read file content
+		content, err := io.ReadAll(file)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "FILE_READ_ERROR", "detail": err.Error()})
+			return
+		}
+
+		// Detect format and parse
+		format := lifeagent.DetectChatFormat(header.Filename, content)
+		maxMessages := cfg.MaxChatImportMessages
+		if maxMessages <= 0 {
+			maxMessages = 100
+		}
+
+		parseResult, err := lifeagent.ParseChatRecords(format, content, maxMessages)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "PARSE_ERROR", "detail": err.Error()})
+			return
+		}
+		if parseResult.TotalMessages == 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "NO_MESSAGES", "detail": "未从文件中解析到任何消息，请检查文件格式"})
+			return
+		}
+
+		// Analyze for target
+		lifeagent.AnalyzeForTarget(parseResult, targetName, 50)
+
+		// Build current state string
+		var entries []models.LifeAgentKnowledgeEntry
+		db.DB.Where("profile_id = ?", id).Order("sort_order").Find(&entries)
+		state := buildModifyStateString(&p, entries)
+
+		// Build chat summary for LLM
+		chatSummary := lifeagent.BuildChatSummaryForLLM(parseResult, targetName)
+
+		// SSE response
+		c.Header("Content-Type", "text/event-stream")
+		c.Header("Cache-Control", "no-cache")
+		c.Header("Connection", "keep-alive")
+		c.Header("X-Accel-Buffering", "no")
+		c.Status(http.StatusOK)
+
+		writeSSE := func(eventType string, payload interface{}) {
+			data, _ := json.Marshal(payload)
+			fmt.Fprintf(c.Writer, "event: %s\ndata: %s\n\n", eventType, data)
+			c.Writer.Flush()
+		}
+
+		// Send parse stats first
+		writeSSE("progress", gin.H{
+			"stage":          "parsed",
+			"totalMessages":  parseResult.TotalMessages,
+			"targetMessages": parseResult.TargetMessages,
+			"senders":        parseResult.Senders,
+			"format":         parseResult.Format,
+		})
+
+		// LLM analysis
+		result, err := lifeagent.AnalyzeChatForAgentProfile(
+			c.Request.Context(),
+			cfg.OpenAIApiKey, cfg.OpenAIModel, cfg.OpenAIBaseURL,
+			state, chatSummary,
+		)
+		if err != nil {
+			writeSSE("error", gin.H{"detail": err.Error()})
+			return
+		}
+
+		if result.Changes == nil {
+			writeSSE("done", gin.H{
+				"assistantMessage": result.Reply,
+				"profile":          buildManageProfileResp(&p, entries),
+			})
+			return
+		}
+
+		// Apply changes (same logic as LifeAgentsModifyViaChat)
+		ch := result.Changes
+		upd := db.DB.Model(&p)
+		if ch.PersonaArchetype != "" {
+			upd.Update("persona_archetype", ch.PersonaArchetype)
+		}
+		if ch.ToneStyle != "" {
+			upd.Update("tone_style", ch.ToneStyle)
+		}
+		if ch.ResponseStyle != "" {
+			upd.Update("response_style", ch.ResponseStyle)
+		}
+		if len(ch.ExpertiseTags) > 0 {
+			tags := ch.ExpertiseTags
+			if len(tags) > 8 {
+				tags = tags[:8]
+			}
+			upd.Update("expertise_tags", models.JSONArray(tags))
+		}
+		if len(ch.SampleQuestions) > 0 {
+			qs := ch.SampleQuestions
+			if len(qs) > 6 {
+				qs = qs[:6]
+			}
+			upd.Update("sample_questions", models.JSONArray(qs))
+		}
+		if ch.WelcomeMessage != "" {
+			upd.Update("welcome_message", ch.WelcomeMessage)
+		}
+		if len(ch.ForbiddenPhrases) > 0 {
+			fp := ch.ForbiddenPhrases
+			if len(fp) > 8 {
+				fp = fp[:8]
+			}
+			upd.Update("forbidden_phrases", models.JSONArray(fp))
+		}
+		if len(ch.ExampleReplies) > 0 {
+			er := ch.ExampleReplies
+			if len(er) > 3 {
+				er = er[:3]
+			}
+			upd.Update("example_replies", models.JSONArray(er))
+		}
+		for i, add := range ch.KnowledgeAdd {
+			if add.Content == "" {
+				continue
+			}
+			tags := add.Tags
+			if len(tags) == 0 {
+				tags = []string{add.Category}
+			}
+			cat, title := add.Category, add.Title
+			if cat == "" {
+				cat = "聊天记录"
+			}
+			if title == "" {
+				title = add.Content
+				if len(title) > 50 {
+					title = title[:50] + "..."
+				}
+			}
+			k := models.LifeAgentKnowledgeEntry{
+				ID:        models.GenID(),
+				ProfileID: id,
+				Category:  cat,
+				Title:     title,
+				Content:   add.Content,
+				Tags:      models.JSONArray(tags),
+				SortOrder: len(entries) + i,
+			}
+			db.DB.Create(&k)
+			entries = append(entries, k)
+		}
+
+		refreshLifeAgentStructuredFacts(id)
+		refreshLifeAgentTopicSummaries(id)
+		db.DB.Where("id = ?", id).First(&p)
+		db.DB.Where("profile_id = ?", id).Order("sort_order").Find(&entries)
+		profileResp := buildManageProfileResp(&p, entries)
+		writeSSE("done", gin.H{
+			"assistantMessage": result.Reply,
+			"profile":          profileResp,
 		})
 	}
 }

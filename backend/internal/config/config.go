@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -49,6 +50,8 @@ type Config struct {
 	SMSSecret    string       // 阿里云 AccessKeySecret（可选）
 	SMSSignName  string       // 短信签名
 	SMSTemplate  string       // 验证码模板 Code
+	// 聊天记录导入
+	MaxChatImportMessages int // 导入聊天记录时最多处理的消息条数，默认 100
 }
 
 func Load() *Config {
@@ -104,6 +107,7 @@ func Load() *Config {
 		SMSSecret:       stripOuterQuotes(getEnv("SMS_ACCESS_KEY_SECRET", "")),
 		SMSSignName:     getEnv("SMS_SIGN_NAME", ""),
 		SMSTemplate:     getEnv("SMS_TEMPLATE_CODE", ""),
+		MaxChatImportMessages: parseIntEnv("MAX_CHAT_IMPORT_MESSAGES", 100),
 	}
 	cfg.SMSSender = buildSMSSender(cfg)
 	return cfg
@@ -204,6 +208,18 @@ func (c *Config) VoiceReplyConfigured(profileVoiceCloneID string) bool {
 		return true
 	}
 	return c.ResolveTTSProvider() != ""
+}
+
+func parseIntEnv(key string, defaultVal int) int {
+	s := getEnv(key, "")
+	if s == "" {
+		return defaultVal
+	}
+	v, err := strconv.Atoi(s)
+	if err != nil {
+		return defaultVal
+	}
+	return v
 }
 
 func getEnv(k, d string) string {

@@ -1,6 +1,6 @@
 "use client";
 
-import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { LifeAgentMessageComposer } from "@/components/LifeAgentMessageComposer";
@@ -47,6 +47,10 @@ export default function LifeAgentCoEditPage() {
   const [banner, setBanner] = useState<string | null>(null);
   const [moreOpen, setMoreOpen] = useState(false);
   const [coEditReady, setCoEditReady] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
+  const [importLoading, setImportLoading] = useState(false);
+  const [importProgress, setImportProgress] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const chatHistoryRef = useRef<ChatRow[]>([]);
   const endRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
@@ -333,6 +337,121 @@ export default function LifeAgentCoEditPage() {
     }
   };
 
+  const handleImportChat = useCallback(async (file: File, targetName: string) => {
+    if (!data) return;
+    const previousProfile = data.profile;
+    setImportLoading(true);
+    setImportProgress("正在上传并解析聊天记录...");
+    setBanner(null);
+    setChatHistory((prev) => [
+      ...prev,
+      { role: "user", content: `导入聊天记录：${file.name}（分析「${targetName}」的发言风格）` },
+      { role: "assistant", content: "" },
+    ]);
+    const assistantIdx = chatHistoryRef.current.length + 1;
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("targetName", targetName);
+
+      const res = await fetch(`/api/life-agents/${id}/import-chat`, {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      });
+
+      const ct = res.headers.get("content-type") || "";
+
+      if (!ct.includes("text/event-stream")) {
+        const errBody = await res.json().catch(() => null);
+        const detail = errBody?.detail || errBody?.error || "导入失败，请重试";
+        setChatHistory((prev) =>
+          prev.map((row, i) => (i === assistantIdx ? { ...row, content: detail } : row))
+        );
+        setImportProgress(null);
+        return;
+      }
+
+      const reader = res.body!.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let donePayload: { assistantMessage?: string; profile?: ManageProfile } | null = null;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const parts = buffer.split("\n\n");
+        buffer = parts.pop() || "";
+
+        for (const part of parts) {
+          let eventType = "";
+          let eventData = "";
+          for (const line of part.split("\n")) {
+            if (line.startsWith("event: ")) eventType = line.slice(7).trim();
+            else if (line.startsWith("data: ")) eventData = line.slice(6);
+          }
+          if (!eventData) continue;
+          try {
+            const parsed = JSON.parse(eventData);
+            if (eventType === "progress") {
+              setImportProgress(
+                `已解析 ${parsed.totalMessages} 条消息（${parsed.targetMessages} 条来自目标），正在 AI 分析风格...`
+              );
+            } else if (eventType === "error") {
+              setChatHistory((prev) =>
+                prev.map((row, i) =>
+                  i === assistantIdx ? { ...row, content: parsed.detail || "分析出错" } : row
+                )
+              );
+            } else if (eventType === "done") {
+              donePayload = parsed;
+            }
+          } catch {
+            // ignore malformed SSE
+          }
+        }
+      }
+
+      if (!donePayload?.profile) {
+        setChatHistory((prev) =>
+          prev.map((row, i) =>
+            i === assistantIdx ? { ...row, content: donePayload?.assistantMessage || "分析完成，但未产生修改。" } : row
+          )
+        );
+        return;
+      }
+
+      const summary = summarizeProfileChanges(previousProfile, donePayload.profile);
+      setLastChange({
+        before: previousProfile,
+        after: donePayload.profile,
+        summary,
+        message: `导入聊天记录：${file.name}`,
+        appliedAt: new Date().toISOString(),
+      });
+      setData((prev) => (prev ? { ...prev, profile: donePayload!.profile! } : prev));
+      setChatHistory((prev) =>
+        prev.map((row, i) =>
+          i === assistantIdx
+            ? { ...row, content: donePayload!.assistantMessage || "已根据聊天记录分析结果更新 Agent 风格和知识库。" }
+            : row
+        )
+      );
+    } catch {
+      setChatHistory((prev) =>
+        prev.map((row, i) =>
+          i === assistantIdx ? { ...row, content: "导入失败，请检查网络后重试。" } : row
+        )
+      );
+    } finally {
+      setImportLoading(false);
+      setImportProgress(null);
+      setImportOpen(false);
+    }
+  }, [data, id]);
+
   if (loading) {
     return <div className="mx-auto h-64 max-w-4xl animate-pulse rounded-[28px] bg-gradient-to-br from-violet-100/90 to-fuchsia-100/50 shadow-[0_6px_28px_rgba(124,58,237,0.08)] ring-1 ring-purple-200/20" />;
   }
@@ -557,6 +676,17 @@ export default function LifeAgentCoEditPage() {
               onCloseMorePanel={() => setMoreOpen(false)}
               morePanel={
                 <div className="rounded-2xl border border-purple-200/[0.22] bg-white/[0.98] p-2 shadow-[0_8px_36px_-10px_rgba(124,58,237,0.1)] backdrop-blur-md">
+                  <button
+                    type="button"
+                    className="block w-full rounded-xl px-3 py-2.5 text-left text-sm text-slate-700 hover:bg-purple-50/90"
+                    onClick={() => {
+                      setMoreOpen(false);
+                      setImportOpen(true);
+                    }}
+                    disabled={importLoading || modifyLoading}
+                  >
+                    导入聊天记录
+                  </button>
                   <Link
                     href={`/dashboard/life-agents/${id}`}
                     className="block rounded-xl px-3 py-2.5 text-sm text-slate-700 hover:bg-purple-50/90"
@@ -575,6 +705,177 @@ export default function LifeAgentCoEditPage() {
               }
             />
           </div>
+        </div>
+      </div>
+
+      {/* Import progress banner */}
+      {importProgress ? (
+        <div className="fixed inset-x-0 bottom-0 z-50 flex items-center justify-center bg-violet-600/90 px-4 py-3 text-sm text-white backdrop-blur-sm">
+          <svg className="mr-2 h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+          </svg>
+          {importProgress}
+        </div>
+      ) : null}
+
+      {/* Import chat modal */}
+      {importOpen ? (
+        <ImportChatModal
+          onClose={() => setImportOpen(false)}
+          onSubmit={handleImportChat}
+          loading={importLoading}
+          agentId={id}
+        />
+      ) : null}
+    </div>
+  );
+}
+
+function ImportChatModal({
+  onClose,
+  onSubmit,
+  loading,
+  agentId,
+}: {
+  onClose: () => void;
+  onSubmit: (file: File, targetName: string) => void;
+  loading: boolean;
+  agentId: string;
+}) {
+  const [file, setFile] = useState<File | null>(null);
+  const [targetName, setTargetName] = useState("");
+  const [senders, setSenders] = useState<string[] | null>(null);
+  const [totalMessages, setTotalMessages] = useState(0);
+  const [parsing, setParsing] = useState(false);
+  const [parseError, setParseError] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const accept = ".html,.htm,.csv,.txt";
+
+  const handleFileChange = async (f: File) => {
+    setFile(f);
+    setSenders(null);
+    setTargetName("");
+    setParseError(null);
+    setParsing(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", f);
+      const res = await fetch(`/api/life-agents/${agentId}/parse-chat`, {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ detail: "解析失败" }));
+        setParseError(err.detail || "解析失败，请检查文件格式");
+        return;
+      }
+      const data = await res.json();
+      const list: string[] = data.senders ?? [];
+      setSenders(list);
+      setTotalMessages(data.totalMessages ?? 0);
+      if (list.length === 1) {
+        setTargetName(list[0]);
+      }
+    } catch {
+      setParseError("网络错误，请重试");
+    } finally {
+      setParsing(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
+      <div
+        className="mx-4 w-full max-w-md rounded-2xl border border-purple-200/30 bg-white p-6 shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h3 className="mb-1 text-lg font-semibold text-slate-800">导入聊天记录</h3>
+        <p className="mb-4 text-sm text-slate-500">
+          上传微信聊天记录文件，AI 将自动分析聊天风格、语气，并补充知识库。
+        </p>
+
+        {/* File input */}
+        <div className="mb-4">
+          <label className="mb-1.5 block text-sm font-medium text-slate-700">选择文件</label>
+          <input
+            ref={fileRef}
+            type="file"
+            accept={accept}
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) handleFileChange(f);
+            }}
+          />
+          <button
+            type="button"
+            className="flex w-full items-center gap-2 rounded-xl border border-dashed border-purple-300/60 bg-purple-50/40 px-4 py-3 text-sm text-slate-600 transition hover:border-purple-400 hover:bg-purple-50/80"
+            onClick={() => fileRef.current?.click()}
+            disabled={parsing || loading}
+          >
+            <svg className="h-5 w-5 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+            </svg>
+            {parsing ? "解析中..." : file ? file.name : "点击选择 HTML / CSV / TXT 文件"}
+          </button>
+          <p className="mt-1 text-xs text-slate-400">
+            支持 WeChatMsg、留痕等工具导出的 HTML、CSV、TXT 格式
+          </p>
+        </div>
+
+        {/* Parse error */}
+        {parseError ? (
+          <div className="mb-4 rounded-xl bg-red-50 px-3.5 py-2.5 text-sm text-red-600">{parseError}</div>
+        ) : null}
+
+        {/* Sender selector — shown after successful parse */}
+        {senders && senders.length > 0 ? (
+          <div className="mb-5">
+            <label className="mb-1.5 block text-sm font-medium text-slate-700">
+              选择 Agent 本人的昵称
+            </label>
+            <select
+              value={targetName}
+              onChange={(e) => setTargetName(e.target.value)}
+              className="w-full rounded-xl border border-purple-200/50 bg-white px-3.5 py-2.5 text-sm text-slate-800 outline-none transition focus:border-purple-400 focus:ring-2 focus:ring-purple-200/50"
+            >
+              <option value="">请选择…</option>
+              {senders.map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+            <p className="mt-1 text-xs text-slate-400">
+              共解析到 {totalMessages} 条消息，{senders.length} 位参与者。选择 Agent 本人的昵称，将只分析该人的发言风格。
+            </p>
+          </div>
+        ) : null}
+
+        {/* Actions */}
+        <div className="flex items-center justify-end gap-3">
+          <button
+            type="button"
+            className="rounded-xl px-4 py-2 text-sm text-slate-500 transition hover:bg-slate-100"
+            onClick={onClose}
+            disabled={loading}
+          >
+            取消
+          </button>
+          <button
+            type="button"
+            className="rounded-xl bg-gradient-to-r from-violet-500 to-fuchsia-500 px-5 py-2 text-sm font-medium text-white shadow-md transition hover:shadow-lg disabled:opacity-50"
+            disabled={!file || !targetName || loading || parsing}
+            onClick={() => {
+              if (file && targetName) {
+                onSubmit(file, targetName);
+              }
+            }}
+          >
+            {loading ? "分析中..." : "一键分析并应用"}
+          </button>
         </div>
       </div>
     </div>
