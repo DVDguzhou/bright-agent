@@ -19,6 +19,7 @@ import (
 	"github.com/agent-marketplace/backend/internal/lifeagent"
 	"github.com/agent-marketplace/backend/internal/middleware"
 	"github.com/agent-marketplace/backend/internal/models"
+	"github.com/agent-marketplace/backend/internal/yantuseed"
 	"github.com/agent-marketplace/backend/internal/tts"
 	"github.com/gin-gonic/gin"
 )
@@ -693,21 +694,7 @@ func LifeAgentsDelete(cfg *config.Config) gin.HandlerFunc {
 			c.JSON(http.StatusNotFound, gin.H{"error": "NOT_FOUND"})
 			return
 		}
-		// 按外键依赖顺序删除
-		db.DB.Where("profile_id = ?", id).Delete(&models.LifeAgentFeedback{})
-		var sessionIDs []string
-		db.DB.Model(&models.LifeAgentChatSession{}).Where("profile_id = ?", id).Pluck("id", &sessionIDs)
-		if len(sessionIDs) > 0 {
-			db.DB.Where("session_id IN ?", sessionIDs).Delete(&models.LifeAgentChatMessage{})
-		}
-		db.DB.Where("profile_id = ?", id).Delete(&models.LifeAgentChatSession{})
-		db.DB.Where("profile_id = ?", id).Delete(&models.LifeAgentKnowledgeEntry{})
-		db.DB.Where("profile_id = ?", id).Delete(&models.LifeAgentStructuredFact{})
-		db.DB.Where("profile_id = ?", id).Delete(&models.LifeAgentTopicSummary{})
-		db.DB.Where("profile_id = ?", id).Delete(&models.LifeAgentQuestionPack{})
-		db.DB.Where("profile_id = ?", id).Delete(&models.LifeAgentRating{})
-		db.DB.Where("profile_id = ?", id).Delete(&models.LifeAgentInvokeKey{})
-		if err := db.DB.Delete(&p).Error; err != nil {
+		if err := yantuseed.DeleteLifeAgentProfileCascade(db.DB, id); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "INTERNAL_ERROR"})
 			return
 		}

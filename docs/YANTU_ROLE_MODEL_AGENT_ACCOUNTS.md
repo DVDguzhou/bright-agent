@@ -88,6 +88,18 @@
 | 62 | shine昕玥 | yantu-import@demo.com | glow_xy@163.com | YantuLa2026! |
 | 63 | 煦华慢半拍__ | yantu-import@demo.com | slow_xh@163.com | YantuLa2026! |
 
+## 删除研途榜样种子数据（危险操作）
+
+按 `yantuseed.Profiles()` 中的 **display_name** 匹配并删除人生 Agent，级联清理知识库、买家会话与消息、反馈、评分、提问包、调用密钥、共编状态、收藏等。**不会**删除 display_name 不在种子列表中的档案（例如仅通过 `import_yantu_life_agents.go` 从 HTML 导入且昵称未与上表对齐的数据）。
+
+在 `backend` 目录、配置好 `DATABASE_URL` 后：
+
+1. **先预览**：`YANTU_DELETE_DRY_RUN=1 go run ./scripts/delete_yantu_imported_data.go`（PowerShell：`$env:YANTU_DELETE_DRY_RUN="1"; go run ./scripts/delete_yantu_imported_data.go`）
+2. **正式删除档案**：`go run ./scripts/delete_yantu_imported_data.go`
+3. **可选**：仅当原导入账号 `yantu-import@demo.com` 名下已无人生 Agent、且无 License、无人生 Agent 提问包时，删除该用户：`YANTU_DELETE_ORPHAN_USERS=1 go run ./scripts/delete_yantu_imported_data.go`（与步骤 2 同一次执行即可）。**拆分用的 `@163.com` 账号不会被本脚本删除**，需保留登录入口时请放心使用上述开关。
+
+级联删除实现见 `internal/yantuseed/cascade_profile_delete.go`。
+
 ## 封面图（Unsplash）
 
 - 每位人生 Agent 的 `cover_image_url` 可为 **Unsplash** 外链（免版税，[许可说明](https://unsplash.com/license)）；图池与按 `Profiles()` 顺序一一对应（`YantuSeedCoverURL`）见 `backend/internal/yantuseed/yantu_cover_photos.go`。

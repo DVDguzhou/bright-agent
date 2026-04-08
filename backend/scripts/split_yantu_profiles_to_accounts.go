@@ -30,73 +30,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// 与 docs/YANTU_ROLE_MODEL_AGENT_ACCOUNTS.md 同步；勿改顺序。
-var splitEmails = []string{
-	"nightowl_7zq@163.com",
-	"caffe4012@163.com",
-	"citrus_moon@163.com",
-	"adzuki_mm@163.com",
-	"rnd_id_9k@163.com",
-	"fizz_bubble8@163.com",
-	"hwire_817x@163.com",
-	"twist_snack@163.com",
-	"drizzle_yy@163.com",
-	"fish_slip@163.com",
-	"clock_730@163.com",
-	"run_free0@163.com",
-	"road_ping@163.com",
-	"mark_yang9@163.com",
-	"happy_dd@163.com",
-	"puff_cloud@163.com",
-	"bits_hj@163.com",
-	"power_on99@163.com",
-	"solo_xinxin@163.com",
-	"wing_fly0@163.com",
-	"chub_ovoe@163.com",
-	"trace_back9@163.com",
-	"noise_light@163.com",
-	"clear_cc@163.com",
-	"tea_mio@163.com",
-	"echo_ying@163.com",
-	"quiet_no@163.com",
-	"gate_nn@163.com",
-	"beam_ky@163.com",
-	"river_fish0@163.com",
-	"sky_hao8@163.com",
-	"mz_daylog@163.com",
-	"hyi_log@163.com",
-	"sleep_zrz@163.com",
-	"south_nn@163.com",
-	"salt_fish88@163.com",
-	"germ_safe@163.com",
-	"horse_wind3@163.com",
-	"rare_min@163.com",
-	"rain_yy@163.com",
-	"drop_hair@163.com",
-	"kv_rev@163.com",
-	"bed_lazy@163.com",
-	"bulb_small@163.com",
-	"side_dragon@163.com",
-	"sum_rz@163.com",
-	"pie_miss@163.com",
-	"law_chew@163.com",
-	"jump_half10@163.com",
-	"kj_slow@163.com",
-	"onion_one@163.com",
-	"hz_double@163.com",
-	"hurry_no@163.com",
-	"chill_ze@163.com",
-	"peak_no@163.com",
-	"rice_full@163.com",
-	"laugh_xx@163.com",
-	"open_nk@163.com",
-	"sun_yun@163.com",
-	"nap_sleep@163.com",
-	"cup_no@163.com",
-	"glow_xy@163.com",
-	"slow_xh@163.com",
-}
-
 func strPtr(s string) *string { return &s }
 
 func main() {
@@ -109,8 +42,8 @@ func main() {
 	}
 
 	profiles := yantuseed.Profiles()
-	if len(splitEmails) != len(profiles) {
-		log.Fatalf("splitEmails 数量 %d 与 Profiles() %d 不一致，请同步文档与脚本", len(splitEmails), len(profiles))
+	if len(yantuseed.SplitAccountEmails) != len(profiles) {
+		log.Fatalf("SplitAccountEmails 数量 %d 与 Profiles() %d 不一致，请同步文档与 yantuseed/split_account_emails.go", len(yantuseed.SplitAccountEmails), len(profiles))
 	}
 
 	dsn, err := db.DSNFromEnv()
@@ -133,7 +66,7 @@ func main() {
 	hashStr := string(hash)
 
 	for i, p := range profiles {
-		email := splitEmails[i]
+		email := yantuseed.SplitAccountEmails[i]
 		var prof models.LifeAgentProfile
 		q := db.DB.Where("user_id = ? AND display_name = ?", importUser.ID, p.DisplayName)
 		if err := q.First(&prof).Error; err != nil {
