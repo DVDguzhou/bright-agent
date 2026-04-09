@@ -1,20 +1,27 @@
 package handler
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
 	"strings"
 
 	"github.com/agent-marketplace/backend/internal/config"
+	"github.com/agent-marketplace/backend/internal/cookieutil"
 	"github.com/agent-marketplace/backend/internal/db"
 	"github.com/agent-marketplace/backend/internal/models"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 )
 
-// WeChatRedirect 返回微信授权 URL，前端可跳转
+const wechatOAuthStateCookie = "wechat_oauth_state"
+const wechatOAuthStateMaxAge = 600 // 10 分钟
+
+// WeChatRedirect 返回微信开放平台「网站应用」扫码授权 URL（qrconnect）
 func WeChatRedirect(cfg *config.Config) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		appID := strings.TrimSpace(cfg.WeChatAppID)
@@ -26,10 +33,15 @@ func WeChatRedirect(cfg *config.Config) gin.HandlerFunc {
 		if redirectURI == "" {
 			redirectURI = strings.TrimSuffix(cfg.BaseURL, "/") + "/api/auth/wechat/callback"
 		}
-		state := c.Query("state")
-		if state == "" {
-			state = "default"
+		var b [16]byte
+		if _, err := rand.Read(b[:]); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "INTERNAL_ERROR"})
+			return
 		}
+		state := hex.EncodeToString(b[:])
+		sec := cookieutil.SessionSecure(c, cfg)
+		c.SetCookie(wechatOAuthStateCookie, state, wechatOAuthStateMaxAge, "/", "", sec, true)
+
 		authURL := "https://open.weixin.qq.com/connect/qrconnect?appid=" + url.QueryEscape(appID) +
 			"&redirect_uri=" + url.QueryEscape(redirectURI) +
 			"&response_type=code&scope=snsapi_login&state=" + url.QueryEscape(state) + "#wechat_redirect"
@@ -37,9 +49,59 @@ func WeChatRedirect(cfg *config.Config) gin.HandlerFunc {
 	}
 }
 
-// WeChatCallback 微信授权回调，用 code 换 openid 并登录
+func clearWechatStateCookie(c *gin.Context, cfg *config.Config) {
+	sec := cookieutil.SessionSecure(c, cfg)
+	c.SetCookie(wechatOAuthStateCookie, "", -1, "/", "", sec, true)
+}
+
+func wechatFetchUserProfile(accessToken, openID string) (nickname string, headImgURL string) {
+	nickname = "微信用户"
+	if strings.TrimSpace(accessToken) == "" || strings.TrimSpace(openID) == "" {
+		return nickname, ""
+	}
+	userInfoURL := "https://api.weixin.qq.com/sns/userinfo?access_token=" + url.QueryEscape(accessToken) +
+		"&openid=" + url.QueryEscape(openID) + "&lang=zh_CN"
+	infoResp, err := http.Get(userInfoURL)
+	if err != nil {
+		log.Printf("wechat oauth: userinfo get: %v", err)
+		return nickname, ""
+	}
+	defer infoResp.Body.Close()
+	body, err := io.ReadAll(io.LimitReader(infoResp.Body, 1<<20))
+	if err != nil {
+		return nickname, ""
+	}
+	var info struct {
+		Nickname   string `json:"nickname"`
+		HeadImgURL string `json:"headimgurl"`
+		ErrCode    int    `json:"errcode"`
+	}
+	if err := json.Unmarshal(body, &info); err != nil {
+		return nickname, ""
+	}
+	if info.ErrCode != 0 {
+		return nickname, ""
+	}
+	n := strings.TrimSpace(info.Nickname)
+	if n != "" {
+		nickname = n
+	}
+	headImgURL = strings.TrimSpace(info.HeadImgURL)
+	return nickname, headImgURL
+}
+
+// WeChatCallback 微信授权回调：用 code 换 openid 并登录或注册
 func WeChatCallback(cfg *config.Config) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		cookieState, err := c.Cookie(wechatOAuthStateCookie)
+		queryState := strings.TrimSpace(c.Query("state"))
+		if err != nil || cookieState == "" || queryState == "" || cookieState != queryState {
+			clearWechatStateCookie(c, cfg)
+			redirectToLogin(c, cfg, "invalid_state")
+			return
+		}
+		clearWechatStateCookie(c, cfg)
+
 		code := strings.TrimSpace(c.Query("code"))
 		if code == "" {
 			redirectToLogin(c, cfg, "missing_code")
@@ -87,34 +149,25 @@ func WeChatCallback(cfg *config.Config) gin.HandlerFunc {
 		}
 		openID := tokenResp.OpenID
 
+		nickname, headImg := wechatFetchUserProfile(tokenResp.AccessToken, openID)
+		namePtr := ptr(nickname)
+		var avatarPtr *string
+		if headImg != "" {
+			avatarPtr = &headImg
+		}
+
 		var u models.User
 		if err := db.DB.Where("wechat_open_id = ?", openID).First(&u).Error; err == nil {
+			updates := map[string]interface{}{}
+			if headImg != "" {
+				updates["avatar_url"] = headImg
+			}
+			if len(updates) > 0 {
+				_ = db.DB.Model(&models.User{}).Where("id = ?", u.ID).Updates(updates).Error
+			}
 			setSessionCookie(c, cfg, u.ID)
 			redirectToFrontend(c, cfg, "")
 			return
-		}
-
-		nickname := ""
-		if tokenResp.AccessToken != "" {
-			userInfoURL := "https://api.weixin.qq.com/sns/userinfo?access_token=" + url.QueryEscape(tokenResp.AccessToken) + "&openid=" + url.QueryEscape(openID) + "&lang=zh_CN"
-			if infoResp, err := http.Get(userInfoURL); err == nil {
-				var info struct {
-					Nickname   string `json:"nickname"`
-					HeadImgURL string `json:"headimgurl"`
-					ErrCode    int    `json:"errcode"`
-				}
-				_ = json.NewDecoder(infoResp.Body).Decode(&info)
-				infoResp.Body.Close()
-				if info.ErrCode == 0 {
-					nickname = strings.TrimSpace(info.Nickname)
-					if nickname == "" {
-						nickname = "微信用户"
-					}
-				}
-			}
-		}
-		if nickname == "" {
-			nickname = "微信用户"
 		}
 
 		placeholderEmail := "wechat_" + openID + "@placeholder.local"
@@ -123,7 +176,8 @@ func WeChatCallback(cfg *config.Config) gin.HandlerFunc {
 			ID:           models.GenID(),
 			Email:        placeholderEmail,
 			Password:     string(hash),
-			Name:         &nickname,
+			Name:         namePtr,
+			AvatarURL:    avatarPtr,
 			WechatOpenID: &openID,
 			RoleFlags:    nil,
 		}
