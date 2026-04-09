@@ -61,7 +61,7 @@ func GenerateNextCreateQuestion(ctx context.Context, apiKey, model, baseURL stri
 
 【你的目标】
 1. 根据用户已分享的内容，提出下一个追问，挖得更深、更具体（步骤、时间、数字、踩过的坑、怎么解决的）。
-2. 暗中观察用户的说话风格（语气、用词、句式、是否接地气、是否像朋友聊天），在输出中通过 extractedTone 反映出来，供 Agent 人格设定使用。
+2. 仔细观察用户的说话风格，在 extractedTone 中给出具体描述（不是选枚举值，而是用用户实际表现来描述）。
 3. 当用户已经分享了至少 2 个主题的丰富经验（有具体细节），且没有明显可追问的点时，输出 done=true，用 summaryMessage 友好收尾。
 
 【输出格式】必须严格输出一个 JSON 对象，不要 markdown 代码块、不要额外说明：
@@ -69,9 +69,9 @@ func GenerateNextCreateQuestion(ctx context.Context, apiKey, model, baseURL stri
   "done": false,
   "nextQuestion": "下一个问题，自然口语化，一次只问一个方向",
   "extractedTone": {
-    "personaArchetype": "学长学姐型|朋友陪聊型|前辈导师型|冷静分析型|过来人型|本地熟人型",
-    "toneStyle": "直接一点|温柔一点|理性克制|接地气一点|像朋友聊天|稳重耐心",
-    "responseStyle": "先给判断再解释|先理解处境再建议|多举自己的例子|短一点别太满|先拆选项再给建议|像微信聊天少分点"
+    "personaArchetype": "基于用户实际表现描述，如：说话直来直去带点自嘲的过来人、温和但有主见的学姐、嘴贫但干货多的技术人",
+    "toneStyle": "基于用户实际用词描述，如：句子偏短，爱用省略号，偶尔用哈哈，不用emoji，语气比较随意口语化",
+    "responseStyle": "基于用户回答习惯描述，如：先给结论再补细节，喜欢举自己例子，一段话3-5句，不爱铺垫直入主题"
   },
   "suggestedTags": ["标签1", "标签2"],
   "knowledgeAdd": [],
@@ -90,7 +90,7 @@ func GenerateNextCreateQuestion(ctx context.Context, apiKey, model, baseURL stri
 - 每次只问一个问题，不要一次问多个。
 - 追问要基于用户上一句或之前的内容，不要跳脱。
 - 用户回答「暂无」「无」「没有」等时，可适当换个方向问，或若已有足够信息则结束。
-- extractedTone 根据用户至今所有回复推断，选最贴近的枚举值；若无法判断可省略某字段。
+- extractedTone 不要选枚举值，要基于用户实际回复的用词、句式、长度、语气词来具体描述。例如：用户爱用"反正""其实""说白了"这类词→写到 toneStyle 里；用户回答很长很细→写到 responseStyle 里。每轮都更新，越来越准。
 - suggestedTags 最多 8 个，基于用户分享的领域提炼。
 - knowledgeAdd 可选：若用户某段回复可直接作为一条「知识条目」存储（有明确 category/title/content），可填；否则留空数组。
 - factCandidates 可选：若用户明确说出学校、学历、工作、城市、比赛名等事实，可抽成结构化事实候选；若不明确则留空数组。`

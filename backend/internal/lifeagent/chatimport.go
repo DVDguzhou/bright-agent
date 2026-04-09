@@ -174,20 +174,12 @@ func AnalyzeForTarget(result *ChatParseResult, targetName string, maxSamples int
 		"波浪号": strings.Count(allText, "～") + strings.Count(allText, "~"),
 	}
 
-	// Sample messages
+	// Sample messages — pick diverse, representative ones instead of just first N
 	sampleCount := maxSamples
 	if sampleCount <= 0 {
 		sampleCount = 50
 	}
-	var samples []string
-	for i, m := range targetMsgs {
-		if i >= sampleCount {
-			break
-		}
-		if m.Content != "" {
-			samples = append(samples, m.Content)
-		}
-	}
+	samples := selectRepresentativeSamples(targetMsgs, sampleCount, avgLen)
 
 	result.Analysis = ChatAnalysis{
 		TopParticles:      topParticles,
@@ -523,12 +515,154 @@ func BuildChatSummaryForLLM(result *ChatParseResult, targetName string) string {
 		}
 	}
 
+	// 统计总结：帮 LLM 更快锁定风格特征
+	sb.WriteString("\n## 风格特征速写（基于统计自动生成）\n")
+	if result.Analysis.AvgMessageLength < 15 {
+		sb.WriteString("- 极短句风格，像发微信语音转文字，一句话就是一条消息\n")
+	} else if result.Analysis.AvgMessageLength < 30 {
+		sb.WriteString("- 短句风格，说话简洁直接，不啰嗦\n")
+	} else if result.Analysis.AvgMessageLength > 80 {
+		sb.WriteString("- 长段落风格，喜欢把事情说清楚说透\n")
+	}
+	if len(result.Analysis.TopParticles) > 0 {
+		topP := result.Analysis.TopParticles[0]
+		sb.WriteString(fmt.Sprintf("- 最常用语气词「%s」出现 %d 次，说话时注意模仿\n", topP.Item, topP.Count))
+	}
+	excl := result.Analysis.PunctuationHabits["感叹号"]
+	ellip := result.Analysis.PunctuationHabits["省略号"]
+	wave := result.Analysis.PunctuationHabits["波浪号"]
+	if excl > 10 {
+		sb.WriteString("- 感叹号用得很多，情绪外放型\n")
+	}
+	if ellip > 5 {
+		sb.WriteString("- 爱用省略号，说话留白、欲言又止感\n")
+	}
+	if wave > 3 {
+		sb.WriteString("- 用波浪号，语气偏软/撒娇/俏皮\n")
+	}
+	if len(result.Analysis.TopEmojis) == 0 {
+		sb.WriteString("- 基本不用 emoji，风格偏文字派\n")
+	} else if len(result.Analysis.TopEmojis) > 3 {
+		sb.WriteString("- emoji 丰富，表达活泼\n")
+	}
+
 	if len(result.Analysis.SampleMessages) > 0 {
-		sb.WriteString(fmt.Sprintf("\n## %s 的消息样本\n", targetName))
+		sb.WriteString(fmt.Sprintf("\n## %s 的消息样本（已挑选最有风格代表性的）\n", targetName))
 		for i, msg := range result.Analysis.SampleMessages {
 			sb.WriteString(fmt.Sprintf("%d. %s\n", i+1, TruncateToRunes(msg, 200)))
 		}
 	}
 
 	return sb.String()
+}
+
+// selectRepresentativeSamples picks diverse messages that best reveal speaking style.
+// Strategy: score each message by style-revealing features, then sample across timeline.
+func selectRepresentativeSamples(msgs []ChatMessage, maxCount int, avgLen float64) []string {
+	if len(msgs) == 0 {
+		return nil
+	}
+
+	particleRe := regexp.MustCompile(`[哈嗯哦噢嘿唉呜啊呀吧嘛呢吗么]+`)
+	emojiRe := regexp.MustCompile(`[\x{1F600}-\x{1F64F}\x{1F300}-\x{1F5FF}\x{1F680}-\x{1F6FF}]`)
+
+	type scored struct {
+		idx   int
+		score int
+		text  string
+	}
+	var candidates []scored
+	for i, m := range msgs {
+		text := strings.TrimSpace(m.Content)
+		if text == "" {
+			continue
+		}
+		runeLen := len([]rune(text))
+		if runeLen < 4 || runeLen > 500 {
+			continue
+		}
+		score := 0
+		if particleRe.MatchString(text) {
+			score += 3
+		}
+		if emojiRe.MatchString(text) {
+			score += 2
+		}
+		diff := float64(runeLen) - avgLen
+		if diff < 0 {
+			diff = -diff
+		}
+		if avgLen > 0 && diff < avgLen*0.5 {
+			score += 2
+		}
+		if strings.Contains(text, "...") || strings.Contains(text, "…") || strings.Contains(text, "～") || strings.Contains(text, "~") {
+			score += 1
+		}
+		for _, kw := range []string{"觉得", "感觉", "认为", "其实", "反正"} {
+			if strings.Contains(text, kw) {
+				score++
+				break
+			}
+		}
+		candidates = append(candidates, scored{idx: i, score: score, text: text})
+	}
+
+	if len(candidates) == 0 {
+		var fallback []string
+		for i, m := range msgs {
+			if i >= maxCount {
+				break
+			}
+			if t := strings.TrimSpace(m.Content); t != "" {
+				fallback = append(fallback, t)
+			}
+		}
+		return fallback
+	}
+
+	sort.Slice(candidates, func(i, j int) bool {
+		return candidates[i].score > candidates[j].score
+	})
+
+	perZone := maxCount / 3
+	if perZone < 1 {
+		perZone = 1
+	}
+	seen := map[int]bool{}
+	var result []string
+
+	zones := [][]scored{nil, nil, nil}
+	for _, c := range candidates {
+		zone := 0
+		if len(msgs) > 1 {
+			zone = c.idx * 3 / len(msgs)
+		}
+		if zone > 2 {
+			zone = 2
+		}
+		zones[zone] = append(zones[zone], c)
+	}
+	for _, zone := range zones {
+		picked := 0
+		for _, c := range zone {
+			if picked >= perZone || len(result) >= maxCount {
+				break
+			}
+			if !seen[c.idx] {
+				seen[c.idx] = true
+				result = append(result, c.text)
+				picked++
+			}
+		}
+	}
+	for _, c := range candidates {
+		if len(result) >= maxCount {
+			break
+		}
+		if !seen[c.idx] {
+			seen[c.idx] = true
+			result = append(result, c.text)
+		}
+	}
+	return result
 }

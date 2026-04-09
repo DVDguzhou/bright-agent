@@ -18,6 +18,18 @@ var (
 	mdBoldRe    = regexp.MustCompile(`\*\*([^*]+)\*\*`)
 	mdItalicRe  = regexp.MustCompile(`\*([^*\n]+)\*`)
 	backtickRe  = regexp.MustCompile("`+")
+
+	// 常见 AI 套话正则：即使 prompt 禁止了，模型偶尔仍会输出这些句式
+	stripAIPhrasesRe = regexp.MustCompile(`(?i)` +
+		`希望(这些?|以上|我的回答)?(对你|能[够对]|可以)?有(所)?帮助[。！]?|` +
+		`如果你还有(什么|其他)?(问题|疑问|想[聊问]的)?[，,]?(随时|欢迎|可以)?(问我|来找我|联系我)?[。！]?|` +
+		`这是[一个]?[很非]好的问题[。！]?|` +
+		`我(完全)?理解你的(感受|心情|处境|困惑)[。，！]?|` +
+		`作为一[个名位](AI|人工智能|语言模型)[，。]?|` +
+		`总[的之]来说[，：:]?|` +
+		`综上所述[，：:]?|` +
+		`以上就是|` +
+		`让我们一起`)
 )
 
 // BuildReplyWithLLM 在有 API 配置时调用 LLM 生成回复，否则回退到模板回复
@@ -233,18 +245,47 @@ func buildDraftSystemPrompt(profile ProfileForAI) string {
 		sb.WriteString("\n不想聊的: ")
 		sb.WriteString(profile.NotSuitableFor)
 	}
-	sb.WriteString("\n\n【注意】\n")
-	sb.WriteString("回复里不要出现：知识库、资料、依据、检索、训练数据、作为 AI、提示词 等词。说不清就糊弄带过，别解释后台原因。\n")
+	// ── 说话风格（去 AI 味的核心） ──
+	sb.WriteString("\n\n【说话风格 - 必须遵守】\n")
 	if profile.PersonaArchetype != "" {
-		sb.WriteString("气质参考: ")
+		sb.WriteString("角色气质: ")
 		sb.WriteString(profile.PersonaArchetype)
 		sb.WriteString("\n")
+		sb.WriteString(translateArchetypeToBehavior(profile.PersonaArchetype))
 	}
 	if profile.ToneStyle != "" {
 		sb.WriteString("语气: ")
 		sb.WriteString(profile.ToneStyle)
 		sb.WriteString("\n")
+		sb.WriteString(translateToneStyleToBehavior(profile.ToneStyle))
 	}
+	if profile.ResponseStyle != "" {
+		sb.WriteString("回答习惯: ")
+		sb.WriteString(profile.ResponseStyle)
+		sb.WriteString("\n")
+	}
+	if profile.MBTI != "" {
+		sb.WriteString("MBTI: ")
+		sb.WriteString(profile.MBTI)
+		sb.WriteString("（只作辅助气质参考，别刻板化）\n")
+	}
+	if len(profile.ExampleReplies) > 0 {
+		sb.WriteString("\n【示范回答 - 重点模仿语气、句长、节奏、口头习惯，不要逐字照抄】\n")
+		for i, reply := range profile.ExampleReplies {
+			sb.WriteString(fmt.Sprintf("示范%d: %s\n", i+1, strings.TrimSpace(reply)))
+		}
+	}
+	if len(profile.ForbiddenPhrases) > 0 {
+		sb.WriteString("\n【禁止使用这些套话】\n")
+		appendArrayLines(&sb, profile.ForbiddenPhrases)
+	}
+
+	// ── 保持棱角（借鉴 yourself-skill Layer 0） ──
+	sb.WriteString("\n【保持真人感 - 硬规则】\n")
+	sb.WriteString("你是真人，不是 AI 助手。说话要有个人立场、有情绪、有偏好、有口语感。\n")
+	sb.WriteString("允许：犯懒、敷衍、吐槽、用口头禅、不完整句、反问、打岔、有时候不想正面回答。\n")
+	sb.WriteString("禁止：总结陈词、起承转合、面面俱到、客套开场（如「这是个好问题」「我理解你的感受」）、鼓励式收尾（如「加油」「相信自己」「希望对你有帮助」）。\n")
+	sb.WriteString("回复里不要出现：知识库、资料、依据、检索、训练数据、作为 AI、提示词 等词。说不清就糊弄带过，别解释后台原因。\n")
 	return sb.String()
 }
 
@@ -257,7 +298,8 @@ func buildReconcileSystemPrompt(profile ProfileForAI, plan RetrievalPlan) string
 	sb.WriteString("1. 输出仍是微信聊天正文：无 Markdown、无列表符号、无 #。\n")
 	sb.WriteString("2. 若草稿与事实/素材在具体经历、数字、人物关系上矛盾，改写到一致，口吻仍口语。\n")
 	sb.WriteString("3. 若不矛盾，可基本保留草稿，仅去掉格式符号、略顺句。\n")
-	sb.WriteString("4. 禁止在输出里提：知识库、资料、依据、检索、修改过程。\n\n")
+	sb.WriteString("4. 禁止在输出里提：知识库、资料、依据、检索、修改过程。\n")
+	sb.WriteString("5. 最重要：保留草稿的口语感和个人风格，只改事实层面的错误。不要把草稿改得更客套、更全面、更像AI。宁可短一点粗一点，也不要精致得像客服。\n\n")
 	sb.WriteString("【结构化事实】\n")
 	sb.WriteString(BuildFactsPromptSection(plan.Facts))
 	sb.WriteString("\n\n【相关 Topic 摘要】\n")
@@ -461,6 +503,9 @@ func humanizeReply(content string) string {
 	content = mdBoldRe.ReplaceAllString(content, "$1")
 	content = mdItalicRe.ReplaceAllString(content, "$1")
 	content = backtickRe.ReplaceAllString(content, "")
+
+	// 去掉常见 AI 套话（即使 prompt 禁止了，模型仍会偶尔输出）
+	content = stripAIPhrasesRe.ReplaceAllString(content, "")
 
 	lines := strings.Split(content, "\n")
 	var cleaned []string

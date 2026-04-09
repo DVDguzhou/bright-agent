@@ -442,7 +442,7 @@ func LifeAgentsCreate(cfg *config.Config) gin.HandlerFunc {
 			ToneStyle          string   `json:"toneStyle"`
 			ResponseStyle      string   `json:"responseStyle"`
 			ForbiddenPhrases   []string `json:"forbiddenPhrases" binding:"max=8,dive,min=1"`
-			ExampleReplies     []string `json:"exampleReplies" binding:"omitempty,max=3,dive,min=10"`
+			ExampleReplies     []string `json:"exampleReplies" binding:"omitempty,max=5,dive,min=10"`
 			ExpertiseTags      []string `json:"expertiseTags" binding:"omitempty,max=8,dive,min=1"`
 			SampleQuestions    []string `json:"sampleQuestions"`
 			NotSuitableFor     string   `json:"notSuitableFor"`
@@ -1304,8 +1304,8 @@ func LifeAgentsModifyViaChat(cfg *config.Config) gin.HandlerFunc {
 			}
 			if len(ch.ExampleReplies) > 0 {
 				er := ch.ExampleReplies
-				if len(er) > 3 {
-					er = er[:3]
+				if len(er) > 5 {
+					er = er[:5]
 				}
 				upd.Update("example_replies", models.JSONArray(er))
 			}
@@ -2448,8 +2448,8 @@ func LifeAgentsImportChat(cfg *config.Config) gin.HandlerFunc {
 		}
 		if len(ch.ExampleReplies) > 0 {
 			er := ch.ExampleReplies
-			if len(er) > 3 {
-				er = er[:3]
+			if len(er) > 5 {
+				er = er[:5]
 			}
 			upd.Update("example_replies", models.JSONArray(er))
 		}
