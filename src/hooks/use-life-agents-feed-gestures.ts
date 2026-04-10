@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 const PULL_MIN_DY = 56;
 const PTR_MAX_SCROLL = 24;
@@ -258,17 +258,25 @@ export function useLifeAgentsFeedGestures(opts: {
   return { pullOffset, refreshing };
 }
 
+function readMobileTouchNavEnabled(): boolean {
+  if (typeof window === "undefined") return false;
+  return (
+    window.matchMedia("(max-width: 1023px)").matches &&
+    ("ontouchstart" in window || navigator.maxTouchPoints > 0)
+  );
+}
+
+/** 与断点一致；用 useSyncExternalStore 避免首帧 false 再变 true 导致人生 Agent 页先桌面后 pager、横向滚动停在第一屏（收藏）。 */
 export function useMobileTouchNavEnabled(): boolean {
-  const [ok, setOk] = useState(false);
-
-  useEffect(() => {
-    const mq = window.matchMedia("(max-width: 1023px)");
-    const read = () =>
-      setOk(mq.matches && ("ontouchstart" in window || navigator.maxTouchPoints > 0));
-    read();
-    mq.addEventListener("change", read);
-    return () => mq.removeEventListener("change", read);
-  }, []);
-
-  return ok;
+  return useSyncExternalStore(
+    (onStoreChange) => {
+      if (typeof window === "undefined") return () => {};
+      const mq = window.matchMedia("(max-width: 1023px)");
+      const onChange = () => onStoreChange();
+      mq.addEventListener("change", onChange);
+      return () => mq.removeEventListener("change", onChange);
+    },
+    readMobileTouchNavEnabled,
+    () => false,
+  );
 }

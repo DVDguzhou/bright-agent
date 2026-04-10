@@ -255,20 +255,36 @@ function LifeAgentsPageContent() {
     if (!touchNavEnabled) return;
     const el = pagerRef.current;
     if (!el) return;
+    let raf1 = 0;
+    let raf2 = 0;
+    let cancelled = false;
     const measure = () => {
       const width = el.clientWidth;
       setPanelWidth(width);
       if (width > 0) {
         const idx = tabIndexFromFeedTab(feedTab);
-        el.scrollLeft = idx * width;
+        el.scrollTo({ left: idx * width, behavior: "auto" });
         lastPagerIdxRef.current = idx;
         visitPanel(idx);
       }
     };
     measure();
+    raf1 = requestAnimationFrame(() => {
+      if (cancelled) return;
+      measure();
+      raf2 = requestAnimationFrame(() => {
+        if (cancelled) return;
+        measure();
+      });
+    });
     const ro = new ResizeObserver(measure);
     ro.observe(el);
-    return () => ro.disconnect();
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(raf1);
+      cancelAnimationFrame(raf2);
+      ro.disconnect();
+    };
   }, [touchNavEnabled, feedTab, visitPanel]);
 
   useLayoutEffect(() => {
