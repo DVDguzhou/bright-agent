@@ -7,7 +7,11 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { VerificationBadge } from "@/components/VerificationBadge";
 import { LifeAgentCoverImage } from "@/components/LifeAgentCoverImage";
-import { resolveLifeAgentCoverDisplayUrl } from "@/lib/life-agent-covers";
+import {
+  nextLifeAgentCoverFallbackSrc,
+  normalizeLifeAgentCoverImgSrc,
+  resolveLifeAgentCoverDisplayUrl,
+} from "@/lib/life-agent-covers";
 import { getFavoriteAgentIds } from "@/lib/life-agent-favorites";
 import { LifeAgentDiscoverCardGrid } from "@/components/LifeAgentDiscoverCardGrid";
 import { rankLifeAgentsBySearchQuery, type LifeAgentListItem } from "@/lib/life-agent-feed-search";
@@ -31,12 +35,16 @@ type PurchasedAgentRow = {
 const PURCHASED_CACHE_TTL_MS = 90_000;
 const DISCOVER_FEED_CACHE_KEY = "life-agents:discover:first-page";
 const DISCOVER_FEED_CACHE_TTL_MS = 5 * 60_000;
+const INITIAL_VISIBLE_IMAGE_COUNT_MOBILE = 6;
+const INITIAL_VISIBLE_IMAGE_COUNT_DESKTOP = 8;
 
 type DiscoverFeedCacheSnapshot = {
   savedAt: number;
   items: LifeAgentListItem[];
   nextCursor: string | null;
 };
+
+type FeedTabKey = "favorites" | "discover" | "purchased";
 
 const UI = {
   loading: "加载中...",
@@ -69,6 +77,50 @@ function pathForTabIndex(i: number): string {
   if (i === 0) return "/life-agents?tab=favorites";
   if (i === 2) return "/life-agents?tab=purchased";
   return "/life-agents";
+}
+
+function normalizeFeedTab(tab: string | null): FeedTabKey {
+  if (tab === "favorites") return "favorites";
+  if (tab === "purchased") return "purchased";
+  return "discover";
+}
+
+function preloadLifeAgentCover(src: string): Promise<void> {
+  return new Promise((resolve) => {
+    if (typeof window === "undefined") {
+      resolve();
+      return;
+    }
+
+    const seen = new Set<string>();
+
+    const attempt = (candidate: string) => {
+      const normalized = normalizeLifeAgentCoverImgSrc(candidate);
+      if (seen.has(normalized)) {
+        resolve();
+        return;
+      }
+      seen.add(normalized);
+
+      const img = new window.Image();
+      img.decoding = "async";
+      img.onload = () => resolve();
+      img.onerror = () => {
+        const next = nextLifeAgentCoverFallbackSrc(normalized);
+        if (next === normalized) {
+          resolve();
+          return;
+        }
+        attempt(next);
+      };
+      img.src = normalized;
+      if (img.complete && img.naturalWidth > 0) {
+        resolve();
+      }
+    };
+
+    attempt(src);
+  });
 }
 
 function readDiscoverFeedCache(): DiscoverFeedCacheSnapshot | null {
@@ -141,6 +193,7 @@ function LifeAgentsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const feedTab = searchParams.get("tab");
+  const initialFeedTabRef = useRef<FeedTabKey>(normalizeFeedTab(feedTab));
   const [discoverItems, setDiscoverItems] = useState<LifeAgentListItem[]>([]);
   const [discoverNextCursor, setDiscoverNextCursor] = useState<string | null>(null);
   const [discoverLoading, setDiscoverLoading] = useState(true);
@@ -159,6 +212,7 @@ function LifeAgentsPageContent() {
   const [purchasedUnauthorized, setPurchasedUnauthorized] = useState(false);
   const [purchasedFetched, setPurchasedFetched] = useState(false);
   const [pagerReady, setPagerReady] = useState(false);
+  const [initialPageReady, setInitialPageReady] = useState(false);
 
   const touchNavEnabled = useMobileTouchNavEnabled();
 
@@ -171,6 +225,7 @@ function LifeAgentsPageContent() {
   const purchasedLastLoadedAtRef = useRef(0);
   const purchasedRequestInFlightRef = useRef(false);
   const discoverCacheHydratedRef = useRef(false);
+  const initialFeedTab = initialFeedTabRef.current;
 
   const visitPanel = useCallback((i: number) => {
     setVisitedMask((m) => {
@@ -507,6 +562,55 @@ function LifeAgentsPageContent() {
     return displayProfilesDiscover;
   }, [feedTab, displayProfilesFavorites, displayProfilesDiscover]);
 
+  const initialVisibleImageCount = touchNavEnabled ? INITIAL_VISIBLE_IMAGE_COUNT_MOBILE : INITIAL_VISIBLE_IMAGE_COUNT_DESKTOP;
+
+  const initialFeedImageUrls = useMemo(() => {
+    if (initialFeedTab === "favorites") {
+      return displayProfilesFavorites
+        .slice(0, initialVisibleImageCount)
+        .map((profile) =>
+          resolveLifeAgentCoverDisplayUrl(profile.coverUrl, profile.coverImageUrl, profile.coverPresetKey),
+        );
+    }
+    if (initialFeedTab === "purchased") {
+      return purchasedItems
+        .slice(0, initialVisibleImageCount)
+        .map((row) => resolveLifeAgentCoverDisplayUrl(row.coverUrl, row.coverImageUrl, row.coverPresetKey));
+    }
+    return displayProfilesDiscover
+      .slice(0, initialVisibleImageCount)
+      .map((profile) =>
+        resolveLifeAgentCoverDisplayUrl(profile.coverUrl, profile.coverImageUrl, profile.coverPresetKey),
+      );
+  }, [displayProfilesDiscover, displayProfilesFavorites, initialFeedTab, initialVisibleImageCount, purchasedItems]);
+
+  const initialFeedDataReady =
+    initialFeedTab === "favorites"
+      ? favoritesFetched
+      : initialFeedTab === "purchased"
+        ? purchasedFetched || purchasedUnauthorized
+        : !discoverLoading;
+
+  useEffect(() => {
+    if (initialPageReady) return;
+    if (loadError || !initialFeedDataReady) return;
+
+    const urls = initialFeedImageUrls.filter(Boolean);
+    if (urls.length === 0) {
+      setInitialPageReady(true);
+      return;
+    }
+
+    let cancelled = false;
+    Promise.all(urls.map((url) => preloadLifeAgentCover(url))).then(() => {
+      if (!cancelled) setInitialPageReady(true);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [initialFeedDataReady, initialFeedImageUrls, initialPageReady, loadError]);
+
   const gridLoadingDesktop =
     feedTab === "favorites" ? favoritesLoading : feedTab === "purchased" ? false : discoverLoading;
 
@@ -602,7 +706,7 @@ function LifeAgentsPageContent() {
   const pagerSectionClass =
     "box-border w-full min-w-[100%] shrink-0 space-y-4 px-1 sm:px-0 max-lg:snap-center max-lg:snap-always";
 
-  if (touchNavEnabled && !pagerReady) {
+  if (!initialPageReady || (touchNavEnabled && !pagerReady)) {
     return <LifeAgentsPageLoadingState />;
   }
 

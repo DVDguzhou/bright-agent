@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import "./globals.css";
 import { Nav } from "@/components/Nav";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ChunkLoadRecovery } from "@/components/ChunkLoadRecovery";
 import { InstallPWA } from "@/components/InstallPWA";
 import { RegisterSW } from "@/components/RegisterSW";
 
@@ -38,6 +39,7 @@ export default function RootLayout({
     <html lang="zh-CN">
       <body className="min-h-screen bg-gradient-to-b from-[#F3EFFF] via-violet-50/35 to-slate-50 text-slate-900 font-sans antialiased overflow-x-hidden overscroll-x-none">
         <AuthProvider>
+          <ChunkLoadRecovery />
           <Suspense fallback={null}>
             <Nav />
           </Suspense>
