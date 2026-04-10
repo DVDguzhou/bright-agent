@@ -173,6 +173,7 @@ function LifeAgentsPageContent() {
   const [purchasedFetched, setPurchasedFetched] = useState(false);
   const [pageBootImagesReady, setPageBootImagesReady] = useState(false);
   const [pageBootReady, setPageBootReady] = useState(false);
+  const [pagerReady, setPagerReady] = useState(false);
 
   const touchNavEnabled = useMobileTouchNavEnabled();
   const initialBootTab = initialBootTabRef.current;
@@ -217,12 +218,30 @@ function LifeAgentsPageContent() {
     if (!touchNavEnabled) return;
     const el = pagerRef.current;
     if (!el) return;
-    const measure = () => setPanelWidth(el.clientWidth);
+    const measure = () => {
+      const width = el.clientWidth;
+      setPanelWidth(width);
+      if (width > 0) {
+        const idx = tabIndexFromFeedTab(feedTab);
+        el.scrollLeft = idx * width;
+        lastPagerIdxRef.current = idx;
+        visitPanel(idx);
+        setPagerReady(true);
+      }
+    };
     measure();
     const ro = new ResizeObserver(measure);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [touchNavEnabled]);
+  }, [touchNavEnabled, feedTab, visitPanel]);
+
+  useEffect(() => {
+    if (!touchNavEnabled) {
+      setPagerReady(false);
+      return;
+    }
+    setPagerReady(false);
+  }, [touchNavEnabled, feedTab]);
 
   useLayoutEffect(() => {
     if (!touchNavEnabled || panelWidth <= 0) return;
@@ -236,6 +255,7 @@ function LifeAgentsPageContent() {
     el.scrollTo({ left: idx * panelWidth, behavior: "auto" });
     lastPagerIdxRef.current = idx;
     visitPanel(idx);
+    setPagerReady(true);
   }, [touchNavEnabled, feedTab, panelWidth, visitPanel]);
 
   useEffect(() => {
@@ -635,7 +655,7 @@ function LifeAgentsPageContent() {
   const pagerSectionClass =
     "box-border w-full min-w-[100%] shrink-0 space-y-4 px-1 sm:px-0 max-lg:snap-center max-lg:snap-always";
 
-  if (!pageBootReady) {
+  if (!pageBootReady || (touchNavEnabled && !pagerReady)) {
     return <LifeAgentsPageLoadingState />;
   }
 
