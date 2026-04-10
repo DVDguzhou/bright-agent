@@ -126,6 +126,41 @@
 | 85 | 教训记牢了 | canbyjiaoxun | yantu-import@demo.com | lesson_ok@163.com | YantuLa2026! |
 | 86 | 光子麦克斯 | xmaximum | yantu-import@demo.com | photon_max@163.com | YantuLa2026! |
 
+## 华科飞跃手册 2020 光学与电子信息/工程科学学院系列（27 条）
+
+来源：《华中科技大学光学与电子信息学院 / 工程科学学院飞跃手册 2020》第三编，27 位升学经验作者。
+档案文件：`backend/internal/yantuseed/profiles_hust_feyue.go`
+
+| 序号 | 人生 Agent 显示名 | 原归属来源 | 原归属账号 | 新登录邮箱 | 初始密码 |
+|-----|------------------|-----------|------------|------------|----------|
+| 87 | 码农阿喵 | 华科飞跃手册2020 | yantu-import@demo.com | husk_wave3@163.com | YantuLa2026! |
+| 88 | 柠檬不酸ya | 华科飞跃手册2020 | yantu-import@demo.com | flux_d7k@163.com | YantuLa2026! |
+| 89 | 扶摇九万里 | 华科飞跃手册2020 | yantu-import@demo.com | neon_crab8@163.com | YantuLa2026! |
+| 90 | 北极星xw | 华科飞跃手册2020 | yantu-import@demo.com | zh_orbit@163.com | YantuLa2026! |
+| 91 | 追光Zzz | 华科飞跃手册2020 | yantu-import@demo.com | comet_hx@163.com | YantuLa2026! |
+| 92 | 橘子汽水er | 华科飞跃手册2020 | yantu-import@demo.com | mint_leaf9@163.com | YantuLa2026! |
+| 93 | 嗷呜小怪兽 | 华科飞跃手册2020 | yantu-import@demo.com | jade_kf0@163.com | YantuLa2026! |
+| 94 | 暴走萝卜丁 | 华科飞跃手册2020 | yantu-import@demo.com | drift_yz@163.com | YantuLa2026! |
+| 95 | 晚风予星河 | 华科飞跃手册2020 | yantu-import@demo.com | fog_lamp3@163.com | YantuLa2026! |
+| 96 | 阿拉蕾biu | 华科飞跃手册2020 | yantu-import@demo.com | pixel_wq@163.com | YantuLa2026! |
+| 97 | 太阳花2号 | 华科飞跃手册2020 | yantu-import@demo.com | sand_fox0@163.com | YantuLa2026! |
+| 98 | 鹤鸣九皋 | 华科飞跃手册2020 | yantu-import@demo.com | quilt_nn@163.com | YantuLa2026! |
+| 99 | 蓝莓冰沙Q | 华科飞跃手册2020 | yantu-import@demo.com | maple_hk8@163.com | YantuLa2026! |
+| 100 | 星球漫游33 | 华科飞跃手册2020 | yantu-import@demo.com | noon_cat@163.com | YantuLa2026! |
+| 101 | 微光Lab | 华科飞跃手册2020 | yantu-import@demo.com | prism_lz@163.com | YantuLa2026! |
+| 102 | 枫叶加零 | 华科飞跃手册2020 | yantu-import@demo.com | volt_bee@163.com | YantuLa2026! |
+| 103 | 蔷薇花开Lv | 华科飞跃手册2020 | yantu-import@demo.com | cork_dn9@163.com | YantuLa2026! |
+| 104 | 甜筒翻转ss | 华科飞跃手册2020 | yantu-import@demo.com | arc_wind7@163.com | YantuLa2026! |
+| 105 | 小确幸z7 | 华科飞跃手册2020 | yantu-import@demo.com | opal_fish@163.com | YantuLa2026! |
+| 106 | 银河冲浪手 | 华科飞跃手册2020 | yantu-import@demo.com | twig_mk0@163.com | YantuLa2026! |
+| 107 | 纳米小分队 | 华科飞跃手册2020 | yantu-import@demo.com | chalk_8y@163.com | YantuLa2026! |
+| 108 | 光波dispersion | 华科飞跃手册2020 | yantu-import@demo.com | fern_blue@163.com | YantuLa2026! |
+| 109 | 芯片味的茶 | 华科飞跃手册2020 | yantu-import@demo.com | haze_owl@163.com | YantuLa2026! |
+| 110 | 激光小王子 | 华科飞跃手册2020 | yantu-import@demo.com | zinc_rr9@163.com | YantuLa2026! |
+| 111 | 港湾小舟rv | 华科飞跃手册2020 | yantu-import@demo.com | dew_plum@163.com | YantuLa2026! |
+| 112 | 元气弹bq | 华科飞跃手册2020 | yantu-import@demo.com | knot_echo@163.com | YantuLa2026! |
+| 113 | 解码小能手 | 华科飞跃手册2020 | yantu-import@demo.com | reef_lx9@163.com | YantuLa2026! |
+
 ## 删除研途榜样种子数据（危险操作）
 
 级联清理：知识库、买家会话与消息、反馈、评分、提问包、调用密钥、共编状态、收藏等。
