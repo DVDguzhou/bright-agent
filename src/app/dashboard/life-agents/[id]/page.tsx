@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { LifeAgentCoverImage } from "@/components/LifeAgentCoverImage";
-import { resolveLifeAgentCoverUrl } from "@/lib/life-agent-covers";
+import { resolveLifeAgentCoverDisplayUrl } from "@/lib/life-agent-covers";
 import {
   buildOptimizationSuggestions,
   computeCompletion,
@@ -106,8 +106,7 @@ export default function LifeAgentManageHomePage() {
   const suggestions = useMemo(() => (data ? buildOptimizationSuggestions(data) : []), [data]);
 
   const coverSrc =
-    profile?.coverUrl?.trim() ||
-    resolveLifeAgentCoverUrl(profile?.coverImageUrl, profile?.coverPresetKey);
+    resolveLifeAgentCoverDisplayUrl(profile?.coverUrl, profile?.coverImageUrl, profile?.coverPresetKey);
 
   const deleteAgent = async () => {
     if (!confirm("确定删除这个人生 Agent 吗？删除后无法恢复，包括知识、聊天记录等。")) return;

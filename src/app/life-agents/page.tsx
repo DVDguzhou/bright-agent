@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { VerificationBadge } from "@/components/VerificationBadge";
 import { LifeAgentCoverImage } from "@/components/LifeAgentCoverImage";
-import { resolveLifeAgentCoverUrl } from "@/lib/life-agent-covers";
+import { resolveLifeAgentCoverDisplayUrl } from "@/lib/life-agent-covers";
 import { getFavoriteAgentIds } from "@/lib/life-agent-favorites";
 import { LifeAgentDiscoverCardGrid } from "@/components/LifeAgentDiscoverCardGrid";
 import { rankLifeAgentsBySearchQuery, type LifeAgentListItem } from "@/lib/life-agent-feed-search";
@@ -590,7 +590,7 @@ function PurchasedAgentsWindowedGrid({ rows }: { rows: PurchasedAgentRow[] }) {
     <div className="space-y-3">
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4 xl:grid-cols-5">
         {slice.map((row, index) => {
-          const coverUrl = row.coverUrl || resolveLifeAgentCoverUrl(row.coverImageUrl, row.coverPresetKey);
+          const coverUrl = resolveLifeAgentCoverDisplayUrl(row.coverUrl, row.coverImageUrl, row.coverPresetKey);
           const headlineShown = cleanLifeAgentIntroText(row.headline, row.displayName);
           return (
             <motion.article
@@ -598,7 +598,7 @@ function PurchasedAgentsWindowedGrid({ rows }: { rows: PurchasedAgentRow[] }) {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index < 8 ? index * 0.04 : 0 }}
-              className="min-h-0 [content-visibility:auto] [contain-intrinsic-size:auto_300px]"
+              className="min-h-0 [contain-intrinsic-size:auto_300px]"
             >
               <Link href={`/life-agents/${row.id}/chat`} className="group flex h-full min-h-0">
                 <div className="flex h-full min-h-[260px] w-full flex-col overflow-hidden rounded-[22px] border border-purple-200/[0.22] bg-white/[0.98] shadow-[0_5px_28px_-8px_rgba(124,58,237,0.09)] backdrop-blur-sm transition duration-200 group-hover:border-fuchsia-200/35 group-hover:shadow-[0_10px_36px_-10px_rgba(168,139,235,0.14)] sm:min-h-[280px]">
@@ -609,8 +609,8 @@ function PurchasedAgentsWindowedGrid({ rows }: { rows: PurchasedAgentRow[] }) {
                       fill
                       className="object-cover"
                       sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 220px"
-                      priority={index < 6}
-                      loading={index < 6 ? undefined : "lazy"}
+                      priority={index < 4}
+                      loading={index < 12 ? "eager" : "lazy"}
                     />
                     {(row.verificationStatus === "verified" || row.verificationStatus === "pending") && (
                       <div className="absolute right-2 top-2 rounded-full bg-white/90 px-1.5 py-0.5 shadow-sm backdrop-blur-sm">

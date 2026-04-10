@@ -9,7 +9,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { VoiceMessageBubble, VoiceReplyToggle } from "@/components/voice";
 import { LifeAgentMessageComposer } from "@/components/LifeAgentMessageComposer";
 import { useAuth } from "@/contexts/AuthContext";
-import { resolveLifeAgentCoverUrl } from "@/lib/life-agent-covers";
+import { resolveLifeAgentCoverDisplayUrl } from "@/lib/life-agent-covers";
 import { useEdgeSwipeBack } from "@/hooks/use-edge-swipe-back";
 import { useMobileTouchNavEnabled } from "@/hooks/use-life-agents-feed-gestures";
 
@@ -273,7 +273,7 @@ export default function LifeAgentChatPage() {
   }, []);
 
   const agentCoverUrl = profile
-    ? profile.coverUrl || resolveLifeAgentCoverUrl(profile.coverImageUrl, profile.coverPresetKey)
+    ? resolveLifeAgentCoverDisplayUrl(profile.coverUrl, profile.coverImageUrl, profile.coverPresetKey)
     : null;
 
   const userLetter = (user?.name?.trim() || user?.email || "我").slice(0, 1).toUpperCase();

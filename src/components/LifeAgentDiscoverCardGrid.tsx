@@ -7,7 +7,7 @@ import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import { RatingStars } from "@/components/RatingStars";
 import { VerificationBadge } from "@/components/VerificationBadge";
 import { LifeAgentCoverImage } from "@/components/LifeAgentCoverImage";
-import { resolveLifeAgentCoverUrl } from "@/lib/life-agent-covers";
+import { resolveLifeAgentCoverDisplayUrl } from "@/lib/life-agent-covers";
 import type { LifeAgentListItem } from "@/lib/life-agent-feed-search";
 import { cleanLifeAgentIntroText } from "@/lib/life-agent-intro-clean";
 import { useWindowedSlice } from "@/lib/use-windowed-slice";
@@ -68,10 +68,10 @@ function LifeAgentDiscoverCard({
 }) {
   const areaLabel = [profile.city, profile.province].filter(Boolean).join(" · ");
   const tags = (profile.expertiseTags ?? []).slice(0, 2);
-  const coverUrl = profile.coverUrl || resolveLifeAgentCoverUrl(profile.coverImageUrl, profile.coverPresetKey);
+  const coverUrl = resolveLifeAgentCoverDisplayUrl(profile.coverUrl, profile.coverImageUrl, profile.coverPresetKey);
   const headlineShown = cleanLifeAgentIntroText(profile.headline, profile.displayName);
   const stagger = globalIndex < 8;
-  const shellClass = "min-h-0 [content-visibility:auto] [contain-intrinsic-size:auto_300px]";
+  const shellClass = "min-h-0 [contain-intrinsic-size:auto_300px]";
   const inner = (
     <Link href={profileHref(profile.id)} className="group flex h-full min-h-0">
         <div className="flex h-full min-h-[260px] w-full flex-col overflow-hidden rounded-[22px] border border-purple-200/[0.22] bg-white/[0.98] shadow-[0_5px_28px_-8px_rgba(124,58,237,0.09)] backdrop-blur-sm transition duration-200 group-hover:border-fuchsia-200/35 group-hover:shadow-[0_10px_36px_-10px_rgba(168,139,235,0.14)] sm:min-h-[280px]">
@@ -91,8 +91,8 @@ function LifeAgentDiscoverCard({
               fill
               className="object-cover"
               sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 220px"
-              priority={globalIndex < 6}
-              loading={globalIndex < 6 ? undefined : "lazy"}
+              priority={globalIndex < 4}
+              loading={globalIndex < 12 ? "eager" : "lazy"}
             />
             {(profile.verificationStatus === "verified" || profile.verificationStatus === "pending") && (
               <div className="absolute right-2 top-2 rounded-full bg-white/90 px-1.5 py-0.5 shadow-sm backdrop-blur-sm">

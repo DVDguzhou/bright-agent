@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { VerificationBadge } from "@/components/VerificationBadge";
 import { useAuth } from "@/contexts/AuthContext";
-import { resolveLifeAgentCoverUrl } from "@/lib/life-agent-covers";
+import { resolveLifeAgentCoverDisplayUrl } from "@/lib/life-agent-covers";
 import { cleanLifeAgentIntroText } from "@/lib/life-agent-intro-clean";
 
 type LifeAgentPurchased = {
@@ -33,7 +33,7 @@ function PurchasedGrid({ items }: { items: LifeAgentPurchased[] }) {
   return (
     <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4 xl:grid-cols-5">
       {items.map((row, index) => {
-        const coverUrl = row.coverUrl || resolveLifeAgentCoverUrl(row.coverImageUrl, row.coverPresetKey);
+                  const coverUrl = resolveLifeAgentCoverDisplayUrl(row.coverUrl, row.coverImageUrl, row.coverPresetKey);
         const headlineShown = cleanLifeAgentIntroText(row.headline, row.displayName);
         return (
           <motion.article

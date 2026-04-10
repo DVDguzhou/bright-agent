@@ -23,6 +23,42 @@ export function nextLifeAgentCoverFallbackSrc(current: string): string {
   return DEFAULT_COVER_PNG_URL;
 }
 
+function parseCoverLikeUrl(src: string): URL | null {
+  try {
+    return src.startsWith("http://") || src.startsWith("https://")
+      ? new URL(src)
+      : new URL(src, "https://placeholder.local");
+  } catch {
+    return null;
+  }
+}
+
+function extractLifeAgentCoverUploadName(pathname: string): string | null {
+  const markers = [
+    "/api/upload/life-agent-cover/",
+    "/upload/life-agent-cover/",
+    "/uploads/life-agent-cover/",
+    "/uploads/",
+  ];
+  for (const marker of markers) {
+    const idx = pathname.lastIndexOf(marker);
+    if (idx < 0) continue;
+    const rest = pathname.slice(idx + marker.length).split("/").filter(Boolean);
+    const name = rest.at(-1);
+    if (!name) continue;
+    try {
+      return decodeURIComponent(name);
+    } catch {
+      return name;
+    }
+  }
+  return null;
+}
+
+function toLifeAgentCoverProxyUrl(uploadName: string): string {
+  return `/api/upload/life-agent-cover/${encodeURIComponent(uploadName)}`;
+}
+
 /**
  * 将接口返回的默认路径（或空）规范为主默认 PNG；
  * 历史 `.svg` 默认路径也会改指向 PNG，便于统一用你的 default-cover.png。
@@ -35,13 +71,13 @@ export function normalizeLifeAgentCoverImgSrc(src: string | null | undefined): s
   if (s === DEFAULT_COVER_SVG_URL || s.endsWith("/default-cover.svg")) {
     return DEFAULT_COVER_PNG_URL;
   }
-  try {
-    const abs = s.startsWith("http://") || s.startsWith("https://") ? new URL(s) : new URL(s, "https://placeholder.local");
-    const p = abs.pathname;
+  const parsed = parseCoverLikeUrl(s);
+  if (parsed) {
+    const p = parsed.pathname;
     if (p.endsWith("/default-cover.png")) return DEFAULT_COVER_PNG_URL;
     if (p.endsWith("/default-cover.svg")) return DEFAULT_COVER_PNG_URL;
-  } catch {
-    /* ignore */
+    const uploadName = extractLifeAgentCoverUploadName(p);
+    if (uploadName) return toLifeAgentCoverProxyUrl(uploadName);
   }
   return s;
 }
@@ -59,12 +95,28 @@ export const SHIPPED_LIFE_AGENT_PRESET_PNG_KEYS = new Set<string>([
  */
 export function resolveLifeAgentCoverUrl(coverImageUrl?: string | null, coverPresetKey?: string | null): string {
   const img = (coverImageUrl ?? "").trim();
-  if (img) return img;
+  if (img) return normalizeLifeAgentCoverImgSrc(img);
   const preset = (coverPresetKey ?? "").trim();
   if (preset && SHIPPED_LIFE_AGENT_PRESET_PNG_KEYS.has(preset)) {
     return `/life-agent-cover-presets/${preset}.png`;
   }
   return DEFAULT_COVER_PNG_URL;
+}
+
+/**
+ * 列表页与详情页统一使用的最终封面地址。
+ * 优先信任持久化字段 `coverImageUrl` / `coverPresetKey`，仅在缺失时再回退到接口直出 `coverUrl`。
+ */
+export function resolveLifeAgentCoverDisplayUrl(
+  coverUrl?: string | null,
+  coverImageUrl?: string | null,
+  coverPresetKey?: string | null,
+): string {
+  const persisted = resolveLifeAgentCoverUrl(coverImageUrl, coverPresetKey);
+  if (persisted !== DEFAULT_COVER_PNG_URL) return persisted;
+  const direct = normalizeLifeAgentCoverImgSrc(coverUrl);
+  if (direct !== DEFAULT_COVER_PNG_URL) return direct;
+  return persisted;
 }
 
 export function lifeAgentCoverShouldBypassOptimizer(src: string): boolean {

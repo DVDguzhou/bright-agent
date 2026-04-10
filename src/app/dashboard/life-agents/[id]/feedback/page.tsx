@@ -5,7 +5,7 @@ import { LifeAgentCoverImage } from "@/components/LifeAgentCoverImage";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { RatingStars } from "@/components/RatingStars";
-import { resolveLifeAgentCoverUrl } from "@/lib/life-agent-covers";
+import { resolveLifeAgentCoverDisplayUrl } from "@/lib/life-agent-covers";
 import {
   extractTopKeywords,
   fetchManageData,
@@ -214,8 +214,7 @@ export default function LifeAgentFeedbackFeedPage() {
 
   const profile = payload?.profile;
   const coverSrc =
-    profile?.coverUrl?.trim() ||
-    resolveLifeAgentCoverUrl(profile?.coverImageUrl, profile?.coverPresetKey);
+    resolveLifeAgentCoverDisplayUrl(profile?.coverUrl, profile?.coverImageUrl, profile?.coverPresetKey);
 
   if (loading && !payload) {
     return (
