@@ -282,6 +282,8 @@ type LifeAgentChatMessage struct {
 	Role             string    `gorm:"size:32;not null"`
 	Content          string    `gorm:"type:text;not null"`
 	AudioURL         *string   `gorm:"column:audio_url;size:512"`
+	AudioFormat      *string   `gorm:"column:audio_format;size:16"`
+	AudioData        []byte    `gorm:"column:audio_data;type:longblob"`
 	AudioDurationSec *int      `gorm:"column:audio_duration_sec"`
 	Refs             JSONAny   `gorm:"column:refs;type:json"`
 	CreatedAt        time.Time `gorm:"column:created_at"`

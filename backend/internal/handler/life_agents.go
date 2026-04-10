@@ -47,6 +47,19 @@ func writeSSE(c *gin.Context, eventType string, payload interface{}) {
 	c.Writer.Flush()
 }
 
+func buildStoredAudioURL(msg *models.LifeAgentChatMessage) string {
+	if msg == nil {
+		return ""
+	}
+	if msg.AudioURL != nil && strings.TrimSpace(*msg.AudioURL) != "" {
+		return strings.TrimSpace(*msg.AudioURL)
+	}
+	if msg.AudioFormat != nil && strings.TrimSpace(*msg.AudioFormat) != "" {
+		return "/api/audio/" + msg.ID + "." + strings.TrimSpace(*msg.AudioFormat)
+	}
+	return ""
+}
+
 func coalesceVerificationStatus(v string) string {
 	switch v {
 	case "verified", "pending":
@@ -1806,7 +1819,10 @@ func LifeAgentsChatSessionDetail(cfg *config.Config) gin.HandlerFunc {
 		}
 
 		var msgs []models.LifeAgentChatMessage
-		db.DB.Where("session_id = ?", sessionID).Order("created_at ASC").Find(&msgs)
+		db.DB.Select("id", "role", "content", "audio_url", "audio_format", "audio_duration_sec", "refs", "created_at").
+			Where("session_id = ?", sessionID).
+			Order("created_at ASC").
+			Find(&msgs)
 
 		messages := make([]gin.H, 0, len(msgs))
 		for _, msg := range msgs {
@@ -1818,8 +1834,8 @@ func LifeAgentsChatSessionDetail(cfg *config.Config) gin.HandlerFunc {
 			}
 			if msg.Role == "assistant" {
 				item["references"] = buildLifeAgentChatReferences(msg.Refs)
-				if msg.AudioURL != nil {
-					item["audioUrl"] = *msg.AudioURL
+				if audioURL := buildStoredAudioURL(&msg); audioURL != "" {
+					item["audioUrl"] = audioURL
 				}
 				if msg.AudioDurationSec != nil {
 					item["audioDurationSec"] = *msg.AudioDurationSec
@@ -1932,7 +1948,11 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 		var hist []lifeagent.ChatMessageForAI
 		var msgs []models.LifeAgentChatMessage
 		// 取最近 20 条（DESC），再反转为时间正序，确保 LLM 看到的是最新上下文
-		db.DB.Where("session_id = ?", sessionID).Order("created_at DESC").Limit(20).Find(&msgs)
+		db.DB.Select("role", "content", "created_at").
+			Where("session_id = ?", sessionID).
+			Order("created_at DESC").
+			Limit(20).
+			Find(&msgs)
 		for i, j := 0, len(msgs)-1; i < j; i, j = i+1, j-1 {
 			msgs[i], msgs[j] = msgs[j], msgs[i]
 		}
@@ -2021,6 +2041,8 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 		assistantMsgID := models.GenID()
 
 		var audioURL *string
+		var audioFormat *string
+		var audioData []byte
 		var audioDurationSec *int
 		resolvedTTS := cfg.ResolveTTSProvider()
 		voiceCloneID := ptrStr(p.VoiceCloneID)
@@ -2031,13 +2053,18 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 				log.Printf("life-agents chat: TTS failed (provider=%q): %v", resolvedTTS, err)
 			}
 			if err == nil && audioB64 != "" {
-				filename, saveErr := tts.SaveAudio(assistantMsgID, audioB64, ttsProvider.MediaFormat())
-				if saveErr != nil {
-					log.Printf("life-agents chat: save TTS audio: %v", saveErr)
-				}
-				if filename != "" {
-					url := "/api/audio/" + filename
+				decoded, decodeErr := base64.StdEncoding.DecodeString(audioB64)
+				if decodeErr != nil {
+					log.Printf("life-agents chat: decode TTS audio: %v", decodeErr)
+				} else if len(decoded) > 0 {
+					format := strings.TrimSpace(ttsProvider.MediaFormat())
+					if format == "" {
+						format = "mp3"
+					}
+					url := "/api/audio/" + assistantMsgID + "." + format
 					audioURL = &url
+					audioFormat = &format
+					audioData = decoded
 					audioDurationSec = &dur
 				}
 			}
@@ -2050,6 +2077,8 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 			Content:          content,
 			Refs:             refsAny,
 			AudioURL:         audioURL,
+			AudioFormat:      audioFormat,
+			AudioData:        audioData,
 			AudioDurationSec: audioDurationSec,
 		})
 		db.DB.Model(packToConsume).Update("questions_used", packToConsume.QuestionsUsed+1)
@@ -2133,7 +2162,9 @@ func LifeAgentsChatFeedback(cfg *config.Config) gin.HandlerFunc {
 			return
 		}
 		var msg models.LifeAgentChatMessage
-		if err := db.DB.Where("id = ? AND session_id = ?", body.MessageID, body.SessionID).First(&msg).Error; err != nil || msg.Role != "assistant" {
+		if err := db.DB.Select("id", "session_id", "role", "content", "refs", "created_at").
+			Where("id = ? AND session_id = ?", body.MessageID, body.SessionID).
+			First(&msg).Error; err != nil || msg.Role != "assistant" {
 			c.JSON(http.StatusNotFound, gin.H{"error": "MESSAGE_NOT_FOUND"})
 			return
 		}
@@ -2155,7 +2186,10 @@ func LifeAgentsChatFeedback(cfg *config.Config) gin.HandlerFunc {
 		excerpt := lifeagent.TruncateToRunes(msg.Content, 400)
 		var userQ string
 		var prevMsg models.LifeAgentChatMessage
-		if db.DB.Where("session_id = ? AND role = ? AND created_at < ?", body.SessionID, "user", msg.CreatedAt).Order("created_at DESC").First(&prevMsg).Error == nil {
+		if db.DB.Select("content", "created_at").
+			Where("session_id = ? AND role = ? AND created_at < ?", body.SessionID, "user", msg.CreatedAt).
+			Order("created_at DESC").
+			First(&prevMsg).Error == nil {
 			userQ = prevMsg.Content
 		}
 		fb := models.LifeAgentFeedback{

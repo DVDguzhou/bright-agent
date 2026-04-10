@@ -278,7 +278,11 @@ func LifeAgentsChatAPI(cfg *config.Config) gin.HandlerFunc {
 		var hist []lifeagent.ChatMessageForAI
 		var msgs []models.LifeAgentChatMessage
 		// 取最近 20 条（DESC），再反转为时间正序，确保 LLM 看到的是最新上下文
-		db.DB.Where("session_id = ?", sessionID).Order("created_at DESC").Limit(20).Find(&msgs)
+		db.DB.Select("role", "content", "created_at").
+			Where("session_id = ?", sessionID).
+			Order("created_at DESC").
+			Limit(20).
+			Find(&msgs)
 		for i, j := 0, len(msgs)-1; i < j; i, j = i+1, j-1 {
 			msgs[i], msgs[j] = msgs[j], msgs[i]
 		}
