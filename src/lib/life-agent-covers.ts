@@ -29,13 +29,13 @@ export const DEFAULT_COVER_FINAL_FALLBACK_SRC =
     `<svg xmlns="http://www.w3.org/2000/svg" width="8" height="10" viewBox="0 0 8 10"><rect width="8" height="10" fill="#e2e8f0"/></svg>`,
   );
 
-/** 加载失败时的下一级回退：自定义坏链 → 自包含 SVG → 内联占位；（直连 PNG 失败时再试 SVG） */
+/** 加载失败时的下一级回退：自定义坏链 → PNG → SVG → 内联占位 */
 export function nextLifeAgentCoverFallbackSrc(current: string): string {
   const s = current.trim();
   if (s === DEFAULT_COVER_FINAL_FALLBACK_SRC) return s;
-  if (s === DEFAULT_COVER_PNG_URL) return DEFAULT_COVER_SVG_URL;
   if (s === DEFAULT_COVER_SVG_URL) return DEFAULT_COVER_FINAL_FALLBACK_SRC;
-  return DEFAULT_COVER_SVG_URL;
+  if (s === DEFAULT_COVER_PNG_URL) return DEFAULT_COVER_SVG_URL;
+  return DEFAULT_COVER_PNG_URL;
 }
 
 /**
@@ -44,20 +44,9 @@ export function nextLifeAgentCoverFallbackSrc(current: string): string {
  */
 export function normalizeLifeAgentCoverImgSrc(src: string | null | undefined): string {
   const s = (src ?? "").trim();
-  if (!s) return DEFAULT_COVER_SVG_URL;
+  if (!s) return DEFAULT_COVER_URL;
   if (s.startsWith("data:image/")) return s;
-  if (s === DEFAULT_COVER_PNG_URL || s.endsWith("/default-cover.png")) return DEFAULT_COVER_SVG_URL;
-  if (s === DEFAULT_COVER_SVG_URL || s.endsWith("/default-cover.svg")) {
-    return DEFAULT_COVER_SVG_URL;
-  }
-  try {
-    const abs = s.startsWith("http://") || s.startsWith("https://") ? new URL(s) : new URL(s, "https://placeholder.local");
-    const p = abs.pathname;
-    if (p.endsWith("/default-cover.png")) return DEFAULT_COVER_SVG_URL;
-    if (p.endsWith("/default-cover.svg")) return DEFAULT_COVER_SVG_URL;
-  } catch {
-    /* ignore */
-  }
+  if (isLifeAgentDefaultCoverUrl(s)) return DEFAULT_COVER_URL;
   return s;
 }
 
@@ -79,7 +68,7 @@ export function resolveLifeAgentCoverUrl(coverImageUrl?: string | null, coverPre
   if (preset && SHIPPED_LIFE_AGENT_PRESET_PNG_KEYS.has(preset)) {
     return `/life-agent-cover-presets/${preset}.png`;
   }
-  return DEFAULT_COVER_SVG_URL;
+  return DEFAULT_COVER_URL;
 }
 
 /**
