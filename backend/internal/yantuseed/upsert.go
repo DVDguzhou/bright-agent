@@ -76,13 +76,20 @@ func UpsertProfile(userID, coverPreset string, p Profile) error {
 	} else {
 		longBio = fmt.Sprintf("本文来自温州大学计算机与人工智能学院微信公众号「研途榜样」系列（%s）。%s", title, firstSentence(p.KnowledgeBody))
 	}
+	majorLabel := "考研专业"
+	if strings.TrimSpace(p.MajorLabel) != "" {
+		majorLabel = strings.TrimSpace(p.MajorLabel)
+	}
 	if strings.TrimSpace(p.MajorLine) != "" {
-		longBio += " 考研专业：" + strings.TrimSpace(p.MajorLine) + "。"
+		longBio += " " + majorLabel + "：" + strings.TrimSpace(p.MajorLine) + "。"
 	}
 	if strings.TrimSpace(p.ScoreLine) != "" {
 		longBio += " " + strings.TrimSpace(p.ScoreLine) + "。"
 	}
-	short := fmt.Sprintf("%s上岸经验分享，供考研同学参考。", p.DisplayName)
+	short := strings.TrimSpace(p.ShortBio)
+	if short == "" {
+		short = fmt.Sprintf("%s上岸经验分享，供考研同学参考。", p.DisplayName)
+	}
 	short = wechathtml.TrimRunes(short, 500)
 
 	var profile models.LifeAgentProfile
@@ -101,6 +108,15 @@ func UpsertProfile(userID, coverPreset string, p Profile) error {
 			"published":        true,
 			"expertise_tags":   expertiseTagsFor(p),
 			"sample_questions": sampleQuestionsFor(p),
+		}
+		if strings.TrimSpace(p.Audience) != "" {
+			updates["audience"] = strings.TrimSpace(p.Audience)
+		}
+		if strings.TrimSpace(p.WelcomeMessage) != "" {
+			updates["welcome_message"] = strings.TrimSpace(p.WelcomeMessage)
+		}
+		if strings.TrimSpace(p.Education) != "" {
+			updates["education"] = strOrNil(p.Education)
 		}
 		if strings.TrimSpace(coverPreset) != "" {
 			updates["cover_preset_key"] = strOrNil(coverPreset)
@@ -121,6 +137,18 @@ func UpsertProfile(userID, coverPreset string, p Profile) error {
 		} else {
 			coverImg = strPtr(coverURL)
 		}
+		audience := "正在备考或规划考研的同学，尤其计算机相关专业。"
+		if strings.TrimSpace(p.Audience) != "" {
+			audience = strings.TrimSpace(p.Audience)
+		}
+		welcome := fmt.Sprintf("你好，我是%s，欢迎问我关于考研备考、择校和心态调整的问题。", p.DisplayName)
+		if strings.TrimSpace(p.WelcomeMessage) != "" {
+			welcome = strings.TrimSpace(p.WelcomeMessage)
+		}
+		edu := "硕士研究生（已录取或就读）"
+		if strings.TrimSpace(p.Education) != "" {
+			edu = strings.TrimSpace(p.Education)
+		}
 		profile = models.LifeAgentProfile{
 			ID:               models.GenID(),
 			UserID:           userID,
@@ -128,13 +156,13 @@ func UpsertProfile(userID, coverPreset string, p Profile) error {
 			Headline:         headline,
 			ShortBio:         short,
 			LongBio:          longBio,
-			Audience:         "正在备考或规划考研的同学，尤其计算机相关专业。",
-			WelcomeMessage:   fmt.Sprintf("你好，我是%s，欢迎问我关于考研备考、择校和心态调整的问题。", p.DisplayName),
+			Audience:         audience,
+			WelcomeMessage:   welcome,
 			PricePerQuestion: 990,
 			ExpertiseTags:    expertiseTagsFor(p),
 			SampleQuestions:  sampleQuestionsFor(p),
 			School:           strOrNil(p.School),
-			Education:        strPtr("硕士研究生（已录取或就读）"),
+			Education:        strPtr(edu),
 			CoverImageURL:    coverImg,
 			CoverPresetKey:   presetKey,
 			Published:        true,
@@ -149,13 +177,21 @@ func UpsertProfile(userID, coverPreset string, p Profile) error {
 	if title != "" {
 		kTitle = "研途榜样｜" + shortSeries(title)
 	}
+	kCategory := "考研经验"
+	if strings.TrimSpace(p.KnowledgeCategory) != "" {
+		kCategory = strings.TrimSpace(p.KnowledgeCategory)
+	}
+	kTags := models.JSONArray{"考研", "经验贴", "计算机"}
+	if len(p.KnowledgeTags) > 0 {
+		kTags = models.JSONArray(p.KnowledgeTags)
+	}
 	entry := models.LifeAgentKnowledgeEntry{
 		ID:        models.GenID(),
 		ProfileID: profile.ID,
-		Category:  "考研经验",
+		Category:  kCategory,
 		Title:     wechathtml.TrimRunes(kTitle, 255),
 		Content:   p.KnowledgeBody,
-		Tags:      models.JSONArray{"考研", "经验贴", "计算机"},
+		Tags:      kTags,
 		SortOrder: 0,
 	}
 	if err := db.DB.Create(&entry).Error; err != nil {

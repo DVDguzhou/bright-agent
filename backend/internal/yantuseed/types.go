@@ -15,4 +15,14 @@ type Profile struct {
 	SampleQuestions []string
 	// ExpertiseTags 非空则写入档案；为空则按 LongBioPrefix 等规则推断。
 	ExpertiseTags []string
+
+	// ---- 以下字段为可选覆盖，为空则沿用默认值 ----
+
+	ShortBio          string   // 非空时替代自动生成的 shortBio
+	Audience          string   // 非空时替代默认 Audience
+	WelcomeMessage    string   // 非空时替代默认 WelcomeMessage
+	Education         string   // 非空时替代默认 Education
+	MajorLabel        string   // 非空时替代 longBio 中的"考研专业"标签，如"申请方向"
+	KnowledgeCategory string   // 非空时替代默认知识条目类别"考研经验"
+	KnowledgeTags     []string // 非空时替代默认知识条目标签
 }
