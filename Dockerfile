@@ -1,10 +1,14 @@
-# 多阶段构建 - Next.js 前端（使用国内镜像）
-FROM docker.m.daocloud.io/library/node:20-alpine AS deps
+# 多阶段构建 - Next.js 前端
+# 默认使用官方镜像；若某台服务器拉取慢，可在构建时覆盖：
+#   docker build --build-arg NODE_BASE_IMAGE=docker.m.daocloud.io/library/node:20-alpine .
+ARG NODE_BASE_IMAGE=node:20-alpine
+
+FROM ${NODE_BASE_IMAGE} AS deps
 WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN npm ci
 
-FROM docker.m.daocloud.io/library/node:20-alpine AS builder
+FROM ${NODE_BASE_IMAGE} AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -16,7 +20,7 @@ ENV API_BACKEND_URL=${API_BACKEND_URL}
 RUN npx prisma generate
 RUN npm run build
 
-FROM docker.m.daocloud.io/library/node:20-alpine AS runner
+FROM ${NODE_BASE_IMAGE} AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1

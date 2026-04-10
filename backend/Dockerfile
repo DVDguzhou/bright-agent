@@ -1,5 +1,10 @@
-# Go 后端（使用国内镜像）
-FROM docker.m.daocloud.io/library/golang:1.22-alpine AS builder
+# Go 后端
+# 默认使用官方镜像；若某台服务器拉取慢，可在构建时覆盖：
+#   docker build --build-arg GO_BUILDER_IMAGE=docker.m.daocloud.io/library/golang:1.22-alpine .
+ARG GO_BUILDER_IMAGE=golang:1.22-alpine
+ARG ALPINE_RUNTIME_IMAGE=alpine:3.19
+
+FROM ${GO_BUILDER_IMAGE} AS builder
 WORKDIR /app
 # 使用国内 Go 模块代理，避免 proxy.golang.org 超时
 ENV GOPROXY=https://goproxy.cn,direct
@@ -9,10 +14,11 @@ RUN go mod download
 COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -o server .
 
-FROM docker.m.daocloud.io/library/alpine:3.19
-# 国内构建：避免 dl-cdn.alpinelinux.org 极慢
-RUN sed -i 's|https://dl-cdn.alpinelinux.org|https://mirrors.aliyun.com|g' /etc/apk/repositories \
-	&& apk add --no-cache ca-certificates tzdata ffmpeg
+FROM ${ALPINE_RUNTIME_IMAGE}
+# 运行时尽量兼容多网络环境：先尝试官方源，失败再切换阿里云镜像
+RUN apk add --no-cache ca-certificates tzdata ffmpeg || \
+	( sed -i 's|https://dl-cdn.alpinelinux.org|https://mirrors.aliyun.com|g' /etc/apk/repositories && \
+	  apk add --no-cache ca-certificates tzdata ffmpeg )
 ENV TZ=Asia/Shanghai
 WORKDIR /app
 COPY --from=builder /app/server .

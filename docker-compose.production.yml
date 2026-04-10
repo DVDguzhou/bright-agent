@@ -6,6 +6,9 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+      args:
+        GO_BUILDER_IMAGE: ${GO_BUILDER_IMAGE:-golang:1.22-alpine}
+        ALPINE_RUNTIME_IMAGE: ${ALPINE_RUNTIME_IMAGE:-alpine:3.19}
     restart: unless-stopped
     ports:
       - "8080:8080"
@@ -53,6 +56,7 @@ services:
       dockerfile: Dockerfile
       args:
         API_BACKEND_URL: http://backend:8080
+        NODE_BASE_IMAGE: ${NODE_BASE_IMAGE:-node:20-alpine}
     restart: unless-stopped
     ports:
       - "3000:3000"
