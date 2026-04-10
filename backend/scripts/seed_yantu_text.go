@@ -69,5 +69,5 @@ func main() {
 			log.Printf("fail %s: %v", p.DisplayName, err)
 		}
 	}
-	fmt.Println("seed_yantu_text done（63 条档案已归属各 @163.com；口令见 YANTU_SPLIT_PASSWORD / 文档）")
+	fmt.Printf("seed_yantu_text done（%d 条档案已归属各 @163.com；口令见 YANTU_SPLIT_PASSWORD / 文档）\n", len(profiles))
 }
