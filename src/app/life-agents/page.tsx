@@ -35,8 +35,9 @@ type PurchasedAgentRow = {
 const PURCHASED_CACHE_TTL_MS = 90_000;
 const DISCOVER_FEED_CACHE_KEY = "life-agents:discover:first-page";
 const DISCOVER_FEED_CACHE_TTL_MS = 5 * 60_000;
-const INITIAL_VISIBLE_IMAGE_COUNT_MOBILE = 6;
-const INITIAL_VISIBLE_IMAGE_COUNT_DESKTOP = 8;
+const INITIAL_VISIBLE_IMAGE_COUNT_MOBILE = 2;
+const INITIAL_VISIBLE_IMAGE_COUNT_DESKTOP = 4;
+const INITIAL_PAGE_IMAGE_GATE_TIMEOUT_MS = 900;
 
 type DiscoverFeedCacheSnapshot = {
   savedAt: number;
@@ -602,12 +603,20 @@ function LifeAgentsPageContent() {
     }
 
     let cancelled = false;
-    Promise.all(urls.map((url) => preloadLifeAgentCover(url))).then(() => {
+    const timeoutId = window.setTimeout(() => {
       if (!cancelled) setInitialPageReady(true);
+    }, INITIAL_PAGE_IMAGE_GATE_TIMEOUT_MS);
+
+    Promise.all(urls.map((url) => preloadLifeAgentCover(url))).then(() => {
+      if (!cancelled) {
+        window.clearTimeout(timeoutId);
+        setInitialPageReady(true);
+      }
     });
 
     return () => {
       cancelled = true;
+      window.clearTimeout(timeoutId);
     };
   }, [initialFeedDataReady, initialFeedImageUrls, initialPageReady, loadError]);
 
