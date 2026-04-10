@@ -28,6 +28,8 @@ type PurchasedAgentRow = {
   coverPresetKey?: string;
 };
 
+const PURCHASED_CACHE_TTL_MS = 90_000;
+
 const UI = {
   loading: "加载中...",
   countSuffix: "个",
@@ -82,6 +84,7 @@ function LifeAgentsPageContent() {
   const [purchasedItems, setPurchasedItems] = useState<PurchasedAgentRow[]>([]);
   const [purchasedLoading, setPurchasedLoading] = useState(false);
   const [purchasedUnauthorized, setPurchasedUnauthorized] = useState(false);
+  const [purchasedFetched, setPurchasedFetched] = useState(false);
 
   const touchNavEnabled = useMobileTouchNavEnabled();
 
@@ -91,6 +94,8 @@ function LifeAgentsPageContent() {
   const skipScrollFromUrlRef = useRef(false);
   const replaceDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastPagerIdxRef = useRef(-1);
+  const purchasedLastLoadedAtRef = useRef(0);
+  const purchasedRequestInFlightRef = useRef(false);
 
   const visitPanel = useCallback((i: number) => {
     setVisitedMask((m) => {
@@ -173,14 +178,22 @@ function LifeAgentsPageContent() {
     };
   }, [touchNavEnabled, panelWidth, router, visitPanel]);
 
-  const loadPurchasedList = useCallback(async () => {
-    setPurchasedLoading(true);
-    setPurchasedUnauthorized(false);
+  const loadPurchasedList = useCallback(async (opts?: { force?: boolean; background?: boolean }) => {
+    const force = opts?.force ?? false;
+    const background = opts?.background ?? false;
+    const hasSnapshot = purchasedFetched || purchasedUnauthorized || purchasedItems.length > 0;
+    const isFresh = purchasedFetched && Date.now() - purchasedLastLoadedAtRef.current < PURCHASED_CACHE_TTL_MS;
+    if (!force && isFresh) return;
+    if (purchasedRequestInFlightRef.current) return;
+    purchasedRequestInFlightRef.current = true;
+    if (!background && !hasSnapshot) setPurchasedLoading(true);
     try {
       const r = await fetch("/api/life-agents/purchased", { credentials: "include" });
       if (r.status === 401) {
         setPurchasedUnauthorized(true);
         setPurchasedItems([]);
+        setPurchasedFetched(true);
+        purchasedLastLoadedAtRef.current = Date.now();
         return;
       }
       const d = await r.json().catch(() => []);
@@ -198,13 +211,18 @@ function LifeAgentsPageContent() {
       })).filter((row) => row.id);
       setPurchasedUnauthorized(false);
       setPurchasedItems(items);
+      setPurchasedFetched(true);
+      purchasedLastLoadedAtRef.current = Date.now();
     } catch {
       setPurchasedUnauthorized(false);
-      setPurchasedItems([]);
+      if (!hasSnapshot) {
+        setPurchasedItems([]);
+      }
     } finally {
       setPurchasedLoading(false);
+      purchasedRequestInFlightRef.current = false;
     }
-  }, []);
+  }, [purchasedFetched, purchasedUnauthorized, purchasedItems.length]);
 
   const loadFavoritesFullList = useCallback(async () => {
     const controller = new AbortController();
@@ -259,7 +277,7 @@ function LifeAgentsPageContent() {
 
   const onPullRefresh = useCallback(async () => {
     if (feedTab === "purchased") {
-      await loadPurchasedList();
+      await loadPurchasedList({ force: true, background: purchasedFetched || purchasedUnauthorized || purchasedItems.length > 0 });
       return;
     }
     if (feedTab === "favorites") {
@@ -267,7 +285,7 @@ function LifeAgentsPageContent() {
       return;
     }
     await refreshDiscover();
-  }, [feedTab, loadFavoritesFullList, loadPurchasedList, refreshDiscover]);
+  }, [feedTab, loadFavoritesFullList, loadPurchasedList, refreshDiscover, purchasedFetched, purchasedUnauthorized, purchasedItems.length]);
 
   const { pullOffset, refreshing: pullRefreshing } = useLifeAgentsFeedGestures({
     enabled: true,
@@ -284,8 +302,9 @@ function LifeAgentsPageContent() {
   useEffect(() => {
     if ((visitedMask & 4) === 0) return;
     if (!touchNavEnabled && feedTab !== "purchased") return;
-    void loadPurchasedList();
-  }, [visitedMask & 4, touchNavEnabled, feedTab, loadPurchasedList]);
+    const hasSnapshot = purchasedFetched || purchasedUnauthorized || purchasedItems.length > 0;
+    void loadPurchasedList({ background: hasSnapshot });
+  }, [visitedMask & 4, touchNavEnabled, feedTab, loadPurchasedList, purchasedFetched, purchasedUnauthorized, purchasedItems.length]);
 
   useEffect(() => {
     if ((visitedMask & 2) === 0) return;
