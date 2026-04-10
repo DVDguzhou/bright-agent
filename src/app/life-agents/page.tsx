@@ -224,7 +224,7 @@ function LifeAgentsPageContent() {
     return () => ro.disconnect();
   }, [touchNavEnabled]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!touchNavEnabled || panelWidth <= 0) return;
     const el = pagerRef.current;
     if (!el) return;
