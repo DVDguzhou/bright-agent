@@ -7,7 +7,11 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { VerificationBadge } from "@/components/VerificationBadge";
 import { LifeAgentCoverImage } from "@/components/LifeAgentCoverImage";
-import { resolveLifeAgentCoverDisplayUrl } from "@/lib/life-agent-covers";
+import {
+  nextLifeAgentCoverFallbackSrc,
+  normalizeLifeAgentCoverImgSrc,
+  resolveLifeAgentCoverDisplayUrl,
+} from "@/lib/life-agent-covers";
 import { getFavoriteAgentIds } from "@/lib/life-agent-favorites";
 import { LifeAgentDiscoverCardGrid } from "@/components/LifeAgentDiscoverCardGrid";
 import { rankLifeAgentsBySearchQuery, type LifeAgentListItem } from "@/lib/life-agent-feed-search";
@@ -29,6 +33,7 @@ type PurchasedAgentRow = {
 };
 
 const PURCHASED_CACHE_TTL_MS = 90_000;
+const INITIAL_BOOT_IMAGE_COUNT = 6;
 
 const UI = {
   loading: "加载中...",
@@ -69,6 +74,44 @@ function pathForTabIndex(i: number): string {
   if (i === 0) return "/life-agents?tab=favorites";
   if (i === 2) return "/life-agents?tab=purchased";
   return "/life-agents";
+}
+
+function preloadLifeAgentCover(src: string): Promise<void> {
+  return new Promise((resolve) => {
+    if (typeof window === "undefined") {
+      resolve();
+      return;
+    }
+
+    const loaded = new Set<string>();
+
+    const attempt = (candidate: string) => {
+      const normalized = normalizeLifeAgentCoverImgSrc(candidate);
+      if (loaded.has(normalized)) {
+        resolve();
+        return;
+      }
+      loaded.add(normalized);
+
+      const img = new window.Image();
+      img.decoding = "async";
+      img.onload = () => resolve();
+      img.onerror = () => {
+        const next = nextLifeAgentCoverFallbackSrc(normalized);
+        if (next === normalized) {
+          resolve();
+          return;
+        }
+        attempt(next);
+      };
+      img.src = normalized;
+      if (img.complete && img.naturalWidth > 0) {
+        resolve();
+      }
+    };
+
+    attempt(src);
+  });
 }
 
 function LifeAgentsPageLoadingState({ title = "页面加载中..." }: { title?: string }) {
@@ -117,6 +160,7 @@ function LifeAgentsPageContent() {
   const [favoritesSource, setFavoritesSource] = useState<LifeAgentListItem[]>([]);
   const [favoritesLoading, setFavoritesLoading] = useState(false);
   const [favoritesFetched, setFavoritesFetched] = useState(false);
+  const [favoriteIdsHydrated, setFavoriteIdsHydrated] = useState(false);
 
   const discoverItemsRef = useRef(discoverItems);
   discoverItemsRef.current = discoverItems;
@@ -127,13 +171,14 @@ function LifeAgentsPageContent() {
   const [purchasedLoading, setPurchasedLoading] = useState(false);
   const [purchasedUnauthorized, setPurchasedUnauthorized] = useState(false);
   const [purchasedFetched, setPurchasedFetched] = useState(false);
+  const [pageBootImagesReady, setPageBootImagesReady] = useState(false);
   const [pageBootReady, setPageBootReady] = useState(false);
 
   const touchNavEnabled = useMobileTouchNavEnabled();
   const initialBootTab = initialBootTabRef.current;
   const initialBootReady =
     initialBootTab === "favorites"
-      ? favoritesFetched
+      ? favoritesFetched && favoriteIdsHydrated
       : initialBootTab === "purchased"
         ? purchasedFetched || purchasedUnauthorized
         : !discoverLoading;
@@ -163,10 +208,10 @@ function LifeAgentsPageContent() {
 
   useEffect(() => {
     if (pageBootReady) return;
-    if (loadError || initialBootReady) {
+    if (loadError || (initialBootReady && pageBootImagesReady)) {
       setPageBootReady(true);
     }
-  }, [pageBootReady, loadError, initialBootReady]);
+  }, [pageBootReady, loadError, initialBootReady, pageBootImagesReady]);
 
   useLayoutEffect(() => {
     if (!touchNavEnabled) return;
@@ -353,6 +398,7 @@ function LifeAgentsPageContent() {
   useEffect(() => {
     const sync = () => setFavoriteIds(getFavoriteAgentIds());
     sync();
+    setFavoriteIdsHydrated(true);
     window.addEventListener("la-favorite-change", sync);
     return () => window.removeEventListener("la-favorite-change", sync);
   }, []);
@@ -452,6 +498,47 @@ function LifeAgentsPageContent() {
     if (feedTab === "purchased") return [];
     return displayProfilesDiscover;
   }, [feedTab, displayProfilesFavorites, displayProfilesDiscover]);
+
+  const initialBootCoverUrls = useMemo(() => {
+    if (initialBootTab === "favorites") {
+      return displayProfilesFavorites
+        .slice(0, INITIAL_BOOT_IMAGE_COUNT)
+        .map((profile) =>
+          resolveLifeAgentCoverDisplayUrl(profile.coverUrl, profile.coverImageUrl, profile.coverPresetKey),
+        );
+    }
+    if (initialBootTab === "purchased") {
+      return purchasedItems
+        .slice(0, INITIAL_BOOT_IMAGE_COUNT)
+        .map((row) => resolveLifeAgentCoverDisplayUrl(row.coverUrl, row.coverImageUrl, row.coverPresetKey));
+    }
+    return displayProfilesDiscover
+      .slice(0, INITIAL_BOOT_IMAGE_COUNT)
+      .map((profile) =>
+        resolveLifeAgentCoverDisplayUrl(profile.coverUrl, profile.coverImageUrl, profile.coverPresetKey),
+      );
+  }, [displayProfilesDiscover, displayProfilesFavorites, initialBootTab, purchasedItems]);
+
+  useEffect(() => {
+    if (!initialBootReady || loadError) return;
+    if (pageBootImagesReady) return;
+
+    let cancelled = false;
+    const urls = initialBootCoverUrls.filter(Boolean);
+
+    if (urls.length === 0) {
+      setPageBootImagesReady(true);
+      return;
+    }
+
+    Promise.all(urls.map((url) => preloadLifeAgentCover(url))).then(() => {
+      if (!cancelled) setPageBootImagesReady(true);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [initialBootReady, initialBootCoverUrls, loadError, pageBootImagesReady]);
 
   const gridLoadingDesktop =
     feedTab === "favorites" ? favoritesLoading : feedTab === "purchased" ? false : discoverLoading;
