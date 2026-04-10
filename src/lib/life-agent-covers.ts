@@ -2,7 +2,7 @@
 export const DEFAULT_COVER_PNG_URL = "/life-agent-cover-presets/default-cover.png";
 
 /** 自包含矢量默认图（不内嵌引用 default-cover.png，避免二次请求坏链） */
-export const DEFAULT_COVER_SVG_URL = "/life-agent-cover-presets/default-cover.svg";
+export const DEFAULT_COVER_SVG_URL = "/life-agent-cover-presets/default-cover.svg?v=2";
 
 /** 前端统一主默认：SVG */
 export const DEFAULT_COVER_URL = DEFAULT_COVER_SVG_URL;
