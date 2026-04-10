@@ -347,7 +347,7 @@ function LifeAgentsPageContent() {
       cancelAnimationFrame(raf2);
       ro.disconnect();
     };
-  }, [touchNavEnabled, feedTab, visitPanel]);
+  }, [touchNavEnabled, feedTab, visitPanel, initialPageReady]);
 
   useLayoutEffect(() => {
     if (!touchNavEnabled || panelWidth <= 0) return;
@@ -405,7 +405,7 @@ function LifeAgentsPageContent() {
       el.removeEventListener("scroll", onScroll);
       if (replaceDebounceRef.current) clearTimeout(replaceDebounceRef.current);
     };
-  }, [touchNavEnabled, panelWidth, router, visitPanel]);
+  }, [touchNavEnabled, panelWidth, router, visitPanel, initialPageReady]);
 
   /** snap / 晚一拍的布局有时会盖掉首次 scrollTo，延迟再对齐一次（仅当与 URL 不一致时）。 */
   useEffect(() => {
@@ -432,7 +432,7 @@ function LifeAgentsPageContent() {
       window.clearTimeout(t);
       window.clearTimeout(t2);
     };
-  }, [touchNavEnabled, feedTab]);
+  }, [touchNavEnabled, feedTab, initialPageReady]);
 
   const loadPurchasedList = useCallback(async (opts?: { force?: boolean; background?: boolean }) => {
     const force = opts?.force ?? false;
