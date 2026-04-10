@@ -80,29 +80,48 @@ function pathForTabIndex(i: number): string {
   return "/life-agents";
 }
 
-function feedPanelScrollLeft(panels: readonly (HTMLElement | null)[], idx: number, fallbackViewportW: number): number {
+/** 目标 scrollLeft：panel 左沿在滚动容器内容坐标系中的位置（相对 getBoundingClientRect，不依赖 offsetParent）。 */
+function feedPanelScrollLeft(
+  scrollEl: HTMLDivElement,
+  panels: readonly (HTMLElement | null)[],
+  idx: number,
+  fallbackViewportW: number,
+): number {
   const p = panels[idx];
-  if (p) return p.offsetLeft;
-  return idx * Math.max(1, fallbackViewportW);
+  if (!p) return idx * Math.max(1, fallbackViewportW);
+  const sr = scrollEl.getBoundingClientRect();
+  const pr = p.getBoundingClientRect();
+  return pr.left - sr.left + scrollEl.scrollLeft;
 }
 
-/** 用各屏真实 offsetLeft/width，避免 flex 子项宽度 ≠ 视口 clientWidth 时滚不到「发现」；也用于横向滑动后对齐 URL。 */
+/** 视口中心落在哪一屏（与 feedPanelScrollLeft 同一套几何）。 */
 function feedTabIndexFromScrollEl(el: HTMLDivElement, panels: readonly (HTMLElement | null)[]): number {
   const cx = el.scrollLeft + el.clientWidth / 2;
+  const sr = el.getBoundingClientRect();
   for (let i = 0; i < panels.length; i++) {
     const p = panels[i];
     if (!p) continue;
-    const L = p.offsetLeft;
-    const R = L + p.offsetWidth;
+    const pr = p.getBoundingClientRect();
+    const L = pr.left - sr.left + el.scrollLeft;
+    const R = L + pr.width;
     if (cx >= L && cx < R) return i;
   }
   const w = el.clientWidth;
   return Math.min(2, Math.max(0, Math.round(el.scrollLeft / Math.max(1, w))));
 }
 
-function feedPagerProgress(scrollLeft: number, panels: readonly (HTMLElement | null)[], viewportW: number): number {
-  const step = panels[0]?.offsetWidth ?? viewportW;
-  return scrollLeft / Math.max(1, step);
+function feedPagerProgress(
+  scrollEl: HTMLDivElement,
+  scrollLeft: number,
+  panels: readonly (HTMLElement | null)[],
+  viewportW: number,
+): number {
+  const p0 = panels[0];
+  if (p0) {
+    const step = p0.getBoundingClientRect().width;
+    if (step > 0) return scrollLeft / step;
+  }
+  return scrollLeft / Math.max(1, viewportW);
 }
 
 function normalizeFeedTab(tab: string | null): FeedTabKey {
@@ -246,6 +265,8 @@ function LifeAgentsPageContent() {
   /** 横向三屏 DOM，用于按真实几何滚动（避免仅用 clientWidth 乘 index 对不齐） */
   const feedPanelElsRef = useRef<(HTMLElement | null)[]>([null, null, null]);
   const [panelWidth, setPanelWidth] = useState(0);
+  /** 程序化 scrollTo 完成前关闭 snap，避免 snap-mandatory 把位置吸回第一屏 */
+  const [feedPagerSnapEnabled, setFeedPagerSnapEnabled] = useState(false);
   const skipScrollFromUrlRef = useRef(false);
   const replaceDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastPagerIdxRef = useRef(-1);
@@ -279,20 +300,30 @@ function LifeAgentsPageContent() {
   }, []);
 
   useLayoutEffect(() => {
-    if (!touchNavEnabled) return;
+    if (!touchNavEnabled) {
+      setFeedPagerSnapEnabled(false);
+      return;
+    }
     const el = pagerRef.current;
     if (!el) return;
     let raf1 = 0;
     let raf2 = 0;
     let cancelled = false;
     const panels = () => feedPanelElsRef.current;
+    const enableSnapSoon = () => {
+      requestAnimationFrame(() => {
+        if (!cancelled) setFeedPagerSnapEnabled(true);
+      });
+    };
+    setFeedPagerSnapEnabled(false);
     const measure = () => {
       const vw = el.clientWidth;
-      const pw = panels()[0]?.offsetWidth ?? vw;
+      const p0 = panels()[0];
+      const pw = p0 ? p0.getBoundingClientRect().width : vw;
       setPanelWidth(pw > 0 ? pw : vw);
       if (vw > 0) {
         const idx = tabIndexFromFeedTab(feedTab);
-        const left = feedPanelScrollLeft(panels(), idx, vw);
+        const left = feedPanelScrollLeft(el, panels(), idx, vw);
         el.scrollTo({ left, behavior: "auto" });
         lastPagerIdxRef.current = idx;
         visitPanel(idx);
@@ -305,6 +336,7 @@ function LifeAgentsPageContent() {
       raf2 = requestAnimationFrame(() => {
         if (cancelled) return;
         measure();
+        enableSnapSoon();
       });
     });
     const ro = new ResizeObserver(measure);
@@ -326,7 +358,7 @@ function LifeAgentsPageContent() {
       return;
     }
     const idx = tabIndexFromFeedTab(feedTab);
-    const left = feedPanelScrollLeft(feedPanelElsRef.current, idx, el.clientWidth);
+    const left = feedPanelScrollLeft(el, feedPanelElsRef.current, idx, el.clientWidth);
     el.scrollTo({ left, behavior: "auto" });
     lastPagerIdxRef.current = idx;
     visitPanel(idx);
@@ -350,7 +382,7 @@ function LifeAgentsPageContent() {
             scrollLeft: el.scrollLeft,
             panelWidth,
             index: idx,
-            progress: feedPagerProgress(el.scrollLeft, panels, el.clientWidth),
+            progress: feedPagerProgress(el, el.scrollLeft, panels, el.clientWidth),
           },
         }),
       );
@@ -384,9 +416,13 @@ function LifeAgentsPageContent() {
     const fix = () => {
       const cur = feedTabIndexFromScrollEl(el, feedPanelElsRef.current);
       if (cur !== want) {
+        setFeedPagerSnapEnabled(false);
         el.scrollTo({
-          left: feedPanelScrollLeft(feedPanelElsRef.current, want, el.clientWidth),
+          left: feedPanelScrollLeft(el, feedPanelElsRef.current, want, el.clientWidth),
           behavior: "auto",
+        });
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => setFeedPagerSnapEnabled(true));
         });
       }
     };
@@ -817,7 +853,9 @@ function LifeAgentsPageContent() {
           <div className="w-full overflow-hidden">
             <div
               ref={pagerRef}
-              className="flex overflow-x-auto overscroll-x-contain [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x snap-mandatory [touch-action:pan-x_pan-y]"
+              className={`flex overflow-x-auto overscroll-x-contain [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [touch-action:pan-x_pan-y] ${
+                feedPagerSnapEnabled ? "snap-x snap-mandatory" : "snap-none"
+              }`}
             >
             <section
               ref={(node) => {
