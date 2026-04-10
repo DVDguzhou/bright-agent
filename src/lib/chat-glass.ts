@@ -13,7 +13,7 @@ const CHAT_ASSISTANT_BUBBLE =
   "rounded-bl-md border border-white/55 bg-white/48 text-slate-800 ring-white/30 backdrop-blur-xl supports-[backdrop-filter]:bg-white/38";
 
 const CHAT_USER_BUBBLE =
-  "rounded-br-md border border-white/18 bg-gradient-to-br from-[#FF8FD8]/78 via-[#D79BFF]/72 to-[#9B8CFF]/70 text-white ring-white/15 backdrop-blur-xl supports-[backdrop-filter]:from-[#FF8FD8]/72 supports-[backdrop-filter]:via-[#D79BFF]/66 supports-[backdrop-filter]:to-[#9B8CFF]/64";
+  "rounded-br-md border border-fuchsia-200/42 bg-gradient-to-br from-[#FFD9F0]/96 via-[#E8D9FF]/94 to-[#D9E0FF]/92 font-medium text-slate-900 ring-white/24 backdrop-blur-xl supports-[backdrop-filter]:from-[#FFD9F0]/90 supports-[backdrop-filter]:via-[#E8D9FF]/88 supports-[backdrop-filter]:to-[#D9E0FF]/86";
 
 export function getChatBubbleClassName(role: ChatBubbleRole) {
   return `${CHAT_BUBBLE_BASE} ${
