@@ -2,6 +2,7 @@
 
 import {
   useEffect,
+  useRef,
   useState,
   type ImgHTMLAttributes,
   type ReactEventHandler,
@@ -25,6 +26,7 @@ export type LifeAgentCoverImageProps = Omit<ImgHTMLAttributes<HTMLImageElement>,
  */
 export function LifeAgentCoverImage({
   src,
+  onLoad,
   onError,
   fill,
   priority,
@@ -34,26 +36,57 @@ export function LifeAgentCoverImage({
   alt = "",
   ...rest
 }: LifeAgentCoverImageProps) {
+  const imgRef = useRef<HTMLImageElement | null>(null);
   const [resolved, setResolved] = useState(() => normalizeLifeAgentCoverImgSrc(src));
+  const [loaded, setLoaded] = useState(false);
+
   useEffect(() => {
     setResolved(normalizeLifeAgentCoverImgSrc(src));
+    setLoaded(false);
   }, [src]);
+
+  useEffect(() => {
+    const img = imgRef.current;
+    if (!img) return;
+    if (img.complete && img.naturalWidth > 0) {
+      setLoaded(true);
+    }
+  }, [resolved]);
 
   const cls = [fill ? "absolute inset-0 h-full w-full" : "", className].filter(Boolean).join(" ") || undefined;
 
   return (
-    <img
-      {...rest}
-      src={resolved}
-      alt={alt}
-      className={cls}
-      loading={priority ? "eager" : loading === "lazy" ? "lazy" : loading}
-      decoding="async"
-      {...(priority ? ({ fetchPriority: "high" } as ImgHTMLAttributes<HTMLImageElement>) : {})}
-      onError={(e: SyntheticEvent<HTMLImageElement>) => {
-        onError?.(e);
-        setResolved((cur) => nextLifeAgentCoverFallbackSrc(cur));
-      }}
-    />
+    <>
+      <img
+        {...rest}
+        ref={imgRef}
+        src={resolved}
+        alt={alt}
+        className={[cls, loaded ? "opacity-100" : "opacity-0"].filter(Boolean).join(" ")}
+        loading={priority ? "eager" : loading === "lazy" ? "lazy" : loading}
+        decoding="async"
+        {...(priority ? ({ fetchPriority: "high" } as ImgHTMLAttributes<HTMLImageElement>) : {})}
+        onLoad={(e) => {
+          setLoaded(true);
+          onLoad?.(e);
+        }}
+        onError={(e: SyntheticEvent<HTMLImageElement>) => {
+          setLoaded(false);
+          onError?.(e);
+          setResolved((cur) => nextLifeAgentCoverFallbackSrc(cur));
+        }}
+      />
+      {!loaded ? (
+        <div
+          className={[
+            fill ? "absolute inset-0" : "absolute inset-0",
+            "pointer-events-none flex items-center justify-center bg-gradient-to-br from-violet-100/85 to-fuchsia-100/65 text-xs font-medium text-slate-500",
+          ].join(" ")}
+          aria-live="polite"
+        >
+          正在加载中
+        </div>
+      ) : null}
+    </>
   );
 }
