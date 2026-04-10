@@ -6,11 +6,15 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { LifeAgentCoverImage } from "@/components/LifeAgentCoverImage";
 import { AnimatePresence, motion } from "framer-motion";
-import { VoiceMessageBubble, VoiceReplyToggle } from "@/components/voice";
+import { VoiceMessageBubble, VoiceMessageLoadingBubble, VoiceReplyToggle } from "@/components/voice";
 import { LifeAgentMessageComposer } from "@/components/LifeAgentMessageComposer";
 import { useAuth } from "@/contexts/AuthContext";
 import { resolveLifeAgentCoverDisplayUrl } from "@/lib/life-agent-covers";
-import { getChatBubbleClassName } from "@/lib/chat-glass";
+import {
+  CHAT_PAGE_BACKGROUND_CLASSNAME,
+  CHAT_SCROLL_SURFACE_CLASSNAME,
+  getChatBubbleClassName,
+} from "@/lib/chat-glass";
 import { useEdgeSwipeBack } from "@/hooks/use-edge-swipe-back";
 import { useMobileTouchNavEnabled } from "@/hooks/use-life-agents-feed-gestures";
 
@@ -514,7 +518,7 @@ export default function LifeAgentChatPage() {
 
   return (
     <div
-      className="flex min-h-0 flex-col lg:-mx-4 lg:-mt-3 lg:-mb-8 lg:min-h-[calc(100dvh-5rem)] max-lg:fixed max-lg:inset-x-0 max-lg:top-0 max-lg:z-[35] max-lg:overflow-hidden max-lg:bg-gradient-to-b max-lg:from-[#F3EFFF] max-lg:via-violet-50/40 max-lg:to-white"
+      className={`flex min-h-0 flex-col lg:-mx-4 lg:-mt-3 lg:-mb-8 lg:min-h-[calc(100dvh-5rem)] max-lg:fixed max-lg:inset-x-0 max-lg:top-0 max-lg:z-[35] max-lg:overflow-hidden ${CHAT_PAGE_BACKGROUND_CLASSNAME}`}
       style={
         viewportBox
           ? { height: `${viewportBox.height}px`, top: `${viewportBox.offsetTop}px` }
@@ -811,7 +815,7 @@ export default function LifeAgentChatPage() {
 
         <div
           ref={viewportRef}
-          className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-gradient-to-b from-white/90 to-violet-50/20 px-3 py-3 sm:px-6 sm:py-5"
+          className={`min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-3 sm:px-6 sm:py-5 ${CHAT_SCROLL_SURFACE_CLASSNAME}`}
           onClick={dismissKeyboard}
           role="presentation"
         >
@@ -821,7 +825,15 @@ export default function LifeAgentChatPage() {
                 正在加载历史会话...
               </div>
             ) : (
-              messages.map((message, index) => (
+              messages.map((message, index) => {
+                const showVoiceLoading =
+                  message.role === "assistant" &&
+                  useVoiceReply &&
+                  loading &&
+                  index === messages.length - 1 &&
+                  !message.audioUrl;
+
+                return (
                 <div key={`${message.role}-${index}-${message.messageId ?? "draft"}`} className="space-y-1">
                   <div
                     className={`flex items-end gap-2 ${message.role === "user" ? "justify-end" : "justify-start"}`}
@@ -853,6 +865,15 @@ export default function LifeAgentChatPage() {
                           />
                           {message.content && (
                             <p className="mt-2 border-t border-black/10 pt-2 text-[13px] leading-6 text-slate-600">
+                              {message.content}
+                            </p>
+                          )}
+                        </div>
+                      ) : showVoiceLoading ? (
+                        <div className="space-y-3">
+                          <VoiceMessageLoadingBubble />
+                          {message.content && (
+                            <p className="border-t border-black/10 pt-2 text-[13px] leading-6 text-slate-600 whitespace-pre-wrap">
                               {message.content}
                             </p>
                           )}
@@ -904,7 +925,7 @@ export default function LifeAgentChatPage() {
                     </div>
                   ) : null}
                 </div>
-              ))
+              )})
             )}
             <div ref={chatEndRef} className="h-1 shrink-0 scroll-mt-4" aria-hidden />
           </div>

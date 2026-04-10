@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { CHAT_GLASS_PANEL_CLASSNAME } from "@/lib/chat-glass";
 
 type VoiceReplyToggleProps = {
   useVoiceReply: boolean;
@@ -19,7 +20,7 @@ export function VoiceReplyToggle({
 }: VoiceReplyToggleProps) {
   return (
     <div
-      className={`flex items-center gap-2 rounded-full border border-purple-200/[0.22] bg-white/[0.92] px-2 py-1.5 backdrop-blur-sm ${className}`}
+      className={`flex items-center gap-2 rounded-full px-2 py-1.5 ${CHAT_GLASS_PANEL_CLASSNAME} ${className}`}
     >
       <button
         type="button"
@@ -27,8 +28,8 @@ export function VoiceReplyToggle({
         disabled={disabled}
         className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm transition ${
           !useVoiceReply
-            ? "bg-purple-100 text-purple-800"
-            : "text-slate-600 hover:bg-purple-50/80"
+            ? "bg-white/72 text-purple-800 shadow-sm ring-1 ring-white/25"
+            : "text-slate-600 hover:bg-white/45"
         } disabled:opacity-50`}
       >
         <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -43,8 +44,8 @@ export function VoiceReplyToggle({
         title={!hasVoiceClone ? "该 Agent 未设置语音" : undefined}
         className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm transition ${
           useVoiceReply
-            ? "bg-purple-100 text-purple-800"
-            : "text-slate-600 hover:bg-purple-50/80"
+            ? "bg-white/72 text-purple-800 shadow-sm ring-1 ring-white/25"
+            : "text-slate-600 hover:bg-white/45"
         } disabled:opacity-50 disabled:cursor-not-allowed`}
       >
         <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">

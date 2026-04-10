@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect } from "react";
+import { CHAT_GLASS_PANEL_CLASSNAME } from "@/lib/chat-glass";
 import { useSpeechRecognition } from "@/lib/voice";
 
 type VoiceInputButtonProps = {
@@ -37,6 +38,7 @@ export function VoiceInputButton({
     });
 
   const isPressActive = status === "listening" || status === "processing";
+  const isPreparing = status === "processing";
 
   const handlePressStart = useCallback(() => {
     if (disabled || !isSupported) return;
@@ -56,7 +58,12 @@ export function VoiceInputButton({
   }, [error, reset]);
 
   if (!isSupported) {
-    return null;
+    return (
+      <div className={`inline-flex items-center gap-2 rounded-full px-3 py-2 text-xs text-slate-500 ${CHAT_GLASS_PANEL_CLASSNAME}`}>
+        <span className="h-2 w-2 rounded-full bg-slate-300" aria-hidden />
+        当前设备暂不支持语音
+      </div>
+    );
   }
 
   return (
@@ -81,10 +88,12 @@ export function VoiceInputButton({
         } ${
           isPressActive
             ? "border-rose-400 bg-rose-500 text-white shadow-lg shadow-rose-500/30 scale-110"
-            : "border-slate-200 bg-white/80 text-slate-600 hover:bg-slate-100 hover:border-slate-300"
+            : "border-white/38 bg-white/55 text-slate-600 shadow-[0_10px_26px_-14px_rgba(124,58,237,0.25)] ring-1 ring-white/18 backdrop-blur-xl hover:bg-white/66 hover:border-white/50"
         } disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
       >
-        {isPressActive ? (
+        {isPreparing ? (
+          <span className="h-5 w-5 rounded-full border-2 border-current/25 border-t-current animate-spin" />
+        ) : isPressActive ? (
           <svg
             className="h-5 w-5 animate-pulse"
             fill="currentColor"

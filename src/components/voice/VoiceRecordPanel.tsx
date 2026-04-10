@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
+import { CHAT_GLASS_PANEL_CLASSNAME } from "@/lib/chat-glass";
 import { getMicrophoneEnvIssue, useMediaRecorder } from "@/lib/voice";
 
 const SAMPLE_TEXT =
@@ -60,11 +61,11 @@ export function VoiceRecordPanel({
 
   const shell =
     accent === "pastel"
-      ? "rounded-[22px] border border-purple-200/[0.22] bg-white/[0.97] p-6 shadow-[0_6px_32px_rgba(124,58,237,0.08)] backdrop-blur-sm"
+      ? `rounded-[22px] p-6 ${CHAT_GLASS_PANEL_CLASSNAME}`
       : "rounded-2xl border border-slate-200 bg-white p-6 shadow-sm";
   const micIdle =
     accent === "pastel"
-      ? "bg-gradient-to-br from-[#BA68C8] to-[#FF80AB] text-white shadow-lg shadow-fuchsia-500/25 hover:opacity-95"
+      ? "border border-white/18 bg-gradient-to-br from-[#FF8FD8]/82 via-[#D79BFF]/78 to-[#9B8CFF]/74 text-white shadow-lg shadow-fuchsia-500/25 backdrop-blur-xl hover:opacity-95"
       : "bg-sky-500 text-white hover:bg-sky-600";
   const successBox =
     accent === "pastel"
@@ -91,7 +92,7 @@ export function VoiceRecordPanel({
       <div
         className={
           accent === "pastel"
-            ? "mt-5 rounded-xl border border-purple-200/[0.16] bg-violet-50/[0.45] p-4 backdrop-blur-sm"
+            ? "mt-5 rounded-xl border border-white/42 bg-white/48 p-4 shadow-[0_10px_26px_-16px_rgba(124,58,237,0.18)] ring-1 ring-white/20 backdrop-blur-xl"
             : "mt-5 rounded-xl bg-slate-50 p-4"
         }
       >
@@ -101,7 +102,7 @@ export function VoiceRecordPanel({
       <div
         className={
           accent === "pastel"
-            ? "mt-4 rounded-xl border border-purple-200/[0.16] bg-white/[0.82] px-4 py-3 text-sm text-slate-600 backdrop-blur-sm"
+            ? "mt-4 rounded-xl border border-white/42 bg-white/48 px-4 py-3 text-sm text-slate-600 shadow-[0_10px_26px_-16px_rgba(124,58,237,0.18)] ring-1 ring-white/20 backdrop-blur-xl"
             : "mt-4 rounded-xl border border-slate-200 bg-slate-50/80 px-4 py-3 text-sm text-slate-600"
         }
       >
@@ -111,6 +112,15 @@ export function VoiceRecordPanel({
       </div>
 
       <div className="mt-6 flex flex-col items-center gap-4">
+        {status === "processing" ? (
+          <div className="w-full rounded-2xl border border-white/42 bg-white/50 px-4 py-4 text-center shadow-[0_10px_26px_-16px_rgba(124,58,237,0.18)] ring-1 ring-white/20 backdrop-blur-xl">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-white/70 text-violet-600 shadow-sm">
+              <span className="h-5 w-5 rounded-full border-2 border-current/25 border-t-current animate-spin" />
+            </div>
+            <p className="mt-3 text-sm font-medium text-slate-800">正在处理语音...</p>
+            <p className="mt-1 text-xs leading-5 text-slate-500">马上帮你整理录音结果，通常只要几秒。</p>
+          </div>
+        ) : null}
         {!hasRecorded ? (
           <>
             <button

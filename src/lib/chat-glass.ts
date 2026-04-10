@@ -1,5 +1,11 @@
 export type ChatBubbleRole = "assistant" | "user";
 
+export const CHAT_PAGE_BACKGROUND_CLASSNAME = "bg-gradient-to-b from-[#F3EFFF] via-violet-50/40 to-white";
+export const CHAT_SCROLL_SURFACE_CLASSNAME =
+  "bg-gradient-to-b from-[#F3EFFF]/62 via-white/66 to-white/86";
+export const CHAT_GLASS_PANEL_CLASSNAME =
+  "border border-white/40 bg-white/58 ring-1 ring-white/20 shadow-[0_14px_36px_-18px_rgba(124,58,237,0.24)] backdrop-blur-xl supports-[backdrop-filter]:bg-white/42";
+
 const CHAT_BUBBLE_BASE =
   "max-w-[82%] rounded-[24px] px-3.5 py-2.5 text-[15px] leading-relaxed shadow-[0_12px_32px_-16px_rgba(76,29,149,0.45)] ring-1 sm:max-w-[72%]";
 

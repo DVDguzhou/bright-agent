@@ -22,7 +22,11 @@ import {
   type LifeAgentCreateDraftV1,
 } from "@/lib/life-agent-create-draft";
 import { cleanLifeAgentIntroText } from "@/lib/life-agent-intro-clean";
-import { getChatBubbleClassName } from "@/lib/chat-glass";
+import {
+  CHAT_PAGE_BACKGROUND_CLASSNAME,
+  CHAT_SCROLL_SURFACE_CLASSNAME,
+  getChatBubbleClassName,
+} from "@/lib/chat-glass";
 
 type KnowledgeEntry = {
   category: string;
@@ -993,7 +997,7 @@ export default function CreateLifeAgentPage() {
 
   if (!user) {
     return (
-      <div className="min-h-[min(100dvh,720px)] bg-gradient-to-b from-[#F3EFFF] via-violet-50/50 to-white px-4 py-12">
+      <div className={`min-h-[min(100dvh,720px)] px-4 py-12 ${CHAT_PAGE_BACKGROUND_CLASSNAME}`}>
         <div className="mx-auto max-w-2xl rounded-[28px] border border-purple-200/[0.28] bg-white/[0.985] p-10 text-center shadow-[0_8px_36px_rgba(124,58,237,0.07),0_1px_0_rgba(255,255,255,0.85)_inset] backdrop-blur-md">
           <h1 className="text-3xl font-bold text-purple-950/90">先登录，再创建你的人生 Agent</h1>
           <p className="mt-3 text-slate-600">
@@ -1030,9 +1034,9 @@ export default function CreateLifeAgentPage() {
       className={
         "flex min-w-0 flex-col overflow-hidden " +
         /* 窄屏：占满视口并禁止整页滚动，避免 sticky 顶栏盖住「基础资料」等首行（main 的 padding + min-h-dvh 常会多出一点可滚动高度） */
-        "max-lg:fixed max-lg:inset-0 max-lg:z-30 max-lg:m-0 max-lg:w-full max-lg:bg-gradient-to-b max-lg:from-[#F3EFFF] max-lg:via-fuchsia-50/30 max-lg:to-white max-lg:min-h-0 " +
+        `max-lg:fixed max-lg:inset-0 max-lg:z-30 max-lg:m-0 max-lg:w-full max-lg:min-h-0 ${CHAT_PAGE_BACKGROUND_CLASSNAME} ` +
         /* 宽屏：薰衣草顶到底部留白 */
-        "lg:relative lg:z-auto lg:-mt-8 lg:-mb-8 lg:min-h-[calc(100dvh-4rem)] lg:bg-gradient-to-b lg:from-[#F3EFFF] lg:via-violet-50/40 lg:to-white max-lg:min-h-0"
+        "lg:relative lg:z-auto lg:-mt-8 lg:-mb-8 lg:min-h-[calc(100dvh-4rem)] max-lg:min-h-0"
       }
     >
       {/* 顶替全局顶栏：窄屏随全屏容器固定；宽屏 sticky 防止长表单滚动时丢失上下文 */}
@@ -1077,7 +1081,7 @@ export default function CreateLifeAgentPage() {
 
           {/* 聊天区域 - 点击/触摸空白处收起键盘（和微信一样） */}
           <div
-            className="flex-1 overflow-y-auto overscroll-contain px-3 sm:px-4"
+            className={`flex-1 overflow-y-auto overscroll-contain px-3 sm:px-4 ${CHAT_SCROLL_SURFACE_CLASSNAME}`}
             onClick={dismissKeyboard}
             onTouchStart={dismissKeyboard}
             role="presentation"
@@ -1195,7 +1199,7 @@ export default function CreateLifeAgentPage() {
 
           {/* 聊天区域 - 点击/触摸空白处收起键盘（和微信一样） */}
           <div
-            className="flex-1 overflow-y-auto overscroll-contain px-3 sm:px-4"
+            className={`flex-1 overflow-y-auto overscroll-contain px-3 sm:px-4 ${CHAT_SCROLL_SURFACE_CLASSNAME}`}
             onClick={dismissKeyboard}
             onTouchStart={dismissKeyboard}
             role="presentation"
@@ -1527,7 +1531,7 @@ export default function CreateLifeAgentPage() {
 
       {step === 4 && (
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-          <div className="flex-1 overflow-y-auto px-4 py-6 sm:px-6">
+          <div className={`flex-1 overflow-y-auto px-4 py-6 sm:px-6 ${CHAT_SCROLL_SURFACE_CLASSNAME}`}>
             <div className="mx-auto max-w-2xl">
               <VoiceRecordPanel
                 accent="pastel"

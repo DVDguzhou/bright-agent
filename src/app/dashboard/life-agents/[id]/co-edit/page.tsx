@@ -13,7 +13,11 @@ import {
   type ManageProfile,
 } from "@/app/dashboard/life-agents/_lib/manage";
 import { cleanLifeAgentIntroText } from "@/lib/life-agent-intro-clean";
-import { getChatBubbleClassName } from "@/lib/chat-glass";
+import {
+  CHAT_PAGE_BACKGROUND_CLASSNAME,
+  CHAT_SCROLL_SURFACE_CLASSNAME,
+  getChatBubbleClassName,
+} from "@/lib/chat-glass";
 
 type ChatRow = { role: "user" | "assistant"; content: string };
 type LastChange = {
@@ -475,8 +479,8 @@ export default function LifeAgentCoEditPage() {
     <div
       className={
         "flex min-w-0 flex-col overflow-hidden " +
-        "max-lg:fixed max-lg:inset-0 max-lg:z-30 max-lg:m-0 max-lg:w-full max-lg:bg-gradient-to-b max-lg:from-[#F3EFFF] max-lg:via-violet-50/40 max-lg:to-white max-lg:min-h-0 " +
-        "lg:relative lg:z-auto lg:-mx-4 lg:-mt-8 lg:-mb-8 lg:min-h-[calc(100dvh-4rem)] lg:bg-gradient-to-b lg:from-[#F3EFFF]/80 lg:via-violet-50/30 lg:to-white max-lg:min-h-0"
+        `max-lg:fixed max-lg:inset-0 max-lg:z-30 max-lg:m-0 max-lg:w-full max-lg:min-h-0 ${CHAT_PAGE_BACKGROUND_CLASSNAME} ` +
+        "lg:relative lg:z-auto lg:-mx-4 lg:-mt-8 lg:-mb-8 lg:min-h-[calc(100dvh-4rem)] max-lg:min-h-0"
       }
     >
       <header className="z-40 shrink-0 border-b border-purple-200/[0.18] bg-white/[0.91] px-4 pb-1 pt-[max(0.25rem,env(safe-area-inset-top))] shadow-[0_4px_28px_-10px_rgba(124,58,237,0.08)] backdrop-blur-xl sm:px-4 lg:sticky lg:top-0">
@@ -606,7 +610,7 @@ export default function LifeAgentCoEditPage() {
         </div>
 
         <div
-          className="flex-1 overflow-y-auto overscroll-contain px-3 sm:px-4"
+          className={`flex-1 overflow-y-auto overscroll-contain px-3 sm:px-4 ${CHAT_SCROLL_SURFACE_CLASSNAME}`}
           onClick={dismissKeyboard}
           onTouchStart={dismissKeyboard}
           role="presentation"
