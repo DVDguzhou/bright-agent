@@ -212,7 +212,6 @@ function LifeAgentsPageContent() {
   const [purchasedLoading, setPurchasedLoading] = useState(false);
   const [purchasedUnauthorized, setPurchasedUnauthorized] = useState(false);
   const [purchasedFetched, setPurchasedFetched] = useState(false);
-  const [pagerReady, setPagerReady] = useState(false);
   const [initialPageReady, setInitialPageReady] = useState(false);
 
   const touchNavEnabled = useMobileTouchNavEnabled();
@@ -264,7 +263,6 @@ function LifeAgentsPageContent() {
         el.scrollLeft = idx * width;
         lastPagerIdxRef.current = idx;
         visitPanel(idx);
-        setPagerReady(true);
       }
     };
     measure();
@@ -272,14 +270,6 @@ function LifeAgentsPageContent() {
     ro.observe(el);
     return () => ro.disconnect();
   }, [touchNavEnabled, feedTab, visitPanel]);
-
-  useEffect(() => {
-    if (!touchNavEnabled) {
-      setPagerReady(false);
-      return;
-    }
-    setPagerReady(false);
-  }, [touchNavEnabled, feedTab]);
 
   useLayoutEffect(() => {
     if (!touchNavEnabled || panelWidth <= 0) return;
@@ -293,7 +283,6 @@ function LifeAgentsPageContent() {
     el.scrollTo({ left: idx * panelWidth, behavior: "auto" });
     lastPagerIdxRef.current = idx;
     visitPanel(idx);
-    setPagerReady(true);
   }, [touchNavEnabled, feedTab, panelWidth, visitPanel]);
 
   useEffect(() => {
@@ -715,7 +704,7 @@ function LifeAgentsPageContent() {
   const pagerSectionClass =
     "box-border w-full min-w-[100%] shrink-0 space-y-4 px-1 sm:px-0 max-lg:snap-center max-lg:snap-always";
 
-  if (!initialPageReady || (touchNavEnabled && !pagerReady)) {
+  if (!initialPageReady) {
     return <LifeAgentsPageLoadingState />;
   }
 
