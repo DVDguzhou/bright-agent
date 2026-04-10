@@ -37,10 +37,14 @@ export function ChunkLoadRecovery() {
     const onError = (event: ErrorEvent) => {
       const message = String(event.message ?? "");
       const target = event.target;
-      const scriptSrc =
-        target instanceof HTMLScriptElement || target instanceof HTMLLinkElement ? target.src || target.href || "" : "";
+      let resourceUrl = "";
+      if (target instanceof HTMLScriptElement) {
+        resourceUrl = target.src;
+      } else if (target instanceof HTMLLinkElement) {
+        resourceUrl = target.href;
+      }
 
-      if (isChunkLikeMessage(message) || scriptSrc.includes("/_next/static/chunks/")) {
+      if (isChunkLikeMessage(message) || resourceUrl.includes("/_next/static/chunks/")) {
         reloadOnce();
       }
     };
