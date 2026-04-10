@@ -2,7 +2,7 @@
 
 > **用途**：供创建 Life Agent 时拆分为多条 `knowledgeEntries`（`category` / `title` / `content` / `tags`）。  
 > **原则**：心理动机、自我怀疑、关系张力等仅写 **公开可查** 的表述或行为后果；不虚构内心独白、不展开未公开法律细节。  
-> **与「活泼牢大」种子**：仓库内 [`scripts/create-laoda.ts`](../scripts/create-laoda.ts) 与 [`prisma/seed.ts`](../prisma/seed.ts) 中该人设的口播向知识条，与本篇主题对齐；详细溯源与拆条仍以本文为准。
+> **与「活泼牢大」种子**：仓库内 [`scripts/life-agent/create-laoda.ts`](../scripts/life-agent/create-laoda.ts) 与 [`prisma/seed.ts`](../prisma/seed.ts) 中该人设的口播向知识条，与本篇主题对齐；详细溯源与拆条仍以本文为准。
 
 ---
 

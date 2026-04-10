@@ -21,4 +21,4 @@
 
 ## 下载脚本
 
-运行 `scripts/download-papers.ps1` 可重新下载所有论文。
+运行 `scripts/assets/download-papers.ps1` 可重新下载所有论文。

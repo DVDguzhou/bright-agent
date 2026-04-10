@@ -222,13 +222,13 @@ Authorization: Bearer <session|sk_live_xxx>
 
 ```bash
 # 1. 设置环境变量（种子会输出 Demo API Key）
-$env:PLATFORM_URL="http://localhost:3001"
+$env:PLATFORM_URL="http://localhost:3000"
 $env:PLATFORM_API_KEY="sk_live_xxx"
 $env:LICENSE_ID="00000000-0000-0000-0000-000000000001"
 $env:AGENT_ID="00000000-0000-0000-0000-000000000001"
 
 # 2. 运行脚本
-node scripts/local-invoke-example.mjs
+node scripts/platform/local-invoke-example.mjs
 ```
 
 脚本会：申请 Token → 直接调用 Demo Agent → 获取结果。

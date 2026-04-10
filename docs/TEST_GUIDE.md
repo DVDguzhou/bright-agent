@@ -55,19 +55,23 @@ Demo License ID: 00000000-0000-0000-0000-000000000001
 
 `.env` 至少包含：
 ```
-DATABASE_URL="postgresql://..."
-NEXTAUTH_URL=http://localhost:3001
-DEMO_AGENT_BASE_URL=http://localhost:3001/api/demo-agent/invoke
+DATABASE_URL="root:password@tcp(localhost:3306)/agent_marketplace?charset=utf8mb4&parseTime=True"
+DATABASE_PRISMA_URL="mysql://root:password@localhost:3306/agent_marketplace"
+NEXTAUTH_URL=http://localhost:3000
+DEMO_AGENT_BASE_URL=http://localhost:3000/api/demo-agent/invoke
 PLATFORM_DEMO_SECRET=xxx   # 种子输出的那个
 ```
 
 ### 2.4 启动开发服务器
 
 ```powershell
-npm run dev
+npm run dev:all
 ```
 
-控制台会显示 `Local: http://localhost:3001` 或 `http://localhost:3000`，记住实际端口。
+默认会同时启动：
+
+- 前端：`http://localhost:3000`
+- Go 后端：`http://localhost:8080`
 
 ---
 
@@ -75,7 +79,7 @@ npm run dev
 
 ### 3.1 登录买方账号
 
-1. 打开 http://localhost:3001（或 3000）
+1. 打开 http://localhost:3000
 2. 点击「登录」
 3. 邮箱：`buyer@demo.com`，密码：`password123`
 
@@ -111,8 +115,8 @@ npm run dev
 ```powershell
 cd c:\Users\Caiqing\Desktop\regr
 
-# 平台地址（与 dev 端口一致）
-$env:PLATFORM_URL="http://localhost:3001"
+# 平台地址（默认前端地址）
+$env:PLATFORM_URL="http://localhost:3000"
 
 # 你的 API Key（控制台创建，或种子输出的 Demo Key）
 $env:PLATFORM_API_KEY="sk_live_你的key"
@@ -125,7 +129,7 @@ $env:PLATFORM_API_KEY="sk_live_你的key"
 ### 4.3 运行调用脚本
 
 ```powershell
-node scripts/local-invoke-example.mjs
+node scripts/platform/local-invoke-example.mjs
 ```
 
 ### 4.4 预期输出
@@ -133,7 +137,7 @@ node scripts/local-invoke-example.mjs
 ```
 Step 1: 向平台申请 InvocationToken...
   request_id: req_xxx
-  agent_base_url: http://localhost:3001/api/demo-agent/invoke
+  agent_base_url: http://localhost:3000/api/demo-agent/invoke
 
 Step 2: 直接调用小兰 Agent...
 
@@ -212,9 +216,10 @@ Demo Agent 会：
 - `.env` 中缺少或错误配置 `PLATFORM_DEMO_SECRET`
 - 从最近一次 `npm run db:seed` 的输出中复制 `PLATFORM_DEMO_SECRET` 到 `.env`
 
-### 5. dev 跑在 3001 但脚本连 3000
+### 5. 前端或后端没启动
 
-- 设置 `$env:PLATFORM_URL="http://localhost:3001"` 再运行脚本
+- 确认 `npm run dev:all` 正在运行
+- 若只单独启动前端，记得另开窗口运行 `npm run dev:api`
 
 ---
 
@@ -230,7 +235,7 @@ Demo Agent 会：
 ```powershell
 $env:PLATFORM_URL="http://localhost:3000"
 $env:PLATFORM_API_KEY="sk_live_xxx"
-node scripts/workflow-competitor-research.mjs https://example.com https://github.com
+node scripts/workflows/workflow-competitor-research.mjs https://example.com https://github.com
 ```
 
 ### 网页
@@ -246,8 +251,8 @@ node scripts/workflow-competitor-research.mjs https://example.com https://github
 - [ ] `npx prisma generate` 成功
 - [ ] `npm run db:seed` 成功
 - [ ] `.env` 中有 `PLATFORM_DEMO_SECRET`
-- [ ] `npm run dev` 在跑，且记下端口（3000 或 3001）
+- [ ] `npm run dev:all` 在跑
 - [ ] 能登录 buyer@demo.com
 - [ ] 控制台能创建/查看 API Key
-- [ ] `PLATFORM_URL` 与 dev 端口一致
-- [ ] `node scripts/local-invoke-example.mjs` 返回 `status: success`
+- [ ] `PLATFORM_URL=http://localhost:3000`
+- [ ] `node scripts/platform/local-invoke-example.mjs` 返回 `status: success`

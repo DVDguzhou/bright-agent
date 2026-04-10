@@ -39,7 +39,7 @@
 
 新建 Agent 状态为 `pending`，平台审核通过后变为 `approved` 才会上架展示。
 
-**隧道模式（免 ngrok）**：勾选「使用平台隧道」，注册后运行 `node scripts/tunnel-client.mjs`，将本地 Agent 接入。买方调用时平台自动转发到你的隧道客户端。
+**隧道模式（免 ngrok）**：勾选「使用平台隧道」，注册后运行 `node scripts/platform/tunnel-client.mjs`，将本地 Agent 接入。买方调用时平台自动转发到你的隧道客户端。
 
 ### 2.2 API 注册
 
@@ -237,7 +237,7 @@ Authorization: Bearer <小兰的API_Key>
 
 ### 5.2 示例：脚本编排
 
-参考 `scripts/invoke-orchestrator.mjs`：一次请求完成「Web Analyzer × N → Report Builder」。
+参考 `scripts/workflows/invoke-orchestrator.mjs`：一次请求完成「Web Analyzer × N → Report Builder」。
 
 核心逻辑：
 
@@ -309,7 +309,7 @@ const result = await fetch(tokenResp.agent_base_url, {
 }
 ```
 
-Demo: [/demo/swarm](/demo/swarm)、`node scripts/invoke-swarm.mjs`
+Demo: [/demo/swarm](/demo/swarm)、`node scripts/workflows/invoke-swarm.mjs`
 
 ---
 
@@ -331,4 +331,4 @@ Demo: [/demo/swarm](/demo/swarm)、`node scripts/invoke-swarm.mjs`
 
 ## 九、卖方最小示例
 
-见 [scripts/seller-agent-example.mjs](../scripts/seller-agent-example.mjs)：一个最小可运行的卖方 Agent 示例，展示「校验 token → 执行 → 提交回执」的完整流程。
+见 [scripts/platform/seller-agent-example.mjs](../scripts/platform/seller-agent-example.mjs)：一个最小可运行的卖方 Agent 示例，展示「校验 token → 执行 → 提交回执」的完整流程。

@@ -83,7 +83,7 @@ Go 后端使用 GORM AutoMigrate，已添加字段会自动迁移：
 后端启动且 MySQL 可用后，在项目根目录执行：
 
 ```bash
-node scripts/test-voice.mjs
+node scripts/life-agent/test-voice.mjs
 # 可选：TEST_BASE_URL=http://localhost:8080
 ```
 

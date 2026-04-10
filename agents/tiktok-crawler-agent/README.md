@@ -55,7 +55,7 @@ ngrok http 3334
 
 ### 5. 买方调用
 
-买方购买 License 后，使用 `scripts/invoke-crawler-agent.mjs` 或平台工作流调用。
+买方购买 License 后，使用 `scripts/workflows/invoke-crawler-agent.mjs` 或平台工作流调用。
 
 ## 验收清单
 

@@ -50,8 +50,13 @@ go run ./scripts/seed.go
 npm install
 npx prisma generate   # 若使用 Prisma
 npm run db:seed       # 种子（若使用 Prisma 版）
-npm run dev
+npm run dev:all
 ```
+
+默认本地地址：
+
+- 前端：`http://localhost:3000`
+- 后端：`http://localhost:8080`
 
 ### 2.4 环境变量
 
@@ -194,7 +199,7 @@ npm run dev
 
 | 用例 | 步骤 | 预期 | 优先级 |
 |------|------|------|--------|
-| TC-FLOW-001 | 运行 `node scripts/local-invoke-example.mjs` | status: success | P0 |
+| TC-FLOW-001 | 运行 `node scripts/platform/local-invoke-example.mjs` | status: success | P0 |
 | TC-FLOW-002 | 检查 License quota | 调用后 quota_used +1 | P1 |
 | TC-FLOW-003 | 网页：购买 License → 调用 Demo Agent | 全流程成功 | P1 |
 

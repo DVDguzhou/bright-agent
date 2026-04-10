@@ -82,7 +82,7 @@ export TEST_BASE_URL="https://brightagent.cn"
 export LAODA_OWNER_EMAIL="tmxiand@gmail.com"
 export LAODA_OWNER_PASSWORD="你的卖家密码"
 npm install   # 若尚未安装依赖
-node scripts/enroll-laoda-voice.mjs
+node scripts/life-agent/enroll-laoda-voice.mjs
 # 或：npm run enroll:laoda-voice
 ```
 
@@ -121,7 +121,7 @@ docker run --rm -it \
   -e LAODA_OWNER_EMAIL="tmxiand@gmail.com" \
   -e LAODA_OWNER_PASSWORD="你的卖家密码" \
   node:20-bookworm \
-  bash -lc "npm install && node scripts/enroll-laoda-voice.mjs"
+  bash -lc "npm install && node scripts/life-agent/enroll-laoda-voice.mjs"
 ```
 
 若后端只暴露在公网、未监听宿主机 8080，把 **`TEST_BASE_URL`** 改成 **`https://brightagent.cn`**，并去掉 `--network host`（容器走默认桥接访问外网即可）。

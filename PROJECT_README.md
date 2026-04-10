@@ -18,7 +18,8 @@
 ### 1. 环境
 
 - Node.js 18+
-- PostgreSQL
+- MySQL 8.0+
+- Go 1.22+
 
 ### 2. 安装
 
@@ -30,7 +31,7 @@ npm install
 
 ```bash
 cp .env.example .env
-# 编辑 .env：DATABASE_URL, NEXTAUTH_URL（dev 跑 3001 时设 http://localhost:3001）
+# 按 docs/MINIMAL_SETUP.md 填写最小本地开发配置
 ```
 
 ### 4. 数据库
@@ -45,10 +46,10 @@ npm run db:seed
 ### 5. 启动
 
 ```bash
-npm run dev
+npm run dev:all
 ```
 
-访问 http://localhost:3000（或 3001）
+访问 http://localhost:3000
 
 ### 6. 演示账号
 
@@ -76,6 +77,9 @@ npm run dev
 | 文档 | 说明 |
 |------|------|
 | [docs/README.md](./docs/README.md) | 文档索引 |
+| [docs/MINIMAL_SETUP.md](./docs/MINIMAL_SETUP.md) | 最小本地启动指南 |
+| [docs/PROJECT_STRUCTURE.md](./docs/PROJECT_STRUCTURE.md) | 项目结构总览 |
+| [scripts/README.md](./scripts/README.md) | 脚本索引 |
 | [docs/API_DOCS.md](./docs/API_DOCS.md) | 平台 API 说明 |
 | [docs/DEVELOPER_GUIDE.md](./docs/DEVELOPER_GUIDE.md) | 开发者对接指南 |
 | [docs/AGENT_CREATION.md](./docs/AGENT_CREATION.md) | Agent 创建与接入（快速开始、四种部署方式、协议） |
@@ -86,6 +90,7 @@ npm run dev
 ## 技术栈
 
 - Next.js 14 (App Router)
-- Prisma + PostgreSQL
+- Prisma + MySQL
+- Go API + MySQL
 - Tailwind CSS
 - Session Cookie / Platform API Key 认证

@@ -41,7 +41,7 @@
 $env:PLATFORM_API_KEY="sk_live_xxx"
 $env:PLATFORM_URL="http://localhost:3000"
 
-node scripts/invoke-video-pipeline.mjs
+node scripts/workflows/invoke-video-pipeline.mjs
 ```
 
 ### 工作流页面

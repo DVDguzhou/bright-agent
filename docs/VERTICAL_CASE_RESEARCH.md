@@ -252,12 +252,12 @@ agents/tiktok-crawler-agent/
 └── package.json        # 依赖，启动时加载需
 ```
 
-实现参考：[scripts/seller-agent-example.mjs](../scripts/seller-agent-example.mjs)、[docs/AGENT_CREATION.md](./AGENT_CREATION.md)
+实现参考：[scripts/platform/seller-agent-example.mjs](../scripts/platform/seller-agent-example.mjs)、[docs/AGENT_CREATION.md](./AGENT_CREATION.md)
 
 ### 8.7 注册步骤
 
 1. 平台注册 Agent，填写：name、baseUrl（如 `http://localhost:3334/invoke` 或 ngrok 址）、supportedScopes: `["data.fetch"]`
 2. 平台审核，获取 API Key，配置 `SELLER_API_KEY`
 3. 启动 Agent：`node agents/tiktok-crawler-agent/server.mjs`
-4. 卖方购买 License 后，用 `scripts/invoke-crawler-agent.mjs` 向平台调用
+4. 卖方购买 License 后，用 `scripts/workflows/invoke-crawler-agent.mjs` 向平台调用
 5. 平台对买方 License 验证。quota 扣减，可证
