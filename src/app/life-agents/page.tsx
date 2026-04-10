@@ -80,6 +80,31 @@ function pathForTabIndex(i: number): string {
   return "/life-agents";
 }
 
+function feedPanelScrollLeft(panels: readonly (HTMLElement | null)[], idx: number, fallbackViewportW: number): number {
+  const p = panels[idx];
+  if (p) return p.offsetLeft;
+  return idx * Math.max(1, fallbackViewportW);
+}
+
+/** 用各屏真实 offsetLeft/width，避免 flex 子项宽度 ≠ 视口 clientWidth 时滚不到「发现」；也用于横向滑动后对齐 URL。 */
+function feedTabIndexFromScrollEl(el: HTMLDivElement, panels: readonly (HTMLElement | null)[]): number {
+  const cx = el.scrollLeft + el.clientWidth / 2;
+  for (let i = 0; i < panels.length; i++) {
+    const p = panels[i];
+    if (!p) continue;
+    const L = p.offsetLeft;
+    const R = L + p.offsetWidth;
+    if (cx >= L && cx < R) return i;
+  }
+  const w = el.clientWidth;
+  return Math.min(2, Math.max(0, Math.round(el.scrollLeft / Math.max(1, w))));
+}
+
+function feedPagerProgress(scrollLeft: number, panels: readonly (HTMLElement | null)[], viewportW: number): number {
+  const step = panels[0]?.offsetWidth ?? viewportW;
+  return scrollLeft / Math.max(1, step);
+}
+
 function normalizeFeedTab(tab: string | null): FeedTabKey {
   if (tab === "favorites") return "favorites";
   if (tab === "purchased") return "purchased";
@@ -218,6 +243,8 @@ function LifeAgentsPageContent() {
 
   const [visitedMask, setVisitedMask] = useState(() => 1 << tabIndexFromFeedTab(feedTab));
   const pagerRef = useRef<HTMLDivElement>(null);
+  /** 横向三屏 DOM，用于按真实几何滚动（避免仅用 clientWidth 乘 index 对不齐） */
+  const feedPanelElsRef = useRef<(HTMLElement | null)[]>([null, null, null]);
   const [panelWidth, setPanelWidth] = useState(0);
   const skipScrollFromUrlRef = useRef(false);
   const replaceDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -258,12 +285,15 @@ function LifeAgentsPageContent() {
     let raf1 = 0;
     let raf2 = 0;
     let cancelled = false;
+    const panels = () => feedPanelElsRef.current;
     const measure = () => {
-      const width = el.clientWidth;
-      setPanelWidth(width);
-      if (width > 0) {
+      const vw = el.clientWidth;
+      const pw = panels()[0]?.offsetWidth ?? vw;
+      setPanelWidth(pw > 0 ? pw : vw);
+      if (vw > 0) {
         const idx = tabIndexFromFeedTab(feedTab);
-        el.scrollTo({ left: idx * width, behavior: "auto" });
+        const left = feedPanelScrollLeft(panels(), idx, vw);
+        el.scrollTo({ left, behavior: "auto" });
         lastPagerIdxRef.current = idx;
         visitPanel(idx);
       }
@@ -296,7 +326,8 @@ function LifeAgentsPageContent() {
       return;
     }
     const idx = tabIndexFromFeedTab(feedTab);
-    el.scrollTo({ left: idx * panelWidth, behavior: "auto" });
+    const left = feedPanelScrollLeft(feedPanelElsRef.current, idx, el.clientWidth);
+    el.scrollTo({ left, behavior: "auto" });
     lastPagerIdxRef.current = idx;
     visitPanel(idx);
   }, [touchNavEnabled, feedTab, panelWidth, visitPanel]);
@@ -307,7 +338,8 @@ function LifeAgentsPageContent() {
     if (!el) return;
 
     const onScroll = () => {
-      const idx = Math.min(2, Math.max(0, Math.round(el.scrollLeft / panelWidth)));
+      const panels = feedPanelElsRef.current;
+      const idx = feedTabIndexFromScrollEl(el, panels);
       if (idx !== lastPagerIdxRef.current) {
         lastPagerIdxRef.current = idx;
         visitPanel(idx);
@@ -318,7 +350,7 @@ function LifeAgentsPageContent() {
             scrollLeft: el.scrollLeft,
             panelWidth,
             index: idx,
-            progress: el.scrollLeft / Math.max(1, panelWidth),
+            progress: feedPagerProgress(el.scrollLeft, panels, el.clientWidth),
           },
         }),
       );
@@ -326,7 +358,7 @@ function LifeAgentsPageContent() {
       if (replaceDebounceRef.current) clearTimeout(replaceDebounceRef.current);
       replaceDebounceRef.current = setTimeout(() => {
         replaceDebounceRef.current = null;
-        const i = Math.min(2, Math.max(0, Math.round(el.scrollLeft / panelWidth)));
+        const i = feedTabIndexFromScrollEl(el, feedPanelElsRef.current);
         const href = pathForTabIndex(i);
         const cur = `${window.location.pathname}${window.location.search}`;
         if (href !== cur) {
@@ -342,6 +374,29 @@ function LifeAgentsPageContent() {
       if (replaceDebounceRef.current) clearTimeout(replaceDebounceRef.current);
     };
   }, [touchNavEnabled, panelWidth, router, visitPanel]);
+
+  /** snap / 晚一拍的布局有时会盖掉首次 scrollTo，延迟再对齐一次（仅当与 URL 不一致时）。 */
+  useEffect(() => {
+    if (!touchNavEnabled) return;
+    const el = pagerRef.current;
+    if (!el) return;
+    const want = tabIndexFromFeedTab(feedTab);
+    const fix = () => {
+      const cur = feedTabIndexFromScrollEl(el, feedPanelElsRef.current);
+      if (cur !== want) {
+        el.scrollTo({
+          left: feedPanelScrollLeft(feedPanelElsRef.current, want, el.clientWidth),
+          behavior: "auto",
+        });
+      }
+    };
+    const t = window.setTimeout(fix, 80);
+    const t2 = window.setTimeout(fix, 280);
+    return () => {
+      window.clearTimeout(t);
+      window.clearTimeout(t2);
+    };
+  }, [touchNavEnabled, feedTab]);
 
   const loadPurchasedList = useCallback(async (opts?: { force?: boolean; background?: boolean }) => {
     const force = opts?.force ?? false;
@@ -718,7 +773,7 @@ function LifeAgentsPageContent() {
     );
 
   const pagerSectionClass =
-    "box-border w-full min-w-[100%] shrink-0 space-y-4 px-1 sm:px-0 max-lg:snap-center max-lg:snap-always";
+    "box-border w-full min-w-[100%] shrink-0 basis-full grow-0 space-y-4 px-1 sm:px-0 max-lg:snap-start max-lg:snap-always";
 
   if (!initialPageReady) {
     return <LifeAgentsPageLoadingState />;
@@ -764,7 +819,13 @@ function LifeAgentsPageContent() {
               ref={pagerRef}
               className="flex overflow-x-auto overscroll-x-contain [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x snap-mandatory [touch-action:pan-x_pan-y]"
             >
-            <section className={pagerSectionClass} aria-label="收藏">
+            <section
+              ref={(node) => {
+                feedPanelElsRef.current[0] = node;
+              }}
+              className={pagerSectionClass}
+              aria-label="收藏"
+            >
               {favoritesIntro}
               {favoritesHeading}
               <LifeAgentDiscoverCardGrid
@@ -780,7 +841,13 @@ function LifeAgentsPageContent() {
                 virtualized={false}
               />
             </section>
-            <section className={pagerSectionClass} aria-label="发现">
+            <section
+              ref={(node) => {
+                feedPanelElsRef.current[1] = node;
+              }}
+              className={pagerSectionClass}
+              aria-label="发现"
+            >
               <LifeAgentDiscoverCardGrid
                 profiles={displayProfilesDiscover}
                 loading={discoverLoading}
@@ -795,7 +862,13 @@ function LifeAgentsPageContent() {
                 virtualized={false}
               />
             </section>
-            <section className={pagerSectionClass} aria-label="已购买">
+            <section
+              ref={(node) => {
+                feedPanelElsRef.current[2] = node;
+              }}
+              className={pagerSectionClass}
+              aria-label="已购买"
+            >
               {purchasedIntro}
               {purchasedHeading}
               {purchasedBody}
