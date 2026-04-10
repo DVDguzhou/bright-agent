@@ -5,7 +5,7 @@ export default function Loading() {
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-sm font-semibold text-purple-950/90">页面初始化中...</p>
-            <p className="mt-1 text-xs text-slate-500">首屏内容和封面资源准备好后再展示页面</p>
+            <p className="mt-1 text-xs text-slate-500">正在准备页面结构与首屏内容</p>
           </div>
           <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-purple-200 border-t-purple-700" aria-hidden />
         </div>

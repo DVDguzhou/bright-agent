@@ -7,11 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { VerificationBadge } from "@/components/VerificationBadge";
 import { LifeAgentCoverImage } from "@/components/LifeAgentCoverImage";
-import {
-  nextLifeAgentCoverFallbackSrc,
-  normalizeLifeAgentCoverImgSrc,
-  resolveLifeAgentCoverDisplayUrl,
-} from "@/lib/life-agent-covers";
+import { resolveLifeAgentCoverDisplayUrl } from "@/lib/life-agent-covers";
 import { getFavoriteAgentIds } from "@/lib/life-agent-favorites";
 import { LifeAgentDiscoverCardGrid } from "@/components/LifeAgentDiscoverCardGrid";
 import { rankLifeAgentsBySearchQuery, type LifeAgentListItem } from "@/lib/life-agent-feed-search";
@@ -33,7 +29,14 @@ type PurchasedAgentRow = {
 };
 
 const PURCHASED_CACHE_TTL_MS = 90_000;
-const INITIAL_BOOT_IMAGE_COUNT = 6;
+const DISCOVER_FEED_CACHE_KEY = "life-agents:discover:first-page";
+const DISCOVER_FEED_CACHE_TTL_MS = 5 * 60_000;
+
+type DiscoverFeedCacheSnapshot = {
+  savedAt: number;
+  items: LifeAgentListItem[];
+  nextCursor: string | null;
+};
 
 const UI = {
   loading: "加载中...",
@@ -56,18 +59,10 @@ const UI = {
   anonymous: "佚",
 } as const;
 
-type FeedTabKey = "favorites" | "discover" | "purchased";
-
 function tabIndexFromFeedTab(tab: string | null): number {
   if (tab === "favorites") return 0;
   if (tab === "purchased") return 2;
   return 1;
-}
-
-function normalizeFeedTab(tab: string | null): FeedTabKey {
-  if (tab === "favorites") return "favorites";
-  if (tab === "purchased") return "purchased";
-  return "discover";
 }
 
 function pathForTabIndex(i: number): string {
@@ -76,42 +71,36 @@ function pathForTabIndex(i: number): string {
   return "/life-agents";
 }
 
-function preloadLifeAgentCover(src: string): Promise<void> {
-  return new Promise((resolve) => {
-    if (typeof window === "undefined") {
-      resolve();
-      return;
-    }
-
-    const loaded = new Set<string>();
-
-    const attempt = (candidate: string) => {
-      const normalized = normalizeLifeAgentCoverImgSrc(candidate);
-      if (loaded.has(normalized)) {
-        resolve();
-        return;
-      }
-      loaded.add(normalized);
-
-      const img = new window.Image();
-      img.decoding = "async";
-      img.onload = () => resolve();
-      img.onerror = () => {
-        const next = nextLifeAgentCoverFallbackSrc(normalized);
-        if (next === normalized) {
-          resolve();
-          return;
-        }
-        attempt(next);
-      };
-      img.src = normalized;
-      if (img.complete && img.naturalWidth > 0) {
-        resolve();
-      }
+function readDiscoverFeedCache(): DiscoverFeedCacheSnapshot | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(DISCOVER_FEED_CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<DiscoverFeedCacheSnapshot>;
+    if (!Array.isArray(parsed.items) || typeof parsed.savedAt !== "number") return null;
+    if (Date.now() - parsed.savedAt > DISCOVER_FEED_CACHE_TTL_MS) return null;
+    return {
+      savedAt: parsed.savedAt,
+      items: parsed.items as LifeAgentListItem[],
+      nextCursor: typeof parsed.nextCursor === "string" ? parsed.nextCursor : null,
     };
+  } catch {
+    return null;
+  }
+}
 
-    attempt(src);
-  });
+function writeDiscoverFeedCache(items: LifeAgentListItem[], nextCursor: string | null) {
+  if (typeof window === "undefined") return;
+  try {
+    const snapshot: DiscoverFeedCacheSnapshot = {
+      savedAt: Date.now(),
+      items,
+      nextCursor,
+    };
+    window.localStorage.setItem(DISCOVER_FEED_CACHE_KEY, JSON.stringify(snapshot));
+  } catch {
+    // 忽略 localStorage 容量或隐私模式错误
+  }
 }
 
 function LifeAgentsPageLoadingState({ title = "页面加载中..." }: { title?: string }) {
@@ -121,7 +110,7 @@ function LifeAgentsPageLoadingState({ title = "页面加载中..." }: { title?: 
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-sm font-semibold text-purple-950/90">{title}</p>
-            <p className="mt-1 text-xs text-slate-500">首屏内容和封面资源准备好后再展示页面</p>
+            <p className="mt-1 text-xs text-slate-500">正在准备页面结构与首屏内容</p>
           </div>
           <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-purple-200 border-t-purple-700" aria-hidden />
         </div>
@@ -152,7 +141,6 @@ function LifeAgentsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const feedTab = searchParams.get("tab");
-  const initialBootTabRef = useRef<FeedTabKey>(normalizeFeedTab(feedTab));
   const [discoverItems, setDiscoverItems] = useState<LifeAgentListItem[]>([]);
   const [discoverNextCursor, setDiscoverNextCursor] = useState<string | null>(null);
   const [discoverLoading, setDiscoverLoading] = useState(true);
@@ -160,7 +148,6 @@ function LifeAgentsPageContent() {
   const [favoritesSource, setFavoritesSource] = useState<LifeAgentListItem[]>([]);
   const [favoritesLoading, setFavoritesLoading] = useState(false);
   const [favoritesFetched, setFavoritesFetched] = useState(false);
-  const [favoriteIdsHydrated, setFavoriteIdsHydrated] = useState(false);
 
   const discoverItemsRef = useRef(discoverItems);
   discoverItemsRef.current = discoverItems;
@@ -171,18 +158,9 @@ function LifeAgentsPageContent() {
   const [purchasedLoading, setPurchasedLoading] = useState(false);
   const [purchasedUnauthorized, setPurchasedUnauthorized] = useState(false);
   const [purchasedFetched, setPurchasedFetched] = useState(false);
-  const [pageBootImagesReady, setPageBootImagesReady] = useState(false);
-  const [pageBootReady, setPageBootReady] = useState(false);
   const [pagerReady, setPagerReady] = useState(false);
 
   const touchNavEnabled = useMobileTouchNavEnabled();
-  const initialBootTab = initialBootTabRef.current;
-  const initialBootReady =
-    initialBootTab === "favorites"
-      ? favoritesFetched && favoriteIdsHydrated
-      : initialBootTab === "purchased"
-        ? purchasedFetched || purchasedUnauthorized
-        : !discoverLoading;
 
   const [visitedMask, setVisitedMask] = useState(() => 1 << tabIndexFromFeedTab(feedTab));
   const pagerRef = useRef<HTMLDivElement>(null);
@@ -192,6 +170,7 @@ function LifeAgentsPageContent() {
   const lastPagerIdxRef = useRef(-1);
   const purchasedLastLoadedAtRef = useRef(0);
   const purchasedRequestInFlightRef = useRef(false);
+  const discoverCacheHydratedRef = useRef(false);
 
   const visitPanel = useCallback((i: number) => {
     setVisitedMask((m) => {
@@ -207,12 +186,15 @@ function LifeAgentsPageContent() {
     setVisitedMask(1 << tabIndexFromFeedTab(feedTab));
   }, [touchNavEnabled, feedTab]);
 
-  useEffect(() => {
-    if (pageBootReady) return;
-    if (loadError || (initialBootReady && pageBootImagesReady)) {
-      setPageBootReady(true);
-    }
-  }, [pageBootReady, loadError, initialBootReady, pageBootImagesReady]);
+  useLayoutEffect(() => {
+    if (discoverItemsRef.current.length > 0) return;
+    const cached = readDiscoverFeedCache();
+    if (!cached || cached.items.length === 0) return;
+    discoverCacheHydratedRef.current = true;
+    setDiscoverItems(cached.items);
+    setDiscoverNextCursor(cached.nextCursor);
+    setDiscoverLoading(false);
+  }, []);
 
   useLayoutEffect(() => {
     if (!touchNavEnabled) return;
@@ -381,6 +363,7 @@ function LifeAgentsPageContent() {
       .then(({ items, nextCursor }) => {
         setDiscoverItems(items);
         setDiscoverNextCursor(nextCursor || null);
+        writeDiscoverFeedCache(items, nextCursor || null);
         setLoadError(null);
       })
       .catch((err) => {
@@ -418,7 +401,6 @@ function LifeAgentsPageContent() {
   useEffect(() => {
     const sync = () => setFavoriteIds(getFavoriteAgentIds());
     sync();
-    setFavoriteIdsHydrated(true);
     window.addEventListener("la-favorite-change", sync);
     return () => window.removeEventListener("la-favorite-change", sync);
   }, []);
@@ -436,30 +418,36 @@ function LifeAgentsPageContent() {
       setDiscoverLoading(false);
       return;
     }
-    if (discoverItemsRef.current.length > 0) {
+    const hasCachedSnapshot = discoverCacheHydratedRef.current;
+    if (discoverItemsRef.current.length > 0 && !hasCachedSnapshot) {
       setDiscoverLoading(false);
       return;
     }
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 15000);
+    const keepSnapshotVisible = discoverItemsRef.current.length > 0;
     setLoadError(null);
-    setDiscoverLoading(true);
+    if (!keepSnapshotVisible) setDiscoverLoading(true);
     fetchLifeAgentsPage(48, undefined, controller.signal)
       .then(({ items, nextCursor }) => {
         setDiscoverItems(items);
         setDiscoverNextCursor(nextCursor || null);
+        writeDiscoverFeedCache(items, nextCursor || null);
         setLoadError(null);
       })
       .catch((err) => {
-        setDiscoverItems([]);
-        setDiscoverNextCursor(null);
-        setLoadError(
-          err.name === "AbortError"
-            ? "请求超时，请检查后端是否启动或稍后重试"
-            : "加载失败，请刷新页面重试",
-        );
+        if (!keepSnapshotVisible) {
+          setDiscoverItems([]);
+          setDiscoverNextCursor(null);
+          setLoadError(
+            err.name === "AbortError"
+              ? "请求超时，请检查后端是否启动或稍后重试"
+              : "加载失败，请刷新页面重试",
+          );
+        }
       })
       .finally(() => {
+        discoverCacheHydratedRef.current = false;
         clearTimeout(timeoutId);
         setDiscoverLoading(false);
       });
@@ -518,47 +506,6 @@ function LifeAgentsPageContent() {
     if (feedTab === "purchased") return [];
     return displayProfilesDiscover;
   }, [feedTab, displayProfilesFavorites, displayProfilesDiscover]);
-
-  const initialBootCoverUrls = useMemo(() => {
-    if (initialBootTab === "favorites") {
-      return displayProfilesFavorites
-        .slice(0, INITIAL_BOOT_IMAGE_COUNT)
-        .map((profile) =>
-          resolveLifeAgentCoverDisplayUrl(profile.coverUrl, profile.coverImageUrl, profile.coverPresetKey),
-        );
-    }
-    if (initialBootTab === "purchased") {
-      return purchasedItems
-        .slice(0, INITIAL_BOOT_IMAGE_COUNT)
-        .map((row) => resolveLifeAgentCoverDisplayUrl(row.coverUrl, row.coverImageUrl, row.coverPresetKey));
-    }
-    return displayProfilesDiscover
-      .slice(0, INITIAL_BOOT_IMAGE_COUNT)
-      .map((profile) =>
-        resolveLifeAgentCoverDisplayUrl(profile.coverUrl, profile.coverImageUrl, profile.coverPresetKey),
-      );
-  }, [displayProfilesDiscover, displayProfilesFavorites, initialBootTab, purchasedItems]);
-
-  useEffect(() => {
-    if (!initialBootReady || loadError) return;
-    if (pageBootImagesReady) return;
-
-    let cancelled = false;
-    const urls = initialBootCoverUrls.filter(Boolean);
-
-    if (urls.length === 0) {
-      setPageBootImagesReady(true);
-      return;
-    }
-
-    Promise.all(urls.map((url) => preloadLifeAgentCover(url))).then(() => {
-      if (!cancelled) setPageBootImagesReady(true);
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [initialBootReady, initialBootCoverUrls, loadError, pageBootImagesReady]);
 
   const gridLoadingDesktop =
     feedTab === "favorites" ? favoritesLoading : feedTab === "purchased" ? false : discoverLoading;
@@ -655,7 +602,7 @@ function LifeAgentsPageContent() {
   const pagerSectionClass =
     "box-border w-full min-w-[100%] shrink-0 space-y-4 px-1 sm:px-0 max-lg:snap-center max-lg:snap-always";
 
-  if (!pageBootReady || (touchNavEnabled && !pagerReady)) {
+  if (touchNavEnabled && !pagerReady) {
     return <LifeAgentsPageLoadingState />;
   }
 
