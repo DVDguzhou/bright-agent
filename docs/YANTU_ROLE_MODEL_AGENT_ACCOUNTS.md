@@ -95,6 +95,37 @@
 | 62 | shine昕玥 | yantu-import@demo.com | glow_xy@163.com | YantuLa2026! |
 | 63 | 煦华慢半拍__ | yantu-import@demo.com | slow_xh@163.com | YantuLa2026! |
 
+## 北邮飞跃手册第十四章「申请经验谈」系列（23 条）
+
+来源：《北邮飞跃手册》第十四章，23 位出国申请经验作者。
+档案文件：`backend/internal/yantuseed/profiles_bupt_feyue.go`
+
+| 序号 | 人生 Agent 显示名 | 原论坛ID | 原归属账号 | 新登录邮箱 | 初始密码 |
+|-----|------------------|----------|------------|------------|----------|
+| 64 | 幽灵不打烊 | holyghost | yantu-import@demo.com | ghost_on99@163.com | YantuLa2026! |
+| 65 | 星辰大海Luo | patrickluo | yantu-import@demo.com | star_sea_l@163.com | YantuLa2026! |
+| 66 | carol吃薯片 | carol | yantu-import@demo.com | chip_carol@163.com | YantuLa2026! |
+| 67 | 海浪轻轻摇 | haipiaoxiao | yantu-import@demo.com | wave_rock8@163.com | YantuLa2026! |
+| 68 | 小柯_Nap | xiaokeaister | yantu-import@demo.com | nap_xk@163.com | YantuLa2026! |
+| 69 | 赢了别浪 | wining | yantu-import@demo.com | win_cool7@163.com | YantuLa2026! |
+| 70 | 猫咪打盹中 | didocat | yantu-import@demo.com | cat_doze@163.com | YantuLa2026! |
+| 71 | 旅人TripX | traveller | yantu-import@demo.com | trip_xx@163.com | YantuLa2026! |
+| 72 | 泡泡不会破 | bububub | yantu-import@demo.com | bubble_pop@163.com | YantuLa2026! |
+| 73 | 硬糖嘎嘣脆 | Hardcandy | yantu-import@demo.com | candy_crk@163.com | YantuLa2026! |
+| 74 | lyk_星期五 | XXlyk | yantu-import@demo.com | fri_lyk@163.com | YantuLa2026! |
+| 75 | 天马行空bupt | pegasusbupt | yantu-import@demo.com | pegasus_fly@163.com | YantuLa2026! |
+| 76 | Func_不加班 | Func | yantu-import@demo.com | func_off@163.com | YantuLa2026! |
+| 77 | 念旧的小鬼 | NostalgicImp | yantu-import@demo.com | old_imp@163.com | YantuLa2026! |
+| 78 | 亚星today | asianstar | yantu-import@demo.com | asia_star@163.com | YantuLa2026! |
+| 79 | 耳朵爱听歌 | iwannasay/耳朵 | yantu-import@demo.com | ear_song@163.com | YantuLa2026! |
+| 80 | toto想回家 | toto86 | yantu-import@demo.com | toto_home@163.com | YantuLa2026! |
+| 81 | 苹果酱w | applw9204120 | yantu-import@demo.com | apple_jam@163.com | YantuLa2026! |
+| 82 | 墨墨不上线 | momolan | yantu-import@demo.com | ink_off8@163.com | YantuLa2026! |
+| 83 | 雷霆闪电89 | Thunder1989 | yantu-import@demo.com | thunder_89@163.com | YantuLa2026! |
+| 84 | 小猪xp_Art | xpig | yantu-import@demo.com | pig_art@163.com | YantuLa2026! |
+| 85 | 教训记牢了 | canbyjiaoxun | yantu-import@demo.com | lesson_ok@163.com | YantuLa2026! |
+| 86 | 光子麦克斯 | xmaximum | yantu-import@demo.com | photon_max@163.com | YantuLa2026! |
+
 ## 删除研途榜样种子数据（危险操作）
 
 级联清理：知识库、买家会话与消息、反馈、评分、提问包、调用密钥、共编状态、收藏等。

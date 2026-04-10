@@ -165,10 +165,11 @@ func UpsertProfile(userID, coverPreset string, p Profile) error {
 	return nil
 }
 
-// Profiles 为当前仓库内置的榜样正文：研途榜样 3 人 + 浙大数院飞跃手册（2021）全书目录内学长学姐（考研+保研+境内/境外升学+院外受邀金工）。
+// Profiles 为当前仓库内置的榜样正文：研途榜样 3 人 + 浙大数院飞跃手册（2021）全书目录内学长学姐（考研+保研+境内/境外升学+院外受邀金工）+ 北邮飞跃手册第十四章申请经验谈 23 人。
 func Profiles() []Profile {
 	n := 3 + len(zjuFeyue2021Profiles) + len(zjuFeyue2021ProfilesMore) + len(zjuFeyue2021ProfilesAbroad) +
-		len(zjuFeyue2021ProfilesDomesticRemain1) + len(zjuFeyue2021ProfilesDomesticRemain2) + len(zjuFeyue2021ProfilesAbroadMore)
+		len(zjuFeyue2021ProfilesDomesticRemain1) + len(zjuFeyue2021ProfilesDomesticRemain2) + len(zjuFeyue2021ProfilesAbroadMore) +
+		len(buptFeyueProfiles)
 	out := make([]Profile, 0, n)
 	out = append(out, yaoShengJie, zhangGuiShuo, yangChenYang)
 	out = append(out, zjuFeyue2021Profiles...)
@@ -177,5 +178,6 @@ func Profiles() []Profile {
 	out = append(out, zjuFeyue2021ProfilesDomesticRemain2...)
 	out = append(out, zjuFeyue2021ProfilesAbroad...)
 	out = append(out, zjuFeyue2021ProfilesAbroadMore...)
+	out = append(out, buptFeyueProfiles...)
 	return out
 }
