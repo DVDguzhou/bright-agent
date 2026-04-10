@@ -15,10 +15,9 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -o server .
 
 FROM ${ALPINE_RUNTIME_IMAGE}
-# 运行时尽量兼容多网络环境：先尝试官方源，失败再切换阿里云镜像
-RUN apk add --no-cache ca-certificates tzdata ffmpeg || \
-	( sed -i 's|https://dl-cdn.alpinelinux.org|https://mirrors.aliyun.com|g' /etc/apk/repositories && \
-	  apk add --no-cache ca-certificates tzdata ffmpeg )
+# 运行时固定使用国内 Alpine 镜像，避免先访问官方源超时后再回退
+RUN sed -i 's|https://dl-cdn.alpinelinux.org/alpine|https://mirrors.aliyun.com/alpine|g' /etc/apk/repositories \
+	&& apk add --no-cache ca-certificates tzdata ffmpeg
 ENV TZ=Asia/Shanghai
 WORKDIR /app
 COPY --from=builder /app/server .
