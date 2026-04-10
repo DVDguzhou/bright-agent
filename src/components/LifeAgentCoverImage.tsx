@@ -21,8 +21,7 @@ export type LifeAgentCoverImageProps = Omit<ImgHTMLAttributes<HTMLImageElement>,
 };
 
 /**
- * 人生 Agent 封面：原生 img；默认可用 public 下 default-cover.png / default-cover.svg，
- * 加载失败时按 PNG → SVG → 极小内联占位 链式回退。
+ * 人生 Agent 封面：原生 img；默认优先自包含 default-cover.svg，加载失败时链式回退到内联占位等。
  */
 export function LifeAgentCoverImage({
   src,

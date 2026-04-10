@@ -1,3 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="800" height="1000" viewBox="0 0 800 1000" role="img" aria-label="???? Agent ??">
-  <image href="default-cover.png" xlink:href="default-cover.png" width="800" height="1000" preserveAspectRatio="xMidYMid slice"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1000" viewBox="0 0 800 1000" role="img" aria-label="默认封面">
+  <defs>
+    <linearGradient id="la-default-cover-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ede9fe" />
+      <stop offset="45%" stop-color="#fae8ff" />
+      <stop offset="100%" stop-color="#e9d5ff" />
+    </linearGradient>
+  </defs>
+  <rect width="800" height="1000" fill="url(#la-default-cover-bg)" />
+  <circle cx="400" cy="380" r="140" fill="#c4b5fd" opacity="0.35" />
+  <ellipse cx="400" cy="720" rx="260" ry="120" fill="#a78bfa" opacity="0.2" />
 </svg>

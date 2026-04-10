@@ -1,11 +1,26 @@
-/** 与 backend lifeAgentDefaultCoverURL 一致：主默认图为 PNG（public 内文件） */
+/** 与 backend lifeAgentDefaultCoverURL 一致：接口仍可能返回 PNG 路径；前端优先用自包含 SVG，避免 CDN/代理对 PNG 的 Range 响应异常（如 206 + Content-Length 错位） */
 export const DEFAULT_COVER_PNG_URL = "/life-agent-cover-presets/default-cover.png";
 
-/** 矢量默认图，PNG 不可用时由 LifeAgentCoverImage 链式回退 */
+/** 自包含矢量默认图（不内嵌引用 default-cover.png，避免二次请求坏链） */
 export const DEFAULT_COVER_SVG_URL = "/life-agent-cover-presets/default-cover.svg";
 
-/** 兼容旧字段与后端 JSON：统一指主默认 PNG */
-export const DEFAULT_COVER_URL = DEFAULT_COVER_PNG_URL;
+/** 前端统一主默认：SVG */
+export const DEFAULT_COVER_URL = DEFAULT_COVER_SVG_URL;
+
+function isDefaultCoverPathname(p: string): boolean {
+  return p.endsWith("/default-cover.png") || p.endsWith("/default-cover.svg");
+}
+
+export function isLifeAgentDefaultCoverUrl(src: string): boolean {
+  const s = src.trim();
+  if (s === DEFAULT_COVER_PNG_URL || s === DEFAULT_COVER_SVG_URL) return true;
+  try {
+    const abs = s.startsWith("http://") || s.startsWith("https://") ? new URL(s) : new URL(s, "https://placeholder.local");
+    return isDefaultCoverPathname(abs.pathname);
+  } catch {
+    return false;
+  }
+}
 
 /** PNG、SVG 均加载失败时的最后占位（极小 data URL） */
 export const DEFAULT_COVER_FINAL_FALLBACK_SRC =
@@ -14,32 +29,32 @@ export const DEFAULT_COVER_FINAL_FALLBACK_SRC =
     `<svg xmlns="http://www.w3.org/2000/svg" width="8" height="10" viewBox="0 0 8 10"><rect width="8" height="10" fill="#e2e8f0"/></svg>`,
   );
 
-/** 加载失败时的下一级回退：自定义坏链 → PNG → SVG → 内联占位 */
+/** 加载失败时的下一级回退：自定义坏链 → 自包含 SVG → 内联占位；（直连 PNG 失败时再试 SVG） */
 export function nextLifeAgentCoverFallbackSrc(current: string): string {
   const s = current.trim();
   if (s === DEFAULT_COVER_FINAL_FALLBACK_SRC) return s;
-  if (s === DEFAULT_COVER_SVG_URL) return DEFAULT_COVER_FINAL_FALLBACK_SRC;
   if (s === DEFAULT_COVER_PNG_URL) return DEFAULT_COVER_SVG_URL;
-  return DEFAULT_COVER_PNG_URL;
+  if (s === DEFAULT_COVER_SVG_URL) return DEFAULT_COVER_FINAL_FALLBACK_SRC;
+  return DEFAULT_COVER_SVG_URL;
 }
 
 /**
- * 将接口返回的默认路径（或空）规范为主默认 PNG；
- * 历史 `.svg` 默认路径也会改指向 PNG，便于统一用你的 default-cover.png。
+ * 将接口返回的默认路径（或空）规范为主默认 SVG；
+ * 历史 PNG 默认路径也改指向自包含 SVG，绕开部分环境下对 PNG 的 Range/Content-Length 问题。
  */
 export function normalizeLifeAgentCoverImgSrc(src: string | null | undefined): string {
   const s = (src ?? "").trim();
-  if (!s) return DEFAULT_COVER_PNG_URL;
+  if (!s) return DEFAULT_COVER_SVG_URL;
   if (s.startsWith("data:image/")) return s;
-  if (s === DEFAULT_COVER_PNG_URL || s.endsWith("/default-cover.png")) return DEFAULT_COVER_PNG_URL;
+  if (s === DEFAULT_COVER_PNG_URL || s.endsWith("/default-cover.png")) return DEFAULT_COVER_SVG_URL;
   if (s === DEFAULT_COVER_SVG_URL || s.endsWith("/default-cover.svg")) {
-    return DEFAULT_COVER_PNG_URL;
+    return DEFAULT_COVER_SVG_URL;
   }
   try {
     const abs = s.startsWith("http://") || s.startsWith("https://") ? new URL(s) : new URL(s, "https://placeholder.local");
     const p = abs.pathname;
-    if (p.endsWith("/default-cover.png")) return DEFAULT_COVER_PNG_URL;
-    if (p.endsWith("/default-cover.svg")) return DEFAULT_COVER_PNG_URL;
+    if (p.endsWith("/default-cover.png")) return DEFAULT_COVER_SVG_URL;
+    if (p.endsWith("/default-cover.svg")) return DEFAULT_COVER_SVG_URL;
   } catch {
     /* ignore */
   }
@@ -55,7 +70,7 @@ export const SHIPPED_LIFE_AGENT_PRESET_PNG_KEYS = new Set<string>([
 ]);
 
 /**
- * 解析封面地址：自定义上传 →（仅对已部署 PNG 的 preset）预设图 → 主默认 PNG。
+ * 解析封面地址：自定义上传 →（仅对已部署 PNG 的 preset）预设图 → 主默认 SVG。
  */
 export function resolveLifeAgentCoverUrl(coverImageUrl?: string | null, coverPresetKey?: string | null): string {
   const img = (coverImageUrl ?? "").trim();
@@ -64,7 +79,7 @@ export function resolveLifeAgentCoverUrl(coverImageUrl?: string | null, coverPre
   if (preset && SHIPPED_LIFE_AGENT_PRESET_PNG_KEYS.has(preset)) {
     return `/life-agent-cover-presets/${preset}.png`;
   }
-  return DEFAULT_COVER_PNG_URL;
+  return DEFAULT_COVER_SVG_URL;
 }
 
 /**
@@ -77,9 +92,9 @@ export function resolveLifeAgentCoverDisplayUrl(
   coverPresetKey?: string | null,
 ): string {
   const persisted = resolveLifeAgentCoverUrl(coverImageUrl, coverPresetKey);
-  if (persisted !== DEFAULT_COVER_PNG_URL) return persisted;
+  if (!isLifeAgentDefaultCoverUrl(persisted)) return persisted;
   const direct = normalizeLifeAgentCoverImgSrc(coverUrl);
-  if (direct !== DEFAULT_COVER_PNG_URL) return direct;
+  if (!isLifeAgentDefaultCoverUrl(direct)) return direct;
   return persisted;
 }
 
