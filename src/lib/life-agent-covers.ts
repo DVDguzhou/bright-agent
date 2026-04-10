@@ -29,13 +29,13 @@ export const DEFAULT_COVER_FINAL_FALLBACK_SRC =
     `<svg xmlns="http://www.w3.org/2000/svg" width="8" height="10" viewBox="0 0 8 10"><rect width="8" height="10" fill="#e2e8f0"/></svg>`,
   );
 
-/** 加载失败时的下一级回退：自定义坏链 → PNG → SVG → 内联占位 */
+/** 加载失败时的下一级回退：自定义坏链 → SVG → 内联占位（跳过 PNG，CDN 对 PNG 有 Range/Content-Length 问题） */
 export function nextLifeAgentCoverFallbackSrc(current: string): string {
   const s = current.trim();
   if (s === DEFAULT_COVER_FINAL_FALLBACK_SRC) return s;
   if (s === DEFAULT_COVER_SVG_URL) return DEFAULT_COVER_FINAL_FALLBACK_SRC;
   if (s === DEFAULT_COVER_PNG_URL) return DEFAULT_COVER_SVG_URL;
-  return DEFAULT_COVER_PNG_URL;
+  return DEFAULT_COVER_SVG_URL;
 }
 
 /**
