@@ -244,6 +244,7 @@ export default function CreateLifeAgentPage() {
   /** 为 true 表示已尝试从 localStorage 恢复草稿，避免与「空聊天自动插入首条」冲突 */
   const [draftReady, setDraftReady] = useState(false);
   const saveDraftTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const latestDraftSnapshotRef = useRef<LifeAgentCreateDraftV1 | null>(null);
 
   useLayoutEffect(() => {
     if (!user?.id) {
@@ -328,11 +329,39 @@ export default function CreateLifeAgentPage() {
     coverImageUrl,
   ]);
 
-  const flushSaveDraft = useCallback(() => {
+  useEffect(() => {
+    latestDraftSnapshotRef.current = buildDraftSnapshot();
+  }, [buildDraftSnapshot]);
+
+  const persistDraftNow = useCallback((overrides?: Partial<LifeAgentCreateDraftV1>) => {
     const uid = user?.id;
     if (!uid || !draftReady) return;
-    saveLifeAgentCreateDraft(uid, buildDraftSnapshot());
+    if (saveDraftTimerRef.current) {
+      clearTimeout(saveDraftTimerRef.current);
+      saveDraftTimerRef.current = null;
+    }
+    const nextDraft = {
+      ...(latestDraftSnapshotRef.current ?? buildDraftSnapshot()),
+      ...(overrides ?? {}),
+    };
+    latestDraftSnapshotRef.current = nextDraft;
+    saveLifeAgentCreateDraft(uid, nextDraft);
   }, [user?.id, draftReady, buildDraftSnapshot]);
+
+  const flushSaveDraft = useCallback(() => {
+    persistDraftNow();
+  }, [persistDraftNow]);
+
+  const goToStep = useCallback((nextStep: number, overrides?: Partial<LifeAgentCreateDraftV1>) => {
+    setError("");
+    setStep(nextStep);
+    persistDraftNow({ step: nextStep, ...(overrides ?? {}) });
+  }, [persistDraftNow]);
+
+  const handleCoverImageChange = useCallback((nextCoverImageUrl: string) => {
+    setCoverImageUrl(nextCoverImageUrl);
+    persistDraftNow({ coverImageUrl: nextCoverImageUrl });
+  }, [persistDraftNow]);
 
   const flushSaveDraftRef = useRef(flushSaveDraft);
   flushSaveDraftRef.current = flushSaveDraft;
@@ -382,6 +411,16 @@ export default function CreateLifeAgentPage() {
       window.removeEventListener("pagehide", flush);
     };
   }, [user?.id, draftReady]);
+
+  useEffect(() => {
+    return () => {
+      if (saveDraftTimerRef.current) {
+        clearTimeout(saveDraftTimerRef.current);
+        saveDraftTimerRef.current = null;
+      }
+      flushSaveDraftRef.current();
+    };
+  }, []);
 
   useEffect(() => {
     fetch("/api/auth/me", { credentials: "include" })
@@ -1008,7 +1047,7 @@ export default function CreateLifeAgentPage() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => { setError(""); setStep(2); }}
+                      onClick={() => goToStep(2)}
                       className="btn-primary min-h-[44px] flex-1"
                     >
                       下一步：补充经验
@@ -1113,14 +1152,14 @@ export default function CreateLifeAgentPage() {
                   <div className="flex flex-col gap-2 sm:flex-row">
                     <button
                       type="button"
-                      onClick={() => { setStep(1); setError(""); }}
+                      onClick={() => goToStep(1)}
                       className="btn-secondary min-h-[44px] flex-1"
                     >
                       上一步
                     </button>
                     <button
                       type="button"
-                      onClick={() => { setError(""); setStep(3); }}
+                      onClick={() => goToStep(3)}
                       className="btn-primary min-h-[44px] flex-1"
                     >
                       下一步：让回答更像你
@@ -1195,8 +1234,7 @@ export default function CreateLifeAgentPage() {
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            setError("");
-            setStep(4);
+            goToStep(4);
           }}
           className="flex min-h-0 flex-1 flex-col"
         >
@@ -1434,16 +1472,14 @@ export default function CreateLifeAgentPage() {
                     }
                     setVoiceSampleBase64(base64);
                     setVoiceSkipped(false);
-                    setError("");
-                    setStep(5);
+                    goToStep(5, { voiceSkipped: false });
                   };
                   reader.readAsDataURL(blob);
                 }}
                 onSkip={() => {
                   setVoiceSampleBase64(null);
                   setVoiceSkipped(true);
-                  setError("");
-                  setStep(5);
+                  goToStep(5, { voiceSkipped: true });
                 }}
                 minDurationSeconds={10}
                 maxDurationSeconds={30}
@@ -1459,7 +1495,7 @@ export default function CreateLifeAgentPage() {
             <div className="mx-auto flex max-w-2xl justify-between">
               <button
                 type="button"
-                onClick={() => { setStep(3); setError(""); }}
+                onClick={() => goToStep(3)}
                 className="btn-secondary min-h-[44px]"
               >
                 上一步
@@ -1477,7 +1513,7 @@ export default function CreateLifeAgentPage() {
             <LifeAgentCoverPicker
               accent="pastel"
               coverImageUrl={coverImageUrl}
-              onChange={(u) => setCoverImageUrl(u)}
+              onChange={handleCoverImageChange}
               disabled={loading}
             />
           </section>
@@ -1559,10 +1595,7 @@ export default function CreateLifeAgentPage() {
             <div className="mx-auto flex max-w-3xl flex-col gap-3 sm:flex-row sm:justify-between">
               <button
                 type="button"
-                onClick={() => {
-                  setStep(4);
-                  setError("");
-                }}
+                onClick={() => goToStep(4)}
                 className="btn-secondary min-h-[44px]"
               >
                 上一步
