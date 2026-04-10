@@ -24,6 +24,11 @@ type Missing = Candidate & {
   reason: string;
 };
 
+function safeMaxRows(input: number): number {
+  if (!Number.isFinite(input) || input <= 0) return 5000;
+  return Math.min(Math.floor(input), 20000);
+}
+
 function extractFilename(url: string): string {
   const raw = url.split("/").pop() || "";
   try {
@@ -88,20 +93,20 @@ async function isCoverBroken(profile: Candidate): Promise<Missing | null> {
 }
 
 async function main() {
-  const candidates = await prisma.lifeAgentProfile.findMany({
-    where: {
-      coverImageUrl: {
-        startsWith: "/api/upload/life-agent-cover/",
-      },
-    },
-    select: {
-      id: true,
-      displayName: true,
-      coverImageUrl: true,
-      coverPresetKey: true,
-    },
-    take: MAX_ROWS,
-  });
+  const candidates = await prisma.$queryRawUnsafe<Candidate[]>(
+    `
+      SELECT
+        id,
+        display_name AS displayName,
+        cover_image_url AS coverImageUrl,
+        cover_preset_key AS coverPresetKey
+      FROM life_agent_profiles
+      WHERE cover_image_url LIKE '/api/upload/life-agent-cover/%'
+      ORDER BY updated_at DESC
+      LIMIT ?
+    `,
+    safeMaxRows(MAX_ROWS)
+  );
 
   console.log(`Scanned ${candidates.length} life agents with uploaded cover URLs.`);
   console.log(
@@ -140,12 +145,14 @@ async function main() {
 
   let updated = 0;
   for (const row of missing) {
-    await prisma.lifeAgentProfile.update({
-      where: { id: row.id },
-      data: {
-        coverImageUrl: null,
-      },
-    });
+    await prisma.$executeRawUnsafe(
+      `
+        UPDATE life_agent_profiles
+        SET cover_image_url = NULL
+        WHERE id = ?
+      `,
+      row.id
+    );
     updated += 1;
   }
 
