@@ -187,6 +187,15 @@ type LifeAgentProfile struct {
 
 func (LifeAgentProfile) TableName() string { return "life_agent_profiles" }
 
+type LifeAgentFavorite struct {
+	ID        string    `gorm:"primaryKey;size:36"`
+	UserID    string    `gorm:"column:user_id;size:36;not null;index;uniqueIndex:idx_life_agent_favorite_user_profile"`
+	ProfileID string    `gorm:"column:profile_id;size:36;not null;index;uniqueIndex:idx_life_agent_favorite_user_profile"`
+	CreatedAt time.Time `gorm:"column:created_at"`
+}
+
+func (LifeAgentFavorite) TableName() string { return "life_agent_favorites" }
+
 type LifeAgentInvokeKey struct {
 	ID        string    `gorm:"primaryKey;size:36"`
 	ProfileID string    `gorm:"column:profile_id;size:36;not null;index"`

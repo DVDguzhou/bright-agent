@@ -27,6 +27,8 @@ services:
     restart: unless-stopped
     ports:
       - "8080:8080"
+    volumes:
+      - backend_test_cover_uploads:/app/uploads/life-agent-covers
     environment:
       DATABASE_URL: ${DATABASE_URL:-root:test123456@tcp(mysql:3306)/agent_marketplace_test?charset=utf8mb4&parseTime=True}
       SESSION_SECRET: ${SESSION_SECRET:-test-secret-do-not-use-in-prod}
@@ -80,3 +82,4 @@ services:
 
 volumes:
   mysql_test_data:
+  backend_test_cover_uploads:

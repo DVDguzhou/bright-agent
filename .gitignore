@@ -20,6 +20,7 @@ backend/.../
 
 # Voice/TTS data
 backend/data/
+backend/uploads/
 
 # User-uploaded life agent covers (keep folder via .gitkeep)
 public/uploads/life-agent-covers/*

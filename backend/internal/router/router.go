@@ -49,6 +49,9 @@ func Setup(cfg *config.Config) *gin.Engine {
 		{
 			lifeAgents.GET("", handler.LifeAgentsList(cfg))
 			lifeAgents.POST("", middleware.RequireAuth(cfg), handler.LifeAgentsCreate(cfg))
+			lifeAgents.GET("/favorites", middleware.RequireAuth(cfg), handler.LifeAgentFavoritesList(cfg))
+			lifeAgents.POST("/favorites", middleware.RequireAuth(cfg), handler.LifeAgentFavoritesToggle(cfg))
+			lifeAgents.PUT("/favorites", middleware.RequireAuth(cfg), handler.LifeAgentFavoritesImport(cfg))
 			lifeAgents.POST("/create/next-question", middleware.RequireAuth(cfg), handler.LifeAgentsCreateNextQuestion(cfg))
 			lifeAgents.POST("/create/profile-summary", middleware.RequireAuth(cfg), handler.LifeAgentsCreateProfileSummary(cfg))
 			lifeAgents.GET("/chat-sessions", middleware.RequireAuth(cfg), handler.LifeAgentsBuyerChatSessions(cfg))
@@ -84,6 +87,8 @@ func Setup(cfg *config.Config) *gin.Engine {
 		api.DELETE("/user-api-keys/:id", middleware.RequireAuth(cfg), handler.UserAPIKeysDelete(cfg))
 
 		api.POST("/invocations/issue-token", middleware.RequireAuth(cfg), handler.InvocationsIssueToken(cfg))
+		api.POST("/upload/life-agent-cover", middleware.RequireAuth(cfg), handler.LifeAgentCoverUpload(cfg))
+		api.GET("/upload/life-agent-cover/:name", handler.LifeAgentCoverGet(cfg))
 
 		api.GET("/audio/:filename", handler.ServeAudio)
 	}

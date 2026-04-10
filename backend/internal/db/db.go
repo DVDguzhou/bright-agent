@@ -89,6 +89,7 @@ func Init(dsn string) error {
 		&models.ExecutionReceipt{},
 		&models.Dispute{},
 		&models.LifeAgentProfile{},
+		&models.LifeAgentFavorite{},
 		&models.LifeAgentKnowledgeEntry{},
 		&models.LifeAgentStructuredFact{},
 		&models.LifeAgentTopicSummary{},

@@ -49,6 +49,7 @@ scripts/
 | `life-agent/create-laoda-2-with-voice.mjs` | 创建带语音配置的老大 Agent |
 | `life-agent/enroll-laoda-voice.mjs` | 为老大样本注册音色 |
 | `life-agent/create-gossip-agent.mjs` | 创建八卦 Agent |
+| `life-agent/reset-missing-cover-images.ts` | 扫描并回退已丢失上传文件的封面记录 |
 | `life-agent/test-create-life-agent.mjs` | 测试创建人生 Agent |
 | `life-agent/test-gossip-agent.mjs` | 创建、购买并对话测试八卦 Agent |
 | `life-agent/test-profile-memory.mjs` | 测试记忆 / 画像相关行为 |
