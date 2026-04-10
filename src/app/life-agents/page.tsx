@@ -609,8 +609,8 @@ function PurchasedAgentsWindowedGrid({ rows }: { rows: PurchasedAgentRow[] }) {
                       fill
                       className="object-cover"
                       sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 220px"
-                      priority={index < 4}
-                      loading={index < 12 ? "eager" : "lazy"}
+                      priority={index < 6}
+                      loading={index < 6 ? undefined : "lazy"}
                     />
                     {(row.verificationStatus === "verified" || row.verificationStatus === "pending") && (
                       <div className="absolute right-2 top-2 rounded-full bg-white/90 px-1.5 py-0.5 shadow-sm backdrop-blur-sm">

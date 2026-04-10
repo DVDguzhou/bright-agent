@@ -91,8 +91,8 @@ function LifeAgentDiscoverCard({
               fill
               className="object-cover"
               sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 220px"
-              priority={globalIndex < 4}
-              loading={globalIndex < 12 ? "eager" : "lazy"}
+              priority={globalIndex < 6}
+              loading={globalIndex < 6 ? undefined : "lazy"}
             />
             {(profile.verificationStatus === "verified" || profile.verificationStatus === "pending") && (
               <div className="absolute right-2 top-2 rounded-full bg-white/90 px-1.5 py-0.5 shadow-sm backdrop-blur-sm">
