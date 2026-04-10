@@ -37,6 +37,16 @@ func strOpt(v string) *string {
 	return &v
 }
 
+func wantsEventStream(c *gin.Context) bool {
+	return strings.Contains(strings.ToLower(c.GetHeader("Accept")), "text/event-stream")
+}
+
+func writeSSE(c *gin.Context, eventType string, payload interface{}) {
+	data, _ := json.Marshal(payload)
+	fmt.Fprintf(c.Writer, "event: %s\ndata: %s\n\n", eventType, data)
+	c.Writer.Flush()
+}
+
 func coalesceVerificationStatus(v string) string {
 	switch v {
 	case "verified", "pending":
@@ -610,6 +620,22 @@ func LifeAgentsCreateNextQuestion(cfg *config.Config) gin.HandlerFunc {
 			"knowledgeAdd":   out.KnowledgeAdd,
 			"factCandidates": out.FactCandidates,
 		}
+		if wantsEventStream(c) {
+			streamText := strings.TrimSpace(out.NextQuestion)
+			if out.Done {
+				streamText = strings.TrimSpace(out.SummaryMessage)
+			}
+			c.Header("Content-Type", "text/event-stream")
+			c.Header("Cache-Control", "no-cache")
+			c.Header("Connection", "keep-alive")
+			c.Header("X-Accel-Buffering", "no")
+			c.Status(http.StatusOK)
+			lifeagent.EmitReplyChunks(streamText, func(chunk string) {
+				writeSSE(c, "content", gin.H{"content": chunk})
+			})
+			writeSSE(c, "done", resp)
+			return
+		}
 		c.JSON(http.StatusOK, resp)
 	}
 }
@@ -631,12 +657,25 @@ func LifeAgentsCreateProfileSummary(cfg *config.Config) gin.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "LLM_ERROR", "detail": err.Error()})
 			return
 		}
-		c.JSON(http.StatusOK, gin.H{
+		resp := gin.H{
 			"summaryMessage":   out.SummaryMessage,
 			"profile":          out.Profile,
 			"knowledgeEntries": out.KnowledgeEntries,
 			"structuredFacts":  out.StructuredFacts,
-		})
+		}
+		if wantsEventStream(c) {
+			c.Header("Content-Type", "text/event-stream")
+			c.Header("Cache-Control", "no-cache")
+			c.Header("Connection", "keep-alive")
+			c.Header("X-Accel-Buffering", "no")
+			c.Status(http.StatusOK)
+			lifeagent.EmitReplyChunks(strings.TrimSpace(out.SummaryMessage), func(chunk string) {
+				writeSSE(c, "content", gin.H{"content": chunk})
+			})
+			writeSSE(c, "done", resp)
+			return
+		}
+		c.JSON(http.StatusOK, resp)
 	}
 }
 

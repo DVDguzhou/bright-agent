@@ -10,6 +10,7 @@ import { VoiceMessageBubble, VoiceReplyToggle } from "@/components/voice";
 import { LifeAgentMessageComposer } from "@/components/LifeAgentMessageComposer";
 import { useAuth } from "@/contexts/AuthContext";
 import { resolveLifeAgentCoverDisplayUrl } from "@/lib/life-agent-covers";
+import { getChatBubbleClassName } from "@/lib/chat-glass";
 import { useEdgeSwipeBack } from "@/hooks/use-edge-swipe-back";
 import { useMobileTouchNavEnabled } from "@/hooks/use-life-agents-feed-gestures";
 
@@ -842,13 +843,7 @@ export default function LifeAgentChatPage() {
                         )}
                       </div>
                     ) : null}
-                    <div
-                      className={`max-w-[78%] rounded-[22px] px-3.5 py-2.5 text-[15px] leading-relaxed shadow-sm sm:max-w-[72%] ${
-                        message.role === "user"
-                          ? "rounded-br-md bg-gradient-to-br from-[#FF85D0] to-[#A88BEB] text-white shadow-[0_6px_20px_-6px_rgba(168,139,235,0.35)]"
-                          : "rounded-bl-md border border-purple-200/[0.2] bg-white/[0.97] text-slate-800 backdrop-blur-sm"
-                      }`}
-                    >
+                    <div className={getChatBubbleClassName(message.role)}>
                       {message.role === "assistant" && message.audioUrl ? (
                         <div className="space-y-3">
                           <VoiceMessageBubble

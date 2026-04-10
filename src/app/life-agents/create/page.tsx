@@ -22,6 +22,7 @@ import {
   type LifeAgentCreateDraftV1,
 } from "@/lib/life-agent-create-draft";
 import { cleanLifeAgentIntroText } from "@/lib/life-agent-intro-clean";
+import { getChatBubbleClassName } from "@/lib/chat-glass";
 
 type KnowledgeEntry = {
   category: string;
@@ -82,6 +83,74 @@ type ProfileSummaryResponse = {
   knowledgeEntries?: KnowledgeEntry[];
   structuredFacts?: StructuredFact[];
 };
+
+type CreateQuestionResponse = {
+  done?: boolean;
+  nextQuestion?: string;
+  summaryMessage?: string;
+  extractedTone?: {
+    personaArchetype?: string;
+    toneStyle?: string;
+    responseStyle?: string;
+  };
+  suggestedTags?: string[];
+  knowledgeAdd?: Array<{
+    category: string;
+    title: string;
+    content: string;
+    tags?: string[];
+  }>;
+  factCandidates?: StructuredFact[];
+  detail?: string;
+};
+
+function isEventStreamResponse(res: Response) {
+  return (res.headers.get("content-type") || "").includes("text/event-stream");
+}
+
+async function readEventStreamPayload<T>(
+  res: Response,
+  onContent: (chunk: string) => void,
+): Promise<T> {
+  const reader = res.body?.getReader();
+  if (!reader) {
+    throw new Error("流式响应不可用，请重试");
+  }
+
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let donePayload: T | null = null;
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const parts = buffer.split("\n\n");
+    buffer = parts.pop() || "";
+
+    for (const part of parts) {
+      let eventType = "";
+      let eventData = "";
+      for (const line of part.split("\n")) {
+        if (line.startsWith("event: ")) eventType = line.slice(7).trim();
+        else if (line.startsWith("data: ")) eventData = line.slice(6);
+      }
+      if (!eventData) continue;
+
+      const parsed = JSON.parse(eventData) as Record<string, unknown>;
+      if (eventType === "content" && typeof parsed.content === "string") {
+        onContent(parsed.content);
+      } else if (eventType === "done") {
+        donePayload = parsed as T;
+      }
+    }
+  }
+
+  if (!donePayload) {
+    throw new Error("流式响应不完整，请重试");
+  }
+  return donePayload;
+}
 
 const FIRST_QUESTION = "你希望分享什么样的经验或信息？可以简单说说你擅长的领域，或你最想帮助用户解决什么问题。";
 const MBTI_OPTIONS = ["未设置", "INTJ", "INTP", "ENTJ", "ENTP", "INFJ", "INFP", "ENFJ", "ENFP", "ISTJ", "ISFJ", "ESTJ", "ESFJ", "ISTP", "ISFP", "ESTP", "ESFP"];
@@ -500,13 +569,22 @@ export default function CreateLifeAgentPage() {
     sampleQuestionsText: currentKey === "sampleQuestions" ? currentValue ?? "" : sampleQuestionsDraft,
   });
 
-  const submitProfileSummary = async (payload: ReturnType<typeof buildProfileSummaryPayload>) => {
+  const submitProfileSummary = async (
+    payload: ReturnType<typeof buildProfileSummaryPayload>,
+    onContent?: (chunk: string) => void,
+  ) => {
     const res = await fetch("/api/life-agents/create/profile-summary", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "text/event-stream",
+      },
       credentials: "include",
       body: JSON.stringify(payload),
     });
+    if (isEventStreamResponse(res)) {
+      return readEventStreamPayload<ProfileSummaryResponse & { detail?: string }>(res, onContent ?? (() => {}));
+    }
     const data = (await res.json()) as ProfileSummaryResponse & { detail?: string };
     if (!res.ok) {
       throw new Error(data.detail || "AI 整理基础资料失败，请重试");
@@ -544,7 +622,14 @@ export default function CreateLifeAgentPage() {
     setError("");
 
     const updatedHistory = [...experienceHistory, { role: "user" as const, content: answer }];
-    setExperienceHistory(updatedHistory);
+    const assistantRowIndex = updatedHistory.length;
+    setExperienceHistory([...updatedHistory, { role: "assistant", content: "" }]);
+
+    const replaceAssistantMessage = (text: string) => {
+      setExperienceHistory((prev) =>
+        prev.map((msg, index) => (index === assistantRowIndex ? { ...msg, content: text } : msg))
+      );
+    };
 
     let updatedEntries = knowledgeEntries;
     if (!/^暂无$|^无$|^没有$/i.test(answer)) {
@@ -562,7 +647,10 @@ export default function CreateLifeAgentPage() {
     try {
       const res = await fetch("/api/life-agents/create/next-question", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "text/event-stream",
+        },
         credentials: "include",
         body: JSON.stringify({
           basicInfo: { displayName: form.displayName, headline: form.headline, shortBio: form.shortBio },
@@ -574,14 +662,19 @@ export default function CreateLifeAgentPage() {
           })),
         }),
       });
-      const data = await res.json();
+      const data = isEventStreamResponse(res)
+        ? await readEventStreamPayload<CreateQuestionResponse>(res, (chunk) => {
+            setExperienceHistory((prev) =>
+              prev.map((msg, index) =>
+                index === assistantRowIndex ? { ...msg, content: msg.content + chunk } : msg
+              )
+            );
+          })
+        : ((await res.json()) as CreateQuestionResponse);
 
       if (!res.ok) {
         setError(data.detail || "生成下一问失败，请重试");
-        setExperienceHistory((prev) => [
-          ...prev,
-          { role: "assistant", content: "出了点小问题，你可以继续补充回答，或稍后再试一次。" },
-        ]);
+        replaceAssistantMessage("出了点小问题，你可以继续补充回答，或稍后再试一次。");
         return;
       }
 
@@ -597,14 +690,16 @@ export default function CreateLifeAgentPage() {
       if (data.suggestedTags?.length) {
         setForm((prev) => {
           const existing = prev.expertiseTags.split(/[,，\n]/).map((item) => item.trim()).filter(Boolean);
-          const merged = Array.from(new Set([...existing, ...data.suggestedTags])).slice(0, 8);
+          const suggestedTags = data.suggestedTags ?? [];
+          const merged = Array.from(new Set([...existing, ...suggestedTags])).slice(0, 8);
           return { ...prev, expertiseTags: merged.join(", ") };
         });
       }
       if (data.knowledgeAdd?.length) {
         setKnowledgeEntries((prev) => {
           const existing = prev.map((entry) => entry.content);
-          const added = data.knowledgeAdd.filter((item: { content: string }) => item.content && !existing.includes(item.content));
+          const knowledgeAdd = data.knowledgeAdd ?? [];
+          const added = knowledgeAdd.filter((item: { content: string }) => item.content && !existing.includes(item.content));
           return [
             ...prev,
             ...added.map((item: { category: string; title: string; content: string; tags?: string[] }) => ({
@@ -631,23 +726,16 @@ export default function CreateLifeAgentPage() {
       }
 
       if (data.done) {
-        setExperienceHistory((prev) => [
-          ...prev,
-          {
-            role: "assistant",
-            content: data.summaryMessage || "很好！你的经验已经记录下来，可以继续下一步设置 Agent 的回答风格。",
-          },
-        ]);
+        replaceAssistantMessage(
+          data.summaryMessage || "很好！你的经验已经记录下来，可以继续下一步设置 Agent 的回答风格。"
+        );
         setExperienceDone(true);
       } else {
-        setExperienceHistory((prev) => [...prev, { role: "assistant", content: data.nextQuestion || "还能补充一些具体经历吗？" }]);
+        replaceAssistantMessage(data.nextQuestion || "还能补充一些具体经历吗？");
       }
     } catch {
       setError("网络错误，请重试");
-      setExperienceHistory((prev) => [
-        ...prev,
-        { role: "assistant", content: "出了点小问题，你可以继续补充回答，或稍后再试一次。" },
-      ]);
+      replaceAssistantMessage("出了点小问题，你可以继续补充回答，或稍后再试一次。");
     } finally {
       setExperienceLoading(false);
     }
@@ -690,20 +778,31 @@ export default function CreateLifeAgentPage() {
     setChatFieldValue(field.key, normalizedAnswer);
 
     const nextHistory = [...chatHistory, { role: "user" as const, content: normalizedAnswer || "跳过" }];
-    setChatHistory(nextHistory);
-
     const isLastField = chatFieldIndex === PROFILE_CHAT_FIELDS.length - 1;
     if (!isLastField) {
       const nextIndex = chatFieldIndex + 1;
       setChatFieldIndex(nextIndex);
-      setChatHistory((prev) => [...prev, { role: "assistant", content: PROFILE_CHAT_FIELDS[nextIndex].prompt }]);
+      setChatHistory([...nextHistory, { role: "assistant", content: PROFILE_CHAT_FIELDS[nextIndex].prompt }]);
       return;
     }
 
+    const assistantRowIndex = nextHistory.length;
+    setChatHistory([...nextHistory, { role: "assistant", content: "" }]);
     setChatDone(false);
     setChatLoading(true);
+    const replaceAssistantMessage = (text: string) => {
+      setChatHistory((prev) =>
+        prev.map((msg, index) => (index === assistantRowIndex ? { ...msg, content: text } : msg))
+      );
+    };
     try {
-      const data = await submitProfileSummary(buildProfileSummaryPayload(field.key, normalizedAnswer));
+      const data = await submitProfileSummary(buildProfileSummaryPayload(field.key, normalizedAnswer), (chunk) => {
+        setChatHistory((prev) =>
+          prev.map((msg, index) =>
+            index === assistantRowIndex ? { ...msg, content: msg.content + chunk } : msg
+          )
+        );
+      });
       const profile = data.profile ?? {};
       const tags = profile.expertiseTags ?? [];
       const questions = profile.sampleQuestions ?? [];
@@ -725,24 +824,12 @@ export default function CreateLifeAgentPage() {
       setSampleQuestionsDraft(questions.join("\n"));
       setKnowledgeEntries((data.knowledgeEntries ?? []).filter((item) => item?.content?.trim()));
       setStructuredFacts((data.structuredFacts ?? []).filter((item) => item?.factKey && item?.factValue));
-      setChatHistory((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          content: data.summaryMessage || "我已经帮你整理好基础资料，下一步继续补充你的真实经历和经验。",
-        },
-      ]);
+      replaceAssistantMessage(data.summaryMessage || "我已经帮你整理好基础资料，下一步继续补充你的真实经历和经验。");
       setChatDone(true);
     } catch (err) {
       const message = err instanceof Error ? err.message : "网络错误，请重试";
       setError(message);
-      setChatHistory((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          content: "我刚刚整理资料时出了点小问题，你可以重新发送这一项，或者稍后再试一次。",
-        },
-      ]);
+      replaceAssistantMessage("我刚刚整理资料时出了点小问题，你可以重新发送这一项，或者稍后再试一次。");
     } finally {
       setChatLoading(false);
     }
@@ -1003,13 +1090,7 @@ export default function CreateLifeAgentPage() {
                       AI
                     </div>
                   ) : null}
-                  <div
-                    className={`max-w-[78%] rounded-[22px] px-3.5 py-2.5 text-[15px] leading-relaxed shadow-sm sm:max-w-[72%] ${
-                      msg.role === "user"
-                        ? "rounded-br-md bg-gradient-to-br from-[#FF85D0] to-[#A88BEB] text-white shadow-[0_6px_20px_-6px_rgba(168,139,235,0.45)]"
-                        : "rounded-bl-md border border-purple-200/[0.2] bg-white/[0.97] text-slate-800 shadow-[0_3px_18px_rgba(124,58,237,0.05)] backdrop-blur-sm"
-                    }`}
-                  >
+                  <div className={getChatBubbleClassName(msg.role)}>
                     <p className="whitespace-pre-wrap">{msg.content}</p>
                   </div>
                   {msg.role === "user" ? (
@@ -1127,13 +1208,7 @@ export default function CreateLifeAgentPage() {
                       AI
                     </div>
                   ) : null}
-                  <div
-                    className={`max-w-[78%] rounded-[22px] px-3.5 py-2.5 text-[15px] leading-relaxed shadow-sm sm:max-w-[72%] ${
-                      msg.role === "user"
-                        ? "rounded-br-md bg-gradient-to-br from-[#FF85D0] to-[#A88BEB] text-white shadow-[0_6px_20px_-6px_rgba(168,139,235,0.45)]"
-                        : "rounded-bl-md border border-purple-200/[0.2] bg-white/[0.97] text-slate-800 shadow-[0_3px_18px_rgba(124,58,237,0.05)] backdrop-blur-sm"
-                    }`}
-                  >
+                  <div className={getChatBubbleClassName(msg.role)}>
                     <p className="whitespace-pre-wrap">{msg.content}</p>
                   </div>
                   {msg.role === "user" ? (

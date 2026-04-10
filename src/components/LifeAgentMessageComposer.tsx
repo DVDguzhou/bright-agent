@@ -74,7 +74,7 @@ export function LifeAgentMessageComposer({
     >
       <div ref={wrapRef} className="relative mx-auto w-full max-w-3xl">
         {emojiOpen ? (
-          <div className="absolute bottom-full left-0 right-0 z-20 mb-2 flex flex-wrap gap-1.5 rounded-2xl border border-purple-200/[0.22] bg-white/[0.98] p-3 shadow-[0_8px_32px_-8px_rgba(124,58,237,0.12)] backdrop-blur-md">
+          <div className="absolute bottom-full left-0 right-0 z-20 mb-2 flex flex-wrap gap-1.5 rounded-2xl border border-white/45 bg-white/55 p-3 shadow-[0_14px_40px_-16px_rgba(124,58,237,0.24)] ring-1 ring-white/25 backdrop-blur-xl supports-[backdrop-filter]:bg-white/42">
             {QUICK_EMOJIS.map((em) => (
               <button
                 key={em}
@@ -93,7 +93,7 @@ export function LifeAgentMessageComposer({
         {moreOpen && morePanel ? (
           <div className="absolute bottom-full left-0 right-0 z-20 mb-2">{morePanel}</div>
         ) : null}
-        <div className="flex items-end gap-1.5 rounded-full border border-purple-200/[0.25] bg-white/[0.96] py-1.5 pl-2 pr-1 shadow-[0_3px_18px_rgba(124,58,237,0.06)] backdrop-blur-md sm:gap-2 sm:py-2 sm:pl-3">
+        <div className="flex items-end gap-1.5 rounded-full border border-white/40 bg-white/55 py-1.5 pl-2 pr-1 shadow-[0_14px_36px_-18px_rgba(124,58,237,0.28)] ring-1 ring-white/20 backdrop-blur-xl supports-[backdrop-filter]:bg-white/42 sm:gap-2 sm:py-2 sm:pl-3">
           <VoiceInputButton
             onTranscript={(text, isFinal) => {
               if (isFinal && text.trim()) onVoiceFinal?.(text);

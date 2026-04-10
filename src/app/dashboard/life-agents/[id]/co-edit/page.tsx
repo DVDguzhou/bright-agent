@@ -13,6 +13,7 @@ import {
   type ManageProfile,
 } from "@/app/dashboard/life-agents/_lib/manage";
 import { cleanLifeAgentIntroText } from "@/lib/life-agent-intro-clean";
+import { getChatBubbleClassName } from "@/lib/chat-glass";
 
 type ChatRow = { role: "user" | "assistant"; content: string };
 type LastChange = {
@@ -622,7 +623,7 @@ export default function LifeAgentCoEditPage() {
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#BA68C8] to-[#FF80AB] text-[10px] font-bold text-white ring-2 ring-white shadow-sm">
                   AI
                 </div>
-                <div className="max-w-[78%] rounded-[22px] rounded-bl-md border border-purple-200/[0.2] bg-white/[0.97] px-3.5 py-2.5 text-[15px] leading-relaxed text-slate-800 shadow-sm backdrop-blur-sm sm:max-w-[72%]">
+                <div className={getChatBubbleClassName("assistant")}>
                   <p className="whitespace-pre-wrap">
                     你可以直接说想改什么，比如“把欢迎语改得更像朋友聊天”“补两条关于留学租房的示范回答”。
                   </p>
@@ -637,13 +638,7 @@ export default function LifeAgentCoEditPage() {
                     AI
                   </div>
                 ) : null}
-                <div
-                  className={`max-w-[78%] rounded-[22px] px-3.5 py-2.5 text-[15px] leading-relaxed shadow-sm sm:max-w-[72%] ${
-                    item.role === "user"
-                      ? "rounded-br-md bg-gradient-to-br from-[#FF85D0] to-[#A88BEB] text-white shadow-[0_6px_20px_-6px_rgba(168,139,235,0.35)]"
-                      : "rounded-bl-md border border-purple-200/[0.2] bg-white/[0.97] text-slate-800 backdrop-blur-sm"
-                  }`}
-                >
+                <div className={getChatBubbleClassName(item.role)}>
                   <p className="whitespace-pre-wrap">{item.content}</p>
                 </div>
                 {item.role === "user" ? (
