@@ -22,7 +22,6 @@ import (
 	"github.com/agent-marketplace/backend/internal/yantuseed"
 	"github.com/agent-marketplace/backend/internal/tts"
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 func ptrStr(s *string) string {
@@ -407,8 +406,13 @@ func LifeAgentsList(cfg *config.Config) gin.HandlerFunc {
 			limit = 100
 		}
 
-		// Seeded random ordering: deterministic shuffle per session
+		// Seeded random ordering: deterministic per-session shuffle using MD5(seed||id).
+		// seed is validated as a non-negative integer before embedding in SQL.
 		if seedStr := strings.TrimSpace(c.Query("seed")); seedStr != "" {
+			seed, seedErr := strconv.Atoi(seedStr)
+			if seedErr != nil || seed < 0 {
+				seed = 0
+			}
 			offset := 0
 			if offStr := strings.TrimSpace(c.Query("offset")); offStr != "" {
 				offset, _ = strconv.Atoi(offStr)
@@ -417,9 +421,11 @@ func LifeAgentsList(cfg *config.Config) gin.HandlerFunc {
 				}
 			}
 
+			// Use fmt.Sprintf with validated integer to avoid GORM ORDER BY param-binding issues.
+			orderSQL := fmt.Sprintf("MD5(CONCAT(%d, id))", seed)
 			var profiles []models.LifeAgentProfile
 			if err := db.DB.Where("published = ?", true).
-				Order(gorm.Expr("MD5(CONCAT(?, id))", seedStr)).
+				Order(orderSQL).
 				Offset(offset).
 				Limit(limit + 1).
 				Find(&profiles).Error; err != nil {
