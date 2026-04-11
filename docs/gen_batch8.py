@@ -400,7 +400,7 @@ def scan_run():
 
 def write_go(filename, var_name, prefix, profiles, long_bio, audience, education,
              major_label, knowledge_cat, knowledge_tags, expertise_base, sample_qs,
-             welcome_msg):
+             welcome_msg, source=""):
     lines = ["package yantuseed\n"]
     lines.append(f'const {prefix}LongBioPrefix = `{escape_go(long_bio)}`\n')
     lines.append("const (")
@@ -438,6 +438,8 @@ def write_go(filename, var_name, prefix, profiles, long_bio, audience, education
         orig = p.get("original_author", "")
         if orig:
             lines.append(f'\t\tOriginalAuthor: `{escape_go(orig)}`,')
+        if source:
+            lines.append(f'\t\tSource: `{escape_go(source)}`,')
         lines.append(f'\t\tKnowledgeBody: `{escape_go(p["body"])}`,')
         lines.append("\t},")
 
@@ -450,11 +452,11 @@ def write_go(filename, var_name, prefix, profiles, long_bio, audience, education
 
 def write_go_split(base_name, var_prefix, const_prefix, profiles, long_bio, audience,
                    education, major_label, knowledge_cat, knowledge_tags, expertise_base,
-                   sample_qs, welcome_msg, chunk_size=120):
+                   sample_qs, welcome_msg, source="", chunk_size=120):
     if len(profiles) <= chunk_size:
         write_go(f"{base_name}.go", f"{var_prefix}Profiles", const_prefix, profiles,
                  long_bio, audience, education, major_label, knowledge_cat,
-                 knowledge_tags, expertise_base, sample_qs, welcome_msg)
+                 knowledge_tags, expertise_base, sample_qs, welcome_msg, source=source)
         return [f"{var_prefix}Profiles"]
     chunks = []
     for i in range(0, len(profiles), chunk_size):
@@ -466,7 +468,7 @@ def write_go_split(base_name, var_prefix, const_prefix, profiles, long_bio, audi
         if cp:
             write_go(fn, var_name, const_prefix, chunk, long_bio, audience,
                      education, major_label, knowledge_cat, knowledge_tags,
-                     expertise_base, sample_qs, welcome_msg)
+                     expertise_base, sample_qs, welcome_msg, source=source)
         else:
             lines = ["package yantuseed\n"]
             lines.append(f"var {var_name} = []Profile{{")
@@ -495,6 +497,8 @@ def write_go_split(base_name, var_prefix, const_prefix, profiles, long_bio, audi
                 orig = p.get("original_author", "")
                 if orig:
                     lines.append(f'\t\tOriginalAuthor: `{escape_go(orig)}`,')
+                if source:
+                    lines.append(f'\t\tSource: `{escape_go(source)}`,')
                 lines.append(f'\t\tKnowledgeBody: `{escape_go(p["body"])}`,')
                 lines.append("\t},")
             lines.append("}\n")
@@ -521,7 +525,8 @@ def main():
              "华南理工飞跃经验", ["保研","留学","华南理工","飞跃手册","考研"],
              ["保研","留学","华南理工"],
              ["华南理工保研难吗？","出国留学怎么准备？","华南理工就业怎么样？"],
-             "你好，欢迎问我关于华南理工大学升学和就业的问题。")
+             "你好，欢迎问我关于华南理工大学升学和就业的问题。",
+             source="华南理工大学飞跃手册")
     all_emails.extend(p["email"] for p in scut)
 
     # 2. CS-BAOYAN
@@ -535,7 +540,8 @@ def main():
              ["保研","夏令营","计算机","面试","推免"],
              ["保研","CS","夏令营"],
              ["保研夏令营怎么准备？","计算机保研面试考什么？","如何选导师？"],
-             "你好，欢迎问我关于计算机保研和夏令营的问题。")
+             "你好，欢迎问我关于计算机保研和夏令营的问题。",
+             source="CS-BAOYAN计算机保研")
     all_emails.extend(p["email"] for p in baoyan)
 
     # 3. SCU
@@ -549,7 +555,8 @@ def main():
              "四川大学飞跃经验", ["保研","留学","四川大学","飞跃手册","考研","就业"],
              ["保研","留学","四川大学"],
              ["四川大学保研怎么样？","川大出国容易吗？","川大就业前景如何？"],
-             "你好，欢迎问我关于四川大学升学和就业的问题。")
+             "你好，欢迎问我关于四川大学升学和就业的问题。",
+             source="四川大学飞跃手册")
     all_emails.extend(p["email"] for p in scu)
 
     # 4. THU
@@ -563,7 +570,8 @@ def main():
              "清华飞跃经验", ["留学","清华大学","飞跃手册","PhD","申请","出国"],
              ["留学","清华","PhD申请"],
              ["清华出国读PhD怎么准备？","怎么选留学方向？","留学申请时间线？"],
-             "你好，欢迎问我关于清华大学留学申请的问题。")
+             "你好，欢迎问我关于清华大学留学申请的问题。",
+             source="清华大学飞跃手册")
     all_emails.extend(p["email"] for p in thu)
 
     # 5. NKU
@@ -577,7 +585,8 @@ def main():
              "南开CS课程与经验", ["南开大学","计算机","课程","经验","保研","考研"],
              ["计算机","南开大学","课程学习"],
              ["南开计算机怎么样？","这门课难不难？","南开CS保研情况？"],
-             "你好，欢迎问我关于南开大学计算机专业的课程和升学问题。")
+             "你好，欢迎问我关于南开大学计算机专业的课程和升学问题。",
+             source="南开大学NKUCS.ICU")
     all_emails.extend(p["email"] for p in nku)
 
     # 6. CSU + UESTC
@@ -591,7 +600,8 @@ def main():
              "985高校飞跃经验", ["保研","留学","中南大学","电子科技大学","飞跃手册"],
              ["保研","留学","985高校"],
              ["保研怎么准备？","这所大学出国怎么样？","就业前景如何？"],
-             "你好，欢迎问我关于升学和就业的问题。")
+             "你好，欢迎问我关于升学和就业的问题。",
+             source="中南大学/电子科大飞跃手册")
     all_emails.extend(p["email"] for p in csu_uestc)
 
     # 7. howto-money
@@ -605,7 +615,8 @@ def main():
              "副业赚钱经验", ["副业","赚钱","变现","程序员","自由职业","收入"],
              ["副业","赚钱","变现"],
              ["程序员怎么搞副业？","有什么好的赚钱方法？","副业能赚多少？"],
-             "你好，欢迎问我关于副业赚钱和技术变现的问题。")
+             "你好，欢迎问我关于副业赚钱和技术变现的问题。",
+             source="howto-make-more-money")
     all_emails.extend(p["email"] for p in money)
 
     # 8. SurviveSJTU
@@ -619,7 +630,8 @@ def main():
              "上交生存经验", ["上海交通大学","大学生活","学习","保研","考研","出国","选课"],
              ["大学学习","上交","生存指南"],
              ["上交生存有什么建议？","怎么选课比较好？","大学应该怎么规划？"],
-             "你好，欢迎问我关于上海交通大学学习和生活的问题。")
+             "你好，欢迎问我关于上海交通大学学习和生活的问题。",
+             source="上海交通大学生存手册")
     all_emails.extend(p["email"] for p in sjtu)
 
     # 9. Run-Philosophy
@@ -633,7 +645,8 @@ def main():
              "人生规划与思考", ["留学","移民","海外","人生","规划","经济","哲学"],
              ["人生规划","海外生活","社会思考"],
              ["出国留学值得吗？","如何规划人生方向？","海外生活是什么样的？"],
-             "你好，欢迎问我关于人生规划、海外生活和社会观察的问题。")
+             "你好，欢迎问我关于人生规划、海外生活和社会观察的问题。",
+             source="Run-Philosophy润学")
     all_emails.extend(p["email"] for p in run)
 
     # 10. CS Self-Learning
@@ -647,7 +660,8 @@ def main():
              "CS自学课程推荐", ["计算机","自学","课程","编程","算法","系统","AI","深度学习"],
              ["计算机自学","课程推荐","编程学习"],
              ["计算机自学怎么入门？","有哪些好的CS公开课？","怎么系统学习计算机？","AI方向学什么课？"],
-             "你好，欢迎问我关于计算机自学路线和课程推荐的问题。")
+             "你好，欢迎问我关于计算机自学路线和课程推荐的问题。",
+             source="北大CS自学指南")
     all_emails.extend(p["email"] for p in cssl)
 
     # Summary

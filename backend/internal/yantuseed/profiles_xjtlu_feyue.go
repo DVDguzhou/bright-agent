@@ -28,6 +28,7 @@ var xjtluFeyueProfiles = []Profile{
 		SampleQuestions: []string{`XJTLU申请海外名校需要什么条件？`, `2+2和4+X怎么选？`, `如何准备GMAT/GRE？`},
 		ExpertiseTags: []string{`留学申请`, `西交利物浦大学`, `Economics`},
 		OriginalAuthor: `jingwenzou`,
+		Source: `西交利物浦飞跃手册`,
 		KnowledgeBody: `# 17-Jingwen Zou-US
 
 ***
@@ -438,6 +439,7 @@ professional’不同的意义**以及对**申请的帮助**
 		SampleQuestions: []string{`XJTLU申请海外名校需要什么条件？`, `2+2和4+X怎么选？`, `如何准备GMAT/GRE？`},
 		ExpertiseTags: []string{`留学申请`, `西交利物浦大学`, `Marketing`},
 		OriginalAuthor: `coco`,
+		Source: `西交利物浦飞跃手册`,
 		KnowledgeBody: `# 16-Coco-(US& Asia)
 
 ***
@@ -511,6 +513,7 @@ professional’不同的意义**以及对**申请的帮助**
 		SampleQuestions: []string{`XJTLU申请海外名校需要什么条件？`, `2+2和4+X怎么选？`, `如何准备GMAT/GRE？`},
 		ExpertiseTags: []string{`留学申请`, `西交利物浦大学`, `Computer Science Technology`},
 		OriginalAuthor: `dequnteng`,
+		Source: `西交利物浦飞跃手册`,
 		KnowledgeBody: `# 专业介绍
 Master of Philosophy (MPhil) in Engineering
 
@@ -624,6 +627,7 @@ Internship: Unilever, Institute of Software, Chinese Academy of Sciences`,
 		SampleQuestions: []string{`XJTLU申请海外名校需要什么条件？`, `2+2和4+X怎么选？`, `如何准备GMAT/GRE？`},
 		ExpertiseTags: []string{`留学申请`, `西交利物浦大学`, `Applied Mathematics`},
 		OriginalAuthor: `yuetinghan`,
+		Source: `西交利物浦飞跃手册`,
 		KnowledgeBody: `# 17-Hope-UK,CAN
 
 ---
@@ -676,6 +680,7 @@ Internship: Unilever, Institute of Software, Chinese Academy of Sciences`,
 		KnowledgeTags:     xjtluFeyueKnowledgeTags,
 		SampleQuestions: []string{`XJTLU申请海外名校需要什么条件？`, `2+2和4+X怎么选？`, `如何准备GMAT/GRE？`},
 		ExpertiseTags: []string{`留学申请`, `西交利物浦大学`},
+		Source: `西交利物浦飞跃手册`,
 		KnowledgeBody: `# Awesome-XJTLU
 
 ## 项目简介

@@ -22,6 +22,7 @@ var sustechFeyueMEDProfiles = []Profile{
 			"托福111分是怎么考出来的？",
 		},
 		ExpertiseTags: []string{"材料科学", "UIUC", "MIT交流", "PhD申请", "飞跃手册"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `17级材料科学与工程专业，GPA 3.85/4排名6/55，TOEFL 111，GRE 327+4。大三前往MIT交流一年(GPA 5/5)，申请时有两篇挂名文章在投。最终录取UIUC MSE PhD，另获Boston University和TAMU offer。科研方面大二开始进入实验室跟博后学习，建议学期中安心上课、寒暑假集中做实验效率更高。强调多看论文比盲目做实验重要，摘要和结论先行、感兴趣再精读。推荐信是最重要的因素之一，建议找科研导师和交流时的海外教授各写。GPA 3.8以上差别不大，可与同系同学错开学校申请。英语建议托福先考、口语争取24+，GRE需整段时间集中备考。`,
 	},
 	{
@@ -45,6 +46,7 @@ var sustechFeyueMEDProfiles = []Profile{
 			"材料系保研有哪些好去处？",
 		},
 		ExpertiseTags: []string{"材料科学", "保研", "北大", "夏令营", "飞跃手册"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `17级材料科学与工程专业，GPA 3.84/4，IELTS 7，GRE 160V+167Q+3.5AW。有NUS机械工程暑研和推荐信，一篇共同作者SCI+一篇专利。最终保研北大工学院电子所硕士，另获清华精仪系和北大深圳新材料学院优营。关于保研vs出国：疫情时代需综合考虑PhD决心、经济条件、文化适应等。即使选国内保研也建议大三上完成雅思/托福。夏令营面试以英文自我介绍开头(准备四分钟稿子)，会问英文文献阅读和大量基础知识，可提前查对方学校考研专业课范围来精准复习。不建议极优秀同学海投夏令营，应将心比心给其他同学留机会。`,
 	},
 	{
@@ -68,6 +70,7 @@ var sustechFeyueMEDProfiles = []Profile{
 			"材料系GPA不到3.8怎么办？",
 		},
 		ExpertiseTags: []string{"联培", "HKUST", "材料科学", "PhD申请", "飞跃手册"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `16级材料科学与工程专业，GPA 3.76/4排名7/44，TOEFL 92，GRE 147V+168Q+3.0AW。两项申请专利。最终录取南科大-港科大联培PhD(物理系)。GPA大一偏低(3.61)后逐年提升至大三3.92。科研上独立做课题但无一作文章，强调本科生无论何时GPA第一位。联培申请最重要的是拿到第一推荐人名额，需尽早与导师沟通。联培双方导师最好有私人关系(如师生或合作者)，否则学生容易被夹在中间。联培优点是省时省力、录取有保障，缺点是需放弃其他offer。学科竞赛方面建议把握各种机会镀金，金相大赛等比赛获奖对申请有加分。`,
 	},
 	{
@@ -91,6 +94,7 @@ var sustechFeyueMEDProfiles = []Profile{
 			"保研出国两手准备可行吗？",
 		},
 		ExpertiseTags: []string{"保研", "清华", "医学", "夏令营", "飞跃手册"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `17级医学院生物医学科学专业，GPA 3.68/4排名2/10，CET-6 501。独立国家级大创项目、一篇肿瘤学大会摘要(二作)、曾任校学生会主席。最终保研清华大学基础医学直博，另获协和、中山、上交联合博士等拟录取。被北大基础医学院和生命科学院、浙大医学院、复旦基础医学院等多所未入营。推免名额约占专业25%-30%，即使排名差一点但获得好学校offer也可能获得额外名额。建议提前查看推免方案和历年最低排名，给自己设标准：达到就保研，达不到就申出国。国内研究型专业多以直博为主(5年起步)，有延毕风险。建议大三上完成托福作保底。`,
 	},
 	{
@@ -114,6 +118,7 @@ var sustechFeyueMEDProfiles = []Profile{
 			"生医工方向申请录取难度如何？",
 		},
 		ExpertiseTags: []string{"BME", "Boston University", "PhD申请", "MIT交流", "飞跃手册"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `16级生物医学工程专业，GPA 3.81/4排名1/19，TOEFL 98和105，GRE 155V+170Q+3W。MIT学期交流，两篇SCI一区(一篇一作)。最终录取BU ME PhD，另获UMN PhD和NUS PhD offer及JHU MS AD。申请了大量学校(含MIT/Harvard/Berkeley等)，多数被拒，建议大胆申好学校碰运气。选校关键技巧：按地理位置定大方向(生医在波士顿)、看US NEWS专排、搜admission statistics了解录取率/国际生比例、用Grad Cafe预测录取时间。发现不同department进同一学院后可任意选导师，因此可选录取难度较低的项目申请再跨系找导师。机械系是万金油，什么方向都做。`,
 	},
 	{
@@ -137,6 +142,7 @@ var sustechFeyueMEDProfiles = []Profile{
 			"怎么用NIH Reporter查导师funding？",
 		},
 		ExpertiseTags: []string{"BME", "NUS", "套磁", "PhD申请", "飞跃手册"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `17级生物医学工程专业，GPA 3.88/4排名2/20，TOEFL 104，GRE V160+Q170+AW4.0，IELTS 7.0。一篇SCI一区二作，无暑研无交换。最终录取NUS BME PhD，另获U of Delaware PhD、东大MS、CMU MS、TU Delft MS。选校建议划分三个梯队(4-6所/梯队)，用Excel统计截止日期和材料要求。查NIH Reporter判断导师是否有新funding(有则招生概率大)。套磁一个学校一次只套一个导师，一周无回复再套下一个。CV 1-2页为宜，publication按一作到其他排列并标注IF和分区。PS/SOP九月开始写，围绕专业动机、长期目标、科研经历展开。`,
 	},
 	{
@@ -160,6 +166,7 @@ var sustechFeyueMEDProfiles = []Profile{
 			"UCI 3+2联培项目值得去吗？",
 		},
 		ExpertiseTags: []string{"BME", "UC Irvine", "Master申请", "飞跃手册", "逆袭"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `16级生物医学工程专业，GPA 3.58/4(8/18)，TOEFL 107，GRE 325(156+169+3.0)。科研有SCI二作(封面文章)和SCI五作等。因GPA偏低主申Master做跳板，参加UCI 3+2联培项目做保底。最终意外被UCI PhD录取，另获CMU/Columbia/Duke/BU/UCSD/UPenn MS AD。BME名校MS项目GPA门槛不低于3.5加上科研和英语就有很大机会。托福建议在美交流时考(口语可能提升)，口语24+很重要因为学校卡TA标准。独立口语准备7-8个段子背熟，遇到任何题先主旨句再举例套用。综合口语每天练4-5道并录音回放改进。`,
 	},
 	{
@@ -183,6 +190,7 @@ var sustechFeyueMEDProfiles = []Profile{
 			"保研什么时候该联系导师？",
 		},
 		ExpertiseTags: []string{"材料科学", "保研", "清华深研院", "夏令营", "飞跃手册"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `16级材料科学与工程专业，GPA 3.78/4排名3/45，CET-4 525/CET-6 495，一项大创一篇paper。最终保研清华深研院功能材料与器件方向。系统介绍保研流程：4-6月搜集夏令营信息准备材料，6-8月参营争取优营，9月校内获推免资格，10月填报志愿。16级材料系45人中10人获保研资格，外保3人。推免名额约20%，学硕三年专硕两年。夏令营入营情况涵盖清华深研院/浙大/复旦/南大/上科大等。建议3-4月提前联系导师套磁，确定入营后再联系也不迟。保研不能挂科，需提前核实推免方案中的课程修读要求。`,
 	},
 	{
@@ -205,6 +213,7 @@ var sustechFeyueMEDProfiles = []Profile{
 			"圣地亚哥暑校花费大概多少？",
 		},
 		ExpertiseTags: []string{"暑校", "UCSD", "学分", "签证", "飞跃手册"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `22级智能医学工程专业，在UCSD Summer Session完成暑期课程。UCSD Summer Session I和II各5周，每Session可选8学分，10周内拿16学分(相当于南科大一学期)。申请无需选拔(需托福/雅思/多邻国成绩)，付费即可通过。学费按学分收取，两个Session约$7000。I-20审核极慢，校方会拖到最后一天。选课用webreg系统，国际生比本校生晚一周。住宿建议校外租房，校方提供租房交易网站。课程质量总体较高，PSYC系每Session有约20门课。圣地亚哥安全性高、气温维持20度左右、亚裔比例约1/3。`,
 	},
 	{
@@ -228,6 +237,7 @@ var sustechFeyueMEDProfiles = []Profile{
 			"参加学术会议对申请有帮助吗？",
 		},
 		ExpertiseTags: []string{"HKUST", "材料科学", "PhD申请", "独立课题", "飞跃手册"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `15级材料科学与工程专业，GPA 3.62/4排名18/59，TOEFL 100，GRE 141V+168Q+3AW。最终录取港科大Bioengineering PhD，另获UQ ME AD。大一GPA仅3.35，通过提前修课策略(大二就修大三课程)逐步拉回至3.80+。科研经历独特：在两个课题组都独立做新方向课题，无师兄师姐带领。这种经历让作者提前理解了PhD阶段独立研究和导师关系——好导师不一定直接帮你出实验结果，但会在你有需求时给最大支持。参加EIPBN国际会议后被同行工作惊艳到，建议本科生参加1-2次学术会议开阔视野。UQ交流半年后发现澳洲学术氛围不如南科大，果断withdraw回国。`,
 	},
 	{
@@ -251,6 +261,7 @@ var sustechFeyueMEDProfiles = []Profile{
 			"托福90能申PhD吗？",
 		},
 		ExpertiseTags: []string{"BME", "套磁", "PhD申请", "导师选择", "飞跃手册"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `16级生物医学工程专业，GPA 3.61/4(7/18)，TOEFL 90，GRE 157+169+3。申请时无paper。最终录取OHSU PhD，另获Stony Brook和NUS PhD及UF Master。强烈建议多问自己的学术导师选校——导师对领域了解远超网上攻略，能讲出每个老师的实力、资金、人脉等。选导师比选学校更重要：读PhD朝夕相处的是导师和实验室，导师人脉能直接帮你找工作。不要迷信排名，某些排名低的学校可能比排名高的更强。套磁案例：面试搞错时区让导师等15分钟差点失去offer(好在导师nice说自己也犯过)；套磁邮件记错信息差点搞砸。面试时被问motivation等大问题要提前想好真诚回答。`,
 	},
 	{
@@ -274,6 +285,7 @@ var sustechFeyueMEDProfiles = []Profile{
 			"哥大学年交流对申请帮助大吗？",
 		},
 		ExpertiseTags: []string{"BME", "Pittsburgh", "CMU", "PhD选校", "飞跃手册"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `16级生物医学工程专业，GPA 3.73/4，TOEFL 100，GRE 319。大四在哥大BME交流一年，在校内生物系做科研。最终选择匹大全奖PhD，放弃CMU PhD(需申留基委资助)和犹他大学PhD。CMU BME每年PhD不到10人，给中国学生名额极少。选匹大原因：不想申留基委奖学金(有回国服务限制)、匹大硬件和funding全美前五。面试有415协议(4月15日前回复)。套磁匹大一开始没抱希望，3月才收到面试4月10日给offer(怀疑是被别人拒了才轮到)。两个选择都不会错，抓住自己最想要的是关键。PhD申请中介帮不上忙，教授看的是真东西。`,
 	},
 	{
@@ -296,6 +308,7 @@ var sustechFeyueMEDProfiles = []Profile{
 			"数学复习跟哪个老师好？",
 		},
 		ExpertiseTags: []string{"考研", "材料工程", "复习策略", "南科大", "飞跃手册"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `15级材料科学与工程专业，考研南科大材料工程专业，初试359分。大年前后决定考研，5月中旬才开始复习。最大困难是迷茫——先评估自身水平再定侧重点。南科大考研氛围不浓，周围保研出国找工作的同学多，建议找考研伙伴一起去考研自习室避开干扰。政治从六七月开始看视频+肖秀荣系列，最后背肖四肖八。英语做真题+背新东方范文。数学推荐跟一个老师(如某著名数学辅导名师)把一套资料做完总结题型，至少留两个月做真题和查漏补缺。专业课9月开始复习，用两个月过一遍，考前至少过两遍。时间安排：3-4月先数学英语打基础，暑假刷题，9月开始专业课。`,
 	},
 	{
@@ -319,6 +332,7 @@ var sustechFeyueMEDProfiles = []Profile{
 			"套磁信怎么写效果好？",
 		},
 		ExpertiseTags: []string{"材料科学", "UIUC", "暑研", "PhD申请", "飞跃手册"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `15级材料科学与工程专业，GPA 3.85/4，TOEFL 114(口语25)，GRE 155V+169Q+3AW。大三参加UCI UCInspire暑研，大四参加MRS秋会。最终录取UIUC MSE PhD，另获TAMU BME PhD和JHU MS AD。套磁是PhD申请必需步骤，最有效方式是面对面交流(暑研/交换)，写套磁信要先选校定方向、浏览课题组文章找科研重合点、内容300字简明扼要。GPA越高越好(有含金量的GPA永远不嫌高)：作业搞明白、记录老师上课强调内容、用脑图梳理知识结构。托福听力多听(网课/播客/YouTube)，口语和作文掌握思考模板。GRE需整段时间集中背单词。`,
 	},
 	{
@@ -342,6 +356,7 @@ var sustechFeyueMEDProfiles = []Profile{
 			"生物医学科学和临床医学怎么选？",
 		},
 		ExpertiseTags: []string{"北欧留学", "瑞典", "Karolinska", "医学", "飞跃手册"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `16级医学院生物医学科学专业(首届毕业生)，GPA 2.7。最终录取瑞典Karolinska医学院与KTH合作硕士项目。北欧留学费用相对较低(两年20-30万)，语言要求比英语国家低(雅思6/5.5即可)。北欧非常看重专业匹配度(课程学分需满足最低要求)，但只有合格/不合格之分。瑞典申请通过universityadmissions.se网站，每人最多填四个项目(类似高考志愿有先后)，第一志愿录取后其他自动删除。10月开放申请，1月15日截止，4月放榜。生物医学科学属理学而非医学，选临床走临床路、选生医科学走理学/出国路。大创项目和科研经历是重要加分项。`,
 	},
 	{
@@ -365,6 +380,7 @@ var sustechFeyueMEDProfiles = []Profile{
 			"PhD选校应该参考什么排名？",
 		},
 		ExpertiseTags: []string{"BME", "NUS", "PhD申请", "套磁", "飞跃手册"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `17级生物医学工程专业(兼修数学和BME研究生课程)，专业GPA 3.82/4(总3.60)，TOEFL裸考100，GRE 156V+169Q+4.0AW。两篇SCI一区(一篇一作IF7-9)。最终录取NUS PhD(MBI joint with BME)，另获Columbia MS/PhD、UCI PhD、Brown和Rice ScM。投了11所美校+NUS。建议USNEWS学科排名为首要参考。交叉方向可选申请难度较低的系。套磁前务必读几篇目标导师近期论文，不要发模板化邮件(教授一天收数十封套磁信)。推荐阅读UCI某教授写的"给申请者的信"理解有效套磁。GPA/语言/GRE属于锦上添花(或不拖后腿)型因素，科研产出和推荐信是关键。`,
 	},
 	{
@@ -388,6 +404,7 @@ var sustechFeyueMEDProfiles = []Profile{
 			"PhD申请需要找中介吗？",
 		},
 		ExpertiseTags: []string{"生物医学", "NUS", "PhD申请", "DIY", "飞跃手册"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `16级医学院生物医学科学专业，GPA 3.7/4(7/19)，TOEFL 96，GRE 319。三段校外科研+一段校内，一篇国内会议poster一作。最终录取NUS PhD，另获杜兰/康涅狄格/港中文PhD和USC Master。大一到大三辗转数学/机械/生物/医学四个系的实验室，直到大三深入做独立研究才找到兴趣。核心体会：兴趣是"获得"的，只有深入学习和思考才能对某个方向产生兴趣，浅尝辄止会一事无成。英语建议集中培训性价比更高，断断续续自学效率低。申请时慎选美国医学院项目——很多项目招国际生极少但官网不会写明。PhD申请完全可以DIY，中介对学术性强的申请帮不上忙。`,
 	},
 	{
@@ -411,6 +428,7 @@ var sustechFeyueMEDProfiles = []Profile{
 			"Duke BME MS申请难度如何？",
 		},
 		ExpertiseTags: []string{"BME", "Duke", "暑研", "逆袭", "飞跃手册"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `15级生物医学工程专业，GPA 3.58/4排名5/20，TOEFL 94/97(口语18/27)，GRE 154V+167Q+3AW。大一GPA仅2.86，靠学习小组和伙伴支持将大二大三GPA拉到3.80+。大一暑假GaTech文化交流(对申请用处不大但帮助了解美国)，大三暑假UCI UCInspire暑研是申请最关键一笔——通过定期发工作汇报拿到教授推荐信。最终录取Duke BME MS，另获CMU和WashU MS AD。Duke对国际生托福要求官方仅90但不要被迷惑，名校一般要100+。暑研推荐信和交流经历是最大优势。Duke是世界第一个创建BME系的学校，BME领域热门且申请难度将越来越高。`,
 	},
 	{
@@ -434,6 +452,7 @@ var sustechFeyueMEDProfiles = []Profile{
 			"文书怎么打磨提升竞争力？",
 		},
 		ExpertiseTags: []string{"BME", "HKUST", "ETH暑研", "DIY申请", "飞跃手册"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `18级生物医学工程专业，GPA 3.81/4排名2/26，TOEFL 107，GRE 160V+170Q+3.5AW。自申前往ETH做四个月暑研，获ETH导师推荐信。最终录取HKUST Bioengineering PhD，另获ETH/EPFL/KTH MS AD及BU MS(PhD降录)，被Harvard/Caltech/Berkeley等拒。ETH暑研申请参考Invited Visiting Student页面，需有导师接收。ETH除CS外本科直博几乎不可能。暑研中若被放养可联系组内博后或博士生找独立项目。文书要简练高效地陈述科研经历和专业兴趣，用Grammarly筛一遍后上Fiverr找外国人优化。选校策略：一部分高于自身水平+一部分匹配偏高+少量保底，都选自己感兴趣的方向。`,
 	},
 	{
@@ -457,6 +476,7 @@ var sustechFeyueMEDProfiles = []Profile{
 			"选校应该申多少个项目？",
 		},
 		ExpertiseTags: []string{"BME", "Yale", "EPFL暑研", "PhD申请", "飞跃手册"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `21级生物医学工程专业，GPA 3.91/4排名1/46，TOEFL 108，GRE 151V+170Q+3.5AW。EPFL生命科学院两个月暑研(SRP)，申请时无文章发表。最终录取Yale BME PhD，被Harvard/MIT/Caltech/Duke等拒。当前大环境：美国NIH funding大幅被砍，ETH出禁令限制中国STEM学生，EPFL不再招CSC学生，港新竞争加剧。博士申请中介作用有限。美国全奖PhD基本能自负开销(5-7年)。建议申15-20个项目(4彩票+3偏上+5适合偏上+3保底)。默认数字邮箱可能被对方屏蔽，建议改成名字拼音或用Gmail。海外交流非常重要——推荐信、信息差、认识导师的机会。`,
 	},
 	{
@@ -480,6 +500,7 @@ var sustechFeyueMEDProfiles = []Profile{
 			"iGEM金奖对申请有帮助吗？",
 		},
 		ExpertiseTags: []string{"NUS", "港新留学", "保研", "iGEM", "飞跃手册"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `18级生物医学工程专业，GPA 3.78/4排名5/26，IELTS 7.0(L8.0 R7.5)。校内课题组、省级大创、2021 iGEM金奖。最终录取NUS Biotechnology MSc。时间轴曲折：7月投NUS提前批、8月放弃保研、9月被NUS拒、10月签中介再投NUS普通批、12月二次被拒、次年4月NUS捞人更新材料(iGEM+雅思)面试后拿到offer。另获KCL/Glasgow/UCL/KAUST AD。保研失败总结：背景不够、投的学校太少、英语面试一般。建议早做决定：想出国就提前准备雅思和材料，iGEM等竞赛金奖可有效丰富背景。NUS Biotech是提前批失败后普通批仍有机会的项目。`,
 	},
 	{
@@ -503,6 +524,7 @@ var sustechFeyueMEDProfiles = []Profile{
 			"哥大BME硕士面试考什么？",
 		},
 		ExpertiseTags: []string{"BME", "Columbia", "交流", "软实力", "飞跃手册"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `16级生物医学工程专业，GPA 3.47/4(大一大二没怎么学习)，TOEFL 107，GRE 319。寒假中科院深圳先进院科研，暑假UCB夏校一个月，大四UCI 3+2项目一年(研究生课程刷高GPA+实验室科研+两封推荐信)。最终录取Columbia BME MS，另获Cornell MEng/CMU MS/NUS MS。硬实力(GPA/英语)大二上就该规划，先考GRE(有效5年)再考托福(有效2年)。软实力弥补GPA：长短期交流项目非常有帮助，南科大资源丰富且有资助。推荐信多争取海外教授的。哥大BME面试是无人录像面试(不限时)，考编程能力、品格、挑战应对等。纽约一年开支约9万刀。`,
 	},
 	{
@@ -526,6 +548,7 @@ var sustechFeyueMEDProfiles = []Profile{
 			"申请30个PhD项目合理吗？",
 		},
 		ExpertiseTags: []string{"BME", "Purdue", "哈佛访学", "PhD申请", "飞跃手册"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `21级生物医学工程专业，GPA 3.89/4排名3/46，TOEFL 96(三次都没过100)，无GRE。一篇一作preprint、两篇专利在审。Harvard Medical School 8个月科研访问。最终录取Purdue ME PhD(Ross + Winkelman Fellowship，1600人中20人获奖)，另获WashU/UCI/NEU PhD offer。25Fall为近年最难申请季(NIH funding大砍)。申请30个PhD项目覆盖五个档次，建议"多多益善、错位竞争"。海外交流极其重要：漫天信息差、海外推荐信、认识导师的机会。在Harvard一场event认识了博导(该导师帮nominate Purdue Fellowship)。TOEFL过线即可，PhD申请分够用就行。课程交流附赠5年F签也有价值。`,
 	},
 	{
@@ -549,6 +572,7 @@ var sustechFeyueMEDProfiles = []Profile{
 			"一作论文vs多篇挂名哪个更有价值？",
 		},
 		ExpertiseTags: []string{"材料科学", "Cornell", "计算材料", "PhD申请", "飞跃手册"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `15级材料科学与工程专业，南科大GPA 3.92/4，UCI GPA 3.99/4，GRE 155+169+3.5，TOEFL waived(有UCI 3+2经历)。UCI期间一篇期刊一作+一篇会议一作。最终录取Cornell ME PhD，另获UCLA MSE PhD(Dean's Fellowship)和Duke PhD。PhD申请重要性排序：推荐信>科研成果>GPA>语言>GRE。对本科生来说，一作但IF低比IF高但非一作更有说服力——教授看的是独立科研能力和未来潜力。文章太多反而会引起怀疑。3+2项目三大好处：适应美国科研氛围、尝试不同方向、获国外推荐信。选校时项目比学校重要，要考虑导师兴趣匹配度和工资水平(UCLA工资偏低需自己倒贴)。进入美国后要放低心态忘掉本科荣誉。`,
 	},
 	{
@@ -571,6 +595,7 @@ var sustechFeyueMEDProfiles = []Profile{
 			"选校需要考虑哪些因素？",
 		},
 		ExpertiseTags: []string{"材料科学", "美国留学", "PhD申请", "选校", "飞跃手册"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `16级材料科学与工程专业，以PPT/图片形式分享了材料系美国PhD申请的完整流程和经验总结。内容涵盖选校策略、标化考试准备、科研经历积累、套磁技巧、文书写作和推荐信安排等核心环节。图文并茂便于快速了解材料系申请全貌。建议结合同届同学的文字版经验一起参考，从不同角度了解申请注意事项。材料系方向多元(金属/高分子/纳米/计算等)，申请时需明确自身方向与目标导师匹配度。`,
 	},
 }

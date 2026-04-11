@@ -29,6 +29,7 @@ var gdutFeyueProfiles = []Profile{
 		SampleQuestions: []string{`广工保研到985的难度大吗？`, `夏令营和预推免哪个更容易拿offer？`, `双非背景怎么提升保研竞争力？`},
 		ExpertiseTags: []string{`保研`, `推免`, `广东工业大学`, `计算机`, `计算机相关`},
 		OriginalAuthor: `Blossom`,
+		Source: `广东工业大学保研手册`,
 		KnowledgeBody: `## 一定要看到最后(保研院校红榜）！
 
 **引用央视著名解说贺炜的一句话写给自己和所有的保研人:“请不要相信，胜利就像山坡上的蒲公英一样唾手可得，但是请相信，世界上总有一些美好值得我们全力以赴，哪怕粉身碎骨。”**
@@ -153,6 +154,7 @@ rk：10/812（1.23%,学院排名）
 		SampleQuestions: []string{`广工保研到985的难度大吗？`, `夏令营和预推免哪个更容易拿offer？`, `双非背景怎么提升保研竞争力？`},
 		ExpertiseTags: []string{`保研`, `推免`, `广东工业大学`, `计算机`, `计算机科学与技术`},
 		OriginalAuthor: `HDBEAR`,
+		Source: `广东工业大学保研手册`,
 		KnowledgeBody: `# 推免经验分享
 
 - 9月28日的录取为我大学本科的学习生活提前画下了圆满的句号。27日，我吃完晚饭，在走在回宿舍的路上，阳光还是那样的热烈，抬头看到夕阳正正对着我，我朝着夕阳走去，似乎就要走完这段无忧无虑的本科生活。身边穿着迷彩服的新生们熙熙攘攘，我想我如同他们一样，也要去追赶新的日出了。
@@ -323,6 +325,7 @@ rk：10/812（1.23%,学院排名）
 		SampleQuestions: []string{`广工保研到985的难度大吗？`, `夏令营和预推免哪个更容易拿offer？`, `双非背景怎么提升保研竞争力？`},
 		ExpertiseTags: []string{`保研`, `推免`, `广东工业大学`, `计算机`, `计算机科学与技术`},
 		OriginalAuthor: `Horace`,
+		Source: `广东工业大学保研手册`,
 		KnowledgeBody: `# 2024年计算机保研上岸记录
 
 # 个人背景
@@ -695,6 +698,7 @@ what problems or challenges do the medical imaging face?（因为我自我介绍
 		SampleQuestions: []string{`广工保研到985的难度大吗？`, `夏令营和预推免哪个更容易拿offer？`, `双非背景怎么提升保研竞争力？`},
 		ExpertiseTags: []string{`保研`, `推免`, `广东工业大学`, `计算机`, `计算机科学与技术`},
 		OriginalAuthor: `KARRY`,
+		Source: `广东工业大学保研手册`,
 		KnowledgeBody: `# KARRY的分享
 
 
@@ -812,6 +816,7 @@ and so on
 		SampleQuestions: []string{`广工保研到985的难度大吗？`, `夏令营和预推免哪个更容易拿offer？`, `双非背景怎么提升保研竞争力？`},
 		ExpertiseTags: []string{`保研`, `推免`, `广东工业大学`, `计算机`, `计算机相关`},
 		OriginalAuthor: `Kiren`,
+		Source: `广东工业大学保研手册`,
 		KnowledgeBody: `## **bg**
 
 **纯种三无——四非无rk1无强竞赛无中稿论文**
@@ -985,6 +990,7 @@ fdu的考核分为三部分，属于特别麻烦的学校了：机试30%+英语1
 		SampleQuestions: []string{`广工保研到985的难度大吗？`, `夏令营和预推免哪个更容易拿offer？`, `双非背景怎么提升保研竞争力？`},
 		ExpertiseTags: []string{`保研`, `推免`, `广东工业大学`, `计算机`, `计算机科学与技术`},
 		OriginalAuthor: `answer`,
+		Source: `广东工业大学保研手册`,
 		KnowledgeBody: `# answer的分享
 
 本篇仅仅抛砖引玉，介绍一些保研形势以及个人建议
@@ -1071,6 +1077,7 @@ CET-4：507    CET-6：567
 		SampleQuestions: []string{`广工保研到985的难度大吗？`, `夏令营和预推免哪个更容易拿offer？`, `双非背景怎么提升保研竞争力？`},
 		ExpertiseTags: []string{`保研`, `推免`, `广东工业大学`, `计算机`, `网络工程`},
 		OriginalAuthor: `匿名者1`,
+		Source: `广东工业大学保研手册`,
 		KnowledgeBody: `# **匿名者1**的分享
 
 我邮箱于2022.10.30接收到了一位19级保研同学的佚名分享，编者进行简单整理
@@ -1112,6 +1119,7 @@ CET-4：507    CET-6：567
 		SampleQuestions: []string{`广工保研到985的难度大吗？`, `夏令营和预推免哪个更容易拿offer？`, `双非背景怎么提升保研竞争力？`},
 		ExpertiseTags: []string{`保研`, `推免`, `广东工业大学`, `计算机`, `计算机科学与技术`},
 		OriginalAuthor: `总督`,
+		Source: `广东工业大学保研手册`,
 		KnowledgeBody: `# 推免经验分享
 
 ## 基本情况

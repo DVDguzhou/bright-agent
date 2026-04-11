@@ -26,4 +26,5 @@ type Profile struct {
 	KnowledgeCategory string   // 非空时替代默认知识条目类别"考研经验"
 	KnowledgeTags     []string // 非空时替代默认知识条目标签
 	OriginalAuthor    string   // 原作者真实姓名/笔名，写入数据库 original_author 字段用于内部溯源
+	Source            string   // 内容来源，如"浙江大学飞跃手册"
 }

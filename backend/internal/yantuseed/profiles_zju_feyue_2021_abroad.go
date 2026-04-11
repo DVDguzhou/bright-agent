@@ -16,6 +16,7 @@ var maoYuHao = Profile{
 		"暑研和推荐信怎么规划？",
 		"ETH 直博被降 MS 还要不要去？",
 	},
+	Source: `浙江大学飞跃手册`,
 	KnowledgeBody: `申请简介
 本科专业：数金，Overall/Major GPA 3.94/4
 申请方向：CS，最终去向 MSCS@ETHz
@@ -53,6 +54,7 @@ var zhouKaiWen = Profile{
 		"套磁和海外科研推荐信有多重要？",
 		"要不要找留学中介？",
 	},
+	Source: `浙江大学飞跃手册`,
 	KnowledgeBody: `申请简介
 本科专业：统计学，Overall GPA 3.89/4，Major GPA 3.96/4
 最终去向：UCSC CS Ph.D.，托福 104，GRE 321
@@ -90,6 +92,7 @@ var liXiangTian = Profile{
 		"托福和 GRE 要刷到多少？",
 		"交换经历对决心出国有多大帮助？",
 	},
+	Source: `浙江大学飞跃手册`,
 	KnowledgeBody: `申请简介
 本科专业：信计，Overall GPA 3.80，Major GPA 3.90，Rank 约 15%
 最终去向：UCSD MLDS；另有 MSCS@UC Merced、USC CS37(AI track) 等 offer
@@ -123,6 +126,7 @@ var xuJing = Profile{
 		"硕士申请一定要套磁吗？",
 		"大三前要不要定读硕还是读博？",
 	},
+	Source: `浙江大学飞跃手册`,
 	KnowledgeBody: `申请简介
 本科专业：信息与计算科学，Overall GPA 3.97（四分制）/92.0（百分制），Major GPA 3.98
 申请方向：统计、应数、数据科学、运筹等硕士为主，兼有部分 PhD 项目
@@ -154,6 +158,7 @@ var chenLongTeng = Profile{
 		"没有科研经历也能申欧洲名校吗？",
 		"纯数方向如何保持热情？",
 	},
+	Source: `浙江大学飞跃手册`,
 	KnowledgeBody: `申请简介
 本科专业：数学与应用数学
 最终去向：École Polytechnique 工程师项目
@@ -180,6 +185,7 @@ var xiaRuiZhe = Profile{
 		"港科大应用数学与港大港中文怎么选？",
 		"国奖和港府奖学金要注意什么截止日？",
 	},
+	Source: `浙江大学飞跃手册`,
 	KnowledgeBody: `申请简介
 本科专业：数学与应用数学，Overall GPA 4.50，Major GPA 4.52，Rank 5/111
 最终去向：HKUST 应用数学 Ph.D.，托福 100

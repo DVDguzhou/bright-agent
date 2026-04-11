@@ -16,6 +16,7 @@ var ganYuYou = Profile{
 		"跨保计院要准备什么？",
 		"如何提高读英文论文的速度？",
 	},
+	Source: `浙江大学飞跃手册`,
 	KnowledgeBody: `申请简介
 本科专业：数学与应用数学
 Overall GPA 4.31，Major GPA 4.45
@@ -54,6 +55,7 @@ var liuYuChen = Profile{
 		"本校计院夏令营一般考什么？",
 		"选保研还是直博要考虑什么？",
 	},
+	Source: `浙江大学飞跃手册`,
 	KnowledgeBody: `本科专业：数学与应用数学（求是科学班）
 MS/Ph.D.：直博
 Overall GPA / Major GPA：4.09/5
@@ -100,6 +102,7 @@ var linYuXin = Profile{
 		"图形学方向怎么选导师和实验室？",
 		"PAT 和面试一般怎么准备？",
 	},
+	Source: `浙江大学飞跃手册`,
 	KnowledgeBody: `申请简介
 本科专业：信息与计算科学
 Major GPA：4.73/5
@@ -155,6 +158,7 @@ var linHaoRan = Profile{
 		"PPT 面试怎么突出项目？",
 		"没有四大课还能保计院吗？",
 	},
+	Source: `浙江大学飞跃手册`,
 	KnowledgeBody: `申请简介
 本科专业：信息与计算科学
 Overall GPA：4.65/5(92.5/100)
@@ -195,6 +199,7 @@ var liuLuPing = Profile{
 		"怎么用 dblp 评估实验室？",
 		"数院学生保软院/计院要注意什么？",
 	},
+	Source: `浙江大学飞跃手册`,
 	KnowledgeBody: `申请简介
 本科专业：数学与应用数学
 Overall GPA 4.28，Major GPA 4.26
@@ -235,6 +240,7 @@ var chenMingYang = Profile{
 		"政治要不要早点开始看？",
 		"考研需要研友吗？",
 	},
+	Source: `浙江大学飞跃手册`,
 	KnowledgeBody: `基本信息
 本科专业：数学与应用数学
 考研分数：390/500
@@ -262,6 +268,7 @@ var caoLeYi = Profile{
 		"数学三和数分高代复习有什么不同？",
 		"考研期间如何不被网上节奏带偏？",
 	},
+	Source: `浙江大学飞跃手册`,
 	KnowledgeBody: `基本信息
 本科专业：信息与计算科学
 考研分数：442/500（初）,251/350（复）
@@ -301,6 +308,7 @@ var dangYun = Profile{
 		"考研前失眠怎么办？",
 		"择校确定后如何坚持执行？",
 	},
+	Source: `浙江大学飞跃手册`,
 	KnowledgeBody: `基本信息
 本科专业：数学与应用数学（金融学交叉创新平台）
 邮箱：3523190500@qq.com
@@ -328,6 +336,7 @@ var liHengJia = Profile{
 		"408 和王道怎么搭配？",
 		"浙大计院考研面试会问什么？",
 	},
+	Source: `浙江大学飞跃手册`,
 	KnowledgeBody: `基本信息
 本科专业：信计
 考研分数：406/500
@@ -362,6 +371,7 @@ var chenQiangChao = Profile{
 		"理工科背景考法学院有什么机会？",
 		"如何估计自己有效复习时长？",
 	},
+	Source: `浙江大学飞跃手册`,
 	KnowledgeBody: `基本信息
 本科专业：数学与应用数学
 邮箱：3253398013@qq.com

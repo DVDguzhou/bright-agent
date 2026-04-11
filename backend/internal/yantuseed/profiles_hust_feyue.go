@@ -35,6 +35,7 @@ var hustFeyueProfiles = []Profile{
 			"转专业申请要不要找中介？",
 		},
 		ExpertiseTags: []string{"转CS", "硕士申请", "选校对比", "飞跃手册", "华中科技大学"},
+		Source: `华科飞跃手册`,
 		KnowledgeBody: `申请背景：GPA 91.9，GRE 325+3，TOEFL 102(S23)，Harvard暑校经历。
 光电转CS方向申请，录取JHU CS、Rice CS+EE、Cornell ECE、UCLA ECE、UCSD、Duke ECE、Penn ECE、NWU CE、USC CS+EE等多所学校。
 
@@ -63,6 +64,7 @@ var hustFeyueProfiles = []Profile{
 			"文书应该自己写还是找人帮忙？",
 		},
 		ExpertiseTags: []string{"EE硕士", "三维成绩", "实习经历", "飞跃手册", "华中科技大学"},
+		Source: `华科飞跃手册`,
 		KnowledgeBody: `申请背景：GPA 3.86/4（年级前10%），GRE 324+3.5，TOEFL 98(S23)，华为实习经历。无论文、无专利、无强推荐信，典型「三无」申请者。
 
 录取结果：UCLA、USC、Georgia Tech、UMich均获AD。
@@ -90,6 +92,7 @@ var hustFeyueProfiles = []Profile{
 			"标化考试应该什么时候考完？",
 		},
 		ExpertiseTags: []string{"硕博混申", "暑研", "标化考试", "飞跃手册", "华中科技大学"},
+		Source: `华科飞跃手册`,
 		KnowledgeBody: `申请背景：GPA 3.73，GRE 325+3，IELTS 7.5，斯坦福短期交流+UCLA背景提升项目。
 
 录取结果：UT Austin（最终去向）、UMich、USC、Columbia、UIUC、Duke、Purdue、Northwestern、UCLA等AD。
@@ -117,6 +120,7 @@ var hustFeyueProfiles = []Profile{
 			"无GRE无推荐信怎么申请？",
 		},
 		ExpertiseTags: []string{"欧洲留学", "DIY申请", "性价比", "飞跃手册", "华中科技大学"},
+		Source: `华科飞跃手册`,
 		KnowledgeBody: `申请背景：GPA 86.0/100（年级约40/120），TOEFL 92(S18)，无GRE，无推荐信。保研失败后紧急转出国。
 
 录取结果：Lund University AD、EIT Digital（Aalto+KTH联合项目）AD附带小额奖学金。
@@ -144,6 +148,7 @@ var hustFeyueProfiles = []Profile{
 			"如何在美国PhD和欧洲MS之间抉择？",
 		},
 		ExpertiseTags: []string{"EPFL", "暑研推荐信", "签证", "飞跃手册", "华中科技大学"},
+		Source: `华科飞跃手册`,
 		KnowledgeBody: `申请背景：GPA 3.92/4（88/100），GRE 152+168+3，TOEFL 99(S20)，NTU暑研经历。
 
 录取结果：EPFL MS（最终去向）、IC、Purdue（PhD降MS）、UNC PhD。签证被行政审查（check），最终从美国PhD转向瑞士EPFL硕士。
@@ -171,6 +176,7 @@ var hustFeyueProfiles = []Profile{
 			"ECE方向哪些学校性价比高？",
 		},
 		ExpertiseTags: []string{"ECE硕士", "刷加权", "GRE高分", "飞跃手册", "华中科技大学"},
+		Source: `华科飞跃手册`,
 		KnowledgeBody: `申请背景：GPA 84.2/100（3.67/4），Rank 16/28，GRE 328+3.0，TOEFL 106(S21)，Missouri暑研经历。
 
 录取结果：Columbia、UPenn、Duke（最终去向）、JHU、USC、WUSTL、Northwestern、UFL均获AD。
@@ -198,6 +204,7 @@ var hustFeyueProfiles = []Profile{
 			"如何在申请中找到自己的兴趣方向？",
 		},
 		ExpertiseTags: []string{"BME博士", "Mitacs暑研", "ETH", "飞跃手册", "华中科技大学"},
+		Source: `华科飞跃手册`,
 		KnowledgeBody: `申请背景：GPA 88.9（年级3/30），GRE 321，TOEFL 98(S20)，Mitacs加拿大暑研+ETH毕设经历。
 
 录取结果：BU PhD（最终去向）、Northwestern BME、UCSD、Rice、Rutgers。
@@ -225,6 +232,7 @@ var hustFeyueProfiles = []Profile{
 			"申请中如何和同学分享信息互助？",
 		},
 		ExpertiseTags: []string{"CS PhD", "顶会论文", "暑研", "飞跃手册", "华中科技大学"},
+		Source: `华科飞跃手册`,
 		KnowledgeBody: `申请背景：GPA 3.93（90.7/100），GRE 153+170+4.0，TOEFL 104(S23)，一段暑研经历，3篇CCF A类顶会论文在投。
 
 录取结果：Cornell CIS PhD、UCSD ECE PhD、UMD CS PhD、UMass CICS PhD（最终去向）、EPFL CS MS、ETHZ EEIT MS。
@@ -252,6 +260,7 @@ var hustFeyueProfiles = []Profile{
 			"半DIY和全DIY中介怎么选？",
 		},
 		ExpertiseTags: []string{"PhD申请", "暑研", "Yale", "飞跃手册", "华中科技大学"},
+		Source: `华科飞跃手册`,
 		KnowledgeBody: `申请背景：GPA 91.2（年级12/280），GRE 321，TOEFL 105(S26)，WUSTL暑研经历，三作论文一篇，国家奖学金。
 
 录取结果：Yale PhD（最终去向）、UPenn PhD、UMD PhD。
@@ -279,6 +288,7 @@ var hustFeyueProfiles = []Profile{
 			"PhD和MS混申如何分配精力？",
 		},
 		ExpertiseTags: []string{"EE PhD", "无论文申请", "CREOL暑研", "飞跃手册", "华中科技大学"},
+		Source: `华科飞跃手册`,
 		KnowledgeBody: `申请背景：GPA 90.13（3.94/4），GRE 322+3.5，TOEFL 102(S24)，UCF CREOL暑研经历，无发表论文。
 
 录取结果：PhD方向——USC PhD（最终去向）、UMD PhD、UCF PhD；MS方向——UIUC、CMU、Cornell、Columbia、UPenn等。
@@ -306,6 +316,7 @@ var hustFeyueProfiles = []Profile{
 			"本科阶段发一作论文需要什么条件？",
 		},
 		ExpertiseTags: []string{"Stanford PhD", "钙钛矿", "CSST暑研", "飞跃手册", "华中科技大学"},
+		Source: `华科飞跃手册`,
 		KnowledgeBody: `申请背景：GPA 3.96/4，GRE 155+169+4，TOEFL 109(S23)，UCLA-CSST暑研，3篇一作/共一论文+2项专利。
 
 录取结果：Stanford PhD（最终去向）、UChicago PhD、Rice PhD。
@@ -333,6 +344,7 @@ var hustFeyueProfiles = []Profile{
 			"套磁邮件怎么写才有针对性？",
 		},
 		ExpertiseTags: []string{"EE PhD", "高GPA", "极限申请", "飞跃手册", "华中科技大学"},
+		Source: `华科飞跃手册`,
 		KnowledgeBody: `申请背景：GPA 3.96/4（94.6/100），年级排名1/287，GRE 162+170+3.5（332），TOEFL 106(S23)，无暑研、无海外推荐信，一篇挂名+一篇共一在投。大三下才决定出国。
 
 录取结果：Yale PhD（最终去向）、NUS PhD、Georgia Tech PhD、USC PhD、Rochester PhD、Purdue PhD、UT Austin PhD。
@@ -360,6 +372,7 @@ var hustFeyueProfiles = []Profile{
 			"巴黎高科需要笔试和面试吗？",
 		},
 		ExpertiseTags: []string{"欧洲硕士", "新加坡", "KTH", "飞跃手册", "华中科技大学"},
+		Source: `华科飞跃手册`,
 		KnowledgeBody: `申请背景：GPA 90.7（年级2/33），IELTS 6.5(S5.5)，巴黎暑校经历，无论文。
 
 录取结果：TELECOM Paris AD、KTH AD、NUS AD、NTU AD；EPFL Reject。
@@ -387,6 +400,7 @@ var hustFeyueProfiles = []Profile{
 			"瑞典留学的优势有哪些？",
 		},
 		ExpertiseTags: []string{"KTH", "3+2项目", "瑞典留学", "飞跃手册", "华中科技大学"},
+		Source: `华科飞跃手册`,
 		KnowledgeBody: `申请背景：GPA 91.7（年级12/335），TOEFL 95(S22)，麦吉尔大学暑研经历。
 
 录取结果：KTH 3+2联合培养，全免学费。
@@ -414,6 +428,7 @@ var hustFeyueProfiles = []Profile{
 			"PhD面试会被问什么专业课问题？",
 		},
 		ExpertiseTags: []string{"Optics PhD", "3+2深造", "面试准备", "飞跃手册", "华中科技大学"},
+		Source: `华科飞跃手册`,
 		KnowledgeBody: `申请背景：硕士GPA 3.74/4，GRE 141+168+3，经历了3+2联合培养项目（UD）。微电子转光学方向，在海外学习期间找到了读PhD的兴趣。
 
 录取结果：Rochester Institute of Optics PhD（最终去向）、OSU AD、ASU AD。
@@ -441,6 +456,7 @@ var hustFeyueProfiles = []Profile{
 			"不想读博但想做科研怎么选？",
 		},
 		ExpertiseTags: []string{"加拿大硕士", "全奖", "Mitacs", "飞跃手册", "华中科技大学"},
+		Source: `华科飞跃手册`,
 		KnowledgeBody: `申请背景：GPA 3.91（年级46/80），TOEFL 97(S22)，Mitacs暑研经历，无论文无专利。
 
 录取结果：INRS全奖研究型硕士AD。
@@ -468,6 +484,7 @@ var hustFeyueProfiles = []Profile{
 			"中法班面试用什么语言？",
 		},
 		ExpertiseTags: []string{"法国留学", "IOGS", "光学", "飞跃手册", "华中科技大学"},
+		Source: `华科飞跃手册`,
 		KnowledgeBody: `申请背景：GPA 89.6/100，TCF 398（B1水平），通过中法班项目申请。
 
 录取结果：IOGS（法国高等光学学院）3+3项目录取。
@@ -495,6 +512,7 @@ var hustFeyueProfiles = []Profile{
 			"海外交流经历对跨专业申请有多大帮助？",
 		},
 		ExpertiseTags: []string{"教育技术", "转专业", "CMU", "飞跃手册", "华中科技大学"},
+		Source: `华科飞跃手册`,
 		KnowledgeBody: `申请背景：GPA 3.89，GRE 159+170+4.0，TOEFL 116(S30)，两段海外交流经历。光电背景转申教育技术方向，大二下确定转专业目标。
 
 录取结果：CMU（最终去向）、宾大、哥大、NYU、IUB、FSU。
@@ -522,6 +540,7 @@ var hustFeyueProfiles = []Profile{
 			"保研和出国可以同时准备吗？",
 		},
 		ExpertiseTags: []string{"CUHK PhD", "夏令营", "BME", "飞跃手册", "华中科技大学"},
+		Source: `华科飞跃手册`,
 		KnowledgeBody: `申请背景：GPA 93.1/100（年级3/282），TOEFL 94(S21)，无GRE，2次国家奖学金。主要准备保研，同时申请了CUHK PhD。
 
 录取结果：CUHK PhD全奖Offer（最终去向）。
@@ -549,6 +568,7 @@ var hustFeyueProfiles = []Profile{
 			"暑研期间怎样拿到强推荐信？",
 		},
 		ExpertiseTags: []string{"光学PhD", "UCLA", "顶尖申请", "飞跃手册", "华中科技大学"},
+		Source: `华科飞跃手册`,
 		KnowledgeBody: `申请背景：GPA 3.98（年级2/283），GRE 325+4，TOEFL 104(S23)，海外暑研经历，一篇一作论文。
 
 录取结果：UCLA（最终去向）、USC PhD、Caltech PhD、NUS PhD。
@@ -576,6 +596,7 @@ var hustFeyueProfiles = []Profile{
 			"NUS交流项目值得参加吗？",
 		},
 		ExpertiseTags: []string{"纳米方向", "Purdue PhD", "学术竞赛", "飞跃手册", "华中科技大学"},
+		Source: `华科飞跃手册`,
 		KnowledgeBody: `申请背景：GPA 3.90，GRE 169+149+3（数学满分但verbal偏低），TOEFL 97(S22)，NUS交流经历，IEEE NANO会议论文一篇，3项专利，挑战杯国赛一等奖。
 
 录取结果：CUHK PhD、Purdue PhD（最终去向，2021 Spring入学）。
@@ -603,6 +624,7 @@ var hustFeyueProfiles = []Profile{
 			"GPA前2%和GRE 328+的组合有多大竞争力？",
 		},
 		ExpertiseTags: []string{"光学PhD", "Rochester", "硕博混申", "飞跃手册", "华中科技大学"},
+		Source: `华科飞跃手册`,
 		KnowledgeBody: `申请背景：GPA 92.2（年级前2%），GRE 328+4.0，TOEFL 109(S23)，UCI暑研经历。
 
 录取结果：PhD——Rochester Optics、UCF、Northwestern、TAMU、UCSB、UCSD、UC Berkeley；MS——UC Berkeley、UMich、CMU、Cornell、Columbia。最终选择Rochester Optics PhD。
@@ -630,6 +652,7 @@ var hustFeyueProfiles = []Profile{
 			"年级第一申MS是不是有点浪费？",
 		},
 		ExpertiseTags: []string{"CMU硕士", "暑研论文", "顶尖MS", "飞跃手册", "华中科技大学"},
+		Source: `华科飞跃手册`,
 		KnowledgeBody: `申请背景：GPA 91.4（3.98/4，年级1/28），GRE 325+3.5，TOEFL 105，Vanderbilt暑研经历，共一论文1篇+二作论文1篇。
 
 录取结果：CMU（最终去向）、Columbia、Duke、JHU、USC、UCLA、UIUC、Cornell、UMich。
@@ -657,6 +680,7 @@ var hustFeyueProfiles = []Profile{
 			"TAMU的光学项目怎么样？",
 		},
 		ExpertiseTags: []string{"光学硕士", "中等GPA", "务实选校", "飞跃手册", "华中科技大学"},
+		Source: `华科飞跃手册`,
 		KnowledgeBody: `申请背景：GPA 3.53，GRE 317，TOEFL 99(S19)，飞秒激光器搭建实验经历。
 
 录取结果：TAMU AD（最终去向）、Lund University AD。
@@ -684,6 +708,7 @@ var hustFeyueProfiles = []Profile{
 			"暑期学校对港校申请有帮助吗？",
 		},
 		ExpertiseTags: []string{"香港硕士", "研究型", "PolyU", "飞跃手册", "华中科技大学"},
+		Source: `华科飞跃手册`,
 		KnowledgeBody: `申请背景：GPA 85.8（3.76/4），IELTS 6.5，南安普顿大学暑期学校经历。
 
 录取结果：港理工研究型硕士、港中文授课型硕士。最终选择港理工（PolyU）研究型硕士。
@@ -711,6 +736,7 @@ var hustFeyueProfiles = []Profile{
 			"USC的EE硕士项目怎么样？",
 		},
 		ExpertiseTags: []string{"EE硕士", "普通背景", "USC", "飞跃手册", "华中科技大学"},
+		Source: `华科飞跃手册`,
 		KnowledgeBody: `申请背景：GPA 3.73，GRE 322+2.5，TOEFL 101(S21)，无科研经历、无海外交流经历，美赛M奖。
 
 录取结果：Rochester AD、USC AD（最终去向）。
@@ -738,6 +764,7 @@ var hustFeyueProfiles = []Profile{
 			"Rochester的光学/EE项目值得去吗？",
 		},
 		ExpertiseTags: []string{"EE硕士", "低GPA策略", "Rochester", "飞跃手册", "华中科技大学"},
+		Source: `华科飞跃手册`,
 		KnowledgeBody: `申请背景：GPA 3.27，GRE 323，TOEFL 107，2封学术推荐信+1封实习推荐信。
 
 录取结果：Rochester AD（最终去向）、NYU AD、BU AD、UCI AD、RPI AD、Case Western AD。

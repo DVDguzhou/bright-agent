@@ -27,6 +27,7 @@ var scuFlyProfiles = []Profile{
 		KnowledgeTags:     scuFlyKnowledgeTags,
 		SampleQuestions: []string{`四川大学保研怎么样？`, `川大出国容易吗？`, `川大就业前景如何？`},
 		ExpertiseTags: []string{`保研`, `留学`, `四川大学`, `保研/留学/考研`},
+		Source: `四川大学飞跃手册`,
 		KnowledgeBody: `# 经验分享指南
 
 1. 打开[GitHub](https://github.com/)，登入或注册` + "`" + `GitHub` + "`" + `账号
@@ -105,6 +106,7 @@ Reject:
 		KnowledgeTags:     scuFlyKnowledgeTags,
 		SampleQuestions: []string{`四川大学保研怎么样？`, `川大出国容易吗？`, `川大就业前景如何？`},
 		ExpertiseTags: []string{`保研`, `留学`, `四川大学`, `保研/留学/考研`},
+		Source: `四川大学飞跃手册`,
 		KnowledgeBody: `# \\[US\\]-19-one PhD@NWU
 
 ## 基本背景
@@ -191,6 +193,7 @@ Reject:
 		KnowledgeTags:     scuFlyKnowledgeTags,
 		SampleQuestions: []string{`四川大学保研怎么样？`, `川大出国容易吗？`, `川大就业前景如何？`},
 		ExpertiseTags: []string{`保研`, `留学`, `四川大学`, `保研/留学/考研`},
+		Source: `四川大学飞跃手册`,
 		KnowledgeBody: `# \\[EU\\]-18-匿名 MS@Uppsala Universitet
 
 ## 基本背景
@@ -252,6 +255,7 @@ Reject:
 		KnowledgeTags:     scuFlyKnowledgeTags,
 		SampleQuestions: []string{`四川大学保研怎么样？`, `川大出国容易吗？`, `川大就业前景如何？`},
 		ExpertiseTags: []string{`保研`, `留学`, `四川大学`, `保研/留学/考研`},
+		Source: `四川大学飞跃手册`,
 		KnowledgeBody: `# \\[US&UAE\\]-19-马晓晨
 
 ## 基本背景
@@ -328,6 +332,7 @@ Reject:
 		KnowledgeTags:     scuFlyKnowledgeTags,
 		SampleQuestions: []string{`四川大学保研怎么样？`, `川大出国容易吗？`, `川大就业前景如何？`},
 		ExpertiseTags: []string{`保研`, `留学`, `四川大学`, `保研/留学/考研`},
+		Source: `四川大学飞跃手册`,
 		KnowledgeBody: `# \\[CN]-20-hfy 保研@浙江大学
 
 ## 基本背景
@@ -406,6 +411,7 @@ Reject:
 		KnowledgeTags:     scuFlyKnowledgeTags,
 		SampleQuestions: []string{`四川大学保研怎么样？`, `川大出国容易吗？`, `川大就业前景如何？`},
 		ExpertiseTags: []string{`保研`, `留学`, `四川大学`, `保研/留学/考研`},
+		Source: `四川大学飞跃手册`,
 		KnowledgeBody: `# \\[US\\]-19-宋子昊
 
 ## 基本背景
@@ -494,6 +500,7 @@ md别申phd，太痛苦了，先读个ms吧
 		KnowledgeTags:     scuFlyKnowledgeTags,
 		SampleQuestions: []string{`四川大学保研怎么样？`, `川大出国容易吗？`, `川大就业前景如何？`},
 		ExpertiseTags: []string{`保研`, `留学`, `四川大学`, `保研/留学/考研`},
+		Source: `四川大学飞跃手册`,
 		KnowledgeBody: `# \\[US\\]-19-凌阅微 PhD@Stanford
 
 ## 基本背景
@@ -570,6 +577,7 @@ Reject:
 		KnowledgeTags:     scuFlyKnowledgeTags,
 		SampleQuestions: []string{`四川大学保研怎么样？`, `川大出国容易吗？`, `川大就业前景如何？`},
 		ExpertiseTags: []string{`保研`, `留学`, `四川大学`, `保研/留学/考研`},
+		Source: `四川大学飞跃手册`,
 		KnowledgeBody: `# \\[HK\\]-19-陈关泽 MS@HKUST
 
 ## 基本背景
@@ -648,6 +656,7 @@ Reject:
 		KnowledgeTags:     scuFlyKnowledgeTags,
 		SampleQuestions: []string{`四川大学保研怎么样？`, `川大出国容易吗？`, `川大就业前景如何？`},
 		ExpertiseTags: []string{`保研`, `留学`, `四川大学`, `保研/留学/考研`},
+		Source: `四川大学飞跃手册`,
 		KnowledgeBody: `# \\[HK\\]-19-刘之敏 MS@HKUST
 
 ## 基本背景
@@ -732,6 +741,7 @@ Reject:
 		KnowledgeTags:     scuFlyKnowledgeTags,
 		SampleQuestions: []string{`四川大学保研怎么样？`, `川大出国容易吗？`, `川大就业前景如何？`},
 		ExpertiseTags: []string{`保研`, `留学`, `四川大学`, `保研/留学/考研`},
+		Source: `四川大学飞跃手册`,
 		KnowledgeBody: `# \\[UK\\]-19-匿名 
 
 ## 基本背景
@@ -802,6 +812,7 @@ Reject:
 		KnowledgeTags:     scuFlyKnowledgeTags,
 		SampleQuestions: []string{`四川大学保研怎么样？`, `川大出国容易吗？`, `川大就业前景如何？`},
 		ExpertiseTags: []string{`保研`, `留学`, `四川大学`, `保研/留学/考研`},
+		Source: `四川大学飞跃手册`,
 		KnowledgeBody: `# \\[UK\\]-19-马尧 MS@UCL
 
 ## 基本背景
@@ -893,6 +904,7 @@ Reject:
 		KnowledgeTags:     scuFlyKnowledgeTags,
 		SampleQuestions: []string{`四川大学保研怎么样？`, `川大出国容易吗？`, `川大就业前景如何？`},
 		ExpertiseTags: []string{`保研`, `留学`, `四川大学`, `保研/留学/考研`},
+		Source: `四川大学飞跃手册`,
 		KnowledgeBody: `# \\[US\\]-19-畅想 MS@UCSD
 
 ## 基本背景
@@ -973,6 +985,7 @@ Reject:
 		KnowledgeTags:     scuFlyKnowledgeTags,
 		SampleQuestions: []string{`四川大学保研怎么样？`, `川大出国容易吗？`, `川大就业前景如何？`},
 		ExpertiseTags: []string{`保研`, `留学`, `四川大学`, `保研/留学/考研`},
+		Source: `四川大学飞跃手册`,
 		KnowledgeBody: `# \\[US\\]-19-Eclipse MS@UMich
 
 ## 基本背景
@@ -1086,6 +1099,7 @@ Reject:
 		KnowledgeTags:     scuFlyKnowledgeTags,
 		SampleQuestions: []string{`四川大学保研怎么样？`, `川大出国容易吗？`, `川大就业前景如何？`},
 		ExpertiseTags: []string{`保研`, `留学`, `四川大学`, `保研/留学/考研`},
+		Source: `四川大学飞跃手册`,
 		KnowledgeBody: `# \\[US\\]-19-Eclipse PhD@UIUC
 
 ## 基本背景
@@ -1169,6 +1183,7 @@ Reddit
 		KnowledgeTags:     scuFlyKnowledgeTags,
 		SampleQuestions: []string{`四川大学保研怎么样？`, `川大出国容易吗？`, `川大就业前景如何？`},
 		ExpertiseTags: []string{`保研`, `留学`, `四川大学`, `保研/留学/考研`},
+		Source: `四川大学飞跃手册`,
 		KnowledgeBody: `# \\[US\\]-19-MJ MS@Stanford
 
 ## 基本背景
@@ -1224,6 +1239,7 @@ Reddit
 		KnowledgeTags:     scuFlyKnowledgeTags,
 		SampleQuestions: []string{`四川大学保研怎么样？`, `川大出国容易吗？`, `川大就业前景如何？`},
 		ExpertiseTags: []string{`保研`, `留学`, `四川大学`, `保研/留学/考研`},
+		Source: `四川大学飞跃手册`,
 		KnowledgeBody: `# \\[US\\]-21-YZ MS@Georgia Tech
 
 ## 基本背景
@@ -1296,6 +1312,7 @@ Reject:
 		KnowledgeTags:     scuFlyKnowledgeTags,
 		SampleQuestions: []string{`四川大学保研怎么样？`, `川大出国容易吗？`, `川大就业前景如何？`},
 		ExpertiseTags: []string{`保研`, `留学`, `四川大学`, `保研/留学/考研`},
+		Source: `四川大学飞跃手册`,
 		KnowledgeBody: `# \\[CN\\]-18-Wan M-保研@上海交大医学院 
 
 ## 基本背景

@@ -162,6 +162,8 @@ type LifeAgentProfile struct {
 	Job                  *string   `gorm:"column:job;size:255"`       // 工作
 	School               *string   `gorm:"column:school;size:255"`    // 学校
 	OriginalAuthor       *string   `gorm:"column:original_author;size:128"` // 原作者真实姓名/笔名
+	Source               *string   `gorm:"column:source;size:255"`          // 内容来源
+	IsGenerated          bool      `gorm:"column:is_generated;default:false"` // 是否自动生成
 	Country              *string   `gorm:"column:country;size:64"`
 	Province             *string   `gorm:"column:province;size:64"`
 	City                 *string   `gorm:"column:city;size:64"`

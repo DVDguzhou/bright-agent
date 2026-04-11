@@ -16,6 +16,7 @@ var miaoYiPing = Profile{
 		"伯克利长学期交流怎么自己申请？",
 		"PhD 全拒后硕士项目怎么选？",
 	},
+	Source: `浙江大学飞跃手册`,
 	KnowledgeBody: `申请简介
 本科专业：数学与应用数学，Overall GPA 3.87/87.34，申请逻辑与纯数方向，最终去向牛津 MFoCS 硕士，托福 108（S23），GRE 320+3.5。
 申请结果：Applied logic PhD@UCB，math PhD@UCLA/UW-Madison/Cornell，math MS@UW-Madison，logic MS@UvA，MFoCS@Oxford；硕士项目多 offer；北美 logic/math PhD 全拒。奖项：校三等奖学金。推荐信：阮火军（毕设）、王枫；UCB 两封（含集合论与 reading course 老师）。大三下在 UC Berkeley 交换（含暑期），无正式论文科研。
@@ -38,6 +39,7 @@ var zhangFa = Profile{
 		"从纯数转向统计机器学习要注意什么？",
 		"申请季焦虑怎么调节？",
 	},
+	Source: `浙江大学飞跃手册`,
 	KnowledgeBody: `申请简介
 本科专业：数学与应用数学，Overall GPA 3.9/4.0（88.39/100），Rank 约 10%，最终去向 HKUST 数学 Ph.D.（统计应用向），托福 90。Applied HKUST，Offer。推荐信：NCSU 教授、SRTP 导师。港三各套磁，港中文强 committee，港科强教授制；编者完成老师任务后获 offer。
 
@@ -62,6 +64,7 @@ var dengXiYue = Profile{
 		"量化实习怎么选大私募还是小 fund？",
 		"推荐信和 GPA、实习、标化怎么排序？",
 	},
+	Source: `浙江大学飞跃手册`,
 	KnowledgeBody: `申请简介
 本科专业：统计学，Overall GPA 3.8，Major GPA 3.92，最终去向牛津统计学硕士 MSc in Statistical Science，雅思 7.5，GRE 331+4。混申大量统计与 MFE 项目；金工多拒，统计获 Oxford、UChicago MACSS（奖）、UChicago Stat（部分学费减免）等；哥大 MFE/MAFN 等 waiting list。SCI 一区一作；港大 2019 Fall 交换；多段券商、四大、私募量化实习。
 
@@ -86,6 +89,7 @@ var geKaiJie = Profile{
 		"浙大四分制与 WES 认证要注意什么？",
 		"实习对统计硕士帮助有多大？",
 	},
+	Source: `浙江大学飞跃手册`,
 	KnowledgeBody: `申请简介
 本科专业：统计，Overall GPA 3.6/4，最终去向 Columbia Stat MA，托福 104，GRE 322+3.5。Offer 含 Cornell Applied Stat、BU/USC MSMF、UR MSF 等。推荐信：张立新、张朋、经院方岳老师。
 
@@ -107,6 +111,7 @@ var maWanTeng = Profile{
 		"北美暑研线上体验下降怎么办？",
 		"港府奖学金 HKPFS 值不值得申？",
 	},
+	Source: `浙江大学飞跃手册`,
 	KnowledgeBody: `申请简介
 本科专业：竺院统计交叉，Overall GPA 3.96/4（90.6/100），Top 2%（CKC）、3/40（数院），最终去向 HKUST Math Ph.D.（学习理论向），带 HKPFS，托福 98。北美 Stat PhD 多校申请，HKUST offer；PSU 面试，Wisc waiting 后拒。奖项：国奖、校一奖、CKC 卓越奖、美赛 M、数学竞赛省一等。推荐信：Rice 暑研 AP 强推、张荣茂、何钦铭（SRTP）。
 
@@ -130,6 +135,7 @@ var wuZhiHao = Profile{
 		"数院保研接收考试没过怎么办？",
 		"港科广交叉学科面试侧重什么？",
 	},
+	Source: `浙江大学飞跃手册`,
 	KnowledgeBody: `申请简介
 本科专业：统计学，Overall GPA 3.8/4.0，Major GPA 3.9/4.0，Rank 9/55，最终去向 CUHK Stat Ph.D.，托福 83，六级 548。Applied CUHK Stat、HKUST OM PhD、HKUST-GZ Bio PhD 等；CUHK 录取，HKUST OM waiting。推荐信：黄炜、赵敏智。
 
@@ -153,6 +159,7 @@ var zhangZeXuan = Profile{
 		"统计硕士要不要找中介？",
 		"文书怎么避免流水账？",
 	},
+	Source: `浙江大学飞跃手册`,
 	KnowledgeBody: `申请简介
 本科专业：数学与应用数学，Overall 85.33/100，Major 88.60/100，最终去向 UChicago Stat MS，托福 106，GRE 322+3.5。Offer 含 CMU Stat、NUS、Rice 等。推荐信：王何宇、张立新、实习老板。科研两段“水”且放养；实习两段数据分析，与专业 match。
 
@@ -176,6 +183,7 @@ var chenZe = Profile{
 		"视频面试和行为面怎么练？",
 		"QCF 双学位转码路径值不值？",
 	},
+	Source: `浙江大学飞跃手册`,
 	KnowledgeBody: `申请简介
 本科专业：数学金融交叉，Overall GPA 3.61/4.0，最终去向 Georgia Tech QCF，托福 107，GRE 323+3.5。Offer 含 UIUC MFE、Rutgers MQF；拒 NYU/Columbia/UCLA MFE 等。推荐信：两封校内、一封私募经理。
 
@@ -200,6 +208,7 @@ var tangZiFeng = Profile{
 		"MFE 先修课数学和 CS 哪个更重要？",
 		"本科交换对金工录取影响有多大？",
 	},
+	Source: `浙江大学飞跃手册`,
 	KnowledgeBody: `申请简介
 本科专业：数学与应用数学&金融学混合班，Overall GPA 3.72/4.00，最终去向 UZH-ETH MScQF，雅思 7。Offer 含 USC MFE；Columbia MsFE waiting list。推荐信：统计、金融各一封与实习老板。美赛与国赛、微积分与物理竞赛等经历。
 
@@ -223,6 +232,7 @@ var tianZeRui = Profile{
 		"托福 GRE 拖到十月是什么体验？",
 		"CMU MSCF 和哥大 MFE 怎么比较？",
 	},
+	Source: `浙江大学飞跃手册`,
 	KnowledgeBody: `申请简介
 本科专业：数学与应用数学 + 金融双学位，Overall GPA 3.9/4.0，最终去向 Columbia MFE，托福 106，GRE 326+3.5。Offer 含 GT QCF、BU MSMF、NUS MFE（奖学金）等；CMU MSCF 有面拒；MIT MFin 无面拒等。国奖、校一奖。推荐信：王何宇、计院 NLP 课老师、实习老板。优势：课程极多（申请时约 200+ 学分）、实习与一段科研；劣势：部分数学课分数、无海外推荐信、TG 非顶尖。
 
@@ -248,6 +258,7 @@ var xiZeCheng = Profile{
 		"中介全包有哪些坑？",
 		"同样录取下英国和美国硕士怎么选？",
 	},
+	Source: `浙江大学飞跃手册`,
 	KnowledgeBody: `申请简介
 本科专业：数学金融交叉，Overall GPA 3.88/4.0，Major GPA 3.96/4.0，最终去向 NYU Courant MathFin，托福 104，GRE 326+4。混申多所 MFE；哥大、Baruch、MIT、CMU 等拒或不顺；另有 IC math finance、NYU Tandon MFE、NUS MFE 等 offer。推荐信：苏中根、李胜宏、实习老板。
 
@@ -272,6 +283,7 @@ var xuanNengKai = Profile{
 		"NTU FinTech 和 HKUST FinTech 怎么比？",
 		"港新申请文书重要吗？",
 	},
+	Source: `浙江大学飞跃手册`,
 	KnowledgeBody: `申请简介
 本科专业：数学与应用数学，Overall 85.0/100，最终去向 NTU MSc FinTech，托福 107（S25），GRE 157+170+3.5。混申英港新多项目：获 HKU、NTU、HKUST、CUHK、NUS 等 offer；LSE、爱丁堡拒。推荐信：中宏课老师、实习老板、全外文课教授。
 
@@ -296,6 +308,7 @@ var daiYunXiang = Profile{
 		"实习和推荐信怎么与课程并行？",
 		"只申金工不混申要注意什么？",
 	},
+	Source: `浙江大学飞跃手册`,
 	KnowledgeBody: `说明：本文为飞跃手册「院外受邀」篇，作者本科为浙江大学金融学，非数院培养方案。
 
 申请简介
@@ -322,6 +335,7 @@ var liaoHuaZe = Profile{
 		"三维一般怎么靠实习和先修课补背景？",
 		"英美混申体感差异是什么？",
 	},
+	Source: `浙江大学飞跃手册`,
 	KnowledgeBody: `说明：院外受邀，本科材料科学与工程，跨申金工。
 
 申请简介
@@ -348,6 +362,7 @@ var liuHuBen = Profile{
 		"实习一定要 big name 吗？",
 		"交换推荐信怎么拿？",
 	},
+	Source: `浙江大学飞跃手册`,
 	KnowledgeBody: `说明：院外受邀，本科物理学。
 
 申请简介
@@ -373,6 +388,7 @@ var qianXinYue = Profile{
 		"CMU 无面拒后心态怎么调整？",
 		"MFE 申请群和信息平台怎么用？",
 	},
+	Source: `浙江大学飞跃手册`,
 	KnowledgeBody: `说明：院外受邀，本科金数交叉，竺院排名约 Top 2%。
 
 申请简介
@@ -399,6 +415,7 @@ var yeXuHua = Profile{
 		"defer 一年 gap 怎么找实习？",
 		"CMU MSCF 面试和录取标准怎么看？",
 	},
+	Source: `浙江大学飞跃手册`,
 	KnowledgeBody: `说明：院外受邀，本科 2016 级国贸，跨专业转量化。
 
 申请简介

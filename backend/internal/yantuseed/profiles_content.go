@@ -7,6 +7,7 @@ var yaoShengJie = Profile{
 	MajorLine:    "计算机技术",
 	ScoreLine:    "总分314",
 	ArticleTitle: "研途榜样⑤ | 笔耕有涯，梦想无疆",
+	Source: `研途榜样公众号`,
 	KnowledgeBody: `考研专业：计算机技术
 报考院校：杭州电子科技大学
 考研成绩：总分314
@@ -27,6 +28,7 @@ var zhangGuiShuo = Profile{
 	OriginalAuthor: "张桂烁",
 	School:       "华东师范大学",
 	ArticleTitle: "研途榜样③ | 凝思知其所向，笃行方至其远",
+	Source: `研途榜样公众号`,
 	KnowledgeBody: `#01
 
 考研历程与择校准备
@@ -117,6 +119,7 @@ var yangChenYang = Profile{
 	ScoreLine:    "总分350",
 	MajorLine:    "大数据",
 	ArticleTitle: "研途榜样② | 研途备考凝力，榜样传经上岸",
+	Source: `研途榜样公众号`,
 	KnowledgeBody: `考研学校：中国矿业大学
 总分：350
 

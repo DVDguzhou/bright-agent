@@ -231,6 +231,10 @@ func UpsertProfile(userID, coverPreset string, p Profile) error {
 		if strings.TrimSpace(p.OriginalAuthor) != "" {
 			updates["original_author"] = strOrNil(p.OriginalAuthor)
 		}
+		if strings.TrimSpace(p.Source) != "" {
+			updates["source"] = strOrNil(p.Source)
+		}
+		updates["is_generated"] = true
 		if strings.TrimSpace(coverPreset) != "" {
 			updates["cover_preset_key"] = strOrNil(coverPreset)
 			updates["cover_image_url"] = nil
@@ -277,6 +281,8 @@ func UpsertProfile(userID, coverPreset string, p Profile) error {
 			School:           strOrNil(p.School),
 			Education:        strPtr(edu),
 			OriginalAuthor:   strOrNil(p.OriginalAuthor),
+			Source:           strOrNil(p.Source),
+			IsGenerated:      true,
 			CoverImageURL:    coverImg,
 			CoverPresetKey:   presetKey,
 			Published:        true,

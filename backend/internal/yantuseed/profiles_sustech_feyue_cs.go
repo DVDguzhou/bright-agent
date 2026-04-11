@@ -34,6 +34,7 @@ var sustechFeyueCSProfiles = []Profile{
 			"南科大本科考研需要注意什么？",
 		},
 		ExpertiseTags: []string{"考研", "计算机", "国内读研", "飞跃手册", "择校"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `18级计算机系同学，国内考研方向。作者强调考研前一定要想清楚目标，不要跟风。文章详细介绍了学硕vs专硕（学硕侧重理论发paper，可直博；专硕侧重就业实习）、全日制vs非全日制、定向vs非定向等制度区别。择校方面，建议关注分数线体系（国家线/校线/专业线/自划线），结合科研投入、专业排名、就业意向、地理位置和难度综合选择。复习策略上建议尽早开始专业课准备，数学多刷题练手感，英语坚持背单词做阅读。考研拼的不是谁跑得快，而是谁能稳到最后。`,
 	},
 	{
@@ -57,6 +58,7 @@ var sustechFeyueCSProfiles = []Profile{
 			"申请美国CS硕士如何选校和写文书？",
 		},
 		ExpertiseTags: []string{"美国留学", "CMU", "CS硕士", "飞跃手册", "选校"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `16级计算机系，GPA 3.69/4，TOEFL 104，GRE V159+Q170+AW4.0。有IIT暑研课程和UC Berkeley学期交流经历。最终录取CMU软件工程硕士(MSE)，同时获得Rice、UCI、NYU Courant、NEU录取。作者认为重要性排序为GPA>TOEFL>GRE。建议大一寒假就开始准备GRE，先考GRE再考TOEFL，大四前考完英语比较安心。申请季从8月持续到次年4月，选校时每个项目都要问自己"如果只有这一个录取是否愿意去"。文书先写一个模版再针对不同学校修改，推荐信提前联系教授。活跃于一亩三分地论坛收集信息非常重要。`,
 	},
 	{
@@ -80,6 +82,7 @@ var sustechFeyueCSProfiles = []Profile{
 			"CMU不同CS硕士项目怎么选？",
 		},
 		ExpertiseTags: []string{"美国留学", "CMU", "暑研", "飞跃手册", "软件工程"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `19级计算机系，GPA 3.82/4(排名15/156)，TOEFL 104，GRE V155+Q170+AW3.0。无交换、无论文，申请时无实习，一段UCI暑研。最终录取CMU SESV（软件工程硕士），另获UIUC MCS、JHU、UCI、WUSTL、USC、NTU MSAI录取，被NWU、NYU Courant、Wisc、UMich、UCSD、GaTech、Columbia、Duke、UC Davis PhD拒。申请材料12月至1月提交，2月开始陆续出结果。建议申请时合理分配冲刺/主申/保底档次，多申几个项目增加录取概率。`,
 	},
 	{
@@ -103,6 +106,7 @@ var sustechFeyueCSProfiles = []Profile{
 			"文书和推荐信有多重要？",
 		},
 		ExpertiseTags: []string{"美国留学", "UW-Madison", "CSST暑研", "飞跃手册", "GPA"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `15级计算机系，GPA 3.87/4排名1/98，TOEFL 99(口语20)，GRE 155V+169Q+3.0AW。最终录取UW-Madison CS硕士，另获Stony Brook PhD Offer和UMass AD。参加过UCLA-CSST暑研和腾讯实习。作者大一开始注重课业，选高质量课程保持系第一GPA。最大遗憾是托福口语偏低，建议早考早分手。文书要突出个人特点并与申请项目match，不要与简历重复，找native润色。选校参考一亩三分地往年数据。不要为了出国而出国，要想清楚自己想要什么。`,
 	},
 	{
@@ -126,6 +130,7 @@ var sustechFeyueCSProfiles = []Profile{
 			"托福90分够申PhD吗？",
 		},
 		ExpertiseTags: []string{"PhD申请", "安全方向", "套磁", "飞跃手册", "美国留学"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `21级计算机系，GPA 3.73/4(64/195)，TOEFL 90，无GRE，无论文。申请方向CS Security，有UCI暑研经历。在25Fall这个近5年最难的申请季（经费大砍），最终拿到U of Delaware全奖PhD offer，另获VCU、Michigan Tech、UT Arlington offer。作者风格随性注重work-life-balance，强调心态最重要。套磁建议不要发模板，注意教授主页暗号要求。中介最大作用是整理信息列表，选校和文书应自己完成。英语对排名不太高的学校没那么重要，GRE非必须可不考。年薪36000刀，免税州生活成本低。`,
 	},
 	{
@@ -149,6 +154,7 @@ var sustechFeyueCSProfiles = []Profile{
 			"申请季焦虑怎么调节心态？",
 		},
 		ExpertiseTags: []string{"美国留学", "CMU", "ECE", "飞跃手册", "图灵班"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `21级计算机系（图灵班），GPA 3.86/4(排名15/195)，TOEFL 103(口语20)，GRE 148V+170Q+3.5AW。最终录取CMU ECE硕士，另获Rice MCS录取。被CMU MSIN、UCSD CS75、Notre Dame CS PhD拒，港新多项待定。整个寒假焦急等待，每天刷邮箱和Reddit、小红书，开学后第二周收到首个offer。文章按时间轴复盘申请流程，分享使用的工具和踩过的坑。建议提前做好文书准备和推荐信安排，关注各项目截止日期差异。`,
 	},
 	{
@@ -172,6 +178,7 @@ var sustechFeyueCSProfiles = []Profile{
 			"推荐信和connection对PhD申请有多重要？",
 		},
 		ExpertiseTags: []string{"PhD申请", "AI医学", "gap year", "飞跃手册", "暑研"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `20级计算机系，GPA 3.77/4(排名30-35/220)，TOEFL 106，GRE 315。AI+Biomedical交叉方向，经历24Fall和25Fall两个申请季。24Fall：MICCAI workshop一作两篇、ISBI论文多篇，但PhD全拒（多个口头offer被缩招砍掉），仅获NYU Courant硕和NTU MSAI录取。Gap后25Fall增加Northwestern线上RA和Stanford postdoc线上RA，最终获UCLA CompMed PhD全奖offer（最终去向）和Northwestern BME PhD。文章事无巨细分享方法论，强调推荐信/connection>>高质量研究经历>GPA>标化成绩。建议混申硕士做保底，避免申"PhD保底校"。`,
 	},
 	{
@@ -195,6 +202,7 @@ var sustechFeyueCSProfiles = []Profile{
 			"保研还是出国读硕怎么选？",
 		},
 		ExpertiseTags: []string{"保研", "国内读研", "夏令营", "飞跃手册", "南科大"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `15级计算机系，GPA 3.63/4排名19/98。原计划出国但英语没准备好，大三暑假在某大厂实习6个月（测试工程师，实际做全栈工作）。保研流程：4-6月准备申请材料参加夏令营，7-8月参营获接收资格（A），9-10月获本校推送资格（B），A和B缺一不可。本校夏令营有笔试（数据结构、数据库、计网、操作系统）和面试。最终在保研/联培/就业/自主申请中选择了本校三年学硕。教训：想出国就早考英语，推迟实习；实习比较占时间。2019届起本校硕士改为3年学术型硕士。`,
 	},
 	{
@@ -218,6 +226,7 @@ var sustechFeyueCSProfiles = []Profile{
 			"美国、新加坡、香港硕士怎么对比？",
 		},
 		ExpertiseTags: []string{"美国留学", "UCSD", "CS硕士", "飞跃手册", "选校"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `17级计算机系，GPA 3.80/4(Top5%)，TOEFL 107(Best 109)，GRE V158+Q169+AW3.5。有NUS暑期项目、UC Berkeley学期交流和SIGMOD编程竞赛World Finalist经历。因疫情同时申请内地+港新+美国。最终录取UCSD CS75，另获GaTech MSCS、NEU MSDS、CUHK(SZ) MSDS、USC、NUS MSCS录取，被CMU MCDS、NWU、UMich、Brown、HKUST、NYU拒。关于MS vs PhD：需考虑科研兴趣和能力，如果都满足可读PhD。美国MS优点是教学好、留美就业好，缺点是学费高、签证和治安问题。新加坡性价比高适合过渡。`,
 	},
 	{
@@ -241,6 +250,7 @@ var sustechFeyueCSProfiles = []Profile{
 			"为什么选择保研而不是出国？",
 		},
 		ExpertiseTags: []string{"保研", "浙大", "夏令营", "飞跃手册", "套磁"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `17级计算机系，GPA 3.81排名8/145，有腾讯游戏客户端实习经历。最终保研至浙江大学软件学院专硕。计系保研名额约33个，其中本系老师可招21位，剩下12位需自行寻找接收单位（不兜底）。保研外校最大困难在于简历关——投递各大高校计算机学院碰壁无数，最终只被浙大软院和清华伯克利学院录进夏令营。建议3-4月提前联系导师套磁，用gmail而非南科大企业邮箱以免对方收不到。如果打算保研外校，暑期不建议实习，精力应放在夏令营准备上。国内一流实验室不比国外差，有好的国内机会值得考虑。`,
 	},
 	{
@@ -264,6 +274,7 @@ var sustechFeyueCSProfiles = []Profile{
 			"NUS的就读体验和就业前景如何？",
 		},
 		ExpertiseTags: []string{"新加坡留学", "NUS", "CS硕士", "飞跃手册", "就业"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `20级计算机系（从智能医学工程转入），GPA 3.75/4(排名38/220)，IELTS 7.0，GRE 322+4。有NUS Summer Workshop、三段科研（一篇非CCF论文一作）、三段小厂实习。24Fall all in NUS MComp，获NUS MComp CS、HKU CS、HKUST IT录取。NUS MComp是港新CS master中bar最高的项目之一，下offer最晚（5-6月），需考虑是否扛得住焦虑和留位费。项目6万新币，灵活选择1/1.5/2年毕业。新加坡就业机会好（TikTok、NVIDIA等），转博友好（dissertation选项可进入lab）。推荐信比重很高，一封好的科研推可弥补很多不足。建议做六边形战士或在一个方向深耕。`,
 	},
 	{
@@ -287,6 +298,7 @@ var sustechFeyueCSProfiles = []Profile{
 			"GPA和科研竞赛怎么平衡？",
 		},
 		ExpertiseTags: []string{"保研", "中科大", "夏令营", "飞跃手册", "双非"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `21级计算机系，GPA 3.89/4，夏令营时排名11/189(Top10%)，预推免时进入9/194(Top5%)。建模国赛国二+美赛H奖，六级524。最终保研中科大硕士。夏令营海投：南大CS挂了（不会编译原理和OS）、清深/东南/人大/同济/复旦拒、杭高院+中科大10系+浙软优营。预推免南大CS和浙软优营。作者强调双非保研初筛最看重GPA和排名，很多学校双非只放排名前5%。六级过480即可。面试主要看专业知识和项目，需提前复习数据结构、OS、计网、编译原理等专业课。建议尽早规划，保证GPA的同时积累竞赛和论文。`,
 	},
 	{
@@ -310,6 +322,7 @@ var sustechFeyueCSProfiles = []Profile{
 			"CMU MIIS项目怎么样？",
 		},
 		ExpertiseTags: []string{"美国留学", "CMU", "PhD申请", "飞跃手册", "规划"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `21级计算机系，GPA 3.79/4(大三rk8)，TOEFL 106，GRE V153+Q169+AW3.5。有MIT在线课程、NUS暑期项目、NTU访问研究等交流经历，三段实习，申请时无AC论文但有多篇在投。获CMU MIIS、UCSD CS75、HKUST MSAI、CUHK MSCS、NTU MSAI、Notre Dame MSCSE、USC CS28、JHU MSCSE录取。被UChicago、GaTech、Cornell等拒。一直没决定读PhD还是MS所以两条线并行。PhD优势：学术积累、不急就业、更好出路；问题：时间长、方向可能过时。MS优势：时间短、立即就业。建议看不进论文就无脑选MSc。推荐四年规划：大一考英语，大二进实验室，大三暑研，大四申请。`,
 	},
 	{
@@ -333,6 +346,7 @@ var sustechFeyueCSProfiles = []Profile{
 			"KAUST科研实习项目值得去吗？",
 		},
 		ExpertiseTags: []string{"PhD申请", "套磁", "KAUST", "飞跃手册", "科研"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `16级计算机系，GPA 3.72/4(排名25/146)，TOEFL 104，GRE 150V+170Q+3.5W。有UCI暑研和KAUST科研实习经历。申请时无论文，后来一篇一作发表在SIGKDD(CCF-A)。全部申请PhD，申10中6：UC Davis(最终去向，带fellowship)、UCI SE PhD(带fellowship)、PSU、NEU、Virginia Tech、UT Dallas offer。秘诀是"模板海套"法：先简洁列出自己的闪光点，再根据每位教授的研究兴趣做match，套磁一个老师只需10-20分钟。15个老师13个回复，11个面试邀请。KAUST科研实习让作者发现了对科研的热爱，是高风险超高回报的决定。关键是及时发现薄弱点并争取机会弥补。`,
 	},
 	{
@@ -356,6 +370,7 @@ var sustechFeyueCSProfiles = []Profile{
 			"科研实习对申请有什么帮助？",
 		},
 		ExpertiseTags: []string{"科研实习", "KAUST", "海外经历", "飞跃手册", "暑研"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `16级计算机系同学介绍KAUST VSRP(Visiting Student Research Program)科研实习。项目时长3-6个月，每月1000美元工资+机票住宿全包+海边别墅住宿。申请条件：大三或研一在读、GPA 3.5+、需英语成绩。3月中旬开始套磁教授，3月底面试并获同意，4-7月等待，7月底获正式通知，9月下旬抵达。作者动机：体验阿拉伯文化、专心科研的机会、获海外推荐信、丰富软背景。沙特天气10月后舒适，校内生活设施齐全。这段经历帮助作者发现对科研的热爱，是后续PhD申请的关键亮点。`,
 	},
 	{
@@ -379,6 +394,7 @@ var sustechFeyueCSProfiles = []Profile{
 			"华为面试准备什么内容？",
 		},
 		ExpertiseTags: []string{"就业", "华为", "安卓开发", "飞跃手册", "面试"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `16级计算机系，有华为安卓开发实习和Java学生助理经历。最终就业华为消费者云服务安卓开发岗。放弃保研原因：不喜欢AI和深度学习的繁琐公式，对研究生生活有顾忌。大三暑假在华为实习两个多月，参与会员中心开发。面试准备：项目经历要熟悉用到的框架和难点；刷剑指Offer和LeetCode；计网、数据库、操作系统、面向对象四门课重点复习。技术栈要深入而非广泛，至少分清前端还是后端。时间节点：3-5月实习招聘，7-11月秋招。建议多投多面打怪升级，心态要好抗压能力强。不要盲目选互联网，不是真的喜欢就不要来。`,
 	},
 	{
@@ -401,6 +417,7 @@ var sustechFeyueCSProfiles = []Profile{
 			"CS本科为什么选择就业而不是读研？",
 		},
 		ExpertiseTags: []string{"就业", "腾讯", "后台开发", "飞跃手册", "面试"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `16级计算机系，ACMer刷题破千，数据结构课学生助理。最终就业腾讯PCG战略管理中心。选择就业原因：不想搞research、天花板取决于能力不是学历、早工作早晋升。先后在腾讯IEG游戏AI研究中心（算法岗）和CDG广点通（后台开发）实习近5个月。校招三个月，四轮面试（技术面、总监面、总经理面、HR面）。简历需列举项目经历、获奖经历、GitHub主页、技术博客。技术储备Java/C++/Python/Golang至少精通一门。计网、数据库、OS、面向对象四门课重点复习。实习很重要，可以直接转正省去秋招。`,
 	},
 	{
@@ -424,6 +441,7 @@ var sustechFeyueCSProfiles = []Profile{
 			"三月中旬后没面试还有希望吗？",
 		},
 		ExpertiseTags: []string{"PhD申请", "Purdue", "面试", "飞跃手册", "选校"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `15级计算机系，GPA 3.85/4排名3/98，TOEFL 106(口语23)，GRE 155V+168Q+3.0AW。最终录取Purdue CS PhD，另获UTDallas CS PhD和UCI SE PhD(带Dean Scholarship)。面试心得：能拿到面试说明离offer只一步之遥；英语好很加分；SOP里只提一个导师非常加分（一位教授说只有作者一个人这样做并给了offer）。面试必问：自我介绍、Why PhD、Why School、Other Schools、Research Experience、研究计划。建议事先读导师1-2篇论文，选与研究方向匹配的顶会文章。三月中旬后没面试基本希望不大。面试时可将答案写在Word里分屏参考，但不要看起来在念。`,
 	},
 	{
@@ -447,6 +465,7 @@ var sustechFeyueCSProfiles = []Profile{
 			"计系暑研项目有哪些选择？",
 		},
 		ExpertiseTags: []string{"PhD申请", "UCI", "暑研", "飞跃手册", "科研"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `15级计算机系，GPA 3.85/4排名3/98，TOEFL 102(口语23)，GRE 149V+169Q+3.5AW。最终录取UCI CS PhD，另获CUHK和HKU PhD。大一机械系暑期认知实习后确定转CS。大二培养Geeky精神——追求广度打基础养习惯，强调用英文搜索和debug。大量看海外网课练听力(youtube-dl下载)，地铁飞机上随时看。大三在先进院MMLAB实习，之后参加UCInspire暑研（导师推荐信非常管用）。认为暑研是北美CS PhD申请的关键：暑研项目走F1签证容易，自己套磁走J1签证困难。推荐信重要性：北美知名教授强推>了解你的大陆教授走心推>很牛但不了解你的教授推。`,
 	},
 	{
@@ -470,6 +489,7 @@ var sustechFeyueCSProfiles = []Profile{
 			"CSST和UCInspire暑研项目怎么选？",
 		},
 		ExpertiseTags: []string{"暑研", "PhD申请", "推荐信", "飞跃手册", "CSST"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `15级计算机系同学深度分析暑研对北美CS PhD申请的重要性。核心观点：在计系没有北美暑研经历基本不可能申到好学校PhD。原因：CS申请pool极度饱和，推荐信是最重要因素，而系里大部分教授博士毕业于港英日新，北美connection有限。暑研项目（走F1学生签）成功概率远高于自己套磁（走J1访问学者签）。推荐的暑研项目：UCLA CSST（难度高、不花钱）、UCI UCInspire（一年比一年难、约3-4万）。推荐信有效性排序：北美知名教授强推(五星)>外国知名教授强推(四星)>了解你的大陆教授走心推(三星)>很牛但不了解你的大陆教授推(没用)。`,
 	},
 	{
@@ -493,6 +513,7 @@ var sustechFeyueCSProfiles = []Profile{
 			"套磁和正式申请该怎么配合？",
 		},
 		ExpertiseTags: []string{"PhD申请", "安全方向", "选校", "飞跃手册", "文书"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `22级计算机系，GPA 3.78/4，TOEFL 105，无GRE。申请方向Security x SE，有校内课题组科研一年、UC Davis暑研三个月+线上四个月（产出一篇顶会一作在投）、UCLA线上科研。三封科研推（两封北美tenure教授强推）+一封课程推。拿到NEU CS PhD offer(最终去向)、IUB offer、UCLA口头offer、VT waitlist等。作者认为对非顶尖选手，选校本质是选导师，与导师匹配度是最关键因素。匹配度分强/中/弱match。SOP中先写经历再定制化学校段，每个学校只提一两个POI。建议有精力就海套，通过套磁回复率判断申请梯度。`,
 	},
 	{
@@ -516,6 +537,7 @@ var sustechFeyueCSProfiles = []Profile{
 			"本科交换能解决签证check问题吗？",
 		},
 		ExpertiseTags: []string{"美国留学", "NEU", "求职", "飞跃手册", "硅谷"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `19级计算机系，GPA 3.73/4(排名23%)，TOEFL 106，GRE 156V+170Q+3.5。无交换、无论文，一段大厂实习，一个专利在申。最终去向NEU(Silicon Valley) MSCS，另获Rice MSCS、USC MSCE、BU MSCS、CityU MSCS、UW(Tacoma) MSCS录取。选择NEU硅谷校区而非Rice的原因：虽然Rice排名好看，但NEU有Coop政策和硅谷地理位置优势，在美找工更方便。签证BUG：本科去美国交换可拿五年F1签证，读硕时继续使用，避免CS专业被check只拿一年签。香港学校留位费很高且出结果快，如仅保底建议晚申。NEU硅谷校区没有校园只有两层楼，但"当技校读服务不错"。`,
 	},
 	{
@@ -539,6 +561,7 @@ var sustechFeyueCSProfiles = []Profile{
 			"PhD和Master该怎么选？",
 		},
 		ExpertiseTags: []string{"跨专业", "CMU", "UW", "飞跃手册", "DIY申请"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `SDIM(系统设计与智能制造)学院工业设计专业第一期毕业生，GPA 3.68/4(南科大)+4.0/4(UC Berkeley交流)，TOEFL 108，GRE 319。有UCB机械系URAP学年科研和EECS暑期科研经历。全部DIY申请11个项目收到2个录取：CMU MSMITE(移动和物联网工程硕士，最终去向)和UW Seattle MSEE。转专业定位偏高导致8个REJ。Master尽量申名校（业界看学校名声），PhD则导师chemistry更重要。文书在Fiverr找native speaker做语法修改。选校时估算每个学校录取概率，控制非全聚德概率在90%左右。`,
 	},
 	{
@@ -562,6 +585,7 @@ var sustechFeyueCSProfiles = []Profile{
 			"清华+MIT双学位项目是什么体验？",
 		},
 		ExpertiseTags: []string{"清华", "MIT", "设计", "飞跃手册", "跨界"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `SDIM学院工业设计专业，GPA 3.86/4排名1/28，六级636，雅思7.0。有IC-RCA线上项目、MIT机械系学年交流等经历。Robomaster全国一等奖，MIT机械系学生创新奖。大四保研清华设计学硕+UW MSTI双学位项目，研一申请季获MIT机械工程硕士SM录取。MIT交流期间在Media Lab做科研助理，产出一篇会议论文和专利。先确定就业vs读研、国内vs国外、PhD vs Master三个问题。保研面试经历丰富（清华/上交），建议自信表达、对研究方向有思考。大四申请季和研一申请季的经历表明持续积累、把握机会很重要。`,
 	},
 	{
@@ -585,6 +609,7 @@ var sustechFeyueCSProfiles = []Profile{
 			"CMU MCDS项目体验如何？",
 		},
 		ExpertiseTags: []string{"美国留学", "CMU", "数据科学", "飞跃手册", "选校"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `18级计算机系，GPA 3.85/4排名7/163，TOEFL 107(口语25)，GRE 163V+168Q+3AW。最终录取CMU MCDS(计算数据科学硕士)，另获CMU MSIN、CMU MISM、Columbia MSCS、UC Berkeley IEOR Meng、NYU MSCE录取。被CMU MHCI、Brown、Rice、Cornell、UCSD CS75、Georgia Tech HCI、UCLA拒。11月中旬提交申请，3月初起陆续出结果。作者建议选校时关注项目特点和就业方向，不仅看学校排名。CMU可以同时申请多个学院的项目，增加录取概率。申请季今年美硕出结果特别晚，需要耐心等待。`,
 	},
 	{
@@ -608,6 +633,7 @@ var sustechFeyueCSProfiles = []Profile{
 			"欧洲硕士和美国硕士怎么比较？",
 		},
 		ExpertiseTags: []string{"HCI", "Aalto", "欧洲留学", "飞跃手册", "设计"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `SDIM学院工业设计专业（南山三期），GPA 3.93/4排名1/13，TOEFL 103，GRE 326(170Q+156V)。有新加坡创业实习交换、一篇水会共一、两段初创公司实习、一个设计竞赛二等奖。最终录取Aalto HCI全奖硕士（100%学费减免，欧洲HCI排名CSrankings第一）。另获KTH、TU Delft、UMich MSI、NUS EDI、NUS DID、EIT项目录取。SDIM专业特殊：一直纠结设计vs科研，大三十二月才下定决心转设计方向。之前的计算机科研背景反而成为HCI申请独特优势。建议多找学长学姐聊天、早做决定但探索不浪费。纯DIY申请，作品集和PS质量很关键。`,
 	},
 	{
@@ -630,6 +656,7 @@ var sustechFeyueCSProfiles = []Profile{
 			"实习对秋招有多大帮助？",
 		},
 		ExpertiseTags: []string{"就业", "蚂蚁金服", "后台开发", "飞跃手册", "面试"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `15级计算机系，学业成绩过得去，有项目经历和腾讯实习。腾讯实习转正offer因个人原因未接受，最终去向蚂蚁金服。求职时间线：3-5月实习招聘、7-11月秋招、次年1-3月春招补录。简历需针对岗位编写，体现项目中个人角色和技术栈，不写无关社团和爱好。基础准备重点：编程语言、数据结构与算法、OS、数据库、计网、编译原理。面试是主要筛人环节，每次面试后记录不会的问题查漏补缺。建议多投多面打怪升级。秋招是最合适时机，即使有转正offer也建议秋招多投给自己选择余地。`,
 	},
 	{
@@ -652,6 +679,7 @@ var sustechFeyueCSProfiles = []Profile{
 			"欧陆CS硕士申请有什么注意事项？",
 		},
 		ExpertiseTags: []string{"欧陆留学", "APS审核", "KTH", "飞跃手册", "德国"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `20级计算机系同学，最终去向KTH CS硕士。详细分享APS审核（德国高校录取中国学生前提条件）的完整流程。时间线：10月底准备材料，11月初寄出，12月中面试，12月底通过（"gut"）。总共约两个月。材料准备涉及高中毕业证公证翻译、大学录取花名册（在招生办获取）、在读证明和成绩单等。面试准备：针对成绩单上的课程复习，面试官会用英文问专业课内容。建议完成六个学期课业后尽早准备，课程少则询问范围少、知识新鲜。南科大特殊情况：义务教育证需涵盖完整九年。小红书上有更多欧陆申请经验分享。`,
 	},
 	{
@@ -675,6 +703,7 @@ var sustechFeyueCSProfiles = []Profile{
 			"保研夏令营面试有什么技巧？",
 		},
 		ExpertiseTags: []string{"保研", "北大", "论文", "飞跃手册", "夏令营"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `15级计算机系，GPA 3.67/4排名15/98，两篇共同一作论文（医学影像辅助诊断方向），无TOEFL/GRE。最终保研北京大学创新菁英计划硕士，另获清华深研院精准医学硕士offer，被清华叉院拒。夏令营初审最看重排名（学校属性+个人排名），深研院标准约985 Top20%/211 Top10%/其他Top3。论文在初审时有加分——招生老师说排名不够标准但论文让他通过了。面试时所有老师围绕论文问问题，一定要对简历上每个细节非常熟悉。教训：一定把专业课学习放第一位，GPA掉0.1可能让很多初审过不了。早考英语、早做规划。`,
 	},
 	{
@@ -698,6 +727,7 @@ var sustechFeyueCSProfiles = []Profile{
 			"互联网产品岗实习怎么找？",
 		},
 		ExpertiseTags: []string{"产品经理", "港新留学", "HKU", "飞跃手册", "求职"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `21级计算机系，GPA 3.70/4(排名79/195)，IELTS 6.5(口语5.5)。有NUS Summer Workshop(UX Design方向A+)、UC Berkeley学期交流、一个CCF-B会议workshop poster。多段产品实习（腾讯CSIG/WXG等）。最终去向HKU IDT硕士。获CUHK CS(10月offer)、HKUST TLE、NTU SPML/MSIS、HKUST IT等6个offer。选择产品经理原因：比起钻研技术更喜欢用户体验和功能设计，大E性格适合沟通协调。CUHK CS是港新top项目且出结果很早。建议早申港新（NUS EDI养鱼半年才拒）。CS背景+设计思维是PM求职的独特优势。`,
 	},
 	{
@@ -720,6 +750,7 @@ var sustechFeyueCSProfiles = []Profile{
 			"选校需要考虑哪些因素？",
 		},
 		ExpertiseTags: []string{"美国留学", "CS硕士", "申请流程", "飞跃手册", "选校"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `16级计算机系同学，以PPT/图片形式分享了CS美国硕士申请的完整流程和经验总结。内容涵盖选校策略、标化考试准备、文书写作、推荐信安排、申请时间线等核心环节。图文并茂的形式便于快速了解申请全貌。建议结合其他同届同学的文字版经验一起参考，从不同角度了解申请过程中的注意事项。`,
 	},
 	{
@@ -743,6 +774,7 @@ var sustechFeyueCSProfiles = []Profile{
 			"套磁无回复该怎么判断和应对？",
 		},
 		ExpertiseTags: []string{"PhD申请", "AI Safety", "Utah", "飞跃手册", "套磁"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `21级计算机系，GPA 3.94/4排名2/195，TOEFL 109，无GRE。大二起在校内做软工方向(LLM+Testing)科研，大三暑假在HKUST(GZ)做RA(Trustworthy AI/AI Safety方向)。申请时无pub，有一篇SE非research track一作在投。25Fall只申请5所美国CS PhD（非常冒险），最终拿到Utah和UGeorgia offer，另有HKUST、UIC、Concordia口头offer后拒绝。套磁建议：10-11月开始，通过套磁回复率判断申请梯度。无回复可能是不招人/太忙/pool太大；约面试说明professor感兴趣。Utah导师面试后非常明确表示positive，第二天早上就收到正式offer。建议海套不要因BG不强就不套。`,
 	},
 	{
@@ -766,6 +798,7 @@ var sustechFeyueCSProfiles = []Profile{
 			"多个PhD offer怎么比较和选择？",
 		},
 		ExpertiseTags: []string{"PhD申请", "System", "Utah", "飞跃手册", "offer比较"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `21级计算机系，GPA 3.78/4(排名44/195)，TOEFL 105，无GRE。在UChicago做了半年访问学生，申请时有一篇一作论文在投。最终录取Utah CS PhD全奖with fellowship，另获UC Merced offer。被UChicago(缩招)、CMU、UIUC、UWM拒，多所学校无回复。UMass面试后说感觉不错但一直没正式offer。Utah强committee制未套磁，12月导师主动邮件约面试，聊完第二天早上就收到offer。自称很菜但身边师长支持让申请有了不错结果。分享UC Merced申请中的逆天故事。建议参考博士申请指导GitHub仓库。Good luck to everyone!`,
 	},
 }

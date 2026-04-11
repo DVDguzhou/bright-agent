@@ -28,6 +28,7 @@ var sicnuFeyueProfiles1 = []Profile{
 		SampleQuestions: []string{`川师保研需要什么条件？`, `怎么平衡学习和学生工作？`, `如何在双非院校准备升学深造？`},
 		ExpertiseTags: []string{`保研`, `升学深造`, `四川师范大学`, `科学教育`},
 		OriginalAuthor: `洪晓雨`,
+		Source: `四川师范大学飞跃手册`,
 		KnowledgeBody: `## 基本背景
 > 专业成绩排名：1/47
 > 历年平均成绩:88.40
@@ -60,6 +61,7 @@ var sicnuFeyueProfiles1 = []Profile{
 		SampleQuestions: []string{`川师保研需要什么条件？`, `怎么平衡学习和学生工作？`, `如何在双非院校准备升学深造？`},
 		ExpertiseTags: []string{`保研`, `升学深造`, `四川师范大学`, `历史学`},
 		OriginalAuthor: `夏斯佳`,
+		Source: `四川师范大学飞跃手册`,
 		KnowledgeBody: `## 基本背景
 
 > 专业成绩排名：6/258<br>
@@ -106,6 +108,7 @@ var sicnuFeyueProfiles1 = []Profile{
 		SampleQuestions: []string{`川师保研需要什么条件？`, `怎么平衡学习和学生工作？`, `如何在双非院校准备升学深造？`},
 		ExpertiseTags: []string{`保研`, `升学深造`, `四川师范大学`, `旅游管理`},
 		OriginalAuthor: `刘乐`,
+		Source: `四川师范大学飞跃手册`,
 		KnowledgeBody: `## 个人基本情况
 姓名：鸽子弹吉他<br>
 年级：2020级<br>
@@ -176,6 +179,7 @@ var sicnuFeyueProfiles1 = []Profile{
 		SampleQuestions: []string{`川师保研需要什么条件？`, `怎么平衡学习和学生工作？`, `如何在双非院校准备升学深造？`},
 		ExpertiseTags: []string{`保研`, `升学深造`, `四川师范大学`, `会计学`},
 		OriginalAuthor: `陶允`,
+		Source: `四川师范大学飞跃手册`,
 		KnowledgeBody: `## 个人背景
 > 综合成绩：1/123 <br>
 > 毕业中学：成都市石室中学（文庙校区）<br>
@@ -241,6 +245,7 @@ var sicnuFeyueProfiles1 = []Profile{
 		SampleQuestions: []string{`川师保研需要什么条件？`, `怎么平衡学习和学生工作？`, `如何在双非院校准备升学深造？`},
 		ExpertiseTags: []string{`保研`, `升学深造`, `四川师范大学`, `财务管理`},
 		OriginalAuthor: `刘容`,
+		Source: `四川师范大学飞跃手册`,
 		KnowledgeBody: `## 个人背景
 > **保研院校：暨南大学产业经济研究院**<br>
 > **学分绩点：89.65/100  排名：1/117** <br>
@@ -304,6 +309,7 @@ var sicnuFeyueProfiles1 = []Profile{
 		SampleQuestions: []string{`川师保研需要什么条件？`, `怎么平衡学习和学生工作？`, `如何在双非院校准备升学深造？`},
 		ExpertiseTags: []string{`保研`, `升学深造`, `四川师范大学`, `地理科学`},
 		OriginalAuthor: `余雪梅`,
+		Source: `四川师范大学飞跃手册`,
 		KnowledgeBody: `## 基本背景
 
 > 奖证：获得四川省大学生综合素质A级证书，获得两次国家励志奖学金，一次叶圣陶奖学金
@@ -367,6 +373,7 @@ var sicnuFeyueProfiles1 = []Profile{
 		SampleQuestions: []string{`川师保研需要什么条件？`, `怎么平衡学习和学生工作？`, `如何在双非院校准备升学深造？`},
 		ExpertiseTags: []string{`保研`, `升学深造`, `四川师范大学`, `地理信息科学`},
 		OriginalAuthor: `杨蕾蕾`,
+		Source: `四川师范大学飞跃手册`,
 		KnowledgeBody: `## 基本背景
 > **奖学金**：四川师范大学特等奖学金，国家奖学金2次，一等奖学金6次，学术科技竞赛奖学金1次；
 >
@@ -429,6 +436,7 @@ var sicnuFeyueProfiles1 = []Profile{
 		SampleQuestions: []string{`川师保研需要什么条件？`, `怎么平衡学习和学生工作？`, `如何在双非院校准备升学深造？`},
 		ExpertiseTags: []string{`保研`, `升学深造`, `四川师范大学`, `地理科学`},
 		OriginalAuthor: `安琪`,
+		Source: `四川师范大学飞跃手册`,
 		KnowledgeBody: `## 基本背景
 
 > 奖项：
@@ -475,6 +483,7 @@ var sicnuFeyueProfiles1 = []Profile{
 		SampleQuestions: []string{`川师保研需要什么条件？`, `怎么平衡学习和学生工作？`, `如何在双非院校准备升学深造？`},
 		ExpertiseTags: []string{`保研`, `升学深造`, `四川师范大学`, `俄语`},
 		OriginalAuthor: `罗燕`,
+		Source: `四川师范大学飞跃手册`,
 		KnowledgeBody: `## 个人背景
 
 ### 基本信息
@@ -528,6 +537,7 @@ var sicnuFeyueProfiles1 = []Profile{
 		SampleQuestions: []string{`川师保研需要什么条件？`, `怎么平衡学习和学生工作？`, `如何在双非院校准备升学深造？`},
 		ExpertiseTags: []string{`保研`, `升学深造`, `四川师范大学`, `外国语学院`},
 		OriginalAuthor: `吴宇伦`,
+		Source: `四川师范大学飞跃手册`,
 		KnowledgeBody: `## 基本信息
 姓名：柿子_鲸鱼
 学院：外国语学院
@@ -603,6 +613,7 @@ var sicnuFeyueProfiles1 = []Profile{
 		SampleQuestions: []string{`川师保研需要什么条件？`, `怎么平衡学习和学生工作？`, `如何在双非院校准备升学深造？`},
 		ExpertiseTags: []string{`保研`, `升学深造`, `四川师范大学`, `外国语学院`},
 		OriginalAuthor: `谈欣`,
+		Source: `四川师范大学飞跃手册`,
 		KnowledgeBody: `## 基本背景
 
 姓名：奶酪整理笔记
@@ -657,6 +668,7 @@ var sicnuFeyueProfiles1 = []Profile{
 		SampleQuestions: []string{`川师保研需要什么条件？`, `怎么平衡学习和学生工作？`, `如何在双非院校准备升学深造？`},
 		ExpertiseTags: []string{`保研`, `升学深造`, `四川师范大学`, `法语`},
 		OriginalAuthor: `万谦畇`,
+		Source: `四川师范大学飞跃手册`,
 		KnowledgeBody: `## 基本信息
 
 姓名：橙子整理笔记<br>
@@ -718,6 +730,7 @@ var sicnuFeyueProfiles1 = []Profile{
 		SampleQuestions: []string{`川师保研需要什么条件？`, `怎么平衡学习和学生工作？`, `如何在双非院校准备升学深造？`},
 		ExpertiseTags: []string{`保研`, `升学深造`, `四川师范大学`, `外国语学院`},
 		OriginalAuthor: `高静涵`,
+		Source: `四川师范大学飞跃手册`,
 		KnowledgeBody: `## 基本背景
 姓名：柠檬在图书馆 学院：外国语学院  专业：英语专业 年级：2020级  毕业中学：自贡市蜀光中学
 
@@ -824,6 +837,7 @@ var sicnuFeyueProfiles1 = []Profile{
 		SampleQuestions: []string{`川师保研需要什么条件？`, `怎么平衡学习和学生工作？`, `如何在双非院校准备升学深造？`},
 		ExpertiseTags: []string{`保研`, `升学深造`, `四川师范大学`, `英语`},
 		OriginalAuthor: `李依蔓`,
+		Source: `四川师范大学飞跃手册`,
 		KnowledgeBody: `## 20级-英语-奶酪_仓鼠-北京师范大学
 ## 基本背景
 ### 保研院校
@@ -891,6 +905,7 @@ var sicnuFeyueProfiles1 = []Profile{
 		SampleQuestions: []string{`川师保研需要什么条件？`, `怎么平衡学习和学生工作？`, `如何在双非院校准备升学深造？`},
 		ExpertiseTags: []string{`保研`, `升学深造`, `四川师范大学`, `英语`},
 		OriginalAuthor: `叶梓`,
+		Source: `四川师范大学飞跃手册`,
 		KnowledgeBody: `## 基础信息    
 >姓名：柠檬整理笔记  
 学院：四川师范大学外国语学院  
@@ -984,6 +999,7 @@ var sicnuFeyueProfiles1 = []Profile{
 		SampleQuestions: []string{`川师保研需要什么条件？`, `怎么平衡学习和学生工作？`, `如何在双非院校准备升学深造？`},
 		ExpertiseTags: []string{`保研`, `升学深造`, `四川师范大学`, `工程造价`},
 		OriginalAuthor: `敬琳茜`,
+		Source: `四川师范大学飞跃手册`,
 		KnowledgeBody: `## 基本背景
 > 综合成绩:90.19分
 > 
@@ -1042,6 +1058,7 @@ var sicnuFeyueProfiles1 = []Profile{
 		SampleQuestions: []string{`川师保研需要什么条件？`, `怎么平衡学习和学生工作？`, `如何在双非院校准备升学深造？`},
 		ExpertiseTags: []string{`保研`, `升学深造`, `四川师范大学`, `电气工程及其自动化`},
 		OriginalAuthor: `岳琳泓`,
+		Source: `四川师范大学飞跃手册`,
 		KnowledgeBody: `## 个人背景
 >保研院校：重庆大学（电气工程）<br>
 职务：班长、辅导员助理、学院行政助理<br>
@@ -1089,6 +1106,7 @@ var sicnuFeyueProfiles1 = []Profile{
 		SampleQuestions: []string{`川师保研需要什么条件？`, `怎么平衡学习和学生工作？`, `如何在双非院校准备升学深造？`},
 		ExpertiseTags: []string{`保研`, `升学深造`, `四川师范大学`, `戏剧与影视文学`},
 		OriginalAuthor: `陈晓语`,
+		Source: `四川师范大学飞跃手册`,
 		KnowledgeBody: `## 个人背景
 >读研学校：西南大学（戏剧与影视学）<br>
 所获荣誉：<br>
@@ -1128,6 +1146,7 @@ var sicnuFeyueProfiles1 = []Profile{
 		SampleQuestions: []string{`川师保研需要什么条件？`, `怎么平衡学习和学生工作？`, `如何在双非院校准备升学深造？`},
 		ExpertiseTags: []string{`保研`, `升学深造`, `四川师范大学`, `广播电视编导`},
 		OriginalAuthor: `陈彦桥`,
+		Source: `四川师范大学飞跃手册`,
 		KnowledgeBody: `## 一、基本信息   
 
 >姓名：奶酪3去爬山  
@@ -1183,6 +1202,7 @@ var sicnuFeyueProfiles1 = []Profile{
 		SampleQuestions: []string{`川师保研需要什么条件？`, `怎么平衡学习和学生工作？`, `如何在双非院校准备升学深造？`},
 		ExpertiseTags: []string{`保研`, `升学深造`, `四川师范大学`, `网络与新媒体`},
 		OriginalAuthor: `张丁芮`,
+		Source: `四川师范大学飞跃手册`,
 		KnowledgeBody: `## 19级-网络与新媒体-鲸鱼ya在跑步-南安普顿大学
 
 ### 基本背景
@@ -1255,6 +1275,7 @@ var sicnuFeyueProfiles1 = []Profile{
 		SampleQuestions: []string{`川师保研需要什么条件？`, `怎么平衡学习和学生工作？`, `如何在双非院校准备升学深造？`},
 		ExpertiseTags: []string{`保研`, `升学深造`, `四川师范大学`, `网络与新媒体`},
 		OriginalAuthor: `徐彩莲`,
+		Source: `四川师范大学飞跃手册`,
 		KnowledgeBody: `## 基本背景
 安静的柠檬oo，四川人，就读四川师范大学影视与传媒学院网络与新媒体。  
 专业课排名：1/108  
@@ -1326,6 +1347,7 @@ var sicnuFeyueProfiles1 = []Profile{
 		SampleQuestions: []string{`川师保研需要什么条件？`, `怎么平衡学习和学生工作？`, `如何在双非院校准备升学深造？`},
 		ExpertiseTags: []string{`保研`, `升学深造`, `四川师范大学`, `心理学`},
 		OriginalAuthor: `杨雨露`,
+		Source: `四川师范大学飞跃手册`,
 		KnowledgeBody: `## 基本背景
 > 专业排名：2/126
 > 学科平均成绩为88.51
@@ -1418,6 +1440,7 @@ var sicnuFeyueProfiles1 = []Profile{
 		SampleQuestions: []string{`川师保研需要什么条件？`, `怎么平衡学习和学生工作？`, `如何在双非院校准备升学深造？`},
 		ExpertiseTags: []string{`保研`, `升学深造`, `四川师范大学`, `学前教育`},
 		OriginalAuthor: `徐蜥`,
+		Source: `四川师范大学飞跃手册`,
 		KnowledgeBody: `## 背景介绍
 > 四川眉山人<br>
 > 四川师范大学教育科学学院学前教育专业2019级学生<br>
@@ -1479,6 +1502,7 @@ var sicnuFeyueProfiles1 = []Profile{
 		SampleQuestions: []string{`川师保研需要什么条件？`, `怎么平衡学习和学生工作？`, `如何在双非院校准备升学深造？`},
 		ExpertiseTags: []string{`保研`, `升学深造`, `四川师范大学`, `特殊教育`},
 		OriginalAuthor: `陈雨`,
+		Source: `四川师范大学飞跃手册`,
 		KnowledgeBody: `## 背景介绍
 > 四川简阳人<br>
 > 四川师范大学教育科学学院特殊教育专业2019级学生<br>
@@ -1547,6 +1571,7 @@ var sicnuFeyueProfiles1 = []Profile{
 		SampleQuestions: []string{`川师保研需要什么条件？`, `怎么平衡学习和学生工作？`, `如何在双非院校准备升学深造？`},
 		ExpertiseTags: []string{`保研`, `升学深造`, `四川师范大学`, `小学教育`},
 		OriginalAuthor: `蒲云倩`,
+		Source: `四川师范大学飞跃手册`,
 		KnowledgeBody: `## 2020级-小学教育-布丁_蜗牛-南京师范大学    
 
 
@@ -1620,6 +1645,7 @@ var sicnuFeyueProfiles1 = []Profile{
 		SampleQuestions: []string{`川师保研需要什么条件？`, `怎么平衡学习和学生工作？`, `如何在双非院校准备升学深造？`},
 		ExpertiseTags: []string{`保研`, `升学深造`, `四川师范大学`, `数学与应用数学`},
 		OriginalAuthor: `易林`,
+		Source: `四川师范大学飞跃手册`,
 		KnowledgeBody: `## 基本信息
 姓名：蚂蚁_海星  
 年级：2019级  
@@ -1722,6 +1748,7 @@ SMART原则的作用，是科学可执行。而目标管理四象限的作用，
 		SampleQuestions: []string{`川师保研需要什么条件？`, `怎么平衡学习和学生工作？`, `如何在双非院校准备升学深造？`},
 		ExpertiseTags: []string{`保研`, `升学深造`, `四川师范大学`, `统计学`},
 		OriginalAuthor: `胡亲梅`,
+		Source: `四川师范大学飞跃手册`,
 		KnowledgeBody: `## 基本背景
 
 >重庆市巫山人，中共预备党员<br>
@@ -1811,6 +1838,7 @@ SMART原则的作用，是科学可执行。而目标管理四象限的作用，
 		SampleQuestions: []string{`川师保研需要什么条件？`, `怎么平衡学习和学生工作？`, `如何在双非院校准备升学深造？`},
 		ExpertiseTags: []string{`保研`, `升学深造`, `四川师范大学`, `数学类`},
 		OriginalAuthor: `唐泽苗`,
+		Source: `四川师范大学飞跃手册`,
 		KnowledgeBody: `## 基本背景
 
 > 专业成绩排名：2/246
@@ -1873,6 +1901,7 @@ SMART原则的作用，是科学可执行。而目标管理四象限的作用，
 		SampleQuestions: []string{`川师保研需要什么条件？`, `怎么平衡学习和学生工作？`, `如何在双非院校准备升学深造？`},
 		ExpertiseTags: []string{`保研`, `升学深造`, `四川师范大学`, `服装与服饰设计`},
 		OriginalAuthor: `何文玉`,
+		Source: `四川师范大学飞跃手册`,
 		KnowledgeBody: `## 基本信息  
 姓名：抹茶晒太阳   
 年级：2016级  

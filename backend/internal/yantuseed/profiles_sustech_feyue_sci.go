@@ -22,6 +22,7 @@ var sustechFeyueSCIProfiles = []Profile{
 			"美国PhD全拒后怎么调整方向？",
 		},
 		ExpertiseTags: []string{"欧洲PhD", "德国留学", "感染生物学", "飞跃手册", "IC硕士"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `16级生物系，本科GPA 3.63/4，TOEFL 102，GRE 319+4。曾在校内课题组和JHU暑研。2020年美国PhD全拒后补救申请硕士，因疫情赴IC读MRes。之后陆续申请英国和欧陆PhD，经历巴塞尔Biozentrum面试、Bristol奖学金候补，最终拿到德国MHH Infection Biology PhD offer，通过DAAD奖学金资助。文章详细介绍欧洲PhD信息渠道：euraxess、nature career、findaphd、twitter等平台，以及德国MHH、瑞士Biozentrum等program的申请流程。强调生命科学方向套磁和导师推荐至关重要，建议抓住交流和暑研机会建立直接联系。`,
 	},
 	{
@@ -45,6 +46,7 @@ var sustechFeyueSCIProfiles = []Profile{
 			"学期交流对申请有多大帮助？",
 		},
 		ExpertiseTags: []string{"化学PhD", "Rice", "文书写作", "飞跃手册", "学期交流"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `16级化学系，GPA 3.65/4，TOEFL 95(口语24)。大一至大三在校内有机实验室，大四上赴伯克利学期交流并加入化学生物学方向课题组。申请时无发表论文。最终录取Rice PhD(面试次日即收offer)，另获UW Seattle和Indiana offer，被UCB和UMich拒。交流期间确定了化生方向兴趣，选校以paper中感兴趣的导师为导向。文书按时间线串联科研经历，回答Why Chemistry到Why Choose Me五个核心问题。面试前准备科研PPT提前发给教授，让面试问题围绕熟悉内容展开。建议大一大二考GRE、大三考TOEFL，学期交流要充分利用地理优势拜访教授。`,
 	},
 	{
@@ -68,6 +70,7 @@ var sustechFeyueSCIProfiles = []Profile{
 			"IC面试和ATAS审核需要注意什么？",
 		},
 		ExpertiseTags: []string{"英国留学", "帝国理工", "跨专业", "飞跃手册", "化工"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `17级化学系，GPA 3.74/4排名14/43，IELTS 7.0(后刷到7.5)。校内课题组科研，无论文无专利。化学跨大类申请授课型化学工程MSc，7投1中(IC)。被爱丁堡、UCL、曼大、TU Delft拒，港科大无消息。IC安排面试后拿到conditional offer，在waiting list上侥幸获选。时间线：2020年9-10月联系中介确定方向，11-12月提交申请，次年2月起陆续收到拒信和IC面试。建议选择跨方向时充分了解目标专业课程设置，尽早提交申请(英国先到先得)，ATAS申请需提前规划。`,
 	},
 	{
@@ -91,6 +94,7 @@ var sustechFeyueSCIProfiles = []Profile{
 			"没有套磁能申到PhD吗？",
 		},
 		ExpertiseTags: []string{"应用数学", "PhD申请", "推荐信", "飞跃手册", "科学计算"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `16级数学系，GPA 3.85/4排名5/48，TOEFL 102(口语24)，GRE 149V+166Q+3.0AW。两段科研经历无发表成果无暑研无套磁。最终录取Stony Brook应用数学PhD(全奖)和FSU科学计算PhD(全奖)。Columbia降录为无奖MS，Cornell、Brown等PhD拒。申请UIUC、GaTech、Penn的MS反而全拒。数学系申请成绩单是关键因素，专业核心课和相关选修课成绩很重要。推荐信地位critical——建议借科研经历争取推荐信。科研经历如同谈恋爱，帮助确定兴趣点并获得impressive的推荐信。日常积累靠坚持而非逆袭。`,
 	},
 	{
@@ -114,6 +118,7 @@ var sustechFeyueSCIProfiles = []Profile{
 			"推荐信对物理PhD申请有多重要？",
 		},
 		ExpertiseTags: []string{"物理PhD", "UMich", "推荐信", "飞跃手册", "中美对比"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `20级物理系，GPA 3.91/4排名2/63，TOEFL 101(口语19)，无GRE。在量子院课题组从大二做到毕业，无论文。推荐信两封科研推+一封课程推。最终录取UMich Physics PhD，另获Purdue、Rochester、GaTech、HKUST Physics PhD和Notre Dame ECE PhD。被Berkeley、UChicago、Duke等10所拒。文章深度分析为什么读博、为什么去美国：美国去中心化程度更高、研究自由度大、但需自律。中美对比：美国博士文章产出不如国内但培养方式不同。推荐信一定要言之有物，口语分被看重因为需要做TA。`,
 	},
 	{
@@ -137,6 +142,7 @@ var sustechFeyueSCIProfiles = []Profile{
 			"PhD面试需要准备什么？",
 		},
 		ExpertiseTags: []string{"香港PhD", "CUHK", "套磁", "飞跃手册", "面试"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `17级化学系，GPA 3.59/4，TOEFL 87。大一因迷茫GPA受损，专业GPA较高但总体平平。申请面向亚洲性价比高的PhD项目(香港、新加坡)。最终录取CUHK Chemistry PhD和HKUST Chemistry PhD。PhD申请入选门槛：科研经历>推荐信>语言成绩≈GPA。香港新加坡PhD申请中教授话语权大于委员会，必须提前套磁。套磁信要针对目标教授的最新研究方向提出成熟见解。面试是最重要环节，需对课题所有细节了如指掌。建议使用Gmail而非学校企业邮箱(可能被对方黑名单)。收到多个offer后尽快通知其他教授。`,
 	},
 	{
@@ -160,6 +166,7 @@ var sustechFeyueSCIProfiles = []Profile{
 			"保研中信息差如何弥补？",
 		},
 		ExpertiseTags: []string{"保研", "北大光华", "金融", "飞跃手册", "商科"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `21级金融数学，GPA 3.79/4排名1/20，CET-6 550，TOEFL 100。最终保研北大光华管理学院MFin第三批。清华经管BA夏令营入营后waiting，北大汇丰、清华五道口、复旦泛海、人大财金均未入营。南科大保研特色：试错成本高、信息差大、保研氛围缺乏。商科保研是卷中卷，往年经验第二年可能失效。文章详细介绍金融行业岗位(VC/PE/IB/量化/行研/咨询)和国内热门经管硕博项目。南科大学生硬实力不差但背景看起来有差距。建议：垂直积累背景、关注实习经历、早做规划。`,
 	},
 	{
@@ -183,6 +190,7 @@ var sustechFeyueSCIProfiles = []Profile{
 			"Duke MPP项目怎么样？",
 		},
 		ExpertiseTags: []string{"跨专业", "公共政策", "Duke", "飞跃手册", "工作后申请"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `15级化学系，GPA 3.52/4，TOEFL 101(工作期间重考)，GRE 326(大三暑假突击一月)。本科计划申化学PhD但发现不适合科研，毕业后先做电商再做外贸。工作一年后决定出国读公共政策/管理硕士(MPA/MPP)。最终获Duke MPP(5万刀奖学金)、USC MPA、UPitt MPA、UW MPA、AU MPA(4.2万刀奖学金)、NEU MPA录取。被Columbia、NYU、Cornell、UNC拒。选校考虑地理位置和未来NGO就业机会。文书要讲清楚与申请项目的契合点，建议找专业人多次修改。`,
 	},
 	{
@@ -206,6 +214,7 @@ var sustechFeyueSCIProfiles = []Profile{
 			"有保底offer心态怎么调整？",
 		},
 		ExpertiseTags: []string{"控制方向", "UCSB", "DIY申请", "飞跃手册", "跨方向"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `19级数学系，GPA 3.87/4排名4/41，TOEFL 105，GRE 158V+167Q+3.0AW。伯克利两学期交流GPA 4.0，暑研经历有推荐信。申请时无论文。最终录取UCSB ECE PhD(Control方向，全美Top3)，另获UCSC Applied Math PhD、GaTech CSE PhD口头offer、UW Seattle Applied Math博退硕。MIT、Berkeley、Caltech、Brown、Cornell等10所拒。因有UCSC保底心态从容，大量申彩票校。不找中介原因：中介不了解专业，ChatGPT时代文书能力已被AI超越。UCSB控制方向实力强劲，选校时发现ECE意外匹配。`,
 	},
 	{
@@ -229,6 +238,7 @@ var sustechFeyueSCIProfiles = []Profile{
 			"东京大学GPES项目怎么申？",
 		},
 		ExpertiseTags: []string{"日本留学", "名古屋", "SGU", "飞跃手册", "跨专业"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `17级海洋系，GPA 3.74/4，TOEFL 91，GRE 324。三段校内科研无论文无交换。跨专业申请环境方向。2020年7月拿到东大GPES教授内诺，8月拿到名古屋G30教授内诺。东大教授因个人原因面试前取消招生。转而准备欧陆申请，最终拿到名古屋G30/SGU offer、哥本哈根和DTU offer。日本英语项目不要求日语，需提前套磁获教授内诺。GPES需提交GRE和研究计划书。名古屋G30全球招5人左右，推荐信需教授自行邮寄。申请季持续9个月，跨专业和教授变卦导致格外煎熬。`,
 	},
 	{
@@ -252,6 +262,7 @@ var sustechFeyueSCIProfiles = []Profile{
 			"延期毕业对申请有影响吗？",
 		},
 		ExpertiseTags: []string{"欧洲留学", "哥本哈根", "数学硕士", "飞跃手册", "延毕"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `16级数学系，GPA 3.43/4(普通)，IELTS 6.5(三考才达线)，无GRE。延期毕业一年。最终录取哥本哈根大学数学硕士(综合地理位置和学术水平选择)，另获阿姆斯特丹、乌特勒支、奥尔胡斯、乌普萨拉等7所欧洲大学offer。被帝国理工和曼大拒。欧洲数学硕士项目特点：北欧多所学校不需要推荐信和PS，申请门槛相对灵活。建议GPA不突出的同学考虑欧洲——学费低廉甚至免费，学术水平高。哥本哈根和奥尔胡斯只需成绩单即可申请。IC和曼大拒了说明要量力而行。`,
 	},
 	{
@@ -275,6 +286,7 @@ var sustechFeyueSCIProfiles = []Profile{
 			"大学期间怎么平衡学业和探索？",
 		},
 		ExpertiseTags: []string{"海洋科学", "同济大学", "潜水", "飞跃手册", "探索"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `17级海洋系，GPA 3.74/4，直博同济大学海洋科学。因疫情学期交流取消，用半年自由时间做了大量探索：参加KAUST海报比赛(中东一周费用全免)、考取潜水证、参与海洋公益、寺庙修禅体验、海南义工旅行、三亚海洋所实习喂小丑鱼和给海龟洗澡。文章以「玩」为主题分享大学可能性：关注公众号找活动、培养爱好加入社团、旁听感兴趣的课、豆瓣搜义工旅行。经费来源：基本生活费+奖学金+兼职+比赛奖金。敢想敢做是最重要的品质。`,
 	},
 	{
@@ -298,6 +310,7 @@ var sustechFeyueSCIProfiles = []Profile{
 			"交流经历对数学PhD申请有多大帮助？",
 		},
 		ExpertiseTags: []string{"基础数学", "Brown", "GRE Sub", "飞跃手册", "交流"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `19级数学系基础数学方向，GPA 3.88/4排名2/50，伯克利交流GPA 4.0/4.0。TOEFL 106，GRE 147V+170Q+3.0AW，GRE Subject Math 92%。最终录取布朗大学数学系全奖博士。文章分享三点经验：一、英语备考——托福口语最被看重(需做TA)，GRE verbal难但可选择optional不交，GRE Sub一年一次需大三就考。二、交流收获——在伯克利首次接触科研、跟教授暑研聊天爬山，加入武术社团学做饭，是综合能力提升。三、方向和导师选择——不要仅凭基础课判断方向，旁听研究生课感受真实面貌，选导师看其带出学生的平均水平。`,
 	},
 	{
@@ -321,6 +334,7 @@ var sustechFeyueSCIProfiles = []Profile{
 			"数学转神经科学方向可行吗？",
 		},
 		ExpertiseTags: []string{"英国留学", "Warwick", "数学", "飞跃手册", "硕博连读"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `16级数学系，GPA 3.84/4排名5/48，IELTS 8.0(R9.0)，GRE 153V+170Q+3.5AW。爱丁堡学期交流(First-Class Honours)和北卡州立GEARS项目。最终录取华威大学系统数学硕博连读(MSc leading to PhD)，计划研究复杂神经元和神经网络模拟。另获LSE运筹学、UCL数学建模、爱丁堡、华威CS MSc等录取。被IC两个项目和UCL机器学习拒。英国申请关键经验：先到先得一定要系统开通就提交；授课型硕士1年学制；硕士阶段中国学生基本无奖学金。申请材料需成绩单、语言成绩、推荐信和PS。`,
 	},
 	{
@@ -344,6 +358,7 @@ var sustechFeyueSCIProfiles = []Profile{
 			"英语口语不达标怎么选校？",
 		},
 		ExpertiseTags: []string{"化学PhD", "Notre Dame", "逆境申请", "飞跃手册", "套磁"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `15级化学系，GPA 3.66/4，TOEFL 92(口语18)，GRE 146V+166Q+3.0AW。大一选课爆炸导致GPA再没上过3.7，暑研被UCI导师鸽掉，申请截止前无论文。最终拿到Notre Dame、Rutgers、Stony Brook三个Chemistry PhD offer，另有NUS和东京大学申请后因转方向withdraw。虽然英语低于大部分学校标准，但还是拿到offer说明官网要求仅供参考。建议把课题成果做成展会海报式Summary附到PS附录中，面试大概率围绕这些内容问。合理安排TOEFL和GRE考试时间避免车轮战。`,
 	},
 	{
@@ -367,6 +382,7 @@ var sustechFeyueSCIProfiles = []Profile{
 			"出国还是考研怎么选？",
 		},
 		ExpertiseTags: []string{"考研", "化学", "南科大", "飞跃手册", "极限备考"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `16级化学系，GPA倒数(过3)，考了五六次TOEFL仍不满足境外高校要求，考研前1个多月怒而报名并擦线上岸。初试351分：政治70多(肖四肖八必刷)、英语50多(裸考)、物化90多、有机130多。南科大化学系考研对本校学生相对简单，建议准备3个月。有机化学试题风格中规中矩，有机和高等有机90+可尝试裸考。物理化学出题风格较奇特，结构部分课本原题，热力学部分课堂原题。复试准备英文自我介绍和PPT即可。建议：想出国就早考英语，想转行直接转别犹豫，考研不应是走投无路时的救命稻草。`,
 	},
 	{
@@ -390,6 +406,7 @@ var sustechFeyueSCIProfiles = []Profile{
 			"保研还是出国怎么选？",
 		},
 		ExpertiseTags: []string{"保研", "北大", "物理直博", "飞跃手册", "夏令营"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `19级物理系，GPA 3.93/4排名1/55，CET-4 567，IELTS 6.0。参加过牛津寒假项目和以色列研究所寒校，物理竞赛三等奖、实验竞赛三等奖，主导量子院攀登计划项目。最终保研北大物理学院凝聚态直博，同时获清华物理直博offer。选择保研原因：英语不好、凝聚态方向国内领先。夏令营准备重点：把本科9门专业核心课全部复习一遍并总结可能考点。清华夏令营3天(前两天聊导师+参观，第三天5位老师面试问到不会为止)，北大6天(学术报告+自我展示+面试+联系导师)。提交材料前一定反复检查。`,
 	},
 	{
@@ -413,6 +430,7 @@ var sustechFeyueSCIProfiles = []Profile{
 			"PhD申请中套磁有什么技巧？",
 		},
 		ExpertiseTags: []string{"生物信息", "医学影像", "PhD申请", "飞跃手册", "套磁"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `15级生物系生物信息专业，GPA 3.86/4排名2/22，TOEFL 104，GRE 156V+170Q+3.5AW。国家奖学金，两篇MICCAI Workshop一作，BraTS Challenge获Survival Prediction第二名和Intel AI Award。最终录取UPitt Intelligent Systems PhD，另获Stony Brook和ASU Biomedical Informatics PhD、KAUST CS PhD等offer。被UVa、CUHK等拒。套磁策略：查遍MICCAI 2018所有发文教授，筛选发过CVPR顶会的，确定hunting list后一一发邮件。建议找方向match的导师，早考TOEFL/GRE，暑研选与方向匹配的实验室。`,
 	},
 	{
@@ -436,6 +454,7 @@ var sustechFeyueSCIProfiles = []Profile{
 			"美国PhD和ETH硕士怎么选？",
 		},
 		ExpertiseTags: []string{"ETH", "地球科学", "PhD申请", "飞跃手册", "套磁"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `16级地空系(ESS)，总GPA 3.73排名2/8，专业GPA 3.86，GRE 321+3.5，TOEFL 100。大三加入院士课题组做国创项目，大四赴伯克利交流并参加AGU年会。最终选择ETH Zurich Earth Science硕士(Assistantship)，放弃UMich PhD(Fellowship)、Penn State PhD、Rice PhD等美国offer。ETH连续六年QS Earth Science排名第一，本校申PhD基本只需导师同意。PhD申请要义：教授寻找最match而非最优秀的人。套磁时利用AGU等学术会议当面交流，通过教授态度判断定位。文书要精炼高效，保底校也要选真正想去的。`,
 	},
 	{
@@ -459,6 +478,7 @@ var sustechFeyueSCIProfiles = []Profile{
 			"神经科学PhD怎么申请？",
 		},
 		ExpertiseTags: []string{"神经科学", "USC", "伯克利交流", "飞跃手册", "PhD申请"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `17级生物系，南科大GPA 3.61/4，伯克利交流三学期GPA 3.95/4，TOEFL 109(口语23)。大二进实验室做神经科学基础实验，之后赴UCI三周和伯克利三学期交流。申请14所Neuroscience PhD被拒(Harvard、Berkeley、JHU、Columbia等)，最终通过主动邮件联系教授获得USC Neuroscience PhD面试和offer。另获伯克利教授直接录取(因方向不匹配放弃)和中科院脑科学中心硕博连读。大一GPA 3.14后努力拉到3.61，强调大一第一学期GPA极其重要。建议不急于进实验室，先探索不同职业方向再决定科研。`,
 	},
 	{
@@ -482,6 +502,7 @@ var sustechFeyueSCIProfiles = []Profile{
 			"数学一怎么高效复习？",
 		},
 		ExpertiseTags: []string{"考研", "跨专业", "短期备考", "飞跃手册", "电子系"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `16级物理系应用物理，GPA 3.12/4排名5/5。大四开学仍剩8门专业课，四个月跨考电子系。初试373分(电子系第2)：政治61、英语75、数学一102、专业课135。数学复习策略：只买真题(2010-2019)，发现线代薄弱后看《简明线性代数》三周补基础，高数教材3天17小时看完一本——专注时效率惊人但制订计划不可以此为预期。不建议南科大学生花太多时间看网课(节奏太慢)。英语关键在背单词，女朋友一眼看出问题建议每天两小时背单词，一个月后模考排名第一。不用整理错题本。`,
 	},
 	{
@@ -505,6 +526,7 @@ var sustechFeyueSCIProfiles = []Profile{
 			"英语差选择保研还是出国？",
 		},
 		ExpertiseTags: []string{"保研", "中科大", "物理直博", "飞跃手册", "夏令营"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `19级物理系，GPA 3.88/4排名2/55，CET-4 527。大二上进实验室参与攀登计划项目。因英语太差选择保研而非出国。最终保研中科大合肥微尺度物质科学国家研究中心。清华物理夏令营面试不通过，复旦和南大夏令营未入营，北大因时间冲突放弃。中科大5月底有预面试可作为正式面试演练。面试内容：自我介绍(突出优势)、英文文献翻译(南科大英文教育足够应对)、专业问题(一直问到不会为止)、科研经历。保研要重视四六级成绩，很多夏令营需要六级。与导师提前沟通硕士vs直博意向。`,
 	},
 	{
@@ -528,6 +550,7 @@ var sustechFeyueSCIProfiles = []Profile{
 			"保底校应该怎么选？",
 		},
 		ExpertiseTags: []string{"材料科学", "ASU", "保底校", "飞跃手册", "套磁"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `16级物理系，GPA 3.73/4排名22/55，TOEFL 110(S23 W27)，GRE 155V+170Q+3.5AW。有暑研经历。推荐信迟交一个月导致焦虑。板上钉钉的学校3月初发来拒信后开始紧急套磁。ASU先给了AD(著名AD狂魔)，之后发邮件套教授等了一周得到积极回复，又等了一个月终于约到面试并拿到offer。面试时应主动问研究方向、工作时长、工资等问题，表现认真考虑的态度。保底校选择关键：以学术产出为导向选课题组而非学校，问自己待四五年会不会很憋屈。rej是玄学，有些排名低的学校很早拒，排名高的5月才拒。`,
 	},
 	{
@@ -551,6 +574,7 @@ var sustechFeyueSCIProfiles = []Profile{
 			"凝聚态和生物物理方向怎么选？",
 		},
 		ExpertiseTags: []string{"物理PhD", "UIUC", "GRE Sub", "飞跃手册", "暑研"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `16级物理系，GPA 3.88排名4/55，TOEFL 106(听力放完一组就去洗手间回来发现放完了)，GRE 153V+169Q+3.5，GRE Physics 990(95%)。三段科研(二维材料、光学、生物物理)，伯克利学期交流+暑研。最终录取UIUC Physics PhD，另获Penn State、U Florida、UT-Austin Physics PhD和NUS PhD(President Fellowship)等5个offer。被Berkeley、Cornell、Columbia等7所拒。GRE Physics对申请物理PhD很重要——伯克利招生秘书说基本不看General但看Sub。中国学生没990基本没戏(虽然美国学生800就够)。Sub中国一年只考一次(10月底)，强烈建议大三就考。全DIY申请，不找中介。`,
 	},
 	{
@@ -574,6 +598,7 @@ var sustechFeyueSCIProfiles = []Profile{
 			"数学分析用什么教材复习？",
 		},
 		ExpertiseTags: []string{"考研", "数学", "南科大", "飞跃手册", "备考策略"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `15级数学系，初试378分拟录取数学与应用数学专业。因大学期间成绩不好失去出国机会，大三学期结束(6月底)当机立断决定考研。考研备考最重要的是制定计划并严格执行——常出现"今天放松明天补"的念头导致计划报废。专业课是大头，不要妄图用政治英语甩开别人。政治用肖秀荣系列。线性代数推荐北大高等代数和丘维声教材。数学分析推荐常庚哲、史济怀《数学分析》一本就够。眼高手低是考研大忌，看书觉得会了碰到题目却不会做。找同路人一起复习相互提问非常重要。`,
 	},
 	{
@@ -597,6 +622,7 @@ var sustechFeyueSCIProfiles = []Profile{
 			"如何提高GPA和英语成绩？",
 		},
 		ExpertiseTags: []string{"PhD方法论", "推荐信", "应用数学", "飞跃手册", "CSST"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `16级数学系，GPA 3.94排名第一，NYU Courant交流全A(含两门PhD课程)，TOEFL 108(口语24)，GRE 166V+170Q+4.0AW。UCLA-CSST暑研+NYU交流+NYU Shanghai暑研。最终录取UW Applied Math PhD和Maryland AMSC PhD等5个全奖PhD，被Berkeley IEOR、Cornell ORIE等11所拒。文章深度分析PhD申请因素排序：推荐信(research-based)>高质量研究经历>本科学校>GPA>SOP>TOEFL>GRE。推荐信甚至可以逆天改命——被顶尖项目录取不需要是天才但需要贵人相助。好的推荐信来自执导过research的业内大牛。建议丢掉学生思维，理解PhD申请掺杂大量软性人际因素。`,
 	},
 	{
@@ -620,6 +646,7 @@ var sustechFeyueSCIProfiles = []Profile{
 			"金融数学能转什么方向？",
 		},
 		ExpertiseTags: []string{"商业分析", "UMD", "金融数学", "飞跃手册", "选校"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `16级金融数学，GPA 3.53，TOEFL 100(L30)，GRE 319+3.5(V151+Q168)。广发银行和联储证券实习，UBC交流，前书院学生会主席。主申Business Analytics混申Finance。获UMD BA、GWU BA(6k奖)、NEU BA、JHU Finance等AD。被UIUC Finance和RPI BA拒。花了大钱找中介但非常后悔——选校选项目需自己研究、文书可找专人修改、网申中介可能帮倒忙。申请所需信息在学校网站和论坛都能找到(商科推荐chasedream)。建议不要只看学校综排，关注项目本身质量和就业方向。选项目前想清楚自己想要什么。`,
 	},
 	{
@@ -642,6 +669,7 @@ var sustechFeyueSCIProfiles = []Profile{
 			"申请材料怎么准备？",
 		},
 		ExpertiseTags: []string{"美国留学", "数学", "申请流程", "飞跃手册", "选校"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `16级数学系同学以PPT/图片形式分享了美国方向硕博申请的完整流程和经验总结。内容以可视化方式呈现，涵盖选校策略、标化考试准备、科研经历积累、文书写作、推荐信安排、申请时间线等核心环节。图文并茂的形式便于快速了解申请全貌，尤其适合数学系学弟学妹参考。建议结合其他同届同学的详细文字版经验一起阅读，从不同角度了解申请过程。`,
 	},
 	{
@@ -665,6 +693,7 @@ var sustechFeyueSCIProfiles = []Profile{
 			"研究计划书怎么写？",
 		},
 		ExpertiseTags: []string{"日本留学", "东京大学", "IME", "飞跃手册", "修士"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `17级物理系，GPA 3.84/4，TOEFL 107(口语23)，GRE 155V+167Q+4AW，SCI一作论文一篇，UCSD交换满绩。最终录取东京大学IME-EEIS修士。被UCSD Cognitive Science PhD和EPFL Life Sciences Master拒。日本大学院不能直博，本科后只能读两年修士。IME(International Multidisciplinary Engineering)覆盖工学院7个系，无录取名额限制达到标准即录取。申请前需套磁教授获内诺，研究计划书(Research Proposal)相当重要需体现对前沿理解。面试时回答要言之有据，导师会深入追问。不要求日语，全英语交流。`,
 	},
 	{
@@ -688,6 +717,7 @@ var sustechFeyueSCIProfiles = []Profile{
 			"选年轻PI还是大牛导师？",
 		},
 		ExpertiseTags: []string{"研究助理", "脑科学", "求职", "飞跃手册", "RA"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `16级生物系，GPA比3.0高，生物系优秀毕业生。PhD申请不到好学校、考研失败后选择就业。投简历策略：不在就业网站找，主动出击——把北师大脑院、北大心理学院、清华生科院等所有PI研究兴趣看一遍，挑最感兴趣的逐一发自荐邮件。大部分石沉大海但有惊喜。最终选择年轻新建实验室的PI：论文虽少但每篇质量高，博士和博后来自美国知名实验室。RA工作2-3年是合理期限，有好成果对申博帮助比读硕士更大。选导师建议：自制力强选大牛(博后厉害能学到)，自制力弱选愿意手把手教的年轻PI。`,
 	},
 	{
@@ -711,6 +741,7 @@ var sustechFeyueSCIProfiles = []Profile{
 			"CSST暑研是什么体验？",
 		},
 		ExpertiseTags: []string{"生物工程", "UPenn", "CSST", "飞跃手册", "PhD申请"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `17级生物系，GPA 3.77/4，TOEFL 104(口语23)，GRE optional。参加UCLA-CSST暑研(因疫情改线上，首次尝试计算模型研究)。明显缺乏工科背景却主申生物工程PhD，选校未拉开梯度导致很长时间无面试。最终通过主动邮件联系教授获得一对一面试机会，拿到UPenn Bioengineering PhD和UIUC PhD、NUS PhD、哥本哈根MS等。邮件要简洁，重点讲为什么对教授项目感兴趣并联系自身经历。申请最重要三因素：对科研项目的理解和贡献、专业核心课GPA、推荐信。GPA不是最关键但老师会关心相关核心课成绩。`,
 	},
 	{
@@ -734,6 +765,7 @@ var sustechFeyueSCIProfiles = []Profile{
 			"KAUST的PhD项目怎么样？",
 		},
 		ExpertiseTags: []string{"KAUST", "生物信息", "CS PhD", "飞跃手册", "规划"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `16级生物信息学，GPA 3.92/4专业和系双第一。4篇SCI、2篇顶会、多个会议oral和poster。入学第一个月就排好四年每学期课表和小目标。大一积极进组试错：先在湿实验课题组学习，后转入生信课题组。大二吃苦霸蛮——有时间就往实验室跑，以课题为导向学习高阶知识最高效。申请KAUST CS PhD(脑科学方向)，从生物信息转向CS是为了从计算角度解码大脑。入学规划建议：对照培养方案排课避雷，定期小目标并在试错中修正计划。科研中失败是家常便饭，失败恰恰是最强动力。好课题组关键在老板格局和组内环境。`,
 	},
 	{
@@ -757,6 +789,7 @@ var sustechFeyueSCIProfiles = []Profile{
 			"南科大理论方向课程不够怎么补？",
 		},
 		ExpertiseTags: []string{"凝聚态理论", "北大ICQM", "直博", "飞跃手册", "物理"},
+		Source: `南科大飞跃手册`,
 		KnowledgeBody: `15级物理系，GPA 3.88/4排名2/56，TOEFL 100(口语23)，GRE 155V+167Q+3.0AW。最终选择北大ICQM凝聚态理论直博，另获HKUST和中科院物理所PhD口头offer。理论方向国内直博性价比更高——不能保证申到top60建议考虑清华高研院、北大ICQM、中科院物理所。夏令营大部分课题组已招满，不要拖到推免面试。南科大课程对理论方向不友好：课程过于简单浅显、缺少必要training。自救方法：尽早自学统计物理和固体物理、训练数值方法、通过讨论班研读前沿文章(需教授把关)、以课题为导向学习高阶概念。面试考基本概念，问到不会为止。`,
 	},
 }
