@@ -5,10 +5,10 @@ services:
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile
+      dockerfile: ${BACKEND_DOCKERFILE:-Dockerfile.prebuilt}
       args:
-        GO_BUILDER_IMAGE: ${GO_BUILDER_IMAGE:-golang:1.22-alpine}
-        ALPINE_RUNTIME_IMAGE: ${ALPINE_RUNTIME_IMAGE:-alpine:3.19}
+        GO_BUILDER_IMAGE: ${GO_BUILDER_IMAGE:-docker.m.daocloud.io/library/golang:1.22-alpine}
+        ALPINE_RUNTIME_IMAGE: ${ALPINE_RUNTIME_IMAGE:-docker.m.daocloud.io/library/alpine:3.19}
     restart: unless-stopped
     ports:
       - "8080:8080"

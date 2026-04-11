@@ -1,0 +1,11 @@
+# 预编译模式：直接使用宿主机编译好的 server 二进制，跳过 golang 镜像拉取
+ARG ALPINE_RUNTIME_IMAGE=docker.m.daocloud.io/library/alpine:3.19
+
+FROM ${ALPINE_RUNTIME_IMAGE}
+RUN sed -i 's|https://dl-cdn.alpinelinux.org/alpine|https://mirrors.aliyun.com/alpine|g' /etc/apk/repositories \
+	&& apk add --no-cache ca-certificates tzdata ffmpeg
+ENV TZ=Asia/Shanghai
+WORKDIR /app
+COPY server .
+EXPOSE 8080
+CMD ["./server"]

@@ -2,13 +2,17 @@ package lifeagent
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"io"
 	"log"
 	"regexp"
 	"strings"
 
 	openai "github.com/sashabaranov/go-openai"
 )
+
+const llmErrorFallback = "大模型出错了哦"
 
 // pre-compiled regexps for hot paths
 var (
@@ -55,12 +59,10 @@ func BuildReplyWithLLM(ctx context.Context, apiKey, model, baseURL string, enabl
 		resp, err = chatCompletionWithWebSearch(ctx, apiKey, model, baseURL, messages)
 		if err != nil {
 			log.Printf("[LLM] web search call failed: %v", err)
-			content, references = BuildReply(profile, facts, topics, entries, history, message)
-			return content, references, nil
+			return llmErrorFallback, nil, nil
 		}
 		if len(resp.Choices) == 0 || resp.Choices[0].Message.Content == "" {
-			content, references = BuildReply(profile, facts, topics, entries, history, message)
-			return content, references, nil
+			return llmErrorFallback, nil, nil
 		}
 		content = humanizeReply(strings.TrimSpace(resp.Choices[0].Message.Content))
 		content = ApplyClaimGuard(message, content, facts, plan)
@@ -71,8 +73,10 @@ func BuildReplyWithLLM(ctx context.Context, apiKey, model, baseURL string, enabl
 	content, references, err = twoPhaseLifeAgentReply(ctx, client, model, profile, facts, topics, entries, history, message, opts)
 	if err != nil {
 		log.Printf("[LLM] two-phase failed: %v", err)
-		content, references = BuildReply(profile, facts, topics, entries, history, message)
-		return content, references, nil
+		return llmErrorFallback, nil, nil
+	}
+	if content == "" {
+		return llmErrorFallback, nil, nil
 	}
 	return content, references, nil
 }
@@ -110,14 +114,14 @@ func BuildReplyWithLLMStream(ctx context.Context, apiKey, model, baseURL string,
 	content, references, err = twoPhaseLifeAgentReply(ctx, client, model, profile, facts, topics, entries, history, message, opts)
 	if err != nil {
 		log.Printf("[LLM-stream] two-phase failed: %v", err)
-		content, references = BuildReply(profile, facts, topics, entries, history, message)
+		content = llmErrorFallback
 		EmitReplyChunks(content, onChunk)
-		return content, references, nil
+		return content, nil, nil
 	}
 	if content == "" {
-		content, references = BuildReply(profile, facts, topics, entries, history, message)
+		content = llmErrorFallback
 		EmitReplyChunks(content, onChunk)
-		return content, references, nil
+		return content, nil, nil
 	}
 
 	EmitReplyChunks(content, onChunk)
@@ -167,23 +171,48 @@ func BuildIdentityReply(profile ProfileForAI) string {
 	return strings.Join(parts, " ")
 }
 
+// streamChatCompletion collects the full content from a streaming chat completion.
+// This works around API proxies that return content:null in non-streaming mode.
+func streamChatCompletion(ctx context.Context, client *openai.Client, req openai.ChatCompletionRequest) (string, error) {
+	req.Stream = true
+	stream, err := client.CreateChatCompletionStream(ctx, req)
+	if err != nil {
+		return "", err
+	}
+	defer stream.Close()
+	var sb strings.Builder
+	for {
+		chunk, err := stream.Recv()
+		if errors.Is(err, io.EOF) {
+			break
+		}
+		if err != nil {
+			if sb.Len() > 0 {
+				break
+			}
+			return "", err
+		}
+		if len(chunk.Choices) > 0 {
+			sb.WriteString(chunk.Choices[0].Delta.Content)
+		}
+	}
+	return sb.String(), nil
+}
+
 // twoPhaseLifeAgentReply：先模型草稿（通识+人设+微信风），再严格检索；有命中则二次调用与知识库对齐。
 func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model string, profile ProfileForAI, facts []StructuredFactForAI, topics []TopicSummaryForAI, entries []KnowledgeEntryForAI, history []ChatMessageForAI, message string, opts *ChatOptions) (content string, references []map[string]string, err error) {
 	draftSystem := buildDraftSystemPrompt(profile)
 	draftMsgs := buildMessages(draftSystem, profile.DisplayName, history, message, opts)
-	draftResp, err := client.CreateChatCompletion(ctx, openai.ChatCompletionRequest{
-		Model:       model,
-		Messages:    draftMsgs,
-		Temperature: 0.55,
-		MaxTokens:   4096,
+	draft, err := streamChatCompletion(ctx, client, openai.ChatCompletionRequest{
+		Model:               model,
+		Messages:            draftMsgs,
+		Temperature:         safeTemperature(model, 0.55),
+		MaxCompletionTokens: 4096,
 	})
 	if err != nil {
 		return "", nil, err
 	}
-	if len(draftResp.Choices) == 0 {
-		return "", nil, fmt.Errorf("draft: empty choices")
-	}
-	draft := strings.TrimSpace(draftResp.Choices[0].Message.Content)
+	draft = strings.TrimSpace(draft)
 	if draft == "" {
 		return "", nil, fmt.Errorf("draft: empty content")
 	}
@@ -196,24 +225,23 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 
 	reconcileSystem := buildReconcileSystemPrompt(profile, planStrict)
 	reconcileUser := buildReconcileUserMessage(message, draft)
-	recResp, err := client.CreateChatCompletion(ctx, openai.ChatCompletionRequest{
+	final, err := streamChatCompletion(ctx, client, openai.ChatCompletionRequest{
 		Model: model,
 		Messages: []openai.ChatCompletionMessage{
 			{Role: openai.ChatMessageRoleSystem, Content: reconcileSystem},
 			{Role: openai.ChatMessageRoleUser, Content: reconcileUser},
 		},
-		Temperature: 0.25,
-		MaxTokens:   2048,
+		Temperature:         safeTemperature(model, 0.25),
+		MaxCompletionTokens: 2048,
 	})
 	if err != nil {
+		log.Printf("[LLM] reconcile stream failed: %v", err)
 		out := humanizeReply(draft)
 		return out, BuildRetrievalReferences(planStrict), nil
 	}
-	final := draft
-	if len(recResp.Choices) > 0 {
-		if t := strings.TrimSpace(recResp.Choices[0].Message.Content); t != "" {
-			final = t
-		}
+	final = strings.TrimSpace(final)
+	if final == "" {
+		final = draft
 	}
 	out := humanizeReply(final)
 	out = ApplyClaimGuard(message, out, facts, planStrict)

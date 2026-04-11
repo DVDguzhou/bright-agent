@@ -87,8 +87,8 @@ func InterpretModificationIntent(ctx context.Context, apiKey, model, baseURL str
 	resp, err := client.CreateChatCompletion(ctx, openai.ChatCompletionRequest{
 		Model:       model,
 		Messages:    messages,
-		Temperature: 0.2,
-		MaxTokens:   1200,
+		Temperature:         safeTemperature(model, 0.2),
+		MaxCompletionTokens: 1200,
 	})
 	if err != nil {
 		return nil, err

@@ -84,8 +84,8 @@ func AnalyzeChatForAgentProfile(
 	resp, err := client.CreateChatCompletion(ctx, openai.ChatCompletionRequest{
 		Model:       model,
 		Messages:    messages,
-		Temperature: 0.3,
-		MaxTokens:   2000,
+		Temperature:         safeTemperature(model, 0.3),
+		MaxCompletionTokens: 2000,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("LLM chat import analysis error: %w", err)

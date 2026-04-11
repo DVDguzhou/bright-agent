@@ -141,8 +141,8 @@ func GenerateProfileCreateSummary(ctx context.Context, apiKey, model, baseURL st
 			{Role: openai.ChatMessageRoleSystem, Content: systemPrompt},
 			{Role: openai.ChatMessageRoleUser, Content: userContent},
 		},
-		Temperature: 0.4,
-		MaxTokens:   1200,
+		Temperature:         safeTemperature(model, 0.4),
+		MaxCompletionTokens: 1200,
 	})
 	if err != nil || len(resp.Choices) == 0 || resp.Choices[0].Message.Content == "" {
 		return fallbackProfileSummary(input), nil

@@ -137,8 +137,8 @@ func GenerateNextCreateQuestion(ctx context.Context, apiKey, model, baseURL stri
 	resp, err := client.CreateChatCompletion(ctx, openai.ChatCompletionRequest{
 		Model:       model,
 		Messages:    []openai.ChatCompletionMessage{{Role: openai.ChatMessageRoleSystem, Content: systemPrompt}, {Role: openai.ChatMessageRoleUser, Content: userContent}},
-		Temperature: 0.5,
-		MaxTokens:   800,
+		Temperature:         safeTemperature(model, 0.5),
+		MaxCompletionTokens: 800,
 	})
 	if err != nil {
 		return fallbackNextQuestion(input), nil

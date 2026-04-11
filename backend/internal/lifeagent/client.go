@@ -3,6 +3,7 @@ package lifeagent
 import (
 	"context"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -87,4 +88,24 @@ func resolveAPIKey(apiKey, baseURL string) string {
 // isLLMEnabled checks if LLM is configured.
 func isLLMEnabled(apiKey, model, baseURL string) bool {
 	return (apiKey != "" || baseURL != "") && model != ""
+}
+
+// isReasoningModel returns true for models that don't support Temperature/TopP
+// (e.g. o1, o3, gpt-5 series). For these models, those parameters must be omitted.
+func isReasoningModel(model string) bool {
+	m := strings.ToLower(model)
+	for _, prefix := range []string{"o1", "o3", "o4", "gpt-5"} {
+		if strings.HasPrefix(m, prefix) {
+			return true
+		}
+	}
+	return false
+}
+
+// safeTemperature returns the given temperature for normal models, or 0 (omitted) for reasoning models.
+func safeTemperature(model string, temp float32) float32 {
+	if isReasoningModel(model) {
+		return 0
+	}
+	return temp
 }

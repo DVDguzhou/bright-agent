@@ -85,8 +85,8 @@ func SummarizeConversationMemory(ctx context.Context, apiKey, model, baseURL str
 			},
 			{Role: openai.ChatMessageRoleUser, Content: sb.String()},
 		},
-		Temperature: 0.2,
-		MaxTokens:   500,
+		Temperature:         safeTemperature(model, 0.2),
+		MaxCompletionTokens: 500,
 	})
 	if err != nil || len(resp.Choices) == 0 {
 		log.Printf("[Summary] failed: %v", err)

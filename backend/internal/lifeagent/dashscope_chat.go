@@ -25,11 +25,13 @@ func chatCompletionWithWebSearch(ctx context.Context, apiKey, model, baseURL str
 	url := strings.TrimSuffix(baseURL, "/") + "/chat/completions"
 
 	reqBody := map[string]any{
-		"model":       model,
-		"messages":    messages,
-		"temperature": 0.4,
-		"max_tokens":  4096,
-		"enable_search": true,
+		"model":                model,
+		"messages":             messages,
+		"max_completion_tokens": 4096,
+		"enable_search":        true,
+	}
+	if !isReasoningModel(model) {
+		reqBody["temperature"] = 0.4
 	}
 	bodyBytes, err := json.Marshal(reqBody)
 	if err != nil {
