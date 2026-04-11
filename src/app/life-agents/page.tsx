@@ -33,17 +33,10 @@ type PurchasedAgentRow = {
 };
 
 const PURCHASED_CACHE_TTL_MS = 90_000;
-const DISCOVER_FEED_CACHE_KEY = "life-agents:discover:first-page";
-const DISCOVER_FEED_CACHE_TTL_MS = 5 * 60_000;
 const INITIAL_VISIBLE_IMAGE_COUNT_MOBILE = 2;
 const INITIAL_VISIBLE_IMAGE_COUNT_DESKTOP = 4;
 const INITIAL_PAGE_IMAGE_GATE_TIMEOUT_MS = 900;
 
-type DiscoverFeedCacheSnapshot = {
-  savedAt: number;
-  items: LifeAgentListItem[];
-  nextCursor: string | null;
-};
 
 type FeedTabKey = "favorites" | "discover" | "purchased";
 
@@ -168,37 +161,6 @@ function preloadLifeAgentCover(src: string): Promise<void> {
   });
 }
 
-function readDiscoverFeedCache(): DiscoverFeedCacheSnapshot | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = window.localStorage.getItem(DISCOVER_FEED_CACHE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as Partial<DiscoverFeedCacheSnapshot>;
-    if (!Array.isArray(parsed.items) || typeof parsed.savedAt !== "number") return null;
-    if (Date.now() - parsed.savedAt > DISCOVER_FEED_CACHE_TTL_MS) return null;
-    return {
-      savedAt: parsed.savedAt,
-      items: parsed.items as LifeAgentListItem[],
-      nextCursor: typeof parsed.nextCursor === "string" ? parsed.nextCursor : null,
-    };
-  } catch {
-    return null;
-  }
-}
-
-function writeDiscoverFeedCache(items: LifeAgentListItem[], nextCursor: string | null) {
-  if (typeof window === "undefined") return;
-  try {
-    const snapshot: DiscoverFeedCacheSnapshot = {
-      savedAt: Date.now(),
-      items,
-      nextCursor,
-    };
-    window.localStorage.setItem(DISCOVER_FEED_CACHE_KEY, JSON.stringify(snapshot));
-  } catch {
-    // 忽略 localStorage 容量或隐私模式错误
-  }
-}
 
 function LifeAgentsPageLoadingState({ title = "页面加载中..." }: { title?: string }) {
   return (
@@ -274,7 +236,6 @@ function LifeAgentsPageContent() {
   const lastPagerIdxRef = useRef(-1);
   const purchasedLastLoadedAtRef = useRef(0);
   const purchasedRequestInFlightRef = useRef(false);
-  const discoverCacheHydratedRef = useRef(false);
   const initialFeedTab = initialFeedTabRef.current;
 
   const visitPanel = useCallback((i: number) => {
@@ -290,16 +251,6 @@ function LifeAgentsPageContent() {
     if (touchNavEnabled) return;
     setVisitedMask(1 << tabIndexFromFeedTab(feedTab));
   }, [touchNavEnabled, feedTab]);
-
-  useLayoutEffect(() => {
-    if (discoverItemsRef.current.length > 0) return;
-    const cached = readDiscoverFeedCache();
-    if (!cached || cached.items.length === 0) return;
-    discoverCacheHydratedRef.current = true;
-    setDiscoverItems(cached.items);
-    setDiscoverNextCursor(cached.nextCursor);
-    setDiscoverLoading(false);
-  }, []);
 
   useLayoutEffect(() => {
     if (!touchNavEnabled) {
@@ -519,7 +470,6 @@ function LifeAgentsPageContent() {
       .then(({ items, nextCursor }) => {
         setDiscoverItems(items);
         setDiscoverNextCursor(nextCursor || null);
-        writeDiscoverFeedCache(items, nextCursor || null);
         setLoadError(null);
       })
       .catch((err) => {
@@ -574,37 +524,31 @@ function LifeAgentsPageContent() {
       setDiscoverLoading(false);
       return;
     }
-    const hasCachedSnapshot = discoverCacheHydratedRef.current;
-    if (discoverItemsRef.current.length > 0 && !hasCachedSnapshot) {
+    if (discoverItemsRef.current.length > 0) {
       setDiscoverLoading(false);
       return;
     }
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 15000);
-    const keepSnapshotVisible = discoverItemsRef.current.length > 0;
     const seed = discoverSeedRef.current;
     setLoadError(null);
-    if (!keepSnapshotVisible) setDiscoverLoading(true);
+    setDiscoverLoading(true);
     fetchLifeAgentsPage(48, undefined, controller.signal, seed)
       .then(({ items, nextCursor }) => {
         setDiscoverItems(items);
         setDiscoverNextCursor(nextCursor || null);
-        writeDiscoverFeedCache(items, nextCursor || null);
         setLoadError(null);
       })
       .catch((err) => {
-        if (!keepSnapshotVisible) {
-          setDiscoverItems([]);
-          setDiscoverNextCursor(null);
-          setLoadError(
-            err.name === "AbortError"
-              ? "请求超时，请检查后端是否启动或稍后重试"
-              : "加载失败，请刷新页面重试",
-          );
-        }
+        setDiscoverItems([]);
+        setDiscoverNextCursor(null);
+        setLoadError(
+          err.name === "AbortError"
+            ? "请求超时，请检查后端是否启动或稍后重试"
+            : "加载失败，请刷新页面重试",
+        );
       })
       .finally(() => {
-        discoverCacheHydratedRef.current = false;
         clearTimeout(timeoutId);
         setDiscoverLoading(false);
       });
