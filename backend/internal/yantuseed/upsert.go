@@ -318,7 +318,7 @@ func UpsertProfile(userID, coverPreset string, p Profile) error {
 // Profiles 为当前仓库内置的榜样正文：
 // 研途榜样 3 人 + 浙大 60 人 + 北邮 23 人 + 华科 27 人 + 南科大 148 人 + 广工 8 人 + 川师 59 人
 // + 安大 123 人 + 上大 155 人 + 海大 48 人 + 上交 25 人 + 山大 8 人
-// + 深大 61 人 + XJTLU 5 人 + 华理 53 人 = 806 人
+// + 深大 61 人 + XJTLU 5 人 + 华理 53 人 + 福大 112 人 = 918 人
 func Profiles() []Profile {
 	n := 3 + len(zjuFeyue2021Profiles) + len(zjuFeyue2021ProfilesMore) + len(zjuFeyue2021ProfilesAbroad) +
 		len(zjuFeyue2021ProfilesDomesticRemain1) + len(zjuFeyue2021ProfilesDomesticRemain2) + len(zjuFeyue2021ProfilesAbroadMore) +
@@ -333,7 +333,8 @@ func Profiles() []Profile {
 		len(sduFeyueProfiles) +
 		len(szuFeyueProfiles) +
 		len(xjtluFeyueProfiles) +
-		len(ecustFeyueProfiles)
+		len(ecustFeyueProfiles) +
+		len(fzuFeyueProfiles1) + len(fzuFeyueProfiles2)
 	out := make([]Profile, 0, n)
 	out = append(out, yaoShengJie, zhangGuiShuo, yangChenYang)
 	out = append(out, zjuFeyue2021Profiles...)
@@ -363,5 +364,7 @@ func Profiles() []Profile {
 	out = append(out, szuFeyueProfiles...)
 	out = append(out, xjtluFeyueProfiles...)
 	out = append(out, ecustFeyueProfiles...)
+	out = append(out, fzuFeyueProfiles1...)
+	out = append(out, fzuFeyueProfiles2...)
 	return out
 }
