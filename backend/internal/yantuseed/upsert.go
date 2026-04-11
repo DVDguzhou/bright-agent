@@ -228,6 +228,9 @@ func UpsertProfile(userID, coverPreset string, p Profile) error {
 		if strings.TrimSpace(p.Education) != "" {
 			updates["education"] = strOrNil(p.Education)
 		}
+		if strings.TrimSpace(p.OriginalAuthor) != "" {
+			updates["original_author"] = strOrNil(p.OriginalAuthor)
+		}
 		if strings.TrimSpace(coverPreset) != "" {
 			updates["cover_preset_key"] = strOrNil(coverPreset)
 			updates["cover_image_url"] = nil
@@ -273,6 +276,7 @@ func UpsertProfile(userID, coverPreset string, p Profile) error {
 			SampleQuestions:  sampleQuestionsFor(p),
 			School:           strOrNil(p.School),
 			Education:        strPtr(edu),
+			OriginalAuthor:   strOrNil(p.OriginalAuthor),
 			CoverImageURL:    coverImg,
 			CoverPresetKey:   presetKey,
 			Published:        true,
@@ -311,13 +315,14 @@ func UpsertProfile(userID, coverPreset string, p Profile) error {
 	return nil
 }
 
-// Profiles 为当前仓库内置的榜样正文：研途榜样 3 人 + 浙大数院飞跃手册（2021）全书目录内学长学姐（考研+保研+境内/境外升学+院外受邀金工）+ 北邮飞跃手册第十四章申请经验谈 23 人 + 华科飞跃手册 2020 光电/工科 27 人 + 南科大飞跃手册 CS/ENG/SCI/BIZ/MED 148 人。
+// Profiles 为当前仓库内置的榜样正文：研途榜样 3 人 + 浙大数院飞跃手册（2021）全书目录内学长学姐（考研+保研+境内/境外升学+院外受邀金工）+ 北邮飞跃手册第十四章申请经验谈 23 人 + 华科飞跃手册 2020 光电/工科 27 人 + 南科大飞跃手册 CS/ENG/SCI/BIZ/MED 148 人 + 广工保研手册 8 人 + 川师升学 Wiki 59 人。
 func Profiles() []Profile {
 	n := 3 + len(zjuFeyue2021Profiles) + len(zjuFeyue2021ProfilesMore) + len(zjuFeyue2021ProfilesAbroad) +
 		len(zjuFeyue2021ProfilesDomesticRemain1) + len(zjuFeyue2021ProfilesDomesticRemain2) + len(zjuFeyue2021ProfilesAbroadMore) +
 		len(buptFeyueProfiles) + len(hustFeyueProfiles) +
 		len(sustechFeyueCSProfiles) + len(sustechFeyueENGProfiles) + len(sustechFeyueSCIProfiles) +
-		len(sustechFeyueBIZProfiles) + len(sustechFeyueMEDProfiles)
+		len(sustechFeyueBIZProfiles) + len(sustechFeyueMEDProfiles) +
+		len(gdutFeyueProfiles) + len(sicnuFeyueProfiles1) + len(sicnuFeyueProfiles2)
 	out := make([]Profile, 0, n)
 	out = append(out, yaoShengJie, zhangGuiShuo, yangChenYang)
 	out = append(out, zjuFeyue2021Profiles...)
@@ -333,5 +338,8 @@ func Profiles() []Profile {
 	out = append(out, sustechFeyueSCIProfiles...)
 	out = append(out, sustechFeyueBIZProfiles...)
 	out = append(out, sustechFeyueMEDProfiles...)
+	out = append(out, gdutFeyueProfiles...)
+	out = append(out, sicnuFeyueProfiles1...)
+	out = append(out, sicnuFeyueProfiles2...)
 	return out
 }

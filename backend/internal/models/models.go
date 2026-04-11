@@ -161,6 +161,7 @@ type LifeAgentProfile struct {
 	Income               *string   `gorm:"column:income;size:64"`     // 收入
 	Job                  *string   `gorm:"column:job;size:255"`       // 工作
 	School               *string   `gorm:"column:school;size:255"`    // 学校
+	OriginalAuthor       *string   `gorm:"column:original_author;size:128"` // 原作者真实姓名/笔名
 	Country              *string   `gorm:"column:country;size:64"`
 	Province             *string   `gorm:"column:province;size:64"`
 	City                 *string   `gorm:"column:city;size:64"`

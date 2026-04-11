@@ -4,6 +4,7 @@ package yantuseed
 
 var fanChenXin = Profile{
 	DisplayName:   "欣欣一个人",
+	OriginalAuthor: "范晨欣",
 	School:        "中国人民大学",
 	MajorLine:     "汉青金融专硕",
 	ScoreLine:     "Overall GPA 4.23/5，Rank 17/111，托福80",
@@ -30,6 +31,7 @@ var fanChenXin = Profile{
 
 var chenYiFei = Profile{
 	DisplayName:   "fly飞飞不飞",
+	OriginalAuthor: "陈奕飞",
 	School:        "北京大学",
 	MajorLine:     "光华金融硕士",
 	ScoreLine:     "统计本科 Overall 4.55/5，Rank 1/54，托福107",
@@ -56,6 +58,7 @@ var chenYiFei = Profile{
 
 var fengWeiJia = Profile{
 	DisplayName:   "丰丰OvO",
+	OriginalAuthor: "丰伟佳",
 	School:        "浙江大学",
 	MajorLine:     "应用数学硕士",
 	ScoreLine:     "信计 Rank 9/40，托福101，六级607",
@@ -80,6 +83,7 @@ var fengWeiJia = Profile{
 
 var hongYuSu = Profile{
 	DisplayName:   "溯溯回溯中",
+	OriginalAuthor: "洪雨溯",
 	School:        "浙江大学",
 	MajorLine:     "数据科学中心直博",
 	ScoreLine:     "数应 Overall 3.96/5，Major 4.12/5，托福102，GRE 159+170+3.5",
@@ -103,6 +107,7 @@ var hongYuSu = Profile{
 
 var liLiang = Profile{
 	DisplayName:   "阿亮别闹",
+	OriginalAuthor: "李亮",
 	School:        "浙江大学",
 	MajorLine:     "数院 4+2 项目",
 	ScoreLine:     "数应 Overall 4.20/5，Major 4.18/5，六级610/557",
@@ -126,6 +131,7 @@ var liLiang = Profile{
 
 var liRuoCheng = Profile{
 	DisplayName:   "澄澄子呀",
+	OriginalAuthor: "李若澄",
 	School:        "浙江大学",
 	MajorLine:     "应用数学学硕",
 	ScoreLine:     "数应 Overall 3.98/5，Major 4.11/5，雅思6.5",
@@ -149,6 +155,7 @@ var liRuoCheng = Profile{
 
 var xuMingMing = Profile{
 	DisplayName:   "mio茗一下",
+	OriginalAuthor: "徐明明",
 	School:        "浙江大学",
 	MajorLine:     "运筹学学硕",
 	ScoreLine:     "数应 Overall 4.41，Major 4.54，Rank 约3–8",
@@ -169,6 +176,7 @@ var xuMingMing = Profile{
 
 var yingHao = Profile{
 	DisplayName:   "应一声就好",
+	OriginalAuthor: "应豪",
 	School:        "浙江大学",
 	MajorLine:     "基础数学直博",
 	ScoreLine:     "求数 Overall 4.41，Major 4.36，Rank 3/18，托福86",
@@ -193,6 +201,7 @@ var yingHao = Profile{
 
 var chenYiRan = Profile{
 	DisplayName:   "毅然拒绝内卷",
+	OriginalAuthor: "陈毅然",
 	School:        "复旦大学",
 	MajorLine:     "应用数学学硕",
 	ScoreLine:     "数应 Overall 4.19/5，Rank 19–111 段",

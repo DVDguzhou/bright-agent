@@ -4,6 +4,7 @@ package yantuseed
 
 var ganYuYou = Profile{
 	DisplayName:   "雨由由呀",
+	OriginalAuthor: "甘雨由",
 	School:        "浙江大学",
 	MajorLine:     "计算机科学与技术直博",
 	ArticleTitle:  "飞跃手册2021 | 雨由由呀 计算机科学与技术直博@浙江大学（保研篇）",
@@ -41,6 +42,7 @@ Overall GPA 4.31，Major GPA 4.45
 
 var liuYuChen = Profile{
 	DisplayName:   "辰辰今天摸鱼",
+	OriginalAuthor: "刘雨辰",
 	School:        "浙江大学",
 	MajorLine:     "计算机科学与技术直博",
 	ArticleTitle:  "飞跃手册2021 | 辰辰今天摸鱼 计算机科学与技术直博@浙江大学（保研篇）",
@@ -86,6 +88,7 @@ Overall GPA / Major GPA：4.09/5
 
 var linYuXin = Profile{
 	DisplayName:   "林林七点半",
+	OriginalAuthor: "林雨欣",
 	School:        "浙江大学",
 	MajorLine:     "计算机科学与技术学硕（CAD&CG / Graphics）",
 	ArticleTitle:  "飞跃手册2021 | 林林七点半 计算机科学与技术学硕@浙江大学（保研篇·跨保）",
@@ -140,6 +143,7 @@ Major GPA：4.73/5
 
 var linHaoRan = Profile{
 	DisplayName:   "浩仔不跑路",
+	OriginalAuthor: "林浩然",
 	School:        "浙江大学",
 	MajorLine:     "网络空间安全学硕",
 	ArticleTitle:  "飞跃手册2021 | 浩仔不跑路 网络空间安全学硕@浙江大学（保研篇）",
@@ -179,6 +183,7 @@ Overall GPA：4.65/5(92.5/100)
 
 var liuLuPing = Profile{
 	DisplayName:   "路平_Ping",
+	OriginalAuthor: "刘路平",
 	School:        "浙江大学",
 	MajorLine:     "人工智能硕士（软件学院）",
 	ArticleTitle:  "飞跃手册2021 | 路平_Ping 人工智能硕士@浙江大学（保研篇）",
@@ -219,6 +224,7 @@ Overall GPA 4.28，Major GPA 4.26
 
 var chenMingYang = Profile{
 	DisplayName:   "铭洋MYang",
+	OriginalAuthor: "陈铭洋",
 	School:        "浙江大学",
 	MajorLine:     "计算数学硕士",
 	ScoreLine:     "考研 390/500，成绩排名 9",
@@ -244,6 +250,7 @@ var chenMingYang = Profile{
 
 var caoLeYi = Profile{
 	DisplayName:   "乐乐今天开心",
+	OriginalAuthor: "曹乐毅",
 	School:        "中国人民大学",
 	MajorLine:     "应用统计专硕",
 	ScoreLine:     "初试442（72+87+140+143），复试251/350",
@@ -283,6 +290,7 @@ var caoLeYi = Profile{
 
 var dangYun = Profile{
 	DisplayName:   "云朵☁️轻一点",
+	OriginalAuthor: "党云",
 	School:        "浙江大学",
 	MajorLine:     "金融专硕",
 	ArticleTitle:  "飞跃手册2021 | 云朵☁️轻一点 金融专硕@浙江大学（考研篇）",
@@ -308,6 +316,7 @@ var dangYun = Profile{
 
 var liHengJia = Profile{
 	DisplayName:   "HJ·碎碎念",
+	OriginalAuthor: "李恒嘉",
 	School:        "浙江大学",
 	MajorLine:     "电子信息专业硕士",
 	ScoreLine:     "考研 406/500",
@@ -342,6 +351,7 @@ var liHengJia = Profile{
 
 var chenQiangChao = Profile{
 	DisplayName:   "强超强待机",
+	OriginalAuthor: "陈强超",
 	School:        "浙江大学",
 	MajorLine:     "法律硕士（非法学）",
 	ArticleTitle:  "飞跃手册2021 | 强超强待机 法律硕士（非法学）@浙江大学（考研篇）",

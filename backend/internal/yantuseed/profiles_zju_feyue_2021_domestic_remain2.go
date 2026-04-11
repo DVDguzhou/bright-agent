@@ -4,6 +4,7 @@ package yantuseed
 
 var guanNing = Profile{
 	DisplayName:   "ning_关关",
+	OriginalAuthor: "关宁",
 	School:        "浙江大学",
 	MajorLine:     "计算数学直博",
 	ScoreLine:     "信计 Overall 4.51/5，Rank 4/40，托福95+",
@@ -28,6 +29,7 @@ SRTP 与建模可试方向与兴趣；可跨院系选课但注意绩点代价。
 
 var liangKaiYi = Profile{
 	DisplayName:   "KY梁同学",
+	OriginalAuthor: "梁凯毅",
 	School:        "浙江大学",
 	MajorLine:     "计算数学直博",
 	ScoreLine:     "信计 Overall 4.05，Major 4.08，Rank 11/40，雅思7.5",
@@ -51,6 +53,7 @@ var liangKaiYi = Profile{
 
 var liuJiYu = Profile{
 	DisplayName:   "不是鲫鱼是骥宇",
+	OriginalAuthor: "刘骥宇",
 	School:        "浙江大学",
 	MajorLine:     "计算数学直博",
 	ScoreLine:     "信计 Overall 4.40/5.0，Major 4.43/5.0，Rank 7/40，六级560",
@@ -74,6 +77,7 @@ var liuJiYu = Profile{
 
 var qiuYunHao = Profile{
 	DisplayName:   "昊昊不下饭",
+	OriginalAuthor: "邱云豪",
 	School:        "浙江大学",
 	MajorLine:     "计算数学直博",
 	ScoreLine:     "数应 Overall 4.43/5，Major 4.5/5，Rank 3/111",
@@ -99,6 +103,7 @@ var qiuYunHao = Profile{
 
 var wangMingZe = Profile{
 	DisplayName:   "铭泽MZday",
+	OriginalAuthor: "王明泽",
 	School:        "北京大学",
 	MajorLine:     "计算数学博士",
 	ScoreLine:     "数应 学业与保研综合排名 1/111，夏令营申报时 6/111",
@@ -122,6 +127,7 @@ var wangMingZe = Profile{
 
 var liHongYi = Profile{
 	DisplayName:   "泓毅hyi",
+	OriginalAuthor: "李泓毅",
 	School:        "浙江大学",
 	MajorLine:     "概率论与数理统计直博",
 	ScoreLine:     "数应 Overall 4.18，Major 4.19，托福93，GRE319",
@@ -145,6 +151,7 @@ var liHongYi = Profile{
 
 var xuRuiZhe = Profile{
 	DisplayName:   "zzz睿哲",
+	OriginalAuthor: "许睿哲",
 	School:        "浙江大学",
 	MajorLine:     "概率论与数理统计直博",
 	ScoreLine:     "数应 Overall 3.96，Major 4.05，Rank 24/113，六级565",
@@ -165,6 +172,7 @@ var xuRuiZhe = Profile{
 
 var zhaoZiNan = Profile{
 	DisplayName:   "楠楠南下中",
+	OriginalAuthor: "赵子楠",
 	School:        "浙江大学",
 	MajorLine:     "概率论与数理统计直博",
 	ScoreLine:     "统计 Overall 4.36，Major 4.39，Rank 7/49，托福87",
@@ -188,6 +196,7 @@ var zhaoZiNan = Profile{
 
 var quanGuoRui = Profile{
 	DisplayName:   "瑞瑞想当咸鱼",
+	OriginalAuthor: "全国瑞",
 	School:        "中国人民大学",
 	MajorLine:     "统计学专硕（ISBD）",
 	ScoreLine:     "统计 Overall 4.37/5，Major 4.41/5，Rank 5/54",
@@ -211,6 +220,7 @@ var quanGuoRui = Profile{
 
 var heYiJun = Profile{
 	DisplayName:   "君君不敢菌",
+	OriginalAuthor: "何一君",
 	School:        "复旦大学",
 	MajorLine:     "管院 DSBA 应用统计专硕",
 	ScoreLine:     "统计 Overall 4.43/5（申请时），Rank 4/54",
@@ -234,6 +244,7 @@ var heYiJun = Profile{
 
 var maYun = Profile{
 	DisplayName:   "马马马卷云",
+	OriginalAuthor: "马云",
 	School:        "清华大学",
 	MajorLine:     "统计学研究中心直博",
 	ScoreLine:     "求数 Overall 4.36/5，Major 4.30/5，申请时竺院2/20、数院5/18",
@@ -257,6 +268,7 @@ var maYun = Profile{
 
 var chenXiaMin = Profile{
 	DisplayName:   "忞忞很少上线",
+	OriginalAuthor: "陈霞敏",
 	School:        "上海财经大学",
 	MajorLine:     "交叉信息研究院管理工程硕博连读",
 	ScoreLine:     "数应（金融交叉）Rank 约前30%",
@@ -280,6 +292,7 @@ var chenXiaMin = Profile{
 
 var liuXunZi = Profile{
 	DisplayName:   "下雨了楹楹",
+	OriginalAuthor: "刘薰子",
 	School:        "复旦大学",
 	MajorLine:     "GMiM 专硕（LBS & 复旦双学位）",
 	ScoreLine:     "数金交叉 Overall 4.49/5，Major 4.55/5，Rank 4/123",

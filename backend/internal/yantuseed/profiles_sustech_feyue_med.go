@@ -3,6 +3,7 @@ package yantuseed
 var sustechFeyueMEDProfiles = []Profile{
 	{
 		DisplayName:       "材料探险家aq",
+		OriginalAuthor: "邓雨晴",
 		School:            "南方科技大学",
 		MajorLine:         "MSE PhD @ UIUC",
 		ScoreLine:         "GPA 3.85/4 (Rank 6/55), TOEFL 111, GRE 327",
@@ -25,6 +26,7 @@ var sustechFeyueMEDProfiles = []Profile{
 	},
 	{
 		DisplayName:       "北大工学boy",
+		OriginalAuthor: "白浩宇",
 		School:            "南方科技大学",
 		MajorLine:         "MSE 保研 @ 北京大学工学院",
 		ScoreLine:         "GPA 3.84/4, IELTS 7, GRE 327",
@@ -47,6 +49,7 @@ var sustechFeyueMEDProfiles = []Profile{
 	},
 	{
 		DisplayName:       "联培小火锅",
+		OriginalAuthor: "陈勇",
 		School:            "南方科技大学",
 		MajorLine:         "Physics PhD @ HKUST (联培)",
 		ScoreLine:         "GPA 3.76/4 (Rank 7/44), TOEFL 92",
@@ -69,6 +72,7 @@ var sustechFeyueMEDProfiles = []Profile{
 	},
 	{
 		DisplayName:       "夏令营达人dy",
+		OriginalAuthor: "丁明语",
 		School:            "南方科技大学",
 		MajorLine:         "基础医学直博 @ 清华大学",
 		ScoreLine:         "GPA 3.68/4 (Rank 2/10), CET-6 501",
@@ -91,6 +95,7 @@ var sustechFeyueMEDProfiles = []Profile{
 	},
 	{
 		DisplayName:       "波士顿力学girl",
+		OriginalAuthor: "贺子龙",
 		School:            "南方科技大学",
 		MajorLine:         "ME PhD @ Boston University",
 		ScoreLine:         "GPA 3.81/4 (Rank 1/19), TOEFL 105, GRE 325",
@@ -113,6 +118,7 @@ var sustechFeyueMEDProfiles = []Profile{
 	},
 	{
 		DisplayName:       "NUS生医人gx",
+		OriginalAuthor: "高旭",
 		School:            "南方科技大学",
 		MajorLine:         "BME PhD @ NUS",
 		ScoreLine:         "GPA 3.88/4 (Rank 2/20), TOEFL 104, GRE 330",
@@ -135,6 +141,7 @@ var sustechFeyueMEDProfiles = []Profile{
 	},
 	{
 		DisplayName:       "逆袭博士wq",
+		OriginalAuthor: "贺文琦",
 		School:            "南方科技大学",
 		MajorLine:         "BME PhD @ UC Irvine",
 		ScoreLine:         "GPA 3.58/4 (8/18), TOEFL 107, GRE 325",
@@ -157,6 +164,7 @@ var sustechFeyueMEDProfiles = []Profile{
 	},
 	{
 		DisplayName:       "深研院材料哥",
+		OriginalAuthor: "丁明语",
 		School:            "南方科技大学",
 		MajorLine:         "材料 保研 @ 清华深研院",
 		ScoreLine:         "GPA 3.78/4 (Rank 3/45), CET-6 495",
@@ -201,6 +209,7 @@ var sustechFeyueMEDProfiles = []Profile{
 	},
 	{
 		DisplayName:       "摸鱼反杀lh",
+		OriginalAuthor: "赖煌",
 		School:            "南方科技大学",
 		MajorLine:         "Bioengineering PhD @ HKUST",
 		ScoreLine:         "GPA 3.62/4 (Rank 18/59), TOEFL 100",
@@ -223,6 +232,7 @@ var sustechFeyueMEDProfiles = []Profile{
 	},
 	{
 		DisplayName:       "弓箭手转科研",
+		OriginalAuthor: "邓然宝",
 		School:            "南方科技大学",
 		MajorLine:         "BME PhD @ OHSU",
 		ScoreLine:         "GPA 3.61/4 (7/18), TOEFL 90, GRE 326",
@@ -245,6 +255,7 @@ var sustechFeyueMEDProfiles = []Profile{
 	},
 	{
 		DisplayName:       "匹大生医girl",
+		OriginalAuthor: "李如璇",
 		School:            "南方科技大学",
 		MajorLine:         "Bioengineering PhD @ U of Pittsburgh",
 		ScoreLine:         "GPA 3.73/4, TOEFL 100, GRE 319",
@@ -289,6 +300,7 @@ var sustechFeyueMEDProfiles = []Profile{
 	},
 	{
 		DisplayName:       "UIUC材料星gy",
+		OriginalAuthor: "刘国远",
 		School:            "南方科技大学",
 		MajorLine:         "MSE PhD @ UIUC",
 		ScoreLine:         "GPA 3.85/4, TOEFL 114, GRE 324",
@@ -311,6 +323,7 @@ var sustechFeyueMEDProfiles = []Profile{
 	},
 	{
 		DisplayName:       "北欧探路者lz",
+		OriginalAuthor: "孟刘震",
 		School:            "南方科技大学",
 		MajorLine:         "MS @ Karolinska Institute (瑞典)",
 		ScoreLine:         "GPA 2.7, 生物医学科学",
@@ -333,6 +346,7 @@ var sustechFeyueMEDProfiles = []Profile{
 	},
 	{
 		DisplayName:       "全能申请手sr",
+		OriginalAuthor: "孙锐",
 		School:            "南方科技大学",
 		MajorLine:         "BME PhD @ NUS",
 		ScoreLine:         "GPA 3.82/4, TOEFL 100, GRE 325",
@@ -355,6 +369,7 @@ var sustechFeyueMEDProfiles = []Profile{
 	},
 	{
 		DisplayName:       "NUS平凡人yz",
+		OriginalAuthor: "孙毓泽",
 		School:            "南方科技大学",
 		MajorLine:         "PhD @ NUS (生物医学科学)",
 		ScoreLine:         "GPA 3.7/4 (7/19), TOEFL 96, GRE 319",
@@ -377,6 +392,7 @@ var sustechFeyueMEDProfiles = []Profile{
 	},
 	{
 		DisplayName:       "杜克逆袭侠cx",
+		OriginalAuthor: "隋昌祥",
 		School:            "南方科技大学",
 		MajorLine:         "BME MS @ Duke University",
 		ScoreLine:         "GPA 3.58/4 (Rank 5/20), TOEFL 97, GRE 321",
@@ -399,6 +415,7 @@ var sustechFeyueMEDProfiles = []Profile{
 	},
 	{
 		DisplayName:       "ETH暑研达人sc",
+		OriginalAuthor: "王澍辰",
 		School:            "南方科技大学",
 		MajorLine:         "Bioengineering PhD @ HKUST",
 		ScoreLine:         "GPA 3.81/4 (Rank 2/26), TOEFL 107, GRE 330",
@@ -421,6 +438,7 @@ var sustechFeyueMEDProfiles = []Profile{
 	},
 	{
 		DisplayName:       "耶鲁生医wh",
+		OriginalAuthor: "汪文慧",
 		School:            "南方科技大学",
 		MajorLine:         "BME PhD @ Yale University",
 		ScoreLine:         "GPA 3.91/4 (Rank 1/46), TOEFL 108",
@@ -443,6 +461,7 @@ var sustechFeyueMEDProfiles = []Profile{
 	},
 	{
 		DisplayName:       "港新生技yh",
+		OriginalAuthor: "王叶晗",
 		School:            "南方科技大学",
 		MajorLine:         "Biotechnology MSc @ NUS",
 		ScoreLine:         "GPA 3.78/4 (Rank 5/26), IELTS 7.0",
@@ -465,6 +484,7 @@ var sustechFeyueMEDProfiles = []Profile{
 	},
 	{
 		DisplayName:       "哥大交流生ym",
+		OriginalAuthor: "叶宇铭",
 		School:            "南方科技大学",
 		MajorLine:         "BME MS @ Columbia University",
 		ScoreLine:         "GPA 3.47/4, TOEFL 107, GRE 319",
@@ -487,6 +507,7 @@ var sustechFeyueMEDProfiles = []Profile{
 	},
 	{
 		DisplayName:       "哈佛访学者ez",
+		OriginalAuthor: "刘亚卓",
 		School:            "南方科技大学",
 		MajorLine:         "ME PhD @ Purdue University",
 		ScoreLine:         "GPA 3.89/4 (Rank 3/46), TOEFL 96",
@@ -509,6 +530,7 @@ var sustechFeyueMEDProfiles = []Profile{
 	},
 	{
 		DisplayName:       "康奈尔计算侠",
+		OriginalAuthor: "赵李明",
 		School:            "南方科技大学",
 		MajorLine:         "ME PhD @ Cornell University",
 		ScoreLine:         "GPA 3.92/4, UCI GPA 3.99/4",

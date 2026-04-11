@@ -3,6 +3,7 @@ package yantuseed
 var sustechFeyueSCIProfiles = []Profile{
 	{
 		DisplayName:       "感染研究喵yy",
+		OriginalAuthor: "蔡逸扬",
 		School:            "南方科技大学",
 		MajorLine:         "Infection Biology PhD @ MHH (德国)",
 		ScoreLine:         "GPA 3.63/4 (本科), MRes Merit (IC硕士)",
@@ -25,6 +26,7 @@ var sustechFeyueSCIProfiles = []Profile{
 	},
 	{
 		DisplayName:       "化学反应堆y",
+		OriginalAuthor: "陈颖",
 		School:            "南方科技大学",
 		MajorLine:         "Chemistry PhD @ Rice University",
 		ScoreLine:         "GPA 3.65/4, TOEFL 95 (口语24)",
@@ -47,6 +49,7 @@ var sustechFeyueSCIProfiles = []Profile{
 	},
 	{
 		DisplayName:       "化工跨界人zz",
+		OriginalAuthor: "王叶晗",
 		School:            "南方科技大学",
 		MajorLine:         "Chemical Engineering MSc @ Imperial College",
 		ScoreLine:         "GPA 3.74/4 (14/43), IELTS 7.5",
@@ -69,6 +72,7 @@ var sustechFeyueSCIProfiles = []Profile{
 	},
 	{
 		DisplayName:       "数值计算君zy",
+		OriginalAuthor: "董泽宇",
 		School:            "南方科技大学",
 		MajorLine:         "Applied Math PhD @ Stony Brook University",
 		ScoreLine:         "GPA 3.85/4 (5/48), TOEFL 102",
@@ -91,6 +95,7 @@ var sustechFeyueSCIProfiles = []Profile{
 	},
 	{
 		DisplayName:       "量子态观测xy",
+		OriginalAuthor: "冯鑫钰",
 		School:            "南方科技大学",
 		MajorLine:         "Physics PhD @ UMich, Ann Arbor",
 		ScoreLine:         "GPA 3.91/4 (2/63), TOEFL 101",
@@ -113,6 +118,7 @@ var sustechFeyueSCIProfiles = []Profile{
 	},
 	{
 		DisplayName:       "港中文化学dj",
+		OriginalAuthor: "傅得峻",
 		School:            "南方科技大学",
 		MajorLine:         "Chemistry PhD @ CUHK",
 		ScoreLine:         "GPA 3.59/4, TOEFL 87",
@@ -135,6 +141,7 @@ var sustechFeyueSCIProfiles = []Profile{
 	},
 	{
 		DisplayName:       "光华套利手yy",
+		OriginalAuthor: "高奕扬",
 		School:            "南方科技大学",
 		MajorLine:         "金融硕士 保研 @ 北大光华管理学院",
 		ScoreLine:         "GPA 3.79/4 (1/20), CET-6 550, TOEFL 100",
@@ -157,6 +164,7 @@ var sustechFeyueSCIProfiles = []Profile{
 	},
 	{
 		DisplayName:       "公共政策人lw",
+		OriginalAuthor: "姜力维",
 		School:            "南方科技大学",
 		MajorLine:         "Public Policy MS @ Duke University",
 		ScoreLine:         "GPA 3.52/4, TOEFL 101, GRE 326",
@@ -179,6 +187,7 @@ var sustechFeyueSCIProfiles = []Profile{
 	},
 	{
 		DisplayName:       "控制论信徒nf",
+		OriginalAuthor: "江南飞",
 		School:            "南方科技大学",
 		MajorLine:         "ECE PhD @ UC Santa Barbara (Control)",
 		ScoreLine:         "GPA 3.87/4 (4/41), TOEFL 105",
@@ -201,6 +210,7 @@ var sustechFeyueSCIProfiles = []Profile{
 	},
 	{
 		DisplayName:       "名古屋环境cl",
+		OriginalAuthor: "廖崇霖",
 		School:            "南方科技大学",
 		MajorLine:         "G30/SGU 修士 @ 名古屋大学 (环境土木)",
 		ScoreLine:         "GPA 3.74/4, TOEFL 91, GRE 324",
@@ -223,6 +233,7 @@ var sustechFeyueSCIProfiles = []Profile{
 	},
 	{
 		DisplayName:       "延毕数学人rj",
+		OriginalAuthor: "林睿军",
 		School:            "南方科技大学",
 		MajorLine:         "Mathematics MSc @ University of Copenhagen",
 		ScoreLine:         "GPA 3.43/4, IELTS 6.5",
@@ -245,6 +256,7 @@ var sustechFeyueSCIProfiles = []Profile{
 	},
 	{
 		DisplayName:       "深蓝潜水员ww",
+		OriginalAuthor: "刘雯文",
 		School:            "南方科技大学",
 		MajorLine:         "海洋科学 直博 @ 同济大学",
 		ScoreLine:         "GPA 3.74/4, 海洋系",
@@ -267,6 +279,7 @@ var sustechFeyueSCIProfiles = []Profile{
 	},
 	{
 		DisplayName:       "布朗数学人yh",
+		OriginalAuthor: "陈勇",
 		School:            "南方科技大学",
 		MajorLine:         "Mathematics PhD @ Brown University",
 		ScoreLine:         "GPA 3.88/4 (2/50), TOEFL 106, GRE Sub 92%",
@@ -289,6 +302,7 @@ var sustechFeyueSCIProfiles = []Profile{
 	},
 	{
 		DisplayName:       "华威神经元ym",
+		OriginalAuthor: "马一铭",
 		School:            "南方科技大学",
 		MajorLine:         "MSc leading to PhD @ Warwick (Mathematics of Systems)",
 		ScoreLine:         "GPA 3.84/4 (5/48), IELTS 8.0, GRE 323",
@@ -311,6 +325,7 @@ var sustechFeyueSCIProfiles = []Profile{
 	},
 	{
 		DisplayName:       "踩坑幸存者bz",
+		OriginalAuthor: "南博钊",
 		School:            "南方科技大学",
 		MajorLine:         "Chemistry PhD @ Notre Dame University",
 		ScoreLine:         "GPA 3.66/4, TOEFL 92 (口语18)",
@@ -333,6 +348,7 @@ var sustechFeyueSCIProfiles = []Profile{
 	},
 	{
 		DisplayName:       "怒考化学生k",
+		OriginalAuthor: "化学",
 		School:            "南方科技大学",
 		MajorLine:         "化学学硕 考研 @ 南方科技大学",
 		ScoreLine:         "化学系倒数GPA, 初试总分351擦线上岸",
@@ -355,6 +371,7 @@ var sustechFeyueSCIProfiles = []Profile{
 	},
 	{
 		DisplayName:       "北大物理一jj",
+		OriginalAuthor: "石晶晶",
 		School:            "南方科技大学",
 		MajorLine:         "物理凝聚态 直博 @ 北京大学",
 		ScoreLine:         "GPA 3.93/4 (1/55), CET-4 567",
@@ -377,6 +394,7 @@ var sustechFeyueSCIProfiles = []Profile{
 	},
 	{
 		DisplayName:       "生物交叉侠l",
+		OriginalAuthor: "孙力",
 		School:            "南方科技大学",
 		MajorLine:         "Intelligent Systems PhD @ U of Pittsburgh",
 		ScoreLine:         "GPA 3.86/4 (2/22), TOEFL 104",
@@ -399,6 +417,7 @@ var sustechFeyueSCIProfiles = []Profile{
 	},
 	{
 		DisplayName:       "ETH地球人lu",
+		OriginalAuthor: "田璐",
 		School:            "南方科技大学",
 		MajorLine:         "Earth Science MS @ ETH Zurich",
 		ScoreLine:         "GPA 3.73 (2/8), 专业GPA 3.86, TOEFL 100",
@@ -421,6 +440,7 @@ var sustechFeyueSCIProfiles = []Profile{
 	},
 	{
 		DisplayName:       "伯克利神经c",
+		OriginalAuthor: "王超",
 		School:            "南方科技大学",
 		MajorLine:         "Neuroscience PhD @ USC",
 		ScoreLine:         "GPA 3.61/4 (南科大), 3.95/4 (UCB), TOEFL 109",
@@ -443,6 +463,7 @@ var sustechFeyueSCIProfiles = []Profile{
 	},
 	{
 		DisplayName:       "跨考逆袭王h",
+		OriginalAuthor: "王晗",
 		School:            "南方科技大学",
 		MajorLine:         "电子系 考研 @ 南方科技大学",
 		ScoreLine:         "初试373分 (电子系第2), GPA 3.12/4",
@@ -465,6 +486,7 @@ var sustechFeyueSCIProfiles = []Profile{
 	},
 	{
 		DisplayName:       "中科大微尺度jh",
+		OriginalAuthor: "汪静涵",
 		School:            "南方科技大学",
 		MajorLine:         "物理 直博 @ 中国科学技术大学",
 		ScoreLine:         "GPA 3.88/4 (2/55), CET-4 527",
@@ -487,6 +509,7 @@ var sustechFeyueSCIProfiles = []Profile{
 	},
 	{
 		DisplayName:       "材料踩坑侠yf",
+		OriginalAuthor: "汪轶凡",
 		School:            "南方科技大学",
 		MajorLine:         "MSE PhD @ Arizona State University",
 		ScoreLine:         "GPA 3.73/4 (22/55), TOEFL 110",
@@ -509,6 +532,7 @@ var sustechFeyueSCIProfiles = []Profile{
 	},
 	{
 		DisplayName:       "凝聚态老王yh",
+		OriginalAuthor: "王煜寰",
 		School:            "南方科技大学",
 		MajorLine:         "Physics PhD @ UIUC",
 		ScoreLine:         "GPA 3.88/4 (4/55), TOEFL 106, GRE Physics 990(95%)",
@@ -531,6 +555,7 @@ var sustechFeyueSCIProfiles = []Profile{
 	},
 	{
 		DisplayName:       "数分不放弃yf",
+		OriginalAuthor: "吴一凡",
 		School:            "南方科技大学",
 		MajorLine:         "数学 考研 @ 南方科技大学",
 		ScoreLine:         "初试378分, 数学与应用数学",
@@ -553,6 +578,7 @@ var sustechFeyueSCIProfiles = []Profile{
 	},
 	{
 		DisplayName:       "游戏规则解读yc",
+		OriginalAuthor: "钟志源",
 		School:            "南方科技大学",
 		MajorLine:         "Applied Math PhD @ U of Maryland",
 		ScoreLine:         "GPA 3.94/4 (1/N), TOEFL 108, GRE 166V+170Q+4.0AW",
@@ -575,6 +601,7 @@ var sustechFeyueSCIProfiles = []Profile{
 	},
 	{
 		DisplayName:       "BA转型选手zy",
+		OriginalAuthor: "杨志遥",
 		School:            "南方科技大学",
 		MajorLine:         "Business Analytics MS @ U of Maryland",
 		ScoreLine:         "GPA 3.53/4, TOEFL 100, GRE 319",
@@ -619,6 +646,7 @@ var sustechFeyueSCIProfiles = []Profile{
 	},
 	{
 		DisplayName:       "东大修士sh",
+		OriginalAuthor: "郑书晗",
 		School:            "南方科技大学",
 		MajorLine:         "EEIS 修士 @ 东京大学 (IME项目)",
 		ScoreLine:         "GPA 3.84/4, TOEFL 107, SCI一作一篇",
@@ -641,6 +669,7 @@ var sustechFeyueSCIProfiles = []Profile{
 	},
 	{
 		DisplayName:       "脑科学探路yj",
+		OriginalAuthor: "张亚杰",
 		School:            "南方科技大学",
 		MajorLine:         "研究助理 @ 北京脑科学与类脑研究中心",
 		ScoreLine:         "GPA 3.0+, 16级生物系",
@@ -663,6 +692,7 @@ var sustechFeyueSCIProfiles = []Profile{
 	},
 	{
 		DisplayName:       "宾大生工人z",
+		OriginalAuthor: "张展",
 		School:            "南方科技大学",
 		MajorLine:         "Bioengineering PhD @ UPenn",
 		ScoreLine:         "GPA 3.77/4, TOEFL 104",
@@ -685,6 +715,7 @@ var sustechFeyueSCIProfiles = []Profile{
 	},
 	{
 		DisplayName:       "KAUST脑科学j",
+		OriginalAuthor: "周觉晓",
 		School:            "南方科技大学",
 		MajorLine:         "Computer Science PhD @ KAUST",
 		ScoreLine:         "GPA 3.92/4 (专1系1), 4篇SCI+2篇顶会",
@@ -707,6 +738,7 @@ var sustechFeyueSCIProfiles = []Profile{
 	},
 	{
 		DisplayName:       "凝聚态自救xc",
+		OriginalAuthor: "周鑫池",
 		School:            "南方科技大学",
 		MajorLine:         "凝聚态理论 PhD @ 北大ICQM",
 		ScoreLine:         "GPA 3.88/4 (2/56), TOEFL 100",

@@ -2,6 +2,7 @@ package yantuseed
 
 var yaoShengJie = Profile{
 	DisplayName:  "凌晨四点半",
+	OriginalAuthor: "姚圣杰",
 	School:       "杭州电子科技大学",
 	MajorLine:    "计算机技术",
 	ScoreLine:    "总分314",
@@ -23,6 +24,7 @@ var yaoShengJie = Profile{
 
 var zhangGuiShuo = Profile{
 	DisplayName:  "Leo_真的不熬夜",
+	OriginalAuthor: "张桂烁",
 	School:       "华东师范大学",
 	ArticleTitle: "研途榜样③ | 凝思知其所向，笃行方至其远",
 	KnowledgeBody: `#01
@@ -110,6 +112,7 @@ var zhangGuiShuo = Profile{
 
 var yangChenYang = Profile{
 	DisplayName:  "🍊橙子味的周二",
+	OriginalAuthor: "杨晨阳",
 	School:       "中国矿业大学",
 	ScoreLine:    "总分350",
 	MajorLine:    "大数据",

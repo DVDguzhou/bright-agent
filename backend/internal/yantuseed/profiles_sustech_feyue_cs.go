@@ -38,6 +38,7 @@ var sustechFeyueCSProfiles = []Profile{
 	},
 	{
 		DisplayName:       "咖啡不加冰c",
+		OriginalAuthor: "陈德缘",
 		School:            "南方科技大学",
 		MajorLine:         "CS MS @ CMU (Software Engineering)",
 		ScoreLine:         "GPA 3.69/4, TOEFL 104, GRE 329",
@@ -60,6 +61,7 @@ var sustechFeyueCSProfiles = []Profile{
 	},
 	{
 		DisplayName:       "代码写不停xy",
+		OriginalAuthor: "陈星宇",
 		School:            "南方科技大学",
 		MajorLine:         "CS MS @ CMU (Software Engineering)",
 		ScoreLine:         "GPA 3.82/4, TOEFL 104, GRE 325",
@@ -82,6 +84,7 @@ var sustechFeyueCSProfiles = []Profile{
 	},
 	{
 		DisplayName:       "极客老方yd",
+		OriginalAuthor: "方一栋",
 		School:            "南方科技大学",
 		MajorLine:         "CS MS @ UW-Madison",
 		ScoreLine:         "GPA 3.87/4 (Rank 1/98), TOEFL 99, GRE 324",
@@ -104,6 +107,7 @@ var sustechFeyueCSProfiles = []Profile{
 	},
 	{
 		DisplayName:       "安全研究员rx",
+		OriginalAuthor: "江睿翔",
 		School:            "南方科技大学",
 		MajorLine:         "CS PhD @ U of Delaware (Security)",
 		ScoreLine:         "GPA 3.73/4, TOEFL 90, No GRE",
@@ -126,6 +130,7 @@ var sustechFeyueCSProfiles = []Profile{
 	},
 	{
 		DisplayName:       "鹿仔ECE冲",
+		OriginalAuthor: "匡亮",
 		School:            "南方科技大学",
 		MajorLine:         "ECE MS @ CMU",
 		ScoreLine:         "GPA 3.86/4, TOEFL 103, GRE 148V+170Q",
@@ -148,6 +153,7 @@ var sustechFeyueCSProfiles = []Profile{
 	},
 	{
 		DisplayName:       "医工交叉sr",
+		OriginalAuthor: "谢丹宁",
 		School:            "南方科技大学",
 		MajorLine:         "AI+Biomedical PhD @ UCLA",
 		ScoreLine:         "GPA 3.77/4, TOEFL 106",
@@ -170,6 +176,7 @@ var sustechFeyueCSProfiles = []Profile{
 	},
 	{
 		DisplayName:       "保研小白zq",
+		OriginalAuthor: "李子强",
 		School:            "南方科技大学",
 		MajorLine:         "CS 保研 @ 南方科技大学",
 		ScoreLine:         "GPA 3.63/4 (Rank 19/98)",
@@ -192,6 +199,7 @@ var sustechFeyueCSProfiles = []Profile{
 	},
 	{
 		DisplayName:       "系统狂魔wd",
+		OriginalAuthor: "栾闻迪",
 		School:            "南方科技大学",
 		MajorLine:         "CS MS @ UCSD",
 		ScoreLine:         "GPA 3.80/4, TOEFL 107, GRE 327",
@@ -214,6 +222,7 @@ var sustechFeyueCSProfiles = []Profile{
 	},
 	{
 		DisplayName:       "浙软上岸ysh",
+		OriginalAuthor: "罗运升",
 		School:            "南方科技大学",
 		MajorLine:         "CS 保研 @ 浙江大学",
 		ScoreLine:         "GPA 3.81 (Rank 8/145)",
@@ -236,6 +245,7 @@ var sustechFeyueCSProfiles = []Profile{
 	},
 	{
 		DisplayName:       "NUS打工人yl",
+		OriginalAuthor: "邱逸伦",
 		School:            "南方科技大学",
 		MajorLine:         "CS MS @ NUS (MComp)",
 		ScoreLine:         "GPA 3.75/4, IELTS 7.0, GRE 322",
@@ -258,6 +268,7 @@ var sustechFeyueCSProfiles = []Profile{
 	},
 	{
 		DisplayName:       "中科大梦yl",
+		OriginalAuthor: "汤玉磊",
 		School:            "南方科技大学",
 		MajorLine:         "CS 保研 @ 中国科学技术大学",
 		ScoreLine:         "GPA 3.89/4 (Top 5-10%)",
@@ -280,6 +291,7 @@ var sustechFeyueCSProfiles = []Profile{
 	},
 	{
 		DisplayName:       "CMU多面手yc",
+		OriginalAuthor: "陶毅诚",
 		School:            "南方科技大学",
 		MajorLine:         "CS MS @ CMU (MIIS)",
 		ScoreLine:         "GPA 3.79/4, TOEFL 106, GRE 322",
@@ -302,6 +314,7 @@ var sustechFeyueCSProfiles = []Profile{
 	},
 	{
 		DisplayName:       "赌博少女_yt",
+		OriginalAuthor: "孙力",
 		School:            "南方科技大学",
 		MajorLine:         "CS PhD @ UC Davis (Software Engineering)",
 		ScoreLine:         "GPA 3.72/4, TOEFL 104, GRE 320",
@@ -324,6 +337,7 @@ var sustechFeyueCSProfiles = []Profile{
 	},
 	{
 		DisplayName:       "沙特体验官w",
+		OriginalAuthor: "孙力",
 		School:            "南方科技大学",
 		MajorLine:         "KAUST VSRP 科研实习",
 		ScoreLine:         "GPA 3.7+, TOEFL 100+",
@@ -346,6 +360,7 @@ var sustechFeyueCSProfiles = []Profile{
 	},
 	{
 		DisplayName:       "安卓小哥km",
+		OriginalAuthor: "伍凯铭",
 		School:            "南方科技大学",
 		MajorLine:         "安卓开发工程师 @ 华为",
 		ScoreLine:         "放弃保研直接就业",
@@ -390,6 +405,7 @@ var sustechFeyueCSProfiles = []Profile{
 	},
 	{
 		DisplayName:       "Purdue宁神dn",
+		OriginalAuthor: "谢丹宁",
 		School:            "南方科技大学",
 		MajorLine:         "CS PhD @ Purdue University",
 		ScoreLine:         "GPA 3.85/4 (Rank 3/98), TOEFL 106, GRE 323",
@@ -412,6 +428,7 @@ var sustechFeyueCSProfiles = []Profile{
 	},
 	{
 		DisplayName:       "UCI搞基侠xy",
+		OriginalAuthor: "阎相易",
 		School:            "南方科技大学",
 		MajorLine:         "CS PhD @ UC Irvine",
 		ScoreLine:         "GPA 3.85/4 (Rank 3/98), TOEFL 102, GRE 318",
@@ -434,6 +451,7 @@ var sustechFeyueCSProfiles = []Profile{
 	},
 	{
 		DisplayName:       "暑研安利员xy2",
+		OriginalAuthor: "杨若谷",
 		School:            "南方科技大学",
 		MajorLine:         "暑研对北美PhD申请的重要性",
 		ScoreLine:         "15级计算机系",
@@ -456,6 +474,7 @@ var sustechFeyueCSProfiles = []Profile{
 	},
 	{
 		DisplayName:       "NEU安全侠rg",
+		OriginalAuthor: "杨若谷",
 		School:            "南方科技大学",
 		MajorLine:         "CS PhD @ Northeastern University (Security x SE)",
 		ScoreLine:         "GPA 3.78/4, TOEFL 105, No GRE",
@@ -478,6 +497,7 @@ var sustechFeyueCSProfiles = []Profile{
 	},
 	{
 		DisplayName:       "NEU找工人whf",
+		OriginalAuthor: "杨文汉夫",
 		School:            "南方科技大学",
 		MajorLine:         "CS MS @ NEU (Silicon Valley)",
 		ScoreLine:         "GPA 3.73/4, TOEFL 106, GRE 326",
@@ -500,6 +520,7 @@ var sustechFeyueCSProfiles = []Profile{
 	},
 	{
 		DisplayName:       "设计转码云zx",
+		OriginalAuthor: "孙锐",
 		School:            "南方科技大学",
 		MajorLine:         "IoT MS @ CMU / EE MS @ UW Seattle",
 		ScoreLine:         "GPA 3.68/4 (南科大) + 4.0/4 (UCB交流), TOEFL 108",
@@ -522,6 +543,7 @@ var sustechFeyueCSProfiles = []Profile{
 	},
 	{
 		DisplayName:       "清华设计师tg",
+		OriginalAuthor: "余彤歌",
 		School:            "南方科技大学",
 		MajorLine:         "设计学硕 @ 清华 + MIT ME (SM)",
 		ScoreLine:         "GPA 3.86/4 (Rank 1/28), 六级636, 雅思7.0",
@@ -544,6 +566,7 @@ var sustechFeyueCSProfiles = []Profile{
 	},
 	{
 		DisplayName:       "CMU数据蕾al",
+		OriginalAuthor: "周澳蕾",
 		School:            "南方科技大学",
 		MajorLine:         "CS MS @ CMU (MCDS)",
 		ScoreLine:         "GPA 3.85/4 (Rank 7/163), TOEFL 107, GRE 331",
@@ -566,6 +589,7 @@ var sustechFeyueCSProfiles = []Profile{
 	},
 	{
 		DisplayName:       "阿尔托HCI柯",
+		OriginalAuthor: "周柯宇",
 		School:            "南方科技大学",
 		MajorLine:         "HCI MS @ Aalto (全奖)",
 		ScoreLine:         "GPA 3.93/4 (Rank 1/13), TOEFL 103, GRE 326",
@@ -632,6 +656,7 @@ var sustechFeyueCSProfiles = []Profile{
 	},
 	{
 		DisplayName:       "北大菁英st2",
+		OriginalAuthor: "章松涛",
 		School:            "南方科技大学",
 		MajorLine:         "CS 保研 @ 北京大学",
 		ScoreLine:         "GPA 3.67/4 (Rank 15/98), 两篇共同一作论文",
@@ -654,6 +679,7 @@ var sustechFeyueCSProfiles = []Profile{
 	},
 	{
 		DisplayName:       "港大PM菁yj",
+		OriginalAuthor: "张雨菁",
 		School:            "南方科技大学",
 		MajorLine:         "IDT MS @ HKU (产品经理方向)",
 		ScoreLine:         "GPA 3.70/4 (Rank 79/195), IELTS 6.5",
@@ -698,6 +724,7 @@ var sustechFeyueCSProfiles = []Profile{
 	},
 	{
 		DisplayName:       "Utah全奖zy",
+		OriginalAuthor: "钟志源",
 		School:            "南方科技大学",
 		MajorLine:         "CS PhD @ U of Utah (AI Safety)",
 		ScoreLine:         "GPA 3.94/4 (Rank 2/195), TOEFL 109, No GRE",
@@ -720,6 +747,7 @@ var sustechFeyueCSProfiles = []Profile{
 	},
 	{
 		DisplayName:       "系统菜狗sc",
+		OriginalAuthor: "周思呈",
 		School:            "南方科技大学",
 		MajorLine:         "CS PhD @ U of Utah (System)",
 		ScoreLine:         "GPA 3.78/4 (Rank 44/195), TOEFL 105, No GRE",

@@ -16,6 +16,7 @@ var hustKnowledgeTags = []string{"出国留学", "经验贴", "飞跃手册", "�
 var hustFeyueProfiles = []Profile{
 	{
 		DisplayName:       "码农阿喵",
+		OriginalAuthor: "孟渝淇",
 		School:            "华中科技大学",
 		MajorLine:         "转CS Master",
 		ScoreLine:         "GPA 91.9, GRE 325+3, TOEFL 102(S23)",
@@ -43,6 +44,7 @@ var hustFeyueProfiles = []Profile{
 	},
 	{
 		DisplayName:       "柠檬不酸ya",
+		OriginalAuthor: "李光炫",
 		School:            "华中科技大学",
 		MajorLine:         "EE Master",
 		ScoreLine:         "GPA 3.86/4(前10%), GRE 324+3.5, TOEFL 98(S23)",
@@ -69,6 +71,7 @@ var hustFeyueProfiles = []Profile{
 	},
 	{
 		DisplayName:       "扶摇九万里",
+		OriginalAuthor: "杜谦",
 		School:            "华中科技大学",
 		MajorLine:         "EE MS+PhD混申",
 		ScoreLine:         "GPA 3.73, GRE 325+3, IELTS 7.5",
@@ -95,6 +98,7 @@ var hustFeyueProfiles = []Profile{
 	},
 	{
 		DisplayName:       "北极星xw",
+		OriginalAuthor: "杨茜琬",
 		School:            "华中科技大学",
 		MajorLine:         "欧洲EE硕士",
 		ScoreLine:         "GPA 86.0/100(约40/120), TOEFL 92(S18)",
@@ -121,6 +125,7 @@ var hustFeyueProfiles = []Profile{
 	},
 	{
 		DisplayName:       "追光Zzz",
+		OriginalAuthor: "雷震宇",
 		School:            "华中科技大学",
 		MajorLine:         "EE PhD/欧洲MS混申",
 		ScoreLine:         "GPA 3.92/4 88/100, GRE 152+168+3, TOEFL 99(S20)",
@@ -147,6 +152,7 @@ var hustFeyueProfiles = []Profile{
 	},
 	{
 		DisplayName:       "橘子汽水er",
+		OriginalAuthor: "段雨祥",
 		School:            "华中科技大学",
 		MajorLine:         "ECE Master",
 		ScoreLine:         "GPA 84.2/100 3.67/4 Rank 16/28, GRE 328+3.0, TOEFL 106(S21)",
@@ -173,6 +179,7 @@ var hustFeyueProfiles = []Profile{
 	},
 	{
 		DisplayName:       "嗷呜小怪兽",
+		OriginalAuthor: "李卓颖",
 		School:            "华中科技大学",
 		MajorLine:         "BME硕博混申",
 		ScoreLine:         "GPA 88.9(3/30), GRE 321, TOEFL 98(S20)",
@@ -199,6 +206,7 @@ var hustFeyueProfiles = []Profile{
 	},
 	{
 		DisplayName:       "暴走萝卜丁",
+		OriginalAuthor: "龚子博",
 		School:            "华中科技大学",
 		MajorLine:         "CS/ECE PhD",
 		ScoreLine:         "GPA 3.93/90.7, GRE 153+170+4.0, TOEFL 104(S23)",
@@ -225,6 +233,7 @@ var hustFeyueProfiles = []Profile{
 	},
 	{
 		DisplayName:       "晚风予星河",
+		OriginalAuthor: "熊津锋",
 		School:            "华中科技大学",
 		MajorLine:         "EE/Optics PhD",
 		ScoreLine:         "GPA 91.2(12/280), GRE 321, TOEFL 105(S26)",
@@ -251,6 +260,7 @@ var hustFeyueProfiles = []Profile{
 	},
 	{
 		DisplayName:       "阿拉蕾biu",
+		OriginalAuthor: "刘一涵",
 		School:            "华中科技大学",
 		MajorLine:         "EE PhD/MS混申",
 		ScoreLine:         "GPA 90.13 3.94/4, GRE 322+3.5, TOEFL 102(S24)",
@@ -277,6 +287,7 @@ var hustFeyueProfiles = []Profile{
 	},
 	{
 		DisplayName:       "太阳花2号",
+		OriginalAuthor: "殷凡超",
 		School:            "华中科技大学",
 		MajorLine:         "材料/钙钛矿方向 PhD",
 		ScoreLine:         "GPA 3.96/4, GRE 155+169+4, TOEFL 109(S23)",
@@ -303,6 +314,7 @@ var hustFeyueProfiles = []Profile{
 	},
 	{
 		DisplayName:       "鹤鸣九皋",
+		OriginalAuthor: "张鸿博",
 		School:            "华中科技大学",
 		MajorLine:         "EE PhD",
 		ScoreLine:         "GPA 3.96/4 94.6/100 Rank 1/287, GRE 162+170+3.5, TOEFL 106(S23)",
@@ -329,6 +341,7 @@ var hustFeyueProfiles = []Profile{
 	},
 	{
 		DisplayName:       "蓝莓冰沙Q",
+		OriginalAuthor: "彭小雷",
 		School:            "华中科技大学",
 		MajorLine:         "欧陆/新加坡硕士",
 		ScoreLine:         "GPA 90.7(2/33), IELTS 6.5(S5.5)",
@@ -355,6 +368,7 @@ var hustFeyueProfiles = []Profile{
 	},
 	{
 		DisplayName:       "星球漫游33",
+		OriginalAuthor: "周楠森",
 		School:            "华中科技大学",
 		MajorLine:         "3+2 KTH联合培养",
 		ScoreLine:         "GPA 91.7(12/335), TOEFL 95(S22)",
@@ -381,6 +395,7 @@ var hustFeyueProfiles = []Profile{
 	},
 	{
 		DisplayName:       "微光Lab",
+		OriginalAuthor: "吴昊",
 		School:            "华中科技大学",
 		MajorLine:         "Optics PhD（3+2后申请）",
 		ScoreLine:         "Master GPA 3.74/4, GRE 141+168+3",
@@ -407,6 +422,7 @@ var hustFeyueProfiles = []Profile{
 	},
 	{
 		DisplayName:       "枫叶加零",
+		OriginalAuthor: "周笑阳",
 		School:            "华中科技大学",
 		MajorLine:         "加拿大研究型硕士MSc",
 		ScoreLine:         "GPA 3.91(46/80), TOEFL 97(S22)",
@@ -433,6 +449,7 @@ var hustFeyueProfiles = []Profile{
 	},
 	{
 		DisplayName:       "蔷薇花开Lv",
+		OriginalAuthor: "曾逸麟",
 		School:            "华中科技大学",
 		MajorLine:         "法国IOGS 3+3光学",
 		ScoreLine:         "GPA 89.6/100, TCF 398(B1)",
@@ -459,6 +476,7 @@ var hustFeyueProfiles = []Profile{
 	},
 	{
 		DisplayName:       "甜筒翻转ss",
+		OriginalAuthor: "张开",
 		School:            "华中科技大学",
 		MajorLine:         "教育技术硕士（转专业）",
 		ScoreLine:         "GPA 3.89, GRE 159+170+4.0, TOEFL 116(S30)",
@@ -485,6 +503,7 @@ var hustFeyueProfiles = []Profile{
 	},
 	{
 		DisplayName:       "小确幸z7",
+		OriginalAuthor: "田雅琪",
 		School:            "华中科技大学",
 		MajorLine:         "BME PhD（港中文）",
 		ScoreLine:         "GPA 93.1/100(3/282), TOEFL 94(S21)",
@@ -511,6 +530,7 @@ var hustFeyueProfiles = []Profile{
 	},
 	{
 		DisplayName:       "银河冲浪手",
+		OriginalAuthor: "周博轩",
 		School:            "华中科技大学",
 		MajorLine:         "EE/光学 PhD",
 		ScoreLine:         "GPA 3.98(2/283), GRE 325+4, TOEFL 104(S23)",
@@ -537,6 +557,7 @@ var hustFeyueProfiles = []Profile{
 	},
 	{
 		DisplayName:       "纳米小分队",
+		OriginalAuthor: "陈章迪",
 		School:            "华中科技大学",
 		MajorLine:         "EE/纳米方向 PhD",
 		ScoreLine:         "GPA 3.90, GRE 169+149+3, TOEFL 97(S22)",
@@ -563,6 +584,7 @@ var hustFeyueProfiles = []Profile{
 	},
 	{
 		DisplayName:       "光波dispersion",
+		OriginalAuthor: "邓鹏飞",
 		School:            "华中科技大学",
 		MajorLine:         "Optics MS/PhD混申",
 		ScoreLine:         "GPA 92.2(前2%), GRE 328+4.0, TOEFL 109(S23)",
@@ -589,6 +611,7 @@ var hustFeyueProfiles = []Profile{
 	},
 	{
 		DisplayName:       "芯片味的茶",
+		OriginalAuthor: "胡满琛",
 		School:            "华中科技大学",
 		MajorLine:         "EE/光电 Master",
 		ScoreLine:         "GPA 91.4(3.98, 1/28), GRE 325+3.5, TOEFL 105",
@@ -615,6 +638,7 @@ var hustFeyueProfiles = []Profile{
 	},
 	{
 		DisplayName:       "激光小王子",
+		OriginalAuthor: "鲍语今",
 		School:            "华中科技大学",
 		MajorLine:         "Optics/EE Master",
 		ScoreLine:         "GPA 3.53, GRE 317, TOEFL 99(S19)",
@@ -641,6 +665,7 @@ var hustFeyueProfiles = []Profile{
 	},
 	{
 		DisplayName:       "港湾小舟rv",
+		OriginalAuthor: "代兆威",
 		School:            "华中科技大学",
 		MajorLine:         "香港研究型硕士",
 		ScoreLine:         "GPA 85.8/3.76, IELTS 6.5",
@@ -667,6 +692,7 @@ var hustFeyueProfiles = []Profile{
 	},
 	{
 		DisplayName:       "元气弹bq",
+		OriginalAuthor: "龚如一",
 		School:            "华中科技大学",
 		MajorLine:         "EE/Optics Master",
 		ScoreLine:         "GPA 3.73, GRE 322+2.5, TOEFL 101(S21)",
@@ -693,6 +719,7 @@ var hustFeyueProfiles = []Profile{
 	},
 	{
 		DisplayName:       "解码小能手",
+		OriginalAuthor: "余昕雨",
 		School:            "华中科技大学",
 		MajorLine:         "EE Master",
 		ScoreLine:         "GPA 3.27, GRE 323, TOEFL 107",

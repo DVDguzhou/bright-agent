@@ -309,6 +309,89 @@
 | 260 | 康奈尔计算侠 | 南科大飞跃手册 | yantu-import@demo.com | quest_t09@163.com | YantuLa2026! |
 | 261 | PPT材料郎k | 南科大飞跃手册 | yantu-import@demo.com | rivet_u03@163.com | YantuLa2026! |
 
+## 广东工业大学保研手册系列（8 条）
+
+来源：广东工业大学计算机学院保研经验分享。
+档案文件：`backend/internal/yantuseed/profiles_gdut_feyue.go`
+
+| 序号 | 人生 Agent 显示名 | 原归属来源 | 原归属账号 | 新登录邮箱 | 初始密码 |
+|-----|------------------|-----------|------------|------------|----------|
+| 262 | 松鼠呀看日落 | 广工保研手册 | yantu-import@demo.com | tiderain89@163.com | YantuLa2026! |
+| 263 | 蜗牛oo打工中 | 广工保研手册 | yantu-import@demo.com | cove_storm93@163.com | YantuLa2026! |
+| 264 | 鸽子_鹿茸 | 广工保研手册 | yantu-import@demo.com | moss_loop91@163.com | YantuLa2026! |
+| 265 | 松鼠哈刷题中 | 广工保研手册 | yantu-import@demo.com | mist_eve39@163.com | YantuLa2026! |
+| 266 | 海豚在发呆 | 广工保研手册 | yantu-import@demo.com | brookorb52@163.com | YantuLa2026! |
+| 267 | 温柔的瓢虫鸭 | 广工保研手册 | yantu-import@demo.com | hazevole42@163.com | YantuLa2026! |
+| 268 | 蜜桃_花生 | 广工保研手册 | yantu-import@demo.com | bark_lynx84@163.com | YantuLa2026! |
+| 269 | 兔兔_锦鲤 | 广工保研手册 | yantu-import@demo.com | cove_glen02@163.com | YantuLa2026! |
+
+## 四川师范大学升学就业经验 Wiki 系列（59 条）
+
+来源：四川师范大学SICNU-Application/wiki-SICNU项目。
+档案文件：`backend/internal/yantuseed/profiles_sicnu_feyue_1.go` / `profiles_sicnu_feyue_2.go`
+
+| 序号 | 人生 Agent 显示名 | 原归属来源 | 原归属账号 | 新登录邮箱 | 初始密码 |
+|-----|------------------|-----------|------------|------------|----------|
+| 270 | 芋圆_拿铁 | 川师升学Wiki | yantu-import@demo.com | rain_leaf93@163.com | YantuLa2026! |
+| 271 | 章鱼_水母 | 川师升学Wiki | yantu-import@demo.com | crow_hex41@163.com | YantuLa2026! |
+| 272 | 麦芽_龙眼 | 川师升学Wiki | yantu-import@demo.com | petalmist98@163.com | YantuLa2026! |
+| 273 | 阳光的草莓zzz | 川师升学Wiki | yantu-import@demo.com | dunemist24@163.com | YantuLa2026! |
+| 274 | 可可_泡芙 | 川师升学Wiki | yantu-import@demo.com | petalbit83@163.com | YantuLa2026! |
+| 275 | 蜜桃去散步 | 川师升学Wiki | yantu-import@demo.com | vole_cap11@163.com | YantuLa2026! |
+| 276 | 蝴蝶ii画画中 | 川师升学Wiki | yantu-import@demo.com | valelake89@163.com | YantuLa2026! |
+| 277 | 鸽子er要毕业了 | 川师升学Wiki | yantu-import@demo.com | chip_bark66@163.com | YantuLa2026! |
+| 278 | 安静的锦鲤9 | 川师升学Wiki | yantu-import@demo.com | capbass55@163.com | YantuLa2026! |
+| 279 | 蚂蚁_阿狸 | 川师升学Wiki | yantu-import@demo.com | stormswan22@163.com | YantuLa2026! |
+| 280 | 安静的蘑菇鸭 | 川师升学Wiki | yantu-import@demo.com | dusk_jay29@163.com | YantuLa2026! |
+| 281 | 努力的蚂蚁鸭 | 川师升学Wiki | yantu-import@demo.com | sun_vale79@163.com | YantuLa2026! |
+| 282 | 草莓泡咖啡 | 川师升学Wiki | yantu-import@demo.com | sunloop22@163.com | YantuLa2026! |
+| 283 | 麻雀_0去散步 | 川师升学Wiki | yantu-import@demo.com | cap_haze89@163.com | YantuLa2026! |
+| 284 | 鲸鱼_红薯 | 川师升学Wiki | yantu-import@demo.com | pathbark83@163.com | YantuLa2026! |
+| 285 | 猫头鹰_仓鼠 | 川师升学Wiki | yantu-import@demo.com | leafarc05@163.com | YantuLa2026! |
+| 286 | 布丁7修电脑 | 川师升学Wiki | yantu-import@demo.com | elk_seed82@163.com | YantuLa2026! |
+| 287 | 蜜桃_海豚 | 川师升学Wiki | yantu-import@demo.com | carpmist52@163.com | YantuLa2026! |
+| 288 | 奶酪整理笔记 | 川师升学Wiki | yantu-import@demo.com | lynx_rain23@163.com | YantuLa2026! |
+| 289 | 桂花读论文 | 川师升学Wiki | yantu-import@demo.com | foxlink92@163.com | YantuLa2026! |
+| 290 | 海豚喝牛奶 | 川师升学Wiki | yantu-import@demo.com | starpetal49@163.com | YantuLa2026! |
+| 291 | 薯片ii今天早睡 | 川师升学Wiki | yantu-import@demo.com | basssnow98@163.com | YantuLa2026! |
+| 292 | 核桃读论文 | 川师升学Wiki | yantu-import@demo.com | bloomray54@163.com | YantuLa2026! |
+| 293 | 蓝莓z读论文 | 川师升学Wiki | yantu-import@demo.com | grid_jay69@163.com | YantuLa2026! |
+| 294 | 饼干在图书馆 | 川师升学Wiki | yantu-import@demo.com | dotvale00@163.com | YantuLa2026! |
+| 295 | 水母_杨梅 | 川师升学Wiki | yantu-import@demo.com | arc_rain58@163.com | YantuLa2026! |
+| 296 | 仓鼠_豆包 | 川师升学Wiki | yantu-import@demo.com | lark_leaf32@163.com | YantuLa2026! |
+| 297 | 葡萄去爬山 | 川师升学Wiki | yantu-import@demo.com | rootpike54@163.com | YantuLa2026! |
+| 298 | 鸽子ii不吃宵夜 | 川师升学Wiki | yantu-import@demo.com | dovepike49@163.com | YantuLa2026! |
+| 299 | 自在的小熊__ | 川师升学Wiki | yantu-import@demo.com | bass_lake04@163.com | YantuLa2026! |
+| 300 | 奔跑的青蛙ya | 川师升学Wiki | yantu-import@demo.com | moss_swan42@163.com | YantuLa2026! |
+| 301 | 鹿茸ii想放假 | 川师升学Wiki | yantu-import@demo.com | mist_glen88@163.com | YantuLa2026! |
+| 302 | 瓢虫er泡咖啡 | 川师升学Wiki | yantu-import@demo.com | chiporb07@163.com | YantuLa2026! |
+| 303 | 快乐的阿狸__ | 川师升学Wiki | yantu-import@demo.com | storm_bloom80@163.com | YantuLa2026! |
+| 304 | 认真的饼干9 | 川师升学Wiki | yantu-import@demo.com | rose_twig28@163.com | YantuLa2026! |
+| 305 | 可可_章鱼 | 川师升学Wiki | yantu-import@demo.com | log_log33@163.com | YantuLa2026! |
+| 306 | 阳光的樱桃ii | 川师升学Wiki | yantu-import@demo.com | cap_elk11@163.com | YantuLa2026! |
+| 307 | 麦芽_杨梅 | 川师升学Wiki | yantu-import@demo.com | glowrose08@163.com | YantuLa2026! |
+| 308 | 迷路的薄荷吖 | 川师升学Wiki | yantu-import@demo.com | wren_mint67@163.com | YantuLa2026! |
+| 309 | 柠檬呀画画中 | 川师升学Wiki | yantu-import@demo.com | cove_fox48@163.com | YantuLa2026! |
+| 310 | 兔兔_蓝莓 | 川师升学Wiki | yantu-import@demo.com | coverain19@163.com | YantuLa2026! |
+| 311 | 认真的蓝莓呀 | 川师升学Wiki | yantu-import@demo.com | log_bit02@163.com | YantuLa2026! |
+| 312 | 蘑菇_海豚 | 川师升学Wiki | yantu-import@demo.com | frost_gear44@163.com | YantuLa2026! |
+| 313 | 阳光的青蛙_v | 川师升学Wiki | yantu-import@demo.com | cove_bolt29@163.com | YantuLa2026! |
+| 314 | 勤劳的樱桃哈 | 川师升学Wiki | yantu-import@demo.com | map_glow12@163.com | YantuLa2026! |
+| 315 | 柿子_花生 | 川师升学Wiki | yantu-import@demo.com | loopbass23@163.com | YantuLa2026! |
+| 316 | 自在的蜻蜓吖 | 川师升学Wiki | yantu-import@demo.com | waverain22@163.com | YantuLa2026! |
+| 317 | 拿铁煮火锅 | 川师升学Wiki | yantu-import@demo.com | leaf_bloom05@163.com | YantuLa2026! |
+| 318 | 饺子晒太阳 | 川师升学Wiki | yantu-import@demo.com | rosemoss01@163.com | YantuLa2026! |
+| 319 | 桂花_红薯 | 川师升学Wiki | yantu-import@demo.com | hare_ray59@163.com | YantuLa2026! |
+| 320 | 龙眼弹吉他 | 川师升学Wiki | yantu-import@demo.com | creekloop15@163.com | YantuLa2026! |
+| 321 | 鹿茸哈搬砖中 | 川师升学Wiki | yantu-import@demo.com | mosscore77@163.com | YantuLa2026! |
+| 322 | 麻雀去爬山 | 川师升学Wiki | yantu-import@demo.com | raychip60@163.com | YantuLa2026! |
+| 323 | 麻雀背单词 | 川师升学Wiki | yantu-import@demo.com | log_crow35@163.com | YantuLa2026! |
+| 324 | 瓢虫去爬山 | 川师升学Wiki | yantu-import@demo.com | moss_lynx65@163.com | YantuLa2026! |
+| 325 | 温柔的兔兔3 | 川师升学Wiki | yantu-import@demo.com | dawn_sage94@163.com | YantuLa2026! |
+| 326 | 蚂蚁_企鹅 | 川师升学Wiki | yantu-import@demo.com | tagstorm66@163.com | YantuLa2026! |
+| 327 | 红薯_青蛙 | 川师升学Wiki | yantu-import@demo.com | pathchip64@163.com | YantuLa2026! |
+| 328 | 自在的饼干oo | 川师升学Wiki | yantu-import@demo.com | bit_path83@163.com | YantuLa2026! |
+
 ## 删除研途榜样种子数据（危险操作）
 
 级联清理：知识库、买家会话与消息、反馈、评分、提问包、调用密钥、共编状态、收藏等。

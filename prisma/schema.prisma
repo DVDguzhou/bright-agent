@@ -245,6 +245,7 @@ model LifeAgentProfile {
   income           String?  @map("income")      // 收入
   job              String?  @map("job")         // 工作
   school           String?  @map("school")      // 学校
+  originalAuthor   String?  @map("original_author") @db.VarChar(128) // 原作者真实姓名/笔名，用于内部溯源
   voiceCloneId     String?  @map("voice_clone_id") @db.VarChar(128) // 百炼系统音色或声音复刻 voice id
   coverImageUrl    String?  @map("cover_image_url") @db.VarChar(512)
   coverPresetKey   String?  @map("cover_preset_key") @db.VarChar(64)

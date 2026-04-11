@@ -3,6 +3,7 @@ package yantuseed
 var sustechFeyueENGProfiles = []Profile{
 	{
 		DisplayName:       "环保清研er",
+		OriginalAuthor: "蔡湾",
 		School:            "南方科技大学",
 		MajorLine:         "环境工程 保研 @ 清华大学深圳研究生院",
 		ScoreLine:         "GPA 3.72, Rank 2/33, 雅思6.5",
@@ -25,6 +26,7 @@ var sustechFeyueENGProfiles = []Profile{
 	},
 	{
 		DisplayName:       "模拟芯人rw",
+		OriginalAuthor: "陈仁伟",
 		School:            "南方科技大学",
 		MajorLine:         "微电子 直博 @ 清华大学集成电路学院",
 		ScoreLine:         "GPA 3.85, Rank 3/80, IELTS 7.0",
@@ -47,6 +49,7 @@ var sustechFeyueENGProfiles = []Profile{
 	},
 	{
 		DisplayName:       "脑机接口wy",
+		OriginalAuthor: "陈薇羽",
 		School:            "南方科技大学",
 		MajorLine:         "EE PhD @ Columbia University",
 		ScoreLine:         "GPA 3.9/4, Rank 5/44, TOEFL 108",
@@ -69,6 +72,7 @@ var sustechFeyueENGProfiles = []Profile{
 	},
 	{
 		DisplayName:       "航发冲天xw",
+		OriginalAuthor: "陈炫午",
 		School:            "南方科技大学",
 		MajorLine:         "航空航天 直博 @ 清华大学航空发动机研究院",
 		ScoreLine:         "GPA 3.77/4, 六级469",
@@ -91,6 +95,7 @@ var sustechFeyueENGProfiles = []Profile{
 	},
 	{
 		DisplayName:       "力学小白jq",
+		OriginalAuthor: "王叶晗",
 		School:            "南方科技大学",
 		MajorLine:         "力学 保研 @ 中国科学技术大学",
 		ScoreLine:         "GPA 3.78/4",
@@ -113,6 +118,7 @@ var sustechFeyueENGProfiles = []Profile{
 	},
 	{
 		DisplayName:       "学渣逆袭yh",
+		OriginalAuthor: "代宇航",
 		School:            "南方科技大学",
 		MajorLine:         "力学 联培PhD @ 香港城市大学",
 		ScoreLine:         "GPA 3.33/4, IELTS 7.0",
@@ -135,6 +141,7 @@ var sustechFeyueENGProfiles = []Profile{
 	},
 	{
 		DisplayName:       "荷兰机器人rb",
+		OriginalAuthor: "邓然宝",
 		School:            "南方科技大学",
 		MajorLine:         "Robotics MSc @ TU Delft",
 		ScoreLine:         "GPA 3.66/4, Rank 9/43, TOEFL 109, GRE 325",
@@ -157,6 +164,7 @@ var sustechFeyueENGProfiles = []Profile{
 	},
 	{
 		DisplayName:       "光电暑研zk",
+		OriginalAuthor: "范镇鲲",
 		School:            "南方科技大学",
 		MajorLine:         "ECE MS @ GaTech / UPenn / UCSD 等",
 		ScoreLine:         "GPA 3.89, TOEFL 104, GRE 322",
@@ -179,6 +187,7 @@ var sustechFeyueENGProfiles = []Profile{
 	},
 	{
 		DisplayName:       "数字芯片yz",
+		OriginalAuthor: "陈仁伟",
 		School:            "南方科技大学",
 		MajorLine:         "微电子 保研 @ 北京大学深圳研究生院",
 		ScoreLine:         "GPA 3.88/4, 综合排名1, TOEFL 90+",
@@ -201,6 +210,7 @@ var sustechFeyueENGProfiles = []Profile{
 	},
 	{
 		DisplayName:       "北大IC达人yj",
+		OriginalAuthor: "管宇江",
 		School:            "南方科技大学",
 		MajorLine:         "微电子 保研 @ 北京大学深圳研究生院",
 		ScoreLine:         "GPA 3.85/4, Rank 1/66",
@@ -223,6 +233,7 @@ var sustechFeyueENGProfiles = []Profile{
 	},
 	{
 		DisplayName:       "东大修士xg",
+		OriginalAuthor: "郭欣格",
 		School:            "南方科技大学",
 		MajorLine:         "ECE PhD @ NUS / 修士 @ 东京大学",
 		ScoreLine:         "GPA 3.83/4, Rank 1/43, TOEFL 107",
@@ -245,6 +256,7 @@ var sustechFeyueENGProfiles = []Profile{
 	},
 	{
 		DisplayName:       "UMN力学zl",
+		OriginalAuthor: "贺子龙",
 		School:            "南方科技大学",
 		MajorLine:         "ME PhD @ University of Minnesota",
 		ScoreLine:         "GPA 3.89/4, TOEFL 103, GRE 325",
@@ -267,6 +279,7 @@ var sustechFeyueENGProfiles = []Profile{
 	},
 	{
 		DisplayName:       "圣母转码gc",
+		OriginalAuthor: "陈德缘",
 		School:            "南方科技大学",
 		MajorLine:         "MS CSE @ University of Notre Dame",
 		ScoreLine:         "GPA 3.69/4, Rank 17/71, TOEFL 112",
@@ -289,6 +302,7 @@ var sustechFeyueENGProfiles = []Profile{
 	},
 	{
 		DisplayName:       "柔性电子h",
+		OriginalAuthor: "黄皓",
 		School:            "南方科技大学",
 		MajorLine:         "Nanoengineering PhD @ UCSD",
 		ScoreLine:         "GPA 3.75/4, Rank 9/68, TOEFL 103",
@@ -311,6 +325,7 @@ var sustechFeyueENGProfiles = []Profile{
 	},
 	{
 		DisplayName:       "安堡微电mt",
+		OriginalAuthor: "胡明涛",
 		School:            "南方科技大学",
 		MajorLine:         "ECE MS @ University of Michigan Ann Arbor",
 		ScoreLine:         "GPA 3.66/4, TOEFL 101",
@@ -333,6 +348,7 @@ var sustechFeyueENGProfiles = []Profile{
 	},
 	{
 		DisplayName:       "厦大环科hw",
+		OriginalAuthor: "胡洪威",
 		School:            "南方科技大学",
 		MajorLine:         "环境科学 保研 @ 厦门大学",
 		ScoreLine:         "GPA 3.76, Rank 2/41",
@@ -355,6 +371,7 @@ var sustechFeyueENGProfiles = []Profile{
 	},
 	{
 		DisplayName:       "哥大暑研jy",
+		OriginalAuthor: "周觉晓",
 		School:            "南方科技大学",
 		MajorLine:         "Columbia LDEO 暑期实习（环境方向）",
 		ScoreLine:         "15级环境系",
@@ -377,6 +394,7 @@ var sustechFeyueENGProfiles = []Profile{
 	},
 	{
 		DisplayName:       "水文博士yi",
+		OriginalAuthor: "刘怡",
 		School:            "南方科技大学",
 		MajorLine:         "环境PhD @ University of Michigan",
 		ScoreLine:         "GPA 3.70/4, TOEFL 98, GRE 317",
@@ -399,6 +417,7 @@ var sustechFeyueENGProfiles = []Profile{
 	},
 	{
 		DisplayName:       "代尔夫特argue姐",
+		OriginalAuthor: "刘彦菁",
 		School:            "南方科技大学",
 		MajorLine:         "ME MSc @ TU Delft (Biomechanical Design)",
 		ScoreLine:         "GPA 3.73/4, Rank 5/31, TOEFL 97",
@@ -421,6 +440,7 @@ var sustechFeyueENGProfiles = []Profile{
 	},
 	{
 		DisplayName:       "GaTech力学yz",
+		OriginalAuthor: "刘亚卓",
 		School:            "南方科技大学",
 		MajorLine:         "ME PhD @ Georgia Institute of Technology",
 		ScoreLine:         "GPA 3.89/4, TOEFL 94, 一篇SCI一作",
@@ -443,6 +463,7 @@ var sustechFeyueENGProfiles = []Profile{
 	},
 	{
 		DisplayName:       "中科院IC侠wz",
+		OriginalAuthor: "李伟增",
 		School:            "南方科技大学",
 		MajorLine:         "微电子 学硕 @ 中国科学院微电子研究所",
 		ScoreLine:         "GPA 3.82/4, Rank 4/66",
@@ -465,6 +486,7 @@ var sustechFeyueENGProfiles = []Profile{
 	},
 	{
 		DisplayName:       "港科联培ry",
+		OriginalAuthor: "李若颜",
 		School:            "南方科技大学",
 		MajorLine:         "力学 联培PhD @ 香港科技大学",
 		ScoreLine:         "GPA 3.67/4, TOEFL 98",
@@ -509,6 +531,7 @@ var sustechFeyueENGProfiles = []Profile{
 	},
 	{
 		DisplayName:       "北大力学ym",
+		OriginalAuthor: "岐亦铭",
 		School:            "南方科技大学",
 		MajorLine:         "力学 保研 @ 北京大学工学院",
 		ScoreLine:         "GPA 3.84/4",
@@ -531,6 +554,7 @@ var sustechFeyueENGProfiles = []Profile{
 	},
 	{
 		DisplayName:       "北航暑研hr",
+		OriginalAuthor: "尚恒锐",
 		School:            "南方科技大学",
 		MajorLine:         "力学 保研 @ 北京航空航天大学",
 		ScoreLine:         "GPA 3.51/4, 专业排名3/8",
@@ -575,6 +599,7 @@ var sustechFeyueENGProfiles = []Profile{
 	},
 	{
 		DisplayName:       "ETH机器人yz2",
+		OriginalAuthor: "向沿臻",
 		School:            "南方科技大学",
 		MajorLine:         "MS in RSC @ ETH Zürich",
 		ScoreLine:         "GPA 3.80/4, Rank 3/74, TOEFL 101, GRE 319",
@@ -597,6 +622,7 @@ var sustechFeyueENGProfiles = []Profile{
 	},
 	{
 		DisplayName:       "海洋博士yao",
+		OriginalAuthor: "姚瑶",
 		School:            "南方科技大学",
 		MajorLine:         "Marine Science PhD @ USF",
 		ScoreLine:         "GPA 3.79/4, Rank 2/28, TOEFL 87",
@@ -619,6 +645,7 @@ var sustechFeyueENGProfiles = []Profile{
 	},
 	{
 		DisplayName:       "UCI电子jd",
+		OriginalAuthor: "袁锦东",
 		School:            "南方科技大学",
 		MajorLine:         "EE PhD @ UC Irvine",
 		ScoreLine:         "GPA 3.74/4, Rank 4/45, TOEFL 94",
@@ -641,6 +668,7 @@ var sustechFeyueENGProfiles = []Profile{
 	},
 	{
 		DisplayName:       "UCLA机械tq",
+		OriginalAuthor: "郑天棋",
 		School:            "南方科技大学",
 		MajorLine:         "ME PhD @ UCLA",
 		ScoreLine:         "GPA 3.77/4, TOEFL 107, GRE 321, 一篇SCI一作",
@@ -663,6 +691,7 @@ var sustechFeyueENGProfiles = []Profile{
 	},
 	{
 		DisplayName:       "CMU机器学zc",
+		OriginalAuthor: "张策",
 		School:            "南方科技大学",
 		MajorLine:         "MS in Machine Learning @ CMU",
 		ScoreLine:         "GPA 3.91/4, Rank 1/30, IELTS 7.0, GRE 324",
@@ -685,6 +714,7 @@ var sustechFeyueENGProfiles = []Profile{
 	},
 	{
 		DisplayName:       "宾大ESE侠yy",
+		OriginalAuthor: "丁明语",
 		School:            "南方科技大学",
 		MajorLine:         "ESE PhD @ University of Pennsylvania",
 		ScoreLine:         "GPA 3.65, Rank 19/51",
@@ -707,6 +737,7 @@ var sustechFeyueENGProfiles = []Profile{
 	},
 	{
 		DisplayName:       "UIC通信博wz2",
+		OriginalAuthor: "钟文韶",
 		School:            "南方科技大学",
 		MajorLine:         "CS PhD @ University of Illinois at Chicago",
 		ScoreLine:         "GPA 3.77/4, Rank 9/42, TOEFL 91",
@@ -729,6 +760,7 @@ var sustechFeyueENGProfiles = []Profile{
 	},
 	{
 		DisplayName:       "光电科研hy",
+		OriginalAuthor: "马一铭",
 		School:            "南方科技大学",
 		MajorLine:         "光电信息科学与工程（经验分享）",
 		ScoreLine:         "GPA 3.84/4, Rank 6/38",

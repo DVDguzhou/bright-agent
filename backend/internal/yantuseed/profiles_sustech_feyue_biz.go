@@ -3,6 +3,7 @@ package yantuseed
 var sustechFeyueBIZProfiles = []Profile{
 	{
 		DisplayName:       "传媒少女cd",
+		OriginalAuthor: "白浩宇",
 		School:            "南方科技大学",
 		MajorLine:         "财经传媒硕士 @ 中山大学（保研）",
 		ScoreLine:         "GPA 3.65/4, Ranking 10/68, IELTS 6.5",
@@ -25,6 +26,7 @@ var sustechFeyueBIZProfiles = []Profile{
 	},
 	{
 		DisplayName:       "法学冒险家gy",
+		OriginalAuthor: "艾谦",
 		School:            "南方科技大学",
 		MajorLine:         "法学硕士(JD/JM) @ 北京大学国际法学院",
 		ScoreLine:         "金融工程, Ranking 3/58, GPA 3.85/4",
@@ -47,6 +49,7 @@ var sustechFeyueBIZProfiles = []Profile{
 	},
 	{
 		DisplayName:       "金融卷王xy",
+		OriginalAuthor: "顾心怡",
 		School:            "南方科技大学",
 		MajorLine:         "金融学保研 @ 北京大学汇丰商学院",
 		ScoreLine:         "GPA 3.8/4, 专排 5/83, 国家奖学金",
@@ -69,6 +72,7 @@ var sustechFeyueBIZProfiles = []Profile{
 	},
 	{
 		DisplayName:       "金科状元hy",
+		OriginalAuthor: "艾谦",
 		School:            "南方科技大学",
 		MajorLine:         "金融科技方向保研（具体项目保密）",
 		ScoreLine:         "成绩 1/58, 四级616, 六级507, 托福96",
@@ -91,6 +95,7 @@ var sustechFeyueBIZProfiles = []Profile{
 	},
 	{
 		DisplayName:       "港大统计侠dy",
+		OriginalAuthor: "张雨菁",
 		School:            "南方科技大学",
 		MajorLine:         "Statistics PhD @ HKU (全奖)",
 		ScoreLine:         "GPA 3.70/4, Ranking 21/49, IELTS 7.0",
@@ -113,6 +118,7 @@ var sustechFeyueBIZProfiles = []Profile{
 	},
 	{
 		DisplayName:       "欧陆探索者mz",
+		OriginalAuthor: "李浩铭",
 		School:            "南方科技大学",
 		MajorLine:         "金融硕士(MSF) @ 博科尼大学(半奖)",
 		ScoreLine:         "16级金融工程, GMAT 700+",
@@ -135,6 +141,7 @@ var sustechFeyueBIZProfiles = []Profile{
 	},
 	{
 		DisplayName:       "哥大风控达人hm",
+		OriginalAuthor: "李浩铭",
 		School:            "南方科技大学",
 		MajorLine:         "企业风险管理硕士(ERM) @ Columbia",
 		ScoreLine:         "GPA 3.62/4, IELTS 7.5, GMAT 690",
@@ -157,6 +164,7 @@ var sustechFeyueBIZProfiles = []Profile{
 	},
 	{
 		DisplayName:       "港新混申达人bw",
+		OriginalAuthor: "刘博文",
 		School:            "南方科技大学",
 		MajorLine:         "金融学硕士(MS in Finance) @ 香港中文大学",
 		ScoreLine:         "GPA 3.6+, 专排30%, IELTS 7.5, GMAT 710",
@@ -179,6 +187,7 @@ var sustechFeyueBIZProfiles = []Profile{
 	},
 	{
 		DisplayName:       "NUS金工先锋fe",
+		OriginalAuthor: "李一林",
 		School:            "南方科技大学",
 		MajorLine:         "金融工程硕士(MFE) @ NUS",
 		ScoreLine:         "GPA 3.88, TOEFL 105, GMAT 720",
@@ -201,6 +210,7 @@ var sustechFeyueBIZProfiles = []Profile{
 	},
 	{
 		DisplayName:       "CMU数据分析师zc",
+		OriginalAuthor: "汪文慧",
 		School:            "南方科技大学",
 		MajorLine:         "信息管理硕士(MISM-BIDA) @ CMU",
 		ScoreLine:         "GPA 3.77/4 (专排11/57), TOEFL 108, GRE 327",
@@ -223,6 +233,7 @@ var sustechFeyueBIZProfiles = []Profile{
 	},
 	{
 		DisplayName:       "PPT金工达人yl",
+		OriginalAuthor: "李一林",
 		School:            "南方科技大学",
 		MajorLine:         "金融工程硕士申请经验（图解版）",
 		ScoreLine:         "16级金融工程",
@@ -245,6 +256,7 @@ var sustechFeyueBIZProfiles = []Profile{
 	},
 	{
 		DisplayName:       "考研数分选手my",
+		OriginalAuthor: "马悦",
 		School:            "南方科技大学",
 		MajorLine:         "数学(统计)硕士 考研 @ 南方科技大学",
 		ScoreLine:         "初试299分, 英语73",
@@ -267,6 +279,7 @@ var sustechFeyueBIZProfiles = []Profile{
 	},
 	{
 		DisplayName:       "精算小达人ty",
+		OriginalAuthor: "王丹妤",
 		School:            "南方科技大学",
 		MajorLine:         "统计方向保研 @ 北京大学汇丰商学院",
 		ScoreLine:         "GPA 3.84, SOA四门, 港科大学期交流",
@@ -289,6 +302,7 @@ var sustechFeyueBIZProfiles = []Profile{
 	},
 	{
 		DisplayName:       "量化瑞士通dy",
+		OriginalAuthor: "王丹妤",
 		School:            "南方科技大学",
 		MajorLine:         "金融工程硕士(MFE) @ EPFL",
 		ScoreLine:         "GPA 3.84 (3/57), TOEFL 105, GRE 325",
@@ -311,6 +325,7 @@ var sustechFeyueBIZProfiles = []Profile{
 	},
 	{
 		DisplayName:       "生统跨洋人ld",
+		OriginalAuthor: "汪立达",
 		School:            "南方科技大学",
 		MajorLine:         "Biostat PhD @ Penn State (先读海硕)",
 		ScoreLine:         "南科大GPA 3.64(7/30), 海硕GPA 3.95",
@@ -333,6 +348,7 @@ var sustechFeyueBIZProfiles = []Profile{
 	},
 	{
 		DisplayName:       "港中深会计yr",
+		OriginalAuthor: "付宇哲",
 		School:            "南方科技大学",
 		MajorLine:         "会计学硕士(MA) @ 香港中文大学(深圳)",
 		ScoreLine:         "GPA 3.59/4, Ranking 15+/60+, TOEFL 90",
@@ -355,6 +371,7 @@ var sustechFeyueBIZProfiles = []Profile{
 	},
 	{
 		DisplayName:       "清华经管冲刺jp",
+		OriginalAuthor: "温济鹏",
 		School:            "南方科技大学",
 		MajorLine:         "金融硕士保研 @ 清华大学经管学院",
 		ScoreLine:         "GPA 3.88/4 (2/56), 托福83",
@@ -377,6 +394,7 @@ var sustechFeyueBIZProfiles = []Profile{
 	},
 	{
 		DisplayName:       "汇丰游泳健将yq",
+		OriginalAuthor: "肖钰琪",
 		School:            "南方科技大学",
 		MajorLine:         "金融保研 @ 北京大学汇丰商学院",
 		ScoreLine:         "GPA 3.84/4 (1/49), 托福100+",
@@ -399,6 +417,7 @@ var sustechFeyueBIZProfiles = []Profile{
 	},
 	{
 		DisplayName:       "哥大交流攻略zh",
+		OriginalAuthor: "李如璇",
 		School:            "南方科技大学",
 		MajorLine:         "哥伦比亚大学学期交流",
 		ScoreLine:         "16级统计系, TOEFL 100+",
@@ -421,6 +440,7 @@ var sustechFeyueBIZProfiles = []Profile{
 	},
 	{
 		DisplayName:       "芝大风险管理ys",
+		OriginalAuthor: "于云嵩",
 		School:            "南方科技大学",
 		MajorLine:         "MACRM @ UChicago (Harris)",
 		ScoreLine:         "GPA 3.79/4, TOEFL 108",
@@ -443,6 +463,7 @@ var sustechFeyueBIZProfiles = []Profile{
 	},
 	{
 		DisplayName:       "ML理论探索者ya",
+		OriginalAuthor: "邓雨晴",
 		School:            "南方科技大学",
 		MajorLine:         "CSE PhD @ Rensselaer Polytechnic Institute",
 		ScoreLine:         "GPA 3.42/4 (18/25), TOEFL 98, 无GRE",
@@ -465,6 +486,7 @@ var sustechFeyueBIZProfiles = []Profile{
 	},
 	{
 		DisplayName:       "清华出国两手yc",
+		OriginalAuthor: "赵言楚",
 		School:            "南方科技大学",
 		MajorLine:         "金融硕士保研 @ 清华大学经管学院",
 		ScoreLine:         "GPA 3.86 (1/63), 国家奖学金",
@@ -487,6 +509,7 @@ var sustechFeyueBIZProfiles = []Profile{
 	},
 	{
 		DisplayName:       "HEC自由灵魂yy",
+		OriginalAuthor: "栾闻迪",
 		School:            "南方科技大学",
 		MajorLine:         "管理硕士(MiM) @ HEC Paris",
 		ScoreLine:         "GPA 3.5/4, 金融工程, 排名约30%",

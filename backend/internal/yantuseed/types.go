@@ -25,4 +25,5 @@ type Profile struct {
 	MajorLabel        string   // 非空时替代 longBio 中的"考研专业"标签，如"申请方向"
 	KnowledgeCategory string   // 非空时替代默认知识条目类别"考研经验"
 	KnowledgeTags     []string // 非空时替代默认知识条目标签
+	OriginalAuthor    string   // 原作者真实姓名/笔名，写入数据库 original_author 字段用于内部溯源
 }
