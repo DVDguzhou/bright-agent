@@ -9,14 +9,124 @@ import (
 	"github.com/agent-marketplace/backend/internal/wechathtml"
 )
 
+var schools985 = map[string]bool{
+	"北京大学": true, "清华大学": true, "复旦大学": true, "上海交通大学": true, "浙江大学": true,
+	"南京大学": true, "中国科学技术大学": true, "哈尔滨工业大学": true, "西安交通大学": true,
+	"北京理工大学": true, "南开大学": true, "天津大学": true, "东南大学": true, "武汉大学": true,
+	"华中科技大学": true, "中山大学": true, "厦门大学": true, "山东大学": true, "四川大学": true,
+	"吉林大学": true, "大连理工大学": true, "中南大学": true, "湖南大学": true, "重庆大学": true,
+	"电子科技大学": true, "西北工业大学": true, "兰州大学": true, "东北大学": true,
+	"华南理工大学": true, "北京航空航天大学": true, "同济大学": true, "中国人民大学": true,
+	"北京师范大学": true, "中国农业大学": true, "国防科技大学": true, "中央民族大学": true,
+	"华东师范大学": true, "西北农林科技大学": true, "中国海洋大学": true,
+}
+
+var schools211 = map[string]bool{
+	"北京邮电大学": true, "北京交通大学": true, "北京工业大学": true, "北京科技大学": true,
+	"北京化工大学": true, "北京林业大学": true, "北京中医药大学": true, "北京外国语大学": true,
+	"北京体育大学": true, "中央音乐学院": true, "中国传媒大学": true, "中央财经大学": true,
+	"对外经济贸易大学": true, "华北电力大学": true, "中国政法大学": true, "中国矿业大学": true,
+	"中国石油大学": true, "中国地质大学": true, "河北工业大学": true, "太原理工大学": true,
+	"内蒙古大学": true, "辽宁大学": true, "大连海事大学": true, "延边大学": true,
+	"东北师范大学": true, "哈尔滨工程大学": true, "东北农业大学": true, "东北林业大学": true,
+	"上海财经大学": true, "上海外国语大学": true, "华东理工大学": true, "东华大学": true,
+	"上海大学": true, "苏州大学": true, "南京航空航天大学": true, "南京理工大学": true,
+	"中国药科大学": true, "河海大学": true, "江南大学": true, "南京师范大学": true,
+	"南京农业大学": true, "安徽大学": true, "合肥工业大学": true, "福州大学": true,
+	"南昌大学": true, "郑州大学": true, "武汉理工大学": true, "华中农业大学": true,
+	"华中师范大学": true, "中南财经政法大学": true, "暨南大学": true, "华南师范大学": true,
+	"广西大学": true, "海南大学": true, "西南交通大学": true, "西南大学": true,
+	"西南财经大学": true, "四川农业大学": true, "贵州大学": true, "云南大学": true,
+	"西藏大学": true, "西北大学": true, "西安电子科技大学": true, "长安大学": true,
+	"陕西师范大学": true, "青海大学": true, "宁夏大学": true, "新疆大学": true,
+	"石河子大学": true,
+}
+
+func isCNUniversity(school string) bool {
+	if allCNUniversities[school] {
+		return true
+	}
+	for k := range allCNUniversities {
+		if strings.Contains(school, k) || strings.Contains(k, school) {
+			return true
+		}
+	}
+	return false
+}
+
+func lookupOverseas(school string) (overseasUnivInfo, bool) {
+	if info, ok := overseasUniversities[school]; ok {
+		return info, true
+	}
+	for k, info := range overseasUniversities {
+		if strings.Contains(school, k) || strings.Contains(k, school) {
+			return info, true
+		}
+	}
+	return overseasUnivInfo{}, false
+}
+
+func schoolTierTags(school string) []string {
+	s := strings.TrimSpace(school)
+	if s == "" {
+		return nil
+	}
+	if schools985[s] {
+		return []string{"985", "211", "双一流"}
+	}
+	if schools211[s] {
+		return []string{"211", "双一流"}
+	}
+	for k := range schools985 {
+		if strings.Contains(s, k) || strings.Contains(k, s) {
+			return []string{"985", "211", "双一流"}
+		}
+	}
+	for k := range schools211 {
+		if strings.Contains(s, k) || strings.Contains(k, s) {
+			return []string{"211", "双一流"}
+		}
+	}
+	if isCNUniversity(s) {
+		return []string{"双非"}
+	}
+	if info, ok := lookupOverseas(s); ok {
+		tags := []string{"海外院校", info.Tier}
+		if info.Country != "" {
+			tags = append(tags, info.Country)
+		}
+		if info.Region != "" {
+			tags = append(tags, info.Region)
+		}
+		return tags
+	}
+	return []string{"海外院校"}
+}
+
 func expertiseTagsFor(p Profile) models.JSONArray {
+	var base []string
 	if len(p.ExpertiseTags) > 0 {
-		return models.JSONArray(p.ExpertiseTags)
+		base = p.ExpertiseTags
+	} else if strings.TrimSpace(p.LongBioPrefix) != "" {
+		base = []string{"考研", "数学", "浙江大学", "飞跃手册"}
+	} else {
+		base = []string{"考研", "计算机考研", "备考经验", "温州大学"}
 	}
-	if strings.TrimSpace(p.LongBioPrefix) != "" {
-		return models.JSONArray{"考研", "数学", "浙江大学", "飞跃手册"}
+	tierTags := schoolTierTags(p.School)
+	if len(tierTags) == 0 {
+		return models.JSONArray(base)
 	}
-	return models.JSONArray{"考研", "计算机考研", "备考经验", "温州大学"}
+	existing := make(map[string]bool, len(base))
+	for _, t := range base {
+		existing[t] = true
+	}
+	merged := append([]string{}, base...)
+	for _, t := range tierTags {
+		if !existing[t] {
+			merged = append(merged, t)
+		}
+	}
+	return models.JSONArray(merged)
 }
 
 func sampleQuestionsFor(p Profile) models.JSONArray {
