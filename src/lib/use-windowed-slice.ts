@@ -42,12 +42,16 @@ export function useWindowedSlice<T>(items: T[], options?: WindowedSliceOptions) 
       return;
     }
     setVisibleCount(Math.min(initial, len));
-  }, [enabled, initial, len, resetKey]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enabled, initial, resetKey]);
 
   useEffect(() => {
     if (!enabled) return;
-    setVisibleCount((c) => Math.min(c, len));
-  }, [enabled, len]);
+    setVisibleCount((c) => {
+      if (c === 0 && len > 0) return Math.min(initial, len);
+      return Math.min(c, len);
+    });
+  }, [enabled, initial, len]);
 
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 

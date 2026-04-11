@@ -130,15 +130,6 @@ function normalizeFeedTab(tab: string | null): FeedTabKey {
   return "discover";
 }
 
-function shuffleArray<T>(arr: T[]): T[] {
-  const result = [...arr];
-  for (let i = result.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [result[i], result[j]] = [result[j], result[i]];
-  }
-  return result;
-}
-
 function preloadLifeAgentCover(src: string): Promise<void> {
   return new Promise((resolve) => {
     if (typeof window === "undefined") {
@@ -259,6 +250,8 @@ function LifeAgentsPageContent() {
   const discoverItemsRef = useRef(discoverItems);
   discoverItemsRef.current = discoverItems;
 
+  const discoverSeedRef = useRef((Math.random() * 2147483647) | 0);
+
   const [loadError, setLoadError] = useState<string | null>(null);
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
   const [purchasedItems, setPurchasedItems] = useState<PurchasedAgentRow[]>([]);
@@ -303,7 +296,7 @@ function LifeAgentsPageContent() {
     const cached = readDiscoverFeedCache();
     if (!cached || cached.items.length === 0) return;
     discoverCacheHydratedRef.current = true;
-    setDiscoverItems(shuffleArray(cached.items));
+    setDiscoverItems(cached.items);
     setDiscoverNextCursor(cached.nextCursor);
     setDiscoverLoading(false);
   }, []);
@@ -516,13 +509,15 @@ function LifeAgentsPageContent() {
   const refreshDiscover = useCallback(() => {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 15000);
+    discoverSeedRef.current = (Math.random() * 2147483647) | 0;
+    const seed = discoverSeedRef.current;
     setLoadError(null);
     setDiscoverLoading(true);
     setDiscoverItems([]);
     setDiscoverNextCursor(null);
-    return fetchLifeAgentsPage(48, undefined, controller.signal)
+    return fetchLifeAgentsPage(48, undefined, controller.signal, seed)
       .then(({ items, nextCursor }) => {
-        setDiscoverItems(shuffleArray(items));
+        setDiscoverItems(items);
         setDiscoverNextCursor(nextCursor || null);
         writeDiscoverFeedCache(items, nextCursor || null);
         setLoadError(null);
@@ -587,11 +582,12 @@ function LifeAgentsPageContent() {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 15000);
     const keepSnapshotVisible = discoverItemsRef.current.length > 0;
+    const seed = discoverSeedRef.current;
     setLoadError(null);
     if (!keepSnapshotVisible) setDiscoverLoading(true);
-    fetchLifeAgentsPage(48, undefined, controller.signal)
+    fetchLifeAgentsPage(48, undefined, controller.signal, seed)
       .then(({ items, nextCursor }) => {
-        setDiscoverItems(shuffleArray(items));
+        setDiscoverItems(items);
         setDiscoverNextCursor(nextCursor || null);
         writeDiscoverFeedCache(items, nextCursor || null);
         setLoadError(null);
@@ -633,7 +629,9 @@ function LifeAgentsPageContent() {
     if (!discoverNextCursor || discoverLoadingMore) return;
     setDiscoverLoadingMore(true);
     try {
-      const { items, nextCursor } = await fetchLifeAgentsPage(48, discoverNextCursor);
+      const { items, nextCursor } = await fetchLifeAgentsPage(
+        48, discoverNextCursor, undefined, discoverSeedRef.current,
+      );
       setDiscoverItems((prev) => {
         const seen = new Set(prev.map((p) => p.id));
         const newItems: LifeAgentListItem[] = [];
@@ -643,7 +641,7 @@ function LifeAgentsPageContent() {
             newItems.push(it);
           }
         }
-        return [...prev, ...shuffleArray(newItems)];
+        return [...prev, ...newItems];
       });
       setDiscoverNextCursor(nextCursor || null);
     } catch {

@@ -82,10 +82,16 @@ export async function fetchLifeAgentsPage(
   limit: number,
   cursor: string | undefined,
   signal?: AbortSignal,
+  seed?: number,
 ): Promise<{ items: LifeAgentListItem[]; nextCursor: string }> {
   const params = new URLSearchParams();
   params.set("limit", String(limit));
-  if (cursor) params.set("cursor", cursor);
+  if (seed != null) {
+    params.set("seed", String(seed));
+    if (cursor) params.set("offset", cursor);
+  } else {
+    if (cursor) params.set("cursor", cursor);
+  }
   const res = await fetch(`/api/life-agents?${params.toString()}`, {
     credentials: "include",
     signal,

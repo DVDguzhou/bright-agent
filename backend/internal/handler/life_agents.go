@@ -22,6 +22,7 @@ import (
 	"github.com/agent-marketplace/backend/internal/yantuseed"
 	"github.com/agent-marketplace/backend/internal/tts"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 func ptrStr(s *string) string {
@@ -404,6 +405,39 @@ func LifeAgentsList(cfg *config.Config) gin.HandlerFunc {
 		}
 		if limit > 100 {
 			limit = 100
+		}
+
+		// Seeded random ordering: deterministic shuffle per session
+		if seedStr := strings.TrimSpace(c.Query("seed")); seedStr != "" {
+			offset := 0
+			if offStr := strings.TrimSpace(c.Query("offset")); offStr != "" {
+				offset, _ = strconv.Atoi(offStr)
+				if offset < 0 {
+					offset = 0
+				}
+			}
+
+			var profiles []models.LifeAgentProfile
+			if err := db.DB.Where("published = ?", true).
+				Order(gorm.Expr("MD5(CONCAT(?, id))", seedStr)).
+				Offset(offset).
+				Limit(limit + 1).
+				Find(&profiles).Error; err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "INTERNAL_ERROR"})
+				return
+			}
+
+			nextCursor := ""
+			if len(profiles) > limit {
+				profiles = profiles[:limit]
+				nextCursor = strconv.Itoa(offset + limit)
+			}
+
+			c.JSON(http.StatusOK, gin.H{
+				"items":      lifeAgentListResponseItems(profiles),
+				"nextCursor": nextCursor,
+			})
+			return
 		}
 
 		q := db.DB.Where("published = ?", true)
