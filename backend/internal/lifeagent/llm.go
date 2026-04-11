@@ -8,6 +8,8 @@ import (
 	"log"
 	"regexp"
 	"strings"
+	"sync/atomic"
+	"time"
 
 	openai "github.com/sashabaranov/go-openai"
 )
@@ -184,12 +186,17 @@ func streamChatCompletion(ctx context.Context, client *openai.Client, req openai
 // is forwarded to onToken (if provided) while also being collected into the result.
 func streamChatCompletionWithCallback(ctx context.Context, client *openai.Client, req openai.ChatCompletionRequest, onToken func(string)) (string, error) {
 	req.Stream = true
+	t0 := time.Now()
 	stream, err := client.CreateChatCompletionStream(ctx, req)
 	if err != nil {
+		log.Printf("[LLM-timing] CreateStream failed after %dms: %v", time.Since(t0).Milliseconds(), err)
 		return "", err
 	}
 	defer stream.Close()
+	log.Printf("[LLM-timing] stream opened in %dms (model=%s)", time.Since(t0).Milliseconds(), req.Model)
+
 	var sb strings.Builder
+	var firstToken int32
 	for {
 		chunk, err := stream.Recv()
 		if errors.Is(err, io.EOF) {
@@ -204,19 +211,31 @@ func streamChatCompletionWithCallback(ctx context.Context, client *openai.Client
 		if len(chunk.Choices) > 0 {
 			token := chunk.Choices[0].Delta.Content
 			sb.WriteString(token)
+			if atomic.CompareAndSwapInt32(&firstToken, 0, 1) {
+				log.Printf("[LLM-timing] first token at %dms", time.Since(t0).Milliseconds())
+			}
 			if onToken != nil && token != "" {
 				onToken(token)
 			}
 		}
 	}
+	log.Printf("[LLM-timing] stream complete in %dms, total %d chars", time.Since(t0).Milliseconds(), sb.Len())
 	return sb.String(), nil
 }
 
 // twoPhaseLifeAgentReply：先模型草稿（通识+人设+微信风），再严格检索；有命中则二次调用与知识库对齐。
 // onChunk 非 nil 时，LLM token 会实时推给调用方（SSE），不再需要事后 EmitReplyChunks。
 func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model string, profile ProfileForAI, facts []StructuredFactForAI, topics []TopicSummaryForAI, entries []KnowledgeEntryForAI, history []ChatMessageForAI, message string, onChunk func(string), opts *ChatOptions) (content string, references []map[string]string, err error) {
+	tStart := time.Now()
 	draftSystem := buildDraftSystemPrompt(profile, facts, topics)
 	draftMsgs := buildMessages(draftSystem, profile.DisplayName, history, message, opts)
+
+	promptTokens := 0
+	for _, m := range draftMsgs {
+		promptTokens += len([]rune(m.Content))
+	}
+	log.Printf("[LLM-timing] prompt built in %dms, ~%d chars across %d messages", time.Since(tStart).Milliseconds(), promptTokens, len(draftMsgs))
+
 	draftReq := openai.ChatCompletionRequest{
 		Model:               model,
 		Messages:            draftMsgs,
@@ -226,13 +245,10 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 
 	planStrict := BuildRetrievalPlanStrict(message, history, facts, topics, entries)
 	needsReconcile := PlanHasArbitrationTargets(planStrict)
+	log.Printf("[LLM-timing] retrieval plan in %dms, needsReconcile=%v", time.Since(tStart).Milliseconds(), needsReconcile)
 
-	var draft string
-	if needsReconcile {
-		draft, err = streamChatCompletion(ctx, client, draftReq)
-	} else {
-		draft, err = streamChatCompletionWithCallback(ctx, client, draftReq, onChunk)
-	}
+	// 始终流式输出 draft，让用户立即看到文字
+	draft, err := streamChatCompletionWithCallback(ctx, client, draftReq, onChunk)
 	if err != nil {
 		return "", nil, err
 	}
@@ -246,9 +262,10 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 		return out, nil, nil
 	}
 
+	// 仲裁阶段静默执行，结果通过 done 事件的 reply 字段替换前端已显示的 draft
 	reconcileSystem := buildReconcileSystemPrompt(profile, planStrict)
 	reconcileUser := buildReconcileUserMessage(message, draft)
-	final, err := streamChatCompletionWithCallback(ctx, client, openai.ChatCompletionRequest{
+	final, err := streamChatCompletion(ctx, client, openai.ChatCompletionRequest{
 		Model: model,
 		Messages: []openai.ChatCompletionMessage{
 			{Role: openai.ChatMessageRoleSystem, Content: reconcileSystem},
@@ -256,13 +273,10 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 		},
 		Temperature:         safeTemperature(model, 0.25),
 		MaxCompletionTokens: 2048,
-	}, onChunk)
+	})
 	if err != nil {
 		log.Printf("[LLM] reconcile stream failed: %v", err)
 		out := humanizeReply(draft)
-		if onChunk != nil {
-			EmitReplyChunks(out, onChunk)
-		}
 		return out, BuildRetrievalReferences(planStrict), nil
 	}
 	final = strings.TrimSpace(final)

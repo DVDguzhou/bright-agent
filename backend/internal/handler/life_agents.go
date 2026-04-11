@@ -1923,6 +1923,7 @@ func LifeAgentsChatSessionDetail(cfg *config.Config) gin.HandlerFunc {
 
 func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		chatStartTime := time.Now()
 		user := middleware.MustGetUser(c)
 		if user == nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "UNAUTHORIZED"})
@@ -2054,12 +2055,15 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 		c.Header("Connection", "keep-alive")
 		c.Header("X-Accel-Buffering", "no")
 		c.Status(http.StatusOK)
+		c.Writer.Flush()
 
 		writeSSE := func(eventType string, payload interface{}) {
 			data, _ := json.Marshal(payload)
 			fmt.Fprintf(c.Writer, "event: %s\ndata: %s\n\n", eventType, data)
 			c.Writer.Flush()
 		}
+
+		log.Printf("[chat-timing] DB+prep done in %dms", time.Since(chatStartTime).Milliseconds())
 
 		var content string
 		var refs []map[string]string
