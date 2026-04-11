@@ -202,6 +202,14 @@ func UpsertProfile(userID, coverPreset string, p Profile) error {
 	}
 	short = wechathtml.TrimRunes(short, 500)
 
+	city := strings.TrimSpace(p.City)
+	prov := strings.TrimSpace(p.Province)
+	var location string
+	if city == "" {
+		city, prov, location = schoolToCity(p.School)
+	}
+	county := strings.TrimSpace(location)
+
 	var profile models.LifeAgentProfile
 	errFound := db.DB.Where("user_id = ? AND display_name = ?", userID, p.DisplayName).First(&profile).Error
 	coverURL := ""
@@ -235,6 +243,15 @@ func UpsertProfile(userID, coverPreset string, p Profile) error {
 			updates["source"] = strOrNil(p.Source)
 		}
 		updates["is_generated"] = true
+		if city != "" {
+			updates["city"] = city
+		}
+		if prov != "" {
+			updates["province"] = prov
+		}
+		if county != "" {
+			updates["county"] = county
+		}
 		if strings.TrimSpace(coverPreset) != "" {
 			updates["cover_preset_key"] = strOrNil(coverPreset)
 			updates["cover_image_url"] = nil
@@ -283,6 +300,9 @@ func UpsertProfile(userID, coverPreset string, p Profile) error {
 			OriginalAuthor:   strOrNil(p.OriginalAuthor),
 			Source:           strOrNil(p.Source),
 			IsGenerated:      true,
+			City:             strOrNil(city),
+			Province:         strOrNil(prov),
+			County:           strOrNil(county),
 			CoverImageURL:    coverImg,
 			CoverPresetKey:   presetKey,
 			Published:        true,

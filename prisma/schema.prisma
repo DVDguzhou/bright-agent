@@ -248,6 +248,11 @@ model LifeAgentProfile {
   originalAuthor   String?  @map("original_author") @db.VarChar(128) // 原作者真实姓名/笔名，用于内部溯源
   source           String?  @map("source") @db.VarChar(255)          // 内容来源，如"浙江大学飞跃手册"
   isGenerated      Boolean  @default(false) @map("is_generated")     // 是否由脚本自动生成
+  country          String?  @map("country") @db.VarChar(64)
+  province         String?  @map("province") @db.VarChar(64)
+  city             String?  @map("city") @db.VarChar(64)
+  county           String?  @map("county") @db.VarChar(64)
+  regions          Json?    @map("regions")
   voiceCloneId     String?  @map("voice_clone_id") @db.VarChar(128) // 百炼系统音色或声音复刻 voice id
   coverImageUrl    String?  @map("cover_image_url") @db.VarChar(512)
   coverPresetKey   String?  @map("cover_preset_key") @db.VarChar(64)
