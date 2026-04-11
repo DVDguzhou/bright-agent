@@ -70,6 +70,7 @@ export default function MapPage() {
           id: row.id,
           displayName: row.displayName || "Agent",
           headline: row.headline,
+          school: row.school,
           city: row.city,
           province: row.province,
           county: row.county,

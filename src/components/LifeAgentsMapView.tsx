@@ -1,7 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet.markercluster";
@@ -12,25 +11,40 @@ import { getLifeAgentLatLng, type MapCoordAgentInput } from "@/lib/life-agent-ma
 export type MapAgentMarker = MapCoordAgentInput & {
   displayName: string;
   headline?: string;
+  school?: string;
 };
 
 const ACCENT = "#0091ff";
 
-function createPinIcon() {
-  return L.divIcon({
-    className: "life-agent-map-pin",
-    html: `<div style="width:16px;height:16px;border-radius:9999px;background:${ACCENT};border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.28)"></div>`,
-    iconSize: [16, 16],
-    iconAnchor: [8, 8],
-  });
+const AVATAR_COLORS = [
+  "#0091ff", "#6366f1", "#8b5cf6", "#ec4899", "#f43f5e",
+  "#f97316", "#eab308", "#22c55e", "#14b8a6", "#06b6d4",
+];
+
+function avatarColor(name: string): string {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) | 0;
+  return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length];
 }
 
-function createHighlightPinIcon() {
+function escHtml(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+function createAvatarPinIcon(displayName: string, highlight = false) {
+  const ch = displayName.charAt(0);
+  const bg = avatarColor(displayName);
+  const sz = highlight ? 40 : 32;
+  const font = highlight ? 16 : 14;
+  const border = highlight ? `3px solid #fff` : `2.5px solid #fff`;
+  const shadow = highlight
+    ? `0 0 0 3px ${ACCENT}66, 0 2px 10px rgba(0,0,0,.3)`
+    : `0 1px 6px rgba(0,0,0,.25)`;
   return L.divIcon({
-    className: "life-agent-map-pin life-agent-map-pin--highlight",
-    html: `<div style="width:22px;height:22px;border-radius:9999px;background:${ACCENT};border:3px solid #fff;box-shadow:0 0 0 3px rgba(0,145,255,.45),0 2px 10px rgba(0,0,0,.3)"></div>`,
-    iconSize: [22, 22],
-    iconAnchor: [11, 11],
+    className: "life-agent-map-pin",
+    html: `<div style="width:${sz}px;height:${sz}px;border-radius:50%;background:${bg};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:${font}px;border:${border};box-shadow:${shadow};letter-spacing:-0.5px;user-select:none">${escHtml(ch)}</div>`,
+    iconSize: [sz, sz],
+    iconAnchor: [sz / 2, sz / 2],
   });
 }
 
@@ -46,16 +60,38 @@ function createUserLocationIcon() {
 
 function clusterIcon(cluster: L.MarkerCluster) {
   const count = cluster.getChildCount();
-  let size = 36;
+  let size = 40;
   let fontSize = 13;
-  if (count >= 100) { size = 48; fontSize = 14; }
-  else if (count >= 10) { size = 42; fontSize = 13; }
+  if (count >= 100) { size = 52; fontSize = 15; }
+  else if (count >= 10) { size = 46; fontSize = 14; }
   return L.divIcon({
-    html: `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${ACCENT};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:${fontSize}px;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.3)">${count}</div>`,
+    html: `<div style="width:${size}px;height:${size}px;border-radius:50%;background:rgba(255,255,255,.88);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);color:${ACCENT};display:flex;align-items:center;justify-content:center;font-weight:800;font-size:${fontSize}px;border:2.5px solid ${ACCENT};box-shadow:0 0 0 4px ${ACCENT}1a,0 2px 12px rgba(0,0,0,.15)">${count}</div>`,
     className: "life-agent-map-cluster",
     iconSize: L.point(size, size),
     iconAnchor: L.point(size / 2, size / 2),
   });
+}
+
+function buildPopupHtml(agent: MapAgentMarker): string {
+  const ch = escHtml(agent.displayName.charAt(0));
+  const bg = avatarColor(agent.displayName);
+  const name = escHtml(agent.displayName);
+  const school = agent.school ? escHtml(agent.school) : "";
+  const headline = agent.headline ? escHtml(agent.headline).slice(0, 60) : "";
+  return `<div style="min-width:180px;max-width:240px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+    <div style="width:36px;height:36px;border-radius:50%;background:${bg};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex-shrink:0">${ch}</div>
+    <div style="min-width:0">
+      <div style="font-weight:700;font-size:14px;color:#1e293b;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${name}</div>
+      ${school ? `<div style="font-size:12px;color:#64748b;line-height:1.3;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${school}</div>` : ""}
+    </div>
+  </div>
+  ${headline ? `<div style="font-size:12px;color:#475569;line-height:1.5;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:8px">${headline}</div>` : ""}
+  <a href="/life-agents/${agent.id}" style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;color:${ACCENT};text-decoration:none">
+    查看主页
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+  </a>
+</div>`;
 }
 
 function MapInstanceExposer({ mapRef }: { mapRef: React.MutableRefObject<L.Map | null> }) {
@@ -98,23 +134,15 @@ function MapLayoutFit({
   return null;
 }
 
-/**
- * Imperative MarkerClusterGroup layer — avoids 1600+ React <Marker> reconciliation.
- * Adds all markers to a single L.markerClusterGroup for clustering + spiderfy.
- */
 function ClusteredMarkers({
   markers,
   highlightAgentId,
-  onMarkerClick,
 }: {
   markers: { agent: MapAgentMarker; position: L.LatLngTuple }[];
   highlightAgentId: string | null;
-  onMarkerClick: (agentId: string) => void;
 }) {
   const map = useMap();
   const clusterRef = useRef<L.MarkerClusterGroup | null>(null);
-  const pinIcon = useMemo(() => createPinIcon(), []);
-  const highlightIcon = useMemo(() => createHighlightPinIcon(), []);
 
   useEffect(() => {
     const group = L.markerClusterGroup({
@@ -132,14 +160,16 @@ function ClusteredMarkers({
     const leafletMarkers = markers.map(({ agent, position }) => {
       const isHi = Boolean(highlightAgentId && agent.id === highlightAgentId);
       const m = L.marker(position, {
-        icon: isHi ? highlightIcon : pinIcon,
+        icon: createAvatarPinIcon(agent.displayName, isHi),
         zIndexOffset: isHi ? 800 : 0,
       });
-      m.bindTooltip(
-        `<span class="text-xs font-semibold text-slate-800">${agent.displayName}</span>`,
-        { direction: "top", offset: [0, -6], opacity: 1 },
-      );
-      m.on("click", () => onMarkerClick(agent.id));
+      m.bindPopup(buildPopupHtml(agent), {
+        closeButton: false,
+        className: "life-agent-map-popup",
+        maxWidth: 260,
+        minWidth: 180,
+        offset: [0, -8],
+      });
       return m;
     });
 
@@ -151,7 +181,7 @@ function ClusteredMarkers({
       map.removeLayer(group);
       clusterRef.current = null;
     };
-  }, [map, markers, highlightAgentId, pinIcon, highlightIcon, onMarkerClick]);
+  }, [map, markers, highlightAgentId]);
 
   return null;
 }
@@ -179,7 +209,6 @@ export default function LifeAgentsMapView({
   rounded = true,
   mapLayoutNonce = 0,
 }: Props) {
-  const router = useRouter();
   const mapRef = useRef<L.Map | null>(null);
   const userIcon = useMemo(() => createUserLocationIcon(), []);
 
@@ -192,17 +221,12 @@ export default function LifeAgentsMapView({
 
   const points = useMemo(() => markers.map((m) => m.position), [markers]);
 
-  const handleMarkerClick = useCallback(
-    (agentId: string) => router.push(`/life-agents/${agentId}`),
-    [router],
-  );
-
   const ring = rounded ? "rounded-2xl ring-1 ring-slate-200/80" : "";
   const roundMap = rounded ? "rounded-2xl" : "";
 
   return (
     <div
-      className={`relative overflow-hidden ${ring} [&_.life-agent-map-pin]:!border-0 [&_.life-agent-map-pin]:!bg-transparent [&_.life-agent-map-cluster]:!border-0 [&_.life-agent-map-cluster]:!bg-transparent [&_.life-agent-map-user-loc]:!border-0 [&_.life-agent-map-user-loc]:!bg-transparent ${className}`}
+      className={`relative overflow-hidden ${ring} [&_.life-agent-map-pin]:!border-0 [&_.life-agent-map-pin]:!bg-transparent [&_.life-agent-map-cluster]:!border-0 [&_.life-agent-map-cluster]:!bg-transparent [&_.life-agent-map-user-loc]:!border-0 [&_.life-agent-map-user-loc]:!bg-transparent [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!rounded-xl [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!shadow-lg [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!ring-1 [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!ring-black/5 [&_.life-agent-map-popup_.leaflet-popup-tip]:!shadow-lg ${className}`}
       style={rounded ? { minHeight: "min(62dvh, 520px)" } : { minHeight: "100%" }}
     >
       <MapContainer
@@ -211,19 +235,18 @@ export default function LifeAgentsMapView({
         zoomControl={false}
         className={`z-0 w-full ${mapHeightClass} ${roundMap}`}
         scrollWheelZoom
-        attributionControl
+        attributionControl={false}
       >
         <MapInstanceExposer mapRef={mapRef} />
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          url="https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=7&x={x}&y={y}&z={z}"
+          subdomains={["1", "2", "3", "4"]}
         />
         <ScaleControl position="bottomleft" imperial={false} />
         <MapLayoutFit points={points} userLatLng={userLatLng ?? null} layoutNonce={mapLayoutNonce} />
         <ClusteredMarkers
           markers={markers}
           highlightAgentId={highlightAgentId}
-          onMarkerClick={handleMarkerClick}
         />
         {userLatLng ? (
           <Marker
