@@ -30,22 +30,25 @@ export async function POST(
 
     const ct = backendRes.headers.get("content-type") || "";
     if (ct.includes("text/event-stream") && backendRes.body) {
-      const backendReader = backendRes.body.getReader();
-      const stream = new ReadableStream({
-        async pull(ctrl) {
-          const { done, value } = await backendReader.read();
-          if (done) {
-            ctrl.close();
-            return;
-          }
-          ctrl.enqueue(value);
-        },
-        cancel() {
-          backendReader.cancel();
-        },
-      });
+      const { readable, writable } = new TransformStream();
 
-      return new Response(stream, {
+      (async () => {
+        const reader = backendRes.body!.getReader();
+        const writer = writable.getWriter();
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            await writer.write(value);
+          }
+        } catch {
+          // stream interrupted
+        } finally {
+          writer.close().catch(() => {});
+        }
+      })();
+
+      return new Response(readable, {
         status: backendRes.status,
         headers: {
           "Content-Type": "text/event-stream",

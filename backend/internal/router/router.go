@@ -13,6 +13,7 @@ func Setup(cfg *config.Config) *gin.Engine {
 
 	api := r.Group("/api")
 	{
+		api.GET("/sse-test", handler.SSETest())
 		auth := api.Group("/auth")
 		{
 			auth.POST("/login", handler.Login(cfg))

@@ -197,6 +197,7 @@ func streamChatCompletionWithCallback(ctx context.Context, client *openai.Client
 
 	var sb strings.Builder
 	var firstToken int32
+	var firstVisibleToken int32
 	for {
 		chunk, err := stream.Recv()
 		if errors.Is(err, io.EOF) {
@@ -210,11 +211,18 @@ func streamChatCompletionWithCallback(ctx context.Context, client *openai.Client
 		}
 		if len(chunk.Choices) > 0 {
 			token := chunk.Choices[0].Delta.Content
+			reasoning := ""
+			if chunk.Choices[0].Delta.ReasoningContent != "" {
+				reasoning = chunk.Choices[0].Delta.ReasoningContent
+			}
 			sb.WriteString(token)
 			if atomic.CompareAndSwapInt32(&firstToken, 0, 1) {
-				log.Printf("[LLM-timing] first token at %dms", time.Since(t0).Milliseconds())
+				log.Printf("[LLM-timing] first token at %dms (content=%q reasoning=%q)", time.Since(t0).Milliseconds(), token, reasoning)
 			}
 			if onToken != nil && token != "" {
+				if atomic.CompareAndSwapInt32(&firstVisibleToken, 0, 1) {
+					log.Printf("[LLM-timing] first VISIBLE token at %dms: %q", time.Since(t0).Milliseconds(), token)
+				}
 				onToken(token)
 			}
 		}
