@@ -1,0 +1,143 @@
+
+## 深圳大学飞跃手册系列（61 条）
+
+来源：深圳大学飞跃手册GitHub仓库。
+档案文件：`backend/internal/yantuseed/profiles_szu_feyue.go`
+
+| 序号 | 人生 Agent 显示名 | 原归属来源 | 原归属账号 | 新登录邮箱 | 初始密码 |
+|-----|------------------|-----------|------------|------------|----------|
+| 688 | 芋圆_梨子 | 深大飞跃手册 | yantu-import@demo.com | leaf_orb25@163.com | YantuLa2026! |
+| 689 | 酸奶_企鹅 | 深大飞跃手册 | yantu-import@demo.com | noon_frost24@163.com | YantuLa2026! |
+| 690 | 月饼练瑜伽 | 深大飞跃手册 | yantu-import@demo.com | gear_silk44@163.com | YantuLa2026! |
+| 691 | 酸奶搬砖中 | 深大飞跃手册 | yantu-import@demo.com | tagglow75@163.com | YantuLa2026! |
+| 692 | 花卷打工中 | 深大飞跃手册 | yantu-import@demo.com | petalruby21@163.com | YantuLa2026! |
+| 693 | 飞翔的椰果oo | 深大飞跃手册 | yantu-import@demo.com | orbdusk32@163.com | YantuLa2026! |
+| 694 | 猫头鹰遛弯了 | 深大飞跃手册 | yantu-import@demo.com | rain_wave68@163.com | YantuLa2026! |
+| 695 | 海星在发呆 | 深大飞跃手册 | yantu-import@demo.com | loop_loop47@163.com | YantuLa2026! |
+| 696 | 奔跑的兔兔ya | 深大飞跃手册 | yantu-import@demo.com | goldpeak15@163.com | YantuLa2026! |
+| 697 | 机灵的华夫饼酱 | 深大飞跃手册 | yantu-import@demo.com | plummoss27@163.com | YantuLa2026! |
+| 698 | 章鱼写代码 | 深大飞跃手册 | yantu-import@demo.com | sun_gold46@163.com | YantuLa2026! |
+| 699 | 拉面整理笔记 | 深大飞跃手册 | yantu-import@demo.com | pixel_dove15@163.com | YantuLa2026! |
+| 700 | 沉默的桃子_0 | 深大飞跃手册 | yantu-import@demo.com | dusklace62@163.com | YantuLa2026! |
+| 701 | 苹果吖看星星 | 深大飞跃手册 | yantu-import@demo.com | silk_bark99@163.com | YantuLa2026! |
+| 702 | 阳光的果冻哈 | 深大飞跃手册 | yantu-import@demo.com | raypixel14@163.com | YantuLa2026! |
+| 703 | 樱桃_0的碎碎念 | 深大飞跃手册 | yantu-import@demo.com | flux_lark72@163.com | YantuLa2026! |
+| 704 | 蔓越莓7打篮球 | 深大飞跃手册 | yantu-import@demo.com | creekloop73@163.com | YantuLa2026! |
+| 705 | 安静的松鼠君 | 深大飞跃手册 | yantu-import@demo.com | creek_flux98@163.com | YantuLa2026! |
+| 706 | 自在的橙子呀 | 深大飞跃手册 | yantu-import@demo.com | bloom_carp72@163.com | YantuLa2026! |
+| 707 | 奶茶_杨梅 | 深大飞跃手册 | yantu-import@demo.com | rosegrid72@163.com | YantuLa2026! |
+| 708 | 牛轧糖在赶DDL | 深大飞跃手册 | yantu-import@demo.com | creek_wave71@163.com | YantuLa2026! |
+| 709 | 年糕_0修电脑 | 深大飞跃手册 | yantu-import@demo.com | stormgold71@163.com | YantuLa2026! |
+| 710 | 拿铁要毕业了 | 深大飞跃手册 | yantu-import@demo.com | bitdawn28@163.com | YantuLa2026! |
+| 711 | 樱桃遛弯了 | 深大飞跃手册 | yantu-import@demo.com | seeddot57@163.com | YantuLa2026! |
+| 712 | 快乐的豆腐z | 深大飞跃手册 | yantu-import@demo.com | arcsilk13@163.com | YantuLa2026! |
+| 713 | 桂花酱吹口琴 | 深大飞跃手册 | yantu-import@demo.com | owlpixel19@163.com | YantuLa2026! |
+| 714 | 薄荷吃火锅 | 深大飞跃手册 | yantu-import@demo.com | dunemoon41@163.com | YantuLa2026! |
+| 715 | 迷路的蜻蜓9 | 深大飞跃手册 | yantu-import@demo.com | bitsun43@163.com | YantuLa2026! |
+| 716 | 认真的荔枝7 | 深大飞跃手册 | yantu-import@demo.com | mole_dot50@163.com | YantuLa2026! |
+| 717 | 红薯_0写代码 | 深大飞跃手册 | yantu-import@demo.com | flux_bark28@163.com | YantuLa2026! |
+| 718 | 迷路的可可小号 | 深大飞跃手册 | yantu-import@demo.com | log_wave48@163.com | YantuLa2026! |
+| 719 | 鲸鱼ya吃火锅 | 深大飞跃手册 | yantu-import@demo.com | valedawn22@163.com | YantuLa2026! |
+| 720 | 棉花糖_鸡蛋仔 | 深大飞跃手册 | yantu-import@demo.com | dovenoon73@163.com | YantuLa2026! |
+| 721 | 蜜桃追番中 | 深大飞跃手册 | yantu-import@demo.com | mistfern14@163.com | YantuLa2026! |
+| 722 | 飞翔的寿司3 | 深大飞跃手册 | yantu-import@demo.com | moon_ray01@163.com | YantuLa2026! |
+| 723 | 鸽子鸭学画画 | 深大飞跃手册 | yantu-import@demo.com | dune_ray03@163.com | YantuLa2026! |
+| 724 | 麻雀钓鱼中 | 深大飞跃手册 | yantu-import@demo.com | opal_snow55@163.com | YantuLa2026! |
+| 725 | 阳光的豆沙zzz | 深大飞跃手册 | yantu-import@demo.com | hex_gold06@163.com | YantuLa2026! |
+| 726 | 草莓考试周 | 深大飞跃手册 | yantu-import@demo.com | glenbit35@163.com | YantuLa2026! |
+| 727 | 酸奶大王喝牛奶 | 深大飞跃手册 | yantu-import@demo.com | petal_rain42@163.com | YantuLa2026! |
+| 728 | 石榴__修电脑 | 深大飞跃手册 | yantu-import@demo.com | elk_lace57@163.com | YantuLa2026! |
+| 729 | 飞翔的蓝莓x | 深大飞跃手册 | yantu-import@demo.com | petal_dusk29@163.com | YantuLa2026! |
+| 730 | 慵懒的锦鲤7 | 深大飞跃手册 | yantu-import@demo.com | bloom_glen37@163.com | YantuLa2026! |
+| 731 | 自在的瓢虫z | 深大飞跃手册 | yantu-import@demo.com | crowsun98@163.com | YantuLa2026! |
+| 732 | 梨子看日落 | 深大飞跃手册 | yantu-import@demo.com | covenoon64@163.com | YantuLa2026! |
+| 733 | 西瓜oo喝绿茶 | 深大飞跃手册 | yantu-import@demo.com | golddot60@163.com | YantuLa2026! |
+| 734 | 黑芝麻考试周 | 深大飞跃手册 | yantu-import@demo.com | frostsilk48@163.com | YantuLa2026! |
+| 735 | 板栗做饭中 | 深大飞跃手册 | yantu-import@demo.com | duskorb21@163.com | YantuLa2026! |
+| 736 | 太妃糖今天早睡 | 深大飞跃手册 | yantu-import@demo.com | node_peak82@163.com | YantuLa2026! |
+| 737 | 葡萄种花中 | 深大飞跃手册 | yantu-import@demo.com | frost_haze52@163.com | YantuLa2026! |
+| 738 | 酸奶写代码 | 深大飞跃手册 | yantu-import@demo.com | coildove09@163.com | YantuLa2026! |
+| 739 | 梨子er逛公园 | 深大飞跃手册 | yantu-import@demo.com | dawn_brook89@163.com | YantuLa2026! |
+| 740 | 桃子折纸鹤 | 深大飞跃手册 | yantu-import@demo.com | fernwave60@163.com | YantuLa2026! |
+| 741 | 温柔的咖啡_0 | 深大飞跃手册 | yantu-import@demo.com | jaynode43@163.com | YantuLa2026! |
+| 742 | 蓝莓酱_草莓 | 深大飞跃手册 | yantu-import@demo.com | jay_sun96@163.com | YantuLa2026! |
+| 743 | 梨子oo泡咖啡 | 深大飞跃手册 | yantu-import@demo.com | cove_ray45@163.com | YantuLa2026! |
+| 744 | 汤圆_章鱼 | 深大飞跃手册 | yantu-import@demo.com | gridleaf16@163.com | YantuLa2026! |
+| 745 | 豆包钓鱼中 | 深大飞跃手册 | yantu-import@demo.com | glenfern89@163.com | YantuLa2026! |
+| 746 | 梨子听播客 | 深大飞跃手册 | yantu-import@demo.com | corebit38@163.com | YantuLa2026! |
+| 747 | 兔兔_海星 | 深大飞跃手册 | yantu-import@demo.com | gold_dove84@163.com | YantuLa2026! |
+| 748 | 奶酪_铜锣烧 | 深大飞跃手册 | yantu-import@demo.com | jaybolt68@163.com | YantuLa2026! |
+
+## 西交利物浦大学飞跃手册系列（5 条）
+
+来源：西交利物浦大学飞跃手册GitHub仓库。
+档案文件：`backend/internal/yantuseed/profiles_xjtlu_feyue.go`
+
+| 序号 | 人生 Agent 显示名 | 原归属来源 | 原归属账号 | 新登录邮箱 | 初始密码 |
+|-----|------------------|-----------|------------|------------|----------|
+| 749 | 泡芙_薯片 | XJTLU飞跃手册 | yantu-import@demo.com | tag_tide83@163.com | YantuLa2026! |
+| 750 | 酸奶捏泥巴 | XJTLU飞跃手册 | yantu-import@demo.com | moondove09@163.com | YantuLa2026! |
+| 751 | 奶酪_果冻 | XJTLU飞跃手册 | yantu-import@demo.com | pixelstorm57@163.com | YantuLa2026! |
+| 752 | 蜗牛画画中 | XJTLU飞跃手册 | yantu-import@demo.com | mole_bolt29@163.com | YantuLa2026! |
+| 753 | 元气的阿狸_v | XJTLU飞跃手册 | yantu-import@demo.com | logtide77@163.com | YantuLa2026! |
+
+## 华东理工大学飞跃手册系列（53 条）
+
+来源：华东理工大学飞跃手册GitHub仓库。
+档案文件：`backend/internal/yantuseed/profiles_ecust_feyue.go`
+
+| 序号 | 人生 Agent 显示名 | 原归属来源 | 原归属账号 | 新登录邮箱 | 初始密码 |
+|-----|------------------|-----------|------------|------------|----------|
+| 754 | 慵懒的石榴_v | 华理飞跃手册 | yantu-import@demo.com | orb_map75@163.com | YantuLa2026! |
+| 755 | 石榴z在赶DDL | 华理飞跃手册 | yantu-import@demo.com | wren_bloom25@163.com | YantuLa2026! |
+| 756 | 西瓜_柠檬 | 华理飞跃手册 | yantu-import@demo.com | silklark66@163.com | YantuLa2026! |
+| 757 | 努力的杨梅鸭 | 华理飞跃手册 | yantu-import@demo.com | beamcarp88@163.com | YantuLa2026! |
+| 758 | 自在的年糕_v | 华理飞跃手册 | yantu-import@demo.com | sun_bloom61@163.com | YantuLa2026! |
+| 759 | 蔓越莓刷题中 | 华理飞跃手册 | yantu-import@demo.com | bytesilk03@163.com | YantuLa2026! |
+| 760 | 烧饼__做饭中 | 华理飞跃手册 | yantu-import@demo.com | swan_ruby12@163.com | YantuLa2026! |
+| 761 | 河马酱整理笔记 | 华理飞跃手册 | yantu-import@demo.com | mist_gold97@163.com | YantuLa2026! |
+| 762 | 淡定的蜗牛er | 华理飞跃手册 | yantu-import@demo.com | rain_frost08@163.com | YantuLa2026! |
+| 763 | 豆沙ii写代码 | 华理飞跃手册 | yantu-import@demo.com | waveonyx89@163.com | YantuLa2026! |
+| 764 | 石榴__不吃宵夜 | 华理飞跃手册 | yantu-import@demo.com | chip_snow52@163.com | YantuLa2026! |
+| 765 | 月饼吃早餐 | 华理飞跃手册 | yantu-import@demo.com | valegear73@163.com | YantuLa2026! |
+| 766 | 银杏小号泡咖啡 | 华理飞跃手册 | yantu-import@demo.com | ray_bit34@163.com | YantuLa2026! |
+| 767 | 海星_麻薯 | 华理飞跃手册 | yantu-import@demo.com | lace_wave38@163.com | YantuLa2026! |
+| 768 | 蓝莓小号听播客 | 华理飞跃手册 | yantu-import@demo.com | starwave73@163.com | YantuLa2026! |
+| 769 | 兔兔_银杏 | 华理飞跃手册 | yantu-import@demo.com | glow_storm41@163.com | YantuLa2026! |
+| 770 | 蔓越莓在学习 | 华理飞跃手册 | yantu-import@demo.com | mist_creek46@163.com | YantuLa2026! |
+| 771 | 企鹅9追番中 | 华理飞跃手册 | yantu-import@demo.com | rain_sun93@163.com | YantuLa2026! |
+| 772 | 果冻煮火锅 | 华理飞跃手册 | yantu-import@demo.com | rain_chip59@163.com | YantuLa2026! |
+| 773 | 温柔的草莓_0 | 华理飞跃手册 | yantu-import@demo.com | glencove58@163.com | YantuLa2026! |
+| 774 | 海豚小号打篮球 | 华理飞跃手册 | yantu-import@demo.com | gear_dot78@163.com | YantuLa2026! |
+| 775 | 荔枝_粽子 | 华理飞跃手册 | yantu-import@demo.com | map_mist61@163.com | YantuLa2026! |
+| 776 | 元气的河马9 | 华理飞跃手册 | yantu-import@demo.com | pixel_fern52@163.com | YantuLa2026! |
+| 777 | 麻雀_蔓越莓 | 华理飞跃手册 | yantu-import@demo.com | stormvole14@163.com | YantuLa2026! |
+| 778 | 温柔的蓝莓酱_0 | 华理飞跃手册 | yantu-import@demo.com | brook_wren53@163.com | YantuLa2026! |
+| 779 | 芋圆君学画画 | 华理飞跃手册 | yantu-import@demo.com | hex_bass66@163.com | YantuLa2026! |
+| 780 | 铜锣烧ya看星星 | 华理飞跃手册 | yantu-import@demo.com | hex_petal46@163.com | YantuLa2026! |
+| 781 | 年糕种花中 | 华理飞跃手册 | yantu-import@demo.com | gold_jade67@163.com | YantuLa2026! |
+| 782 | 蜻蜓_青蛙 | 华理飞跃手册 | yantu-import@demo.com | pine_swan17@163.com | YantuLa2026! |
+| 783 | 蘑菇读论文 | 华理飞跃手册 | yantu-import@demo.com | haze_lynx89@163.com | YantuLa2026! |
+| 784 | 火龙果_橙子 | 华理飞跃手册 | yantu-import@demo.com | elk_seed89@163.com | YantuLa2026! |
+| 785 | 海豚大王听播客 | 华理飞跃手册 | yantu-import@demo.com | sunnode23@163.com | YantuLa2026! |
+| 786 | 小熊今天早睡 | 华理飞跃手册 | yantu-import@demo.com | capcreek75@163.com | YantuLa2026! |
+| 787 | 安静的猫头鹰er | 华理飞跃手册 | yantu-import@demo.com | haze_jay16@163.com | YantuLa2026! |
+| 788 | 铜锣烧看电影 | 华理飞跃手册 | yantu-import@demo.com | node_loop47@163.com | YantuLa2026! |
+| 789 | 沉默的鸽子3 | 华理飞跃手册 | yantu-import@demo.com | pinebass26@163.com | YantuLa2026! |
+| 790 | 水母看星星 | 华理飞跃手册 | yantu-import@demo.com | fernbit02@163.com | YantuLa2026! |
+| 791 | 阳光的青蛙z | 华理飞跃手册 | yantu-import@demo.com | jayfrost39@163.com | YantuLa2026! |
+| 792 | 机灵的豆奶__ | 华理飞跃手册 | yantu-import@demo.com | vale_iron73@163.com | YantuLa2026! |
+| 793 | 荔枝练瑜伽 | 华理飞跃手册 | yantu-import@demo.com | glen_arc59@163.com | YantuLa2026! |
+| 794 | 瓢虫zzz搬砖中 | 华理飞跃手册 | yantu-import@demo.com | linkfrost10@163.com | YantuLa2026! |
+| 795 | 迷路的奶茶吖 | 华理飞跃手册 | yantu-import@demo.com | mist_tide42@163.com | YantuLa2026! |
+| 796 | 奔跑的海星_v | 华理飞跃手册 | yantu-import@demo.com | duskwave89@163.com | YantuLa2026! |
+| 797 | 快乐的柠檬鸭 | 华理飞跃手册 | yantu-import@demo.com | vale_elk25@163.com | YantuLa2026! |
+| 798 | 泡芙去散步 | 华理飞跃手册 | yantu-import@demo.com | swan_loop91@163.com | YantuLa2026! |
+| 799 | 酸奶_豆沙 | 华理飞跃手册 | yantu-import@demo.com | leafswan80@163.com | YantuLa2026! |
+| 800 | 葡萄呀泡咖啡 | 华理飞跃手册 | yantu-import@demo.com | beamwren79@163.com | YantuLa2026! |
+| 801 | 芒果9去散步 | 华理飞跃手册 | yantu-import@demo.com | glenglow49@163.com | YantuLa2026! |
+| 802 | 认真的柿子3 | 华理飞跃手册 | yantu-import@demo.com | owlvole41@163.com | YantuLa2026! |
+| 803 | 奶茶3打篮球 | 华理飞跃手册 | yantu-import@demo.com | glow_ruby84@163.com | YantuLa2026! |
+| 804 | 阳光的椰果oo | 华理飞跃手册 | yantu-import@demo.com | moss_pixel64@163.com | YantuLa2026! |
+| 805 | 西瓜x写代码 | 华理飞跃手册 | yantu-import@demo.com | wave_chip46@163.com | YantuLa2026! |
+| 806 | 勤劳的石榴大王 | 华理飞跃手册 | yantu-import@demo.com | glow_peak97@163.com | YantuLa2026! |
