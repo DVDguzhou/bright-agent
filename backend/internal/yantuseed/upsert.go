@@ -315,14 +315,21 @@ func UpsertProfile(userID, coverPreset string, p Profile) error {
 	return nil
 }
 
-// Profiles 为当前仓库内置的榜样正文：研途榜样 3 人 + 浙大数院飞跃手册（2021）全书目录内学长学姐（考研+保研+境内/境外升学+院外受邀金工）+ 北邮飞跃手册第十四章申请经验谈 23 人 + 华科飞跃手册 2020 光电/工科 27 人 + 南科大飞跃手册 CS/ENG/SCI/BIZ/MED 148 人 + 广工保研手册 8 人 + 川师升学 Wiki 59 人。
+// Profiles 为当前仓库内置的榜样正文：
+// 研途榜样 3 人 + 浙大数院飞跃手册 60 人 + 北邮 23 人 + 华科 27 人 + 南科大 148 人 + 广工 8 人 + 川师 59 人
+// + 安大 123 人 + 上大 155 人 + 海大 48 人 + 上交 25 人 + 山大 8 人 = 687 人
 func Profiles() []Profile {
 	n := 3 + len(zjuFeyue2021Profiles) + len(zjuFeyue2021ProfilesMore) + len(zjuFeyue2021ProfilesAbroad) +
 		len(zjuFeyue2021ProfilesDomesticRemain1) + len(zjuFeyue2021ProfilesDomesticRemain2) + len(zjuFeyue2021ProfilesAbroadMore) +
 		len(buptFeyueProfiles) + len(hustFeyueProfiles) +
 		len(sustechFeyueCSProfiles) + len(sustechFeyueENGProfiles) + len(sustechFeyueSCIProfiles) +
 		len(sustechFeyueBIZProfiles) + len(sustechFeyueMEDProfiles) +
-		len(gdutFeyueProfiles) + len(sicnuFeyueProfiles1) + len(sicnuFeyueProfiles2)
+		len(gdutFeyueProfiles) + len(sicnuFeyueProfiles1) + len(sicnuFeyueProfiles2) +
+		len(ahuFeyueProfiles1) + len(ahuFeyueProfiles2) +
+		len(shuFeyueProfiles1) + len(shuFeyueProfiles2) + len(shuFeyueProfiles3) +
+		len(hnuFeyueProfiles) +
+		len(sjtuFeyueProfiles) +
+		len(sduFeyueProfiles)
 	out := make([]Profile, 0, n)
 	out = append(out, yaoShengJie, zhangGuiShuo, yangChenYang)
 	out = append(out, zjuFeyue2021Profiles...)
@@ -341,5 +348,13 @@ func Profiles() []Profile {
 	out = append(out, gdutFeyueProfiles...)
 	out = append(out, sicnuFeyueProfiles1...)
 	out = append(out, sicnuFeyueProfiles2...)
+	out = append(out, ahuFeyueProfiles1...)
+	out = append(out, ahuFeyueProfiles2...)
+	out = append(out, shuFeyueProfiles1...)
+	out = append(out, shuFeyueProfiles2...)
+	out = append(out, shuFeyueProfiles3...)
+	out = append(out, hnuFeyueProfiles...)
+	out = append(out, sjtuFeyueProfiles...)
+	out = append(out, sduFeyueProfiles...)
 	return out
 }
