@@ -88,7 +88,10 @@ export async function fetchLifeAgentsPage(
   params.set("limit", String(limit));
   if (seed != null) {
     params.set("seed", String(seed));
-    if (cursor) params.set("offset", cursor);
+    if (cursor) {
+      params.set("offset", cursor);
+      params.set("cursor", cursor);
+    }
   } else {
     if (cursor) params.set("cursor", cursor);
   }
