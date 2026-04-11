@@ -2104,51 +2104,19 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 		db.DB.Create(&models.LifeAgentChatMessage{ID: models.GenID(), SessionID: sessionID, Role: "user", Content: body.Message})
 		assistantMsgID := models.GenID()
 
-		var audioURL *string
-		var audioFormat *string
-		var audioData []byte
-		var audioDurationSec *int
-		resolvedTTS := cfg.ResolveTTSProvider()
-		voiceCloneID := ptrStr(p.VoiceCloneID)
-		if body.UseVoiceReply && content != "" && (voiceCloneID != "" || resolvedTTS != "") {
-			ttsProvider := tts.NewProviderFromConfig(cfg)
-			audioB64, dur, err := ttsProvider.Synthesize(voiceCloneID, content)
-			if err != nil {
-				log.Printf("life-agents chat: TTS failed (provider=%q): %v", resolvedTTS, err)
-			}
-			if err == nil && audioB64 != "" {
-				decoded, decodeErr := base64.StdEncoding.DecodeString(audioB64)
-				if decodeErr != nil {
-					log.Printf("life-agents chat: decode TTS audio: %v", decodeErr)
-				} else if len(decoded) > 0 {
-					format := strings.TrimSpace(ttsProvider.MediaFormat())
-					if format == "" {
-						format = "mp3"
-					}
-					url := "/api/audio/" + assistantMsgID + "." + format
-					audioURL = &url
-					audioFormat = &format
-					audioData = decoded
-					audioDurationSec = &dur
-				}
-			}
-		}
-
+		// 先保存消息（无音频）、发 done 事件，让前端立即拿到完整文本
 		db.DB.Create(&models.LifeAgentChatMessage{
-			ID:               assistantMsgID,
-			SessionID:        sessionID,
-			Role:             "assistant",
-			Content:          content,
-			Refs:             refsAny,
-			AudioURL:         audioURL,
-			AudioFormat:      audioFormat,
-			AudioData:        audioData,
-			AudioDurationSec: audioDurationSec,
+			ID:        assistantMsgID,
+			SessionID: sessionID,
+			Role:      "assistant",
+			Content:   content,
+			Refs:      refsAny,
 		})
 		db.DB.Model(packToConsume).Update("questions_used", packToConsume.QuestionsUsed+1)
 		db.DB.Model(&models.LifeAgentChatSession{}).Where("id = ?", sessionID).Update("updated_at", db.DB.NowFunc())
+
 		// 异步生成会话摘要：消息数 > 12 时触发，不阻塞响应
-		totalMsgCount := len(msgs) + 2 // existing + new user + new assistant
+		totalMsgCount := len(msgs) + 2
 		if totalMsgCount > 12 {
 			allHist := make([]lifeagent.ChatMessageForAI, len(hist), len(hist)+2)
 			copy(allHist, hist)
@@ -2174,6 +2142,7 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 				}
 			}(sessionID, allHist)
 		}
+
 		ratingState := buildLifeAgentRatingState(id, user.ID)
 		donePayload := gin.H{
 			"sessionId":          sessionID,
@@ -2184,13 +2153,40 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 			"remainingQuestions": remaining - 1,
 			"rating":             ratingState,
 		}
-		if audioURL != nil {
-			donePayload["audioUrl"] = *audioURL
-		}
-		if audioDurationSec != nil {
-			donePayload["audioDurationSec"] = *audioDurationSec
-		}
 		writeSSE("done", donePayload)
+
+		// TTS 在 done 之后执行，不阻塞文本展示；完成后发 audio_ready 事件
+		resolvedTTS := cfg.ResolveTTSProvider()
+		voiceCloneID := ptrStr(p.VoiceCloneID)
+		if body.UseVoiceReply && content != "" && (voiceCloneID != "" || resolvedTTS != "") {
+			ttsProvider := tts.NewProviderFromConfig(cfg)
+			audioB64, dur, err := ttsProvider.Synthesize(voiceCloneID, content)
+			if err != nil {
+				log.Printf("life-agents chat: TTS failed (provider=%q): %v", resolvedTTS, err)
+			}
+			if err == nil && audioB64 != "" {
+				decoded, decodeErr := base64.StdEncoding.DecodeString(audioB64)
+				if decodeErr != nil {
+					log.Printf("life-agents chat: decode TTS audio: %v", decodeErr)
+				} else if len(decoded) > 0 {
+					format := strings.TrimSpace(ttsProvider.MediaFormat())
+					if format == "" {
+						format = "mp3"
+					}
+					url := "/api/audio/" + assistantMsgID + "." + format
+					db.DB.Model(&models.LifeAgentChatMessage{}).Where("id = ?", assistantMsgID).Updates(map[string]interface{}{
+						"audio_url":          url,
+						"audio_format":       format,
+						"audio_data":         decoded,
+						"audio_duration_sec": dur,
+					})
+					writeSSE("audio_ready", gin.H{
+						"audioUrl":        url,
+						"audioDurationSec": dur,
+					})
+				}
+			}
+		}
 	}
 }
 

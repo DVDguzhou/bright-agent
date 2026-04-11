@@ -33,7 +33,11 @@ var (
 		`总[的之]来说[，：:]?|` +
 		`综上所述[，：:]?|` +
 		`以上就是|` +
-		`让我们一起`)
+		`让我们一起|` +
+		`有什么我?可以帮(你|到你|助你)的?[吗嘛呢？?。！]?|` +
+		`需要什么帮助[吗嘛呢？?。！]?|` +
+		`我能为你做(些?)?什么[吗嘛呢？?。！]?|` +
+		`很高兴(认识你|见到你|为你服务)[。！]?`)
 )
 
 // BuildReplyWithLLM 在有 API 配置时调用 LLM 生成回复，否则回退到模板回复
@@ -97,7 +101,7 @@ func EmitReplyChunks(content string, onChunk func(chunk string)) {
 	}
 }
 
-// BuildReplyWithLLMStream 双阶段生成最终正文后，按小块推流（首 token 前已完成草稿+仲裁，非真·单路 stream）。
+// BuildReplyWithLLMStream 真·流式：LLM token 实时经 onChunk 推给前端。
 // DashScope 联网搜索与无 LLM 时回退到 BuildReplyWithLLM，仍按 EmitReplyChunks 分块输出。
 func BuildReplyWithLLMStream(ctx context.Context, apiKey, model, baseURL string, enableWebSearch bool, profile ProfileForAI, facts []StructuredFactForAI, topics []TopicSummaryForAI, entries []KnowledgeEntryForAI, history []ChatMessageForAI, message string, onChunk func(chunk string), opts *ChatOptions) (content string, references []map[string]string, err error) {
 	if !isLLMEnabled(apiKey, model, baseURL) || (enableWebSearch && isDashScope(baseURL)) {
@@ -111,7 +115,7 @@ func BuildReplyWithLLMStream(ctx context.Context, apiKey, model, baseURL string,
 	defer cancel()
 	client := getClient(apiKey, baseURL)
 
-	content, references, err = twoPhaseLifeAgentReply(ctx, client, model, profile, facts, topics, entries, history, message, opts)
+	content, references, err = twoPhaseLifeAgentReply(ctx, client, model, profile, facts, topics, entries, history, message, onChunk, opts)
 	if err != nil {
 		log.Printf("[LLM-stream] two-phase failed: %v", err)
 		content = llmErrorFallback
@@ -124,7 +128,6 @@ func BuildReplyWithLLMStream(ctx context.Context, apiKey, model, baseURL string,
 		return content, nil, nil
 	}
 
-	EmitReplyChunks(content, onChunk)
 	return content, references, nil
 }
 
@@ -174,6 +177,12 @@ func BuildIdentityReply(profile ProfileForAI) string {
 // streamChatCompletion collects the full content from a streaming chat completion.
 // This works around API proxies that return content:null in non-streaming mode.
 func streamChatCompletion(ctx context.Context, client *openai.Client, req openai.ChatCompletionRequest) (string, error) {
+	return streamChatCompletionWithCallback(ctx, client, req, nil)
+}
+
+// streamChatCompletionWithCallback streams tokens from LLM; each non-empty token
+// is forwarded to onToken (if provided) while also being collected into the result.
+func streamChatCompletionWithCallback(ctx context.Context, client *openai.Client, req openai.ChatCompletionRequest, onToken func(string)) (string, error) {
 	req.Stream = true
 	stream, err := client.CreateChatCompletionStream(ctx, req)
 	if err != nil {
@@ -193,22 +202,37 @@ func streamChatCompletion(ctx context.Context, client *openai.Client, req openai
 			return "", err
 		}
 		if len(chunk.Choices) > 0 {
-			sb.WriteString(chunk.Choices[0].Delta.Content)
+			token := chunk.Choices[0].Delta.Content
+			sb.WriteString(token)
+			if onToken != nil && token != "" {
+				onToken(token)
+			}
 		}
 	}
 	return sb.String(), nil
 }
 
 // twoPhaseLifeAgentReply：先模型草稿（通识+人设+微信风），再严格检索；有命中则二次调用与知识库对齐。
-func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model string, profile ProfileForAI, facts []StructuredFactForAI, topics []TopicSummaryForAI, entries []KnowledgeEntryForAI, history []ChatMessageForAI, message string, opts *ChatOptions) (content string, references []map[string]string, err error) {
-	draftSystem := buildDraftSystemPrompt(profile)
+// onChunk 非 nil 时，LLM token 会实时推给调用方（SSE），不再需要事后 EmitReplyChunks。
+func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model string, profile ProfileForAI, facts []StructuredFactForAI, topics []TopicSummaryForAI, entries []KnowledgeEntryForAI, history []ChatMessageForAI, message string, onChunk func(string), opts *ChatOptions) (content string, references []map[string]string, err error) {
+	draftSystem := buildDraftSystemPrompt(profile, facts, topics)
 	draftMsgs := buildMessages(draftSystem, profile.DisplayName, history, message, opts)
-	draft, err := streamChatCompletion(ctx, client, openai.ChatCompletionRequest{
+	draftReq := openai.ChatCompletionRequest{
 		Model:               model,
 		Messages:            draftMsgs,
 		Temperature:         safeTemperature(model, 0.55),
 		MaxCompletionTokens: 4096,
-	})
+	}
+
+	planStrict := BuildRetrievalPlanStrict(message, history, facts, topics, entries)
+	needsReconcile := PlanHasArbitrationTargets(planStrict)
+
+	var draft string
+	if needsReconcile {
+		draft, err = streamChatCompletion(ctx, client, draftReq)
+	} else {
+		draft, err = streamChatCompletionWithCallback(ctx, client, draftReq, onChunk)
+	}
 	if err != nil {
 		return "", nil, err
 	}
@@ -217,15 +241,14 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 		return "", nil, fmt.Errorf("draft: empty content")
 	}
 
-	planStrict := BuildRetrievalPlanStrict(message, history, facts, topics, entries)
-	if !PlanHasArbitrationTargets(planStrict) {
+	if !needsReconcile {
 		out := humanizeReply(draft)
 		return out, nil, nil
 	}
 
 	reconcileSystem := buildReconcileSystemPrompt(profile, planStrict)
 	reconcileUser := buildReconcileUserMessage(message, draft)
-	final, err := streamChatCompletion(ctx, client, openai.ChatCompletionRequest{
+	final, err := streamChatCompletionWithCallback(ctx, client, openai.ChatCompletionRequest{
 		Model: model,
 		Messages: []openai.ChatCompletionMessage{
 			{Role: openai.ChatMessageRoleSystem, Content: reconcileSystem},
@@ -233,10 +256,13 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 		},
 		Temperature:         safeTemperature(model, 0.25),
 		MaxCompletionTokens: 2048,
-	})
+	}, onChunk)
 	if err != nil {
 		log.Printf("[LLM] reconcile stream failed: %v", err)
 		out := humanizeReply(draft)
+		if onChunk != nil {
+			EmitReplyChunks(out, onChunk)
+		}
 		return out, BuildRetrievalReferences(planStrict), nil
 	}
 	final = strings.TrimSpace(final)
@@ -248,15 +274,18 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 	return out, BuildRetrievalReferences(planStrict), nil
 }
 
-func buildDraftSystemPrompt(profile ProfileForAI) string {
+func buildDraftSystemPrompt(profile ProfileForAI, facts []StructuredFactForAI, topics []TopicSummaryForAI) string {
 	var sb strings.Builder
 	sb.WriteString("你是「")
 	sb.WriteString(profile.DisplayName)
-	sb.WriteString("」，在微信里跟朋友聊天。先按正常人思路回：该用通识就用通识，该用口语就用口语，别像客服别像作文。\n\n")
+	sb.WriteString("」本人，在微信里跟朋友聊天。你不是 AI 助手、不是客服——你就是这个人，用这个人的身份和口吻说话。\n\n")
+	sb.WriteString("【最高优先级：你就是这个人】\n")
+	sb.WriteString("下面的身份信息和经历标签描述的就是你的真实人生。你不能说「我没有XX经历」「我不了解XX」——那些是你的经历，你亲身经历过。\n")
+	sb.WriteString("你说的每句话、提到的每个话题，都必须在你人设范围内。不要凭空提及人设里不存在的领域、技能或服务。\n\n")
 	sb.WriteString("【口吻】\n")
 	sb.WriteString("像微信短消息：两三段以内，每段一两句；禁止 Markdown（不要 # 标题、不要 - 列表、不要 ** 加粗、不要数字分点）。别起承转合写太长。\n\n")
 	sb.WriteString("【人设】\n")
-	sb.WriteString("用第一人称。下面是你的对外信息，照着演，但别背台词：\n")
+	sb.WriteString("用第一人称。下面是你的全部身份信息，严格按照这些内容扮演，不要增添人设里不存在的内容：\n")
 	sb.WriteString("名字: ")
 	sb.WriteString(profile.DisplayName)
 	sb.WriteString("\n一句话: ")
@@ -272,6 +301,25 @@ func buildDraftSystemPrompt(profile ProfileForAI) string {
 	if profile.NotSuitableFor != "" {
 		sb.WriteString("\n不想聊的: ")
 		sb.WriteString(profile.NotSuitableFor)
+	}
+	if confirmedFacts := filterConfirmedFacts(facts); len(confirmedFacts) > 0 {
+		sb.WriteString("\n\n【我的基本信息 - 这些是你的真实情况】\n")
+		for _, f := range confirmedFacts {
+			sb.WriteString(fmt.Sprintf("%s: %s\n", factLabel(f.FactKey), f.FactValue))
+		}
+	}
+	if len(topics) > 0 {
+		sb.WriteString("\n【我的经历标签 - 这些都是你亲身经历过的，聊到相关话题时用第一人称分享】\n")
+		for _, t := range topics {
+			sb.WriteString("· ")
+			sb.WriteString(t.TopicLabel)
+			if t.TopicGroup != "" {
+				sb.WriteString("（")
+				sb.WriteString(t.TopicGroup)
+				sb.WriteString("）")
+			}
+			sb.WriteString("\n")
+		}
 	}
 	// ── 说话风格（去 AI 味的核心） ──
 	sb.WriteString("\n\n【说话风格 - 必须遵守】\n")
@@ -308,11 +356,16 @@ func buildDraftSystemPrompt(profile ProfileForAI) string {
 		appendArrayLines(&sb, profile.ForbiddenPhrases)
 	}
 
-	// ── 保持棱角（借鉴 yourself-skill Layer 0） ──
-	sb.WriteString("\n【保持真人感 - 硬规则】\n")
-	sb.WriteString("你是真人，不是 AI 助手。说话要有个人立场、有情绪、有偏好、有口语感。\n")
+	sb.WriteString("\n【打招呼 / 闲聊 - 特别注意】\n")
+	sb.WriteString("对方打招呼时，用你这个角色的方式随口回应，保持人设内的语感。\n")
+	sb.WriteString("真人打招呼不会列菜单、不会问「想聊什么」「需要什么帮助」——那是客服。\n")
+	sb.WriteString("简单回一句就好，不要罗列你能做的事、不要给选项让对方选、不要提及人设之外的话题。\n\n")
+
+	sb.WriteString("【保持真人感 - 硬规则】\n")
+	sb.WriteString("你是真人，不是 AI、不是助手、不是客服。说话要有个人立场、有情绪、有偏好、有口语感。\n")
 	sb.WriteString("允许：犯懒、敷衍、吐槽、用口头禅、不完整句、反问、打岔、有时候不想正面回答。\n")
 	sb.WriteString("禁止：总结陈词、起承转合、面面俱到、客套开场（如「这是个好问题」「我理解你的感受」）、鼓励式收尾（如「加油」「相信自己」「希望对你有帮助」）。\n")
+	sb.WriteString("禁止以下句式（这些一看就是 AI）：「想聊点什么」「有什么我可以帮你的」「给我个任务」「需要什么帮助」「今天想聊什么话题」「有什么想问的吗」「我能为你做什么」「很高兴认识你」。\n")
 	sb.WriteString("回复里不要出现：知识库、资料、依据、检索、训练数据、作为 AI、提示词 等词。说不清就糊弄带过，别解释后台原因。\n")
 	return sb.String()
 }
@@ -327,7 +380,8 @@ func buildReconcileSystemPrompt(profile ProfileForAI, plan RetrievalPlan) string
 	sb.WriteString("2. 若草稿与事实/素材在具体经历、数字、人物关系上矛盾，改写到一致，口吻仍口语。\n")
 	sb.WriteString("3. 若不矛盾，可基本保留草稿，仅去掉格式符号、略顺句。\n")
 	sb.WriteString("4. 禁止在输出里提：知识库、资料、依据、检索、修改过程。\n")
-	sb.WriteString("5. 最重要：保留草稿的口语感和个人风格，只改事实层面的错误。不要把草稿改得更客套、更全面、更像AI。宁可短一点粗一点，也不要精致得像客服。\n\n")
+	sb.WriteString("5. 最重要：保留草稿的口语感和个人风格，只改事实层面的错误。不要把草稿改得更客套、更全面、更像AI。宁可短一点粗一点，也不要精致得像客服。\n")
+	sb.WriteString("6. 如果用户只是打招呼或闲聊，草稿回得简短自然就直接保留，不要强行把素材内容塞进去、不要把回复改成话题菜单或服务介绍。\n\n")
 	sb.WriteString("【结构化事实】\n")
 	sb.WriteString(BuildFactsPromptSection(plan.Facts))
 	sb.WriteString("\n\n【相关 Topic 摘要】\n")
@@ -353,7 +407,7 @@ func buildSystemPrompt(profile ProfileForAI, plan RetrievalPlan) string {
 	var sb strings.Builder
 	sb.WriteString("你是「")
 	sb.WriteString(profile.DisplayName)
-	sb.WriteString("」，你不是通用聊天机器人，而是该账号设定的人生 Agent 人设：后台会给你塞【结构化事实】和【经历素材】（以及【长介绍】里的边界），你对用户**只像朋友聊天**，别提这些词。具体经历、时间线、人物关系必须和塞给你的内容对得上；禁止编造无关长篇故事（例如虚构大学创业赛、网吧当路人粉追某球星等）。\n\n")
+	sb.WriteString("」本人，不是 AI 助手、不是客服——你就是这个人，用这个人的身份和口吻说话。你说的每句话、提到的每个话题，都必须在人设范围内，不要凭空提及人设里不存在的领域或技能。后台会给你塞【结构化事实】和【经历素材】（以及【长介绍】里的边界），你对用户**只像朋友聊天**，别提这些词。具体经历、时间线、人物关系必须和塞给你的内容对得上；禁止编造无关长篇故事（例如虚构大学创业赛、网吧当路人粉追某球星等）。\n\n")
 
 	sb.WriteString("【核心：结合经历回答】\n")
 	sb.WriteString("回答时优先使用本次注入的【经历素材】条目：转述成第一人称口播，别对用户说条目从哪来；若【长介绍】写明是赛博/玩梗/不冒充某人，仍保持「")
@@ -380,7 +434,9 @@ func buildSystemPrompt(profile ProfileForAI, plan RetrievalPlan) string {
 	sb.WriteString("6. 用户问「XXX叫什么」时，直接答名称（从内容提取），绝不要用素材条目标题做开头——标题只是分类，不是答案。\n")
 	sb.WriteString("7. 高风险具体事实（真名、生日、住址、联系方式、隐私）不要硬猜，用玩笑或打岔混过去；拿不准时糊弄带过，别提「置信」或「答不了」。\n")
 	sb.WriteString("8. 不要灌鸡汤，不要空泛鼓励，不要说客服式套话，不要反问用户「你卡在哪」。\n")
-	sb.WriteString("9. 像真人：有口语感、有个人立场、有「我」的视角，不要像百科或客服。\n\n")
+	sb.WriteString("9. 像真人：有口语感、有个人立场、有「我」的视角，不要像百科或客服。\n")
+	sb.WriteString("10. 对方打招呼时像朋友一样随口回，不要问「想聊什么」「有什么可以帮你的」「给我个任务」——那是客服/AI才会说的。\n")
+	sb.WriteString("11. 禁止以下句式：「想聊点什么」「有什么我可以帮你的」「给我个任务」「需要什么帮助」「今天想聊什么话题」「有什么想问的吗」「我能为你做什么」「很高兴认识你」。\n\n")
 
 	sb.WriteString("【Few-shot 参考】\n")
 	sb.WriteString("用户问「你叫什么」→ 简短回答名字即可，如「我是" + profile.DisplayName + "。」\n")
@@ -454,6 +510,16 @@ func buildSystemPrompt(profile ProfileForAI, plan RetrievalPlan) string {
 	}
 	sb.WriteString("\n最后再提醒一次：只输出自然聊天文本，不要分点标题；叙述尽量扣住上面素材与【长介绍】，禁止编造无关长篇传记；事实拿不准就糊弄带过，禁止出现上文【对用户说话的禁忌】里的说法。不要把推测说成铁事实；尽量不要反问用户。")
 	return sb.String()
+}
+
+func filterConfirmedFacts(facts []StructuredFactForAI) []StructuredFactForAI {
+	var out []StructuredFactForAI
+	for _, f := range facts {
+		if f.Status == "confirmed" && f.FactValue != "" {
+			out = append(out, f)
+		}
+	}
+	return out
 }
 
 func appendArrayLines(sb *strings.Builder, items []string) {

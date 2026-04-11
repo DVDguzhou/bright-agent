@@ -98,6 +98,7 @@ export default function LifeAgentChatPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [voiceLoading, setVoiceLoading] = useState(false);
   const [error, setError] = useState("");
   const [ratingScore, setRatingScore] = useState(5);
   const [ratingComment, setRatingComment] = useState("");
@@ -390,7 +391,6 @@ export default function LifeAgentChatPage() {
                 );
               } else if (eventType === "done") {
                 const data = parsed;
-                // 更新 assistant 消息的元数据
                 setMessages((prev) =>
                   prev.map((m, i) =>
                     i === assistantIdx.current
@@ -400,12 +400,15 @@ export default function LifeAgentChatPage() {
                           messageId: data.messageId,
                           sessionId: data.sessionId,
                           references: data.references,
-                          audioUrl: data.audioUrl,
-                          audioDurationSec: data.audioDurationSec,
                         }
                       : m
                   )
                 );
+                setLoading(false);
+                sendingRef.current = false;
+                if (useVoiceReply && profile?.hasVoiceClone && !parsed.audioUrl) {
+                  setVoiceLoading(true);
+                }
                 setSessionId(data.sessionId);
                 setProfile((prev) =>
                   prev
@@ -444,6 +447,20 @@ export default function LifeAgentChatPage() {
                   ];
                 });
                 syncRatingForm(data.rating);
+              } else if (eventType === "audio_ready") {
+                const data = parsed;
+                setMessages((prev) =>
+                  prev.map((m, i) =>
+                    i === assistantIdx.current
+                      ? {
+                          ...m,
+                          audioUrl: data.audioUrl,
+                          audioDurationSec: data.audioDurationSec,
+                        }
+                      : m
+                  )
+                );
+                setVoiceLoading(false);
               }
             } catch {
               // ignore malformed SSE data
@@ -467,6 +484,7 @@ export default function LifeAgentChatPage() {
       } finally {
         sendingRef.current = false;
         setLoading(false);
+        setVoiceLoading(false);
       }
     },
     [id, profile, sessionId, sessionLoading, useVoiceReply]
@@ -826,12 +844,10 @@ export default function LifeAgentChatPage() {
               </div>
             ) : (
               messages.map((message, index) => {
-                const showVoiceLoading =
+                const isVoiceLoadingForMsg =
                   message.role === "assistant" &&
-                  useVoiceReply &&
-                  loading &&
                   index === messages.length - 1 &&
-                  !message.audioUrl;
+                  (voiceLoading || (useVoiceReply && loading && !message.audioUrl));
 
                 return (
                 <div key={`${message.role}-${index}-${message.messageId ?? "draft"}`} className="space-y-1">
@@ -869,7 +885,7 @@ export default function LifeAgentChatPage() {
                             </p>
                           )}
                         </div>
-                      ) : showVoiceLoading ? (
+                      ) : isVoiceLoadingForMsg ? (
                         <div className="space-y-3">
                           <VoiceMessageLoadingBubble />
                           {message.content && (
