@@ -11,8 +11,9 @@ const nextConfig = {
       ],
     };
   },
-  // 启用压缩与优化
-  compress: true,
+  // 关闭 Next.js 内置压缩（SSE 流式响应需要逐块发送，压缩会导致缓冲）
+  // 如需压缩可在前置 nginx 层处理，并排除 text/event-stream
+  compress: false,
   poweredByHeader: false,
   // 预取链接以提升导航速度
   experimental: {

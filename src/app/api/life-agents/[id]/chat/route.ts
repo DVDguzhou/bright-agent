@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-export const maxDuration = 300; // 5 分钟超时
+export const maxDuration = 300;
 export const dynamic = "force-dynamic";
 
 const API_BACKEND = process.env.API_BACKEND_URL || "http://localhost:8080";
@@ -12,7 +12,6 @@ export async function POST(
   const id = params.id;
   const body = await req.text();
 
-  // 转发到 Go 后端，超时 5 分钟（兼容本地大模型思考模式）
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 300000);
 
@@ -29,21 +28,35 @@ export async function POST(
 
     clearTimeout(timeoutId);
 
-    // SSE 流式响应：直接透传 ReadableStream，不缓冲
     const ct = backendRes.headers.get("content-type") || "";
     if (ct.includes("text/event-stream") && backendRes.body) {
-      return new Response(backendRes.body, {
+      const backendReader = backendRes.body.getReader();
+      const stream = new ReadableStream({
+        async pull(ctrl) {
+          const { done, value } = await backendReader.read();
+          if (done) {
+            ctrl.close();
+            return;
+          }
+          ctrl.enqueue(value);
+        },
+        cancel() {
+          backendReader.cancel();
+        },
+      });
+
+      return new Response(stream, {
         status: backendRes.status,
         headers: {
           "Content-Type": "text/event-stream",
-          "Cache-Control": "no-cache",
+          "Cache-Control": "no-cache, no-transform",
           Connection: "keep-alive",
           "X-Accel-Buffering": "no",
+          "Content-Encoding": "none",
         },
       });
     }
 
-    // 非流式响应（错误等）：按原来的 JSON 透传
     const data = await backendRes.text();
     return new NextResponse(data, {
       status: backendRes.status,
