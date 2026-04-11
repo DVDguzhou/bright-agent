@@ -66,6 +66,31 @@ function normalizeSearchText(value: string) {
   return value.trim().toLowerCase();
 }
 
+/**
+ * Query alias rules: maps common user input variations to canonical tag forms.
+ * Each rule is [regex, replacement]. Applied sequentially to the raw query.
+ */
+const QUERY_ALIAS_RULES: [RegExp, string][] = [
+  // "qs50" / "qs 50" / "QS Top50" / "qs top 50" → "qs前50"  (and 100, 200)
+  [/qs\s*(?:top\s*)?(\d+)/gi, "qs前$1"],
+  // "top50" (without qs prefix) → "qs前50"
+  [/(?:^|\s)top\s*(\d+)(?:\s|$)/gi, " qs前$1 "],
+  // "前50" → "qs前50"
+  [/(?:^|\s)前(\d+)(?:\s|$)/gi, " qs前$1 "],
+  // "shuangfei" → "双非"
+  [/shuang\s*fei/gi, "双非"],
+  // "shuangyiliu" → "双一流"
+  [/shuang\s*yi\s*liu/gi, "双一流"],
+];
+
+function normalizeQuery(raw: string): string {
+  let q = raw;
+  for (const [pattern, replacement] of QUERY_ALIAS_RULES) {
+    q = q.replace(pattern, replacement);
+  }
+  return q.trim();
+}
+
 function splitKeywords(input: string) {
   return input
     .split(/[\s,\u3001\uFF0C;\/]+/)
@@ -74,7 +99,7 @@ function splitKeywords(input: string) {
 }
 
 function buildExpandedTerms(rawQuery: string) {
-  const normalizedQuery = normalizeSearchText(rawQuery);
+  const normalizedQuery = normalizeSearchText(normalizeQuery(rawQuery));
   const originalTerms = Array.from(new Set([normalizedQuery, ...splitKeywords(normalizedQuery)].filter(Boolean)));
   const originalSet = new Set(originalTerms);
   const relatedSet = new Set<string>();
@@ -101,7 +126,7 @@ function buildExpandedTerms(rawQuery: string) {
 }
 
 function searchScore(profile: LifeAgentListItem, rawQuery: string) {
-  const query = rawQuery.trim();
+  const query = normalizeQuery(rawQuery.trim());
   if (!query) return 1;
 
   const fullText = normalizeSearchText(
