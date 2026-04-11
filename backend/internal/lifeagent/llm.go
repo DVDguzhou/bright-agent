@@ -74,7 +74,7 @@ func BuildReplyWithLLM(ctx context.Context, apiKey, model, baseURL string, enabl
 		return content, references, nil
 	}
 
-	content, references, err = twoPhaseLifeAgentReply(ctx, client, model, profile, facts, topics, entries, history, message, opts)
+	content, references, err = twoPhaseLifeAgentReply(ctx, client, model, profile, facts, topics, entries, history, message, nil, opts)
 	if err != nil {
 		log.Printf("[LLM] two-phase failed: %v", err)
 		return llmErrorFallback, nil, nil
