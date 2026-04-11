@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import L from "leaflet";
-import { MapContainer, Marker, ScaleControl, TileLayer, Tooltip, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
+import "leaflet.markercluster";
+import "leaflet.markercluster/dist/MarkerCluster.css";
+import { MapContainer, ScaleControl, TileLayer, Marker, useMap } from "react-leaflet";
 import { getLifeAgentLatLng, type MapCoordAgentInput } from "@/lib/life-agent-map-coords";
 
 export type MapAgentMarker = MapCoordAgentInput & {
@@ -42,6 +44,20 @@ function createUserLocationIcon() {
   });
 }
 
+function clusterIcon(cluster: L.MarkerCluster) {
+  const count = cluster.getChildCount();
+  let size = 36;
+  let fontSize = 13;
+  if (count >= 100) { size = 48; fontSize = 14; }
+  else if (count >= 10) { size = 42; fontSize = 13; }
+  return L.divIcon({
+    html: `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${ACCENT};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:${fontSize}px;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.3)">${count}</div>`,
+    className: "life-agent-map-cluster",
+    iconSize: L.point(size, size),
+    iconAnchor: L.point(size / 2, size / 2),
+  });
+}
+
 function MapInstanceExposer({ mapRef }: { mapRef: React.MutableRefObject<L.Map | null> }) {
   const map = useMap();
   useEffect(() => {
@@ -53,10 +69,6 @@ function MapInstanceExposer({ mapRef }: { mapRef: React.MutableRefObject<L.Map |
   return null;
 }
 
-/**
- * 当 layoutNonce 递增时，用当前 Agent 点 +（若有）用户坐标做一次 fitBounds。
- * 由页面在「数据就绪」「首次定位成功」等时机 bump；避免 watchPosition 连续触发。
- */
 function MapLayoutFit({
   points,
   userLatLng,
@@ -86,22 +98,73 @@ function MapLayoutFit({
   return null;
 }
 
+/**
+ * Imperative MarkerClusterGroup layer — avoids 1600+ React <Marker> reconciliation.
+ * Adds all markers to a single L.markerClusterGroup for clustering + spiderfy.
+ */
+function ClusteredMarkers({
+  markers,
+  highlightAgentId,
+  onMarkerClick,
+}: {
+  markers: { agent: MapAgentMarker; position: L.LatLngTuple }[];
+  highlightAgentId: string | null;
+  onMarkerClick: (agentId: string) => void;
+}) {
+  const map = useMap();
+  const clusterRef = useRef<L.MarkerClusterGroup | null>(null);
+  const pinIcon = useMemo(() => createPinIcon(), []);
+  const highlightIcon = useMemo(() => createHighlightPinIcon(), []);
+
+  useEffect(() => {
+    const group = L.markerClusterGroup({
+      maxClusterRadius: 45,
+      spiderfyOnMaxZoom: true,
+      showCoverageOnHover: false,
+      zoomToBoundsOnClick: true,
+      iconCreateFunction: clusterIcon,
+      animate: true,
+      chunkedLoading: true,
+      chunkInterval: 100,
+      chunkDelay: 10,
+    });
+
+    const leafletMarkers = markers.map(({ agent, position }) => {
+      const isHi = Boolean(highlightAgentId && agent.id === highlightAgentId);
+      const m = L.marker(position, {
+        icon: isHi ? highlightIcon : pinIcon,
+        zIndexOffset: isHi ? 800 : 0,
+      });
+      m.bindTooltip(
+        `<span class="text-xs font-semibold text-slate-800">${agent.displayName}</span>`,
+        { direction: "top", offset: [0, -6], opacity: 1 },
+      );
+      m.on("click", () => onMarkerClick(agent.id));
+      return m;
+    });
+
+    group.addLayers(leafletMarkers);
+    map.addLayer(group);
+    clusterRef.current = group;
+
+    return () => {
+      map.removeLayer(group);
+      clusterRef.current = null;
+    };
+  }, [map, markers, highlightAgentId, pinIcon, highlightIcon, onMarkerClick]);
+
+  return null;
+}
+
 type Props = {
   agents: MapAgentMarker[];
   className?: string;
-  /** 选中的绑定 Agent，地图上用更大描边标记 */
   highlightAgentId?: string | null;
-  /** 浏览器定位得到的用户坐标 */
   userLatLng?: { lat: number; lng: number } | null;
-  /** 点击右侧「定位」：打开绑定 / 权限流程 */
   onLocatePress?: () => void;
-  /** 是否展示右侧定位按钮（未登录可由页面置为 false） */
   showLocateButton?: boolean;
-  /** 地图区域最小高度（如全屏） */
   mapHeightClass?: string;
-  /** 是否圆角卡片样式（默认 true）；全屏地图可 false */
   rounded?: boolean;
-  /** 递增时触发「Agent + 我的位置」合并 fitBounds（见 MapLayoutFit） */
   mapLayoutNonce?: number;
 };
 
@@ -118,8 +181,6 @@ export default function LifeAgentsMapView({
 }: Props) {
   const router = useRouter();
   const mapRef = useRef<L.Map | null>(null);
-  const pinIcon = useMemo(() => createPinIcon(), []);
-  const highlightIcon = useMemo(() => createHighlightPinIcon(), []);
   const userIcon = useMemo(() => createUserLocationIcon(), []);
 
   const markers = useMemo(() => {
@@ -131,12 +192,17 @@ export default function LifeAgentsMapView({
 
   const points = useMemo(() => markers.map((m) => m.position), [markers]);
 
+  const handleMarkerClick = useCallback(
+    (agentId: string) => router.push(`/life-agents/${agentId}`),
+    [router],
+  );
+
   const ring = rounded ? "rounded-2xl ring-1 ring-slate-200/80" : "";
   const roundMap = rounded ? "rounded-2xl" : "";
 
   return (
     <div
-      className={`relative overflow-hidden ${ring} [&_.life-agent-map-pin]:!border-0 [&_.life-agent-map-pin]:!bg-transparent [&_.life-agent-map-user-loc]:!border-0 [&_.life-agent-map-user-loc]:!bg-transparent ${className}`}
+      className={`relative overflow-hidden ${ring} [&_.life-agent-map-pin]:!border-0 [&_.life-agent-map-pin]:!bg-transparent [&_.life-agent-map-cluster]:!border-0 [&_.life-agent-map-cluster]:!bg-transparent [&_.life-agent-map-user-loc]:!border-0 [&_.life-agent-map-user-loc]:!bg-transparent ${className}`}
       style={rounded ? { minHeight: "min(62dvh, 520px)" } : { minHeight: "100%" }}
     >
       <MapContainer
@@ -154,26 +220,11 @@ export default function LifeAgentsMapView({
         />
         <ScaleControl position="bottomleft" imperial={false} />
         <MapLayoutFit points={points} userLatLng={userLatLng ?? null} layoutNonce={mapLayoutNonce} />
-        {markers.map(({ agent, position }) => {
-          const isHi = Boolean(highlightAgentId && agent.id === highlightAgentId);
-          return (
-            <Marker
-              key={agent.id}
-              position={position}
-              icon={isHi ? highlightIcon : pinIcon}
-              zIndexOffset={isHi ? 800 : 0}
-              eventHandlers={{
-                click: () => {
-                  router.push(`/life-agents/${agent.id}`);
-                },
-              }}
-            >
-              <Tooltip direction="top" offset={[0, -6]} opacity={1} permanent={false}>
-                <span className="text-xs font-semibold text-slate-800">{agent.displayName}</span>
-              </Tooltip>
-            </Marker>
-          );
-        })}
+        <ClusteredMarkers
+          markers={markers}
+          highlightAgentId={highlightAgentId}
+          onMarkerClick={handleMarkerClick}
+        />
         {userLatLng ? (
           <Marker
             position={[userLatLng.lat, userLatLng.lng]}
