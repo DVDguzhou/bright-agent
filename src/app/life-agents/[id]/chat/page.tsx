@@ -886,13 +886,12 @@ export default function LifeAgentChatPage() {
                           )}
                         </div>
                       ) : isVoiceLoadingForMsg ? (
-                        <div className="space-y-3">
-                          <VoiceMessageLoadingBubble />
-                          {message.content && (
-                            <p className="border-t border-black/10 pt-2 text-[13px] leading-6 text-slate-600 whitespace-pre-wrap">
-                              {message.content}
-                            </p>
-                          )}
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 rounded-xl bg-violet-50/80 px-2.5 py-1.5">
+                            <span className="h-3 w-3 shrink-0 rounded-full border-[1.5px] border-violet-300/40 border-t-violet-500 animate-spin" />
+                            <span className="text-xs text-violet-600/80">语音生成中…</span>
+                          </div>
+                          <p className="whitespace-pre-wrap">{message.content || ""}</p>
                         </div>
                       ) : (
                         <div className="space-y-3">
