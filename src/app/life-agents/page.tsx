@@ -616,6 +616,10 @@ function LifeAgentsPageContent() {
     void loadFavoritesFullList();
   }, [visitedMask & 1, touchNavEnabled, feedTab, favoritesFetched, loadFavoritesFullList]);
 
+  useEffect(() => {
+    window.scrollTo({ top: 0 });
+  }, [feedTab]);
+
   const loadMoreDiscover = useCallback(async () => {
     if (!discoverNextCursor || discoverLoadingMore) return;
     setDiscoverLoadingMore(true);
