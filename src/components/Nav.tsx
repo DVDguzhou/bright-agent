@@ -84,6 +84,12 @@ export function Nav() {
       .catch(() => setNotificationCount(0));
   }, [user]);
 
+  useEffect(() => {
+    if (pathname === "/dashboard/notifications") {
+      setNotificationCount(0);
+    }
+  }, [pathname]);
+
   const logout = async () => {
     await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
     refetch();
