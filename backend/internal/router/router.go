@@ -59,6 +59,7 @@ func Setup(cfg *config.Config) *gin.Engine {
 			lifeAgents.GET("/mine/api-overview", middleware.RequireAuth(cfg), handler.LifeAgentsMineAPIOverview(cfg))
 			lifeAgents.GET("/purchased", middleware.RequireAuth(cfg), handler.LifeAgentsPurchased(cfg))
 			lifeAgents.GET("/feedback/all", middleware.RequireAuth(cfg), handler.LifeAgentsFeedbackAll(cfg))
+			lifeAgents.GET("/map-pins", handler.LifeAgentsMapPins())
 			lifeAgents.GET("/:id", middleware.Auth(cfg), handler.LifeAgentsGet(cfg))
 			lifeAgents.PATCH("/:id", middleware.RequireAuth(cfg), handler.LifeAgentsUpdate(cfg))
 			lifeAgents.DELETE("/:id", middleware.RequireAuth(cfg), handler.LifeAgentsDelete(cfg))

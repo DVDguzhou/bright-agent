@@ -120,13 +120,8 @@ export async function fetchLifeAgentsPage(
 
 /** 地图、搜索排序、收藏全量筛选等需要完整列表时顺序拉取。 */
 export async function fetchAllPublishedLifeAgents(signal?: AbortSignal): Promise<LifeAgentListItem[]> {
-  const acc: LifeAgentListItem[] = [];
-  let cursor: string | undefined;
-  for (;;) {
-    const { items, nextCursor } = await fetchLifeAgentsPage(100, cursor, signal);
-    acc.push(...items);
-    if (!nextCursor) break;
-    cursor = nextCursor;
-  }
-  return acc;
+  const res = await fetch("/api/life-agents", { credentials: "include", signal });
+  const data: unknown = await res.json().catch(() => null);
+  if (!res.ok) return [];
+  return parsePublishedLifeAgentsPayload(data);
 }

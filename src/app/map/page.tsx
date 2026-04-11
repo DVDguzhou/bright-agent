@@ -16,7 +16,6 @@ import {
   writeMapShareEnabled,
   writeMapShareProfileId,
 } from "@/lib/map-gps-storage";
-import { fetchAllPublishedLifeAgents } from "@/lib/life-agents-list-api";
 import { cleanLifeAgentIntroText } from "@/lib/life-agent-intro-clean";
 
 const LifeAgentsMapView = dynamic(() => import("@/components/LifeAgentsMapView"), {
@@ -64,17 +63,19 @@ export default function MapPage() {
   }, []);
 
   useEffect(() => {
-    fetchAllPublishedLifeAgents()
-      .then((list) => {
-        const mapped: MapAgentMarker[] = list.map((row) => ({
-          id: row.id,
-          displayName: row.displayName || "Agent",
-          headline: row.headline,
-          school: row.school,
-          city: row.city,
-          province: row.province,
-          county: row.county,
-          regions: row.regions,
+    fetch("/api/life-agents/map-pins", { credentials: "include" })
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((data: unknown) => {
+        const list = Array.isArray(data) ? data : [];
+        const mapped: MapAgentMarker[] = list.map((r: Record<string, unknown>) => ({
+          id: String(r.id ?? ""),
+          displayName: String(r.displayName ?? "Agent"),
+          headline: typeof r.headline === "string" ? r.headline : undefined,
+          school: typeof r.school === "string" ? r.school : undefined,
+          city: typeof r.city === "string" ? r.city : undefined,
+          province: typeof r.province === "string" ? r.province : undefined,
+          county: typeof r.county === "string" ? r.county : undefined,
+          regions: Array.isArray(r.regions) ? r.regions.filter((x: unknown): x is string => typeof x === "string") : undefined,
         }));
         setAgents(mapped);
         setLoadError(null);
