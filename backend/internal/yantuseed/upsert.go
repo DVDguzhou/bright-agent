@@ -320,7 +320,10 @@ func UpsertProfile(userID, coverPreset string, p Profile) error {
 // + 安大 123 人 + 上大 155 人 + 海大 48 人 + 上交 25 人 + 山大 8 人
 // + 深大 61 人 + XJTLU 5 人 + 华理 53 人 + 福大 112 人
 // + 求职经验 82 人 + 考公体制内 19 人 + 科研指北 8 人
-// + 一人企业 21 人 = 1048 人
+// + 一人企业 21 人
+// + 华南理工 22 人 + 保研 32 人 + 川大 17 人 + 清华 27 人 + 南开 43 人
+// + 中南/电子科大 10 人 + 副业 10 人 + 上交生存 56 人 + 人生规划 106 人
+// + CS自学 238 人 = 1609 人
 func Profiles() []Profile {
 	n := 3 + len(zjuFeyue2021Profiles) + len(zjuFeyue2021ProfilesMore) + len(zjuFeyue2021ProfilesAbroad) +
 		len(zjuFeyue2021ProfilesDomesticRemain1) + len(zjuFeyue2021ProfilesDomesticRemain2) + len(zjuFeyue2021ProfilesAbroadMore) +
@@ -339,7 +342,11 @@ func Profiles() []Profile {
 		len(fzuFeyueProfiles1) + len(fzuFeyueProfiles2) +
 		len(jobExpProfiles1) + len(jobExpProfiles2) +
 		len(d2gProfiles) + len(sciguideProfiles) +
-		len(opbProfiles)
+		len(opbProfiles) +
+		len(scutFlyProfiles) + len(csBaoyanProfiles) + len(scuFlyProfiles) +
+		len(thuFlyProfiles) + len(nkuCsProfiles) + len(csuUestcProfiles) +
+		len(howtoMoneyProfiles) + len(surviveSjtuProfiles) + len(runPhilProfiles) +
+		len(csslProfiles1) + len(csslProfiles2)
 	out := make([]Profile, 0, n)
 	out = append(out, yaoShengJie, zhangGuiShuo, yangChenYang)
 	out = append(out, zjuFeyue2021Profiles...)
@@ -376,5 +383,16 @@ func Profiles() []Profile {
 	out = append(out, d2gProfiles...)
 	out = append(out, sciguideProfiles...)
 	out = append(out, opbProfiles...)
+	out = append(out, scutFlyProfiles...)
+	out = append(out, csBaoyanProfiles...)
+	out = append(out, scuFlyProfiles...)
+	out = append(out, thuFlyProfiles...)
+	out = append(out, nkuCsProfiles...)
+	out = append(out, csuUestcProfiles...)
+	out = append(out, howtoMoneyProfiles...)
+	out = append(out, surviveSjtuProfiles...)
+	out = append(out, runPhilProfiles...)
+	out = append(out, csslProfiles1...)
+	out = append(out, csslProfiles2...)
 	return out
 }
