@@ -299,6 +299,13 @@ export function LifeAgentDiscoverCardGrid({
             <span className="text-xs text-slate-400">向下滑动加载更多…</span>
           </div>
         ) : null}
+        {onLoadMore && (hasMoreFromServer || loadingMore) ? (
+          <div ref={loadMoreSentinelRef} className="flex min-h-[52px] items-center justify-center py-2" aria-hidden>
+            <span className="text-xs text-slate-400">
+              {loadingMore ? "加载更多…" : "向下滑动加载更多…"}
+            </span>
+          </div>
+        ) : null}
       </div>
     );
   }

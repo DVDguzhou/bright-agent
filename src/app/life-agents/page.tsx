@@ -130,6 +130,15 @@ function normalizeFeedTab(tab: string | null): FeedTabKey {
   return "discover";
 }
 
+function shuffleArray<T>(arr: T[]): T[] {
+  const result = [...arr];
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+}
+
 function preloadLifeAgentCover(src: string): Promise<void> {
   return new Promise((resolve) => {
     if (typeof window === "undefined") {
@@ -294,7 +303,7 @@ function LifeAgentsPageContent() {
     const cached = readDiscoverFeedCache();
     if (!cached || cached.items.length === 0) return;
     discoverCacheHydratedRef.current = true;
-    setDiscoverItems(cached.items);
+    setDiscoverItems(shuffleArray(cached.items));
     setDiscoverNextCursor(cached.nextCursor);
     setDiscoverLoading(false);
   }, []);
@@ -513,7 +522,7 @@ function LifeAgentsPageContent() {
     setDiscoverNextCursor(null);
     return fetchLifeAgentsPage(48, undefined, controller.signal)
       .then(({ items, nextCursor }) => {
-        setDiscoverItems(items);
+        setDiscoverItems(shuffleArray(items));
         setDiscoverNextCursor(nextCursor || null);
         writeDiscoverFeedCache(items, nextCursor || null);
         setLoadError(null);
@@ -582,7 +591,7 @@ function LifeAgentsPageContent() {
     if (!keepSnapshotVisible) setDiscoverLoading(true);
     fetchLifeAgentsPage(48, undefined, controller.signal)
       .then(({ items, nextCursor }) => {
-        setDiscoverItems(items);
+        setDiscoverItems(shuffleArray(items));
         setDiscoverNextCursor(nextCursor || null);
         writeDiscoverFeedCache(items, nextCursor || null);
         setLoadError(null);
@@ -627,14 +636,14 @@ function LifeAgentsPageContent() {
       const { items, nextCursor } = await fetchLifeAgentsPage(48, discoverNextCursor);
       setDiscoverItems((prev) => {
         const seen = new Set(prev.map((p) => p.id));
-        const merged = [...prev];
+        const newItems: LifeAgentListItem[] = [];
         for (const it of items) {
           if (!seen.has(it.id)) {
             seen.add(it.id);
-            merged.push(it);
+            newItems.push(it);
           }
         }
-        return merged;
+        return [...prev, ...shuffleArray(newItems)];
       });
       setDiscoverNextCursor(nextCursor || null);
     } catch {
@@ -652,10 +661,7 @@ function LifeAgentsPageContent() {
     );
   }, [favoriteIds, favoritesSource]);
 
-  const displayProfilesDiscover = useMemo(
-    () => rankLifeAgentsBySearchQuery(discoverItems, ""),
-    [discoverItems],
-  );
+  const displayProfilesDiscover = discoverItems;
 
   const displayProfilesDesktop = useMemo(() => {
     if (feedTab === "favorites") return displayProfilesFavorites;
