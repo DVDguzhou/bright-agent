@@ -6,7 +6,18 @@ import (
 	"strings"
 )
 
+type RetrievalRoute string
+
+const (
+	RetrievalRouteFact    RetrievalRoute = "fact"
+	RetrievalRouteTopic   RetrievalRoute = "topic"
+	RetrievalRouteEntry   RetrievalRoute = "entry"
+	RetrievalRouteGeneral RetrievalRoute = "general"
+)
+
 type RetrievalPlan struct {
+	Query      string
+	Route      RetrievalRoute
 	Facts      []StructuredFactForAI
 	Topics     []TopicSummaryForAI
 	Entries    []KnowledgeEntryForAI
@@ -19,9 +30,30 @@ type rankedFact struct {
 	score int
 }
 
+type rankedTopic struct {
+	topic TopicSummaryForAI
+	score int
+}
+
+type rankedEntry struct {
+	entry KnowledgeEntryForAI
+	score int
+}
+
 type factIntent struct {
 	Key      string
 	HighRisk bool
+}
+
+type retrievalRouteConfig struct {
+	factLimit          int
+	topicLimit         int
+	entryLimit         int
+	factMinScore       int
+	topicMinScore      int
+	entryMinScore      int
+	scoreRelativeFloor float64
+	allowEntryFallback bool
 }
 
 var factIntentRules = []struct {
@@ -49,17 +81,20 @@ func BuildRetrievalPlanStrict(message string, history []ChatMessageForAI, facts 
 
 func buildRetrievalPlan(message string, history []ChatMessageForAI, facts []StructuredFactForAI, topics []TopicSummaryForAI, entries []KnowledgeEntryForAI, entryFallback bool) RetrievalPlan {
 	query := buildContextQuery(message, history)
-	selectedFacts, factScore := selectFacts(query, facts)
-	selectedTopics, topicScore := selectTopics(query, topics)
-	selectedEntries, entryScore := selectEntriesWithScores(query, entries, entryFallback)
-	confidence := "low"
-	switch {
-	case factScore >= 8 || topicScore >= 10 || entryScore >= 10:
-		confidence = "high"
-	case factScore >= 4 || topicScore >= 5 || entryScore >= 5:
-		confidence = "medium"
+	route := classifyRetrievalRoute(message)
+	intent, hasIntent := detectFactIntent(message)
+	cfg := retrievalConfigForRoute(route, entryFallback)
+	var intentPtr *factIntent
+	if hasIntent {
+		intentPtr = &intent
 	}
-	reasons := make([]string, 0, len(selectedFacts)+len(selectedTopics)+len(selectedEntries))
+
+	selectedFacts, factScore := selectFacts(query, facts, route, intentPtr, cfg)
+	selectedTopics, topicScore := selectTopics(query, topics, route, cfg)
+	selectedEntries, entryScore := selectEntriesWithScores(query, entries, selectedTopics, route, cfg)
+	confidence := deriveRetrievalConfidence(route, factScore, topicScore, entryScore)
+	reasons := make([]string, 0, len(selectedFacts)+len(selectedTopics)+len(selectedEntries)+1)
+	reasons = append(reasons, "route:"+string(route))
 	for _, fact := range selectedFacts {
 		reasons = append(reasons, "fact:"+fact.FactKey)
 	}
@@ -70,6 +105,8 @@ func buildRetrievalPlan(message string, history []ChatMessageForAI, facts []Stru
 		reasons = append(reasons, "knowledge:"+entry.Title)
 	}
 	return RetrievalPlan{
+		Query:      query,
+		Route:      route,
 		Facts:      selectedFacts,
 		Topics:     selectedTopics,
 		Entries:    selectedEntries,
@@ -142,6 +179,7 @@ func BuildRetrievalReferences(plan RetrievalPlan) []map[string]string {
 		refs = append(refs, map[string]string{
 			"id":         fact.ID,
 			"sourceType": "fact",
+			"route":      string(plan.Route),
 			"factKey":    fact.FactKey,
 			"title":      factLabel(fact.FactKey),
 			"excerpt":    fact.FactValue,
@@ -156,6 +194,7 @@ func BuildRetrievalReferences(plan RetrievalPlan) []map[string]string {
 		refs = append(refs, map[string]string{
 			"id":         topic.ID,
 			"sourceType": "topic",
+			"route":      string(plan.Route),
 			"topicGroup": topic.TopicGroup,
 			"topicKey":   topic.TopicKey,
 			"title":      topic.TopicLabel,
@@ -171,6 +210,7 @@ func BuildRetrievalReferences(plan RetrievalPlan) []map[string]string {
 		refs = append(refs, map[string]string{
 			"id":         entry.ID,
 			"sourceType": "knowledge",
+			"route":      string(plan.Route),
 			"category":   entry.Category,
 			"title":      entry.Title,
 			"excerpt":    excerpt,
@@ -180,24 +220,138 @@ func BuildRetrievalReferences(plan RetrievalPlan) []map[string]string {
 	return refs
 }
 
-func selectTopics(query string, topics []TopicSummaryForAI) ([]TopicSummaryForAI, int) {
-	ranked := make([]struct {
-		topic TopicSummaryForAI
-		score int
-	}, 0, len(topics))
+func retrievalConfigForRoute(route RetrievalRoute, allowEntryFallback bool) retrievalRouteConfig {
+	switch route {
+	case RetrievalRouteFact:
+		return retrievalRouteConfig{
+			factLimit:          4,
+			topicLimit:         1,
+			entryLimit:         0,
+			factMinScore:       4,
+			topicMinScore:      8,
+			entryMinScore:      99,
+			scoreRelativeFloor: 0.6,
+		}
+	case RetrievalRouteTopic:
+		return retrievalRouteConfig{
+			factLimit:          2,
+			topicLimit:         3,
+			entryLimit:         2,
+			factMinScore:       5,
+			topicMinScore:      4,
+			entryMinScore:      4,
+			scoreRelativeFloor: 0.45,
+		}
+	case RetrievalRouteEntry:
+		return retrievalRouteConfig{
+			factLimit:          1,
+			topicLimit:         2,
+			entryLimit:         4,
+			factMinScore:       5,
+			topicMinScore:      4,
+			entryMinScore:      4,
+			scoreRelativeFloor: 0.4,
+		}
+	default:
+		return retrievalRouteConfig{
+			factLimit:          2,
+			topicLimit:         3,
+			entryLimit:         3,
+			factMinScore:       4,
+			topicMinScore:      4,
+			entryMinScore:      4,
+			scoreRelativeFloor: 0.5,
+			allowEntryFallback: allowEntryFallback,
+		}
+	}
+}
+
+func classifyRetrievalRoute(message string) RetrievalRoute {
+	if looksLikeFactualQuestion(message) {
+		return RetrievalRouteFact
+	}
+	norm := normalize(message)
+	if containsAnyNormalized(norm, []string{
+		"具体", "细节", "案例", "例子", "原话", "复盘", "项目", "比赛", "面试", "简历", "offer", "当时",
+	}) {
+		return RetrievalRouteEntry
+	}
+	if containsAnyNormalized(norm, []string{
+		"经历", "经验", "怎么办", "怎么选", "如何", "建议", "要不要", "值不值", "规划", "路径", "踩坑",
+		"转行", "求职", "秋招", "春招", "实习", "考研", "留学", "职场", "焦虑", "迷茫",
+	}) {
+		return RetrievalRouteTopic
+	}
+	return RetrievalRouteGeneral
+}
+
+func deriveRetrievalConfidence(route RetrievalRoute, factScore, topicScore, entryScore int) string {
+	switch route {
+	case RetrievalRouteFact:
+		switch {
+		case factScore >= 12:
+			return "high"
+		case factScore >= 6:
+			return "medium"
+		default:
+			return "low"
+		}
+	case RetrievalRouteEntry:
+		switch {
+		case entryScore >= 12 || topicScore >= 10:
+			return "high"
+		case entryScore >= 6 || topicScore >= 5:
+			return "medium"
+		default:
+			return "low"
+		}
+	default:
+		switch {
+		case factScore >= 10 || topicScore >= 10 || entryScore >= 10:
+			return "high"
+		case factScore >= 5 || topicScore >= 5 || entryScore >= 5:
+			return "medium"
+		default:
+			return "low"
+		}
+	}
+}
+
+func containsAnyNormalized(norm string, terms []string) bool {
+	for _, term := range terms {
+		if strings.Contains(norm, normalize(term)) {
+			return true
+		}
+	}
+	return false
+}
+
+func scoreCutoff(best int, minScore int, relativeFloor float64) int {
+	if best <= 0 {
+		return minScore
+	}
+	cutoff := int(float64(best) * relativeFloor)
+	if cutoff < minScore {
+		return minScore
+	}
+	return cutoff
+}
+
+func selectTopics(query string, topics []TopicSummaryForAI, route RetrievalRoute, cfg retrievalRouteConfig) ([]TopicSummaryForAI, int) {
+	if cfg.topicLimit <= 0 {
+		return nil, 0
+	}
+	ranked := make([]rankedTopic, 0, len(topics))
 	best := 0
 	for _, topic := range topics {
-		score := scoreTopic(query, topic)
+		score := scoreTopic(query, topic, route)
 		if score <= 0 {
 			continue
 		}
 		if score > best {
 			best = score
 		}
-		ranked = append(ranked, struct {
-			topic TopicSummaryForAI
-			score int
-		}{topic: topic, score: score})
+		ranked = append(ranked, rankedTopic{topic: topic, score: score})
 	}
 	for i := 0; i < len(ranked)-1; i++ {
 		for j := i + 1; j < len(ranked); j++ {
@@ -206,12 +360,13 @@ func selectTopics(query string, topics []TopicSummaryForAI) ([]TopicSummaryForAI
 			}
 		}
 	}
-	selected := make([]TopicSummaryForAI, 0, 3)
+	selected := make([]TopicSummaryForAI, 0, cfg.topicLimit)
+	cutoff := scoreCutoff(best, cfg.topicMinScore, cfg.scoreRelativeFloor)
 	for _, item := range ranked {
-		if len(selected) >= 3 {
+		if len(selected) >= cfg.topicLimit {
 			break
 		}
-		if best > 0 && len(selected) > 0 && item.score < best/2 {
+		if item.score < cutoff {
 			break
 		}
 		selected = append(selected, item.topic)
@@ -219,11 +374,14 @@ func selectTopics(query string, topics []TopicSummaryForAI) ([]TopicSummaryForAI
 	return selected, best
 }
 
-func selectFacts(query string, facts []StructuredFactForAI) ([]StructuredFactForAI, int) {
+func selectFacts(query string, facts []StructuredFactForAI, route RetrievalRoute, intent *factIntent, cfg retrievalRouteConfig) ([]StructuredFactForAI, int) {
+	if cfg.factLimit <= 0 {
+		return nil, 0
+	}
 	ranked := make([]rankedFact, 0, len(facts))
 	best := 0
 	for _, fact := range facts {
-		score := scoreFact(query, fact)
+		score := scoreFact(query, fact, route, intent)
 		if score <= 0 {
 			continue
 		}
@@ -233,12 +391,13 @@ func selectFacts(query string, facts []StructuredFactForAI) ([]StructuredFactFor
 		ranked = append(ranked, rankedFact{fact: fact, score: score})
 	}
 	sortRankedFacts(ranked)
-	selected := make([]StructuredFactForAI, 0, 4)
+	selected := make([]StructuredFactForAI, 0, cfg.factLimit)
+	cutoff := scoreCutoff(best, cfg.factMinScore, cfg.scoreRelativeFloor)
 	for _, item := range ranked {
-		if len(selected) >= 4 {
+		if len(selected) >= cfg.factLimit {
 			break
 		}
-		if best > 0 && item.score < best/2 {
+		if item.score < cutoff {
 			break
 		}
 		selected = append(selected, item.fact)
@@ -246,21 +405,18 @@ func selectFacts(query string, facts []StructuredFactForAI) ([]StructuredFactFor
 	return selected, best
 }
 
-func selectEntriesWithScores(query string, entries []KnowledgeEntryForAI, allowFallback bool) ([]KnowledgeEntryForAI, int) {
-	ranked := make([]struct {
-		entry KnowledgeEntryForAI
-		score int
-	}, len(entries))
+func selectEntriesWithScores(query string, entries []KnowledgeEntryForAI, selectedTopics []TopicSummaryForAI, route RetrievalRoute, cfg retrievalRouteConfig) ([]KnowledgeEntryForAI, int) {
+	if cfg.entryLimit <= 0 {
+		return nil, 0
+	}
+	ranked := make([]rankedEntry, len(entries))
 	best := 0
 	for i, e := range entries {
-		score := scoreEntry(query, e)
+		score := scoreEntry(query, e, route, selectedTopics)
 		if score > best {
 			best = score
 		}
-		ranked[i] = struct {
-			entry KnowledgeEntryForAI
-			score int
-		}{e, score}
+		ranked[i] = rankedEntry{entry: e, score: score}
 	}
 	for i := 0; i < len(ranked)-1; i++ {
 		for j := i + 1; j < len(ranked); j++ {
@@ -270,21 +426,19 @@ func selectEntriesWithScores(query string, entries []KnowledgeEntryForAI, allowF
 		}
 	}
 	var top []KnowledgeEntryForAI
+	cutoff := scoreCutoff(best, cfg.entryMinScore, cfg.scoreRelativeFloor)
 	for _, r := range ranked {
-		if r.score <= 0 {
+		if r.score < cutoff {
 			continue
 		}
 		top = append(top, r.entry)
-		if len(top) >= 4 {
-			break
-		}
-		if len(top) >= 3 && best > 0 && r.score < best/2 {
+		if len(top) >= cfg.entryLimit {
 			break
 		}
 	}
-	// 若关键词完全未命中，可选注入若干条知识库原文（仅非严格检索；双阶段草稿阶段不启用）
-	if allowFallback && len(top) == 0 && len(entries) > 0 {
-		maxFallback := 8
+	// 仅对低风险开放问答启用弱兜底，避免把不相关原文强塞给事实类问题。
+	if cfg.allowEntryFallback && len(top) == 0 && len(entries) > 0 && shouldAllowEntryFallback(query, route) {
+		maxFallback := 3
 		if len(entries) < maxFallback {
 			maxFallback = len(entries)
 		}
@@ -292,10 +446,18 @@ func selectEntriesWithScores(query string, entries []KnowledgeEntryForAI, allowF
 			top = append(top, entries[i])
 		}
 		if best <= 0 {
-			best = 1 // 标记为弱相关，配合系统提示要求紧扣条目
+			best = 1
 		}
 	}
 	return top, best
+}
+
+func shouldAllowEntryFallback(query string, route RetrievalRoute) bool {
+	if route != RetrievalRouteGeneral {
+		return false
+	}
+	norm := normalize(query)
+	return containsAnyNormalized(norm, []string{"怎么", "怎么办", "如何", "是不是", "最近", "想", "要不要", "值不值"})
 }
 
 func detectFactIntent(message string) (factIntent, bool) {
@@ -378,9 +540,19 @@ func factLabel(key string) string {
 	}
 }
 
-func scoreFact(message string, fact StructuredFactForAI) int {
+func scoreFact(message string, fact StructuredFactForAI, route RetrievalRoute, intent *factIntent) int {
 	normMsg := normalize(message)
 	score := 0
+	if intent != nil {
+		switch {
+		case fact.FactKey == intent.Key:
+			score += 8
+		case intent.Key == "city" && fact.FactKey == "province":
+			score += 5
+		case route == RetrievalRouteFact:
+			return 0
+		}
+	}
 	if strings.Contains(normMsg, normalize(fact.FactValue)) {
 		score += 8
 	}
@@ -388,7 +560,7 @@ func scoreFact(message string, fact StructuredFactForAI) int {
 		score += 6
 	}
 	for _, alias := range factAliases(fact.FactKey) {
-		if strings.Contains(normMsg, alias) {
+		if strings.Contains(normMsg, normalize(alias)) {
 			score += 5
 		}
 	}
@@ -398,16 +570,22 @@ func scoreFact(message string, fact StructuredFactForAI) int {
 		}
 	}
 	if fact.Status == "confirmed" {
+		score += 2
+	}
+	if fact.Confidence == "high" {
+		score += 1
+	}
+	if route == RetrievalRouteFact {
 		score += 1
 	}
 	return score
 }
 
-func scoreTopic(message string, topic TopicSummaryForAI) int {
+func scoreTopic(message string, topic TopicSummaryForAI, route RetrievalRoute) int {
 	normMsg := normalize(message)
 	score := 0
 	if strings.Contains(normMsg, normalize(topic.TopicLabel)) {
-		score += 7
+		score += 8
 	}
 	if strings.Contains(normMsg, normalize(topic.TopicKey)) {
 		score += 5
@@ -419,19 +597,25 @@ func scoreTopic(message string, topic TopicSummaryForAI) int {
 	}
 	for _, pattern := range topic.QuestionPatterns {
 		if strings.Contains(normMsg, normalize(pattern)) {
-			score += 6
+			score += 7
 		}
 	}
 	for _, tok := range tokenize(message) {
-		if strings.Contains(normalize(topic.Summary), tok) {
+		if strings.Contains(normalize(topic.Summary), tok) || strings.Contains(normalize(topic.TopicLabel), tok) {
 			score += 2
 		}
 	}
 	if topic.Status == "active" {
-		score += 1
+		score += 2
 	}
 	if topic.Confidence == "high" {
-		score += 1
+		score += 2
+	}
+	if route == RetrievalRouteTopic {
+		score += 2
+	}
+	if route == RetrievalRouteFact {
+		score /= 2
 	}
 	return score
 }

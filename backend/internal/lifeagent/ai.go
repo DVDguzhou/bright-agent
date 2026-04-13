@@ -225,58 +225,70 @@ func normalizeSnippet(s string) string {
 	return strings.TrimSpace(s)
 }
 
-func scoreEntry(message string, entry KnowledgeEntryForAI) int {
+func scoreEntry(message string, entry KnowledgeEntryForAI, route RetrievalRoute, selectedTopics []TopicSummaryForAI) int {
 	normMsg := normalize(message)
 	normContent := normalize(entry.Content)
 	normTitle := normalize(entry.Title)
+	normCategory := normalize(entry.Category)
+	normTags := make([]string, 0, len(entry.Tags))
+	for _, tag := range entry.Tags {
+		normTags = append(normTags, normalize(tag))
+	}
 	tokens := tokenize(message)
 	score := 0
-	// 困难/低谷类问题：与知识库里失败、复盘、舆论、伤病等主题对齐
-	hardshipHints := []string{"困难", "最难", "低谷", "挫折", "难熬", "走不出来", "崩溃", "熬"}
-	for _, h := range hardshipHints {
-		if strings.Contains(normMsg, normalize(h)) {
-			for _, needle := range []string{"低谷", "失败", "丧", "emo", "舆论", "输", "跟腱", "拆队", "复盘", "绿军", "凯尔特人"} {
-				if strings.Contains(normContent, needle) || strings.Contains(normTitle, needle) {
-					score += 5
-					break
-				}
-			}
-			break
-		}
+
+	if strings.Contains(normMsg, normTitle) && normTitle != "" {
+		score += 8
 	}
-	if strings.Contains(normMsg, "詹姆斯") || strings.Contains(normMsg, "勒布朗") || strings.Contains(normMsg, "lebron") {
-		for _, needle := range []string{"詹姆斯", "勒布朗", "lebron", "对手", "时代", "国家队", "奥运"} {
-			if strings.Contains(normContent, needle) || strings.Contains(normTitle, needle) {
-				score += 8
-				break
-			}
-		}
+	if strings.Contains(normMsg, normCategory) && normCategory != "" {
+		score += 4
 	}
-	for _, tag := range entry.Tags {
-		if strings.Contains(normMsg, normalize(tag)) {
+	for _, tag := range normTags {
+		if tag != "" && strings.Contains(normMsg, tag) {
 			score += 7
 		}
 	}
-	if strings.Contains(normMsg, normalize(entry.Title)) {
-		score += 5
-	}
-	if strings.Contains(normMsg, normalize(entry.Category)) {
-		score += 3
-	}
 	for _, tok := range tokens {
-		if strings.Contains(normalize(entry.Title), tok) {
-			score += 3
+		if strings.Contains(normTitle, tok) {
+			score += 4
 		}
-		if strings.Contains(normalize(entry.Content), tok) {
+		if strings.Contains(normCategory, tok) {
 			score += 2
 		}
-		for _, tag := range entry.Tags {
-			if strings.Contains(normalize(tag), tok) {
+		if strings.Contains(normContent, tok) {
+			score += 2
+		}
+		for _, tag := range normTags {
+			if strings.Contains(tag, tok) {
 				score += 3
 				break
 			}
 		}
 	}
+
+	for _, topic := range selectedTopics {
+		if topic.TopicLabel != "" && strings.Contains(normContent, normalize(topic.TopicLabel)) {
+			score += 4
+		}
+		for _, alias := range topic.Aliases {
+			if alias != "" && strings.Contains(normContent, normalize(alias)) {
+				score += 3
+				break
+			}
+		}
+	}
+
+	switch route {
+	case RetrievalRouteEntry:
+		score += 3
+	case RetrievalRouteTopic:
+		if len(selectedTopics) > 0 {
+			score += 2
+		}
+	case RetrievalRouteFact:
+		score /= 2
+	}
+
 	return score
 }
 

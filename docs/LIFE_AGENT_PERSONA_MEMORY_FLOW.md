@@ -311,6 +311,48 @@ flowchart TB
 - 不再“无命中也强塞前几条”
 - 改为根据分值决定高、中、低置信
 
+### 4.4.1 当前检索路由
+
+现在运行期检索会先做一个轻量路由，而不是让 facts、topics、knowledge entries 共用一套完全相同的评分逻辑：
+
+- `fact route`
+  - 学校、学历、工作、收入、城市、比赛名等确定事实
+  - 优先 facts，必要时才补极少量 topic
+- `topic route`
+  - 经验、建议、怎么选、怎么办、规划、踩坑等问题
+  - 优先召回 topic summaries，再补少量 knowledge entries
+- `entry route`
+  - 用户追问具体案例、细节、复盘、原话、项目、比赛等
+  - 更偏向 knowledge entries 原始素材
+- `general route`
+  - 普通开放问答
+  - 允许较平衡地组合 facts、topics、entries
+
+### 4.4.2 弱兜底策略
+
+知识条目的 fallback 现在不再是默认开启，而是只保留给：
+
+- 非事实类问题
+- 非严格检索
+- 低风险开放问答
+
+这样可以减少“明明没命中，却硬塞几条原文”的噪音。
+
+### 4.4.3 为混合召回预留接口
+
+当前代码仍以词法检索和规则打分为主，但已经预留：
+
+- topic 向量召回 hook
+- knowledge entry 向量召回 hook
+- rerank hook
+
+后续如果 topic 和知识条目规模继续增长，可以平滑升级到：
+
+- `lexical recall topN`
+- `vector recall topN`
+- `merge`
+- `rerank topK`
+
 ### 4.5 构造 Prompt（双阶段默认 + 单阶段例外）
 
 实现位置：`backend/internal/lifeagent/llm.go`、`backend/internal/lifeagent/grounding.go`。

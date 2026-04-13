@@ -18,12 +18,12 @@ const llmErrorFallback = "大模型出错了哦"
 
 // pre-compiled regexps for hot paths
 var (
-	headingRe   = regexp.MustCompile(`(?m)^#{1,6}\s*`)
-	listItemRe  = regexp.MustCompile(`(?m)^\s*(\d+[\.\)、]|[-*•])\s*`)
-	identityRe  = regexp.MustCompile(`[^\p{Han}a-z0-9]`)
-	mdBoldRe    = regexp.MustCompile(`\*\*([^*]+)\*\*`)
-	mdItalicRe  = regexp.MustCompile(`\*([^*\n]+)\*`)
-	backtickRe  = regexp.MustCompile("`+")
+	headingRe  = regexp.MustCompile(`(?m)^#{1,6}\s*`)
+	listItemRe = regexp.MustCompile(`(?m)^\s*(\d+[\.\)、]|[-*•])\s*`)
+	identityRe = regexp.MustCompile(`[^\p{Han}a-z0-9]`)
+	mdBoldRe   = regexp.MustCompile(`\*\*([^*]+)\*\*`)
+	mdItalicRe = regexp.MustCompile(`\*([^*\n]+)\*`)
+	backtickRe = regexp.MustCompile("`+")
 
 	// 常见 AI 套话正则：即使 prompt 禁止了，模型偶尔仍会输出这些句式
 	stripAIPhrasesRe = regexp.MustCompile(`(?i)` +
@@ -397,6 +397,11 @@ func buildReconcileSystemPrompt(profile ProfileForAI, plan RetrievalPlan) string
 	sb.WriteString("你是同一人设「")
 	sb.WriteString(profile.DisplayName)
 	sb.WriteString("」的校对：下面【结构化事实】【Topic】【经历素材】来自该账号已入库内容，**与草稿冲突时以这些内容为准**；不冲突则尽量保留草稿的人声与长度感。\n\n")
+	sb.WriteString("本轮检索路由: ")
+	sb.WriteString(string(plan.Route))
+	sb.WriteString("\n本轮检索 query: ")
+	sb.WriteString(plan.Query)
+	sb.WriteString("\n\n")
 	sb.WriteString("规则：\n")
 	sb.WriteString("1. 输出仍是微信聊天正文：无 Markdown、无列表符号、无 #。\n")
 	sb.WriteString("2. 若草稿与事实/素材在具体经历、数字、人物关系上矛盾，改写到一致，口吻仍口语。\n")
@@ -525,6 +530,12 @@ func buildSystemPrompt(profile ProfileForAI, plan RetrievalPlan) string {
 	sb.WriteString(BuildTopicsPromptSection(plan.Topics))
 	sb.WriteString("\n\n【内部相关度（只供你拿捏分寸，禁止写进对用户回复）】\n")
 	sb.WriteString(plan.Confidence)
+	sb.WriteString("\n路由: ")
+	sb.WriteString(string(plan.Route))
+	if strings.TrimSpace(plan.Query) != "" {
+		sb.WriteString("\n检索 query: ")
+		sb.WriteString(plan.Query)
+	}
 	sb.WriteString("\n\n--- 经历素材（可组合、口语化转述；勿对用户描述本块来源）---\n\n")
 
 	for i, e := range plan.Entries {
