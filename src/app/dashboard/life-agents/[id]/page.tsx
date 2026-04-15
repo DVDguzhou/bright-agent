@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { LifeAgentCoverImage } from "@/components/LifeAgentCoverImage";
@@ -11,6 +11,7 @@ import {
   fetchManageData,
   formatDateTime,
   formatShortTime,
+  type FeedbackAlert,
   type ManageData,
 } from "@/app/dashboard/life-agents/_lib/manage";
 import { cleanLifeAgentIntroText } from "@/lib/life-agent-intro-clean";
@@ -20,6 +21,31 @@ type LoadState = {
   error: string | null;
   loading: boolean;
 };
+
+type LiveUpdate = {
+  id: string;
+  content: string;
+  category: string;
+  location?: string;
+  pinned: boolean;
+  createdAt: string;
+  freshDays: number;
+};
+
+const LIVE_CATEGORIES = [
+  { value: "general", label: "综合" },
+  { value: "market", label: "行情" },
+  { value: "job", label: "求职/秋招" },
+  { value: "life", label: "生活" },
+  { value: "study", label: "升学/考试" },
+  { value: "housing", label: "房产" },
+  { value: "policy", label: "当地政策" },
+  { value: "cost", label: "物价/开销" },
+  { value: "community", label: "社区/小区" },
+  { value: "transport", label: "交通/通勤" },
+  { value: "weather", label: "气候/环境" },
+  { value: "resource", label: "本地资源" },
+];
 
 function StatCard({
   label,
@@ -78,6 +104,12 @@ export default function LifeAgentManageHomePage() {
   const id = params.id as string;
   const [state, setState] = useState<LoadState>({ data: null, error: null, loading: true });
   const [deleting, setDeleting] = useState(false);
+  const [liveUpdates, setLiveUpdates] = useState<LiveUpdate[]>([]);
+  const [liveContent, setLiveContent] = useState("");
+  const [liveCategory, setLiveCategory] = useState("general");
+  const [liveLocation, setLiveLocation] = useState("");
+  const [livePosting, setLivePosting] = useState(false);
+  const liveTextareaRef = useRef<HTMLTextAreaElement>(null);
 
   const load = useCallback(async () => {
     setState((prev) => ({ ...prev, loading: true, error: null }));
@@ -85,9 +117,52 @@ export default function LifeAgentManageHomePage() {
     setState({ data: result.data, error: result.error, loading: false });
   }, [id]);
 
+  const loadLiveUpdates = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/life-agents/${id}/live-updates`, { credentials: "include" });
+      if (res.ok) {
+        const json = await res.json();
+        setLiveUpdates(json.updates ?? []);
+      }
+    } catch { /* ignore */ }
+  }, [id]);
+
+  const postLiveUpdate = async () => {
+    if (!liveContent.trim()) return;
+    setLivePosting(true);
+    try {
+      const res = await fetch(`/api/life-agents/${id}/live-updates`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          content: liveContent.trim(),
+          category: liveCategory,
+          location: liveLocation.trim() || undefined,
+        }),
+      });
+      if (res.ok) {
+        setLiveContent("");
+        setLiveLocation("");
+        void loadLiveUpdates();
+      }
+    } finally {
+      setLivePosting(false);
+    }
+  };
+
+  const deleteLiveUpdate = async (updateId: string) => {
+    await fetch(`/api/life-agents/${id}/live-updates/${updateId}`, {
+      method: "DELETE",
+      credentials: "include",
+    });
+    setLiveUpdates((prev) => prev.filter((u) => u.id !== updateId));
+  };
+
   useEffect(() => {
     void load();
-  }, [load]);
+    void loadLiveUpdates();
+  }, [load, loadLiveUpdates]);
 
   const data = state.data;
   const profile = data?.profile;
@@ -291,6 +366,13 @@ export default function LifeAgentManageHomePage() {
             icon={<svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h7m-7 4h10M5 4h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z" /></svg>}
           />
           <QuickAction
+            href={`/dashboard/life-agents/${id}/blind-spots`}
+            title={`盲区问题${(data.stats?.blindSpotCount ?? 0) > 0 ? ` (${data.stats.blindSpotCount})` : ""}`}
+            desc="用户问了但 Agent 答不好的问题，补充后提升回答质量"
+            colorClass="bg-amber-100 text-amber-700"
+            icon={<svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M12 3a9 9 0 100 18 9 9 0 000-18z" /></svg>}
+          />
+          <QuickAction
             href="/dashboard/api-keys"
             title="开放 API"
             desc="管理调用 Key、定价和数据，让别人直接调用你的 Agent"
@@ -298,6 +380,81 @@ export default function LifeAgentManageHomePage() {
             icon={<svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a5 5 0 11-9.9 1H3m0 0l3-3m-3 3l3 3m6 6a5 5 0 109.9-1H21m0 0l-3 3m3-3l-3-3" /></svg>}
           />
         </div>
+      </section>
+
+      <section className="rounded-[28px] bg-white px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-black tracking-tight text-[#111]">实时更新</h2>
+            <p className="mt-1 text-sm text-slate-500">像发朋友圈一样分享最新信息，Agent 回答时会优先引用。</p>
+          </div>
+          <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-medium text-emerald-700">
+            {liveUpdates.length} 条有效
+          </span>
+        </div>
+
+        <div className="mt-4 rounded-2xl bg-[#fafbfc] p-4 ring-1 ring-black/[0.04]">
+          <textarea
+            ref={liveTextareaRef}
+            value={liveContent}
+            onChange={(e) => setLiveContent(e.target.value)}
+            placeholder="分享最新信息，比如：杭州余杭区最近落户政策放宽了 / 西湖区房价Q2微涨 / 秋招字节阿里都在扩招..."
+            className="w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-[#111] placeholder:text-slate-400 focus:border-sky-300 focus:outline-none focus:ring-2 focus:ring-sky-100"
+            rows={3}
+          />
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <select
+              value={liveCategory}
+              onChange={(e) => setLiveCategory(e.target.value)}
+              className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-700 focus:outline-none"
+            >
+              {LIVE_CATEGORIES.map((c) => (
+                <option key={c.value} value={c.value}>{c.label}</option>
+              ))}
+            </select>
+            <input
+              type="text"
+              value={liveLocation}
+              onChange={(e) => setLiveLocation(e.target.value)}
+              placeholder="位置标签，如：杭州西湖区（可选）"
+              className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-700 placeholder:text-slate-400 focus:outline-none"
+            />
+            <button
+              type="button"
+              onClick={postLiveUpdate}
+              disabled={livePosting || !liveContent.trim()}
+              className="ml-auto rounded-full bg-[#111] px-5 py-1.5 text-sm font-semibold text-white active:scale-[0.98] disabled:opacity-40"
+            >
+              {livePosting ? "发布中..." : "发布"}
+            </button>
+          </div>
+        </div>
+
+        {liveUpdates.length > 0 && (
+          <ul className="mt-4 space-y-3">
+            {liveUpdates.map((u) => (
+              <li key={u.id} className="flex items-start gap-3 rounded-2xl bg-[#fafbfc] p-4 ring-1 ring-black/[0.04]">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 text-xs text-slate-500">
+                    <span className="rounded-full bg-sky-100 px-2 py-0.5 font-medium text-sky-700">{LIVE_CATEGORIES.find((c) => c.value === u.category)?.label ?? u.category}</span>
+                    {u.location && <span>📍 {u.location}</span>}
+                    <span>{u.freshDays === 0 ? "今天" : `${u.freshDays}天前`}</span>
+                    {u.pinned && <span className="font-medium text-amber-600">📌 置顶</span>}
+                  </div>
+                  <p className="mt-2 text-sm leading-relaxed text-[#111]">{u.content}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => void deleteLiveUpdate(u.id)}
+                  className="shrink-0 rounded-lg p-1 text-slate-400 hover:bg-red-50 hover:text-red-500"
+                  title="删除"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       <section className="rounded-[28px] bg-white px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
@@ -371,6 +528,102 @@ export default function LifeAgentManageHomePage() {
           </div>
         </div>
       </section>
+
+      {(data.feedback?.alerts ?? []).length > 0 && (
+        <section className="rounded-[28px] bg-white px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
+          <h2 className="text-xl font-black tracking-tight text-[#111]">需要你关注</h2>
+          <p className="mt-1 text-xs text-slate-400">来自用户的真实反馈，按紧急程度排列</p>
+          <ul className="mt-3 space-y-2">
+            {(data.feedback?.alerts ?? []).map((alert: FeedbackAlert) => (
+              <li
+                key={alert.id}
+                className={`flex items-start gap-3 rounded-2xl px-4 py-3 text-sm leading-6 shadow-sm ${
+                  alert.color === "red"
+                    ? "bg-red-50 ring-1 ring-red-200"
+                    : alert.color === "orange"
+                      ? "bg-orange-50 ring-1 ring-orange-200"
+                      : alert.color === "yellow"
+                        ? "bg-yellow-50 ring-1 ring-yellow-200"
+                        : "bg-blue-50 ring-1 ring-blue-200"
+                }`}
+              >
+                <span
+                  className={`mt-0.5 inline-block h-2.5 w-2.5 flex-shrink-0 rounded-full ${
+                    alert.color === "red"
+                      ? "bg-red-500"
+                      : alert.color === "orange"
+                        ? "bg-orange-500"
+                        : alert.color === "yellow"
+                          ? "bg-yellow-500"
+                          : "bg-blue-500"
+                  }`}
+                />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`text-xs font-semibold ${
+                        alert.color === "red"
+                          ? "text-red-700"
+                          : alert.color === "orange"
+                            ? "text-orange-700"
+                            : alert.color === "yellow"
+                              ? "text-yellow-700"
+                              : "text-blue-700"
+                      }`}
+                    >
+                      {alert.title}
+                    </span>
+                    <span
+                      className={`rounded-full px-1.5 py-0.5 text-[10px] font-medium ${
+                        alert.color === "red"
+                          ? "bg-red-100 text-red-600"
+                          : alert.color === "orange"
+                            ? "bg-orange-100 text-orange-600"
+                            : alert.color === "yellow"
+                              ? "bg-yellow-100 text-yellow-600"
+                              : "bg-blue-100 text-blue-600"
+                      }`}
+                    >
+                      {alert.priority === "urgent"
+                        ? "紧急"
+                        : alert.priority === "high"
+                          ? "重要"
+                          : alert.priority === "medium"
+                            ? "建议"
+                            : "参考"}
+                    </span>
+                  </div>
+                  <p className="mt-0.5 text-slate-600">{alert.detail}</p>
+                  {alert.topicId && (
+                    <Link
+                      href={`/dashboard/life-agents/${id}/topics`}
+                      className={`mt-1 inline-block text-xs font-medium underline ${
+                        alert.color === "red"
+                          ? "text-red-600"
+                          : alert.color === "orange"
+                            ? "text-orange-600"
+                            : alert.color === "yellow"
+                              ? "text-yellow-600"
+                              : "text-blue-600"
+                      }`}
+                    >
+                      {alert.action} →
+                    </Link>
+                  )}
+                  {alert.source === "blind_spot" && (
+                    <Link
+                      href={`/dashboard/life-agents/${id}/blind-spots`}
+                      className="mt-1 inline-block text-xs font-medium text-orange-600 underline"
+                    >
+                      {alert.action} →
+                    </Link>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <section className="rounded-[28px] bg-gradient-to-r from-yellow-300 via-amber-200 to-yellow-300 px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
         <h2 className="text-xl font-black tracking-tight text-[#111]">优化建议</h2>

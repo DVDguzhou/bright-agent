@@ -76,6 +76,7 @@ export type ManageData = {
     soldPacks: number;
     sessionCount: number;
     topicCount?: number;
+    blindSpotCount?: number;
   };
   feedback?: {
     counts: {
@@ -103,6 +104,7 @@ export type ManageData = {
       comment?: string | null;
       createdAt: string;
     }>;
+    alerts?: FeedbackAlert[];
   };
   questionPacks: Array<{
     id: string;
@@ -120,6 +122,17 @@ export type ManageData = {
     updatedAt: string;
     buyer: { email: string; name: string | null };
   }>;
+};
+
+export type FeedbackAlert = {
+  id: string;
+  title: string;
+  detail: string;
+  priority: "urgent" | "high" | "medium" | "low";
+  color: "red" | "orange" | "yellow" | "blue";
+  source: string;
+  topicId?: string;
+  action: string;
 };
 
 export type FormState = {
@@ -434,6 +447,11 @@ export function buildOptimizationSuggestions(data: ManageData) {
   }
   if (!data.profile.hasVoiceClone) {
     suggestions.push("还没有可用音色，补一个语音样本能提升陪伴感与转化。");
+  }
+  if ((data.stats?.blindSpotCount ?? 0) > 0) {
+    suggestions.push(
+      `有 ${data.stats.blindSpotCount} 个用户问题你的 Agent 答不好，建议查看「盲区问题」并补充相关经验。`,
+    );
   }
   if (!data.profile.apiInvokeEnabled) {
     suggestions.push("可以开启开放 API，让别人直接调用你的 Agent 并查看调用数据。");

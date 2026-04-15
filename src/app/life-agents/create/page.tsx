@@ -91,6 +91,7 @@ type ProfileSummaryResponse = {
 type CreateQuestionResponse = {
   done?: boolean;
   nextQuestion?: string;
+  questionDimension?: "fact" | "decision" | "regret" | "adaptation" | "advice" | "current" | "local";
   summaryMessage?: string;
   extractedTone?: {
     personaArchetype?: string;
@@ -281,6 +282,74 @@ const DEFAULT_FORM: CreateAgentFormState = {
   exampleReply3: "",
 };
 
+type QuickStartTemplate = {
+  label: string;
+  desc: string;
+  form: Partial<CreateAgentFormState>;
+  sampleQuestions: string[];
+};
+
+const QUICK_START_TEMPLATES: QuickStartTemplate[] = [
+  {
+    label: "考研上岸",
+    desc: "分享考研备考、选校、调剂的真实经历",
+    form: {
+      headline: "陪你想清楚考研这件事的过来人",
+      shortBio: "考研上岸过，知道备考有多难，也知道选对方向比埋头刷题重要。",
+      audience: "正在考虑考研、正在备考、或者在纠结二战的同学",
+      welcomeMessage: "考研的事可以随便问我，我自己走过一遍，知道哪些坑不用踩。",
+      expertiseTags: "考研, 备考, 选校, 调剂, 二战",
+      personaArchetype: "学长学姐型",
+    },
+    sampleQuestions: ["我这个专业值得考研吗？", "一战没上岸，要不要二战？", "怎么选目标院校？"],
+  },
+  {
+    label: "转行互联网",
+    desc: "分享非科班转行产品、运营、开发的经验",
+    form: {
+      headline: "从传统行业转到互联网的过来人",
+      shortBio: "转过行，知道中间的纠结、焦虑和真实的准备过程。",
+      audience: "想从传统行业转到互联网，或者在犹豫要不要转行的人",
+      welcomeMessage: "转行的事我自己经历过，有什么想聊的直接说。",
+      expertiseTags: "转行, 互联网, 产品经理, 职业规划, 简历",
+      personaArchetype: "过来人型",
+    },
+    sampleQuestions: ["非科班转产品经理可行吗？", "转行需要准备多久？", "降薪转行值不值得？"],
+  },
+  {
+    label: "留学申请",
+    desc: "分享留学选校、申请、海外生活的真实体验",
+    form: {
+      headline: "留过学，知道申请和真实生活是两回事",
+      shortBio: "经历过留学申请全流程，也在海外生活过，能聊的不只是怎么申请。",
+      audience: "正在准备留学、在纠结去哪个国家/学校、或者想了解海外真实生活的人",
+      welcomeMessage: "留学的事随便问，我自己申请过，也在那边生活过。",
+      expertiseTags: "留学, 申请, 选校, 海外生活, 签证",
+      personaArchetype: "学长学姐型",
+    },
+    sampleQuestions: ["这两个学校怎么选？", "留学真实花费大概多少？", "海外找工作难不难？"],
+  },
+  {
+    label: "应届求职",
+    desc: "分享秋招、春招、选 offer 的第一手经验",
+    form: {
+      headline: "刚经历过秋招的应届生",
+      shortBio: "秋招春招都走过一遍，简历、面试、选 offer 的坑都踩过。",
+      audience: "正在准备秋招/春招、或者拿了多个 offer 不知道怎么选的同学",
+      welcomeMessage: "求职的事我刚经历完，记忆还很新鲜，有什么想问的直说。",
+      expertiseTags: "秋招, 春招, 面试, 选offer, 简历",
+      personaArchetype: "朋友陪聊型",
+    },
+    sampleQuestions: ["大厂和小公司怎么选？", "面试总被问职业规划怎么答？", "实习经历不够怎么办？"],
+  },
+  {
+    label: "自由创建",
+    desc: "从零开始，一步步填写你的 Agent 信息",
+    form: {},
+    sampleQuestions: [],
+  },
+];
+
 export default function CreateLifeAgentPage() {
   const router = useRouter();
   const profileChatEndRef = useRef<HTMLDivElement>(null);
@@ -315,6 +384,7 @@ export default function CreateLifeAgentPage() {
   const [voiceSampleBase64, setVoiceSampleBase64] = useState<string | null>(null);
   const [coverImageUrl, setCoverImageUrl] = useState("");
   const [voiceSkipped, setVoiceSkipped] = useState(false);
+  const [templatePicked, setTemplatePicked] = useState(false);
   /** 为 true 表示已尝试从 localStorage 恢复草稿，避免与「空聊天自动插入首条」冲突 */
   const [draftReady, setDraftReady] = useState(false);
   const saveDraftTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -356,6 +426,7 @@ export default function CreateLifeAgentPage() {
       setVoiceSampleBase64(null);
       setVoiceSkipped(draft.voiceSkipped);
       setCoverImageUrl(draft.coverImageUrl);
+      setTemplatePicked(true);
       setError(needsVoiceResample ? "已恢复草稿，录音样本不会自动保存，请重新录制一次音色。" : "");
     }
     setDraftReady(true);
@@ -534,7 +605,7 @@ export default function CreateLifeAgentPage() {
 
   useEffect(() => {
     if (!draftReady) return;
-    if (step === 1 && chatHistory.length === 0) {
+    if (step === 1 && chatHistory.length === 0 && templatePicked) {
       setChatHistory([{ role: "assistant", content: PROFILE_CHAT_FIELDS[0].prompt }]);
       setChatFieldIndex(0);
       setChatDone(false);
@@ -636,6 +707,52 @@ export default function CreateLifeAgentPage() {
     setCoverImageUrl("");
     setError("");
     setChatHistory([{ role: "assistant", content: PROFILE_CHAT_FIELDS[0].prompt }]);
+  };
+
+  const applyTemplate = (template: QuickStartTemplate) => {
+    const merged = { ...DEFAULT_FORM, ...template.form };
+    setForm(merged);
+    if (template.sampleQuestions.length > 0) {
+      setSampleQuestionsList(template.sampleQuestions);
+      setSampleQuestionsDraft(template.sampleQuestions.join("\n"));
+    }
+    setTemplatePicked(true);
+
+    if (Object.keys(template.form).length === 0) {
+      setChatHistory([{ role: "assistant", content: PROFILE_CHAT_FIELDS[0].prompt }]);
+      setChatFieldIndex(0);
+      setChatDone(false);
+      return;
+    }
+
+    // Skip pre-filled fields by finding the first empty required field
+    let startIdx = PROFILE_CHAT_FIELDS.length;
+    for (let i = 0; i < PROFILE_CHAT_FIELDS.length; i++) {
+      const f = PROFILE_CHAT_FIELDS[i];
+      const val = merged[f.key as keyof CreateAgentFormState];
+      if (!val || val.trim() === "") {
+        startIdx = i;
+        break;
+      }
+    }
+
+    if (startIdx >= PROFILE_CHAT_FIELDS.length) {
+      const summary: ChatMessage[] = [
+        { role: "assistant", content: `已按「${template.label}」模板自动填好了基础资料。你只需要补充自己的具体信息。` },
+        { role: "assistant", content: `名字还没填——${PROFILE_CHAT_FIELDS[0].prompt}` },
+      ];
+      setChatHistory(summary);
+      setChatFieldIndex(0);
+      setChatDone(false);
+    } else {
+      const summary: ChatMessage[] = [
+        { role: "assistant", content: `已按「${template.label}」模板自动填好了大部分资料，接下来补充几个你的具体信息就行。` },
+        { role: "assistant", content: PROFILE_CHAT_FIELDS[startIdx].prompt },
+      ];
+      setChatHistory(summary);
+      setChatFieldIndex(startIdx);
+      setChatDone(false);
+    }
   };
 
   const submitExperienceAnswer = async (e?: React.FormEvent, voiceText?: string) => {
@@ -1127,7 +1244,35 @@ export default function CreateLifeAgentPage() {
         </div>
       </header>
 
-      {step === 1 && (
+      {step === 1 && !templatePicked && draftReady && (
+        <div className="flex min-h-0 flex-1 flex-col items-center justify-center overflow-y-auto px-4 py-8">
+          <h2 className="text-lg font-bold text-slate-900">选一个最接近你的场景</h2>
+          <p className="mt-1 text-sm text-slate-500">模板会帮你预填大部分资料，你只需补充自己的具体信息</p>
+          <div className="mt-6 grid w-full max-w-md gap-3">
+            {QUICK_START_TEMPLATES.map((tpl) => (
+              <button
+                key={tpl.label}
+                type="button"
+                onClick={() => applyTemplate(tpl)}
+                className="group flex items-center gap-3 rounded-2xl bg-white px-4 py-4 text-left shadow-sm ring-1 ring-black/[0.06] transition hover:ring-purple-300 hover:shadow-md"
+              >
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-100 text-base font-bold text-purple-700 group-hover:bg-violet-200 transition-colors">
+                  {tpl.label.slice(0, 1)}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-slate-900">{tpl.label}</p>
+                  <p className="mt-0.5 text-xs text-slate-500">{tpl.desc}</p>
+                </div>
+                <svg className="h-4 w-4 shrink-0 text-slate-300 group-hover:text-purple-500 transition-colors" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {step === 1 && templatePicked && (
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
           {/* 单行提示 */}
           <div className="shrink-0 flex items-center justify-between gap-2 px-3 py-1.5 text-xs text-purple-900/50">

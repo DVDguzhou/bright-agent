@@ -130,6 +130,66 @@ func lifeAgentCoverURL(p *models.LifeAgentProfile) string {
 	return lifeAgentDefaultCoverURL
 }
 
+// buildFeedbackSignals 从 DB 聚合该 Agent 的反馈信号，用于 Feedback-Aware Retrieval。
+// 按 source_refs 中的 topicID / entryID 归类反馈计数。
+func buildFeedbackSignals(profileID string) *lifeagent.FeedbackSignals {
+	var feedbacks []models.LifeAgentFeedback
+	db.DB.Where("profile_id = ?", profileID).Find(&feedbacks)
+	if len(feedbacks) == 0 {
+		return nil
+	}
+
+	topicStats := make(map[string]lifeagent.FeedbackStat)
+	entryStats := make(map[string]lifeagent.FeedbackStat)
+
+	for _, fb := range feedbacks {
+		for _, raw := range fb.SourceRefs {
+			refMap, ok := raw.(map[string]interface{})
+			if !ok {
+				continue
+			}
+			sourceType, _ := refMap["sourceType"].(string)
+			refID, _ := refMap["id"].(string)
+			if refID == "" {
+				continue
+			}
+
+			var statsMap map[string]lifeagent.FeedbackStat
+			switch sourceType {
+			case "topic":
+				statsMap = topicStats
+			case "knowledge":
+				statsMap = entryStats
+			default:
+				continue
+			}
+
+			stat := statsMap[refID]
+			switch fb.FeedbackType {
+			case "helpful":
+				stat.Helpful++
+			case "not_specific":
+				stat.NotSpecific++
+			case "factual_error":
+				stat.FactualError++
+			case "contradiction":
+				stat.Contradiction++
+			case "too_confident":
+				stat.TooConfident++
+			}
+			statsMap[refID] = stat
+		}
+	}
+
+	if len(topicStats) == 0 && len(entryStats) == 0 {
+		return nil
+	}
+	return &lifeagent.FeedbackSignals{
+		TopicStats: topicStats,
+		EntryStats: entryStats,
+	}
+}
+
 func buildLifeAgentRatingState(profileID, buyerID string) gin.H {
 	var usedQuestions int
 	db.DB.Raw(
@@ -401,6 +461,10 @@ func LifeAgentsMapPins() gin.HandlerFunc {
 		County      string           `json:"county"      gorm:"column:county"`
 		Regions     models.JSONArray `json:"regions"     gorm:"column:regions"`
 	}
+	type pinResp struct {
+		mapPin
+		HasRecentUpdate bool `json:"hasRecentUpdate"`
+	}
 	return func(c *gin.Context) {
 		var pins []mapPin
 		if err := db.DB.Table("life_agent_profiles").
@@ -410,7 +474,22 @@ func LifeAgentsMapPins() gin.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "INTERNAL_ERROR"})
 			return
 		}
-		c.JSON(http.StatusOK, pins)
+		// 查询 7 天内有实时更新的 profile
+		recentCutoff := time.Now().Add(-7 * 24 * time.Hour)
+		var recentIDs []string
+		db.DB.Model(&models.LifeAgentLiveUpdate{}).
+			Select("DISTINCT profile_id").
+			Where("created_at > ? AND (expires_at IS NULL OR expires_at > ?)", recentCutoff, time.Now()).
+			Pluck("profile_id", &recentIDs)
+		recentSet := make(map[string]bool, len(recentIDs))
+		for _, rid := range recentIDs {
+			recentSet[rid] = true
+		}
+		resp := make([]pinResp, len(pins))
+		for i, p := range pins {
+			resp[i] = pinResp{mapPin: p, HasRecentUpdate: recentSet[p.ID]}
+		}
+		c.JSON(http.StatusOK, resp)
 	}
 }
 
@@ -1655,6 +1734,23 @@ func LifeAgentsManage(cfg *config.Config) gin.HandlerFunc {
 		}
 		ratingsSummary := buildLifeAgentRatingsSummary(id, 20)
 
+		var blindSpotCount int64
+		db.DB.Model(&models.LifeAgentBlindSpot{}).Where("profile_id = ? AND resolved = ?", id, false).Count(&blindSpotCount)
+
+		// 构建反馈告警（红/橙/黄/蓝）供仪表盘展示
+		manageFbSignals := buildFeedbackSignals(id)
+		var manageBlindSpots []models.LifeAgentBlindSpot
+		db.DB.Where("profile_id = ? AND resolved = ?", id, false).Order("created_at DESC").Limit(10).Find(&manageBlindSpots)
+		manageTopicLabels := make(map[string]string)
+		for _, t := range topics {
+			manageTopicLabels[t.ID] = t.TopicLabel
+		}
+		var bsForAlert []lifeagent.BlindSpotForFollowUp
+		for _, s := range manageBlindSpots {
+			bsForAlert = append(bsForAlert, lifeagent.BlindSpotForFollowUp{UserQuestion: s.UserQuestion, Route: s.Route})
+		}
+		feedbackAlerts := lifeagent.BuildFeedbackAlerts(manageFbSignals, manageTopicLabels, bsForAlert)
+
 		type packResp struct {
 			ID            string `json:"id"`
 			QuestionCount int    `json:"questionCount"`
@@ -1740,15 +1836,17 @@ func LifeAgentsManage(cfg *config.Config) gin.HandlerFunc {
 				"apiTotalCalls":                 p.ApiTotalCalls,
 			},
 			"stats": gin.H{
-				"totalRevenue": totalRevenue,
-				"soldPacks":    totalPacks,
-				"sessionCount": totalSess,
-				"topicCount":   len(topics),
+				"totalRevenue":   totalRevenue,
+				"soldPacks":      totalPacks,
+				"sessionCount":   totalSess,
+				"topicCount":     len(topics),
+				"blindSpotCount": blindSpotCount,
 			},
 			"feedback": gin.H{
 				"counts":  gin.H{"helpful": helpful, "notSpecific": notSpecific, "notSuitable": notSuitable, "factualError": factualError, "contradiction": contradiction, "tooConfident": tooConfident},
 				"recent":  fbList,
 				"ratings": ratingsSummary,
+				"alerts":  feedbackAlerts,
 			},
 			"questionPacks": packResps,
 			"chatSessions":  sessResps,
@@ -2041,7 +2139,7 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 					memories = append(memories, lifeagent.ConversationMemory{SummaryText: *s.Summary})
 				}
 			}
-			crossMemory = lifeagent.BuildCrossSessionMemory(memories)
+			crossMemory = lifeagent.BuildCrossSessionMemoryForQuery(memories, body.Message)
 		}
 		var entries []models.LifeAgentKnowledgeEntry
 		db.DB.Where("profile_id = ?", id).Order("sort_order").Find(&entries)
@@ -2052,7 +2150,7 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 		var hist []lifeagent.ChatMessageForAI
 		var msgs []models.LifeAgentChatMessage
 		// 取最近 20 条（DESC），再反转为时间正序，确保 LLM 看到的是最新上下文
-		db.DB.Select("role", "content", "created_at").
+		db.DB.Select("role", "content", "refs", "created_at").
 			Where("session_id = ?", sessionID).
 			Order("created_at DESC").
 			Limit(20).
@@ -2060,8 +2158,21 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 		for i, j := 0, len(msgs)-1; i < j; i, j = i+1, j-1 {
 			msgs[i], msgs[j] = msgs[j], msgs[i]
 		}
+		// 提取最近 assistant 回复引用过的素材 ID，用于检索去重
+		var recentlyUsedEntryIDs []string
+		recentUsedSet := map[string]bool{}
 		for _, m := range msgs {
 			hist = append(hist, lifeagent.ChatMessageForAI{Role: m.Role, Content: m.Content})
+			if m.Role == "assistant" && len(m.Refs) > 0 {
+				for _, r := range m.Refs {
+					if rm, ok := r.(map[string]interface{}); ok {
+						if rid, _ := rm["id"].(string); rid != "" && !recentUsedSet[rid] {
+							recentUsedSet[rid] = true
+							recentlyUsedEntryIDs = append(recentlyUsedEntryIDs, rid)
+						}
+					}
+				}
+			}
 		}
 		entriesForAI := make([]lifeagent.KnowledgeEntryForAI, len(entries))
 		for i, e := range entries {
@@ -2070,8 +2181,33 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 				Tags: []string(e.Tags),
 			}
 		}
+		// 加载实时动态（未过期）
+		var liveUpdateRows []models.LifeAgentLiveUpdate
+		db.DB.Where("profile_id = ? AND (expires_at IS NULL OR expires_at > ?)", id, time.Now()).
+			Order("pinned DESC, created_at DESC").Limit(10).Find(&liveUpdateRows)
+		liveUpdatesForAI := make([]lifeagent.LiveUpdateForAI, len(liveUpdateRows))
+		now := time.Now()
+		for i, lu := range liveUpdateRows {
+			loc := ""
+			if lu.Location != nil {
+				loc = *lu.Location
+			}
+			liveUpdatesForAI[i] = lifeagent.LiveUpdateForAI{
+				ID:        lu.ID,
+				Content:   lu.Content,
+				Category:  lu.Category,
+				Location:  loc,
+				CreatedAt: lu.CreatedAt.Format(time.RFC3339),
+				FreshDays: int(now.Sub(lu.CreatedAt).Hours() / 24),
+			}
+		}
+
 		factsForAI := lifeagent.BuildStructuredFactsForAI(facts)
 		topicsForAI := lifeagent.BuildTopicSummariesForAI(topics)
+
+		// Feedback-Aware Retrieval: 加载该 Agent 的聚合反馈信号
+		feedbackSignals := buildFeedbackSignals(id)
+
 		profileForAI := lifeagent.ProfileForAI{
 			DisplayName:      p.DisplayName,
 			Headline:         p.Headline,
@@ -2128,8 +2264,11 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 					writeSSE("content", gin.H{"content": chunk})
 				},
 				&lifeagent.ChatOptions{
-					SessionSummary:     sessionSummary,
-					CrossSessionMemory: crossMemory,
+					SessionSummary:       sessionSummary,
+					CrossSessionMemory:   crossMemory,
+					LiveUpdates:          liveUpdatesForAI,
+					RecentlyUsedEntryIDs: recentlyUsedEntryIDs,
+					FeedbackSignals:      feedbackSignals,
 				},
 			)
 		}
@@ -2157,6 +2296,23 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 		})
 		db.DB.Model(packToConsume).Update("questions_used", packToConsume.QuestionsUsed+1)
 		db.DB.Model(&models.LifeAgentChatSession{}).Where("id = ?", sessionID).Update("updated_at", db.DB.NowFunc())
+
+		// 检测低置信回答，记录为 Agent 盲区
+		go func(profileID, sid, question string, factsSnap []lifeagent.StructuredFactForAI, topicsSnap []lifeagent.TopicSummaryForAI, entriesSnap []lifeagent.KnowledgeEntryForAI, histSnap []lifeagent.ChatMessageForAI) {
+			plan := lifeagent.BuildRetrievalPlan(question, histSnap, factsSnap, topicsSnap, entriesSnap)
+			if plan.Confidence == "low" {
+				reasonsJSON, _ := json.Marshal(plan.Reasons)
+				db.DB.Create(&models.LifeAgentBlindSpot{
+					ID:           models.GenID(),
+					ProfileID:    profileID,
+					SessionID:    sid,
+					UserQuestion: question,
+					Confidence:   plan.Confidence,
+					Route:        string(plan.Route),
+					Reasons:      models.JSONAny{map[string]interface{}{"reasons": json.RawMessage(reasonsJSON)}},
+				})
+			}
+		}(id, sessionID, body.Message, factsForAI, topicsForAI, entriesForAI, hist)
 
 		// 异步生成会话摘要：消息数 > 12 时触发，不阻塞响应
 		totalMsgCount := len(msgs) + 2
@@ -2669,5 +2825,260 @@ func LifeAgentsImportChat(cfg *config.Config) gin.HandlerFunc {
 			"assistantMessage": result.Reply,
 			"profile":          profileResp,
 		})
+	}
+}
+
+func LifeAgentsBlindSpots(cfg *config.Config) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		user := middleware.MustGetUser(c)
+		if user == nil {
+			return
+		}
+		id := c.Param("id")
+		var p models.LifeAgentProfile
+		if err := db.DB.Where("id = ? AND user_id = ?", id, user.ID).First(&p).Error; err != nil {
+			c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+			return
+		}
+		var spots []models.LifeAgentBlindSpot
+		db.DB.Where("profile_id = ? AND resolved = ?", id, false).Order("created_at DESC").Limit(50).Find(&spots)
+
+		type blindSpotResp struct {
+			ID           string `json:"id"`
+			UserQuestion string `json:"userQuestion"`
+			Confidence   string `json:"confidence"`
+			Route        string `json:"route"`
+			CreatedAt    string `json:"createdAt"`
+		}
+		items := make([]blindSpotResp, len(spots))
+		for i, s := range spots {
+			items[i] = blindSpotResp{
+				ID:           s.ID,
+				UserQuestion: s.UserQuestion,
+				Confidence:   s.Confidence,
+				Route:        s.Route,
+				CreatedAt:    s.CreatedAt.Format(time.RFC3339),
+			}
+		}
+		c.JSON(http.StatusOK, gin.H{"blindSpots": items, "total": len(items)})
+	}
+}
+
+func LifeAgentsBlindSpotResolve(cfg *config.Config) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		user := middleware.MustGetUser(c)
+		if user == nil {
+			return
+		}
+		id := c.Param("id")
+		spotID := c.Param("spotId")
+		var p models.LifeAgentProfile
+		if err := db.DB.Where("id = ? AND user_id = ?", id, user.ID).First(&p).Error; err != nil {
+			c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+			return
+		}
+		db.DB.Model(&models.LifeAgentBlindSpot{}).Where("id = ? AND profile_id = ?", spotID, id).Update("resolved", true)
+		c.JSON(http.StatusOK, gin.H{"ok": true})
+	}
+}
+
+// LifeAgentsFollowUpQuestions 基于盲区和负面反馈，为创建者生成针对性的追问。
+// 闭合 用户反馈 → 创建者补充 → Agent 变好 的飞轮。
+func LifeAgentsFollowUpQuestions(cfg *config.Config) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		user := middleware.MustGetUser(c)
+		if user == nil {
+			return
+		}
+		id := c.Param("id")
+		var p models.LifeAgentProfile
+		if err := db.DB.Where("id = ? AND user_id = ?", id, user.ID).First(&p).Error; err != nil {
+			c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+			return
+		}
+
+		// 收集盲区
+		var spots []models.LifeAgentBlindSpot
+		db.DB.Where("profile_id = ? AND resolved = ?", id, false).Order("created_at DESC").Limit(10).Find(&spots)
+		blindSpots := make([]lifeagent.BlindSpotForFollowUp, len(spots))
+		for i, s := range spots {
+			blindSpots[i] = lifeagent.BlindSpotForFollowUp{
+				UserQuestion: s.UserQuestion,
+				Route:        s.Route,
+			}
+		}
+
+		// 收集负面反馈按 Topic 聚合
+		fbSignals := buildFeedbackSignals(id)
+		var weakTopics []lifeagent.WeakTopicForFollowUp
+		if fbSignals != nil {
+			var topics []models.LifeAgentTopicSummary
+			db.DB.Where("profile_id = ? AND status = ?", id, "active").Find(&topics)
+			topicLabels := make(map[string]string)
+			for _, t := range topics {
+				topicLabels[t.ID] = t.TopicLabel
+			}
+			for topicID, stat := range fbSignals.TopicStats {
+				if !stat.HasNegativeSignals() {
+					continue
+				}
+				label := topicLabels[topicID]
+				if label == "" {
+					continue
+				}
+				total := stat.NotSpecific + stat.FactualError + stat.Contradiction + stat.TooConfident
+				weakTopics = append(weakTopics, lifeagent.WeakTopicForFollowUp{
+					TopicLabel:    label,
+					DominantIssue: stat.DominantIssue(),
+					FeedbackCount: total,
+				})
+			}
+		}
+
+		// 构建告警列表（始终返回，即使没有追问）
+		var topicLabels map[string]string
+		if fbSignals != nil {
+			var allTopics []models.LifeAgentTopicSummary
+			db.DB.Where("profile_id = ? AND status = ?", id, "active").Find(&allTopics)
+			topicLabels = make(map[string]string, len(allTopics))
+			for _, t := range allTopics {
+				topicLabels[t.ID] = t.TopicLabel
+			}
+		} else {
+			topicLabels = make(map[string]string)
+		}
+		alerts := lifeagent.BuildFeedbackAlerts(fbSignals, topicLabels, blindSpots)
+
+		if len(blindSpots) == 0 && len(weakTopics) == 0 {
+			c.JSON(http.StatusOK, gin.H{
+				"questions": []interface{}{},
+				"alerts":    alerts,
+				"message":   "目前没有需要补充的内容，你的 Agent 表现不错！",
+			})
+			return
+		}
+
+		input := &lifeagent.FeedbackFollowUpInput{
+			DisplayName: p.DisplayName,
+			Headline:    p.Headline,
+			BlindSpots:  blindSpots,
+			WeakTopics:  weakTopics,
+		}
+		result := lifeagent.GenerateFollowUpFromFeedback(
+			c.Request.Context(),
+			cfg.OpenAIApiKey, cfg.OpenAIModel, cfg.OpenAIBaseURL,
+			input,
+		)
+
+		c.JSON(http.StatusOK, gin.H{
+			"questions":      result.Questions,
+			"alerts":         alerts,
+			"blindSpotCount": len(blindSpots),
+			"weakTopicCount": len(weakTopics),
+		})
+	}
+}
+
+func LifeAgentsLiveUpdateCreate(cfg *config.Config) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		user := middleware.MustGetUser(c)
+		if user == nil {
+			return
+		}
+		id := c.Param("id")
+		var p models.LifeAgentProfile
+		if err := db.DB.Where("id = ? AND user_id = ?", id, user.ID).First(&p).Error; err != nil {
+			c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+			return
+		}
+		var body struct {
+			Content   string  `json:"content"`
+			Category  string  `json:"category"`
+			Location  *string `json:"location"`
+			ExpiresIn *int    `json:"expiresIn"` // hours; nil = no expiry
+			Pinned    bool    `json:"pinned"`
+		}
+		if err := c.ShouldBindJSON(&body); err != nil || strings.TrimSpace(body.Content) == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "content is required"})
+			return
+		}
+		if body.Category == "" {
+			body.Category = "general"
+		}
+		var expiresAt *time.Time
+		if body.ExpiresIn != nil && *body.ExpiresIn > 0 {
+			t := time.Now().Add(time.Duration(*body.ExpiresIn) * time.Hour)
+			expiresAt = &t
+		}
+		update := models.LifeAgentLiveUpdate{
+			ID:        models.GenID(),
+			ProfileID: id,
+			Content:   strings.TrimSpace(body.Content),
+			Category:  body.Category,
+			Location:  body.Location,
+			ExpiresAt: expiresAt,
+			Pinned:    body.Pinned,
+		}
+		db.DB.Create(&update)
+		c.JSON(http.StatusOK, gin.H{
+			"id":        update.ID,
+			"content":   update.Content,
+			"category":  update.Category,
+			"location":  update.Location,
+			"expiresAt": expiresAt,
+			"pinned":    update.Pinned,
+			"createdAt": update.CreatedAt.Format(time.RFC3339),
+		})
+	}
+}
+
+func LifeAgentsLiveUpdatesList(cfg *config.Config) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id := c.Param("id")
+		var updates []models.LifeAgentLiveUpdate
+		db.DB.Where("profile_id = ? AND (expires_at IS NULL OR expires_at > ?)", id, time.Now()).
+			Order("pinned DESC, created_at DESC").Limit(30).Find(&updates)
+
+		type updateResp struct {
+			ID        string  `json:"id"`
+			Content   string  `json:"content"`
+			Category  string  `json:"category"`
+			Location  *string `json:"location"`
+			Pinned    bool    `json:"pinned"`
+			CreatedAt string  `json:"createdAt"`
+			FreshDays int     `json:"freshDays"`
+		}
+		items := make([]updateResp, len(updates))
+		now := time.Now()
+		for i, u := range updates {
+			items[i] = updateResp{
+				ID:        u.ID,
+				Content:   u.Content,
+				Category:  u.Category,
+				Location:  u.Location,
+				Pinned:    u.Pinned,
+				CreatedAt: u.CreatedAt.Format(time.RFC3339),
+				FreshDays: int(now.Sub(u.CreatedAt).Hours() / 24),
+			}
+		}
+		c.JSON(http.StatusOK, gin.H{"updates": items, "total": len(items)})
+	}
+}
+
+func LifeAgentsLiveUpdateDelete(cfg *config.Config) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		user := middleware.MustGetUser(c)
+		if user == nil {
+			return
+		}
+		id := c.Param("id")
+		updateID := c.Param("updateId")
+		var p models.LifeAgentProfile
+		if err := db.DB.Where("id = ? AND user_id = ?", id, user.ID).First(&p).Error; err != nil {
+			c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+			return
+		}
+		db.DB.Where("id = ? AND profile_id = ?", updateID, id).Delete(&models.LifeAgentLiveUpdate{})
+		c.JSON(http.StatusOK, gin.H{"ok": true})
 	}
 }

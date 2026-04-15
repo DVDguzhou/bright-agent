@@ -2,9 +2,47 @@ package lifeagent
 
 import (
 	"fmt"
+	"math/rand"
 	"regexp"
 	"strings"
 )
+
+// ── Style-Adaptive Fallback Pools ──
+// 每种回退场景维护多条候选，随机选取避免重复暴露模板。
+
+var fallbackHighRisk = []string{
+	"这种具体到门牌号真名啥的我不接招啊，咱聊点别的。",
+	"哈哈这个太私密了，我不方便说，换个话题？",
+	"这个涉及隐私我就不说了，聊别的吧。",
+	"嗯……这个不太好说，你有别的想问的不？",
+}
+
+var fallbackNoKnowledge = []string{
+	"这个我确实没太了解过，聊别的我可能接得住。",
+	"嗯……这个我还真没经历过，不太好瞎说。",
+	"这茬我不太熟，你要是问别的方向的我可能能接上。",
+	"说实话这个我不太懂，怕说错了误导你。",
+	"这个超出我的经验范围了，换个话题聊？",
+}
+
+var fallbackSpeculative = []string{
+	"这个我没法百分百确定，但凭我的经验感觉大概是那么回事。你要不再多说点背景？",
+	"嗯……不太确定，不过按我之前遇到的情况看，应该差不多是这样。",
+	"这个我没直接经历过，但听我身边的人说过类似的情况。你要不说具体点？",
+	"说实话拿不准，但如果非要猜的话……你再给我点信息我帮你想想。",
+}
+
+var fallbackConversationEnders = []string{
+	"",
+	"",
+	"\n\n还有啥想聊的你说。",
+	"\n\n你还有别的想问的不？",
+	"\n\n接着聊呗。",
+}
+
+func pickRandom(pool []string) string {
+	return pool[rand.Intn(len(pool))]
+}
 
 type ProfileForAI struct {
 	DisplayName      string
@@ -36,6 +74,15 @@ type ChatMessageForAI struct {
 	Content string
 }
 
+type LiveUpdateForAI struct {
+	ID        string
+	Content   string
+	Category  string
+	Location  string
+	CreatedAt string
+	FreshDays int
+}
+
 func BuildReply(profile ProfileForAI, facts []StructuredFactForAI, topics []TopicSummaryForAI, entries []KnowledgeEntryForAI, history []ChatMessageForAI, message string) (content string, references []map[string]string) {
 	if reply, refs, ok := ResolveGroundedFactReply(profile, facts, message); ok {
 		return reply, refs
@@ -47,10 +94,10 @@ func BuildReply(profile ProfileForAI, facts []StructuredFactForAI, topics []Topi
 	// 没有任何匹配的知识条目：低风险问题先尝试带保留地推测，高风险具体事实才拒答
 	if len(topTopics) == 0 && len(topEntries) == 0 && len(plan.Facts) == 0 {
 		if isHighRiskFactQuestion(message) {
-			content = "这事儿我不敢瞎蒙，你多给点线索咱再唠。"
+			content = pickRandom(fallbackHighRisk)
 			return content, nil
 		}
-		content = buildSpeculativeReply(profile, message)
+		content = pickRandom(fallbackSpeculative)
 		return content, nil
 	}
 
@@ -73,7 +120,7 @@ func BuildReply(profile ProfileForAI, facts []StructuredFactForAI, topics []Topi
 			for i := 1; i < len(parts); i++ {
 				content += "\n\n另外，" + parts[i]
 			}
-			content += "\n\n还有啥想问的你接着说。"
+			content += pickRandom(fallbackConversationEnders)
 			content = ApplyClaimGuard(message, content, facts, plan)
 			return content, BuildRetrievalReferences(plan)
 		}
@@ -103,7 +150,7 @@ func BuildReply(profile ProfileForAI, facts []StructuredFactForAI, topics []Topi
 	}
 
 	if len(parts) == 0 {
-		content = "啧，这茬我接不太住，咱换个你能用得上的聊？"
+		content = pickRandom(fallbackNoKnowledge)
 		return content, nil
 	}
 
@@ -117,8 +164,7 @@ func BuildReply(profile ProfileForAI, facts []StructuredFactForAI, topics []Topi
 		}
 	}
 
-	// 加一句简短的收尾，保持对话感
-	content += "\n\n还有啥想问的你接着说。"
+	content += pickRandom(fallbackConversationEnders)
 
 	content = ApplyClaimGuard(message, content, facts, plan)
 	references = BuildRetrievalReferences(plan)
@@ -170,24 +216,6 @@ func isHighRiskFactQuestion(msg string) bool {
 		}
 	}
 	return false
-}
-
-func buildSpeculativeReply(profile ProfileForAI, message string) string {
-	norm := normalize(message)
-	switch {
-	case strings.Contains(norm, "最近") && (strings.Contains(norm, "瓜") || strings.Contains(norm, "八卦")):
-		return "如果按常见情况看，最近风声一般不会少，只是很多还在传，没到能拍板的时候。大概率都是先小范围发酵，后面才会慢慢有更多细节出来。"
-	case strings.Contains(norm, "是真的吗") || strings.Contains(norm, "真假") || strings.Contains(norm, "是不是"):
-		return "这个我没法百分百给你拍死，不过按常见情况看，能反复传开的往往不是完全空穴来风，只是细节经常会被越传越夸张。"
-	case strings.Contains(norm, "怎么") || strings.Contains(norm, "怎么办"):
-		return "如果按常见情况看，先别急着下结论，先把关键信息对一遍，再看最可能的原因和后手，这样通常比一上来硬判断靠谱。"
-	default:
-		focus := firstSentence(profile.Headline, 30)
-		if focus == "" {
-			focus = "我比较熟的方向"
-		}
-		return fmt.Sprintf("这个我没法百分百确定，不过如果按常见情况看，大概率和「%s」这类情况有点像。你要是再多给我一点背景，我可以继续帮你往下推。", focus)
-	}
 }
 
 func firstSentence(s string, maxLen int) string {

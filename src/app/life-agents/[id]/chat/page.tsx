@@ -897,16 +897,33 @@ export default function LifeAgentChatPage() {
                         <div className="space-y-3">
                           <p className="whitespace-pre-wrap">{message.content}</p>
                           {message.references && message.references.length > 0 && (
-                            <div className="flex flex-wrap gap-2 border-t border-black/10 pt-2">
-                              {message.references.slice(0, 4).map((ref) => (
-                                <span
-                                  key={`${ref.id}-${ref.title}`}
-                                  className="rounded-full bg-violet-50/90 px-2.5 py-1 text-[11px] text-purple-900/70 ring-1 ring-purple-200/30"
-                                  title={ref.excerpt}
-                                >
-                                  {ref.title}
-                                </span>
-                              ))}
+                            <div className="flex flex-wrap gap-1.5 border-t border-black/10 pt-2">
+                              {message.references.slice(0, 5).map((ref) => {
+                                const st = ref.sourceType;
+                                const style = st === "fact"
+                                  ? "bg-emerald-50 text-emerald-800 ring-emerald-200/40"
+                                  : st === "topic"
+                                    ? "bg-sky-50 text-sky-800 ring-sky-200/40"
+                                    : st === "liveUpdate"
+                                      ? "bg-amber-50 text-amber-800 ring-amber-200/40"
+                                      : "bg-violet-50/90 text-purple-900/70 ring-purple-200/30";
+                                const label = st === "fact"
+                                  ? "认证事实"
+                                  : st === "topic"
+                                    ? "亲身经历"
+                                    : st === "liveUpdate"
+                                      ? "最近动态"
+                                      : "经验素材";
+                                return (
+                                  <span
+                                    key={`${ref.id}-${ref.title}`}
+                                    className={`rounded-full px-2.5 py-1 text-[11px] ring-1 ${style}`}
+                                    title={ref.excerpt}
+                                  >
+                                    <span className="opacity-60">{label}·</span>{ref.title}
+                                  </span>
+                                );
+                              })}
                             </div>
                           )}
                         </div>

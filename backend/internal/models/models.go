@@ -348,3 +348,31 @@ type LifeAgentRating struct {
 }
 
 func (LifeAgentRating) TableName() string { return "life_agent_ratings" }
+
+type LifeAgentBlindSpot struct {
+	ID            string    `gorm:"primaryKey;size:36"`
+	ProfileID     string    `gorm:"column:profile_id;size:36;not null;index"`
+	SessionID     string    `gorm:"column:session_id;size:36;not null"`
+	UserQuestion  string    `gorm:"column:user_question;type:text;not null"`
+	Confidence    string    `gorm:"column:confidence;size:16;not null"`
+	Route         string    `gorm:"column:route;size:32"`
+	Reasons       JSONAny   `gorm:"column:reasons;type:json"`
+	Resolved      bool      `gorm:"column:resolved;default:false"`
+	CreatedAt     time.Time `gorm:"column:created_at"`
+}
+
+func (LifeAgentBlindSpot) TableName() string { return "life_agent_blind_spots" }
+
+type LifeAgentLiveUpdate struct {
+	ID        string    `gorm:"primaryKey;size:36"`
+	ProfileID string    `gorm:"column:profile_id;size:36;not null;index"`
+	Content   string    `gorm:"column:content;type:text;not null"`
+	Category  string    `gorm:"column:category;size:64;not null;default:general"`
+	Location  *string   `gorm:"column:location;size:255"`
+	ExpiresAt *time.Time `gorm:"column:expires_at;index"`
+	Pinned    bool      `gorm:"column:pinned;default:false"`
+	CreatedAt time.Time `gorm:"column:created_at;index"`
+	UpdatedAt time.Time `gorm:"column:updated_at"`
+}
+
+func (LifeAgentLiveUpdate) TableName() string { return "life_agent_live_updates" }

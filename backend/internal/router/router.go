@@ -82,6 +82,12 @@ func Setup(cfg *config.Config) *gin.Engine {
 			lifeAgents.POST("/:id/chat/feedback", middleware.RequireAuth(cfg), handler.LifeAgentsChatFeedback(cfg))
 			lifeAgents.POST("/:id/rating", middleware.RequireAuth(cfg), handler.LifeAgentsRate(cfg))
 			lifeAgents.GET("/:id/feedback-summary", middleware.RequireAuth(cfg), handler.LifeAgentsFeedbackSummary(cfg))
+			lifeAgents.GET("/:id/blind-spots", middleware.RequireAuth(cfg), handler.LifeAgentsBlindSpots(cfg))
+			lifeAgents.POST("/:id/blind-spots/:spotId/resolve", middleware.RequireAuth(cfg), handler.LifeAgentsBlindSpotResolve(cfg))
+			lifeAgents.GET("/:id/follow-up-questions", middleware.RequireAuth(cfg), handler.LifeAgentsFollowUpQuestions(cfg))
+			lifeAgents.GET("/:id/live-updates", handler.LifeAgentsLiveUpdatesList(cfg))
+			lifeAgents.POST("/:id/live-updates", middleware.RequireAuth(cfg), handler.LifeAgentsLiveUpdateCreate(cfg))
+			lifeAgents.DELETE("/:id/live-updates/:updateId", middleware.RequireAuth(cfg), handler.LifeAgentsLiveUpdateDelete(cfg))
 		}
 
 		api.GET("/user-api-keys", middleware.RequireAuth(cfg), handler.UserAPIKeysList(cfg))

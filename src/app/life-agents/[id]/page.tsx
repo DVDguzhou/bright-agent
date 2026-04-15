@@ -47,6 +47,22 @@ type DetailData = {
     content: string;
     tags: string[];
   }>;
+  structuredFacts?: Array<{
+    id: string;
+    factKey: string;
+    factValue: string;
+    confidence?: string;
+    status?: string;
+  }>;
+  topicSummaries?: Array<{
+    id: string;
+    topicGroup: string;
+    topicKey: string;
+    topicLabel: string;
+    summary: string;
+    confidence?: string;
+    status?: string;
+  }>;
   verificationStatus?: string;
   creator: {
     name: string | null;
@@ -55,6 +71,7 @@ type DetailData = {
     sessionCount: number;
     soldQuestionPacks: number;
     knowledgeCount: number;
+    topicCount?: number;
   };
   ratings?: {
     averageScore: number;
@@ -94,6 +111,7 @@ export default function LifeAgentDetailPage() {
   const [voiceEnrollBanner, setVoiceEnrollBanner] = useState<"warn" | null>(null);
   const [portalReady, setPortalReady] = useState(false);
   const [starred, setStarred] = useState(false);
+  const [liveUpdates, setLiveUpdates] = useState<Array<{ id: string; content: string; category: string; location?: string; createdAt: string; freshDays: number }>>([]);
 
   useEffect(() => {
     setPortalReady(true);
@@ -139,6 +157,11 @@ export default function LifeAgentDetailPage() {
       })
       .catch(() => setProfile(null))
       .finally(() => setLoaded(true));
+
+    fetch(`/api/life-agents/${id}/live-updates`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => { if (json?.updates) setLiveUpdates(json.updates); })
+      .catch(() => {});
   }, [id]);
 
   useEffect(() => {
@@ -380,6 +403,86 @@ export default function LifeAgentDetailPage() {
           <h2 className="text-sm font-semibold text-purple-950/90">适合咨询的人群</h2>
           <p className="mt-2 text-sm leading-7 text-slate-600">{ci.audience}</p>
         </div>
+
+        {/* --- 认证事实 --- */}
+        {(() => {
+          const confirmed = (profile.structuredFacts ?? []).filter(
+            (f) => f.status === "confirmed" && f.confidence === "high",
+          );
+          if (confirmed.length === 0) return null;
+          const factLabels: Record<string, string> = {
+            school: "学校", education: "学历", job: "职业", city: "城市",
+            income: "收入", company: "公司", major: "专业", event_name: "经历",
+          };
+          return (
+            <div className="-mx-4 bg-white/[0.98] px-4 py-4 backdrop-blur-sm sm:-mx-6 sm:px-6">
+              <h2 className="text-sm font-semibold text-purple-950/90">已认证信息</h2>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {confirmed.map((f) => (
+                  <span
+                    key={f.id}
+                    className="inline-flex items-center gap-1 rounded-lg bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-800"
+                  >
+                    <svg className="h-3.5 w-3.5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20" aria-hidden>
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                    {factLabels[f.factKey] ?? f.factKey}：{f.factValue}
+                  </span>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* --- 经验覆盖 --- */}
+        {(() => {
+          const activeTopics = (profile.topicSummaries ?? []).filter((t) => t.status === "active");
+          if (activeTopics.length === 0) return null;
+          const groupLabels: Record<string, string> = {
+            education: "教育升学", career: "职业发展", industry: "行业认知",
+            cityChoice: "城市选择", startup: "创业", money: "财务",
+            relationship: "感情", family: "家庭", mental: "心理",
+            lifeChoice: "人生选择", social: "社交", other: "其他",
+          };
+          return (
+            <div className="-mx-4 bg-white/[0.98] px-4 py-4 backdrop-blur-sm sm:-mx-6 sm:px-6">
+              <h2 className="text-sm font-semibold text-purple-950/90">擅长回答的话题</h2>
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {activeTopics.map((t) => (
+                  <span
+                    key={t.id}
+                    className="rounded-md bg-violet-50/95 px-2.5 py-1 text-xs font-medium text-purple-700"
+                    title={t.summary}
+                  >
+                    {t.topicLabel}
+                    <span className="ml-1 text-purple-400">
+                      {groupLabels[t.topicGroup] ?? t.topicGroup}
+                    </span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* --- 最近动态 --- */}
+        {liveUpdates.length > 0 && (
+          <div className="-mx-4 bg-white/[0.98] px-4 py-4 backdrop-blur-sm sm:-mx-6 sm:px-6">
+            <h2 className="text-sm font-semibold text-purple-950/90">最近动态</h2>
+            <div className="mt-3 space-y-2">
+              {liveUpdates.slice(0, 5).map((u) => (
+                <div key={u.id} className="rounded-xl border border-amber-100/50 bg-amber-50/50 px-3 py-2.5 backdrop-blur-sm">
+                  <div className="flex items-center gap-2 text-[11px] text-amber-700/70">
+                    <span className="font-medium">{{ general: "综合", market: "行情", job: "求职", study: "升学", housing: "房产", life: "生活", policy: "当地政策", cost: "物价", community: "社区", transport: "交通", weather: "气候", resource: "本地资源" }[u.category] ?? u.category}</span>
+                    {u.location && <span>📍 {u.location}</span>}
+                    <span>{u.freshDays === 0 ? "今天" : `${u.freshDays}天前`}</span>
+                  </div>
+                  <p className="mt-1.5 text-sm leading-relaxed text-slate-700">{u.content}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* --- 你可以问 --- */}
         {ci.sampleQuestions.length > 0 && (
