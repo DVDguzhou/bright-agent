@@ -32,6 +32,10 @@ const config: CapacitorConfig = {
       resizeOnFullScreen: true,
     },
   },
+  ios: {
+    allowsLinkPreview: false,
+    contentInset: 'always',
+  },
 };
 
 export default config;

@@ -56,5 +56,7 @@
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>BrightAgent 需要在地图上显示您的大致位置（仅本机展示，不上传坐标）。</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>BrightAgent 需要使用麦克风来录制语音，用于调教您的 Agent。</string>
 </dict>
 </plist>
