@@ -74,11 +74,31 @@ function mergeVoiceDraft(existing: string, nextSegment: string) {
   return `${prev}\n${next}`;
 }
 
+function VoiceWaveBar({ delay, active }: { delay: number; active: boolean }) {
+  return (
+    <motion.div
+      className="w-[3px] rounded-full bg-white/90"
+      animate={
+        active
+          ? { height: [8, 28, 14, 32, 10], opacity: [0.6, 1, 0.8, 1, 0.6] }
+          : { height: 6, opacity: 0.3 }
+      }
+      transition={
+        active
+          ? { duration: 0.9, repeat: Infinity, repeatType: "mirror", delay, ease: "easeInOut" }
+          : { duration: 0.3 }
+      }
+    />
+  );
+}
+
 function FloatingVoiceCoachFab({ agent }: { agent: BoundLifeAgent }) {
   const router = useRouter();
   const [submitHint, setSubmitHint] = useState<string | null>(null);
   const [draftText, setDraftText] = useState("");
-  const { isSupported, status, error, start, stop, reset } = useSpeechRecognition({
+  const [isCancelled, setIsCancelled] = useState(false);
+  const touchStartY = useRef(0);
+  const { isSupported, status, transcript, error, start, stop, reset } = useSpeechRecognition({
     lang: "zh-CN",
     continuous: true,
     interimResults: true,
@@ -100,13 +120,11 @@ function FloatingVoiceCoachFab({ agent }: { agent: BoundLifeAgent }) {
 
   const isActive = status === "listening" || status === "processing";
   const isProcessing = status === "processing";
-  const helperText = isActive
-    ? "松开记录"
-    : draftText
-      ? "已保存语音草稿，可继续补充"
-      : isSupported
-        ? "长按调教"
-        : "";
+  const helperText = draftText
+    ? "已保存语音草稿，可继续补充"
+    : isSupported
+      ? "长按调教"
+      : "";
 
   useEffect(() => {
     try {
@@ -144,38 +162,174 @@ function FloatingVoiceCoachFab({ agent }: { agent: BoundLifeAgent }) {
     setSubmitHint("已清空语音草稿");
   }, []);
 
+  const handleCancel = useCallback(() => {
+    setIsCancelled(false);
+    reset();
+    setSubmitHint("已取消");
+  }, [reset]);
+
+  const beginVoice = useCallback(() => {
+    if (!isSupported) return;
+    setIsCancelled(false);
+    setSubmitHint(null);
+    reset();
+    start();
+  }, [isSupported, reset, start]);
+
+  const endVoice = useCallback(() => {
+    if (!isSupported) return;
+    if (isCancelled) {
+      handleCancel();
+    } else {
+      stop();
+    }
+  }, [isSupported, isCancelled, handleCancel, stop]);
+
+  const liveText = transcript || (isActive ? "正在聆听..." : "");
+
   return (
     <>
+      {/* ── Full-screen recording overlay ── */}
+      <AnimatePresence>
+        {isActive && (
+          <motion.div
+            key="voice-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-[200] flex select-none flex-col items-center justify-between lg:hidden"
+            style={{ touchAction: "none", WebkitTouchCallout: "none" }}
+            onTouchMove={(e) => {
+              const dy = touchStartY.current - e.touches[0].clientY;
+              setIsCancelled(dy > 80);
+            }}
+          >
+            <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-[#1a0a2e]/85 to-[#0d001a]/95 backdrop-blur-xl" />
+
+            {/* top: real-time transcript */}
+            <div className="relative z-10 mt-[max(4rem,env(safe-area-inset-top))] w-full px-8">
+              <motion.p
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-center text-[13px] font-medium leading-6 text-white/50"
+              >
+                {agent.displayName}
+              </motion.p>
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="mt-4 min-h-[4rem] rounded-2xl border border-white/[0.06] bg-white/[0.04] px-5 py-4 backdrop-blur-sm"
+              >
+                <p className="text-center text-base leading-7 text-white/90">
+                  {liveText}
+                </p>
+              </motion.div>
+            </div>
+
+            {/* center: animated orb & waveform */}
+            <div className="relative z-10 flex flex-col items-center">
+              {[0, 1, 2].map((i) => (
+                <motion.div
+                  key={i}
+                  className="absolute rounded-full border border-purple-400/20"
+                  animate={{
+                    width: [80 + i * 40, 120 + i * 50],
+                    height: [80 + i * 40, 120 + i * 50],
+                    opacity: [0.5 - i * 0.12, 0],
+                  }}
+                  transition={{
+                    duration: 2 + i * 0.5,
+                    repeat: Infinity,
+                    delay: i * 0.5,
+                    ease: "easeOut",
+                  }}
+                  style={{ top: "50%", left: "50%", transform: "translate(-50%, -50%)" }}
+                />
+              ))}
+              <motion.div
+                className="relative flex h-24 w-24 items-center justify-center rounded-full"
+                style={{
+                  background: isCancelled
+                    ? "radial-gradient(circle, rgba(239,68,68,0.4) 0%, rgba(239,68,68,0.1) 60%, transparent 80%)"
+                    : "radial-gradient(circle, rgba(168,85,247,0.45) 0%, rgba(236,72,153,0.2) 50%, transparent 80%)",
+                  boxShadow: isCancelled
+                    ? "0 0 60px rgba(239,68,68,0.3), 0 0 120px rgba(239,68,68,0.1)"
+                    : "0 0 60px rgba(168,85,247,0.35), 0 0 120px rgba(236,72,153,0.15)",
+                }}
+                animate={{ scale: [1, 1.08, 1] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <svg className="h-10 w-10 text-white drop-shadow-lg" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24" aria-hidden>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 18a5 5 0 005-5V8a5 5 0 10-10 0v5a5 5 0 005 5zm0 0v3m-3 0h6" />
+                </svg>
+              </motion.div>
+              <div className="mt-8 flex items-center gap-[5px]">
+                {Array.from({ length: 20 }).map((_, i) => (
+                  <VoiceWaveBar key={i} delay={i * 0.06} active={!isCancelled} />
+                ))}
+              </div>
+            </div>
+
+            {/* bottom */}
+            <div className="relative z-10 mb-[max(3rem,env(safe-area-inset-bottom))] flex flex-col items-center gap-4">
+              <AnimatePresence mode="wait">
+                {isCancelled ? (
+                  <motion.div
+                    key="cancel-hint"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    className="flex flex-col items-center gap-2"
+                  >
+                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-red-500/20 ring-2 ring-red-400/40">
+                      <svg className="h-6 w-6 text-red-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </div>
+                    <p className="text-sm font-medium text-red-300">松开取消</p>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="send-hint"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    className="flex flex-col items-center gap-3"
+                  >
+                    <p className="text-sm font-medium tracking-wide text-white/70">松开 · 结束录入</p>
+                    <p className="text-xs text-white/30">上滑取消</p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── FAB button ── */}
       <button
         type="button"
         onClick={() => {
           if (!isSupported) openCoEdit();
         }}
-        onMouseDown={() => {
-          if (!isSupported) return;
-          setSubmitHint(null);
-          reset();
-          start();
-        }}
-        onMouseUp={() => {
-          if (isSupported) stop();
-        }}
+        onMouseDown={beginVoice}
+        onMouseUp={endVoice}
         onMouseLeave={() => {
-          if (isSupported && status === "listening") stop();
+          if (isSupported && status === "listening") endVoice();
         }}
-        onTouchStart={() => {
-          if (!isSupported) return;
-          setSubmitHint(null);
-          reset();
-          start();
+        onTouchStart={(e) => {
+          touchStartY.current = e.touches[0].clientY;
+          beginVoice();
         }}
         onTouchEnd={(e) => {
           if (!isSupported) return;
           e.preventDefault();
-          stop();
+          endVoice();
         }}
         onTouchCancel={() => {
-          if (isSupported) stop();
+          if (isSupported) handleCancel();
         }}
         className={`fixed bottom-[calc(env(safe-area-inset-bottom)+2.25rem)] left-1/2 z-[60] flex h-12 w-12 -translate-x-1/2 select-none items-center justify-center rounded-full ring-4 ring-white transition-transform lg:hidden ${
           isActive
@@ -194,7 +348,9 @@ function FloatingVoiceCoachFab({ agent }: { agent: BoundLifeAgent }) {
           </svg>
         )}
       </button>
-      {draftText ? (
+
+      {/* ── Draft panel / hint bubble (shown when NOT recording) ── */}
+      {!isActive && draftText ? (
         <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+5.9rem)] left-1/2 z-[60] w-[min(92vw,22rem)] -translate-x-1/2 rounded-2xl border border-purple-200/[0.22] bg-white/95 p-3 shadow-[0_10px_32px_rgba(124,58,237,0.14)] backdrop-blur-md lg:hidden">
           <p className="text-[11px] font-medium text-purple-900/70">语音调教草稿</p>
           <p className="mt-1 line-clamp-3 text-sm leading-5 text-slate-700">{draftText}</p>
@@ -218,7 +374,7 @@ function FloatingVoiceCoachFab({ agent }: { agent: BoundLifeAgent }) {
             你可以继续长按补充，也可以先去访问别的 Agent，草稿会暂时保留。
           </p>
         </div>
-      ) : (submitHint || error || helperText) ? (
+      ) : !isActive && (submitHint || error || helperText) ? (
         <div className="pointer-events-none fixed bottom-[calc(env(safe-area-inset-bottom)+5.9rem)] left-1/2 z-[60] -translate-x-1/2 lg:hidden">
           <div className="rounded-full bg-white/92 px-2.5 py-1 text-[10px] font-medium text-purple-900/80 shadow-[0_6px_20px_rgba(124,58,237,0.12)] backdrop-blur-sm">
             {submitHint || error || helperText}
