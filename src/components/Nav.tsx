@@ -6,7 +6,9 @@ import Image from "next/image";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
+import { fetchBoundLifeAgents, type BoundLifeAgent } from "@/lib/bound-life-agents";
 import { useMobileTouchNavEnabled } from "@/hooks/use-life-agents-feed-gestures";
+import { useSpeechRecognition } from "@/lib/voice/useSpeechRecognition";
 
 // 人生 Agent: 智能体/对话
 const IconAgent = ({ className }: { className?: string }) => (
@@ -58,6 +60,174 @@ const navLinks = [
   { href: "/map", label: "地图", Icon: IconMap },
 ];
 
+const CO_EDIT_PENDING_VOICE_STORAGE_PREFIX = "life-agent-co-edit-pending-voice:";
+
+function pendingVoicePromptKey(agentId: string) {
+  return `${CO_EDIT_PENDING_VOICE_STORAGE_PREFIX}${agentId}`;
+}
+
+function mergeVoiceDraft(existing: string, nextSegment: string) {
+  const prev = existing.trim();
+  const next = nextSegment.trim();
+  if (!prev) return next;
+  if (!next) return prev;
+  return `${prev}\n${next}`;
+}
+
+function FloatingVoiceCoachFab({ agent }: { agent: BoundLifeAgent }) {
+  const router = useRouter();
+  const [submitHint, setSubmitHint] = useState<string | null>(null);
+  const [draftText, setDraftText] = useState("");
+  const { isSupported, status, error, start, stop, reset } = useSpeechRecognition({
+    lang: "zh-CN",
+    continuous: true,
+    interimResults: true,
+    onSessionEnd: (finalTranscript) => {
+      const text = finalTranscript.trim();
+      if (!text) {
+        setSubmitHint("没有识别到内容，请再说一次");
+        reset();
+        return;
+      }
+      setDraftText((prev) => mergeVoiceDraft(prev, text));
+      setSubmitHint("已记录，继续长按可补充，或点“进入调教”");
+      reset();
+    },
+    onError: (message) => {
+      setSubmitHint(message);
+    },
+  });
+
+  const isActive = status === "listening" || status === "processing";
+  const isProcessing = status === "processing";
+  const helperText = !isSupported
+    ? "去调教"
+    : isActive
+      ? "松开记录"
+      : draftText
+        ? "已保存语音草稿，可继续补充"
+        : "长按调教";
+
+  useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem(pendingVoicePromptKey(agent.id));
+      setDraftText(saved?.trim() ?? "");
+    } catch {
+      setDraftText("");
+    }
+  }, [agent.id]);
+
+  useEffect(() => {
+    try {
+      if (draftText.trim()) {
+        sessionStorage.setItem(pendingVoicePromptKey(agent.id), draftText.trim());
+      } else {
+        sessionStorage.removeItem(pendingVoicePromptKey(agent.id));
+      }
+    } catch {
+      // ignore storage errors
+    }
+  }, [agent.id, draftText]);
+
+  useEffect(() => {
+    if (!submitHint && !error) return;
+    const timer = window.setTimeout(() => setSubmitHint(null), 2400);
+    return () => window.clearTimeout(timer);
+  }, [submitHint, error]);
+
+  const openCoEdit = useCallback(() => {
+    router.push(`/dashboard/life-agents/${agent.id}/co-edit`);
+  }, [agent.id, router]);
+
+  const clearDraft = useCallback(() => {
+    setDraftText("");
+    setSubmitHint("已清空语音草稿");
+  }, []);
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => {
+          if (!isSupported) openCoEdit();
+        }}
+        onMouseDown={() => {
+          if (!isSupported) return;
+          setSubmitHint(null);
+          reset();
+          start();
+        }}
+        onMouseUp={() => {
+          if (isSupported) stop();
+        }}
+        onMouseLeave={() => {
+          if (isSupported && status === "listening") stop();
+        }}
+        onTouchStart={() => {
+          if (!isSupported) return;
+          setSubmitHint(null);
+          reset();
+          start();
+        }}
+        onTouchEnd={(e) => {
+          if (!isSupported) return;
+          e.preventDefault();
+          stop();
+        }}
+        onTouchCancel={() => {
+          if (isSupported) stop();
+        }}
+        className={`fixed bottom-[calc(env(safe-area-inset-bottom)+2.25rem)] left-1/2 z-[60] flex h-12 w-12 -translate-x-1/2 items-center justify-center rounded-full ring-4 ring-white transition-transform lg:hidden ${
+          isActive
+            ? "scale-105 bg-rose-500 text-white shadow-lg shadow-rose-500/30"
+            : "bg-gradient-to-br from-[#BA68C8] via-[#FF80AB] to-[#FFF176] text-slate-900 shadow-lg shadow-fuchsia-500/25 active:scale-95"
+        }`}
+        aria-label={isSupported ? `长按语音调教 ${agent.displayName}` : `打开 ${agent.displayName} 的调教页面`}
+        title={isSupported ? `长按语音调教 ${agent.displayName}` : `打开 ${agent.displayName} 的调教页面`}
+      >
+        {isProcessing ? (
+          <span className="h-5 w-5 animate-spin rounded-full border-2 border-current/25 border-t-current" />
+        ) : (
+          <svg className={`h-6 w-6 ${isActive ? "animate-pulse" : ""}`} fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24" aria-hidden>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 18a5 5 0 005-5V8a5 5 0 10-10 0v5a5 5 0 005 5zm0 0v3m-3 0h6" />
+          </svg>
+        )}
+      </button>
+      {draftText ? (
+        <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+5.9rem)] left-1/2 z-[60] w-[min(92vw,22rem)] -translate-x-1/2 rounded-2xl border border-purple-200/[0.22] bg-white/95 p-3 shadow-[0_10px_32px_rgba(124,58,237,0.14)] backdrop-blur-md lg:hidden">
+          <p className="text-[11px] font-medium text-purple-900/70">语音调教草稿</p>
+          <p className="mt-1 line-clamp-3 text-sm leading-5 text-slate-700">{draftText}</p>
+          <div className="mt-3 flex items-center gap-2">
+            <button
+              type="button"
+              onClick={openCoEdit}
+              className="inline-flex flex-1 items-center justify-center rounded-full bg-gradient-to-r from-[#BA68C8] via-[#FF80AB] to-[#FFF176] px-3 py-2 text-xs font-semibold text-slate-900"
+            >
+              进入调教
+            </button>
+            <button
+              type="button"
+              onClick={clearDraft}
+              className="inline-flex items-center justify-center rounded-full border border-purple-200/60 px-3 py-2 text-xs font-medium text-slate-600"
+            >
+              清空
+            </button>
+          </div>
+          <p className="mt-2 text-[10px] text-slate-500">
+            你可以继续长按补充，也可以先去访问别的 Agent，草稿会暂时保留。
+          </p>
+        </div>
+      ) : (
+        <div className="pointer-events-none fixed bottom-[calc(env(safe-area-inset-bottom)+5.9rem)] left-1/2 z-[60] -translate-x-1/2 lg:hidden">
+          <div className="rounded-full bg-white/92 px-2.5 py-1 text-[10px] font-medium text-purple-900/80 shadow-[0_6px_20px_rgba(124,58,237,0.12)] backdrop-blur-sm">
+            {submitHint || error || helperText}
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
 export function Nav() {
   const router = useRouter();
   const pathname = usePathname();
@@ -65,6 +235,7 @@ export function Nav() {
   const { user, refetch } = useAuth();
   const [notificationCount, setNotificationCount] = useState(0);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+  const [ownedLifeAgents, setOwnedLifeAgents] = useState<BoundLifeAgent[] | null>(null);
 
   useEffect(() => {
     if (!user) {
@@ -82,6 +253,22 @@ export function Nav() {
         setNotificationCount(count);
       })
       .catch(() => setNotificationCount(0));
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) {
+      setOwnedLifeAgents(null);
+      return;
+    }
+    const controller = new AbortController();
+    fetchBoundLifeAgents(controller.signal)
+      .then((agents) => {
+        setOwnedLifeAgents(agents);
+      })
+      .catch(() => {
+        setOwnedLifeAgents([]);
+      });
+    return () => controller.abort();
   }, [user]);
 
   useEffect(() => {
@@ -140,6 +327,9 @@ export function Nav() {
   const isFeedFavorites = isDiscoverEntryPage && feedTab === "favorites";
   const isFeedPurchased = isDiscoverEntryPage && feedTab === "purchased";
   const isDashboardHomePage = pathname === "/dashboard";
+  const primaryOwnedLifeAgent = ownedLifeAgents?.[0] ?? null;
+  const shouldShowCreateFab = !user || (ownedLifeAgents !== null && ownedLifeAgents.length === 0);
+  const shouldShowLoadingFab = Boolean(user && ownedLifeAgents === null);
 
   const touchFeedPager = useMobileTouchNavEnabled() && isDiscoverEntryPage;
   const feedTabFavRef = useRef<HTMLAnchorElement | null>(null);
@@ -594,15 +784,23 @@ export function Nav() {
       {!hideGlobalBottomNav && (
         <>
           {/* 中间 FAB 与第 3 列空白对齐：发现 | 消息 | （+） | 地图 | 我的 */}
-          <Link
-            href="/life-agents/create"
-            className="fixed bottom-[calc(env(safe-area-inset-bottom)+2.25rem)] left-1/2 z-[60] flex h-12 w-12 -translate-x-1/2 lg:hidden items-center justify-center rounded-full bg-gradient-to-br from-[#BA68C8] via-[#FF80AB] to-[#FFF176] shadow-lg shadow-fuchsia-500/25 ring-4 ring-white transition-transform active:scale-95"
-            aria-label="创建人生 Agent"
-          >
-            <svg className="h-6 w-6 text-slate-900" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-            </svg>
-          </Link>
+          {primaryOwnedLifeAgent ? (
+            <FloatingVoiceCoachFab agent={primaryOwnedLifeAgent} />
+          ) : shouldShowCreateFab ? (
+            <Link
+              href="/life-agents/create"
+              className="fixed bottom-[calc(env(safe-area-inset-bottom)+2.25rem)] left-1/2 z-[60] flex h-12 w-12 -translate-x-1/2 lg:hidden items-center justify-center rounded-full bg-gradient-to-br from-[#BA68C8] via-[#FF80AB] to-[#FFF176] shadow-lg shadow-fuchsia-500/25 ring-4 ring-white transition-transform active:scale-95"
+              aria-label="创建人生 Agent"
+            >
+              <svg className="h-6 w-6 text-slate-900" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+              </svg>
+            </Link>
+          ) : shouldShowLoadingFab ? (
+            <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+2.25rem)] left-1/2 z-[60] flex h-12 w-12 -translate-x-1/2 items-center justify-center rounded-full bg-white/90 text-purple-700 shadow-lg ring-4 ring-white lg:hidden">
+              <span className="h-5 w-5 animate-spin rounded-full border-2 border-current/25 border-t-current" />
+            </div>
+          ) : null}
 
           <div className="fixed bottom-0 left-0 right-0 z-50 flex lg:hidden items-end justify-around border-t border-purple-200/[0.2] bg-white/[0.94] supports-[backdrop-filter]:backdrop-blur-xl pb-[env(safe-area-inset-bottom)] pt-2 shadow-[0_-4px_28px_-8px_rgba(124,58,237,0.075)]">
             {(() => {

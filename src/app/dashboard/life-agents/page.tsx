@@ -116,16 +116,18 @@ export default function LifeAgentsManagePage() {
     <div className="-mx-1 space-y-4 pb-4 max-lg:-mx-4 max-lg:min-h-[calc(100dvh-env(safe-area-inset-bottom)-4.25rem)] max-lg:bg-white max-lg:px-1 max-lg:pb-24 sm:mx-0 sm:space-y-5">
       <header className="flex items-center justify-between gap-3 px-4 pb-1 pt-[max(0.25rem,env(safe-area-inset-top))] sm:px-4">
         <h1 className="text-[26px] font-bold leading-tight tracking-tight text-[#111]">我的人生 Agent</h1>
-        <Link
-          href="/life-agents/create"
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[#111] transition active:bg-slate-200"
-          aria-label="新建 Agent"
-          title="新建 Agent"
-        >
-          <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24" aria-hidden>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-          </svg>
-        </Link>
+        {!loading && profiles.length === 0 ? (
+          <Link
+            href="/life-agents/create"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[#111] transition active:bg-slate-200"
+            aria-label="新建 Agent"
+            title="新建 Agent"
+          >
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24" aria-hidden>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+          </Link>
+        ) : null}
       </header>
 
       <div className="px-4 pb-1 sm:px-4">

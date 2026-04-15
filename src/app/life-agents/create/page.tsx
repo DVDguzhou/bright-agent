@@ -292,6 +292,7 @@ export default function CreateLifeAgentPage() {
   const [profileMoreOpen, setProfileMoreOpen] = useState(false);
   const [experienceMoreOpen, setExperienceMoreOpen] = useState(false);
   const [user, setUser] = useState<{ id: string } | null>(null);
+  const [existingAgentCount, setExistingAgentCount] = useState<number | null>(null);
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -501,6 +502,27 @@ export default function CreateLifeAgentPage() {
       .then(setUser)
       .catch(() => setUser(null));
   }, []);
+
+  useEffect(() => {
+    if (!user?.id) {
+      setExistingAgentCount(null);
+      return;
+    }
+    let cancelled = false;
+    fetch("/api/life-agents/mine", { credentials: "include" })
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => {
+        if (cancelled) return;
+        setExistingAgentCount(Array.isArray(data) ? data.length : 0);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setExistingAgentCount(0);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id]);
 
   useEffect(() => {
     profileChatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -965,6 +987,8 @@ export default function CreateLifeAgentPage() {
       const msg =
         data.error === "UNAUTHORIZED"
           ? "请先登录后再创建"
+          : data.error === "LIFE_AGENT_LIMIT_REACHED"
+            ? "每个账号目前只能创建 1 个 Agent。你已经创建过了，可以去“我的人生 Agent”继续管理。"
           : data.detail != null
             ? translateLifeAgentValidationError(String(data.detail))
             : "创建失败，请检查输入内容";
@@ -1009,6 +1033,38 @@ export default function CreateLifeAgentPage() {
             </Link>
             <Link href="/signup" className="btn-secondary">
               去注册
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (existingAgentCount === null) {
+    return (
+      <div className={`min-h-[min(100dvh,720px)] px-4 py-12 ${CHAT_PAGE_BACKGROUND_CLASSNAME}`}>
+        <div className="mx-auto max-w-2xl rounded-[28px] border border-purple-200/[0.28] bg-white/[0.985] p-10 text-center shadow-[0_8px_36px_rgba(124,58,237,0.07),0_1px_0_rgba(255,255,255,0.85)_inset] backdrop-blur-md">
+          <h1 className="text-3xl font-bold text-purple-950/90">正在检查创建资格</h1>
+          <p className="mt-3 text-slate-600">请稍等一下，我先确认你当前账号是否已经创建过 Agent。</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (existingAgentCount > 0) {
+    return (
+      <div className={`min-h-[min(100dvh,720px)] px-4 py-12 ${CHAT_PAGE_BACKGROUND_CLASSNAME}`}>
+        <div className="mx-auto max-w-2xl rounded-[28px] border border-purple-200/[0.28] bg-white/[0.985] p-10 text-center shadow-[0_8px_36px_rgba(124,58,237,0.07),0_1px_0_rgba(255,255,255,0.85)_inset] backdrop-blur-md">
+          <h1 className="text-3xl font-bold text-purple-950/90">当前账号已创建过 Agent</h1>
+          <p className="mt-3 text-slate-600">
+            现在起每个账号最多只能创建 1 个 Agent。你已创建过 {existingAgentCount} 个，已有内容不会受影响。
+          </p>
+          <div className="mt-8 flex justify-center gap-3">
+            <Link href="/dashboard/life-agents" className="btn-primary">
+              去管理我的 Agent
+            </Link>
+            <Link href="/life-agents" className="btn-secondary">
+              返回发现页
             </Link>
           </div>
         </div>

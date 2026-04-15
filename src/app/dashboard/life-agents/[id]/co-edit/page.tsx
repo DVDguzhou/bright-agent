@@ -28,8 +28,14 @@ type LastChange = {
   appliedAt: string;
 };
 
+const CO_EDIT_PENDING_VOICE_STORAGE_PREFIX = "life-agent-co-edit-pending-voice:";
+
 function storageKey(id: string) {
   return `life-agent-co-edit:${id}`;
+}
+
+function pendingVoicePromptKey(id: string) {
+  return `${CO_EDIT_PENDING_VOICE_STORAGE_PREFIX}${id}`;
 }
 
 function dismissKeyboard() {
@@ -58,6 +64,7 @@ export default function LifeAgentCoEditPage() {
   const [importProgress, setImportProgress] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const chatHistoryRef = useRef<ChatRow[]>([]);
+  const pendingVoicePromptRef = useRef<string | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -70,6 +77,16 @@ export default function LifeAgentCoEditPage() {
     setCoEditReady(false);
     setChatHistory([]);
     setLastChange(null);
+    pendingVoicePromptRef.current = null;
+    try {
+      const pending = sessionStorage.getItem(pendingVoicePromptKey(id));
+      if (pending) {
+        pendingVoicePromptRef.current = pending;
+        sessionStorage.removeItem(pendingVoicePromptKey(id));
+      }
+    } catch {
+      pendingVoicePromptRef.current = null;
+    }
   }, [id]);
 
   useEffect(() => {
@@ -172,7 +189,7 @@ export default function LifeAgentCoEditPage() {
   const impactedFields = useMemo(() => lastChange?.summary ?? [], [lastChange]);
   const turnCount = useMemo(() => chatHistory.filter((item) => item.role === "user").length, [chatHistory]);
 
-  const runModify = async (msg: string) => {
+  const runModify = useCallback(async (msg: string) => {
     if (!data) return;
     const previousProfile = data.profile;
     const userHistory = [...chatHistoryRef.current, { role: "user" as const, content: msg }];
@@ -308,7 +325,7 @@ export default function LifeAgentCoEditPage() {
     } finally {
       setModifyLoading(false);
     }
-  };
+  }, [data, id]);
 
   const submitModify = async (e?: FormEvent<HTMLFormElement>, voiceText?: string) => {
     e?.preventDefault();
@@ -317,6 +334,15 @@ export default function LifeAgentCoEditPage() {
     setModifyInput("");
     await runModify(msg);
   };
+
+  useEffect(() => {
+    if (!coEditReady || !data || modifyLoading) return;
+    const pending = pendingVoicePromptRef.current?.trim();
+    if (!pending) return;
+    pendingVoicePromptRef.current = null;
+    setBanner(`已收到语音指令，正在调教：${pending}`);
+    void runModify(pending);
+  }, [coEditReady, data, modifyLoading, runModify]);
 
   const undoLastChange = async () => {
     if (!lastChange) return;

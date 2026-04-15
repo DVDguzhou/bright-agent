@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -22,6 +23,8 @@ import (
 	"github.com/agent-marketplace/backend/internal/yantuseed"
 	"github.com/agent-marketplace/backend/internal/tts"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 func ptrStr(s *string) string {
@@ -36,6 +39,8 @@ func strOpt(v string) *string {
 	}
 	return &v
 }
+
+var errLifeAgentLimitReached = errors.New("life agent limit reached")
 
 func wantsEventStream(c *gin.Context) bool {
 	return strings.Contains(strings.ToLower(c.GetHeader("Accept")), "text/event-stream")
@@ -548,6 +553,15 @@ func LifeAgentsCreate(cfg *config.Config) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "VALIDATION_ERROR", "detail": err.Error()})
 			return
 		}
+		var existingProfiles int64
+		if err := db.DB.Model(&models.LifeAgentProfile{}).Where("user_id = ?", user.ID).Count(&existingProfiles).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "INTERNAL_ERROR"})
+			return
+		}
+		if existingProfiles > 0 {
+			c.JSON(http.StatusConflict, gin.H{"error": "LIFE_AGENT_LIMIT_REACHED"})
+			return
+		}
 		body.DisplayName = strings.TrimSpace(body.DisplayName)
 		body.Headline = strings.TrimSpace(body.Headline)
 		if len([]rune(body.DisplayName)) < 1 || len([]rune(body.DisplayName)) > 10 {
@@ -637,21 +651,46 @@ func LifeAgentsCreate(cfg *config.Config) gin.HandlerFunc {
 			CoverPresetKey:     coverPresetPtr,
 			Published:          true,
 		}
-		if err := db.DB.Create(&p).Error; err != nil {
+		if err := db.DB.Transaction(func(tx *gorm.DB) error {
+			var lockedUser models.User
+			if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+				Select("id").
+				Where("id = ?", user.ID).
+				First(&lockedUser).Error; err != nil {
+				return err
+			}
+			var currentProfiles int64
+			if err := tx.Model(&models.LifeAgentProfile{}).Where("user_id = ?", user.ID).Count(&currentProfiles).Error; err != nil {
+				return err
+			}
+			if currentProfiles > 0 {
+				return errLifeAgentLimitReached
+			}
+			if err := tx.Create(&p).Error; err != nil {
+				return err
+			}
+			for i, e := range body.KnowledgeEntries {
+				k := models.LifeAgentKnowledgeEntry{
+					ID:        models.GenID(),
+					ProfileID: profileID,
+					Category:  e.Category,
+					Title:     e.Title,
+					Content:   e.Content,
+					Tags:      models.JSONArray(e.Tags),
+					SortOrder: i,
+				}
+				if err := tx.Create(&k).Error; err != nil {
+					return err
+				}
+			}
+			return nil
+		}); err != nil {
+			if errors.Is(err, errLifeAgentLimitReached) {
+				c.JSON(http.StatusConflict, gin.H{"error": "LIFE_AGENT_LIMIT_REACHED"})
+				return
+			}
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "INTERNAL_ERROR"})
 			return
-		}
-		for i, e := range body.KnowledgeEntries {
-			k := models.LifeAgentKnowledgeEntry{
-				ID:        models.GenID(),
-				ProfileID: profileID,
-				Category:  e.Category,
-				Title:     e.Title,
-				Content:   e.Content,
-				Tags:      models.JSONArray(e.Tags),
-				SortOrder: i,
-			}
-			db.DB.Create(&k)
 		}
 		refreshLifeAgentStructuredFacts(profileID)
 		refreshLifeAgentTopicSummaries(profileID)
