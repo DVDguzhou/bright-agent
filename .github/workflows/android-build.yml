@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 env:
-  MOBILE_APP_URL: ${{ vars.MOBILE_APP_URL || 'http://8.136.119.234:3000' }}
+  MOBILE_APP_URL: ${{ vars.MOBILE_APP_URL || 'https://brightagent.cn' }}
 
 jobs:
   build:

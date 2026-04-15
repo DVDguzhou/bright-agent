@@ -8,7 +8,7 @@ on:
     types: [published]
 
 env:
-  MOBILE_APP_URL: ${{ vars.MOBILE_APP_URL || 'http://8.136.119.234:3000' }}
+  MOBILE_APP_URL: ${{ vars.MOBILE_APP_URL || 'https://brightagent.cn' }}
 
 jobs:
   # 模拟器构建：无需 Apple 证书，用于验证流程
