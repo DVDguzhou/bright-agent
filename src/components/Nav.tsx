@@ -100,13 +100,13 @@ function FloatingVoiceCoachFab({ agent }: { agent: BoundLifeAgent }) {
 
   const isActive = status === "listening" || status === "processing";
   const isProcessing = status === "processing";
-  const helperText = !isSupported
-    ? "去调教"
-    : isActive
-      ? "松开记录"
-      : draftText
-        ? "已保存语音草稿，可继续补充"
-        : "长按调教";
+  const helperText = isActive
+    ? "松开记录"
+    : draftText
+      ? "已保存语音草稿，可继续补充"
+      : isSupported
+        ? "长按调教"
+        : "";
 
   useEffect(() => {
     try {
@@ -177,11 +177,12 @@ function FloatingVoiceCoachFab({ agent }: { agent: BoundLifeAgent }) {
         onTouchCancel={() => {
           if (isSupported) stop();
         }}
-        className={`fixed bottom-[calc(env(safe-area-inset-bottom)+2.25rem)] left-1/2 z-[60] flex h-12 w-12 -translate-x-1/2 items-center justify-center rounded-full ring-4 ring-white transition-transform lg:hidden ${
+        className={`fixed bottom-[calc(env(safe-area-inset-bottom)+2.25rem)] left-1/2 z-[60] flex h-12 w-12 -translate-x-1/2 select-none items-center justify-center rounded-full ring-4 ring-white transition-transform lg:hidden ${
           isActive
             ? "scale-105 bg-rose-500 text-white shadow-lg shadow-rose-500/30"
             : "bg-gradient-to-br from-[#BA68C8] via-[#FF80AB] to-[#FFF176] text-slate-900 shadow-lg shadow-fuchsia-500/25 active:scale-95"
         }`}
+        style={{ touchAction: "none", WebkitTouchCallout: "none" }}
         aria-label={isSupported ? `长按语音调教 ${agent.displayName}` : `打开 ${agent.displayName} 的调教页面`}
         title={isSupported ? `长按语音调教 ${agent.displayName}` : `打开 ${agent.displayName} 的调教页面`}
       >
@@ -217,13 +218,13 @@ function FloatingVoiceCoachFab({ agent }: { agent: BoundLifeAgent }) {
             你可以继续长按补充，也可以先去访问别的 Agent，草稿会暂时保留。
           </p>
         </div>
-      ) : (
+      ) : (submitHint || error || helperText) ? (
         <div className="pointer-events-none fixed bottom-[calc(env(safe-area-inset-bottom)+5.9rem)] left-1/2 z-[60] -translate-x-1/2 lg:hidden">
           <div className="rounded-full bg-white/92 px-2.5 py-1 text-[10px] font-medium text-purple-900/80 shadow-[0_6px_20px_rgba(124,58,237,0.12)] backdrop-blur-sm">
             {submitHint || error || helperText}
           </div>
         </div>
-      )}
+      ) : null}
     </>
   );
 }
