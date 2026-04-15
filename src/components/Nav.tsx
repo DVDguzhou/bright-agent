@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { fetchBoundLifeAgents, type BoundLifeAgent } from "@/lib/bound-life-agents";
 import { useMobileTouchNavEnabled } from "@/hooks/use-life-agents-feed-gestures";
-import { useSpeechRecognition } from "@/lib/voice/useSpeechRecognition";
+import { useMediaRecorder } from "@/lib/voice/useMediaRecorder";
 
 // 人生 Agent: 智能体/对话
 const IconAgent = ({ className }: { className?: string }) => (
@@ -97,34 +97,39 @@ function FloatingVoiceCoachFab({ agent }: { agent: BoundLifeAgent }) {
   const [submitHint, setSubmitHint] = useState<string | null>(null);
   const [draftText, setDraftText] = useState("");
   const [isCancelled, setIsCancelled] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
   const touchStartY = useRef(0);
-  const { isSupported, status, transcript, error, start, stop, reset } = useSpeechRecognition({
-    lang: "zh-CN",
-    continuous: true,
-    interimResults: true,
-    onSessionEnd: (finalTranscript) => {
-      const text = finalTranscript.trim();
-      if (!text) {
-        setSubmitHint("没有识别到内容，请再说一次");
-        reset();
-        return;
-      }
-      setDraftText((prev) => mergeVoiceDraft(prev, text));
-      setSubmitHint("已记录，继续长按可补充，或点“进入调教”");
-      reset();
-    },
-    onError: (message) => {
-      setSubmitHint(message);
-    },
-  });
+  const cancelledRef = useRef(false);
+  const { status: recStatus, error: recError, duration, start: recStart, stop: recStop, reset: recReset } =
+    useMediaRecorder({
+      onDataAvailable: async (blob) => {
+        if (cancelledRef.current) return;
+        setIsTranscribing(true);
+        setSubmitHint("正在识别...");
+        try {
+          const fd = new FormData();
+          fd.append("audio", blob, "voice.webm");
+          fd.append("language", "zh");
+          const res = await fetch("/api/transcribe", { method: "POST", body: fd, credentials: "include" });
+          const data = await res.json();
+          const text = (data.text ?? "").trim();
+          if (!text) {
+            setSubmitHint("没有识别到内容，请再说一次");
+          } else {
+            setDraftText((prev) => mergeVoiceDraft(prev, text));
+            setSubmitHint("已记录，继续长按可补充");
+          }
+        } catch {
+          setSubmitHint("语音识别失败，请重试");
+        } finally {
+          setIsTranscribing(false);
+        }
+      },
+    });
 
-  const isActive = status === "listening" || status === "processing";
-  const isProcessing = status === "processing";
-  const helperText = draftText
-    ? "已保存语音草稿，可继续补充"
-    : isSupported
-      ? "长按调教"
-      : "";
+  const isRecording = recStatus === "recording";
+  const isActive = isRecording || isTranscribing;
+  const helperText = draftText ? "已保存语音草稿，可继续补充" : "长按调教";
 
   useEffect(() => {
     try {
@@ -148,10 +153,10 @@ function FloatingVoiceCoachFab({ agent }: { agent: BoundLifeAgent }) {
   }, [agent.id, draftText]);
 
   useEffect(() => {
-    if (!submitHint && !error) return;
-    const timer = window.setTimeout(() => setSubmitHint(null), 2400);
+    if (!submitHint && !recError) return;
+    const timer = window.setTimeout(() => setSubmitHint(null), 3000);
     return () => window.clearTimeout(timer);
-  }, [submitHint, error]);
+  }, [submitHint, recError]);
 
   const openCoEdit = useCallback(() => {
     router.push(`/dashboard/life-agents/${agent.id}/co-edit`);
@@ -163,29 +168,31 @@ function FloatingVoiceCoachFab({ agent }: { agent: BoundLifeAgent }) {
   }, []);
 
   const handleCancel = useCallback(() => {
+    cancelledRef.current = true;
     setIsCancelled(false);
-    reset();
+    recReset();
+    setIsTranscribing(false);
     setSubmitHint("已取消");
-  }, [reset]);
+  }, [recReset]);
 
   const beginVoice = useCallback(() => {
-    if (!isSupported) return;
+    cancelledRef.current = false;
     setIsCancelled(false);
     setSubmitHint(null);
-    reset();
-    start();
-  }, [isSupported, reset, start]);
+    recReset();
+    recStart();
+  }, [recReset, recStart]);
 
   const endVoice = useCallback(() => {
-    if (!isSupported) return;
-    if (isCancelled) {
+    if (isCancelled || cancelledRef.current) {
       handleCancel();
     } else {
-      stop();
+      recStop();
     }
-  }, [isSupported, isCancelled, handleCancel, stop]);
+  }, [isCancelled, handleCancel, recStop]);
 
-  const liveText = transcript || (isActive ? "正在聆听..." : "");
+  const formatDuration = (s: number) => `${Math.floor(s / 60).toString().padStart(2, "0")}:${(s % 60).toString().padStart(2, "0")}`;
+  const liveText = isTranscribing ? "正在转文字..." : isRecording ? `录音中 ${formatDuration(duration)}` : "";
 
   return (
     <>
@@ -311,25 +318,22 @@ function FloatingVoiceCoachFab({ agent }: { agent: BoundLifeAgent }) {
       {/* ── FAB button ── */}
       <button
         type="button"
-        onClick={() => {
-          if (!isSupported) openCoEdit();
-        }}
+        onClick={openCoEdit}
         onMouseDown={beginVoice}
         onMouseUp={endVoice}
         onMouseLeave={() => {
-          if (isSupported && status === "listening") endVoice();
+          if (isRecording) endVoice();
         }}
         onTouchStart={(e) => {
           touchStartY.current = e.touches[0].clientY;
           beginVoice();
         }}
         onTouchEnd={(e) => {
-          if (!isSupported) return;
           e.preventDefault();
           endVoice();
         }}
         onTouchCancel={() => {
-          if (isSupported) handleCancel();
+          handleCancel();
         }}
         className={`fixed bottom-[calc(env(safe-area-inset-bottom)+2.25rem)] left-1/2 z-[60] flex h-12 w-12 -translate-x-1/2 select-none items-center justify-center rounded-full ring-4 ring-white transition-transform lg:hidden ${
           isActive
@@ -337,10 +341,10 @@ function FloatingVoiceCoachFab({ agent }: { agent: BoundLifeAgent }) {
             : "bg-gradient-to-br from-[#BA68C8] via-[#FF80AB] to-[#FFF176] text-slate-900 shadow-lg shadow-fuchsia-500/25 active:scale-95"
         }`}
         style={{ touchAction: "none", WebkitTouchCallout: "none" }}
-        aria-label={isSupported ? `长按语音调教 ${agent.displayName}` : `打开 ${agent.displayName} 的调教页面`}
-        title={isSupported ? `长按语音调教 ${agent.displayName}` : `打开 ${agent.displayName} 的调教页面`}
+        aria-label={`长按语音调教 ${agent.displayName}`}
+        title={`长按语音调教 ${agent.displayName}`}
       >
-        {isProcessing ? (
+        {isTranscribing ? (
           <span className="h-5 w-5 animate-spin rounded-full border-2 border-current/25 border-t-current" />
         ) : (
           <svg className={`h-6 w-6 ${isActive ? "animate-pulse" : ""}`} fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24" aria-hidden>
@@ -374,10 +378,10 @@ function FloatingVoiceCoachFab({ agent }: { agent: BoundLifeAgent }) {
             你可以继续长按补充，也可以先去访问别的 Agent，草稿会暂时保留。
           </p>
         </div>
-      ) : !isActive && (submitHint || error || helperText) ? (
+      ) : !isActive && (submitHint || recError || helperText) ? (
         <div className="pointer-events-none fixed bottom-[calc(env(safe-area-inset-bottom)+5.9rem)] left-1/2 z-[60] -translate-x-1/2 lg:hidden">
           <div className="rounded-full bg-white/92 px-2.5 py-1 text-[10px] font-medium text-purple-900/80 shadow-[0_6px_20px_rgba(124,58,237,0.12)] backdrop-blur-sm">
-            {submitHint || error || helperText}
+            {submitHint || recError || helperText}
           </div>
         </div>
       ) : null}

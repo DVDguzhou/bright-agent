@@ -93,6 +93,7 @@ func Setup(cfg *config.Config) *gin.Engine {
 		api.GET("/upload/life-agent-cover/:name", handler.LifeAgentCoverGet(cfg))
 
 		api.GET("/audio/:filename", handler.ServeAudio)
+		api.POST("/transcribe", middleware.RequireAuth(cfg), handler.AudioTranscribe(cfg))
 	}
 
 	return r
