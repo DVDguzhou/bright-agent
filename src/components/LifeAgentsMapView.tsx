@@ -97,23 +97,11 @@ function avatarStackClusterIcon(cluster: L.MarkerCluster) {
     avatars += `<div style="position:absolute;left:${left}px;top:0;z-index:${zi};width:${sz}px;height:${sz}px;border-radius:50%;background:${bg};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;border:2.5px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.18);user-select:none">${ch}</div>`;
   }
 
-  const label =
-    count >= 10000
-      ? `${Math.round(count / 1000)}k`
-      : count >= 1000
-        ? `${(count / 1000).toFixed(1)}k`
-        : String(count);
-
-  const badge = `<div style="position:absolute;right:-6px;top:-8px;z-index:20;min-width:20px;height:20px;border-radius:10px;background:${ACCENT};color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 5px;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.15);line-height:1">${label}</div>`;
-
-  const iconW = totalW + 14;
-  const iconH = sz + 16;
-
   return L.divIcon({
-    html: `<div style="position:relative;width:${totalW}px;height:${sz}px">${avatars}${badge}</div>`,
+    html: `<div style="position:relative;width:${totalW}px;height:${sz}px">${avatars}</div>`,
     className: "life-agent-map-cluster",
-    iconSize: L.point(iconW, iconH),
-    iconAnchor: L.point(iconW / 2, iconH / 2),
+    iconSize: L.point(totalW, sz),
+    iconAnchor: L.point(totalW / 2, sz / 2),
   });
 }
 
@@ -239,7 +227,9 @@ function HeatmapLayer({ points }: { points: L.LatLngTuple[] }) {
   return null;
 }
 
-/* ── Clustered markers with avatar-stack icons ── */
+/* ── Clustered markers (hidden at low zoom, visible when zoomed in) ── */
+
+const MARKER_SHOW_ZOOM = 8;
 
 function ClusteredMarkers({
   markers,
@@ -250,6 +240,7 @@ function ClusteredMarkers({
 }) {
   const map = useMap();
   const clusterRef = useRef<L.MarkerClusterGroup | null>(null);
+  const visibleRef = useRef(false);
 
   useEffect(() => {
     const group = L.markerClusterGroup({
@@ -282,11 +273,26 @@ function ClusteredMarkers({
     });
 
     group.addLayers(leafletMarkers);
-    map.addLayer(group);
     clusterRef.current = group;
+    visibleRef.current = false;
+
+    function syncVisibility() {
+      const shouldShow = map.getZoom() >= MARKER_SHOW_ZOOM;
+      if (shouldShow && !visibleRef.current) {
+        map.addLayer(group);
+        visibleRef.current = true;
+      } else if (!shouldShow && visibleRef.current) {
+        map.removeLayer(group);
+        visibleRef.current = false;
+      }
+    }
+
+    map.on("zoomend", syncVisibility);
+    syncVisibility();
 
     return () => {
-      map.removeLayer(group);
+      map.off("zoomend", syncVisibility);
+      if (visibleRef.current) map.removeLayer(group);
       clusterRef.current = null;
     };
   }, [map, markers, highlightAgentId]);
@@ -340,8 +346,8 @@ export default function LifeAgentsMapView({
       style={rounded ? { minHeight: "min(62dvh, 520px)" } : { minHeight: "100%" }}
     >
       <MapContainer
-        center={[35, 105]}
-        zoom={4}
+        center={[35, 108]}
+        zoom={5}
         minZoom={3}
         zoomControl={false}
         className={`z-0 w-full ${mapHeightClass} ${roundMap}`}
