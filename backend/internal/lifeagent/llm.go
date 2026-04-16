@@ -662,7 +662,7 @@ func streamWithDetails(ctx context.Context, client *openai.Client, req openai.Ch
 }
 
 // isTruncated 检测回复是否被截断（token 上限命中或流中断）。
-// 检查 FinishReason + 文本末尾是否以完整句子结束。
+// 优先看 FinishReason；FinishReason 不明确时，用文本末尾启发式兜底。
 func isTruncated(result streamResult) bool {
 	if result.FinishReason == openai.FinishReasonLength {
 		return true
@@ -670,20 +670,31 @@ func isTruncated(result streamResult) bool {
 	if result.StreamError && len(result.Content) > 0 {
 		return true
 	}
+	// FinishReason 为 "stop" 说明模型认为自己说完了，信任模型判断
+	if result.FinishReason == openai.FinishReasonStop {
+		return false
+	}
+	// FinishReason 为空（部分 API 不返回）时，通过文本末尾启发式判断
 	content := strings.TrimSpace(result.Content)
 	if content == "" {
 		return false
 	}
-	lastRune := []rune(content)[len([]rune(content))-1]
+	runes := []rune(content)
+	lastRune := runes[len(runes)-1]
 	sentenceEnders := "。！？…～~」）)】》"
 	if strings.ContainsRune(sentenceEnders, lastRune) {
 		return false
 	}
-	// 如果内容足够短（<30字）且没有以句号结尾，大概率是截断了
-	if len([]rune(content)) < 30 {
+	// 内容短（<30字）且无句末标点，大概率被截断
+	if len(runes) < 30 {
 		return true
 	}
-	return true
+	// 较长内容：检查是否以逗号/顿号等"半句"标点结尾，暗示被截断
+	midSentenceEnders := "，,、：:"
+	if strings.ContainsRune(midSentenceEnders, lastRune) {
+		return true
+	}
+	return false
 }
 
 // continueTruncatedDraft 对被截断的内容发起续写请求。
@@ -696,12 +707,13 @@ func continueTruncatedDraft(ctx context.Context, client *openai.Client, model st
 		openai.ChatCompletionMessage{Role: openai.ChatMessageRoleUser, Content: "你的回复被截断了，请从断点处继续说完。不要重复已经说过的内容，直接接着往下说。"},
 	)
 
-	result := streamWithDetails(ctx, client, openai.ChatCompletionRequest{
-		Model:               model,
-		Messages:            continueMessages,
-		Temperature:         safeTemperature(model, 0.55),
-		MaxCompletionTokens: maxTokens,
-	}, onChunk)
+	contReq := openai.ChatCompletionRequest{
+		Model:       model,
+		Messages:    continueMessages,
+		Temperature: safeTemperature(model, 0.55),
+	}
+	setMaxTokens(&contReq, model, maxTokens)
+	result := streamWithDetails(ctx, client, contReq, onChunk)
 
 	return strings.TrimSpace(result.Content)
 }
@@ -742,11 +754,11 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 	// Token budget: 宽裕上限，让模型自己决定长短
 	draftMaxTokens := estimateDraftTokenBudget(chatIntent)
 	draftReq := openai.ChatCompletionRequest{
-		Model:               model,
-		Messages:            draftMsgs,
-		Temperature:         safeTemperature(model, 0.55),
-		MaxCompletionTokens: draftMaxTokens,
+		Model:       model,
+		Messages:    draftMsgs,
+		Temperature: safeTemperature(model, 0.55),
 	}
+	setMaxTokens(&draftReq, model, draftMaxTokens)
 
 	var planStrict RetrievalPlan
 	needsReconcile := false
@@ -793,21 +805,23 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 	reconcileSystem := buildReconcileSystemPrompt(profile, planStrict)
 	reconcileUser := buildReconcileUserMessage(message, draft)
 	reconcileMaxTokens := estimateReconcileTokenBudget(draft)
-	final, err := streamChatCompletion(ctx, client, openai.ChatCompletionRequest{
+	reconcileReq := openai.ChatCompletionRequest{
 		Model: model,
 		Messages: []openai.ChatCompletionMessage{
 			{Role: openai.ChatMessageRoleSystem, Content: reconcileSystem},
 			{Role: openai.ChatMessageRoleUser, Content: reconcileUser},
 		},
-		Temperature:         safeTemperature(model, 0.4),
-		MaxCompletionTokens: reconcileMaxTokens,
-	})
-	if err != nil {
-		log.Printf("[LLM] reconcile stream failed: %v", err)
-		return draft, BuildRetrievalReferences(planStrict), nil
+		Temperature: safeTemperature(model, 0.4),
 	}
-	final = strings.TrimSpace(final)
+	setMaxTokens(&reconcileReq, model, reconcileMaxTokens)
+	reconcileResult := streamWithDetails(ctx, client, reconcileReq, nil)
+	final := strings.TrimSpace(reconcileResult.Content)
 	if final == "" {
+		log.Printf("[LLM] reconcile returned empty, falling back to draft")
+		final = draft
+	} else if isTruncated(reconcileResult) {
+		log.Printf("[LLM-truncation] reconcile truncated (finish_reason=%s, stream_error=%v, len=%d), falling back to draft",
+			reconcileResult.FinishReason, reconcileResult.StreamError, len([]rune(final)))
 		final = draft
 	}
 	out := humanizeReply(final)

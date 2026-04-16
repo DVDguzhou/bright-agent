@@ -109,3 +109,13 @@ func safeTemperature(model string, temp float32) float32 {
 	}
 	return temp
 }
+
+// setMaxTokens sets both MaxTokens and MaxCompletionTokens for broad API compatibility.
+// Reasoning models only support MaxCompletionTokens; other models/providers may only
+// recognize MaxTokens (e.g. Ollama, some DashScope endpoints).
+func setMaxTokens(req *openai.ChatCompletionRequest, model string, budget int) {
+	req.MaxCompletionTokens = budget
+	if !isReasoningModel(model) {
+		req.MaxTokens = budget
+	}
+}
