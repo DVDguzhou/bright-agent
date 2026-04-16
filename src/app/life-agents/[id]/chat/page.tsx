@@ -933,7 +933,7 @@ export default function LifeAgentChatPage() {
                                 isSelected
                                   ? item.id === "helpful"
                                     ? "border-green-300 bg-green-100 text-green-700 shadow-sm ring-1 ring-green-200"
-                                    : "border-red-200 bg-red-50 text-red-600 shadow-sm ring-1 ring-red-200"
+                                    : "border-amber-200 bg-amber-50 text-amber-700 shadow-sm ring-1 ring-amber-200"
                                   : hasSelection
                                     ? "border-gray-100 bg-gray-50/50 text-gray-400"
                                     : "border-purple-100/60 bg-violet-50/80 text-purple-900/70 hover:bg-purple-100/50"
