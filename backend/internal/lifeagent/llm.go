@@ -918,6 +918,12 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 func buildDraftSystemPrompt(profile ProfileForAI, facts []StructuredFactForAI, topics []TopicSummaryForAI, liveUpdates []LiveUpdateForAI, entryHints ...[]string) string {
 	var sb strings.Builder
 
+	// ═══ Layer 0: Current Time ═══
+	now := time.Now()
+	weekdays := []string{"日", "一", "二", "三", "四", "五", "六"}
+	sb.WriteString(fmt.Sprintf("当前时间：%d年%d月%d日 星期%s %02d:%02d\n\n",
+		now.Year(), int(now.Month()), now.Day(), weekdays[now.Weekday()], now.Hour(), now.Minute()))
+
 	// ═══ Layer 1: Identity + Persona ═══
 	sb.WriteString("你是「")
 	sb.WriteString(profile.DisplayName)
