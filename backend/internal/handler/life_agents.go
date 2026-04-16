@@ -537,6 +537,7 @@ func LifeAgentsList(cfg *config.Config) gin.HandlerFunc {
 				Offset(offset).
 				Limit(limit + 1).
 				Find(&profiles).Error; err != nil {
+				log.Printf("[life-agents-list] seeded query failed (seed=%d, offset=%d, limit=%d): %v", seed, offset, limit, err)
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "INTERNAL_ERROR"})
 				return
 			}
