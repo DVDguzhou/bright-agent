@@ -167,11 +167,11 @@ func ClassifyQuestionIntent(message string) (isIdentity bool) {
 func estimateDraftTokenBudget(intent chatIntentType) int {
 	switch intent {
 	case chatIntentSmallTalk:
-		return 256
+		return 512
 	case chatIntentCasualInfo:
-		return 768
-	default:
 		return 1536
+	default:
+		return 2048
 	}
 }
 
@@ -841,24 +841,19 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 		return "", nil, fmt.Errorf("draft: empty content")
 	}
 
-	// 先清理推理标记，再做截断检测——避免推理标记影响截断判断和续写
+	// 清理推理标记
 	cleanDraft := stripReasoningMarkers(draft)
 	if cleanDraft != draft {
-		log.Printf("[LLM-truncation] stripped reasoning markers from draft before truncation check, %d → %d chars",
+		log.Printf("[LLM] stripped reasoning markers from draft, %d → %d chars",
 			len([]rune(draft)), len([]rune(cleanDraft)))
 		draft = cleanDraft
 	}
 
-	// 截断检测 + 自动续写：最多续写 1 次
+	// 截断检测：仅记日志用于排查，不再自动续写
+	// 续写质量差（衔接生硬、风格断裂）且增加延迟，改为放大 token 预算从根源解决
 	if isTruncated(draftResult) {
-		log.Printf("[LLM-truncation] draft truncated (finish_reason=%s, stream_error=%v, len=%d), attempting continuation",
+		log.Printf("[LLM-truncation] draft may be truncated (finish_reason=%s, stream_error=%v, len=%d chars) — no continuation, relying on generous budget",
 			draftResult.FinishReason, draftResult.StreamError, len([]rune(draft)))
-		contFilter := newReasoningStreamFilter(onChunk)
-		continuation := continueTruncatedDraft(ctx, client, model, draftMsgs, draft, draftMaxTokens, contFilter.write)
-		if continuation != "" {
-			draft = draft + continuation
-			log.Printf("[LLM-truncation] continuation added %d chars, total now %d chars", len([]rune(continuation)), len([]rune(draft)))
-		}
 	}
 
 	// 先 humanize Draft（去 Markdown + AI 套话），无论是否走 Reconcile 都需要
