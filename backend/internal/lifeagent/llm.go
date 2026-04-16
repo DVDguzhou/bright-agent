@@ -2,6 +2,7 @@ package lifeagent
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -147,41 +148,122 @@ func ClassifyQuestionIntent(message string) (isIdentity bool) {
 	return IsIdentityQuestion(message)
 }
 
-// estimateDraftTokenBudget 根据消息长度和意图动态估算 Draft 的输出 token 上限。
-// Response Depth Sampling: 约 30% 的概率给一个更紧的预算，迫使模型给出简短直觉式回答，
-// 模拟真人有时一句话带过、有时多说几句的节奏变化。
-func estimateDraftTokenBudget(message string, intent chatIntentType) int {
-	if intent == chatIntentSmallTalk {
+// ── LLM Intent Router ──
+//
+// 用一次轻量 LLM 调用替代关键词匹配，同时判断意图和期望回复深度。
+// 延迟约 100-200ms（max_tokens=30），远比主生成快。
+// 当 LLM 不可用时自动回退到关键词匹配。
+
+// chatRouterResult 路由器返回的结构化结果
+type chatRouterResult struct {
+	Intent string `json:"intent"` // small_talk / casual_info / deep_consult
+	Depth  string `json:"depth"`  // brief / normal / detailed
+}
+
+const routerSystemPrompt = `判断用户这句话的意图和期望回复深度。结合对话上下文综合判断。
+
+意图分类：
+- small_talk：打招呼、寒暄、道谢、告别（你好/嗯嗯/谢谢/再见）
+- casual_info：随口问一个轻量信息（好吃吗/多少钱/怎么去/推荐吗）
+- deep_consult：认真的咨询、经历分享、决策讨论、人生选择
+
+期望深度：
+- brief：对方只需要简短回应（打招呼、确认、感叹词）
+- normal：正常对话深度
+- detailed：对方明确要求展开、追问细节、嫌回答太短、要求继续说
+
+只输出 JSON，不要其他内容：{"intent":"...","depth":"..."}`
+
+// classifyWithLLMRouter 用轻量 LLM 调用做意图+深度分类。
+// 超时或失败时返回 nil，由调用方回退到关键词匹配。
+func classifyWithLLMRouter(ctx context.Context, client *openai.Client, model string, message string, history []ChatMessageForAI) *chatRouterResult {
+	// 构造精简上下文：只取最近 3 轮对话，控制 token 开销
+	var contextLines strings.Builder
+	start := 0
+	if len(history) > 6 {
+		start = len(history) - 6
+	}
+	for i := start; i < len(history); i++ {
+		role := "用户"
+		if history[i].Role == "assistant" {
+			role = "助手"
+		}
+		content := history[i].Content
+		if len([]rune(content)) > 80 {
+			content = string([]rune(content)[:80]) + "..."
+		}
+		contextLines.WriteString(fmt.Sprintf("%s：%s\n", role, content))
+	}
+
+	userContent := fmt.Sprintf("对话上下文：\n%s\n用户最新消息：%s", contextLines.String(), message)
+
+	routerCtx, cancel := context.WithTimeout(ctx, 8*time.Second)
+	defer cancel()
+
+	resp, err := client.CreateChatCompletion(routerCtx, openai.ChatCompletionRequest{
+		Model: model,
+		Messages: []openai.ChatCompletionMessage{
+			{Role: openai.ChatMessageRoleSystem, Content: routerSystemPrompt},
+			{Role: openai.ChatMessageRoleUser, Content: userContent},
+		},
+		Temperature:         safeTemperature(model, 0.1),
+		MaxCompletionTokens: 30,
+	})
+	if err != nil {
+		log.Printf("[LLM-router] call failed, falling back to keyword: %v", err)
+		return nil
+	}
+	if len(resp.Choices) == 0 || resp.Choices[0].Message.Content == "" {
+		return nil
+	}
+
+	raw := extractJSONFromContent(strings.TrimSpace(resp.Choices[0].Message.Content))
+	var result chatRouterResult
+	if err := json.Unmarshal([]byte(raw), &result); err != nil {
+		log.Printf("[LLM-router] parse failed: %v, raw=%s", err, raw)
+		return nil
+	}
+
+	// 校验合法值
+	switch result.Intent {
+	case "small_talk", "casual_info", "deep_consult":
+	default:
+		result.Intent = "casual_info"
+	}
+	switch result.Depth {
+	case "brief", "normal", "detailed":
+	default:
+		result.Depth = "normal"
+	}
+
+	log.Printf("[LLM-router] intent=%s depth=%s", result.Intent, result.Depth)
+	return &result
+}
+
+// estimateDraftTokenBudget 根据路由结果动态估算 Draft 的输出 token 上限。
+// depth=detailed 时给宽裕预算；brief 时给紧凑预算；normal 时根据消息长度浮动。
+func estimateDraftTokenBudget(message string, intent chatIntentType, depth string) int {
+	if depth == "detailed" {
+		return 1536
+	}
+	if intent == chatIntentSmallTalk || depth == "brief" {
 		return 256
 	}
 	if intent == chatIntentCasualInfo {
-		// 随口问信息的回复不需要太长，像朋友回微信
-		base := 384
-		if rand.Intn(100) < 30 {
-			base = 256
-		}
-		return base
+		return 512
 	}
+	// deep_consult + normal
 	msgRunes := len([]rune(message))
-	var base int
 	switch {
 	case msgRunes <= 10:
-		base = 512
+		return 768
 	case msgRunes <= 30:
-		base = 768
+		return 1024
 	case msgRunes <= 80:
-		base = 1024
+		return 1280
 	default:
-		base = 1536
+		return 1536
 	}
-	// ~30% 概率给一个更紧的预算，模拟真人有时简短回答的节奏
-	if rand.Intn(100) < 30 {
-		base = base * 2 / 3
-		if base < 256 {
-			base = 256
-		}
-	}
-	return base
 }
 
 // estimateReconcileTokenBudget 根据 Draft 实际长度估算 Reconcile 的输出上限。
@@ -199,25 +281,23 @@ func estimateReconcileTokenBudget(draft string) int {
 	return budget
 }
 
-// randomLengthHint 随机返回一个长度提示，模拟真人回复长度的自然变化。
-// 分布大致模拟真人对话: 40% 短 / 40% 中 / 20% 稍长
-func randomLengthHint() string {
-	hints := []string{
-		// 短 (40%)
-		"这次简短一点回，一两句话。",
-		"这次简短一点回，一两句话。",
-		"像平时发微信一样，几句话说完就行。",
-		"像平时发微信一样，几句话说完就行。",
-		// 中 (40%)
-		"正常聊，两三段，别太长。",
-		"正常聊，两三段，别太长。",
-		"说你最想说的，不用面面俱到。",
-		"说你最想说的，不用面面俱到。",
-		// 稍长 (20%)
-		"这个话题你可以多说几句，像跟朋友认真聊一个事。",
-		"这个你有经历可以展开说说，但也别写成文章。",
+// depthLengthHint 根据路由器判断的 depth 返回长度指引。
+// 不再用命令式的"这次简短回"，改为建议式，把最终判断权留给模型。
+func depthLengthHint(depth string) string {
+	switch depth {
+	case "detailed":
+		hints := []string{
+			"对方想听你详细说，像跟老朋友认真聊一件事，把来龙去脉、具体细节都讲出来。",
+			"对方在追问细节，这次多说一些，带上时间、数字、你当时的感受，不要惜字如金。",
+			"这次好好展开讲，对方明确想听更多，不要一两句话就打发了。",
+		}
+		return hints[rand.Intn(len(hints))]
+	case "brief":
+		return "对方只是打个招呼或简单回应，你也简短回就好。"
+	default:
+		// normal: 建议式，不强制长短
+		return "回复长度由你自然判断：对方随口一句就短回，对方认真提问就认真展开。不用刻意控制长短。"
 	}
-	return hints[rand.Intn(len(hints))]
 }
 
 type chatIntentType string
@@ -228,12 +308,7 @@ const (
 	chatIntentDeepConsult chatIntentType = "deep_consult"
 )
 
-// classifyChatIntent 三级意图分类：
-//   - small_talk:    打招呼/寒暄，短路跳过 Reconcile
-//   - casual_info:   随口问信息（景区、天气、美食、推荐等），语气轻松简短
-//   - deep_consult:  深度咨询（职业、人生选择、经历分享），语气认真有深度
-//
-// 语言学依据: Register Theory (Halliday, 1976) — 同一说话者在不同场景自然切换语域
+// classifyChatIntent 关键词回退版意图分类，当 LLM router 不可用时使用。
 func classifyChatIntent(message string) chatIntentType {
 	norm := strings.TrimSpace(message)
 	runes := []rune(norm)
@@ -684,7 +759,19 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 		entryHints = append(entryHints, e.Title+"（"+e.Category+"）")
 	}
 
-	draftSystem := buildDraftSystemPrompt(profile, facts, topics, luSlice)
+	// ── LLM Intent Router: 用轻量 LLM 调用判断意图+深度 ──
+	var chatIntent chatIntentType
+	depth := "normal"
+
+	routerResult := classifyWithLLMRouter(ctx, client, model, message, history)
+	if routerResult != nil {
+		chatIntent = chatIntentType(routerResult.Intent)
+		depth = routerResult.Depth
+	} else {
+		chatIntent = classifyChatIntent(message)
+	}
+
+	draftSystem := buildDraftSystemPrompt(profile, facts, topics, luSlice, draftPromptOptions{Depth: depth})
 	knowledgeCtx := buildDraftKnowledgeContext(facts, topics, luSlice, entryHints, message, history, opts)
 	if opts == nil {
 		opts = &ChatOptions{}
@@ -696,13 +783,10 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 	for _, m := range draftMsgs {
 		promptTokens += len([]rune(m.Content))
 	}
-	log.Printf("[LLM-timing] prompt built in %dms, ~%d chars across %d messages", time.Since(tStart).Milliseconds(), promptTokens, len(draftMsgs))
+	log.Printf("[LLM-timing] prompt built in %dms, ~%d chars across %d messages, intent=%s depth=%s", time.Since(tStart).Milliseconds(), promptTokens, len(draftMsgs), chatIntent, depth)
 
-	// Intent-based routing: 闲聊/打招呼直接走 Draft，跳过 Reconcile
-	chatIntent := classifyChatIntent(message)
-
-	// Adaptive Token Budget: 根据消息长度和意图动态调整输出上限
-	draftMaxTokens := estimateDraftTokenBudget(message, chatIntent)
+	// Adaptive Token Budget: 根据路由结果动态调整输出上限
+	draftMaxTokens := estimateDraftTokenBudget(message, chatIntent, depth)
 	draftReq := openai.ChatCompletionRequest{
 		Model:               model,
 		Messages:            draftMsgs,
@@ -769,7 +853,22 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 	return out, BuildRetrievalReferences(planStrict), nil
 }
 
-func buildDraftSystemPrompt(profile ProfileForAI, facts []StructuredFactForAI, topics []TopicSummaryForAI, liveUpdates []LiveUpdateForAI, entryHints ...[]string) string {
+// draftPromptOptions 控制 system prompt 构建行为
+type draftPromptOptions struct {
+	Depth string // brief / normal / detailed, from LLM router
+}
+
+func buildDraftSystemPrompt(profile ProfileForAI, facts []StructuredFactForAI, topics []TopicSummaryForAI, liveUpdates []LiveUpdateForAI, optArgs ...interface{}) string {
+	var promptOpts draftPromptOptions
+	for _, arg := range optArgs {
+		if v, ok := arg.(draftPromptOptions); ok {
+			promptOpts = v
+		}
+	}
+	if promptOpts.Depth == "" {
+		promptOpts.Depth = "normal"
+	}
+
 	var sb strings.Builder
 
 	// ═══ Layer 1: Identity + Persona ═══
@@ -780,10 +879,16 @@ func buildDraftSystemPrompt(profile ProfileForAI, facts []StructuredFactForAI, t
 	sb.WriteString("下面的身份信息和经历标签描述的就是你的真实人生。你不能说「我没有XX经历」「我不了解XX」——那些是你的经历，你亲身经历过。\n")
 	sb.WriteString("你说的每句话、提到的每个话题，都必须在你人设范围内。不要凭空提及人设里不存在的领域、技能或服务。\n\n")
 	sb.WriteString("【口吻】\n")
-	sb.WriteString("像微信消息：禁止 Markdown（不要 # 标题、不要 - 列表、不要 ** 加粗、不要数字分点）。别起承转合写太长。\n")
-	sb.WriteString("真人聊天不会每次都面面俱到。有时候一句话就够了，有时候多说几句。不要每次都把所有相关的点全讲完——挑你最有感触的那一个点说透就好，对方想知道更多自然会追问。\n")
-	// Length Hint Injection: 随机选一个长度提示，打破回复长度的稳定性
-	sb.WriteString(randomLengthHint())
+	sb.WriteString("像微信消息：禁止 Markdown（不要 # 标题、不要 - 列表、不要 ** 加粗、不要数字分点）。\n")
+	switch promptOpts.Depth {
+	case "detailed":
+		sb.WriteString("对方在要求你详细说，这时候应该像真人一样认真分享，把来龙去脉讲清楚。真人被朋友追问细节时不会继续敷衍——会坐下来好好聊。\n")
+	case "brief":
+		sb.WriteString("对方只是简单打个招呼或随口一说，你也随口回就好，不用展开。\n")
+	default:
+		sb.WriteString("回复长度由你根据对话自然判断。对方随口一句就短回，对方认真提问就认真展开。不需要每次都面面俱到，挑你最有感触的点说就好。\n")
+	}
+	sb.WriteString(depthLengthHint(promptOpts.Depth))
 	sb.WriteString("\n\n")
 	sb.WriteString("【人设】\n")
 	sb.WriteString("用第一人称。下面是你的全部身份信息，严格按照这些内容扮演，不要增添人设里不存在的内容：\n")
