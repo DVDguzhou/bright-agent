@@ -104,6 +104,9 @@ export default function LifeAgentChatPage() {
   const [ratingComment, setRatingComment] = useState("");
   const [ratingSubmitting, setRatingSubmitting] = useState(false);
   const [submittingFeedbackId, setSubmittingFeedbackId] = useState<string | null>(null);
+  const [selectedFeedback, setSelectedFeedback] = useState<Record<string, string>>({});
+  const [feedbackComment, setFeedbackComment] = useState<Record<string, string>>({});
+  const [commentSubmitted, setCommentSubmitted] = useState<Record<string, boolean>>({});
   const [useVoiceReply, setUseVoiceReply] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
   const [viewportBox, setViewportBox] = useState<{ height: number; offsetTop: number } | null>(null);
@@ -497,7 +500,7 @@ export default function LifeAgentChatPage() {
   };
 
   const submitMessageFeedback = useCallback(
-    async (message: ChatMessage, feedbackType: string) => {
+    async (message: ChatMessage, feedbackType: string, comment?: string) => {
       if (!message.messageId || !message.sessionId) return;
       setSubmittingFeedbackId(message.messageId);
       try {
@@ -509,6 +512,7 @@ export default function LifeAgentChatPage() {
             messageId: message.messageId,
             sessionId: message.sessionId,
             feedbackType,
+            ...(comment ? { comment } : {}),
           }),
         });
         if (!res.ok) {
@@ -516,6 +520,10 @@ export default function LifeAgentChatPage() {
           return;
         }
         setError("");
+        setSelectedFeedback((prev) => ({ ...prev, [message.messageId!]: feedbackType }));
+        if (comment) {
+          setCommentSubmitted((prev) => ({ ...prev, [message.messageId!]: true }));
+        }
       } catch {
         setError("反馈提交失败，请稍后重试。");
       } finally {
@@ -904,24 +912,77 @@ export default function LifeAgentChatPage() {
                     ) : null}
                   </div>
                   {message.role === "assistant" && message.messageId && message.sessionId ? (
-                    <div className="ml-10 flex flex-wrap gap-2 text-xs">
-                      {[
-                        { id: "helpful", label: "有帮助" },
-                        { id: "not_specific", label: "不够具体" },
-                        { id: "factual_error", label: "事实错了" },
-                        { id: "contradiction", label: "前后矛盾" },
-                        { id: "too_confident", label: "太武断了" },
-                      ].map((item) => (
-                        <button
-                          key={`${message.messageId}-${item.id}`}
-                          type="button"
-                          disabled={submittingFeedbackId === message.messageId}
-                          onClick={() => void submitMessageFeedback(message, item.id)}
-                          className="rounded-full border border-purple-100/60 bg-violet-50/80 px-2.5 py-1 text-purple-900/70 transition hover:bg-purple-100/50 disabled:opacity-60"
-                        >
-                          {item.label}
-                        </button>
-                      ))}
+                    <div className="ml-10 space-y-2">
+                      <div className="flex flex-wrap gap-2 text-xs">
+                        {[
+                          { id: "helpful", label: "有帮助", icon: "👍" },
+                          { id: "not_specific", label: "不够具体", icon: "" },
+                          { id: "factual_error", label: "事实错了", icon: "" },
+                          { id: "contradiction", label: "前后矛盾", icon: "" },
+                          { id: "too_confident", label: "太武断了", icon: "" },
+                        ].map((item) => {
+                          const isSelected = selectedFeedback[message.messageId!] === item.id;
+                          const hasSelection = !!selectedFeedback[message.messageId!];
+                          return (
+                            <button
+                              key={`${message.messageId}-${item.id}`}
+                              type="button"
+                              disabled={submittingFeedbackId === message.messageId}
+                              onClick={() => void submitMessageFeedback(message, item.id)}
+                              className={`rounded-full border px-2.5 py-1 transition-all duration-200 ${
+                                isSelected
+                                  ? item.id === "helpful"
+                                    ? "border-green-300 bg-green-100 text-green-700 shadow-sm ring-1 ring-green-200"
+                                    : "border-red-200 bg-red-50 text-red-600 shadow-sm ring-1 ring-red-200"
+                                  : hasSelection
+                                    ? "border-gray-100 bg-gray-50/50 text-gray-400"
+                                    : "border-purple-100/60 bg-violet-50/80 text-purple-900/70 hover:bg-purple-100/50"
+                              } disabled:opacity-60`}
+                            >
+                              {isSelected && <span className="mr-0.5">{item.id === "helpful" ? "✓" : item.icon || "✓"}</span>}
+                              {item.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      {selectedFeedback[message.messageId!] &&
+                        selectedFeedback[message.messageId!] !== "helpful" &&
+                        !commentSubmitted[message.messageId!] && (
+                          <div className="flex items-start gap-2">
+                            <textarea
+                              placeholder="说说哪里不对？你的反馈会帮助创建者改进..."
+                              value={feedbackComment[message.messageId!] || ""}
+                              onChange={(e) =>
+                                setFeedbackComment((prev) => ({
+                                  ...prev,
+                                  [message.messageId!]: e.target.value,
+                                }))
+                              }
+                              rows={2}
+                              className="flex-1 resize-none rounded-xl border border-purple-100/60 bg-white/80 px-3 py-2 text-xs text-gray-700 placeholder:text-gray-400 focus:border-purple-300 focus:outline-none focus:ring-1 focus:ring-purple-200"
+                            />
+                            <button
+                              type="button"
+                              disabled={
+                                !feedbackComment[message.messageId!]?.trim() ||
+                                submittingFeedbackId === message.messageId
+                              }
+                              onClick={() =>
+                                void submitMessageFeedback(
+                                  message,
+                                  selectedFeedback[message.messageId!],
+                                  feedbackComment[message.messageId!]?.trim()
+                                )
+                              }
+                              className="shrink-0 rounded-xl bg-purple-500 px-3 py-2 text-xs font-medium text-white transition hover:bg-purple-600 disabled:opacity-40"
+                            >
+                              提交
+                            </button>
+                          </div>
+                        )}
+                      {commentSubmitted[message.messageId!] && (
+                        <p className="text-xs text-green-600">感谢你的反馈！</p>
+                      )}
                     </div>
                   ) : null}
                 </div>
