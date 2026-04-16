@@ -5,7 +5,6 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet.markercluster";
 import "leaflet.markercluster/dist/MarkerCluster.css";
-import "leaflet.heat";
 import { MapContainer, ScaleControl, TileLayer, Marker, useMap } from "react-leaflet";
 import { getLifeAgentLatLng, type MapCoordAgentInput } from "@/lib/life-agent-map-coords";
 
@@ -169,64 +168,6 @@ function MapLayoutFit({
   return null;
 }
 
-/* ── Heatmap layer (visible at low zoom, fades as you zoom in) ── */
-
-function HeatmapLayer({ points }: { points: L.LatLngTuple[] }) {
-  const map = useMap();
-
-  useEffect(() => {
-    if (points.length === 0) return;
-
-    const heat = L.heatLayer(
-      points.map(([lat, lng]) => [lat, lng, 0.5] as [number, number, number]),
-      {
-        radius: 25,
-        blur: 20,
-        maxZoom: 11,
-        max: 1.0,
-        minOpacity: 0.08,
-        gradient: {
-          0.2: "#bfdbfe",
-          0.4: "#60a5fa",
-          0.55: "#818cf8",
-          0.7: "#a78bfa",
-          0.85: "#e879f9",
-          1.0: "#f472b6",
-        },
-      },
-    );
-    heat.addTo(map);
-
-    if (heat._canvas) {
-      heat._canvas.style.transition = "opacity 0.4s ease";
-      heat._canvas.style.pointerEvents = "none";
-    }
-
-    function syncOpacity() {
-      const c = heat._canvas;
-      if (!c) return;
-      const z = map.getZoom();
-      let o: number;
-      if (z <= 5) o = 0.8;
-      else if (z <= 7) o = 0.6;
-      else if (z <= 9) o = 0.35;
-      else if (z <= 10) o = 0.15;
-      else o = 0;
-      c.style.opacity = String(o);
-    }
-
-    map.on("zoomend", syncOpacity);
-    syncOpacity();
-
-    return () => {
-      map.off("zoomend", syncOpacity);
-      map.removeLayer(heat);
-    };
-  }, [map, points]);
-
-  return null;
-}
-
 /* ── Clustered markers (hidden at low zoom, visible when zoomed in) ── */
 
 const MARKER_SHOW_ZOOM = 8;
@@ -362,7 +303,6 @@ export default function LifeAgentsMapView({
         />
         <ScaleControl position="bottomleft" imperial={false} />
         <MapLayoutFit points={points} userLatLng={userLatLng ?? null} layoutNonce={mapLayoutNonce} />
-        <HeatmapLayer points={points} />
         <ClusteredMarkers
           markers={markers}
           highlightAgentId={highlightAgentId}
