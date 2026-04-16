@@ -226,7 +226,7 @@ func classifyChatIntent(message string) chatIntentType {
 	runes := []rune(norm)
 	lower := strings.ToLower(norm)
 
-	// 短消息打招呼检测
+	// 短消息打招呼检测（精确匹配）
 	if len(runes) <= 15 {
 		smallTalkPatterns := []string{
 			"你好", "hi", "hello", "hey", "嗨", "哈喽", "嘿",
@@ -239,6 +239,22 @@ func classifyChatIntent(message string) chatIntentType {
 		}
 		for _, p := range smallTalkPatterns {
 			if lower == p || lower == p+"呀" || lower == p+"啊" || lower == p+"~" {
+				return chatIntentSmallTalk
+			}
+		}
+	}
+
+	// 纯事实/工具性问题：draft 本身就能正确回答，Reconcile 只会画蛇添足
+	// 用 Contains 匹配，但限短消息（避免误伤长问题中的关键词）
+	if len(runes) <= 20 {
+		utilityPatterns := []string{
+			"几月几号", "几月几日", "几号", "什么日期", "什么日子",
+			"几点了", "几点钟", "什么时间", "现在几点",
+			"星期几", "周几", "礼拜几",
+			"你叫什么", "你是谁", "你谁", "你多大", "你几岁",
+		}
+		for _, p := range utilityPatterns {
+			if strings.Contains(lower, p) {
 				return chatIntentSmallTalk
 			}
 		}
