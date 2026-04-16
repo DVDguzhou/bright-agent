@@ -33,9 +33,10 @@ var (
 		`---+\s*(Refin|修改|润色)`)
 
 	// <think>...</think> 等块级推理标记（DeepSeek-R1、QwQ 等模型）
-	thinkBlockRe = regexp.MustCompile(`(?is)<\s*(think|thinking|reasoning)\s*>.*?<\s*/\s*\1\s*>`)
+	// Go regexp (RE2) 不支持反向引用，分别匹配每种标签
+	thinkBlockRe = regexp.MustCompile(`(?is)<\s*(?:think|thinking|reasoning)\s*>.*?<\s*/\s*(?:think|thinking|reasoning)\s*>`)
 	// 未闭合的 <think> 标记（流中断或模型忘记关闭）
-	thinkOpenRe = regexp.MustCompile(`(?is)<\s*(think|thinking|reasoning)\s*>.*`)
+	thinkOpenRe = regexp.MustCompile(`(?is)<\s*(?:think|thinking|reasoning)\s*>.*`)
 
 	// 常见 AI 套话正则：即使 prompt 禁止了，模型偶尔仍会输出这些句式
 	stripAIPhrasesRe = regexp.MustCompile(`(?i)` +
