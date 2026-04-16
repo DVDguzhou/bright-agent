@@ -78,7 +78,7 @@ export default function BlindSpotsPage() {
         <div className="space-y-3">
           {spots.map((spot) => (
             <div key={spot.id} className="rounded-2xl bg-white px-5 py-4 shadow-sm ring-1 ring-black/[0.06]">
-              <p className="text-[15px] font-medium text-[#111] leading-relaxed">"{spot.userQuestion}"</p>
+              <p className="text-[15px] font-medium text-[#111] leading-relaxed">&ldquo;{spot.userQuestion}&rdquo;</p>
               <div className="mt-2 flex items-center gap-3">
                 <span className="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800">
                   置信度低
