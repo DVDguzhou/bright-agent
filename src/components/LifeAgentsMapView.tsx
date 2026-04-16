@@ -5,6 +5,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet.markercluster";
 import "leaflet.markercluster/dist/MarkerCluster.css";
+import "leaflet.heat";
 import { MapContainer, ScaleControl, TileLayer, Marker, useMap } from "react-leaflet";
 import { getLifeAgentLatLng, type MapCoordAgentInput } from "@/lib/life-agent-map-coords";
 
@@ -58,17 +59,61 @@ function createUserLocationIcon() {
   });
 }
 
-function clusterIcon(cluster: L.MarkerCluster) {
+/* ── Avatar-stack cluster icon ── */
+
+function collectFirstNames(cluster: L.MarkerCluster, n: number): string[] {
+  const names: string[] = [];
+  function walk(c: unknown) {
+    if (names.length >= n) return;
+    const node = c as { _markers?: L.Marker[]; _childClusters?: unknown[] };
+    for (const m of node._markers ?? []) {
+      if (names.length >= n) return;
+      names.push((m as unknown as { _agentDisplayName?: string })._agentDisplayName ?? "?");
+    }
+    for (const sub of node._childClusters ?? []) {
+      if (names.length >= n) return;
+      walk(sub);
+    }
+  }
+  walk(cluster);
+  return names;
+}
+
+function avatarStackClusterIcon(cluster: L.MarkerCluster) {
   const count = cluster.getChildCount();
-  let size = 40;
-  let fontSize = 13;
-  if (count >= 100) { size = 52; fontSize = 15; }
-  else if (count >= 10) { size = 46; fontSize = 14; }
+  const names = collectFirstNames(cluster, 4);
+  const showCount = Math.min(names.length, count <= 4 ? count : 3);
+
+  const sz = 30;
+  const overlap = 12;
+  const totalW = sz + (showCount - 1) * (sz - overlap);
+
+  let avatars = "";
+  for (let i = 0; i < showCount; i++) {
+    const ch = escHtml(names[i].charAt(0));
+    const bg = avatarColor(names[i]);
+    const left = i * (sz - overlap);
+    const zi = showCount - i + 1;
+    avatars += `<div style="position:absolute;left:${left}px;top:0;z-index:${zi};width:${sz}px;height:${sz}px;border-radius:50%;background:${bg};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;border:2.5px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.18);user-select:none">${ch}</div>`;
+  }
+
+  const label =
+    count >= 10000
+      ? `${Math.round(count / 1000)}k`
+      : count >= 1000
+        ? `${(count / 1000).toFixed(1)}k`
+        : String(count);
+
+  const badge = `<div style="position:absolute;right:-6px;top:-8px;z-index:20;min-width:20px;height:20px;border-radius:10px;background:${ACCENT};color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 5px;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.15);line-height:1">${label}</div>`;
+
+  const iconW = totalW + 14;
+  const iconH = sz + 16;
+
   return L.divIcon({
-    html: `<div style="width:${size}px;height:${size}px;border-radius:50%;background:rgba(255,255,255,.88);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);color:${ACCENT};display:flex;align-items:center;justify-content:center;font-weight:800;font-size:${fontSize}px;border:2.5px solid ${ACCENT};box-shadow:0 0 0 4px ${ACCENT}1a,0 2px 12px rgba(0,0,0,.15)">${count}</div>`,
+    html: `<div style="position:relative;width:${totalW}px;height:${sz}px">${avatars}${badge}</div>`,
     className: "life-agent-map-cluster",
-    iconSize: L.point(size, size),
-    iconAnchor: L.point(size / 2, size / 2),
+    iconSize: L.point(iconW, iconH),
+    iconAnchor: L.point(iconW / 2, iconH / 2),
   });
 }
 
@@ -93,6 +138,8 @@ function buildPopupHtml(agent: MapAgentMarker): string {
   </a>
 </div>`;
 }
+
+/* ── Map helper sub-components ── */
 
 function MapInstanceExposer({ mapRef }: { mapRef: React.MutableRefObject<L.Map | null> }) {
   const map = useMap();
@@ -134,6 +181,66 @@ function MapLayoutFit({
   return null;
 }
 
+/* ── Heatmap layer (visible at low zoom, fades as you zoom in) ── */
+
+function HeatmapLayer({ points }: { points: L.LatLngTuple[] }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (points.length === 0) return;
+
+    const heat = L.heatLayer(
+      points.map(([lat, lng]) => [lat, lng, 0.5] as [number, number, number]),
+      {
+        radius: 25,
+        blur: 20,
+        maxZoom: 11,
+        max: 1.0,
+        minOpacity: 0.08,
+        gradient: {
+          0.2: "#bfdbfe",
+          0.4: "#60a5fa",
+          0.55: "#818cf8",
+          0.7: "#a78bfa",
+          0.85: "#e879f9",
+          1.0: "#f472b6",
+        },
+      },
+    );
+    heat.addTo(map);
+
+    if (heat._canvas) {
+      heat._canvas.style.transition = "opacity 0.4s ease";
+      heat._canvas.style.pointerEvents = "none";
+    }
+
+    function syncOpacity() {
+      const c = heat._canvas;
+      if (!c) return;
+      const z = map.getZoom();
+      let o: number;
+      if (z <= 5) o = 0.8;
+      else if (z <= 7) o = 0.6;
+      else if (z <= 9) o = 0.35;
+      else if (z <= 10) o = 0.15;
+      else o = 0;
+      c.style.opacity = String(o);
+    }
+
+    map.on("zoomend", syncOpacity);
+    syncOpacity();
+
+    return () => {
+      map.off("zoomend", syncOpacity);
+      map.removeLayer(heat);
+    };
+  }, [map, points]);
+
+  return null;
+}
+
+/* ── Clustered markers with avatar-stack icons ── */
+
 function ClusteredMarkers({
   markers,
   highlightAgentId,
@@ -150,7 +257,7 @@ function ClusteredMarkers({
       spiderfyOnMaxZoom: true,
       showCoverageOnHover: false,
       zoomToBoundsOnClick: true,
-      iconCreateFunction: clusterIcon,
+      iconCreateFunction: avatarStackClusterIcon,
       animate: true,
       chunkedLoading: true,
       chunkInterval: 100,
@@ -163,6 +270,7 @@ function ClusteredMarkers({
         icon: createAvatarPinIcon(agent.displayName, isHi),
         zIndexOffset: isHi ? 800 : 0,
       });
+      (m as unknown as { _agentDisplayName: string })._agentDisplayName = agent.displayName;
       m.bindPopup(buildPopupHtml(agent), {
         closeButton: false,
         className: "life-agent-map-popup",
@@ -185,6 +293,8 @@ function ClusteredMarkers({
 
   return null;
 }
+
+/* ── Main component ── */
 
 type Props = {
   agents: MapAgentMarker[];
@@ -232,8 +342,10 @@ export default function LifeAgentsMapView({
       <MapContainer
         center={[35, 105]}
         zoom={4}
+        minZoom={3}
         zoomControl={false}
         className={`z-0 w-full ${mapHeightClass} ${roundMap}`}
+        style={{ background: "#abcdef" }}
         scrollWheelZoom
         attributionControl={false}
       >
@@ -244,6 +356,7 @@ export default function LifeAgentsMapView({
         />
         <ScaleControl position="bottomleft" imperial={false} />
         <MapLayoutFit points={points} userLatLng={userLatLng ?? null} layoutNonce={mapLayoutNonce} />
+        <HeatmapLayer points={points} />
         <ClusteredMarkers
           markers={markers}
           highlightAgentId={highlightAgentId}
