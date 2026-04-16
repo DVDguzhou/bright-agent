@@ -2,7 +2,6 @@ package lifeagent
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -148,116 +147,17 @@ func ClassifyQuestionIntent(message string) (isIdentity bool) {
 	return IsIdentityQuestion(message)
 }
 
-// ── LLM Intent Router ──
-//
-// 用一次轻量 LLM 调用替代关键词匹配，同时判断意图和期望回复深度。
-// 延迟约 100-200ms（max_tokens=30），远比主生成快。
-// 当 LLM 不可用时自动回退到关键词匹配。
-
-// chatRouterResult 路由器返回的结构化结果
-type chatRouterResult struct {
-	Intent string `json:"intent"` // small_talk / casual_info / deep_consult
-	Depth  string `json:"depth"`  // brief / normal / detailed
-}
-
-const routerSystemPrompt = `判断用户这句话的意图和期望回复深度。结合对话上下文综合判断。
-
-意图分类：
-- small_talk：打招呼、寒暄、道谢、告别（你好/嗯嗯/谢谢/再见）
-- casual_info：随口问一个轻量信息（好吃吗/多少钱/怎么去/推荐吗）
-- deep_consult：认真的咨询、经历分享、决策讨论、人生选择
-
-期望深度：
-- brief：对方只需要简短回应（打招呼、确认、感叹词）
-- normal：正常对话深度（一个具体问题、一个小事）
-- detailed：以下任一情况都算 detailed：
-  1. 对方明确要求展开、追问细节、嫌回答太短、要求继续说（如：仔细说说、详细讲讲、展开聊聊、太短了、然后呢）
-  2. 对方问的问题天然需要长回答（如：讲讲你的经历、说说你的故事、介绍一下你自己、你是怎么一路走过来的、你的职业经历是什么样的）
-  3. 对方问一个涉及完整过程或时间线的问题（如：你当时是怎么转行的、从头到尾讲讲、你那段经历具体是怎样的）
-
-只输出 JSON，不要其他内容：{"intent":"...","depth":"..."}`
-
-// classifyWithLLMRouter 用轻量 LLM 调用做意图+深度分类。
-// 超时或失败时返回 nil，由调用方回退到关键词匹配。
-func classifyWithLLMRouter(ctx context.Context, client *openai.Client, model string, message string, history []ChatMessageForAI) *chatRouterResult {
-	// 构造精简上下文：只取最近 3 轮对话，控制 token 开销
-	var contextLines strings.Builder
-	start := 0
-	if len(history) > 6 {
-		start = len(history) - 6
-	}
-	for i := start; i < len(history); i++ {
-		role := "用户"
-		if history[i].Role == "assistant" {
-			role = "助手"
-		}
-		content := history[i].Content
-		if len([]rune(content)) > 80 {
-			content = string([]rune(content)[:80]) + "..."
-		}
-		contextLines.WriteString(fmt.Sprintf("%s：%s\n", role, content))
-	}
-
-	userContent := fmt.Sprintf("对话上下文：\n%s\n用户最新消息：%s", contextLines.String(), message)
-
-	routerCtx, cancel := context.WithTimeout(ctx, 8*time.Second)
-	defer cancel()
-
-	resp, err := client.CreateChatCompletion(routerCtx, openai.ChatCompletionRequest{
-		Model: model,
-		Messages: []openai.ChatCompletionMessage{
-			{Role: openai.ChatMessageRoleSystem, Content: routerSystemPrompt},
-			{Role: openai.ChatMessageRoleUser, Content: userContent},
-		},
-		Temperature:         safeTemperature(model, 0.1),
-		MaxCompletionTokens: 30,
-	})
-	if err != nil {
-		log.Printf("[LLM-router] call failed, falling back to keyword: %v", err)
-		return nil
-	}
-	if len(resp.Choices) == 0 || resp.Choices[0].Message.Content == "" {
-		return nil
-	}
-
-	raw := extractJSONFromContent(strings.TrimSpace(resp.Choices[0].Message.Content))
-	var result chatRouterResult
-	if err := json.Unmarshal([]byte(raw), &result); err != nil {
-		log.Printf("[LLM-router] parse failed: %v, raw=%s", err, raw)
-		return nil
-	}
-
-	// 校验合法值
-	switch result.Intent {
-	case "small_talk", "casual_info", "deep_consult":
+// estimateDraftTokenBudget 根据意图给 token 预算。
+// 统一给宽裕预算，不再精确控制——让模型自己决定长短，token 上限只做安全网。
+func estimateDraftTokenBudget(intent chatIntentType) int {
+	switch intent {
+	case chatIntentSmallTalk:
+		return 256
+	case chatIntentCasualInfo:
+		return 768
 	default:
-		result.Intent = "casual_info"
-	}
-	switch result.Depth {
-	case "brief", "normal", "detailed":
-	default:
-		result.Depth = "normal"
-	}
-
-	log.Printf("[LLM-router] intent=%s depth=%s", result.Intent, result.Depth)
-	return &result
-}
-
-// estimateDraftTokenBudget 根据路由结果动态估算 Draft 的输出 token 上限。
-// depth=detailed 时给宽裕预算；brief 时给紧凑预算。
-// deep_consult 统一给 1024+，因为咨询类问题的复杂度与消息字数无关。
-func estimateDraftTokenBudget(message string, intent chatIntentType, depth string) int {
-	if depth == "detailed" {
 		return 1536
 	}
-	if intent == chatIntentSmallTalk || depth == "brief" {
-		return 256
-	}
-	if intent == chatIntentCasualInfo {
-		return 512
-	}
-	// deep_consult + normal: 统一给足空间
-	return 1024
 }
 
 // estimateReconcileTokenBudget 根据 Draft 实际长度估算 Reconcile 的输出上限。
@@ -275,23 +175,26 @@ func estimateReconcileTokenBudget(draft string) int {
 	return budget
 }
 
-// depthLengthHint 根据路由器判断的 depth 返回长度指引。
-// 不再用命令式的"这次简短回"，改为建议式，把最终判断权留给模型。
-func depthLengthHint(depth string) string {
-	switch depth {
-	case "detailed":
-		hints := []string{
-			"对方想听你详细说，像跟老朋友认真聊一件事，把来龙去脉、具体细节都讲出来。",
-			"对方在追问细节，这次多说一些，带上时间、数字、你当时的感受，不要惜字如金。",
-			"这次好好展开讲，对方明确想听更多，不要一两句话就打发了。",
-		}
-		return hints[rand.Intn(len(hints))]
-	case "brief":
-		return "对方只是打个招呼或简单回应，你也简短回就好。"
-	default:
-		// normal: 建议式，不强制长短
-		return "回复长度由你自然判断：对方随口一句就短回，对方认真提问就认真展开。不用刻意控制长短。"
+// randomLengthHint 随机返回一个长度提示，给模型具体的长度锚点。
+// 分布: 50% 正常（两三段） / 30% 稍长（多说几句） / 20% 稍短（几句话）
+// 不再有"一两句话"这种极短选项——那会导致模型在用户认真提问时也敷衍回答。
+func randomLengthHint() string {
+	hints := []string{
+		// 正常 (50%)
+		"正常聊，两三段，像跟朋友微信聊一件事。",
+		"正常聊，两三段，像跟朋友微信聊一件事。",
+		"正常聊，两三段，像跟朋友微信聊一件事。",
+		"说你最想说的，两三段就好，不用面面俱到。",
+		"说你最想说的，两三段就好，不用面面俱到。",
+		// 稍长 (30%)
+		"这个话题你可以多说几句，像跟朋友认真聊一个事。",
+		"这个你有经历可以展开说说，但也别写成文章。",
+		"多说两段也行，把你的真实感受和具体经历带上。",
+		// 稍短 (20%)
+		"像平时发微信一样，几句话说完就行。",
+		"不用太长，挑重点说，几句话就好。",
 	}
+	return hints[rand.Intn(len(hints))]
 }
 
 type chatIntentType string
@@ -688,15 +591,27 @@ func streamChatCompletion(ctx context.Context, client *openai.Client, req openai
 	return streamChatCompletionWithCallback(ctx, client, req, nil)
 }
 
+// streamResult 包含流式输出的内容和结束原因
+type streamResult struct {
+	Content      string
+	FinishReason openai.FinishReason
+	StreamError  bool // 流中途出错但有部分内容
+}
+
 // streamChatCompletionWithCallback streams tokens from LLM; each non-empty token
 // is forwarded to onToken (if provided) while also being collected into the result.
 func streamChatCompletionWithCallback(ctx context.Context, client *openai.Client, req openai.ChatCompletionRequest, onToken func(string)) (string, error) {
+	result := streamWithDetails(ctx, client, req, onToken)
+	return result.Content, nil
+}
+
+func streamWithDetails(ctx context.Context, client *openai.Client, req openai.ChatCompletionRequest, onToken func(string)) streamResult {
 	req.Stream = true
 	t0 := time.Now()
 	stream, err := client.CreateChatCompletionStream(ctx, req)
 	if err != nil {
 		log.Printf("[LLM-timing] CreateStream failed after %dms: %v", time.Since(t0).Milliseconds(), err)
-		return "", err
+		return streamResult{}
 	}
 	defer stream.Close()
 	log.Printf("[LLM-timing] stream opened in %dms (model=%s)", time.Since(t0).Milliseconds(), req.Model)
@@ -704,18 +619,22 @@ func streamChatCompletionWithCallback(ctx context.Context, client *openai.Client
 	var sb strings.Builder
 	var firstToken int32
 	var firstVisibleToken int32
+	var lastFinishReason openai.FinishReason
+	streamError := false
 	for {
 		chunk, err := stream.Recv()
 		if errors.Is(err, io.EOF) {
 			break
 		}
 		if err != nil {
-			if sb.Len() > 0 {
-				break
-			}
-			return "", err
+			log.Printf("[LLM-stream] recv error after %dms (%d chars so far): %v", time.Since(t0).Milliseconds(), sb.Len(), err)
+			streamError = true
+			break
 		}
 		if len(chunk.Choices) > 0 {
+			if chunk.Choices[0].FinishReason != "" {
+				lastFinishReason = chunk.Choices[0].FinishReason
+			}
 			token := chunk.Choices[0].Delta.Content
 			reasoning := ""
 			if chunk.Choices[0].Delta.ReasoningContent != "" {
@@ -733,8 +652,58 @@ func streamChatCompletionWithCallback(ctx context.Context, client *openai.Client
 			}
 		}
 	}
-	log.Printf("[LLM-timing] stream complete in %dms, total %d chars", time.Since(t0).Milliseconds(), sb.Len())
-	return sb.String(), nil
+	log.Printf("[LLM-timing] stream complete in %dms, total %d chars, finish_reason=%s, stream_error=%v",
+		time.Since(t0).Milliseconds(), sb.Len(), lastFinishReason, streamError)
+	return streamResult{
+		Content:      sb.String(),
+		FinishReason: lastFinishReason,
+		StreamError:  streamError,
+	}
+}
+
+// isTruncated 检测回复是否被截断（token 上限命中或流中断）。
+// 检查 FinishReason + 文本末尾是否以完整句子结束。
+func isTruncated(result streamResult) bool {
+	if result.FinishReason == openai.FinishReasonLength {
+		return true
+	}
+	if result.StreamError && len(result.Content) > 0 {
+		return true
+	}
+	content := strings.TrimSpace(result.Content)
+	if content == "" {
+		return false
+	}
+	lastRune := []rune(content)[len([]rune(content))-1]
+	sentenceEnders := "。！？…～~」）)】》"
+	if strings.ContainsRune(sentenceEnders, lastRune) {
+		return false
+	}
+	// 如果内容足够短（<30字）且没有以句号结尾，大概率是截断了
+	if len([]rune(content)) < 30 {
+		return true
+	}
+	return true
+}
+
+// continueTruncatedDraft 对被截断的内容发起续写请求。
+// 将已有内容作为 assistant 消息追加到历史中，请求模型继续。
+func continueTruncatedDraft(ctx context.Context, client *openai.Client, model string, messages []openai.ChatCompletionMessage, truncatedContent string, maxTokens int, onChunk func(string)) string {
+	continueMessages := make([]openai.ChatCompletionMessage, len(messages))
+	copy(continueMessages, messages)
+	continueMessages = append(continueMessages,
+		openai.ChatCompletionMessage{Role: openai.ChatMessageRoleAssistant, Content: truncatedContent},
+		openai.ChatCompletionMessage{Role: openai.ChatMessageRoleUser, Content: "你的回复被截断了，请从断点处继续说完。不要重复已经说过的内容，直接接着往下说。"},
+	)
+
+	result := streamWithDetails(ctx, client, openai.ChatCompletionRequest{
+		Model:               model,
+		Messages:            continueMessages,
+		Temperature:         safeTemperature(model, 0.55),
+		MaxCompletionTokens: maxTokens,
+	}, onChunk)
+
+	return strings.TrimSpace(result.Content)
 }
 
 // twoPhaseLifeAgentReply：先模型草稿（通识+人设+微信风），再严格检索；有命中则二次调用与知识库对齐。
@@ -753,19 +722,10 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 		entryHints = append(entryHints, e.Title+"（"+e.Category+"）")
 	}
 
-	// ── LLM Intent Router: 用轻量 LLM 调用判断意图+深度 ──
-	var chatIntent chatIntentType
-	depth := "normal"
+	// Intent-based routing: 闲聊/打招呼直接走 Draft，跳过 Reconcile
+	chatIntent := classifyChatIntent(message)
 
-	routerResult := classifyWithLLMRouter(ctx, client, model, message, history)
-	if routerResult != nil {
-		chatIntent = chatIntentType(routerResult.Intent)
-		depth = routerResult.Depth
-	} else {
-		chatIntent = classifyChatIntent(message)
-	}
-
-	draftSystem := buildDraftSystemPrompt(profile, facts, topics, luSlice, draftPromptOptions{Depth: depth})
+	draftSystem := buildDraftSystemPrompt(profile, facts, topics, luSlice)
 	knowledgeCtx := buildDraftKnowledgeContext(facts, topics, luSlice, entryHints, message, history, opts)
 	if opts == nil {
 		opts = &ChatOptions{}
@@ -777,10 +737,10 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 	for _, m := range draftMsgs {
 		promptTokens += len([]rune(m.Content))
 	}
-	log.Printf("[LLM-timing] prompt built in %dms, ~%d chars across %d messages, intent=%s depth=%s", time.Since(tStart).Milliseconds(), promptTokens, len(draftMsgs), chatIntent, depth)
+	log.Printf("[LLM-timing] prompt built in %dms, ~%d chars across %d messages, intent=%s", time.Since(tStart).Milliseconds(), promptTokens, len(draftMsgs), chatIntent)
 
-	// Adaptive Token Budget: 根据路由结果动态调整输出上限
-	draftMaxTokens := estimateDraftTokenBudget(message, chatIntent, depth)
+	// Token budget: 宽裕上限，让模型自己决定长短
+	draftMaxTokens := estimateDraftTokenBudget(chatIntent)
 	draftReq := openai.ChatCompletionRequest{
 		Model:               model,
 		Messages:            draftMsgs,
@@ -804,13 +764,21 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 	log.Printf("[LLM-timing] retrieval plan in %dms, needsReconcile=%v, intent=%s", time.Since(tStart).Milliseconds(), needsReconcile, chatIntent)
 
 	// 始终流式输出 draft，让用户立即看到文字
-	draft, err := streamChatCompletionWithCallback(ctx, client, draftReq, onChunk)
-	if err != nil {
-		return "", nil, err
-	}
-	draft = strings.TrimSpace(draft)
+	draftResult := streamWithDetails(ctx, client, draftReq, onChunk)
+	draft := strings.TrimSpace(draftResult.Content)
 	if draft == "" {
 		return "", nil, fmt.Errorf("draft: empty content")
+	}
+
+	// 截断检测 + 自动续写：最多续写 1 次
+	if isTruncated(draftResult) {
+		log.Printf("[LLM-truncation] draft truncated (finish_reason=%s, stream_error=%v, len=%d), attempting continuation",
+			draftResult.FinishReason, draftResult.StreamError, len([]rune(draft)))
+		continuation := continueTruncatedDraft(ctx, client, model, draftMsgs, draft, draftMaxTokens, onChunk)
+		if continuation != "" {
+			draft = draft + continuation
+			log.Printf("[LLM-truncation] continuation added %d chars, total now %d chars", len([]rune(continuation)), len([]rune(draft)))
+		}
 	}
 
 	// 先 humanize Draft（去 Markdown + AI 套话），无论是否走 Reconcile 都需要
@@ -847,22 +815,7 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 	return out, BuildRetrievalReferences(planStrict), nil
 }
 
-// draftPromptOptions 控制 system prompt 构建行为
-type draftPromptOptions struct {
-	Depth string // brief / normal / detailed, from LLM router
-}
-
-func buildDraftSystemPrompt(profile ProfileForAI, facts []StructuredFactForAI, topics []TopicSummaryForAI, liveUpdates []LiveUpdateForAI, optArgs ...interface{}) string {
-	var promptOpts draftPromptOptions
-	for _, arg := range optArgs {
-		if v, ok := arg.(draftPromptOptions); ok {
-			promptOpts = v
-		}
-	}
-	if promptOpts.Depth == "" {
-		promptOpts.Depth = "normal"
-	}
-
+func buildDraftSystemPrompt(profile ProfileForAI, facts []StructuredFactForAI, topics []TopicSummaryForAI, liveUpdates []LiveUpdateForAI, entryHints ...[]string) string {
 	var sb strings.Builder
 
 	// ═══ Layer 1: Identity + Persona ═══
@@ -873,16 +826,9 @@ func buildDraftSystemPrompt(profile ProfileForAI, facts []StructuredFactForAI, t
 	sb.WriteString("下面的身份信息和经历标签描述的就是你的真实人生。你不能说「我没有XX经历」「我不了解XX」——那些是你的经历，你亲身经历过。\n")
 	sb.WriteString("你说的每句话、提到的每个话题，都必须在你人设范围内。不要凭空提及人设里不存在的领域、技能或服务。\n\n")
 	sb.WriteString("【口吻】\n")
-	sb.WriteString("像微信消息：禁止 Markdown（不要 # 标题、不要 - 列表、不要 ** 加粗、不要数字分点）。\n")
-	switch promptOpts.Depth {
-	case "detailed":
-		sb.WriteString("对方在要求你详细说，这时候应该像真人一样认真分享，把来龙去脉讲清楚。真人被朋友追问细节时不会继续敷衍——会坐下来好好聊。\n")
-	case "brief":
-		sb.WriteString("对方只是简单打个招呼或随口一说，你也随口回就好，不用展开。\n")
-	default:
-		sb.WriteString("回复长度由你根据对话自然判断。对方随口一句就短回，对方认真提问就认真展开。不需要每次都面面俱到，挑你最有感触的点说就好。\n")
-	}
-	sb.WriteString(depthLengthHint(promptOpts.Depth))
+	sb.WriteString("像微信消息：禁止 Markdown（不要 # 标题、不要 - 列表、不要 ** 加粗、不要数字分点）。别起承转合写太长。\n")
+	sb.WriteString("真人聊天不会每次都面面俱到。有时候一句话就够了，有时候多说几句。不要每次都把所有相关的点全讲完——挑你最有感触的那一个点说透就好，对方想知道更多自然会追问。\n")
+	sb.WriteString(randomLengthHint())
 	sb.WriteString("\n\n")
 	sb.WriteString("【人设】\n")
 	sb.WriteString("用第一人称。下面是你的全部身份信息，严格按照这些内容扮演，不要增添人设里不存在的内容：\n")
