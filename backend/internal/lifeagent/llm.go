@@ -98,7 +98,7 @@ func BuildReplyWithLLM(ctx context.Context, apiKey, model, baseURL string, enabl
 		return content, references, nil
 	}
 
-	content, references, err = twoPhaseLifeAgentReply(ctx, client, model, profile, facts, topics, entries, history, message, nil, opts)
+	content, references, err = twoPhaseLifeAgentReply(ctx, client, model, apiKey, baseURL, profile, facts, topics, entries, history, message, nil, opts)
 	if err != nil {
 		log.Printf("[LLM] two-phase failed: %v", err)
 		return llmErrorFallback, nil, nil
@@ -139,7 +139,7 @@ func BuildReplyWithLLMStream(ctx context.Context, apiKey, model, baseURL string,
 	defer cancel()
 	client := getClient(apiKey, baseURL)
 
-	content, references, err = twoPhaseLifeAgentReply(ctx, client, model, profile, facts, topics, entries, history, message, onChunk, opts)
+	content, references, err = twoPhaseLifeAgentReply(ctx, client, model, apiKey, baseURL, profile, facts, topics, entries, history, message, onChunk, opts)
 	if err != nil {
 		log.Printf("[LLM-stream] two-phase failed: %v", err)
 		content = llmErrorFallback
@@ -629,7 +629,8 @@ func streamChatCompletion(ctx context.Context, client *openai.Client, req openai
 type streamResult struct {
 	Content      string
 	FinishReason openai.FinishReason
-	StreamError  bool // 流中途出错但有部分内容
+	StreamError  bool              // 流中途出错但有部分内容
+	ToolCalls    []openai.ToolCall // 模型请求的工具调用（function calling）
 }
 
 // reasoningStreamFilter wraps an onChunk callback to suppress reasoning markers
@@ -696,6 +697,7 @@ func streamWithDetails(ctx context.Context, client *openai.Client, req openai.Ch
 	var firstToken int32
 	var firstVisibleToken int32
 	var lastFinishReason openai.FinishReason
+	var toolCalls []openai.ToolCall
 	streamError := false
 	for {
 		chunk, err := stream.Recv()
@@ -708,13 +710,17 @@ func streamWithDetails(ctx context.Context, client *openai.Client, req openai.Ch
 			break
 		}
 		if len(chunk.Choices) > 0 {
+			delta := chunk.Choices[0].Delta
 			if chunk.Choices[0].FinishReason != "" {
 				lastFinishReason = chunk.Choices[0].FinishReason
 			}
-			token := chunk.Choices[0].Delta.Content
+			if len(delta.ToolCalls) > 0 {
+				toolCalls = accumulateStreamToolCalls(toolCalls, delta.ToolCalls)
+			}
+			token := delta.Content
 			reasoning := ""
-			if chunk.Choices[0].Delta.ReasoningContent != "" {
-				reasoning = chunk.Choices[0].Delta.ReasoningContent
+			if delta.ReasoningContent != "" {
+				reasoning = delta.ReasoningContent
 			}
 			sb.WriteString(token)
 			if atomic.CompareAndSwapInt32(&firstToken, 0, 1) {
@@ -728,12 +734,13 @@ func streamWithDetails(ctx context.Context, client *openai.Client, req openai.Ch
 			}
 		}
 	}
-	log.Printf("[LLM-timing] stream complete in %dms, total %d chars, finish_reason=%s, stream_error=%v",
-		time.Since(t0).Milliseconds(), sb.Len(), lastFinishReason, streamError)
+	log.Printf("[LLM-timing] stream complete in %dms, total %d chars, finish_reason=%s, stream_error=%v, tool_calls=%d",
+		time.Since(t0).Milliseconds(), sb.Len(), lastFinishReason, streamError, len(toolCalls))
 	return streamResult{
 		Content:      sb.String(),
 		FinishReason: lastFinishReason,
 		StreamError:  streamError,
+		ToolCalls:    toolCalls,
 	}
 }
 
@@ -746,8 +753,8 @@ func isTruncated(result streamResult) bool {
 	if result.StreamError && len(result.Content) > 0 {
 		return true
 	}
-	// FinishReason 为 "stop" 说明模型认为自己说完了，信任模型判断
-	if result.FinishReason == openai.FinishReasonStop {
+	// FinishReason 为 "stop" 或 "tool_calls" 说明模型正常结束
+	if result.FinishReason == openai.FinishReasonStop || result.FinishReason == openai.FinishReasonToolCalls {
 		return false
 	}
 	// FinishReason 为空（部分 API 不返回）时，通过文本末尾启发式判断
@@ -793,7 +800,7 @@ func continueTruncatedDraft(ctx context.Context, client *openai.Client, model st
 
 // twoPhaseLifeAgentReply：先模型草稿（通识+人设+微信风），再严格检索；有命中则二次调用与知识库对齐。
 // onChunk 非 nil 时，LLM token 会实时推给调用方（SSE），不再需要事后 EmitReplyChunks。
-func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model string, profile ProfileForAI, facts []StructuredFactForAI, topics []TopicSummaryForAI, entries []KnowledgeEntryForAI, history []ChatMessageForAI, message string, onChunk func(string), opts *ChatOptions) (content string, references []map[string]string, err error) {
+func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model string, apiKey, baseURL string, profile ProfileForAI, facts []StructuredFactForAI, topics []TopicSummaryForAI, entries []KnowledgeEntryForAI, history []ChatMessageForAI, message string, onChunk func(string), opts *ChatOptions) (content string, references []map[string]string, err error) {
 	tStart := time.Now()
 	var luSlice []LiveUpdateForAI
 	if opts != nil && len(opts.LiveUpdates) > 0 {
@@ -833,6 +840,13 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 	}
 	setMaxTokens(&draftReq, model, draftMaxTokens)
 
+	// Function Calling: 让模型自主判断是否需要实时信息（日期、天气、新闻等）
+	if isDashScope(baseURL) {
+		draftReq.Tools = chatTools
+	} else {
+		draftReq.Tools = chatTools[:1] // 非 DashScope 只提供 get_current_datetime
+	}
+
 	var planStrict RetrievalPlan
 	needsReconcile := false
 	if chatIntent != chatIntentSmallTalk {
@@ -852,6 +866,39 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 	// 用 reasoningStreamFilter 包装 onChunk：一旦检测到推理标记就停止向前端推送
 	filter := newReasoningStreamFilter(onChunk)
 	draftResult := streamWithDetails(ctx, client, draftReq, filter.write)
+
+	// ── Function Calling: 模型请求了工具 → 执行 → 把结果喂回去 → 流式输出最终回复 ──
+	if draftResult.FinishReason == openai.FinishReasonToolCalls && len(draftResult.ToolCalls) > 0 {
+		log.Printf("[LLM-tools] model requested %d tool call(s)", len(draftResult.ToolCalls))
+		tctx := toolContext{APIKey: apiKey, BaseURL: baseURL, Model: model}
+
+		toolMessages := make([]openai.ChatCompletionMessage, len(draftMsgs))
+		copy(toolMessages, draftMsgs)
+		toolMessages = append(toolMessages, openai.ChatCompletionMessage{
+			Role:      openai.ChatMessageRoleAssistant,
+			ToolCalls: draftResult.ToolCalls,
+		})
+		for _, tc := range draftResult.ToolCalls {
+			result := executeToolCall(ctx, tc, tctx)
+			log.Printf("[LLM-tools] %s → %d chars", tc.Function.Name, len([]rune(result)))
+			toolMessages = append(toolMessages, openai.ChatCompletionMessage{
+				Role:       openai.ChatMessageRoleTool,
+				Content:    result,
+				ToolCallID: tc.ID,
+			})
+		}
+
+		followupReq := openai.ChatCompletionRequest{
+			Model:       model,
+			Messages:    toolMessages,
+			Temperature: safeTemperature(model, 0.55),
+		}
+		setMaxTokens(&followupReq, model, draftMaxTokens)
+
+		filter2 := newReasoningStreamFilter(onChunk)
+		draftResult = streamWithDetails(ctx, client, followupReq, filter2.write)
+	}
+
 	draft := strings.TrimSpace(draftResult.Content)
 	if draft == "" {
 		return "", nil, fmt.Errorf("draft: empty content")
