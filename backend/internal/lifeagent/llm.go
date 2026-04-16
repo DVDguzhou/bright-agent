@@ -268,6 +268,7 @@ func classifyChatIntent(message string) chatIntentType {
 	// deep_consult: 深度问题的特征词
 	deepPatterns := []string{
 		"该不该", "要不要", "怎么办", "有什么建议",
+		"建议", "规划", "方案", "指导", "帮我分析",
 		"转行", "辞职", "跳槽", "换工作", "换行业",
 		"申请", "留学", "移民", "签证",
 		"职业规划", "发展方向", "前途", "前景",
@@ -276,6 +277,8 @@ func classifyChatIntent(message string) chatIntentType {
 		"压力", "焦虑", "迷茫", "纠结", "犹豫",
 		"怎么坚持", "怎么度过", "怎么熬",
 		"你当时", "你那会", "你那个时候",
+		"怎么准备", "怎么学", "怎么入门", "怎么提升",
+		"找工作", "实习", "考研", "考公", "秋招", "春招",
 	}
 	deepHitCount := 0
 	for _, p := range deepPatterns {
@@ -746,12 +749,9 @@ func isTruncated(result streamResult) bool {
 	if len(runes) < 30 {
 		return true
 	}
-	// 较长内容：检查是否以逗号/顿号等"半句"标点结尾，暗示被截断
-	midSentenceEnders := "，,、：:"
-	if strings.ContainsRune(midSentenceEnders, lastRune) {
-		return true
-	}
-	return false
+	// FinishReason 为空 + 不以句末标点结尾 → 大概率被截断
+	// （包括以逗号、普通汉字等结尾的情况）
+	return true
 }
 
 // continueTruncatedDraft 对被截断的内容发起续写请求。
