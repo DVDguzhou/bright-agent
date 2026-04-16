@@ -153,17 +153,9 @@ function MapLayoutFit({
   useEffect(() => {
     if (layoutNonce <= 0 || layoutNonce === prevNonce.current) return;
     prevNonce.current = layoutNonce;
-    const extra: L.LatLngTuple[] = userLatLng ? [[userLatLng.lat, userLatLng.lng]] : [];
-    const all = [...points, ...extra];
-    if (all.length === 0) {
-      map.setView([35, 105], 4);
-      return;
+    if (userLatLng) {
+      map.setView([userLatLng.lat, userLatLng.lng], Math.max(map.getZoom(), 10));
     }
-    if (all.length === 1) {
-      map.setView(all[0], 12);
-      return;
-    }
-    map.fitBounds(L.latLngBounds(all), { padding: [56, 56], maxZoom: all.length > 2 ? 11 : 14 });
   }, [map, points, userLatLng, layoutNonce]);
   return null;
 }
