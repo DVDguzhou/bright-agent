@@ -26,6 +26,17 @@ var (
 	mdItalicRe = regexp.MustCompile(`\*([^*\n]+)\*`)
 	backtickRe = regexp.MustCompile("`+")
 
+	// 推理/修改标记正则：有些模型（推理型、CoT 型）会在 content 中输出
+	// 内部思维过程标记如 *Refining:*、*Draft:*、<think> 等，需要截断。
+	reasoningMarkerRe = regexp.MustCompile(`(?i)` +
+		`\*\s*(Refining|Draft|Thinking|Revision|Re-?write|修改|润色|改进|重写)\s*:?\s*\*|` +
+		`---+\s*(Refin|修改|润色)`)
+
+	// <think>...</think> 等块级推理标记（DeepSeek-R1、QwQ 等模型）
+	thinkBlockRe = regexp.MustCompile(`(?is)<\s*(think|thinking|reasoning)\s*>.*?<\s*/\s*\1\s*>`)
+	// 未闭合的 <think> 标记（流中断或模型忘记关闭）
+	thinkOpenRe = regexp.MustCompile(`(?is)<\s*(think|thinking|reasoning)\s*>.*`)
+
 	// 常见 AI 套话正则：即使 prompt 禁止了，模型偶尔仍会输出这些句式
 	stripAIPhrasesRe = regexp.MustCompile(`(?i)` +
 		`希望(这些?|以上|我的回答)?(对你|能[够对]|可以)?有(所)?帮助[。！]?|` +
@@ -78,6 +89,9 @@ func BuildReplyWithLLM(ctx context.Context, apiKey, model, baseURL string, enabl
 			return llmErrorFallback, nil, nil
 		}
 		content = humanizeReply(strings.TrimSpace(resp.Choices[0].Message.Content))
+		if content == "" {
+			return llmErrorFallback, nil, nil
+		}
 		content = ApplyClaimGuard(message, content, facts, plan)
 		references = BuildRetrievalReferences(plan)
 		return content, references, nil
@@ -598,6 +612,48 @@ type streamResult struct {
 	StreamError  bool // 流中途出错但有部分内容
 }
 
+// reasoningStreamFilter wraps an onChunk callback to suppress reasoning markers
+// from being streamed to the user in real-time. Once a reasoning marker pattern
+// is detected in the accumulated content, all subsequent tokens are silently dropped.
+type reasoningStreamFilter struct {
+	onChunk    func(string)
+	buf        strings.Builder
+	blocked    bool
+	safeOffset int // bytes already confirmed clean; regex only scans from here
+}
+
+func newReasoningStreamFilter(onChunk func(string)) *reasoningStreamFilter {
+	return &reasoningStreamFilter{onChunk: onChunk}
+}
+
+// scanWindowBytes is how far back from the end we re-scan for partial markers.
+// Covers the longest possible marker pattern with margin.
+const scanWindowBytes = 80
+
+func (f *reasoningStreamFilter) write(token string) {
+	f.buf.WriteString(token)
+	if f.blocked || f.onChunk == nil {
+		return
+	}
+	full := f.buf.String()
+	// Only scan the tail region that could contain a new or partial marker
+	scanFrom := f.safeOffset
+	if scanFrom > len(full)-scanWindowBytes && len(full) > scanWindowBytes {
+		scanFrom = len(full) - scanWindowBytes
+	}
+	tail := full[scanFrom:]
+	if reasoningMarkerRe.MatchString(tail) || thinkOpenRe.MatchString(tail) {
+		f.blocked = true
+		log.Printf("[stream-filter] reasoning marker detected at ~byte %d, blocking further chunks", scanFrom)
+		return
+	}
+	// Advance safe offset: everything before (len - scanWindow) is confirmed clean
+	if len(full) > scanWindowBytes {
+		f.safeOffset = len(full) - scanWindowBytes
+	}
+	f.onChunk(token)
+}
+
 // streamChatCompletionWithCallback streams tokens from LLM; each non-empty token
 // is forwarded to onToken (if provided) while also being collected into the result.
 func streamChatCompletionWithCallback(ctx context.Context, client *openai.Client, req openai.ChatCompletionRequest, onToken func(string)) (string, error) {
@@ -776,17 +832,28 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 	log.Printf("[LLM-timing] retrieval plan in %dms, needsReconcile=%v, intent=%s", time.Since(tStart).Milliseconds(), needsReconcile, chatIntent)
 
 	// 始终流式输出 draft，让用户立即看到文字
-	draftResult := streamWithDetails(ctx, client, draftReq, onChunk)
+	// 用 reasoningStreamFilter 包装 onChunk：一旦检测到推理标记就停止向前端推送
+	filter := newReasoningStreamFilter(onChunk)
+	draftResult := streamWithDetails(ctx, client, draftReq, filter.write)
 	draft := strings.TrimSpace(draftResult.Content)
 	if draft == "" {
 		return "", nil, fmt.Errorf("draft: empty content")
+	}
+
+	// 先清理推理标记，再做截断检测——避免推理标记影响截断判断和续写
+	cleanDraft := stripReasoningMarkers(draft)
+	if cleanDraft != draft {
+		log.Printf("[LLM-truncation] stripped reasoning markers from draft before truncation check, %d → %d chars",
+			len([]rune(draft)), len([]rune(cleanDraft)))
+		draft = cleanDraft
 	}
 
 	// 截断检测 + 自动续写：最多续写 1 次
 	if isTruncated(draftResult) {
 		log.Printf("[LLM-truncation] draft truncated (finish_reason=%s, stream_error=%v, len=%d), attempting continuation",
 			draftResult.FinishReason, draftResult.StreamError, len([]rune(draft)))
-		continuation := continueTruncatedDraft(ctx, client, model, draftMsgs, draft, draftMaxTokens, onChunk)
+		contFilter := newReasoningStreamFilter(onChunk)
+		continuation := continueTruncatedDraft(ctx, client, model, draftMsgs, draft, draftMaxTokens, contFilter.write)
 		if continuation != "" {
 			draft = draft + continuation
 			log.Printf("[LLM-truncation] continuation added %d chars, total now %d chars", len([]rune(continuation)), len([]rune(draft)))
@@ -797,6 +864,9 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 	// Cascaded Pipeline: 让 Reconcile 看到的是已清理的口语文本，避免格式污染
 	draft = humanizeReply(draft)
 
+	if draft == "" {
+		return "", nil, fmt.Errorf("draft: empty after humanize (reasoning-only output?)")
+	}
 	if !needsReconcile {
 		return draft, nil, nil
 	}
@@ -825,6 +895,10 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 		final = draft
 	}
 	out := humanizeReply(final)
+	if out == "" {
+		log.Printf("[LLM] reconcile humanized to empty (reasoning-only?), falling back to draft")
+		out = draft
+	}
 	out = ApplyClaimGuard(message, out, facts, planStrict)
 	return out, BuildRetrievalReferences(planStrict), nil
 }
@@ -1365,6 +1439,10 @@ func truncateHistoryByTokenBudget(history []ChatMessageForAI, budget int) []Chat
 
 func humanizeReply(content string) string {
 	content = strings.ReplaceAll(content, "\r\n", "\n")
+
+	// 截断推理/修改标记：保留标记之前的正文，丢弃标记及之后的内容
+	content = stripReasoningMarkers(content)
+
 	content = headingRe.ReplaceAllString(content, "")
 	content = listItemRe.ReplaceAllString(content, "")
 	content = mdBoldRe.ReplaceAllString(content, "$1")
@@ -1387,4 +1465,34 @@ func humanizeReply(content string) string {
 		return ""
 	}
 	return strings.Join(cleaned, "\n\n")
+}
+
+// stripReasoningMarkers 检测并清除推理/修改标记。
+// 处理两类模式：
+//  1. 块级标记 <think>...</think>：整块删除，保留前后正文
+//  2. 行内标记 *Refining:* 等：截断标记及之后的全部内容
+func stripReasoningMarkers(content string) string {
+	original := content
+
+	// Phase 1: 删除闭合的 <think>...</think> 块（可能有多个）
+	content = thinkBlockRe.ReplaceAllString(content, "")
+
+	// Phase 2: 删除未闭合的 <think>...（流中断或模型忘记关闭）
+	content = thinkOpenRe.ReplaceAllString(content, "")
+
+	content = strings.TrimSpace(content)
+
+	// Phase 3: 行内标记 *Refining:* 等——截断标记及之后的全部内容
+	if loc := reasoningMarkerRe.FindStringIndex(content); loc != nil {
+		content = strings.TrimSpace(content[:loc[0]])
+	}
+
+	if content == "" {
+		log.Printf("[humanize] reasoning markers stripped everything (%d chars), returning empty", len([]rune(original)))
+		return ""
+	}
+	if content != original {
+		log.Printf("[humanize] stripped reasoning markers, %d → %d chars", len([]rune(original)), len([]rune(content)))
+	}
+	return content
 }
