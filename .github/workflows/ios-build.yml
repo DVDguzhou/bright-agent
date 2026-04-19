@@ -12,15 +12,19 @@ env:
 
 jobs:
   # 模拟器构建：无需 Apple 证书，用于验证流程
+  # Capacitor 8 + SPM：Capacitor.framework 中部分 API 受 $NonescapableTypes 保护，需 Swift 6.2（Xcode 26）。
+  # 使用 Xcode 16 会出现「CAPPluginCall 无 reject / getString」等错误，官方说明见：
+  # https://capacitorjs.com/docs/updating/8-0#ios 与 https://github.com/ionic-team/capacitor/issues/8333
   build-simulator:
-    runs-on: macos-14
+    runs-on: macos-26
     steps:
       - uses: actions/checkout@v4
 
-      - name: 选择 Xcode 16
+      - name: 选择 Xcode 26（Capacitor 8 必需）
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: '16.2'
+          # macos-26 镜像上 latest-stable 为 Xcode 26.x（Swift 6.2），满足 Capacitor 8 SPM
+          xcode-version: latest-stable
 
       - name: 设置 Node.js
         uses: actions/setup-node@v4
@@ -36,7 +40,7 @@ jobs:
         env:
           MOBILE_APP_URL: ${{ env.MOBILE_APP_URL }}
 
-      # GitHub macOS 14 跑在 Apple Silicon 上；generic 模拟器会同时编 x86_64 + arm64，
+      # Apple Silicon runner：generic 模拟器会同时编 x86_64 + arm64，
       # 易慢且偶发失败。在 arm64 主机上排除 x86_64，只编 arm64 模拟器（Intel 自托管机请勿加此项）。
       - name: 构建 iOS (模拟器)
         run: |
@@ -84,16 +88,17 @@ jobs:
   # IPA 构建：需配置 Apple 证书，生成可安装到真机的 .ipa
   # 在 Variables 中设置 BUILD_IPA_ENABLED=true 时才会执行（需已配置证书相关 Secrets）
   build-ipa:
-    runs-on: macos-14
+    runs-on: macos-26
     needs: build-simulator
     if: vars.BUILD_IPA_ENABLED == 'true'
     steps:
       - uses: actions/checkout@v4
 
-      - name: 选择 Xcode 16
+      - name: 选择 Xcode 26（Capacitor 8 必需）
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: '16.2'
+          # macos-26 镜像上 latest-stable 为 Xcode 26.x（Swift 6.2），满足 Capacitor 8 SPM
+          xcode-version: latest-stable
 
       - name: 导入证书和描述文件
         env:
