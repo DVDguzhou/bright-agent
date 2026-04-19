@@ -1,4 +1,5 @@
 # Regenerate ios/App/.../AppIcon-512@2x.png (1024x1024) from design-assets/app-icon-source.png
+# Android: run generate-android-icons.ps1 or sync-app-icons.ps1 for both platforms.
 $ErrorActionPreference = "Stop"
 Add-Type -AssemblyName System.Drawing
 $root = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
