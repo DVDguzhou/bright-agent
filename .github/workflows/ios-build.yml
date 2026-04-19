@@ -32,21 +32,47 @@ jobs:
         run: npm ci
 
       - name: Capacitor 同步
-        run: npx cap sync
+        run: npx cap sync ios
         env:
           MOBILE_APP_URL: ${{ env.MOBILE_APP_URL }}
 
+      # GitHub macOS 14 跑在 Apple Silicon 上；generic 模拟器会同时编 x86_64 + arm64，
+      # 易慢且偶发失败。在 arm64 主机上排除 x86_64，只编 arm64 模拟器（Intel 自托管机请勿加此项）。
       - name: 构建 iOS (模拟器)
         run: |
+          set -o pipefail
+          mkdir -p build
+          LOG=build/xcodebuild-simulator.log
+          EXCLUDE=""
+          if [ "$(uname -m)" = "arm64" ]; then
+            EXCLUDE="EXCLUDED_ARCHS=x86_64"
+          fi
           xcodebuild -project ios/App/App.xcodeproj \
             -scheme App \
             -sdk iphonesimulator \
             -destination 'generic/platform=iOS Simulator' \
             -derivedDataPath build \
-            CODE_SIGN_IDENTITY="" \
+            $EXCLUDE \
+            ONLY_ACTIVE_ARCH=YES \
+            CODE_SIGN_IDENTITY="-" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
-            build
+            build 2>&1 | tee "$LOG"
+        env:
+          NSUnbufferedIO: "YES"
+
+      - name: 构建失败时打印 xcodebuild 错误摘要
+        if: failure()
+        run: |
+          LOG=build/xcodebuild-simulator.log
+          if [ -f "$LOG" ]; then
+            echo "=== grep: error / BUILD FAILED / fatal ==="
+            grep -E "error: |BUILD FAILED|fatal error:" "$LOG" | tail -80 || true
+            echo "=== tail log ==="
+            tail -100 "$LOG"
+          else
+            echo "Log file not found at $LOG"
+          fi
 
       - name: 上传构建产物
         uses: actions/upload-artifact@v4
@@ -132,7 +158,7 @@ jobs:
         run: npm ci
 
       - name: Capacitor 同步
-        run: npx cap sync
+        run: npx cap sync ios
         env:
           MOBILE_APP_URL: ${{ env.MOBILE_APP_URL }}
 
