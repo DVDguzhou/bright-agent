@@ -43,6 +43,13 @@ type Config struct {
 	WeChatAppID       string // 微信开放平台 AppID
 	WeChatAppSecret   string // 微信开放平台 AppSecret
 	WeChatRedirectURI string // 授权回调地址，不填则用 BASE_URL + /api/auth/wechat/callback
+	// 微信支付 API v3（Native 扫码）；证书 apiclient_key.pem 路径仅服务端可读
+	WeChatPayMchID            string
+	WeChatPayMchCertSerial    string
+	WeChatPayAPIv3Key         string
+	WeChatPayPrivateKeyPath   string
+	WeChatPayAppID            string // 与商户号绑定的 AppID；不填则复用 WECHAT_APP_ID
+	WeChatPayNotifyURL        string // 可选，须 https 且无 query；不填则用 BASE_URL + /api/pay/wechat/notify
 	// 手机号登录
 	PhoneCodeTTL time.Duration // 验证码有效期，默认 5 分钟
 	SMSSender    sms.Sender    // 短信发送器，不填则用 Mock（开发环境打印到日志）
@@ -109,6 +116,12 @@ func Load() *Config {
 		WeChatAppID:     stripOuterQuotes(getEnv("WECHAT_APP_ID", "")),
 		WeChatAppSecret: stripOuterQuotes(getEnv("WECHAT_APP_SECRET", "")),
 		WeChatRedirectURI: stripOuterQuotes(getEnv("WECHAT_REDIRECT_URI", "")),
+		WeChatPayMchID:          stripOuterQuotes(getEnv("WECHAT_PAY_MCH_ID", "")),
+		WeChatPayMchCertSerial:  stripOuterQuotes(getEnv("WECHAT_PAY_MCH_CERT_SERIAL", "")),
+		WeChatPayAPIv3Key:       stripOuterQuotes(getEnv("WECHAT_PAY_API_V3_KEY", "")),
+		WeChatPayPrivateKeyPath: stripOuterQuotes(getEnv("WECHAT_PAY_PRIVATE_KEY_PATH", "")),
+		WeChatPayAppID:          stripOuterQuotes(getEnv("WECHAT_PAY_APP_ID", "")),
+		WeChatPayNotifyURL:      stripOuterQuotes(getEnv("WECHAT_PAY_NOTIFY_URL", "")),
 		PhoneCodeTTL:    parseDuration(getEnv("PHONE_CODE_TTL", "5m"), 5*time.Minute),
 		SMSAccessKey:    stripOuterQuotes(getEnv("SMS_ACCESS_KEY_ID", "")),
 		SMSSecret:       stripOuterQuotes(getEnv("SMS_ACCESS_KEY_SECRET", "")),
@@ -129,6 +142,33 @@ func Load() *Config {
 // SMTPEnabled 是否可发送找回密码邮件
 func (c *Config) SMTPEnabled() bool {
 	return strings.TrimSpace(c.SMTPHost) != "" && strings.TrimSpace(c.SMTPFrom) != ""
+}
+
+// WeChatPayAppIDResolved 下单使用的 AppID（须与微信支付商户平台绑定一致）。
+func (c *Config) WeChatPayAppIDResolved() string {
+	if v := strings.TrimSpace(c.WeChatPayAppID); v != "" {
+		return v
+	}
+	return strings.TrimSpace(c.WeChatAppID)
+}
+
+// WeChatPayEnabled 是否配置了微信支付 Native 所需字段（不校验证书文件是否存在，启动时 Init 会校验）。
+func (c *Config) WeChatPayEnabled() bool {
+	if strings.TrimSpace(c.WeChatPayMchID) == "" ||
+		strings.TrimSpace(c.WeChatPayMchCertSerial) == "" ||
+		strings.TrimSpace(c.WeChatPayAPIv3Key) == "" ||
+		strings.TrimSpace(c.WeChatPayPrivateKeyPath) == "" {
+		return false
+	}
+	return c.WeChatPayAppIDResolved() != ""
+}
+
+// WeChatPayNotifyURLResolved 异步通知地址（生产环境须为 https）。
+func (c *Config) WeChatPayNotifyURLResolved() string {
+	if u := strings.TrimSpace(c.WeChatPayNotifyURL); u != "" {
+		return u
+	}
+	return strings.TrimSuffix(c.BaseURL, "/") + "/api/pay/wechat/notify"
 }
 
 func parseDuration(s string, defaultVal time.Duration) time.Duration {

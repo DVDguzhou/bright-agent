@@ -320,6 +320,24 @@ type LifeAgentQuestionPack struct {
 
 func (LifeAgentQuestionPack) TableName() string { return "life_agent_question_packs" }
 
+// WechatPayOrder 微信支付 Native 预下单记录（支付成功后写入提问包）。
+type WechatPayOrder struct {
+	ID             string     `gorm:"primaryKey;size:36"`
+	OutTradeNo     string     `gorm:"column:out_trade_no;size:32;uniqueIndex;not null"`
+	Kind           string     `gorm:"size:32;not null"` // life_agent_pack
+	BuyerID        string     `gorm:"column:buyer_id;size:36;not null;index"`
+	ProfileID      string     `gorm:"column:profile_id;size:36;not null;index"`
+	QuestionCount  int        `gorm:"column:question_count;not null"`
+	AmountTotalFen int        `gorm:"column:amount_total_fen;not null"`
+	Status         string     `gorm:"size:16;not null;index"` // pending, paid, closed
+	CodeURL        string     `gorm:"column:code_url;type:text"`
+	TransactionID  *string    `gorm:"column:transaction_id;size:64"`
+	CreatedAt      time.Time  `gorm:"column:created_at"`
+	PaidAt         *time.Time `gorm:"column:paid_at"`
+}
+
+func (WechatPayOrder) TableName() string { return "wechat_pay_orders" }
+
 type LifeAgentFeedback struct {
 	ID               string    `gorm:"primaryKey;size:36"`
 	ProfileID        string    `gorm:"column:profile_id;size:36;not null;index"`

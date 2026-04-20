@@ -97,6 +97,7 @@ func Init(dsn string) error {
 		&models.LifeAgentChatMessage{},
 		&models.LifeAgentCoEditState{},
 		&models.LifeAgentQuestionPack{},
+		&models.WechatPayOrder{},
 		&models.LifeAgentFeedback{},
 		&models.LifeAgentRating{},
 		&models.LifeAgentInvokeKey{},

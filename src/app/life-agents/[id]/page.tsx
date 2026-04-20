@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useParams } from "next/navigation";
 import Link from "next/link";
@@ -105,6 +105,9 @@ export default function LifeAgentDetailPage() {
   const [loaded, setLoaded] = useState(false);
   const [purchaseCount, setPurchaseCount] = useState(1);
   const [payMethod, setPayMethod] = useState<"balance" | "wechat">("balance");
+  const [wechatNativeEnabled, setWechatNativeEnabled] = useState<boolean | null>(null);
+  const [wechatCheckout, setWechatCheckout] = useState<{ codeUrl: string; outTradeNo: string } | null>(null);
+  const payAbortRef = useRef<AbortController | null>(null);
   const [purchasing, setPurchasing] = useState(false);
   const [message, setMessage] = useState("");
   const [showPurchase, setShowPurchase] = useState(false);
@@ -134,11 +137,31 @@ export default function LifeAgentDetailPage() {
   }, [showPurchase]);
 
   useEffect(() => {
-    if (showPurchase) {
-      setPayMethod("balance");
-      setMessage("");
+    if (!showPurchase) {
+      payAbortRef.current?.abort();
+      payAbortRef.current = null;
+      setWechatCheckout(null);
+      return;
     }
+    setPayMethod("balance");
+    setMessage("");
+    setWechatCheckout(null);
+    payAbortRef.current?.abort();
+    payAbortRef.current = null;
+    setWechatNativeEnabled(null);
+    void fetch("/api/pay/wechat/native/enabled")
+      .then((r) => r.json())
+      .then((d: { enabled?: boolean }) => setWechatNativeEnabled(!!d.enabled))
+      .catch(() => setWechatNativeEnabled(false));
   }, [showPurchase]);
+
+  useEffect(() => {
+    if (payMethod === "balance") {
+      setWechatCheckout(null);
+      payAbortRef.current?.abort();
+      payAbortRef.current = null;
+    }
+  }, [payMethod]);
 
   const questionCount = useMemo(
     () => Math.min(MAX_QUESTIONS, Math.max(MIN_QUESTIONS, purchaseCount)),
@@ -209,24 +232,93 @@ export default function LifeAgentDetailPage() {
   const purchase = async () => {
     if (!profile) return;
     const count = Math.min(MAX_QUESTIONS, Math.max(MIN_QUESTIONS, questionCount));
-    setPurchasing(true);
     setMessage("");
-    const res = await fetch(`/api/life-agents/${profile.id}/purchase`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({ questionCount: count, amountPaid: profile.pricePerQuestion * count }),
-    });
-    const data = await res.json();
-    setPurchasing(false);
-    if (!res.ok) {
-      setMessage(data.error === "UNAUTHORIZED" ? "请先登录后再购买。" : "购买失败，请稍后重试。");
+    if (payMethod === "wechat") {
+      if (!wechatNativeEnabled) {
+        setMessage("微信支付尚未配置，请使用账户余额（演示）或联系管理员。");
+        return;
+      }
+      setPurchasing(true);
+      payAbortRef.current?.abort();
+      const ac = new AbortController();
+      payAbortRef.current = ac;
+      try {
+        const prepay = await fetch(`/api/pay/wechat/native/life-agent/${profile.id}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          signal: ac.signal,
+          body: JSON.stringify({ questionCount: count }),
+        });
+        const pdata = await prepay.json();
+        if (!prepay.ok) {
+          if (pdata.error === "WECHAT_PAY_NOT_CONFIGURED") {
+            setMessage("微信支付未配置。");
+          } else if (pdata.error === "CANNOT_BUY_OWN_PROFILE") {
+            setMessage("不能购买自己的 Agent。");
+          } else {
+            setMessage("无法发起微信支付，请稍后重试。");
+          }
+          return;
+        }
+        const codeUrl = typeof pdata.codeUrl === "string" ? pdata.codeUrl : "";
+        const outTradeNo = typeof pdata.outTradeNo === "string" ? pdata.outTradeNo : "";
+        if (!codeUrl || !outTradeNo) {
+          setMessage("微信支付返回异常，请稍后重试。");
+          return;
+        }
+        setWechatCheckout({ codeUrl, outTradeNo });
+        for (let i = 0; i < 120; i++) {
+          if (ac.signal.aborted) return;
+          await new Promise((r) => setTimeout(r, 2000));
+          const qr = await fetch(`/api/pay/wechat/orders/${encodeURIComponent(outTradeNo)}`, {
+            credentials: "include",
+            signal: ac.signal,
+          });
+          const qd = await qr.json();
+          if (qd.status === "paid" && typeof qd.remainingQuestions === "number") {
+            setWechatCheckout(null);
+            setProfile((prev) =>
+              prev
+                ? { ...prev, viewerState: { ...prev.viewerState, remainingQuestions: qd.remainingQuestions } }
+                : prev
+            );
+            setMessage(`支付成功，当前剩余 ${qd.remainingQuestions} 次提问。`);
+            return;
+          }
+        }
+        setMessage("等待支付超时，若已付款请稍后刷新页面查看剩余次数。");
+      } catch (e) {
+        if ((e as Error)?.name !== "AbortError") {
+          setMessage("支付流程异常，请稍后重试。");
+        }
+      } finally {
+        setPurchasing(false);
+        payAbortRef.current = null;
+      }
       return;
     }
-    setProfile((prev) =>
-      prev ? { ...prev, viewerState: { ...prev.viewerState, remainingQuestions: data.remainingQuestions } } : prev
-    );
-    setMessage(`购买成功，当前剩余 ${data.remainingQuestions} 次提问。`);
+
+    setPurchasing(true);
+    try {
+      const res = await fetch(`/api/life-agents/${profile.id}/purchase`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ questionCount: count, amountPaid: profile.pricePerQuestion * count }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setMessage(data.error === "UNAUTHORIZED" ? "请先登录后再购买。" : "购买失败，请稍后重试。");
+        return;
+      }
+      setProfile((prev) =>
+        prev ? { ...prev, viewerState: { ...prev.viewerState, remainingQuestions: data.remainingQuestions } } : prev
+      );
+      setMessage(`购买成功，当前剩余 ${data.remainingQuestions} 次提问。`);
+    } finally {
+      setPurchasing(false);
+    }
   };
 
   /* ---------- loading / 404 ---------- */
@@ -666,7 +758,13 @@ export default function LifeAgentDetailPage() {
                     <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#07c160] text-[10px] font-bold text-white">
                       微
                     </span>
-                    <span className="flex-1 font-medium text-[#111]">微信支付（演示）</span>
+                    <span className="flex-1 font-medium text-[#111]">
+                      {wechatNativeEnabled === null
+                        ? "微信支付（检测配置…）"
+                        : wechatNativeEnabled
+                          ? "微信支付（扫码）"
+                          : "微信支付（未配置）"}
+                    </span>
                     <span
                       className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${
                         payMethod === "wechat" ? "border-[#07c160] bg-[#07c160]" : "border-slate-300"
@@ -681,6 +779,21 @@ export default function LifeAgentDetailPage() {
                   </button>
                 </div>
 
+                {wechatCheckout ? (
+                  <div className="rounded-xl border border-emerald-200/80 bg-white/[0.98] px-4 py-4 text-center shadow-[0_3px_16px_rgba(16,185,129,0.08)] backdrop-blur-sm">
+                    <p className="text-sm text-slate-600">请使用微信扫描下方二维码完成支付</p>
+                    {/* code_url 仅用于生成二维码；生产环境可改为自建二维码服务 */}
+                    <img
+                      alt="微信支付二维码"
+                      width={220}
+                      height={220}
+                      className="mx-auto mt-3 rounded-lg bg-white p-2 ring-1 ring-slate-100"
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(wechatCheckout.codeUrl)}`}
+                    />
+                    <p className="mt-3 text-xs text-slate-400">支付成功后本页会自动更新剩余次数。</p>
+                  </div>
+                ) : null}
+
                 {message ? (
                   <p className="px-1 text-center text-sm text-orange-800/90">{message}</p>
                 ) : null}
@@ -691,10 +804,14 @@ export default function LifeAgentDetailPage() {
                 <button
                   type="button"
                   onClick={purchase}
-                  disabled={purchasing}
+                  disabled={purchasing || (payMethod === "wechat" && !!wechatCheckout)}
                   className="btn-primary w-full py-3.5 text-base font-bold disabled:opacity-50"
                 >
-                  {purchasing ? "提交中…" : `确认购买 ¥${totalPrice.toFixed(2)}`}
+                  {purchasing
+                    ? payMethod === "wechat" && wechatCheckout
+                      ? "等待支付确认…"
+                      : "提交中…"
+                    : `确认购买 ¥${totalPrice.toFixed(2)}`}
                 </button>
               </div>
             </div>

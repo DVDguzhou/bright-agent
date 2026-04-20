@@ -7,6 +7,7 @@ import (
 	"github.com/agent-marketplace/backend/internal/config"
 	"github.com/agent-marketplace/backend/internal/db"
 	"github.com/agent-marketplace/backend/internal/router"
+	"github.com/agent-marketplace/backend/internal/wechatpay"
 	"github.com/joho/godotenv"
 )
 
@@ -18,6 +19,9 @@ func main() {
 	cfg := config.Load()
 	if err := db.Init(cfg.DatabaseURL); err != nil {
 		log.Fatal("db init:", err)
+	}
+	if err := wechatpay.Init(cfg); err != nil {
+		log.Fatal("wechat pay init:", err)
 	}
 	r := router.Setup(cfg)
 	addr := os.Getenv("PORT")

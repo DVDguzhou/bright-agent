@@ -90,6 +90,14 @@ func Setup(cfg *config.Config) *gin.Engine {
 			lifeAgents.DELETE("/:id/live-updates/:updateId", middleware.RequireAuth(cfg), handler.LifeAgentsLiveUpdateDelete(cfg))
 		}
 
+		payWx := api.Group("/pay/wechat")
+		{
+			payWx.GET("/native/enabled", handler.WeChatPayNativeEnabled(cfg))
+			payWx.POST("/notify", handler.WeChatPayNotify(cfg))
+			payWx.GET("/orders/:outTradeNo", middleware.RequireAuth(cfg), handler.WeChatPayOrderQuery(cfg))
+			payWx.POST("/native/life-agent/:id", middleware.RequireAuth(cfg), handler.WeChatPayNativeLifeAgentPrepay(cfg))
+		}
+
 		api.GET("/user-api-keys", middleware.RequireAuth(cfg), handler.UserAPIKeysList(cfg))
 		api.POST("/user-api-keys", middleware.RequireAuth(cfg), handler.UserAPIKeysCreate(cfg))
 		api.DELETE("/user-api-keys/:id", middleware.RequireAuth(cfg), handler.UserAPIKeysDelete(cfg))
