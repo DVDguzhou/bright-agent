@@ -12,8 +12,12 @@ services:
     restart: unless-stopped
     ports:
       - "8080:8080"
+    # 将 stdout/stderr 同时写入宿主机 /logs/regr-backend.log（docker logs 仍可用）
+    entrypoint: ["/bin/sh", "-c"]
+    command: ["exec ./server 2>&1 | tee -a /logs/regr-backend.log"]
     volumes:
       - backend_cover_uploads:/app/uploads/life-agent-covers
+      - /logs:/logs
     environment:
       DATABASE_URL: ${DATABASE_URL:-guzhoudvd:Hu957843!@tcp(rm-bp176012tca6793kcoo.mysql.rds.aliyuncs.com:3306)/agent_marketplace?charset=utf8mb4&parseTime=True}
       SESSION_SECRET: ${SESSION_SECRET:-change-me-in-production}
@@ -60,6 +64,11 @@ services:
     restart: unless-stopped
     ports:
       - "3000:3000"
+    # 将 stdout/stderr 同时写入宿主机 /logs/regr-frontend.log
+    entrypoint: ["/bin/sh", "-c"]
+    command: ["exec node server.js 2>&1 | tee -a /logs/regr-frontend.log"]
+    volumes:
+      - /logs:/logs
     environment:
       API_BACKEND_URL: http://backend:8080
       NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
