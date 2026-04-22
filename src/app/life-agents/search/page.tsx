@@ -6,8 +6,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { VoiceInputButton } from "@/components/voice";
 import { LifeAgentDiscoverCardGrid } from "@/components/LifeAgentDiscoverCardGrid";
 import { addSearchHistory, clearSearchHistory, getSearchHistory } from "@/lib/life-agent-search-history";
-import { rankLifeAgentsBySearchQuery, type LifeAgentListItem } from "@/lib/life-agent-feed-search";
-import { fetchAllPublishedLifeAgents } from "@/lib/life-agents-list-api";
+import type { LifeAgentListItem } from "@/lib/life-agent-feed-search";
+import { fetchLifeAgentSearch } from "@/lib/life-agents-list-api";
+
+const SEARCH_PAGE_SIZE = 24;
 
 const GUESS_LEFT = ["考研经验咨询", "秋招改简历", "转行互联网", "雅思怎么准备", "体制内跳槽"];
 const GUESS_RIGHT: { text: string; hot?: boolean }[] = [
@@ -104,7 +106,11 @@ function SearchResultsView({ query }: { query: string }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [draft, setDraft] = useState(query);
   const [profiles, setProfiles] = useState<LifeAgentListItem[]>([]);
+  const [nextCursor, setNextCursor] = useState<string>("");
+  const [total, setTotal] = useState(0);
+  const [fallback, setFallback] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
   const goBack = useCallback(() => {
@@ -119,21 +125,34 @@ function SearchResultsView({ query }: { query: string }) {
     setDraft(query);
   }, [query]);
 
+  // 首屏加载：query 变化时重置并请求第一页
   useEffect(() => {
     setLoadError(null);
+    setLoading(true);
+    setProfiles([]);
+    setNextCursor("");
+    setTotal(0);
+    setFallback(false);
+
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 15000);
 
-    fetchAllPublishedLifeAgents(controller.signal)
-      .then((items) => {
-        setProfiles(items);
+    fetchLifeAgentSearch(query, SEARCH_PAGE_SIZE, undefined, controller.signal)
+      .then((resp) => {
+        setProfiles(resp.items);
+        setNextCursor(resp.nextCursor);
+        setTotal(resp.total);
+        setFallback(resp.fallback);
         setLoadError(null);
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
+        const e = err as { name?: string } | null;
+        if (e?.name === "AbortError") {
+          setLoadError("请求超时，请检查后端是否启动或稍后重试");
+        } else {
+          setLoadError("加载失败，请刷新页面重试");
+        }
         setProfiles([]);
-        setLoadError(
-          err.name === "AbortError" ? "请求超时，请检查后端是否启动或稍后重试" : "加载失败，请刷新页面重试",
-        );
       })
       .finally(() => {
         clearTimeout(timeoutId);
@@ -144,9 +163,31 @@ function SearchResultsView({ query }: { query: string }) {
       clearTimeout(timeoutId);
       controller.abort();
     };
-  }, []);
+  }, [query]);
 
-  const ranked = useMemo(() => rankLifeAgentsBySearchQuery(profiles, query), [profiles, query]);
+  const loadMore = useCallback(async () => {
+    if (!nextCursor || loadingMore) return;
+    setLoadingMore(true);
+    try {
+      const resp = await fetchLifeAgentSearch(query, SEARCH_PAGE_SIZE, nextCursor);
+      setProfiles((prev) => {
+        const seen = new Set(prev.map((p) => p.id));
+        const merged = [...prev];
+        for (const item of resp.items) {
+          if (!seen.has(item.id)) {
+            seen.add(item.id);
+            merged.push(item);
+          }
+        }
+        return merged;
+      });
+      setNextCursor(resp.nextCursor);
+    } catch {
+      // 静默失败；用户可继续滚动重试
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [nextCursor, loadingMore, query]);
 
   const runSearch = useCallback(
     (q: string) => {
@@ -158,6 +199,13 @@ function SearchResultsView({ query }: { query: string }) {
     [router],
   );
 
+  const statusLine = useMemo(() => {
+    if (loading) return "加载中…";
+    if (loadError) return "";
+    if (fallback) return "没有完全匹配的 Agent，为你推荐以下内容";
+    return `共 ${total} 个相关 Agent`;
+  }, [loading, loadError, fallback, total]);
+
   return (
     <div className="min-h-[100dvh] bg-white max-lg:-mx-4 max-lg:flex max-lg:flex-col">
       <SearchTopBar
@@ -168,9 +216,7 @@ function SearchResultsView({ query }: { query: string }) {
         fileInputRef={fileInputRef}
       />
       <div className="min-h-0 flex-1 pb-28 pt-3 max-lg:px-0 sm:mx-auto sm:max-w-7xl sm:px-4">
-        <p className="text-xs text-slate-500">
-          {loading ? "加载中…" : loadError ? "" : `共 ${ranked.length} 个相关 Agent`}
-        </p>
+        <p className={`text-xs ${fallback ? "text-amber-600" : "text-slate-500"}`}>{statusLine}</p>
 
       <div className="mx-auto mt-4 max-w-7xl">
         {loadError ? (
@@ -186,11 +232,14 @@ function SearchResultsView({ query }: { query: string }) {
           </div>
         ) : (
           <LifeAgentDiscoverCardGrid
-            profiles={ranked}
+            profiles={profiles}
             loading={loading}
             emptyTitle="没有匹配的 Agent"
             emptySubtitle="换个关键词试试，或减少筛选条件。"
             windowResetKey={query}
+            onLoadMore={loadMore}
+            hasMoreFromServer={Boolean(nextCursor)}
+            loadingMore={loadingMore}
           />
         )}
       </div>

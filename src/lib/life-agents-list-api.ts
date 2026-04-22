@@ -118,10 +118,55 @@ export async function fetchLifeAgentsPage(
   return { items, nextCursor: next };
 }
 
-/** 地图、搜索排序、收藏全量筛选等需要完整列表时顺序拉取。 */
+/** 地图、收藏全量筛选等需要完整列表时顺序拉取。 */
 export async function fetchAllPublishedLifeAgents(signal?: AbortSignal): Promise<LifeAgentListItem[]> {
   const res = await fetch("/api/life-agents", { credentials: "include", signal });
   const data: unknown = await res.json().catch(() => null);
   if (!res.ok) return [];
   return parsePublishedLifeAgentsPayload(data);
+}
+
+export type LifeAgentSearchResponse = {
+  items: LifeAgentListItem[];
+  nextCursor: string;
+  total: number;
+  /** 后端在"词法完全无命中"时兜底按业务分返回，前端可据此展示"没有完全匹配的结果"提示。 */
+  fallback: boolean;
+};
+
+/** 调用后端 /api/life-agents/search，支持游标分页。 */
+export async function fetchLifeAgentSearch(
+  query: string,
+  limit: number,
+  cursor: string | undefined,
+  signal?: AbortSignal,
+): Promise<LifeAgentSearchResponse> {
+  const params = new URLSearchParams();
+  if (query) params.set("q", query);
+  params.set("limit", String(limit));
+  if (cursor) params.set("offset", cursor);
+  const res = await fetch(`/api/life-agents/search?${params.toString()}`, {
+    credentials: "include",
+    signal,
+  });
+  const data: unknown = await res.json().catch(() => null);
+  if (!res.ok) {
+    const msg =
+      data && typeof data === "object" && data !== null && "error" in data && typeof (data as { error: unknown }).error === "string"
+        ? (data as { error: string }).error
+        : "FETCH_ERROR";
+    throw new Error(msg);
+  }
+  const items = parsePublishedLifeAgentsPayload(data);
+  const next =
+    data && typeof data === "object" && data !== null && typeof (data as { nextCursor?: unknown }).nextCursor === "string"
+      ? (data as { nextCursor: string }).nextCursor
+      : "";
+  const total =
+    data && typeof data === "object" && data !== null && typeof (data as { total?: unknown }).total === "number"
+      ? (data as { total: number }).total
+      : items.length;
+  const fallback =
+    data && typeof data === "object" && data !== null && (data as { fallback?: unknown }).fallback === true;
+  return { items, nextCursor: next, total, fallback: Boolean(fallback) };
 }
