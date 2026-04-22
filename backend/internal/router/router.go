@@ -49,6 +49,7 @@ func Setup(cfg *config.Config) *gin.Engine {
 		lifeAgents := api.Group("/life-agents")
 		{
 			lifeAgents.GET("", handler.LifeAgentsList(cfg))
+			lifeAgents.GET("/search", handler.LifeAgentsSearch(cfg))
 			lifeAgents.POST("", middleware.RequireAuth(cfg), handler.LifeAgentsCreate(cfg))
 			lifeAgents.GET("/favorites", middleware.RequireAuth(cfg), handler.LifeAgentFavoritesList(cfg))
 			lifeAgents.POST("/favorites", middleware.RequireAuth(cfg), handler.LifeAgentFavoritesToggle(cfg))
