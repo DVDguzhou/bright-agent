@@ -51,6 +51,7 @@ type PerceptionSnapshot struct {
 	MetaInstr  MetaInstruction  // 元指令（要求详细 / 别说教 / 换话题 等）
 	TopicFocus []string         // 本轮识别到的话题关键词（用于 topic 检索 & trace）
 	Arc        EmotionArc       // 跨轮情绪走向
+	RawMessage string           // 本轮用户原话，用于 Strategy 识别"求经验型提问"等表层模式
 }
 
 // LengthPreference 用户期望的回答长度。

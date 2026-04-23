@@ -11,6 +11,7 @@ import (
 	"strings"
 	"sync/atomic"
 	"time"
+	"unicode/utf8"
 
 	openai "github.com/sashabaranov/go-openai"
 )
@@ -1124,7 +1125,10 @@ func buildDraftSystemPrompt(profile ProfileForAI, facts []StructuredFactForAI, t
 	sb.WriteString("如果对方问的问题超出了你的经历范围，不要硬编一个看似合理的回答。\n")
 	sb.WriteString("正确做法：坦率说这个你不太了解或没经历过，然后告诉对方你知道的部分是什么。\n")
 	sb.WriteString("例子：「这个方向我没走过，不太好说。不过我当时选的那条路是这样的……」\n")
-	sb.WriteString("永远不要泛泛而谈——宁可说少一点，也不要说一堆正确但没用的废话。\n")
+	// 这行原本是「永远不要泛泛而谈——宁可说少一点」。模型对 prompt 末端高注意，
+	// 这句话会把所有 deep_consult 的长答压掉。改成把"宁可少"限定在"泛泛建议"范畴，
+	// 并把"亲历经历"单独豁免。真正落地控制长度由 strategy.FormatRules 负责。
+	sb.WriteString("避免泛泛的通用建议——那种「要多看书、要调整心态」的空话宁可不说；但你自己真实经历过的细节不在此列，亲历的故事和数字可以放开讲。\n")
 
 	// Strategy 产出的硬规则放在最底部，作为本轮不可违反的约束（恰好对应 LLM 对 prompt 末端的高注意力）。
 	if strategy != nil && len(strategy.FormatRules) > 0 {
@@ -1628,19 +1632,71 @@ func humanizeReply(content string) string {
 	// 去掉常见 AI 套话（即使 prompt 禁止了，模型仍会偶尔输出）
 	content = stripAIPhrasesRe.ReplaceAllString(content, "")
 
-	lines := strings.Split(content, "\n")
-	var cleaned []string
-	for _, line := range lines {
+	// 保留"段落"语义：模型原文里用空行分隔段落，段内允许单换行；
+	// 旧实现一律用 \n\n 拼接，会把 knowledge-entry 风格的"一句一行"放大成"一句一段"
+	// （即典型的"短句连发型"），所以这里改成按段落聚合。
+	paragraphs := splitParagraphs(content)
+	if len(paragraphs) == 0 {
+		return ""
+	}
+	// 段内的多行合并：中文之间直接拼，英文之间补一个空格，保持阅读节奏。
+	for i, para := range paragraphs {
+		paragraphs[i] = joinLinesInParagraph(para)
+	}
+	return strings.Join(paragraphs, "\n\n")
+}
+
+// splitParagraphs 按"空行"切段；连续换行压缩成一个空行。
+func splitParagraphs(s string) []string {
+	var out []string
+	var buf []string
+	flush := func() {
+		if len(buf) > 0 {
+			out = append(out, strings.Join(buf, "\n"))
+			buf = nil
+		}
+	}
+	for _, line := range strings.Split(s, "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			flush()
+			continue
+		}
+		buf = append(buf, line)
+	}
+	flush()
+	return out
+}
+
+// joinLinesInParagraph 段内单换行处理：中文相邻直接拼接，否则用一个空格。
+// 这样能把模型误用"每句一行"生成的段落重新合回一段自然文本。
+func joinLinesInParagraph(para string) string {
+	lines := strings.Split(para, "\n")
+	if len(lines) <= 1 {
+		return para
+	}
+	var sb strings.Builder
+	for i, line := range lines {
 		line = strings.TrimSpace(line)
 		if line == "" {
 			continue
 		}
-		cleaned = append(cleaned, line)
+		if i > 0 && sb.Len() > 0 {
+			prev := sb.String()
+			lastRune, _ := utf8.DecodeLastRuneInString(prev)
+			firstRune, _ := utf8.DecodeRuneInString(line)
+			// 两端都是 ASCII 可见字符时补空格；中文 / 标点 / 其它情况直接拼。
+			if lastRune < 0x80 && isWordRune(lastRune) && firstRune < 0x80 && isWordRune(firstRune) {
+				sb.WriteByte(' ')
+			}
+		}
+		sb.WriteString(line)
 	}
-	if len(cleaned) == 0 {
-		return ""
-	}
-	return strings.Join(cleaned, "\n\n")
+	return sb.String()
+}
+
+func isWordRune(r rune) bool {
+	return (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9')
 }
 
 // stripReasoningMarkers 检测并清除推理/修改标记。

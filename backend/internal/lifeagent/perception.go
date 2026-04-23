@@ -90,6 +90,7 @@ func BuildPerceptionSnapshot(message string, history []ChatMessageForAI, traces 
 		MetaInstr:  meta,
 		TopicFocus: focus,
 		Arc:        arc,
+		RawMessage: message,
 	}
 }
 

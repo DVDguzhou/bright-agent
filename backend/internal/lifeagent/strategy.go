@@ -114,23 +114,43 @@ func resolveLengthTarget(p PerceptionSnapshot, profile ProfileForAI) LengthTarge
 	}
 
 	// 4) 场景 + 情绪 组合
+	// 锚点设计口径：「经验分享 + 情绪陪伴」是核心业务，来人就是来听真实经历的，
+	// 所以 deep_consult 的默认下限必须足够厚，才压得住"微信感 → 一两句话"的惯性。
 	base := LengthTarget{Label: "normal", MinChars: 90, MaxChars: 260, MinParas: 1, MaxParas: 3}
+	asksForExperience := looksLikeExperienceQuery(p.RawMessage)
 	switch p.Intent {
 	case chatIntentDeepConsult:
-		// 深度咨询 + 负面情绪：需要"先被接住"，偏长，但不过于冗长
-		if isNegativeEmotion(p.Emotion.Type) || p.Arc.Trend == "worsening" {
-			base = LengthTarget{Label: "elaborate", MinChars: 180, MaxChars: 420, MinParas: 2, MaxParas: 3}
-		} else {
-			base = LengthTarget{Label: "normal", MinChars: 120, MaxChars: 320, MinParas: 2, MaxParas: 3}
+		switch {
+		case isNegativeEmotion(p.Emotion.Type) || p.Arc.Trend == "worsening":
+			// 负面情绪：先承接再展开，适当更长
+			base = LengthTarget{Label: "elaborate", MinChars: 240, MaxChars: 560, MinParas: 2, MaxParas: 4}
+		case asksForExperience:
+			// 「秋招怎么准备 / 留学怎么准备 / 有什么经验」等取经型提问：直接按 elaborate 给
+			base = LengthTarget{Label: "elaborate", MinChars: 260, MaxChars: 600, MinParas: 2, MaxParas: 4}
+		default:
+			base = LengthTarget{Label: "normal", MinChars: 180, MaxChars: 460, MinParas: 2, MaxParas: 3}
 		}
 	case chatIntentSmallTalk:
 		base = LengthTarget{Label: "concise", MinChars: 20, MaxChars: 90, MinParas: 1, MaxParas: 1}
 	case chatIntentCasualInfo:
-		base = LengthTarget{Label: "normal", MinChars: 70, MaxChars: 220, MinParas: 1, MaxParas: 2}
+		// 资讯类问题命中"求经验"句式时也适度抬升，不然「怎么准备」会被当成快问快答
+		if asksForExperience {
+			base = LengthTarget{Label: "normal", MinChars: 160, MaxChars: 400, MinParas: 2, MaxParas: 3}
+		} else {
+			base = LengthTarget{Label: "normal", MinChars: 90, MaxChars: 260, MinParas: 1, MaxParas: 2}
+		}
 	}
 
 	// 5) profile.ResponseStyle 的「偏短」倾向：同级里下限再压一点，但不改 Label。
-	if profileLeansShort(profile.ResponseStyle) && base.Label != "elaborate" {
+	//
+	// 例外：用户明确在问"怎么准备 / 有什么经验"这类取经型问题时，profile 的默认调性
+	// 要让位于用户当下的具体诉求——总不能一个说"回答简洁"的 agent 被问秋招经验时还回
+	// "加油努力吧" 三个字。同理，用户本轮显式说"详细点"、或处于负面情绪需要承接时，
+	// 也不再按 profile 偏短来压。
+	overridesShortProfile := asksForExperience ||
+		(p.LengthPref.Source == "explicit" && p.LengthPref.Direction == "elaborate") ||
+		isNegativeEmotion(p.Emotion.Type)
+	if profileLeansShort(profile.ResponseStyle) && base.Label != "elaborate" && !overridesShortProfile {
 		base.MinChars = maxInt(20, base.MinChars-20)
 		base.MaxChars = maxInt(base.MinChars+40, base.MaxChars-60)
 	}
@@ -141,6 +161,41 @@ func isNegativeEmotion(t string) bool {
 	switch t {
 	case "anxious", "frustrated", "angry", "confused":
 		return true
+	}
+	return false
+}
+
+// looksLikeExperienceQuery 识别"求经验/取经"型提问。
+// 命中这些模式时，即使没有显式"详细点"诉求，也认为用户天然期望一条够厚、带亲历细节的回答。
+// 核心业务是经验分享，这里宁可宽一点也不要漏掉"秋招怎么准备""留学怎么走"这种典型场景。
+func looksLikeExperienceQuery(message string) bool {
+	m := strings.ToLower(strings.TrimSpace(message))
+	if m == "" {
+		return false
+	}
+	// 纯"怎么"太泛会误伤（比如"怎么回事"），所以要组合关键词
+	cues := []string{
+		"怎么准备", "如何准备", "怎么规划", "如何规划",
+		"怎么选择", "如何选择", "怎么走", "怎么走过来", "怎么过来",
+		"怎么做到", "如何做到", "怎么搞", "怎么办到",
+		"有什么建议", "有什么经验", "有什么心得", "有什么套路",
+		"有啥建议", "有啥经验",
+		"你当时", "你是怎么", "你怎么", "你当初", "你那会",
+		"经验分享", "过来人", "踩过的坑", "趟过的雷",
+		"从头讲", "详细讲讲", "讲讲你",
+		"需要准备什么", "要准备什么", "要做什么准备",
+	}
+	for _, c := range cues {
+		if strings.Contains(m, c) {
+			return true
+		}
+	}
+	// 英文常见求经验模式
+	enCues := []string{"how to prepare", "how do you", "any advice", "any tips", "your experience", "walk me through"}
+	for _, c := range enCues {
+		if strings.Contains(m, c) {
+			return true
+		}
 	}
 	return false
 }
@@ -208,19 +263,39 @@ func buildFormatRules(p PerceptionSnapshot, length LengthTarget, empathy string,
 	// 之前模型会自发产出「大一：… / 大二：… / 大三：…」的格式，humanizeReply 无法清洗。
 	rules = append(rules,
 		"禁止用「大X：」「第X年：」「阶段X：」「一、二、三」这类中文标签式分点；要点用自然语言串起来，一段讲一件事。",
+		// 严禁"每句话独立成行"的卡片感。这是模型在引用知识库短条目时最容易滑向的格式。
+		"同一件事情不要一句一行地甩出来——相关的几句要用「，」「。」「还有」「不过」之类自然连起来，写成完整的一段。真人在微信里不会这样分行发。",
 	)
 
-	// elaborate 模式下，还要防"每句一行"的短消息风格。
+	// elaborate 模式下，还要防"每句一行"的短消息风格，并且必须明确对抗
+	// 系统提示里"宁可说少一点"的底层默认——否则这类"怎么准备"的问题会被压成一段话。
 	if length.Label == "elaborate" {
 		rules = append(rules,
 			"这次要写得完整：每段内部是两三句连贯的话，不要把每一句都单独成行。段与段之间可以空一行分隔不同侧面。",
 			"先讲感受和经历，再讲你当时怎么做的，最后再自然收束；不要像做 PPT 那样列 1/2/3。",
+			// 这一条就是针对用户反馈"还不够详细"的直接对冲：
+			"对方来找你就是来听你的真实经历的。这轮有理由写长：把你真实做过的事、当时具体的时间线、投了多少家/看了多少学校/花了多少钱、心里的纠结和转变，挑能讲的具体展开。之前系统提示里说「宁可说少一点」是指别讲空洞的道理，不是让你压缩亲历细节——亲历细节越具体越好。",
 		)
 	}
 
 	if length.Label == "concise" {
 		rules = append(rules,
 			"控制在一两段内，宁可留白也不要把多个点堆在一起。",
+		)
+	}
+
+	if length.Label == "normal" {
+		// normal 也加一条"别过度压缩经历"的软提示，防止 deep_consult 默认走保守路线时被压得过短
+		rules = append(rules,
+			"别因为「真人微信感」就把经历讲得太干——至少带一到两处具体细节（数字、地名、公司名、时间点），让对方感觉是真听到了一段故事。",
+		)
+	}
+
+	// profile 自带"简洁/短句"倾向、但用户明显在求经验时，本轮用户诉求优先。
+	// 不盖过整体人设（还是这个人在说话），只豁免"简短"这一项默认。
+	if looksLikeExperienceQuery(p.RawMessage) && profileLeansShort(profile.ResponseStyle) {
+		rules = append(rules,
+			"你平时回答偏简短，但对方这轮在明确取经——人设里的「简洁」默认本轮让位给具体经验。语气维持你本人的味道（冷淡/直接/爱吐槽都行），但内容要给得足，不能敷衍成一两句。",
 		)
 	}
 
