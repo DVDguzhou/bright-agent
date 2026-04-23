@@ -6,6 +6,7 @@ import (
 	"log"
 	"regexp"
 	"strings"
+	"time"
 
 	openai "github.com/sashabaranov/go-openai"
 )
@@ -18,6 +19,32 @@ type ChatOptions struct {
 	RecentlyUsedEntryIDs []string          // entry IDs cited in recent replies (for de-duplication)
 	KnowledgeContext     string            // facts/topics/entry hints injected right before user message for recency attention
 	FeedbackSignals      *FeedbackSignals  // per-topic/entry feedback from users for retrieval reranking + prompt adaptation
+
+	// —— CoALA 四层记忆架构新增字段 ——
+	// WorkingState：已经由 handler 完成感知/检索/策略推理的工作记忆；存在则 llm.go 直接消费，
+	// 不再在生成阶段重复做意图分类 / 情绪检测 / randomLengthHint。
+	WorkingState *WorkingState
+	// Embedder：RAG 用；为 nil 时向量路径自动降级为词法。
+	Embedder Embedder
+	// Episodes：情景回忆候选（已按 buyer_only 过滤）；由 BuildEpisodeHits 做 hybrid 排序。
+	Episodes []EpisodeCandidate
+	// TurnIndex：会话内第几轮，感知轨迹落库时写入。
+	TurnIndex int
+}
+
+// EpisodeCandidate 从 DB 读出来、准备参加情景层召回的候选；已做 buyer_only 过滤。
+type EpisodeCandidate struct {
+	ID         string
+	Kind       string
+	Title      string
+	Situation  string
+	UserState  string
+	AgentMove  string
+	Outcome    string
+	Lesson     string
+	TopicKeys  []string
+	OccurredAt time.Time
+	Embedding  []float32
 }
 
 // FeedbackSignals 聚合的用户反馈信号，用于 Feedback-Aware Retrieval 和 Adaptive Prompt。

@@ -2206,8 +2206,37 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 		factsForAI := lifeagent.BuildStructuredFactsForAI(facts)
 		topicsForAI := lifeagent.BuildTopicSummariesForAI(topics)
 
+		// Hybrid RAG: 把 DB 上已有的 embedding 注入 ForAI 视图；没有就留空（走词法）
+		lifeagent.HydrateEntryEmbeddings(entries, entriesForAI)
+		lifeagent.HydrateLiveEmbeddings(liveUpdateRows, liveUpdatesForAI)
+
 		// Feedback-Aware Retrieval: 加载该 Agent 的聚合反馈信号
 		feedbackSignals := buildFeedbackSignals(id)
+
+		// ─── CoALA 四层记忆：感知 + 情景 + 异步回填 ───
+		embedder := lifeagent.NewEmbedderFromConfig(cfg)
+		// 本轮是会话内第几个用户回合（0-based）
+		userTurns := 0
+		for _, m := range msgs {
+			if m.Role == "user" {
+				userTurns++
+			}
+		}
+		// 感知轨迹：取本会话最近 20 条历史（不含本轮），用于算 EmotionArc 和粘性长度诉求
+		traces := lifeagent.LoadRecentPerceptualTraces(db.DB, sessionID, 20)
+		perception := lifeagent.BuildPerceptionSnapshot(body.Message, hist, traces)
+		// 情景回忆候选：严格 buyer-only，跨会话但同一 profile × buyer
+		episodes := lifeagent.LoadEpisodeCandidates(db.DB, id, user.ID, 40)
+		// 工作记忆：handler 先把元信息和感知填好，二阶段管道里再接着填 Retrieved/Strategy
+		ws := lifeagent.NewWorkingState(id, sessionID, user.ID, userTurns)
+		ws.Perception = perception
+		ws.AntiRepeat.EntryIDs = recentlyUsedEntryIDs
+
+		// 向量懒回填：异步把缺 embedding 的 entry/topic/live 写回库，不阻塞本轮回复
+		lifeagent.BackfillEmbeddingsAsync(
+			context.Background(), db.DB, embedder, id,
+			entries, topics, liveUpdateRows,
+		)
 
 		profileForAI := lifeagent.ProfileForAI{
 			DisplayName:      p.DisplayName,
@@ -2270,6 +2299,10 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 					LiveUpdates:          liveUpdatesForAI,
 					RecentlyUsedEntryIDs: recentlyUsedEntryIDs,
 					FeedbackSignals:      feedbackSignals,
+					WorkingState:         ws,
+					Embedder:             embedder,
+					Episodes:             episodes,
+					TurnIndex:            userTurns,
 				},
 			)
 		}
@@ -2297,6 +2330,26 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 		})
 		db.DB.Model(packToConsume).Update("questions_used", packToConsume.QuestionsUsed+1)
 		db.DB.Model(&models.LifeAgentChatSession{}).Where("id = ?", sessionID).Update("updated_at", db.DB.NowFunc())
+
+		// 感知轨迹异步落库：让下次回合能感知到 EmotionArc/长度粘性
+		go func(sid string, turn int, snap lifeagent.PerceptionSnapshot) {
+			if err := lifeagent.WritePerceptualTrace(context.Background(), db.DB, sid, turn, snap); err != nil {
+				log.Printf("[perceptual-trace] write failed: %v", err)
+			}
+		}(sessionID, userTurns, perception)
+
+		// 情景记忆巩固：够厚的会话才反思抽取；阈值取在"消息数 > 6"，避免每轮都 call LLM
+		if len(msgs)+2 >= 6 {
+			consolidationHist := make([]lifeagent.ChatMessageForAI, len(hist), len(hist)+2)
+			copy(consolidationHist, hist)
+			consolidationHist = append(consolidationHist, lifeagent.ChatMessageForAI{Role: "user", Content: body.Message})
+			consolidationHist = append(consolidationHist, lifeagent.ChatMessageForAI{Role: "assistant", Content: content})
+			lifeagent.ConsolidateEpisodesAsync(
+				context.Background(), db.DB, embedder,
+				cfg.OpenAIApiKey, cfg.OpenAIModel, cfg.OpenAIBaseURL,
+				id, sessionID, user.ID, consolidationHist,
+			)
+		}
 
 		// 检测低置信回答，记录为 Agent 盲区
 		go func(profileID, sid, question string, factsSnap []lifeagent.StructuredFactForAI, topicsSnap []lifeagent.TopicSummaryForAI, entriesSnap []lifeagent.KnowledgeEntryForAI, histSnap []lifeagent.ChatMessageForAI) {

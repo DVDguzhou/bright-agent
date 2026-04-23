@@ -103,6 +103,8 @@ func Init(dsn string) error {
 		&models.LifeAgentInvokeKey{},
 		&models.LifeAgentBlindSpot{},
 		&models.LifeAgentLiveUpdate{},
+		&models.LifeAgentEpisode{},
+		&models.LifeAgentPerceptualTrace{},
 	); err != nil {
 		return err
 	}

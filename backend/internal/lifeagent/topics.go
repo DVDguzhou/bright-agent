@@ -21,6 +21,8 @@ type TopicSummaryForAI struct {
 	SourceEntryIDs   []string
 	Confidence       string
 	Status           string
+	// Embedding 可选；存在则参与 hybrid RAG 的向量召回。
+	Embedding []float32
 }
 
 type topicAccumulator struct {
@@ -168,6 +170,7 @@ func BuildTopicSummariesForAI(topics []models.LifeAgentTopicSummary) []TopicSumm
 			SourceEntryIDs:   jsonArrayToStrings(topic.SourceEntryIDs),
 			Confidence:       topic.Confidence,
 			Status:           topic.Status,
+			Embedding:        DecodeVector(topic.Embedding),
 		})
 	}
 	return out

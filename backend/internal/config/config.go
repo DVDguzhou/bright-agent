@@ -20,6 +20,11 @@ type Config struct {
 	OpenAIModel        string
 	OpenAIBaseURL      string   // 可选，如 Ollama http://localhost:11434/v1 或 DashScope https://dashscope.aliyuncs.com/compatible-mode/v1
 	LLMEnableWebSearch bool     // 通义千问等 DashScope 联网搜索，仅 baseURL 为 dashscope 时生效
+	// 向量检索（语义层 RAG + 情景记忆召回）
+	EmbeddingModel   string // 默认 text-embedding-v3
+	EmbeddingBaseURL string // 默认 https://dashscope.aliyuncs.com/compatible-mode/v1
+	EmbeddingAPIKey  string // 未显式配置时复用 OPENAI_API_KEY
+	EmbeddingDim     int    // text-embedding-v3 默认 1024
 	CORSOrigins        []string // 部署后前端访问地址，如 http://8.136.119.234:3000
 	// 语音相关
 	OpenAITTSApiKey  string // OpenAI TTS 专用 Key；不填时仅在 LLM 为官方 OpenAI 端点时复用 OPENAI_API_KEY
@@ -88,6 +93,10 @@ func Load() *Config {
 		OpenAIModel:        stripOuterQuotes(getEnv("OPENAI_MODEL", "gpt-4o-mini")),
 		OpenAIBaseURL:      stripOuterQuotes(getEnv("OPENAI_BASE_URL", "")),
 		LLMEnableWebSearch: getEnv("LLM_ENABLE_WEB_SEARCH", "") == "true" || getEnv("LLM_ENABLE_WEB_SEARCH", "") == "1",
+		EmbeddingModel:     stripOuterQuotes(getEnv("EMBEDDING_MODEL", "text-embedding-v3")),
+		EmbeddingBaseURL:   stripOuterQuotes(getEnv("EMBEDDING_BASE_URL", "https://dashscope.aliyuncs.com/compatible-mode/v1")),
+		EmbeddingAPIKey:    stripOuterQuotes(getEnv("EMBEDDING_API_KEY", "")),
+		EmbeddingDim:       parseIntEnv("EMBEDDING_DIM", 1024),
 		CORSOrigins:        origins,
 		OpenAITTSApiKey:    stripOuterQuotes(getEnv("OPENAI_TTS_API_KEY", "")),
 		OpenAITTSBaseURL:   stripOuterQuotes(getEnv("OPENAI_TTS_BASE_URL", "https://api.openai.com/v1")),
@@ -250,6 +259,22 @@ func (c *Config) ResolveTTSProvider() string {
 		}
 	}
 	return ""
+}
+
+// EmbeddingEffectiveKey Embedding 调用鉴权 Key：显式 EMBEDDING_API_KEY 优先，其次复用 OPENAI_API_KEY。
+func (c *Config) EmbeddingEffectiveKey() string {
+	if k := strings.TrimSpace(c.EmbeddingAPIKey); k != "" {
+		return k
+	}
+	return strings.TrimSpace(c.OpenAIApiKey)
+}
+
+// EmbeddingEnabled 判断是否可以调用向量化接口；不可用时 RAG 自动退化为纯词法检索。
+func (c *Config) EmbeddingEnabled() bool {
+	if strings.TrimSpace(c.EmbeddingModel) == "" {
+		return false
+	}
+	return c.EmbeddingEffectiveKey() != ""
 }
 
 // DashScopeTTSEffectiveKey 百炼 TTS 使用通义 sk（OPENAI_API_KEY），勿使用 OPENAI_TTS_API_KEY（仅 OpenAI 语音用）

@@ -67,6 +67,8 @@ type KnowledgeEntryForAI struct {
 	Title    string
 	Content  string
 	Tags     []string
+	// Embedding 可选：存在则参与 hybrid RAG 的向量召回；为 nil 时自动退化为纯词法。
+	Embedding []float32
 }
 
 type ChatMessageForAI struct {
@@ -81,6 +83,7 @@ type LiveUpdateForAI struct {
 	Location  string
 	CreatedAt string
 	FreshDays int
+	Embedding []float32
 }
 
 func BuildReply(profile ProfileForAI, facts []StructuredFactForAI, topics []TopicSummaryForAI, entries []KnowledgeEntryForAI, history []ChatMessageForAI, message string) (content string, references []map[string]string) {

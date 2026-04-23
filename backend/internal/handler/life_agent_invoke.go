@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 
@@ -298,6 +299,28 @@ func LifeAgentsChatAPI(cfg *config.Config) gin.HandlerFunc {
 		}
 		factsForAI := lifeagent.BuildStructuredFactsForAI(facts)
 		topicsForAI := lifeagent.BuildTopicSummariesForAI(topics)
+
+		// ─── CoALA 四层记忆：RAG embedding 水合 + 感知/情景加载 ───
+		lifeagent.HydrateEntryEmbeddings(entries, entriesForAI)
+		embedder := lifeagent.NewEmbedderFromConfig(cfg)
+		userTurns := 0
+		for _, m := range msgs {
+			if m.Role == "user" {
+				userTurns++
+			}
+		}
+		traces := lifeagent.LoadRecentPerceptualTraces(db.DB, sessionID, 20)
+		perception := lifeagent.BuildPerceptionSnapshot(body.Message, hist, traces)
+		// 情景回忆严格 buyer-only：API 调用方统一用 LifeAgentAPICallerUserID
+		episodes := lifeagent.LoadEpisodeCandidates(db.DB, id, models.LifeAgentAPICallerUserID, 40)
+		ws := lifeagent.NewWorkingState(id, sessionID, models.LifeAgentAPICallerUserID, userTurns)
+		ws.Perception = perception
+		// API 侧懒回填：只回填 entries/topics（invoke 路径不加载 liveUpdates）
+		lifeagent.BackfillEmbeddingsAsync(
+			context.Background(), db.DB, embedder, id,
+			entries, topics, nil,
+		)
+
 		profileForAI := lifeagent.ProfileForAI{
 			DisplayName:      p.DisplayName,
 			Headline:         p.Headline,
@@ -353,6 +376,10 @@ func LifeAgentsChatAPI(cfg *config.Config) gin.HandlerFunc {
 				&lifeagent.ChatOptions{
 					SessionSummary:     sessionSummary,
 					CrossSessionMemory: crossMemory,
+					WorkingState:       ws,
+					Embedder:           embedder,
+					Episodes:           episodes,
+					TurnIndex:          userTurns,
 				},
 			)
 		}
@@ -378,6 +405,27 @@ func LifeAgentsChatAPI(cfg *config.Config) gin.HandlerFunc {
 			Refs:      refsAny,
 		})
 		db.DB.Model(&models.LifeAgentChatSession{}).Where("id = ?", sessionID).Update("updated_at", db.DB.NowFunc())
+
+		// 感知轨迹异步落库
+		go func(sid string, turn int, snap lifeagent.PerceptionSnapshot) {
+			if err := lifeagent.WritePerceptualTrace(context.Background(), db.DB, sid, turn, snap); err != nil {
+				log.Printf("[perceptual-trace] invoke write failed: %v", err)
+			}
+		}(sessionID, userTurns, perception)
+
+		// 情景巩固：消息厚度足够再反思抽取
+		if len(msgs)+2 >= 6 {
+			consolidationHist := make([]lifeagent.ChatMessageForAI, len(hist), len(hist)+2)
+			copy(consolidationHist, hist)
+			consolidationHist = append(consolidationHist, lifeagent.ChatMessageForAI{Role: "user", Content: body.Message})
+			consolidationHist = append(consolidationHist, lifeagent.ChatMessageForAI{Role: "assistant", Content: content})
+			lifeagent.ConsolidateEpisodesAsync(
+				context.Background(), db.DB, embedder,
+				cfg.OpenAIApiKey, cfg.OpenAIModel, cfg.OpenAIBaseURL,
+				id, sessionID, models.LifeAgentAPICallerUserID, consolidationHist,
+			)
+		}
+
 		// 异步生成会话摘要：消息数 > 12 时触发
 		totalMsgCount := len(msgs) + 2
 		if totalMsgCount > 12 {

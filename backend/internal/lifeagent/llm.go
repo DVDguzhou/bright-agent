@@ -802,27 +802,67 @@ func continueTruncatedDraft(ctx context.Context, client *openai.Client, model st
 // onChunk 非 nil 时，LLM token 会实时推给调用方（SSE），不再需要事后 EmitReplyChunks。
 func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model string, apiKey, baseURL string, profile ProfileForAI, facts []StructuredFactForAI, topics []TopicSummaryForAI, entries []KnowledgeEntryForAI, history []ChatMessageForAI, message string, onChunk func(string), opts *ChatOptions) (content string, references []map[string]string, err error) {
 	tStart := time.Now()
+	if opts == nil {
+		opts = &ChatOptions{}
+	}
 	var luSlice []LiveUpdateForAI
-	if opts != nil && len(opts.LiveUpdates) > 0 {
+	if len(opts.LiveUpdates) > 0 {
 		luSlice = opts.LiveUpdates
 	}
 
-	// 单次宽松检索 → 派生 entry hints + 严格版本（省掉重复的 tokenize/normalize/score 计算）
-	fullPlan := BuildRetrievalPlan(message, history, facts, topics, entries)
+	// ─── CoALA 四层记忆 · 工作记忆 ───
+	// handler 里可能已经构造好 ws（带 buyer/profile 元信息）；没有时临时兜一个，
+	// 保证老调用方也能平滑跑通（只是 BuyerID 会是空，跨会话召回就不启用）。
+	ws := opts.WorkingState
+	if ws == nil {
+		ws = NewWorkingState("", "", "", 0)
+	}
+	// 感知快照：若 handler 还没填，这里补上（基于当前 message + 最近对话）
+	if ws.Perception.Intent == "" && ws.Perception.Emotion.Type == "" {
+		ws.Perception = BuildPerceptionSnapshot(message, history, nil)
+	}
+
+	// ─── 语义层：Hybrid Retrieval（lexical + vector + 启发式 rerank） ───
+	var recentlyUsed []string
+	if opts.RecentlyUsedEntryIDs != nil {
+		recentlyUsed = opts.RecentlyUsedEntryIDs
+	}
+	fullPlan, semHits := RunHybridRetrieval(
+		ctx, opts.Embedder, message, history,
+		facts, topics, entries, luSlice, recentlyUsed,
+	)
+	ws.Retrieved.Plan = fullPlan
+	ws.Retrieved.Semantic = semHits
+
+	// ─── 情景层：buyer-only 的过往情景回忆 ───
+	if len(opts.Episodes) > 0 {
+		var antiEp []string
+		if ws.AntiRepeat.EpisodeIDs != nil {
+			antiEp = ws.AntiRepeat.EpisodeIDs
+		}
+		ws.Retrieved.Episodic = BuildEpisodeHits(
+			ctx, opts.Embedder, message,
+			ws.Perception.Intent, opts.Episodes, antiEp,
+		)
+	}
+
+	// ─── 策略层：把感知 + 画像 翻译成确定性的 PromptLengthHint + FormatRules ───
+	strategy := DeriveStrategy(ws, profile)
+	// 把 ws 回写 opts，确保 buildDraftKnowledgeContext 能读到 Perception / Episodes
+	opts.WorkingState = ws
+
 	var entryHints []string
 	for _, e := range fullPlan.Entries {
 		entryHints = append(entryHints, e.Title+"（"+e.Category+"）")
 	}
 
 	// Intent-based routing: 闲聊/打招呼直接走 Draft，跳过 Reconcile
-	chatIntent := classifyChatIntent(message)
+	chatIntent := ws.Perception.Intent
 
-	draftSystem := buildDraftSystemPrompt(profile, facts, topics, luSlice)
+	draftSystem := buildDraftSystemPrompt(profile, facts, topics, luSlice, &strategy)
 	knowledgeCtx := buildDraftKnowledgeContext(facts, topics, luSlice, entryHints, message, history, opts)
-	if opts == nil {
-		opts = &ChatOptions{}
-	}
 	opts.KnowledgeContext = knowledgeCtx
+	log.Printf("[LLM-strategy] %s", strategy.Debug)
 	draftMsgs := buildMessages(draftSystem, profile.DisplayName, history, message, opts)
 
 	promptTokens := 0
@@ -962,7 +1002,10 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 	return out, BuildRetrievalReferences(planStrict), nil
 }
 
-func buildDraftSystemPrompt(profile ProfileForAI, facts []StructuredFactForAI, topics []TopicSummaryForAI, liveUpdates []LiveUpdateForAI, entryHints ...[]string) string {
+// buildDraftSystemPrompt 构建 Layer 1-2 的 system prompt。
+// strategy 为指针，允许 nil：nil 时走旧行为（randomLengthHint），有值时把
+// Strategy.PromptLengthHint 与 Strategy.FormatRules 注入，实现"感知/策略驱动的长度与格式"。
+func buildDraftSystemPrompt(profile ProfileForAI, facts []StructuredFactForAI, topics []TopicSummaryForAI, liveUpdates []LiveUpdateForAI, strategy *Strategy, entryHints ...[]string) string {
 	var sb strings.Builder
 
 	// ═══ Layer 0: Current Time ═══
@@ -981,7 +1024,13 @@ func buildDraftSystemPrompt(profile ProfileForAI, facts []StructuredFactForAI, t
 	sb.WriteString("【口吻】\n")
 	sb.WriteString("像微信消息：禁止 Markdown（不要 # 标题、不要 - 列表、不要 ** 加粗、不要数字分点）。别起承转合写太长。\n")
 	sb.WriteString("真人聊天不会每次都面面俱到。有时候一句话就够了，有时候多说几句。不要每次都把所有相关的点全讲完——挑你最有感触的那一个点说透就好，对方想知道更多自然会追问。\n")
-	sb.WriteString(randomLengthHint())
+	// 长度锚：Strategy 提供时用 PromptLengthHint（根据用户诉求/情绪/场景推导的确定性提示），
+	// 否则降级回 randomLengthHint 随机策略，保证老调用方向后兼容。
+	if strategy != nil && strings.TrimSpace(strategy.PromptLengthHint) != "" {
+		sb.WriteString(strategy.PromptLengthHint)
+	} else {
+		sb.WriteString(randomLengthHint())
+	}
 	sb.WriteString("\n\n")
 	sb.WriteString("【人设】\n")
 	sb.WriteString("用第一人称。下面是你的全部身份信息，严格按照这些内容扮演，不要增添人设里不存在的内容：\n")
@@ -1077,6 +1126,20 @@ func buildDraftSystemPrompt(profile ProfileForAI, facts []StructuredFactForAI, t
 	sb.WriteString("例子：「这个方向我没走过，不太好说。不过我当时选的那条路是这样的……」\n")
 	sb.WriteString("永远不要泛泛而谈——宁可说少一点，也不要说一堆正确但没用的废话。\n")
 
+	// Strategy 产出的硬规则放在最底部，作为本轮不可违反的约束（恰好对应 LLM 对 prompt 末端的高注意力）。
+	if strategy != nil && len(strategy.FormatRules) > 0 {
+		sb.WriteString("\n【本轮必须遵守的格式 / 共情策略】\n")
+		for _, rule := range strategy.FormatRules {
+			rule = strings.TrimSpace(rule)
+			if rule == "" {
+				continue
+			}
+			sb.WriteString("- ")
+			sb.WriteString(rule)
+			sb.WriteString("\n")
+		}
+	}
+
 	return sb.String()
 }
 
@@ -1085,21 +1148,69 @@ func buildDraftSystemPrompt(profile ProfileForAI, facts []StructuredFactForAI, t
 func buildDraftKnowledgeContext(facts []StructuredFactForAI, topics []TopicSummaryForAI, liveUpdates []LiveUpdateForAI, entryHints []string, message string, history []ChatMessageForAI, opts *ChatOptions) string {
 	var sb strings.Builder
 
-	// 情绪语气检测 (Lightweight ToM): 检测用户当前的情绪状态，引导回答方式
-	if tone := detectUserEmotionalTone(message, history); tone.Signal != "" {
+	// 情绪 / 意图：优先用 WorkingState 里感知层已算好的结果，避免重复检测；
+	// 没有 WorkingState 时落回词典版 detectUserEmotionalTone + classifyChatIntent。
+	var tone emotionalTone
+	var intent chatIntentType
+	var arc EmotionArc
+	var meta MetaInstruction
+	if opts != nil && opts.WorkingState != nil {
+		tone = opts.WorkingState.Perception.Emotion
+		intent = opts.WorkingState.Perception.Intent
+		arc = opts.WorkingState.Perception.Arc
+		meta = opts.WorkingState.Perception.MetaInstr
+	} else {
+		tone = detectUserEmotionalTone(message, history)
+		intent = classifyChatIntent(message)
+	}
+	if tone.Signal != "" {
 		sb.WriteString("【对方当前的状态】\n")
 		sb.WriteString(tone.Signal)
 		sb.WriteString("\n")
 		sb.WriteString(tone.Guidance)
 		sb.WriteString("\n\n")
 	}
+	// EmotionArc：只在走向明确时提醒，避免噪音。
+	if arc.Trend == "worsening" {
+		sb.WriteString("【情绪走向】最近几轮对方情绪在走低，这轮优先承接感受而不是上建议。\n\n")
+	} else if arc.Trend == "improving" && arc.WindowTurns > 1 {
+		sb.WriteString("【情绪走向】最近几轮对方情绪在回稳，可以自然推进到实质内容。\n\n")
+	}
+	// 元指令兜底（长度/共情规则已进 system prompt 的 FormatRules，这里只点名具体诉求）
+	if meta.Present && meta.Raw != "" {
+		sb.WriteString("【对方这轮的明确要求】用户原话里提到「" + meta.Raw + "」，把它当硬约束。\n\n")
+	}
 
 	// 语域切换 (Register Adaptation): 根据问题类型调整回答风格
-	intent := classifyChatIntent(message)
 	if rg := registerGuidance(intent); rg != "" {
 		sb.WriteString("【这次回答的调子】\n")
 		sb.WriteString(rg)
 		sb.WriteString("\n\n")
+	}
+
+	// 情景回忆（Episodic）：把本买家历史会话中相关的记忆片段拉进 prompt，
+	// 让 Agent 有"能回忆起我们上次是怎么聊过"的连贯感。严格 buyer_only。
+	if opts != nil && opts.WorkingState != nil && len(opts.WorkingState.Retrieved.Episodic) > 0 {
+		sb.WriteString("【过往你跟 Ta 聊过这些 - 只是背景，不要照搬原话】\n")
+		for i, ep := range opts.WorkingState.Retrieved.Episodic {
+			if i >= 3 {
+				break
+			}
+			sb.WriteString("· ")
+			if ep.Title != "" {
+				sb.WriteString(ep.Title)
+				sb.WriteString("：")
+			}
+			if ep.Situation != "" {
+				sb.WriteString(ep.Situation)
+			}
+			if ep.AgentMove != "" {
+				sb.WriteString("；上次你的做法是——")
+				sb.WriteString(ep.AgentMove)
+			}
+			sb.WriteString("\n")
+		}
+		sb.WriteString("原则：如果这次问题跟上次很像，可以自然提一句「上次你说过……」建立连续感；但别把上次说过的再完整复述一遍。\n\n")
 	}
 
 	// Adaptive Prompt Injection: 把反馈信号注入 prompt，让 LLM 意识到过往问题

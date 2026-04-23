@@ -219,7 +219,11 @@ type LifeAgentKnowledgeEntry struct {
 	Content   string    `gorm:"type:text;not null" json:"content"`
 	Tags      JSONArray `gorm:"type:json" json:"tags"`
 	SortOrder int       `gorm:"column:sort_order;default:0" json:"sortOrder"`
-	CreatedAt time.Time `gorm:"column:created_at" json:"createdAt"`
+	// RAG 语义层：向量表征（float32 little-endian 序列化）。离线或按需回填，不影响现有检索。
+	Embedding  []byte     `gorm:"column:embedding;type:mediumblob" json:"-"`
+	EmbedModel *string    `gorm:"column:embed_model;size:64" json:"-"`
+	EmbedAt    *time.Time `gorm:"column:embed_at" json:"-"`
+	CreatedAt  time.Time  `gorm:"column:created_at" json:"createdAt"`
 }
 
 func (LifeAgentKnowledgeEntry) TableName() string { return "life_agent_knowledge_entries" }
@@ -256,6 +260,9 @@ type LifeAgentTopicSummary struct {
 	Status            string    `gorm:"size:16;not null;default:active" json:"status"`
 	ManualEdited      bool      `gorm:"column:manual_edited;default:false" json:"manualEdited"`
 	MergedIntoTopicID *string   `gorm:"column:merged_into_topic_id;size:36" json:"mergedIntoTopicId"`
+	Embedding         []byte     `gorm:"column:embedding;type:mediumblob" json:"-"`
+	EmbedModel        *string    `gorm:"column:embed_model;size:64" json:"-"`
+	EmbedAt           *time.Time `gorm:"column:embed_at" json:"-"`
 	CreatedAt         time.Time `gorm:"column:created_at" json:"createdAt"`
 	UpdatedAt         time.Time `gorm:"column:updated_at" json:"updatedAt"`
 }
@@ -387,10 +394,68 @@ type LifeAgentLiveUpdate struct {
 	Content   string    `gorm:"column:content;type:text;not null"`
 	Category  string    `gorm:"column:category;size:64;not null;default:general"`
 	Location  *string   `gorm:"column:location;size:255"`
-	ExpiresAt *time.Time `gorm:"column:expires_at;index"`
-	Pinned    bool      `gorm:"column:pinned;default:false"`
-	CreatedAt time.Time `gorm:"column:created_at;index"`
-	UpdatedAt time.Time `gorm:"column:updated_at"`
+	ExpiresAt  *time.Time `gorm:"column:expires_at;index"`
+	Pinned     bool       `gorm:"column:pinned;default:false"`
+	Embedding  []byte     `gorm:"column:embedding;type:mediumblob"`
+	EmbedModel *string    `gorm:"column:embed_model;size:64"`
+	EmbedAt    *time.Time `gorm:"column:embed_at"`
+	CreatedAt  time.Time  `gorm:"column:created_at;index"`
+	UpdatedAt  time.Time  `gorm:"column:updated_at"`
 }
 
 func (LifeAgentLiveUpdate) TableName() string { return "life_agent_live_updates" }
+
+// LifeAgentEpisode：从历史会话中提炼的「情景片段」。
+// 与 KnowledgeEntry 的区别：
+//   KnowledgeEntry  —— 创作者填写的抽象经验（通用、半永久）
+//   Episode         —— "这个 Agent 跟某个买家的某次会话里实际发生过什么"
+// 隐私：默认 buyer_only，不跨买家检索；未来可通过 privacy_level 支持匿名化聚合。
+type LifeAgentEpisode struct {
+	ID        string `gorm:"primaryKey;size:36"`
+	ProfileID string `gorm:"column:profile_id;size:36;not null;index"`
+	SessionID string `gorm:"column:session_id;size:36;not null;index"`
+	BuyerID   string `gorm:"column:buyer_id;size:36;not null;index"`
+
+	// 情景内容
+	// Kind 取值：experience_shared / empathy_moment / advice_given / boundary_kept /
+	//           confusion_resolved / blind_spot
+	Kind      string  `gorm:"column:kind;size:32;not null;index"`
+	Title     string  `gorm:"column:title;size:255"`
+	Situation string  `gorm:"column:situation;type:text"`
+	UserState string  `gorm:"column:user_state;type:text"`
+	AgentMove string  `gorm:"column:agent_move;type:text"`
+	Outcome   string  `gorm:"column:outcome;size:32;default:neutral"`
+	Lesson    *string `gorm:"column:lesson;type:text"`
+
+	// 索引与向量
+	TopicKeys  JSONArray  `gorm:"column:topic_keys;type:json"`
+	EntryIDs   JSONArray  `gorm:"column:entry_ids;type:json"`
+	Embedding  []byte     `gorm:"column:embedding;type:mediumblob"`
+	EmbedModel *string    `gorm:"column:embed_model;size:64"`
+	EmbedAt    *time.Time `gorm:"column:embed_at"`
+
+	// 时空 & 隐私
+	OccurredAt   time.Time `gorm:"column:occurred_at;index"`
+	PrivacyLevel string    `gorm:"column:privacy_level;size:16;default:buyer_only"`
+	CreatedAt    time.Time `gorm:"column:created_at"`
+}
+
+func (LifeAgentEpisode) TableName() string { return "life_agent_episodes" }
+
+// LifeAgentPerceptualTrace：一次会话内「用户状态」的轨迹点。
+// 不存原始消息（那是 LifeAgentChatMessage 的职责），只存被感知层翻译后的信号，
+// 让 Agent 能看到情绪/诉求的"走向"，而不是某一轮的快照。
+type LifeAgentPerceptualTrace struct {
+	ID         string    `gorm:"primaryKey;size:36"`
+	SessionID  string    `gorm:"column:session_id;size:36;not null;index"`
+	TurnIndex  int       `gorm:"column:turn_index;not null"`
+	Emotion    string    `gorm:"column:emotion;size:32"`   // neutral/anxious/confused/skeptical/frustrated
+	Intensity  string    `gorm:"column:intensity;size:16"` // low/medium/high
+	Intent     string    `gorm:"column:intent;size:32"`    // small_talk/casual_info/deep_consult
+	LengthPref string    `gorm:"column:length_pref;size:16"` // concise/neutral/elaborate
+	MetaInstr  *string   `gorm:"column:meta_instr;size:128"` // 诸如 want_detail / stop_advice
+	TopicFocus JSONArray `gorm:"column:topic_focus;type:json"`
+	CreatedAt  time.Time `gorm:"column:created_at;index"`
+}
+
+func (LifeAgentPerceptualTrace) TableName() string { return "life_agent_perceptual_traces" }
