@@ -7,11 +7,14 @@ import "leaflet.markercluster";
 import "leaflet.markercluster/dist/MarkerCluster.css";
 import { MapContainer, ScaleControl, TileLayer, Marker, useMap } from "react-leaflet";
 import { getLifeAgentLatLng, type MapCoordAgentInput } from "@/lib/life-agent-map-coords";
+import { resolveLifeAgentCoverUrl } from "@/lib/life-agent-covers";
 
 export type MapAgentMarker = MapCoordAgentInput & {
   displayName: string;
   headline?: string;
   school?: string;
+  coverImageUrl?: string | null;
+  coverPresetKey?: string | null;
 };
 
 const AVATAR_COLORS = [
@@ -34,18 +37,21 @@ function escHtml(s: string): string {
 const PIN_VB = "0 0 32 46";
 const PIN_D = "M16 44C10 34 2 26 2 16A14 14 0 1 1 30 16C30 26 22 34 16 44Z";
 
-function createAvatarPinIcon(displayName: string, highlight = false) {
-  const ch = escHtml(displayName.charAt(0));
-  const bg = avatarColor(displayName);
+let _pinClipId = 0;
+function createAvatarPinIcon(agent: MapAgentMarker, highlight = false) {
+  const bg = avatarColor(agent.displayName);
   const w = highlight ? 30 : 24;
   const h = highlight ? 43 : 34;
   const shadow = highlight
     ? "drop-shadow(0 3px 8px rgba(0,0,0,.45))"
     : "drop-shadow(0 2px 5px rgba(0,0,0,.35))";
   const ring = highlight ? `<circle cx="16" cy="16" r="14" fill="none" stroke="${bg}" stroke-width="4" opacity=".18"/>` : "";
+  const coverSrc = resolveLifeAgentCoverUrl(agent.coverImageUrl, agent.coverPresetKey);
+  const cid = `pc${++_pinClipId}`;
+  const innerContent = `<defs><clipPath id="${cid}"><circle cx="16" cy="16" r="9.5"/></clipPath></defs><image href="${escHtml(coverSrc)}" x="6.5" y="6.5" width="19" height="19" clip-path="url(#${cid})" preserveAspectRatio="xMidYMid slice"/>`;
   return L.divIcon({
     className: "life-agent-map-pin",
-    html: `<div style="filter:${shadow}"><svg width="${w}" height="${h}" viewBox="${PIN_VB}">${ring}<path d="${PIN_D}" fill="${bg}"/><circle cx="16" cy="16" r="9.5" fill="rgba(255,255,255,.94)"/><text x="16" y="16" text-anchor="middle" dominant-baseline="central" fill="${bg}" font-size="12" font-weight="700" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">${ch}</text></svg></div>`,
+    html: `<div style="filter:${shadow}"><svg width="${w}" height="${h}" viewBox="${PIN_VB}">${ring}<path d="${PIN_D}" fill="${bg}"/>${innerContent}</svg></div>`,
     iconSize: [w, h],
     iconAnchor: [w / 2, h],
   });
@@ -164,7 +170,7 @@ function ClusteredMarkers({
     const leafletMarkers = markers.map(({ agent, position }) => {
       const isHi = Boolean(highlightAgentId && agent.id === highlightAgentId);
       const m = L.marker(position, {
-        icon: createAvatarPinIcon(agent.displayName, isHi),
+        icon: createAvatarPinIcon(agent, isHi),
         zIndexOffset: isHi ? 800 : 0,
       });
       m.bindPopup(buildPopupHtml(agent), {

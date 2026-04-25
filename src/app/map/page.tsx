@@ -76,6 +76,8 @@ export default function MapPage() {
           province: typeof r.province === "string" ? r.province : undefined,
           county: typeof r.county === "string" ? r.county : undefined,
           regions: Array.isArray(r.regions) ? r.regions.filter((x: unknown): x is string => typeof x === "string") : undefined,
+          coverImageUrl: typeof r.coverImageUrl === "string" ? r.coverImageUrl : undefined,
+          coverPresetKey: typeof r.coverPresetKey === "string" ? r.coverPresetKey : undefined,
         }));
         setAgents(mapped);
         setLoadError(null);
