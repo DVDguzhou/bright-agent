@@ -5,7 +5,7 @@ services:
   backend:
     build:
       context: ./backend
-      dockerfile: ${BACKEND_DOCKERFILE:-Dockerfile.prebuilt}
+      dockerfile: ${BACKEND_DOCKERFILE:-Dockerfile}
       args:
         GO_BUILDER_IMAGE: ${GO_BUILDER_IMAGE:-docker.m.daocloud.io/library/golang:1.22-alpine}
         ALPINE_RUNTIME_IMAGE: ${ALPINE_RUNTIME_IMAGE:-docker.m.daocloud.io/library/alpine:3.19}
