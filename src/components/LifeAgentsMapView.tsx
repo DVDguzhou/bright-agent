@@ -29,21 +29,23 @@ function escHtml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
-/* Shared teardrop-pin SVG path: viewBox 0 0 40 54, circle center (20,18) r=16, tip (20,52) */
-const PIN_VB = "0 0 40 54";
-const PIN_D = "M20 52C14 40 4 30 4 18A16 16 0 1 1 36 18C36 30 26 40 20 52Z";
+/* Teardrop-pin SVG: viewBox 0 0 32 46, circle (16,16) r=14, tip (16,44).
+ * Design: colored body → white inner circle → colored text (Google/Apple Maps style). */
+const PIN_VB = "0 0 32 46";
+const PIN_D = "M16 44C10 34 2 26 2 16A14 14 0 1 1 30 16C30 26 22 34 16 44Z";
 
 function createAvatarPinIcon(displayName: string, highlight = false) {
   const ch = escHtml(displayName.charAt(0));
   const bg = avatarColor(displayName);
-  const w = highlight ? 48 : 38;
-  const h = highlight ? 65 : 51;
+  const w = highlight ? 30 : 24;
+  const h = highlight ? 43 : 34;
   const shadow = highlight
-    ? "drop-shadow(0 4px 12px rgba(124,58,237,.45)) drop-shadow(0 2px 4px rgba(0,0,0,.15))"
-    : "drop-shadow(0 3px 8px rgba(0,0,0,.3))";
+    ? "drop-shadow(0 3px 8px rgba(0,0,0,.45))"
+    : "drop-shadow(0 2px 5px rgba(0,0,0,.35))";
+  const ring = highlight ? `<circle cx="16" cy="16" r="14" fill="none" stroke="${bg}" stroke-width="4" opacity=".18"/>` : "";
   return L.divIcon({
     className: "life-agent-map-pin",
-    html: `<div style="filter:${shadow}"><svg width="${w}" height="${h}" viewBox="${PIN_VB}"><path d="${PIN_D}" fill="${bg}" stroke="#fff" stroke-width="2.5"/><text x="20" y="14" text-anchor="middle" dominant-baseline="central" fill="#fff" font-size="14" font-weight="800" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" style="text-shadow:0 1px 2px rgba(0,0,0,.22)">${ch}</text></svg></div>`,
+    html: `<div style="filter:${shadow}"><svg width="${w}" height="${h}" viewBox="${PIN_VB}">${ring}<path d="${PIN_D}" fill="${bg}"/><circle cx="16" cy="16" r="9.5" fill="rgba(255,255,255,.94)"/><text x="16" y="16" text-anchor="middle" dominant-baseline="central" fill="${bg}" font-size="12" font-weight="700" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">${ch}</text></svg></div>`,
     iconSize: [w, h],
     iconAnchor: [w / 2, h],
   });
@@ -59,17 +61,17 @@ function createUserLocationIcon() {
   });
 }
 
-/* ── Cluster pin icon (same teardrop shape, head shows count) ── */
+/* ── Cluster pin (same shape, purple body, white badge with count) ── */
 
 function avatarStackClusterIcon(cluster: L.MarkerCluster) {
   const count = cluster.getChildCount();
   const label = escHtml(count > 99 ? "99+" : String(count));
-  const w = 44;
-  const h = 59;
-  const fs = count > 99 ? 10 : count > 9 ? 12 : 14;
+  const w = 26;
+  const h = 38;
+  const fs = count > 99 ? 9 : count > 9 ? 11 : 12;
   return L.divIcon({
     className: "life-agent-map-cluster",
-    html: `<div style="filter:drop-shadow(0 4px 12px rgba(124,58,237,.45)) drop-shadow(0 2px 4px rgba(0,0,0,.12))"><svg width="${w}" height="${h}" viewBox="${PIN_VB}"><path d="${PIN_D}" fill="#7c3aed" stroke="#fff" stroke-width="2"/><text x="20" y="14" text-anchor="middle" dominant-baseline="central" fill="#fff" font-size="${fs}" font-weight="800" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">${label}</text></svg></div>`,
+    html: `<div style="filter:drop-shadow(0 3px 8px rgba(124,58,237,.5))"><svg width="${w}" height="${h}" viewBox="${PIN_VB}"><path d="${PIN_D}" fill="#7c3aed"/><circle cx="16" cy="16" r="9.5" fill="rgba(255,255,255,.94)"/><text x="16" y="16" text-anchor="middle" dominant-baseline="central" fill="#7c3aed" font-size="${fs}" font-weight="700" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">${label}</text></svg></div>`,
     iconSize: [w, h],
     iconAnchor: [w / 2, h],
   });
@@ -170,7 +172,7 @@ function ClusteredMarkers({
         className: "life-agent-map-popup",
         maxWidth: 260,
         minWidth: 180,
-        offset: [0, -46],
+        offset: [0, -28],
       });
       return m;
     });
