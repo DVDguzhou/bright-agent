@@ -280,6 +280,7 @@ export default function LifeAgentsMapView({
         center={[35, 108]}
         zoom={5}
         minZoom={3}
+        maxZoom={18}
         zoomControl={false}
         className={`z-0 w-full ${mapHeightClass} ${roundMap}`}
         style={{ background: "linear-gradient(135deg,#dbeafe,#f5d0fe)" }}
@@ -290,6 +291,7 @@ export default function LifeAgentsMapView({
         <TileLayer
           url="https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=7&x={x}&y={y}&z={z}"
           subdomains={["1", "2", "3", "4"]}
+          maxZoom={18}
         />
         <ScaleControl position="bottomleft" imperial={false} />
         <MapLayoutFit points={points} userLatLng={userLatLng ?? null} layoutNonce={mapLayoutNonce} />

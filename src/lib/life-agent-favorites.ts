@@ -140,3 +140,14 @@ export async function toggleFavoriteAgentId(id: string): Promise<boolean> {
 export function isFavoriteAgentId(id: string): boolean {
   return getFavoriteAgentIds().includes(id);
 }
+
+/** Sync serverIds from externally-fetched favorite IDs so the display filter works immediately. */
+export function syncFavoriteIdsFromFetch(ids: string[]): void {
+  if (typeof window === "undefined") return;
+  serverMode = true;
+  serverIds = ids;
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(ids.slice(0, 200)));
+  } catch { /* ignore */ }
+  window.dispatchEvent(new Event("la-favorite-change"));
+}
