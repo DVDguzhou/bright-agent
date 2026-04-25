@@ -6,7 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { MapAgentMarker } from "@/components/LifeAgentsMapView";
-import { agentCategoryColor } from "@/components/LifeAgentsMapView";
+import { agentCategoryColor } from "@/lib/life-agent-category";
 import { useAuth } from "@/contexts/AuthContext";
 import { fetchBoundLifeAgents, type BoundLifeAgent } from "@/lib/bound-life-agents";
 import { startMapGeolocationWatch, type MapGeoWatchHandle } from "@/lib/map-geolocation-watch";
