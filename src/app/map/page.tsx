@@ -287,20 +287,6 @@ export default function MapPage() {
             className="min-w-0 flex-1 bg-transparent text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none"
             enterKeyHint="search"
           />
-          <Link
-            href="/support/chat"
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-slate-600 transition active:bg-slate-100"
-            aria-label="联系客服"
-          >
-            <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3 18v-6a9 9 0 0118 0v6" />
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"
-              />
-            </svg>
-          </Link>
         </div>
       </div>
 

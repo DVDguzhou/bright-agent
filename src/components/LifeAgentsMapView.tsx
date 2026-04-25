@@ -29,26 +29,32 @@ function escHtml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
-/* Teardrop-pin SVG: viewBox 0 0 32 46, circle (16,16) r=14, tip (16,44).
- * Design: colored body → white inner circle → colored text (Google/Apple Maps style). */
-const PIN_VB = "0 0 32 46";
-const PIN_D = "M16 44C10 34 2 26 2 16A14 14 0 1 1 30 16C30 26 22 34 16 44Z";
+/* Teardrop-pin: pure HTML/CSS with <img> for cover.
+ * Design: colored circle body → white ring → cover image → colored triangular tip. */
 
-let _pinClipId = 0;
 function createAvatarPinIcon(agent: MapAgentMarker, highlight = false) {
   const bg = agentCategoryColor(agent.headline, agent.displayName);
-  const w = highlight ? 30 : 24;
-  const h = highlight ? 43 : 34;
-  const shadow = highlight
-    ? "drop-shadow(0 3px 8px rgba(0,0,0,.45))"
-    : "drop-shadow(0 2px 5px rgba(0,0,0,.35))";
-  const ring = highlight ? `<circle cx="16" cy="16" r="14" fill="none" stroke="${bg}" stroke-width="4" opacity=".18"/>` : "";
   const coverSrc = resolveLifeAgentCoverUrl(agent.coverImageUrl, agent.coverPresetKey);
-  const cid = `pc${++_pinClipId}`;
-  const innerContent = `<defs><clipPath id="${cid}"><circle cx="16" cy="16" r="9.5"/></clipPath></defs><image href="${escHtml(coverSrc)}" x="6.5" y="6.5" width="19" height="19" clip-path="url(#${cid})" preserveAspectRatio="xMidYMid slice"/>`;
+  // Sizes: circle diameter / total width, tip height, image diameter
+  const dia = highlight ? 48 : 40;
+  const tip = highlight ? 14 : 12;
+  const imgD = highlight ? 36 : 30;
+  const w = dia;
+  const h = dia + tip;
+  const border = highlight ? 3 : 2.5;
+  const shadow = highlight
+    ? "filter:drop-shadow(0 4px 10px rgba(0,0,0,.45))"
+    : "filter:drop-shadow(0 2px 6px rgba(0,0,0,.35))";
+  const ringExtra = highlight ? `box-shadow:0 0 0 4px ${bg}33;` : "";
   return L.divIcon({
     className: "life-agent-map-pin",
-    html: `<div style="filter:${shadow}"><svg width="${w}" height="${h}" viewBox="${PIN_VB}">${ring}<path d="${PIN_D}" fill="${bg}"/>${innerContent}</svg></div>`,
+    html: `<div style="width:${w}px;height:${h}px;${shadow};position:relative">`
+      + `<div style="width:${dia}px;height:${dia}px;border-radius:50%;background:${bg};display:flex;align-items:center;justify-content:center;position:relative;${ringExtra}">`
+      + `<div style="width:${imgD}px;height:${imgD}px;border-radius:50%;border:${border}px solid rgba(255,255,255,.92);overflow:hidden;flex-shrink:0">`
+      + `<img src="${escHtml(coverSrc)}" style="width:100%;height:100%;object-fit:cover;display:block" alt=""/>`
+      + `</div></div>`
+      + `<div style="width:0;height:0;border-left:${tip * 0.55}px solid transparent;border-right:${tip * 0.55}px solid transparent;border-top:${tip}px solid ${bg};position:absolute;bottom:0;left:50%;transform:translateX(-50%)"></div>`
+      + `</div>`,
     iconSize: [w, h],
     iconAnchor: [w / 2, h],
   });
@@ -69,12 +75,20 @@ function createUserLocationIcon() {
 function avatarStackClusterIcon(cluster: L.MarkerCluster) {
   const count = cluster.getChildCount();
   const label = escHtml(count > 99 ? "99+" : String(count));
-  const w = 26;
-  const h = 38;
-  const fs = count > 99 ? 9 : count > 9 ? 11 : 12;
+  const dia = 36;
+  const tip = 10;
+  const w = dia;
+  const h = dia + tip;
+  const fs = count > 99 ? 11 : count > 9 ? 13 : 14;
   return L.divIcon({
     className: "life-agent-map-cluster",
-    html: `<div style="filter:drop-shadow(0 3px 8px rgba(124,58,237,.5))"><svg width="${w}" height="${h}" viewBox="${PIN_VB}"><path d="${PIN_D}" fill="#7c3aed"/><circle cx="16" cy="16" r="9.5" fill="rgba(255,255,255,.94)"/><text x="16" y="16" text-anchor="middle" dominant-baseline="central" fill="#7c3aed" font-size="${fs}" font-weight="700" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">${label}</text></svg></div>`,
+    html: `<div style="width:${w}px;height:${h}px;filter:drop-shadow(0 3px 8px rgba(124,58,237,.5));position:relative">`
+      + `<div style="width:${dia}px;height:${dia}px;border-radius:50%;background:#7c3aed;display:flex;align-items:center;justify-content:center">`
+      + `<div style="width:${dia - 8}px;height:${dia - 8}px;border-radius:50%;background:rgba(255,255,255,.94);display:flex;align-items:center;justify-content:center">`
+      + `<span style="color:#7c3aed;font-size:${fs}px;font-weight:700;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;line-height:1">${label}</span>`
+      + `</div></div>`
+      + `<div style="width:0;height:0;border-left:${tip * 0.55}px solid transparent;border-right:${tip * 0.55}px solid transparent;border-top:${tip}px solid #7c3aed;position:absolute;bottom:0;left:50%;transform:translateX(-50%)"></div>`
+      + `</div>`,
     iconSize: [w, h],
     iconAnchor: [w / 2, h],
   });
@@ -175,7 +189,7 @@ function ClusteredMarkers({
         className: "life-agent-map-popup",
         maxWidth: 260,
         minWidth: 180,
-        offset: [0, -28],
+        offset: [0, -46],
       });
       return m;
     });
@@ -335,50 +349,8 @@ export default function LifeAgentsMapView({
 
       <MapLegend />
 
-      {onExploreArea ? (
-        <div className="pointer-events-none absolute bottom-4 left-0 right-0 z-[400] flex justify-center">
-          <button
-            type="button"
-            className="pointer-events-auto flex items-center gap-1.5 rounded-full bg-white/95 px-4 py-2 text-sm font-semibold text-slate-700 shadow-[0_4px_16px_-4px_rgba(15,23,42,.35)] ring-1 ring-black/5 backdrop-blur-md transition active:scale-95 active:bg-white"
-            onClick={() => {
-              const map = mapRef.current;
-              if (!map) return;
-              const bounds = map.getBounds();
-              const visible = agents.filter((a) => {
-                const [lat, lng] = getLifeAgentLatLng(a);
-                return bounds.contains([lat, lng]);
-              });
-              onExploreArea(visible);
-            }}
-          >
-            <svg className="h-4 w-4 text-[#7c3aed]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-            探索此区域
-          </button>
-        </div>
-      ) : null}
-
       <div className="pointer-events-none absolute inset-0 z-[400]">
         <div className="pointer-events-auto absolute right-3 top-1/2 flex -translate-y-1/2 flex-col gap-2">
-          <button
-            type="button"
-            className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/90 text-slate-700 shadow-[0_12px_30px_-16px_rgba(15,23,42,.55)] ring-1 ring-white/80 backdrop-blur-md transition active:scale-95 active:bg-white"
-            aria-label="放大"
-            onClick={() => mapRef.current?.zoomIn()}
-          >
-            <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 5v14M5 12h14" />
-            </svg>
-          </button>
-          <button
-            type="button"
-            className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/90 text-slate-700 shadow-[0_12px_30px_-16px_rgba(15,23,42,.55)] ring-1 ring-white/80 backdrop-blur-md transition active:scale-95 active:bg-white"
-            aria-label="缩小"
-            onClick={() => mapRef.current?.zoomOut()}
-          >
-            <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14" />
-            </svg>
-          </button>
           {showLocateButton ? (
             <button
               type="button"
@@ -390,6 +362,28 @@ export default function LifeAgentsMapView({
               <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden>
                 <circle cx="12" cy="12" r="3" fill="currentColor" stroke="none" />
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 5V3M12 21v-2M5 12H3M21 12h-2" />
+              </svg>
+            </button>
+          ) : null}
+          {onExploreArea ? (
+            <button
+              type="button"
+              className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/90 text-[#7c3aed] shadow-[0_12px_30px_-16px_rgba(15,23,42,.55)] ring-1 ring-white/80 backdrop-blur-md transition active:scale-95 active:bg-white"
+              aria-label="探索此区域"
+              title="探索此区域"
+              onClick={() => {
+                const map = mapRef.current;
+                if (!map) return;
+                const bounds = map.getBounds();
+                const visible = agents.filter((a) => {
+                  const [lat, lng] = getLifeAgentLatLng(a);
+                  return bounds.contains([lat, lng]);
+                });
+                onExploreArea(visible);
+              }}
+            >
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </button>
           ) : null}
