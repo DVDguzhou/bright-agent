@@ -130,7 +130,18 @@ export async function fetchFavoriteLifeAgents(signal?: AbortSignal): Promise<Lif
   const res = await fetch("/api/life-agents/favorites?include=items", { credentials: "include", signal });
   const data: unknown = await res.json().catch(() => null);
   if (!res.ok) return [];
-  return parsePublishedLifeAgentsPayload(data);
+  const items = parsePublishedLifeAgentsPayload(data);
+  if (items.length > 0 || Array.isArray(data)) return items;
+
+  const ids =
+    data && typeof data === "object" && data !== null && Array.isArray((data as { ids?: unknown }).ids)
+      ? ((data as { ids: unknown[] }).ids.filter((x): x is string => typeof x === "string"))
+      : [];
+  if (ids.length === 0) return [];
+
+  const all = await fetchAllPublishedLifeAgents(signal);
+  const byId = new Map(all.map((item) => [item.id, item]));
+  return ids.map((id) => byId.get(id)).filter(Boolean) as LifeAgentListItem[];
 }
 
 export type LifeAgentSearchResponse = {

@@ -70,7 +70,7 @@ func LifeAgentFavoritesList(cfg *config.Config) gin.HandlerFunc {
 				return
 			}
 			var profiles []models.LifeAgentProfile
-			if err := db.DB.Where("id IN ? AND published = ?", ids, true).Find(&profiles).Error; err != nil {
+			if err := db.DB.Where("id IN ?", ids).Find(&profiles).Error; err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "INTERNAL_ERROR"})
 				return
 			}
