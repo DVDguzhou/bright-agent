@@ -15,7 +15,7 @@ import {
 import { getFavoriteAgentIds } from "@/lib/life-agent-favorites";
 import { LifeAgentDiscoverCardGrid } from "@/components/LifeAgentDiscoverCardGrid";
 import { rankLifeAgentsBySearchQuery, type LifeAgentListItem } from "@/lib/life-agent-feed-search";
-import { fetchAllPublishedLifeAgents, fetchLifeAgentsPage } from "@/lib/life-agents-list-api";
+import { fetchFavoriteLifeAgents, fetchLifeAgentsPage } from "@/lib/life-agents-list-api";
 import { cleanLifeAgentIntroText } from "@/lib/life-agent-intro-clean";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLifeAgentsFeedGestures, useMobileTouchNavEnabled } from "@/hooks/use-life-agents-feed-gestures";
@@ -35,7 +35,6 @@ type PurchasedAgentRow = {
 const PURCHASED_CACHE_TTL_MS = 90_000;
 const INITIAL_VISIBLE_IMAGE_COUNT_MOBILE = 2;
 const INITIAL_VISIBLE_IMAGE_COUNT_DESKTOP = 4;
-const INITIAL_PAGE_IMAGE_GATE_TIMEOUT_MS = 900;
 
 
 type FeedTabKey = "favorites" | "discover" | "purchased";
@@ -440,7 +439,7 @@ function LifeAgentsPageContent() {
     setFavoritesLoading(true);
     setLoadError(null);
     try {
-      const all = await fetchAllPublishedLifeAgents(controller.signal);
+      const all = await fetchFavoriteLifeAgents(controller.signal);
       setFavoritesSource(all);
       setLoadError(null);
     } catch (err) {
@@ -641,32 +640,16 @@ function LifeAgentsPageContent() {
         : !discoverLoading;
 
   useEffect(() => {
-    if (initialPageReady) return;
-    if (loadError || !initialFeedDataReady) return;
-
-    const urls = initialFeedImageUrls.filter(Boolean);
-    if (urls.length === 0) {
+    if (!initialPageReady && !loadError && initialFeedDataReady) {
       setInitialPageReady(true);
-      return;
     }
+  }, [initialFeedDataReady, initialPageReady, loadError]);
 
-    let cancelled = false;
-    const timeoutId = window.setTimeout(() => {
-      if (!cancelled) setInitialPageReady(true);
-    }, INITIAL_PAGE_IMAGE_GATE_TIMEOUT_MS);
-
-    Promise.all(urls.map((url) => preloadLifeAgentCover(url))).then(() => {
-      if (!cancelled) {
-        window.clearTimeout(timeoutId);
-        setInitialPageReady(true);
-      }
-    });
-
-    return () => {
-      cancelled = true;
-      window.clearTimeout(timeoutId);
-    };
-  }, [initialFeedDataReady, initialFeedImageUrls, initialPageReady, loadError]);
+  useEffect(() => {
+    const urls = initialFeedImageUrls.filter(Boolean);
+    if (urls.length === 0) return;
+    void Promise.all(urls.map((url) => preloadLifeAgentCover(url)));
+  }, [initialFeedImageUrls]);
 
   const gridLoadingDesktop =
     feedTab === "favorites" ? favoritesLoading : feedTab === "purchased" ? false : discoverLoading;

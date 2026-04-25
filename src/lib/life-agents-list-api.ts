@@ -126,6 +126,13 @@ export async function fetchAllPublishedLifeAgents(signal?: AbortSignal): Promise
   return parsePublishedLifeAgentsPayload(data);
 }
 
+export async function fetchFavoriteLifeAgents(signal?: AbortSignal): Promise<LifeAgentListItem[]> {
+  const res = await fetch("/api/life-agents/favorites?include=items", { credentials: "include", signal });
+  const data: unknown = await res.json().catch(() => null);
+  if (!res.ok) return [];
+  return parsePublishedLifeAgentsPayload(data);
+}
+
 export type LifeAgentSearchResponse = {
   items: LifeAgentListItem[];
   nextCursor: string;

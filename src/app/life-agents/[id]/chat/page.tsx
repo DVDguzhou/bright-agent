@@ -8,6 +8,7 @@ import { LifeAgentCoverImage } from "@/components/LifeAgentCoverImage";
 import { AnimatePresence, motion } from "framer-motion";
 import { VoiceMessageBubble, VoiceMessageLoadingBubble, VoiceReplyToggle } from "@/components/voice";
 import { LifeAgentMessageComposer } from "@/components/LifeAgentMessageComposer";
+import { AgentTypingIndicator } from "@/components/AgentTypingIndicator";
 import { useAuth } from "@/contexts/AuthContext";
 import { resolveLifeAgentCoverDisplayUrl } from "@/lib/life-agent-covers";
 import {
@@ -898,6 +899,8 @@ export default function LifeAgentChatPage() {
                           </div>
                           <p className="whitespace-pre-wrap">{message.content || ""}</p>
                         </div>
+                      ) : message.role === "assistant" && !message.content.trim() && loading ? (
+                        <AgentTypingIndicator />
                       ) : (
                         <div className="space-y-3">
                           <p className="whitespace-pre-wrap">{message.content}</p>

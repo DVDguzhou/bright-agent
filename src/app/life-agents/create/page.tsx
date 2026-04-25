@@ -15,6 +15,7 @@ import {
 import { VoiceRecordPanel } from "@/components/voice";
 import { LifeAgentMessageComposer } from "@/components/LifeAgentMessageComposer";
 import { LifeAgentCoverPicker } from "@/components/LifeAgentCoverPicker";
+import { AgentTypingIndicator } from "@/components/AgentTypingIndicator";
 import {
   clearLifeAgentCreateDraft,
   loadLifeAgentCreateDraft,
@@ -1296,7 +1297,11 @@ export default function CreateLifeAgentPage() {
                     </div>
                   ) : null}
                   <div className={getChatBubbleClassName(msg.role)}>
-                    <p className="whitespace-pre-wrap">{msg.content}</p>
+                    {msg.role === "assistant" && !msg.content.trim() && chatLoading ? (
+                      <AgentTypingIndicator />
+                    ) : (
+                      <p className="whitespace-pre-wrap">{msg.content}</p>
+                    )}
                   </div>
                   {msg.role === "user" ? (
                     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#FFF176] to-[#FF80AB] text-xs font-bold text-slate-900 shadow-sm ring-2 ring-white">
@@ -1414,7 +1419,11 @@ export default function CreateLifeAgentPage() {
                     </div>
                   ) : null}
                   <div className={getChatBubbleClassName(msg.role)}>
-                    <p className="whitespace-pre-wrap">{msg.content}</p>
+                    {msg.role === "assistant" && !msg.content.trim() && experienceLoading ? (
+                      <AgentTypingIndicator />
+                    ) : (
+                      <p className="whitespace-pre-wrap">{msg.content}</p>
+                    )}
                   </div>
                   {msg.role === "user" ? (
                     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#FFF176] to-[#FF80AB] text-xs font-bold text-slate-900 shadow-sm ring-2 ring-white">

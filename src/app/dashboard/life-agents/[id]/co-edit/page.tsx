@@ -4,6 +4,7 @@ import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } fro
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { LifeAgentMessageComposer } from "@/components/LifeAgentMessageComposer";
+import { AgentTypingIndicator } from "@/components/AgentTypingIndicator";
 import { WeflowImportGuide } from "@/components/WeflowImportGuide";
 import {
   buildPatchPayloadFromProfile,
@@ -669,7 +670,11 @@ export default function LifeAgentCoEditPage() {
                   </div>
                 ) : null}
                 <div className={getChatBubbleClassName(item.role)}>
-                  <p className="whitespace-pre-wrap">{item.content}</p>
+                  {item.role === "assistant" && !item.content.trim() && (modifyLoading || importLoading) ? (
+                    <AgentTypingIndicator />
+                  ) : (
+                    <p className="whitespace-pre-wrap">{item.content}</p>
+                  )}
                 </div>
                 {item.role === "user" ? (
                   <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#FFF176] to-[#FF80AB] text-xs font-bold text-slate-900 shadow-sm ring-2 ring-white">

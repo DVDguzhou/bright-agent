@@ -14,8 +14,6 @@ export type MapAgentMarker = MapCoordAgentInput & {
   school?: string;
 };
 
-const ACCENT = "#0091ff";
-
 const AVATAR_COLORS = [
   "#0091ff", "#6366f1", "#8b5cf6", "#ec4899", "#f43f5e",
   "#f97316", "#eab308", "#22c55e", "#14b8a6", "#06b6d4",
@@ -34,15 +32,15 @@ function escHtml(s: string): string {
 function createAvatarPinIcon(displayName: string, highlight = false) {
   const ch = displayName.charAt(0);
   const bg = avatarColor(displayName);
-  const sz = highlight ? 40 : 32;
-  const font = highlight ? 16 : 14;
-  const border = highlight ? `3px solid #fff` : `2.5px solid #fff`;
+  const sz = highlight ? 44 : 36;
+  const font = highlight ? 17 : 14;
+  const border = highlight ? `3px solid rgba(255,255,255,.96)` : `2.5px solid rgba(255,255,255,.94)`;
   const shadow = highlight
-    ? `0 0 0 3px ${ACCENT}66, 0 2px 10px rgba(0,0,0,.3)`
-    : `0 1px 6px rgba(0,0,0,.25)`;
+    ? `0 0 0 5px rgba(124,58,237,.2), 0 14px 30px rgba(76,29,149,.32), 0 4px 10px rgba(15,23,42,.18)`
+    : `0 10px 22px rgba(15,23,42,.2), 0 2px 6px rgba(15,23,42,.14)`;
   return L.divIcon({
     className: "life-agent-map-pin",
-    html: `<div style="width:${sz}px;height:${sz}px;border-radius:50%;background:${bg};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:${font}px;border:${border};box-shadow:${shadow};letter-spacing:-0.5px;user-select:none">${escHtml(ch)}</div>`,
+    html: `<div style="position:relative;width:${sz}px;height:${sz}px;border-radius:50%;background:linear-gradient(145deg,rgba(255,255,255,.3),rgba(255,255,255,0) 32%),${bg};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:${font}px;border:${border};box-shadow:${shadow};letter-spacing:-0.5px;user-select:none;transform:translateZ(0)"><span style="position:absolute;inset:-5px;border-radius:999px;background:${bg};opacity:${highlight ? ".18" : "0"};filter:blur(8px)"></span><span style="position:relative;text-shadow:0 1px 3px rgba(0,0,0,.22)">${escHtml(ch)}</span></div>`,
     iconSize: [sz, sz],
     iconAnchor: [sz / 2, sz / 2],
   });
@@ -83,8 +81,8 @@ function avatarStackClusterIcon(cluster: L.MarkerCluster) {
   const names = collectFirstNames(cluster, 4);
   const showCount = Math.min(names.length, count <= 4 ? count : 3);
 
-  const sz = 30;
-  const overlap = 12;
+  const sz = 34;
+  const overlap = 13;
   const totalW = sz + (showCount - 1) * (sz - overlap);
 
   let avatars = "";
@@ -93,11 +91,11 @@ function avatarStackClusterIcon(cluster: L.MarkerCluster) {
     const bg = avatarColor(names[i]);
     const left = i * (sz - overlap);
     const zi = showCount - i + 1;
-    avatars += `<div style="position:absolute;left:${left}px;top:0;z-index:${zi};width:${sz}px;height:${sz}px;border-radius:50%;background:${bg};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;border:2.5px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.18);user-select:none">${ch}</div>`;
+    avatars += `<div style="position:absolute;left:${left}px;top:0;z-index:${zi};width:${sz}px;height:${sz}px;border-radius:50%;background:linear-gradient(145deg,rgba(255,255,255,.28),rgba(255,255,255,0) 34%),${bg};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;border:2.5px solid rgba(255,255,255,.96);box-shadow:0 8px 18px rgba(15,23,42,.18);user-select:none;text-shadow:0 1px 2px rgba(0,0,0,.18)">${ch}</div>`;
   }
 
   return L.divIcon({
-    html: `<div style="position:relative;width:${totalW}px;height:${sz}px">${avatars}</div>`,
+    html: `<div style="position:relative;width:${totalW}px;height:${sz}px"><span style="position:absolute;inset:-7px;border-radius:999px;background:rgba(124,58,237,.12);filter:blur(10px)"></span>${avatars}</div>`,
     className: "life-agent-map-cluster",
     iconSize: L.point(totalW, sz),
     iconAnchor: L.point(totalW / 2, sz / 2),
@@ -110,16 +108,16 @@ function buildPopupHtml(agent: MapAgentMarker): string {
   const name = escHtml(agent.displayName);
   const school = agent.school ? escHtml(agent.school) : "";
   const headline = agent.headline ? escHtml(agent.headline).slice(0, 60) : "";
-  return `<div style="min-width:180px;max-width:240px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif">
-  <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-    <div style="width:36px;height:36px;border-radius:50%;background:${bg};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex-shrink:0">${ch}</div>
+  return `<div style="min-width:210px;max-width:260px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:2px">
+  <div style="display:flex;align-items:center;gap:11px;margin-bottom:10px">
+    <div style="width:42px;height:42px;border-radius:16px;background:linear-gradient(145deg,rgba(255,255,255,.32),rgba(255,255,255,0) 34%),${bg};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;flex-shrink:0;box-shadow:0 10px 20px rgba(15,23,42,.14)">${ch}</div>
     <div style="min-width:0">
-      <div style="font-weight:700;font-size:14px;color:#1e293b;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${name}</div>
+      <div style="font-weight:800;font-size:15px;color:#111827;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${name}</div>
       ${school ? `<div style="font-size:12px;color:#64748b;line-height:1.3;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${school}</div>` : ""}
     </div>
   </div>
-  ${headline ? `<div style="font-size:12px;color:#475569;line-height:1.5;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:8px">${headline}</div>` : ""}
-  <a href="/life-agents/${agent.id}" style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;color:${ACCENT};text-decoration:none">
+  ${headline ? `<div style="font-size:12px;color:#475569;line-height:1.55;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:11px">${headline}</div>` : ""}
+  <a href="/life-agents/${agent.id}" style="display:inline-flex;align-items:center;justify-content:center;gap:5px;width:100%;border-radius:999px;background:linear-gradient(135deg,#7c3aed,#ec4899);padding:9px 12px;font-size:12px;font-weight:800;color:#fff;text-decoration:none;box-shadow:0 10px 20px rgba(124,58,237,.22)">
     查看主页
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
   </a>
@@ -270,12 +268,12 @@ export default function LifeAgentsMapView({
 
   const points = useMemo(() => markers.map((m) => m.position), [markers]);
 
-  const ring = rounded ? "rounded-2xl ring-1 ring-slate-200/80" : "";
-  const roundMap = rounded ? "rounded-2xl" : "";
+  const ring = rounded ? "rounded-[28px] ring-1 ring-white/70 shadow-[0_24px_70px_-36px_rgba(15,23,42,.55)]" : "";
+  const roundMap = rounded ? "rounded-[28px]" : "";
 
   return (
     <div
-      className={`relative overflow-hidden ${ring} [&_.life-agent-map-pin]:!border-0 [&_.life-agent-map-pin]:!bg-transparent [&_.life-agent-map-cluster]:!border-0 [&_.life-agent-map-cluster]:!bg-transparent [&_.life-agent-map-user-loc]:!border-0 [&_.life-agent-map-user-loc]:!bg-transparent [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!rounded-xl [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!shadow-lg [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!ring-1 [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!ring-black/5 [&_.life-agent-map-popup_.leaflet-popup-tip]:!shadow-lg ${className}`}
+      className={`relative overflow-hidden bg-gradient-to-br from-sky-100 via-violet-50 to-fuchsia-100 ${ring} [&_.leaflet-container]:!font-sans [&_.leaflet-control-scale-line]:!rounded-full [&_.leaflet-control-scale-line]:!border-0 [&_.leaflet-control-scale-line]:!bg-white/80 [&_.leaflet-control-scale-line]:!px-2 [&_.leaflet-control-scale-line]:!text-[10px] [&_.leaflet-control-scale-line]:!text-slate-500 [&_.life-agent-map-pin]:!border-0 [&_.life-agent-map-pin]:!bg-transparent [&_.life-agent-map-cluster]:!border-0 [&_.life-agent-map-cluster]:!bg-transparent [&_.life-agent-map-user-loc]:!border-0 [&_.life-agent-map-user-loc]:!bg-transparent [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!rounded-[24px] [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!bg-white/95 [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!p-3 [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!shadow-[0_24px_60px_-24px_rgba(15,23,42,.45)] [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!ring-1 [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!ring-white/80 [&_.life-agent-map-popup_.leaflet-popup-tip]:!bg-white/95 [&_.life-agent-map-popup_.leaflet-popup-tip]:!shadow-lg ${className}`}
       style={rounded ? { minHeight: "min(62dvh, 520px)" } : { minHeight: "100%" }}
     >
       <MapContainer
@@ -284,7 +282,7 @@ export default function LifeAgentsMapView({
         minZoom={3}
         zoomControl={false}
         className={`z-0 w-full ${mapHeightClass} ${roundMap}`}
-        style={{ background: "#abcdef" }}
+        style={{ background: "linear-gradient(135deg,#dbeafe,#f5d0fe)" }}
         scrollWheelZoom
         attributionControl={false}
       >
@@ -309,11 +307,13 @@ export default function LifeAgentsMapView({
         ) : null}
       </MapContainer>
 
+      <div className="pointer-events-none absolute inset-0 z-[350] bg-[radial-gradient(circle_at_18%_14%,rgba(255,255,255,.55),transparent_28%),radial-gradient(circle_at_82%_22%,rgba(216,180,254,.28),transparent_30%),linear-gradient(to_bottom,rgba(255,255,255,.18),transparent_28%,rgba(15,23,42,.05))]" />
+
       <div className="pointer-events-none absolute inset-0 z-[400]">
         <div className="pointer-events-auto absolute right-3 top-1/2 flex -translate-y-1/2 flex-col gap-2">
           <button
             type="button"
-            className="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-slate-700 shadow-md ring-1 ring-black/5 transition active:scale-95 active:bg-slate-50"
+            className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/90 text-slate-700 shadow-[0_12px_30px_-16px_rgba(15,23,42,.55)] ring-1 ring-white/80 backdrop-blur-md transition active:scale-95 active:bg-white"
             aria-label="放大"
             onClick={() => mapRef.current?.zoomIn()}
           >
@@ -323,7 +323,7 @@ export default function LifeAgentsMapView({
           </button>
           <button
             type="button"
-            className="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-slate-700 shadow-md ring-1 ring-black/5 transition active:scale-95 active:bg-slate-50"
+            className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/90 text-slate-700 shadow-[0_12px_30px_-16px_rgba(15,23,42,.55)] ring-1 ring-white/80 backdrop-blur-md transition active:scale-95 active:bg-white"
             aria-label="缩小"
             onClick={() => mapRef.current?.zoomOut()}
           >
@@ -334,7 +334,7 @@ export default function LifeAgentsMapView({
           {showLocateButton ? (
             <button
               type="button"
-              className="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-[#0091ff] shadow-md ring-1 ring-black/5 transition active:scale-95 active:bg-slate-50"
+              className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/90 text-[#7c3aed] shadow-[0_12px_30px_-16px_rgba(15,23,42,.55)] ring-1 ring-white/80 backdrop-blur-md transition active:scale-95 active:bg-white"
               aria-label="位置与绑定 Agent"
               title="位置与绑定 Agent"
               onClick={() => onLocatePress?.()}

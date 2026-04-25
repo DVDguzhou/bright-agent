@@ -20,8 +20,8 @@ import (
 	"github.com/agent-marketplace/backend/internal/lifeagent"
 	"github.com/agent-marketplace/backend/internal/middleware"
 	"github.com/agent-marketplace/backend/internal/models"
-	"github.com/agent-marketplace/backend/internal/yantuseed"
 	"github.com/agent-marketplace/backend/internal/tts"
+	"github.com/agent-marketplace/backend/internal/yantuseed"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -1029,26 +1029,44 @@ func LifeAgentsPurchased(cfg *config.Config) gin.HandlerFunc {
 		var packs []models.LifeAgentQuestionPack
 		db.DB.Where("buyer_id = ? AND status = ?", user.ID, "paid").Order("created_at DESC").Find(&packs)
 		seen := make(map[string]bool)
+		profileIDs := make([]string, 0, len(packs))
+		remainingMap := make(map[string]int)
 		var resp []gin.H
 		for _, pk := range packs {
+			remainingMap[pk.ProfileID] += pk.QuestionCount - pk.QuestionsUsed
 			if seen[pk.ProfileID] {
 				continue
 			}
 			seen[pk.ProfileID] = true
+			profileIDs = append(profileIDs, pk.ProfileID)
+		}
+		if len(profileIDs) == 0 {
+			c.JSON(http.StatusOK, resp)
+			return
+		}
+		var profiles []models.LifeAgentProfile
+		if err := db.DB.Where("id IN ?", profileIDs).Find(&profiles).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "INTERNAL_ERROR"})
+			return
+		}
+		profileMap := make(map[string]models.LifeAgentProfile, len(profiles))
+		for _, p := range profiles {
+			profileMap[p.ID] = p
+		}
+		for _, profileID := range profileIDs {
 			var p models.LifeAgentProfile
-			if db.DB.Where("id = ?", pk.ProfileID).First(&p).Error != nil {
+			var ok bool
+			p, ok = profileMap[profileID]
+			if !ok {
 				continue
 			}
-			var remaining int
-			db.DB.Raw("SELECT COALESCE(SUM(question_count - questions_used), 0) FROM life_agent_question_packs WHERE profile_id = ? AND buyer_id = ? AND status = ?",
-				pk.ProfileID, user.ID, "paid").Scan(&remaining)
 			cu := lifeAgentCoverURL(&p)
 			resp = append(resp, gin.H{
 				"id":                 p.ID,
 				"displayName":        p.DisplayName,
 				"headline":           p.Headline,
 				"pricePerQuestion":   p.PricePerQuestion,
-				"remainingQuestions": remaining,
+				"remainingQuestions": remainingMap[profileID],
 				"verificationStatus": coalesceVerificationStatus(p.VerificationStatus),
 				"coverImageUrl":      ptrStr(p.CoverImageURL),
 				"coverPresetKey":     ptrStr(p.CoverPresetKey),
@@ -2434,7 +2452,7 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 						"audio_duration_sec": dur,
 					})
 					writeSSE("audio_ready", gin.H{
-						"audioUrl":        url,
+						"audioUrl":         url,
 						"audioDurationSec": dur,
 					})
 				}
