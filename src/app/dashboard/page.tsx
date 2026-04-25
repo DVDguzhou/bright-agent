@@ -117,6 +117,17 @@ export default function DashboardPage() {
       ),
     },
     {
+      href: "/life-agents?tab=favorites",
+      label: "我的收藏",
+      desc: "喜欢的 Agent",
+      bgClass: "bg-rose-100",
+      icon: (
+        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+        </svg>
+      ),
+    },
+    {
       href: "/dashboard/api-keys",
       label: "开发能力",
       desc: "API Key",
@@ -234,7 +245,7 @@ export default function DashboardPage() {
       </section>
 
       <section className="rounded-[28px] bg-white px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
-        <div className="grid grid-cols-2 gap-3 text-center sm:grid-cols-4 sm:gap-2">
+        <div className="grid grid-cols-3 gap-3 text-center sm:grid-cols-5 sm:gap-2">
           {quickActions.map((item) => (
             <Link key={item.label} href={item.href} className="group block rounded-2xl px-1 py-2 active:scale-[0.99]">
               <div className="mx-auto flex w-full flex-col items-center">

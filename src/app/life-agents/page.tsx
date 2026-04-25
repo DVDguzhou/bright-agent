@@ -61,14 +61,12 @@ const UI = {
 } as const;
 
 function tabIndexFromFeedTab(tab: string | null): number {
-  if (tab === "favorites") return 0;
-  if (tab === "purchased") return 2;
-  return 1;
+  if (tab === "purchased") return 1;
+  return 0;
 }
 
 function pathForTabIndex(i: number): string {
-  if (i === 0) return "/life-agents?tab=favorites";
-  if (i === 2) return "/life-agents?tab=purchased";
+  if (i === 1) return "/life-agents?tab=purchased";
   return "/life-agents";
 }
 
@@ -99,7 +97,7 @@ function feedTabIndexFromScrollEl(el: HTMLDivElement, panels: readonly (HTMLElem
     if (cx >= L && cx < R) return i;
   }
   const w = el.clientWidth;
-  return Math.min(2, Math.max(0, Math.round(el.scrollLeft / Math.max(1, w))));
+  return Math.min(panels.length - 1, Math.max(0, Math.round(el.scrollLeft / Math.max(1, w))));
 }
 
 function feedPagerProgress(
@@ -225,8 +223,8 @@ function LifeAgentsPageContent() {
 
   const [visitedMask, setVisitedMask] = useState(() => 1 << tabIndexFromFeedTab(feedTab));
   const pagerRef = useRef<HTMLDivElement>(null);
-  /** 横向三屏 DOM，用于按真实几何滚动（避免仅用 clientWidth 乘 index 对不齐） */
-  const feedPanelElsRef = useRef<(HTMLElement | null)[]>([null, null, null]);
+  /** 横向两屏 DOM，用于按真实几何滚动（避免仅用 clientWidth 乘 index 对不齐） */
+  const feedPanelElsRef = useRef<(HTMLElement | null)[]>([null, null]);
   const [panelWidth, setPanelWidth] = useState(0);
   /** 程序化 scrollTo 完成前关闭 snap，避免 snap-mandatory 把位置吸回第一屏 */
   const [feedPagerSnapEnabled, setFeedPagerSnapEnabled] = useState(false);
@@ -491,12 +489,8 @@ function LifeAgentsPageContent() {
       await loadPurchasedList({ force: true, background: purchasedFetched || purchasedUnauthorized || purchasedItems.length > 0 });
       return;
     }
-    if (feedTab === "favorites") {
-      await loadFavoritesFullList();
-      return;
-    }
     await refreshDiscover();
-  }, [feedTab, loadFavoritesFullList, loadPurchasedList, refreshDiscover, purchasedFetched, purchasedUnauthorized, purchasedItems.length]);
+  }, [feedTab, loadPurchasedList, refreshDiscover, purchasedFetched, purchasedUnauthorized, purchasedItems.length]);
 
   const { pullOffset, refreshing: pullRefreshing } = useLifeAgentsFeedGestures({
     enabled: true,
@@ -511,15 +505,15 @@ function LifeAgentsPageContent() {
   }, []);
 
   useEffect(() => {
-    if ((visitedMask & 4) === 0) return;
+    if ((visitedMask & 2) === 0) return;
     if (!touchNavEnabled && feedTab !== "purchased") return;
     const hasSnapshot = purchasedFetched || purchasedUnauthorized || purchasedItems.length > 0;
     void loadPurchasedList({ background: hasSnapshot });
-  }, [visitedMask & 4, touchNavEnabled, feedTab, loadPurchasedList, purchasedFetched, purchasedUnauthorized, purchasedItems.length]);
+  }, [visitedMask & 2, touchNavEnabled, feedTab, loadPurchasedList, purchasedFetched, purchasedUnauthorized, purchasedItems.length]);
 
   useEffect(() => {
-    if ((visitedMask & 2) === 0) return;
-    if (!touchNavEnabled && (feedTab === "favorites" || feedTab === "purchased")) {
+    if ((visitedMask & 1) === 0) return;
+    if (!touchNavEnabled && feedTab === "purchased") {
       setDiscoverLoading(false);
       return;
     }
@@ -555,14 +549,13 @@ function LifeAgentsPageContent() {
       clearTimeout(timeoutId);
       controller.abort();
     };
-  }, [visitedMask & 2, touchNavEnabled, feedTab]);
+  }, [visitedMask & 1, touchNavEnabled, feedTab]);
 
   useEffect(() => {
-    if ((visitedMask & 1) === 0) return;
-    if (!touchNavEnabled && feedTab !== "favorites") return;
+    if (feedTab !== "favorites") return;
     if (favoritesFetched) return;
     void loadFavoritesFullList();
-  }, [visitedMask & 1, touchNavEnabled, feedTab, favoritesFetched, loadFavoritesFullList]);
+  }, [feedTab, favoritesFetched, loadFavoritesFullList]);
 
   useEffect(() => {
     window.scrollTo({ top: 0 });
@@ -633,10 +626,10 @@ function LifeAgentsPageContent() {
   }, [displayProfilesDiscover, displayProfilesFavorites, initialFeedTab, initialVisibleImageCount, purchasedItems]);
 
   const initialFeedDataReady =
-    initialFeedTab === "favorites"
-      ? favoritesFetched
-      : initialFeedTab === "purchased"
-        ? purchasedFetched || purchasedUnauthorized
+    initialFeedTab === "purchased"
+      ? purchasedFetched || purchasedUnauthorized
+      : initialFeedTab === "favorites"
+        ? favoritesFetched
         : !discoverLoading;
 
   useEffect(() => {
@@ -797,28 +790,6 @@ function LifeAgentsPageContent() {
                 feedPanelElsRef.current[0] = node;
               }}
               className={pagerSectionClass}
-              aria-label="收藏"
-            >
-              {favoritesIntro}
-              {favoritesHeading}
-              <LifeAgentDiscoverCardGrid
-                profiles={displayProfilesFavorites}
-                loading={favoritesLoading}
-                emptyTitle={loadError ? "加载失败" : "暂无收藏"}
-                emptySubtitle={
-                  loadError
-                    ? "请确认 Go 后端已启动（默认端口 8080），或刷新页面重试"
-                    : "去「发现」逛逛，在喜欢的 Agent 详情页点亮收藏。"
-                }
-                windowResetKey="favorites"
-                virtualized={false}
-              />
-            </section>
-            <section
-              ref={(node) => {
-                feedPanelElsRef.current[1] = node;
-              }}
-              className={pagerSectionClass}
               aria-label="发现"
             >
               <LifeAgentDiscoverCardGrid
@@ -837,7 +808,7 @@ function LifeAgentsPageContent() {
             </section>
             <section
               ref={(node) => {
-                feedPanelElsRef.current[2] = node;
+                feedPanelElsRef.current[1] = node;
               }}
               className={pagerSectionClass}
               aria-label="已购买"

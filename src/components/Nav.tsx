@@ -485,7 +485,7 @@ export function Nav() {
 
   const feedTab = searchParams.get("tab");
   const isFeedDiscover = isDiscoverEntryPage && !feedTab;
-  const isFeedFavorites = isDiscoverEntryPage && feedTab === "favorites";
+  const isPostsCreatePage = pathname === "/posts/create";
   const isFeedPurchased = isDiscoverEntryPage && feedTab === "purchased";
   const isDashboardHomePage = pathname === "/dashboard";
   const primaryOwnedLifeAgent = ownedLifeAgents?.[0] ?? null;
@@ -493,22 +493,17 @@ export function Nav() {
   const shouldShowLoadingFab = Boolean(user && ownedLifeAgents === null);
 
   const touchFeedPager = useMobileTouchNavEnabled() && isDiscoverEntryPage;
-  const feedTabFavRef = useRef<HTMLAnchorElement | null>(null);
   const feedTabDiscRef = useRef<HTMLAnchorElement | null>(null);
   const feedTabPurRef = useRef<HTMLAnchorElement | null>(null);
   const [feedTabUnderlineX, setFeedTabUnderlineX] = useState<number | null>(null);
 
   const updateFeedUnderlineFromProgress = useCallback((progress: number) => {
-    const fav = feedTabFavRef.current;
     const disc = feedTabDiscRef.current;
     const pur = feedTabPurRef.current;
-    if (!fav || !disc || !pur) return;
-    const a = fav.offsetLeft + fav.offsetWidth / 2;
-    const b = disc.offsetLeft + disc.offsetWidth / 2;
-    const c = pur.offsetLeft + pur.offsetWidth / 2;
-    let x: number;
-    if (progress <= 1) x = a + (b - a) * progress;
-    else x = b + (c - b) * (progress - 1);
+    if (!disc || !pur) return;
+    const a = disc.offsetLeft + disc.offsetWidth / 2;
+    const b = pur.offsetLeft + pur.offsetWidth / 2;
+    const x = a + (b - a) * Math.min(1, Math.max(0, progress));
     setFeedTabUnderlineX(x);
   }, []);
 
@@ -528,7 +523,7 @@ export function Nav() {
 
   useLayoutEffect(() => {
     if (!touchFeedPager) return;
-    const idx = feedTab === "favorites" ? 0 : feedTab === "purchased" ? 2 : 1;
+    const idx = feedTab === "purchased" ? 1 : 0;
     updateFeedUnderlineFromProgress(idx);
   }, [touchFeedPager, feedTab, updateFeedUnderlineFromProgress]);
 
@@ -690,13 +685,11 @@ export function Nav() {
                   />
                 ) : null}
                 <Link
-                  ref={feedTabFavRef}
-                  href="/life-agents?tab=favorites"
-                  className={`relative ${feedTabClass(isFeedFavorites)}`}
-                  scroll={false}
+                  href="/posts/create"
+                  className={`relative ${feedTabClass(isPostsCreatePage)}`}
                 >
-                  收藏
-                  {!touchFeedPager && isFeedFavorites ? (
+                  发帖
+                  {isPostsCreatePage ? (
                     <span className="absolute bottom-0 left-1 right-1 h-0.5 rounded-full bg-gradient-to-r from-[#FF80AB] to-[#BA68C8]" aria-hidden />
                   ) : null}
                 </Link>
