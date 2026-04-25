@@ -486,6 +486,7 @@ export function Nav() {
   const feedTab = searchParams.get("tab");
   const isFeedDiscover = isDiscoverEntryPage && !feedTab;
   const isPostsCreatePage = pathname === "/posts/create";
+  const isPostsPage = pathname === "/posts";
   const isFeedPurchased = isDiscoverEntryPage && feedTab === "purchased";
   const isDashboardHomePage = pathname === "/dashboard";
   const primaryOwnedLifeAgent = ownedLifeAgents?.[0] ?? null;
@@ -685,11 +686,11 @@ export function Nav() {
                   />
                 ) : null}
                 <Link
-                  href="/posts/create"
-                  className={`relative ${feedTabClass(isPostsCreatePage)}`}
+                  href="/posts"
+                  className={`relative ${feedTabClass(isPostsPage)}`}
                 >
-                  发帖
-                  {isPostsCreatePage ? (
+                  动态
+                  {isPostsPage ? (
                     <span className="absolute bottom-0 left-1 right-1 h-0.5 rounded-full bg-gradient-to-r from-[#FF80AB] to-[#BA68C8]" aria-hidden />
                   ) : null}
                 </Link>
