@@ -152,9 +152,7 @@ function MapLayoutFit({
   return null;
 }
 
-/* ── Clustered markers (hidden at low zoom, visible when zoomed in) ── */
-
-const MARKER_SHOW_ZOOM = 5;
+/* ── Clustered markers (always visible; markercluster handles grouping) ── */
 
 function ClusteredMarkers({
   markers,
@@ -165,7 +163,6 @@ function ClusteredMarkers({
 }) {
   const map = useMap();
   const clusterRef = useRef<L.MarkerClusterGroup | null>(null);
-  const visibleRef = useRef(false);
 
   useEffect(() => {
     const group = L.markerClusterGroup({
@@ -198,25 +195,10 @@ function ClusteredMarkers({
 
     group.addLayers(leafletMarkers);
     clusterRef.current = group;
-    visibleRef.current = false;
-
-    function syncVisibility() {
-      const shouldShow = map.getZoom() >= MARKER_SHOW_ZOOM;
-      if (shouldShow && !visibleRef.current) {
-        map.addLayer(group);
-        visibleRef.current = true;
-      } else if (!shouldShow && visibleRef.current) {
-        map.removeLayer(group);
-        visibleRef.current = false;
-      }
-    }
-
-    map.on("zoomend", syncVisibility);
-    syncVisibility();
+    map.addLayer(group);
 
     return () => {
-      map.off("zoomend", syncVisibility);
-      if (visibleRef.current) map.removeLayer(group);
+      map.removeLayer(group);
       clusterRef.current = null;
     };
   }, [map, markers, highlightAgentId]);
