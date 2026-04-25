@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { MapAgentMarker } from "@/components/LifeAgentsMapView";
+import { agentCategoryColor } from "@/components/LifeAgentsMapView";
 import { useAuth } from "@/contexts/AuthContext";
 import { fetchBoundLifeAgents, type BoundLifeAgent } from "@/lib/bound-life-agents";
 import { startMapGeolocationWatch, type MapGeoWatchHandle } from "@/lib/map-geolocation-watch";
@@ -17,6 +18,7 @@ import {
   writeMapShareProfileId,
 } from "@/lib/map-gps-storage";
 import { cleanLifeAgentIntroText } from "@/lib/life-agent-intro-clean";
+import { resolveLifeAgentCoverUrl } from "@/lib/life-agent-covers";
 
 const LifeAgentsMapView = dynamic(() => import("@/components/LifeAgentsMapView"), {
   ssr: false,
@@ -44,19 +46,21 @@ export default function MapPage() {
   const geoWatchRef = useRef<MapGeoWatchHandle | null>(null);
   const firstGeoFitRef = useRef(false);
   const [sheetPortalReady, setSheetPortalReady] = useState(false);
+  const [exploreAgents, setExploreAgents] = useState<MapAgentMarker[]>([]);
+  const [exploreOpen, setExploreOpen] = useState(false);
 
   useEffect(() => {
     setSheetPortalReady(true);
   }, []);
 
   useEffect(() => {
-    if (!sheetOpen) return;
+    if (!sheetOpen && !exploreOpen) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = prev;
     };
-  }, [sheetOpen]);
+  }, [sheetOpen, exploreOpen]);
 
   useEffect(() => {
     setSelectedProfileId(readMapShareProfileId());
@@ -222,6 +226,12 @@ export default function MapPage() {
   const openSheet = useCallback(() => setSheetOpen(true), []);
   const closeSheet = useCallback(() => setSheetOpen(false), []);
 
+  const handleExploreArea = useCallback((visible: MapAgentMarker[]) => {
+    setExploreAgents(visible);
+    setExploreOpen(true);
+  }, []);
+  const closeExplore = useCallback(() => setExploreOpen(false), []);
+
   const pickAgent = (id: string) => {
     setGeoError(null);
     setSelectedProfileId(id);
@@ -329,6 +339,7 @@ export default function MapPage() {
             highlightAgentId={highlightId}
             userLatLng={userLatLng}
             onLocatePress={openSheet}
+            onExploreArea={handleExploreArea}
             showLocateButton
             mapHeightClass="h-[calc(100dvh-env(safe-area-inset-bottom)-7.5rem)] min-h-[320px] sm:h-[min(72vh,640px)]"
             rounded={false}
@@ -533,6 +544,104 @@ export default function MapPage() {
                         完成
                       </button>
                       <p className="pb-1 text-center text-xs text-slate-400">也可点击上方空白处关闭</p>
+                    </div>
+                  </motion.div>
+                </>
+              ) : null}
+            </AnimatePresence>,
+            document.body
+          )
+        : null}
+
+      {sheetPortalReady
+        ? createPortal(
+            <AnimatePresence>
+              {exploreOpen ? (
+                <>
+                  <motion.button
+                    key="explore-backdrop"
+                    type="button"
+                    aria-label="关闭"
+                    className="fixed inset-0 z-[10000] bg-black/40"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    onClick={closeExplore}
+                  />
+                  <motion.div
+                    key="explore-panel"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="explore-sheet-title"
+                    className="fixed inset-x-0 bottom-0 z-[10001] flex max-h-[min(80dvh,600px)] flex-col rounded-t-3xl bg-white shadow-2xl ring-1 ring-black/5"
+                    initial={{ y: "100%" }}
+                    animate={{ y: 0 }}
+                    exit={{ y: "100%" }}
+                    transition={{ type: "spring", damping: 28, stiffness: 320 }}
+                  >
+                    <div className="shrink-0 px-4 pb-2 pt-3">
+                      <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-slate-200" />
+                      <div className="flex items-center justify-between">
+                        <h2 id="explore-sheet-title" className="text-lg font-bold text-slate-900">
+                          此区域的 Agent
+                        </h2>
+                        <span className="text-sm text-slate-400">{exploreAgents.length} 个</span>
+                      </div>
+                    </div>
+
+                    <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+                      {exploreAgents.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center px-6 py-12 text-center">
+                          <p className="text-sm text-slate-500">当前视野内暂无 Agent</p>
+                          <p className="mt-1 text-xs text-slate-400">试试缩小地图或移动到其他区域</p>
+                        </div>
+                      ) : (
+                        <div className="divide-y divide-slate-100">
+                          {exploreAgents.map((a) => {
+                            const coverSrc = resolveLifeAgentCoverUrl(a.coverImageUrl, a.coverPresetKey);
+                            const catColor = agentCategoryColor(a.headline, a.displayName);
+                            return (
+                              <Link
+                                key={a.id}
+                                href={`/life-agents/${encodeURIComponent(a.id)}`}
+                                className="flex items-center gap-3 px-4 py-3 transition active:bg-slate-50"
+                                onClick={closeExplore}
+                              >
+                                <img
+                                  src={coverSrc}
+                                  alt=""
+                                  className="h-14 w-14 shrink-0 rounded-2xl bg-slate-100 object-cover"
+                                />
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="inline-block h-2 w-2 shrink-0 rounded-full" style={{ background: catColor }} />
+                                    <span className="truncate text-sm font-semibold text-slate-900">{a.displayName}</span>
+                                  </div>
+                                  {a.headline ? (
+                                    <p className="mt-0.5 line-clamp-2 text-xs leading-relaxed text-slate-500">
+                                      {cleanLifeAgentIntroText(a.headline, a.displayName)}
+                                    </p>
+                                  ) : null}
+                                  {a.school ? (
+                                    <p className="mt-0.5 truncate text-[11px] text-slate-400">{a.school}</p>
+                                  ) : null}
+                                </div>
+                                <svg className="h-4 w-4 shrink-0 text-slate-300" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="shrink-0 border-t border-slate-100 bg-white px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3">
+                      <button
+                        type="button"
+                        className="w-full rounded-2xl bg-[#111] py-3.5 text-sm font-semibold text-white active:opacity-90"
+                        onClick={closeExplore}
+                      >
+                        关闭
+                      </button>
                     </div>
                   </motion.div>
                 </>

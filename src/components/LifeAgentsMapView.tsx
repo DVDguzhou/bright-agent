@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet.markercluster";
@@ -17,15 +17,72 @@ export type MapAgentMarker = MapCoordAgentInput & {
   coverPresetKey?: string | null;
 };
 
-const AVATAR_COLORS = [
-  "#0091ff", "#6366f1", "#8b5cf6", "#ec4899", "#f43f5e",
-  "#f97316", "#eab308", "#22c55e", "#14b8a6", "#06b6d4",
+/* ── Agent 内容分类 → 别针颜色 ──
+ * 根据 headline / displayName 关键词匹配确定分类，Agent 更新后颜色自动变化。 */
+const AGENT_CATEGORIES: { color: string; kw: string[] }[] = [
+  { color: "#3b82f6",  kw: ["学习","考研","留学","高考","教育","课程","辅导","考试","托福","雅思","论文","学术","科研","读博","硕士","本科","GRE","SAT","IELTS","TOEFL","考公","公务员","保研","考博","备考","复习","培训","家教","申请","招生","奖学金"] },               // 学习 Education
+  { color: "#0891b2",  kw: ["就业","求职","面试","简历","职场","招聘","实习","跳槽","薪资","HR","猎头","职业","入职","转行","offer","校招","社招","秋招","春招","内推","裁员","劳动"] },                                                                                   // 就业 Career
+  { color: "#f59e0b",  kw: ["创业","融资","投资","商业","CEO","合伙","股权","估值","风投","天使","孵化","副业","开店","个体户","商业模式","盈利","营收","自媒体","品牌","营销","私域"] },                                                                                    // 创业 Startup
+  { color: "#6366f1",  kw: ["科技","编程","代码","AI","人工智能","互联网","软件","硬件","开发","程序","IT","区块链","Web","前端","后端","算法","数据","机器学习","深度学习","产品经理","技术","芯片","半导体","云计算","大模型","AGI","GPT","LLM","网络安全"] },                  // 科技 Tech
+  { color: "#14b8a6",  kw: ["金融","理财","基金","股票","期货","保险","银行","贷款","外汇","加密","比特币","会计","审计","税务","经济","券商","信托","财务","CFA","CPA","投行","风控"] },                                                                                    // 金融 Finance
+  { color: "#10b981",  kw: ["旅游","旅行","出游","自驾","攻略","签证","机票","酒店","民宿","度假","背包","露营","穷游","出境","入境","漫游","航线","邮轮"] },                                                                                                               // 旅游 Travel
+  { color: "#f97316",  kw: ["美食","做饭","烹饪","餐厅","小吃","菜谱","烘焙","咖啡","料理","厨艺","吃货","探店","外卖","火锅","烧烤","甜品","面包","酒吧","茶艺","品酒"] },                                                                                                  // 美食 Food
+  { color: "#06b6d4",  kw: ["景点","名胜","古迹","博物馆","展览","文化遗产","寺庙","古城","园林","故宫","长城","古镇","世界遗产"] },                                                                                                                                        // 景点 Attractions
+  { color: "#ec4899",  kw: ["购物","代购","时尚","穿搭","品牌","奢侈品","折扣","优惠","美妆","护肤","化妆","服饰","包包","鞋","潮牌","中古","买手","海淘"] },                                                                                                                // 购物 Shopping
+  { color: "#22c55e",  kw: ["运动","健身","跑步","篮球","足球","游泳","瑜伽","马拉松","户外","登山","骑行","滑雪","网球","羽毛球","体育","拳击","攀岩","冲浪","跳绳","减脂","增肌"] },                                                                                        // 运动 Sports
+  { color: "#e11d48",  kw: ["情感","恋爱","婚姻","分手","两性","亲子","育儿","婚恋","相亲","脱单","挽回","家庭","夫妻","离婚","复合","暧昧","约会","备孕","怀孕","产后","带娃","早教"] },                                                                                     // 情感 Emotion
+  { color: "#a855f7",  kw: ["八卦","娱乐","明星","综艺","电影","电视","音乐","追星","网红","直播","游戏","动漫","影视","剧集","小说","漫画","手游","电竞","二次元","短视频","Vlog","UP主"] },                                                                                 // 八卦 Entertainment
+  { color: "#ef4444",  kw: ["医疗","健康","医院","医生","疾病","药物","养生","保健","营养","中医","心理健康","抑郁","焦虑","失眠","康复","理疗","体检","口腔","眼科","皮肤","过敏","疫苗"] },                                                                                  // 医疗 Health
+  { color: "#84cc16",  kw: ["房产","买房","租房","装修","房价","二手房","新房","物业","家居","家装","软装","验房","贷款买房","公积金","学区房","房东","租客"] },                                                                                                                // 房产 Real Estate
+  { color: "#64748b",  kw: ["法律","律师","合同","诉讼","维权","知识产权","专利","劳动法","法规","仲裁","公证","遗嘱","离婚诉讼","商标","版权","刑事","民事"] },                                                                                                              // 法律 Legal
+  { color: "#d946ef",  kw: ["艺术","设计","画画","摄影","书法","舞蹈","乐器","创作","手工","陶艺","绘画","插画","UI","平面","视觉","美术","素描","水彩","油画","钢琴","吉他","声乐","表演"] },                                                                                 // 艺术 Art
+  { color: "#f472b6",  kw: ["宠物","养宠","萌宠","猫咪","狗狗","猫粮","狗粮","宠物医院","遛狗","猫砂","水族","爬宠","仓鼠","兔子","鹦鹉"] },                                                                                                                                 // 宠物 Pets
+  { color: "#0ea5e9",  kw: ["汽车","驾照","买车","二手车","新能源","电动车","驾驶","修车","车险","提车","试驾","特斯拉","比亚迪","充电桩","加油","洗车","改装"] },                                                                                                              // 汽车 Auto
+  { color: "#65a30d",  kw: ["农业","种植","养殖","农村","乡村","三农","有机","农产品","果园","牧场","渔业","花卉","园艺","盆栽"] },                                                                                                                                           // 农业 Agriculture
+  { color: "#475569",  kw: ["政务","政策","政府","公共","社区","公益","慈善","志愿","环保","碳中和","新政","民生","社保","医保","户口","落户","居住证"] },                                                                                                                      // 政务 Government
 ];
+const DEFAULT_CATEGORY_COLOR = "#8b5cf6"; // 生活 Lifestyle（未匹配到分类时的默认色）
+
+export const LEGEND_ITEMS: { label: string; color: string }[] = [
+  { label: "学习", color: "#3b82f6" },
+  { label: "就业", color: "#0891b2" },
+  { label: "创业", color: "#f59e0b" },
+  { label: "科技", color: "#6366f1" },
+  { label: "金融", color: "#14b8a6" },
+  { label: "旅游", color: "#10b981" },
+  { label: "美食", color: "#f97316" },
+  { label: "景点", color: "#06b6d4" },
+  { label: "购物", color: "#ec4899" },
+  { label: "运动", color: "#22c55e" },
+  { label: "情感", color: "#e11d48" },
+  { label: "娱乐", color: "#a855f7" },
+  { label: "医疗", color: "#ef4444" },
+  { label: "房产", color: "#84cc16" },
+  { label: "法律", color: "#64748b" },
+  { label: "艺术", color: "#d946ef" },
+  { label: "宠物", color: "#f472b6" },
+  { label: "汽车", color: "#0ea5e9" },
+  { label: "农业", color: "#65a30d" },
+  { label: "政务", color: "#475569" },
+  { label: "生活", color: DEFAULT_CATEGORY_COLOR },
+];
+
+export function agentCategoryColor(headline?: string | null, displayName?: string | null): string {
+  const text = `${headline ?? ""} ${displayName ?? ""}`;
+  if (!text.trim()) return DEFAULT_CATEGORY_COLOR;
+  for (const cat of AGENT_CATEGORIES) {
+    for (const kw of cat.kw) {
+      if (text.includes(kw)) return cat.color;
+    }
+  }
+  return DEFAULT_CATEGORY_COLOR;
+}
 
 function avatarColor(name: string): string {
   let h = 0;
   for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) | 0;
-  return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length];
+  const palette = ["#0091ff","#6366f1","#8b5cf6","#ec4899","#f43f5e","#f97316","#eab308","#22c55e","#14b8a6","#06b6d4"];
+  return palette[Math.abs(h) % palette.length];
 }
 
 function escHtml(s: string): string {
@@ -39,7 +96,7 @@ const PIN_D = "M16 44C10 34 2 26 2 16A14 14 0 1 1 30 16C30 26 22 34 16 44Z";
 
 let _pinClipId = 0;
 function createAvatarPinIcon(agent: MapAgentMarker, highlight = false) {
-  const bg = avatarColor(agent.displayName);
+  const bg = agentCategoryColor(agent.headline, agent.displayName);
   const w = highlight ? 30 : 24;
   const h = highlight ? 43 : 34;
   const shadow = highlight
@@ -211,6 +268,49 @@ function ClusteredMarkers({
   return null;
 }
 
+/* ── Legend panel ── */
+
+function MapLegend() {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="pointer-events-none absolute bottom-3 left-3 z-[400]">
+      {open ? (
+        <div className="pointer-events-auto max-h-[45dvh] w-52 overflow-y-auto rounded-2xl bg-white/92 p-3 shadow-[0_12px_30px_-16px_rgba(15,23,42,.55)] ring-1 ring-white/80 backdrop-blur-md">
+          <div className="mb-2 flex items-center justify-between">
+            <span className="text-xs font-semibold text-slate-600">分类图例</span>
+            <button
+              type="button"
+              className="rounded-lg p-0.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+              onClick={() => setOpen(false)}
+              aria-label="收起图例"
+            >
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+          </div>
+          <div className="grid grid-cols-3 gap-x-1 gap-y-1.5">
+            {LEGEND_ITEMS.map((it) => (
+              <div key={it.label} className="flex items-center gap-1">
+                <span className="inline-block h-2.5 w-2.5 flex-shrink-0 rounded-full" style={{ background: it.color }} />
+                <span className="truncate text-[10px] leading-tight text-slate-600">{it.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <button
+          type="button"
+          className="pointer-events-auto flex h-9 w-9 items-center justify-center rounded-xl bg-white/90 text-slate-500 shadow-[0_8px_20px_-10px_rgba(15,23,42,.45)] ring-1 ring-white/80 backdrop-blur-md transition hover:text-slate-700 active:scale-95"
+          onClick={() => setOpen(true)}
+          aria-label="显示图例"
+          title="分类图例"
+        >
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12" /></svg>
+        </button>
+      )}
+    </div>
+  );
+}
+
 /* ── Main component ── */
 
 type Props = {
@@ -219,6 +319,7 @@ type Props = {
   highlightAgentId?: string | null;
   userLatLng?: { lat: number; lng: number } | null;
   onLocatePress?: () => void;
+  onExploreArea?: (agents: MapAgentMarker[]) => void;
   showLocateButton?: boolean;
   mapHeightClass?: string;
   rounded?: boolean;
@@ -231,6 +332,7 @@ export default function LifeAgentsMapView({
   highlightAgentId = null,
   userLatLng = null,
   onLocatePress,
+  onExploreArea,
   showLocateButton = true,
   mapHeightClass = "h-[min(62dvh,520px)]",
   rounded = true,
@@ -290,6 +392,30 @@ export default function LifeAgentsMapView({
       </MapContainer>
 
       <div className="pointer-events-none absolute inset-0 z-[350] bg-[radial-gradient(circle_at_18%_14%,rgba(255,255,255,.55),transparent_28%),radial-gradient(circle_at_82%_22%,rgba(216,180,254,.28),transparent_30%),linear-gradient(to_bottom,rgba(255,255,255,.18),transparent_28%,rgba(15,23,42,.05))]" />
+
+      <MapLegend />
+
+      {onExploreArea ? (
+        <div className="pointer-events-none absolute bottom-4 left-0 right-0 z-[400] flex justify-center">
+          <button
+            type="button"
+            className="pointer-events-auto flex items-center gap-1.5 rounded-full bg-white/95 px-4 py-2 text-sm font-semibold text-slate-700 shadow-[0_4px_16px_-4px_rgba(15,23,42,.35)] ring-1 ring-black/5 backdrop-blur-md transition active:scale-95 active:bg-white"
+            onClick={() => {
+              const map = mapRef.current;
+              if (!map) return;
+              const bounds = map.getBounds();
+              const visible = agents.filter((a) => {
+                const [lat, lng] = getLifeAgentLatLng(a);
+                return bounds.contains([lat, lng]);
+              });
+              onExploreArea(visible);
+            }}
+          >
+            <svg className="h-4 w-4 text-[#7c3aed]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+            探索此区域
+          </button>
+        </div>
+      ) : null}
 
       <div className="pointer-events-none absolute inset-0 z-[400]">
         <div className="pointer-events-auto absolute right-3 top-1/2 flex -translate-y-1/2 flex-col gap-2">
