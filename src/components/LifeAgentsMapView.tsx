@@ -29,20 +29,23 @@ function escHtml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
+/* Shared teardrop-pin SVG path: viewBox 0 0 40 54, circle center (20,18) r=16, tip (20,52) */
+const PIN_VB = "0 0 40 54";
+const PIN_D = "M20 52C14 40 4 30 4 18A16 16 0 1 1 36 18C36 30 26 40 20 52Z";
+
 function createAvatarPinIcon(displayName: string, highlight = false) {
-  const ch = displayName.charAt(0);
+  const ch = escHtml(displayName.charAt(0));
   const bg = avatarColor(displayName);
-  const sz = highlight ? 44 : 36;
-  const font = highlight ? 17 : 14;
-  const border = highlight ? `3px solid rgba(255,255,255,.96)` : `2.5px solid rgba(255,255,255,.94)`;
+  const w = highlight ? 48 : 38;
+  const h = highlight ? 65 : 51;
   const shadow = highlight
-    ? `0 0 0 5px rgba(124,58,237,.2), 0 14px 30px rgba(76,29,149,.32), 0 4px 10px rgba(15,23,42,.18)`
-    : `0 10px 22px rgba(15,23,42,.2), 0 2px 6px rgba(15,23,42,.14)`;
+    ? "drop-shadow(0 4px 12px rgba(124,58,237,.45)) drop-shadow(0 2px 4px rgba(0,0,0,.15))"
+    : "drop-shadow(0 3px 8px rgba(0,0,0,.3))";
   return L.divIcon({
     className: "life-agent-map-pin",
-    html: `<div style="position:relative;width:${sz}px;height:${sz}px;border-radius:50%;background:linear-gradient(145deg,rgba(255,255,255,.3),rgba(255,255,255,0) 32%),${bg};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:${font}px;border:${border};box-shadow:${shadow};letter-spacing:-0.5px;user-select:none;transform:translateZ(0)"><span style="position:absolute;inset:-5px;border-radius:999px;background:${bg};opacity:${highlight ? ".18" : "0"};filter:blur(8px)"></span><span style="position:relative;text-shadow:0 1px 3px rgba(0,0,0,.22)">${escHtml(ch)}</span></div>`,
-    iconSize: [sz, sz],
-    iconAnchor: [sz / 2, sz / 2],
+    html: `<div style="filter:${shadow}"><svg width="${w}" height="${h}" viewBox="${PIN_VB}"><path d="${PIN_D}" fill="${bg}" stroke="#fff" stroke-width="2.5"/><text x="20" y="14" text-anchor="middle" dominant-baseline="central" fill="#fff" font-size="14" font-weight="800" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" style="text-shadow:0 1px 2px rgba(0,0,0,.22)">${ch}</text></svg></div>`,
+    iconSize: [w, h],
+    iconAnchor: [w / 2, h],
   });
 }
 
@@ -56,49 +59,19 @@ function createUserLocationIcon() {
   });
 }
 
-/* ── Avatar-stack cluster icon ── */
-
-function collectFirstNames(cluster: L.MarkerCluster, n: number): string[] {
-  const names: string[] = [];
-  function walk(c: unknown) {
-    if (names.length >= n) return;
-    const node = c as { _markers?: L.Marker[]; _childClusters?: unknown[] };
-    for (const m of node._markers ?? []) {
-      if (names.length >= n) return;
-      names.push((m as unknown as { _agentDisplayName?: string })._agentDisplayName ?? "?");
-    }
-    for (const sub of node._childClusters ?? []) {
-      if (names.length >= n) return;
-      walk(sub);
-    }
-  }
-  walk(cluster);
-  return names;
-}
+/* ── Cluster pin icon (same teardrop shape, head shows count) ── */
 
 function avatarStackClusterIcon(cluster: L.MarkerCluster) {
   const count = cluster.getChildCount();
-  const names = collectFirstNames(cluster, 4);
-  const showCount = Math.min(names.length, count <= 4 ? count : 3);
-
-  const sz = 34;
-  const overlap = 13;
-  const totalW = sz + (showCount - 1) * (sz - overlap);
-
-  let avatars = "";
-  for (let i = 0; i < showCount; i++) {
-    const ch = escHtml(names[i].charAt(0));
-    const bg = avatarColor(names[i]);
-    const left = i * (sz - overlap);
-    const zi = showCount - i + 1;
-    avatars += `<div style="position:absolute;left:${left}px;top:0;z-index:${zi};width:${sz}px;height:${sz}px;border-radius:50%;background:linear-gradient(145deg,rgba(255,255,255,.28),rgba(255,255,255,0) 34%),${bg};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;border:2.5px solid rgba(255,255,255,.96);box-shadow:0 8px 18px rgba(15,23,42,.18);user-select:none;text-shadow:0 1px 2px rgba(0,0,0,.18)">${ch}</div>`;
-  }
-
+  const label = escHtml(count > 99 ? "99+" : String(count));
+  const w = 44;
+  const h = 59;
+  const fs = count > 99 ? 10 : count > 9 ? 12 : 14;
   return L.divIcon({
-    html: `<div style="position:relative;width:${totalW}px;height:${sz}px"><span style="position:absolute;inset:-7px;border-radius:999px;background:rgba(124,58,237,.12);filter:blur(10px)"></span>${avatars}</div>`,
     className: "life-agent-map-cluster",
-    iconSize: L.point(totalW, sz),
-    iconAnchor: L.point(totalW / 2, sz / 2),
+    html: `<div style="filter:drop-shadow(0 4px 12px rgba(124,58,237,.45)) drop-shadow(0 2px 4px rgba(0,0,0,.12))"><svg width="${w}" height="${h}" viewBox="${PIN_VB}"><path d="${PIN_D}" fill="#7c3aed" stroke="#fff" stroke-width="2"/><text x="20" y="14" text-anchor="middle" dominant-baseline="central" fill="#fff" font-size="${fs}" font-weight="800" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">${label}</text></svg></div>`,
+    iconSize: [w, h],
+    iconAnchor: [w / 2, h],
   });
 }
 
@@ -192,13 +165,12 @@ function ClusteredMarkers({
         icon: createAvatarPinIcon(agent.displayName, isHi),
         zIndexOffset: isHi ? 800 : 0,
       });
-      (m as unknown as { _agentDisplayName: string })._agentDisplayName = agent.displayName;
       m.bindPopup(buildPopupHtml(agent), {
         closeButton: false,
         className: "life-agent-map-popup",
         maxWidth: 260,
         minWidth: 180,
-        offset: [0, -8],
+        offset: [0, -46],
       });
       return m;
     });
