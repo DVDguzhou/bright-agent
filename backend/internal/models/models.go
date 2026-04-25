@@ -157,12 +157,12 @@ type LifeAgentProfile struct {
 	PricePerQuestion     int       `gorm:"column:price_per_question;default:990"`
 	ExpertiseTags        JSONArray `gorm:"column:expertise_tags;type:json"`
 	SampleQuestions      JSONArray `gorm:"column:sample_questions;type:json"`
-	Education            *string   `gorm:"column:education;size:128"` // 学历
-	Income               *string   `gorm:"column:income;size:64"`     // 收入
-	Job                  *string   `gorm:"column:job;size:255"`       // 工作
-	School               *string   `gorm:"column:school;size:255"`    // 学校
-	OriginalAuthor       *string   `gorm:"column:original_author;size:128"` // 原作者真实姓名/笔名
-	Source               *string   `gorm:"column:source;size:255"`          // 内容来源
+	Education            *string   `gorm:"column:education;size:128"`         // 学历
+	Income               *string   `gorm:"column:income;size:64"`             // 收入
+	Job                  *string   `gorm:"column:job;size:255"`               // 工作
+	School               *string   `gorm:"column:school;size:255"`            // 学校
+	OriginalAuthor       *string   `gorm:"column:original_author;size:128"`   // 原作者真实姓名/笔名
+	Source               *string   `gorm:"column:source;size:255"`            // 内容来源
 	IsGenerated          bool      `gorm:"column:is_generated;default:false"` // 是否自动生成
 	Country              *string   `gorm:"column:country;size:64"`
 	Province             *string   `gorm:"column:province;size:64"`
@@ -246,25 +246,25 @@ type LifeAgentStructuredFact struct {
 func (LifeAgentStructuredFact) TableName() string { return "life_agent_structured_facts" }
 
 type LifeAgentTopicSummary struct {
-	ID                string    `gorm:"primaryKey;size:36" json:"id"`
-	ProfileID         string    `gorm:"column:profile_id;size:36;not null;index" json:"-"`
-	TopicGroup        string    `gorm:"column:topic_group;size:64;not null;index" json:"topicGroup"`
-	TopicKey          string    `gorm:"column:topic_key;size:128;not null;index" json:"topicKey"`
-	TopicLabel        string    `gorm:"column:topic_label;size:255;not null" json:"topicLabel"`
-	Summary           string    `gorm:"type:text;not null" json:"summary"`
-	Aliases           JSONArray `gorm:"type:json" json:"aliases"`
-	QuestionPatterns  JSONArray `gorm:"column:question_patterns;type:json" json:"questionPatterns"`
-	SourceEntryIDs    JSONArray `gorm:"column:source_entry_ids;type:json" json:"sourceEntryIds"`
-	Source            string    `gorm:"size:16;not null;default:knowledge" json:"source"`
-	Confidence        string    `gorm:"size:16;not null;default:medium" json:"confidence"`
-	Status            string    `gorm:"size:16;not null;default:active" json:"status"`
-	ManualEdited      bool      `gorm:"column:manual_edited;default:false" json:"manualEdited"`
-	MergedIntoTopicID *string   `gorm:"column:merged_into_topic_id;size:36" json:"mergedIntoTopicId"`
+	ID                string     `gorm:"primaryKey;size:36" json:"id"`
+	ProfileID         string     `gorm:"column:profile_id;size:36;not null;index" json:"-"`
+	TopicGroup        string     `gorm:"column:topic_group;size:64;not null;index" json:"topicGroup"`
+	TopicKey          string     `gorm:"column:topic_key;size:128;not null;index" json:"topicKey"`
+	TopicLabel        string     `gorm:"column:topic_label;size:255;not null" json:"topicLabel"`
+	Summary           string     `gorm:"type:text;not null" json:"summary"`
+	Aliases           JSONArray  `gorm:"type:json" json:"aliases"`
+	QuestionPatterns  JSONArray  `gorm:"column:question_patterns;type:json" json:"questionPatterns"`
+	SourceEntryIDs    JSONArray  `gorm:"column:source_entry_ids;type:json" json:"sourceEntryIds"`
+	Source            string     `gorm:"size:16;not null;default:knowledge" json:"source"`
+	Confidence        string     `gorm:"size:16;not null;default:medium" json:"confidence"`
+	Status            string     `gorm:"size:16;not null;default:active" json:"status"`
+	ManualEdited      bool       `gorm:"column:manual_edited;default:false" json:"manualEdited"`
+	MergedIntoTopicID *string    `gorm:"column:merged_into_topic_id;size:36" json:"mergedIntoTopicId"`
 	Embedding         []byte     `gorm:"column:embedding;type:mediumblob" json:"-"`
 	EmbedModel        *string    `gorm:"column:embed_model;size:64" json:"-"`
 	EmbedAt           *time.Time `gorm:"column:embed_at" json:"-"`
-	CreatedAt         time.Time `gorm:"column:created_at" json:"createdAt"`
-	UpdatedAt         time.Time `gorm:"column:updated_at" json:"updatedAt"`
+	CreatedAt         time.Time  `gorm:"column:created_at" json:"createdAt"`
+	UpdatedAt         time.Time  `gorm:"column:updated_at" json:"updatedAt"`
 }
 
 func (LifeAgentTopicSummary) TableName() string { return "life_agent_topic_summaries" }
@@ -375,25 +375,25 @@ type LifeAgentRating struct {
 func (LifeAgentRating) TableName() string { return "life_agent_ratings" }
 
 type LifeAgentBlindSpot struct {
-	ID            string    `gorm:"primaryKey;size:36"`
-	ProfileID     string    `gorm:"column:profile_id;size:36;not null;index"`
-	SessionID     string    `gorm:"column:session_id;size:36;not null"`
-	UserQuestion  string    `gorm:"column:user_question;type:text;not null"`
-	Confidence    string    `gorm:"column:confidence;size:16;not null"`
-	Route         string    `gorm:"column:route;size:32"`
-	Reasons       JSONAny   `gorm:"column:reasons;type:json"`
-	Resolved      bool      `gorm:"column:resolved;default:false"`
-	CreatedAt     time.Time `gorm:"column:created_at"`
+	ID           string    `gorm:"primaryKey;size:36"`
+	ProfileID    string    `gorm:"column:profile_id;size:36;not null;index"`
+	SessionID    string    `gorm:"column:session_id;size:36;not null"`
+	UserQuestion string    `gorm:"column:user_question;type:text;not null"`
+	Confidence   string    `gorm:"column:confidence;size:16;not null"`
+	Route        string    `gorm:"column:route;size:32"`
+	Reasons      JSONAny   `gorm:"column:reasons;type:json"`
+	Resolved     bool      `gorm:"column:resolved;default:false"`
+	CreatedAt    time.Time `gorm:"column:created_at"`
 }
 
 func (LifeAgentBlindSpot) TableName() string { return "life_agent_blind_spots" }
 
 type LifeAgentLiveUpdate struct {
-	ID        string    `gorm:"primaryKey;size:36"`
-	ProfileID string    `gorm:"column:profile_id;size:36;not null;index"`
-	Content   string    `gorm:"column:content;type:text;not null"`
-	Category  string    `gorm:"column:category;size:64;not null;default:general"`
-	Location  *string   `gorm:"column:location;size:255"`
+	ID         string     `gorm:"primaryKey;size:36"`
+	ProfileID  string     `gorm:"column:profile_id;size:36;not null;index"`
+	Content    string     `gorm:"column:content;type:text;not null"`
+	Category   string     `gorm:"column:category;size:64;not null;default:general"`
+	Location   *string    `gorm:"column:location;size:255"`
 	ExpiresAt  *time.Time `gorm:"column:expires_at;index"`
 	Pinned     bool       `gorm:"column:pinned;default:false"`
 	Embedding  []byte     `gorm:"column:embedding;type:mediumblob"`
@@ -407,8 +407,10 @@ func (LifeAgentLiveUpdate) TableName() string { return "life_agent_live_updates"
 
 // LifeAgentEpisode：从历史会话中提炼的「情景片段」。
 // 与 KnowledgeEntry 的区别：
-//   KnowledgeEntry  —— 创作者填写的抽象经验（通用、半永久）
-//   Episode         —— "这个 Agent 跟某个买家的某次会话里实际发生过什么"
+//
+//	KnowledgeEntry  —— 创作者填写的抽象经验（通用、半永久）
+//	Episode         —— "这个 Agent 跟某个买家的某次会话里实际发生过什么"
+//
 // 隐私：默认 buyer_only，不跨买家检索；未来可通过 privacy_level 支持匿名化聚合。
 type LifeAgentEpisode struct {
 	ID        string `gorm:"primaryKey;size:36"`
@@ -449,9 +451,9 @@ type LifeAgentPerceptualTrace struct {
 	ID         string    `gorm:"primaryKey;size:36"`
 	SessionID  string    `gorm:"column:session_id;size:36;not null;index"`
 	TurnIndex  int       `gorm:"column:turn_index;not null"`
-	Emotion    string    `gorm:"column:emotion;size:32"`   // neutral/anxious/confused/skeptical/frustrated
-	Intensity  string    `gorm:"column:intensity;size:16"` // low/medium/high
-	Intent     string    `gorm:"column:intent;size:32"`    // small_talk/casual_info/deep_consult
+	Emotion    string    `gorm:"column:emotion;size:32"`     // neutral/anxious/confused/skeptical/frustrated
+	Intensity  string    `gorm:"column:intensity;size:16"`   // low/medium/high
+	Intent     string    `gorm:"column:intent;size:32"`      // small_talk/casual_info/deep_consult
 	LengthPref string    `gorm:"column:length_pref;size:16"` // concise/neutral/elaborate
 	MetaInstr  *string   `gorm:"column:meta_instr;size:128"` // 诸如 want_detail / stop_advice
 	TopicFocus JSONArray `gorm:"column:topic_focus;type:json"`
@@ -459,3 +461,15 @@ type LifeAgentPerceptualTrace struct {
 }
 
 func (LifeAgentPerceptualTrace) TableName() string { return "life_agent_perceptual_traces" }
+
+// Post：用户发布的动态帖子
+type Post struct {
+	ID        string    `gorm:"primaryKey;size:36"`
+	UserID    string    `gorm:"column:user_id;size:36;not null;index"`
+	Content   string    `gorm:"type:text;not null"`
+	Likes     int       `gorm:"default:0"`
+	CreatedAt time.Time `gorm:"column:created_at"`
+	UpdatedAt time.Time `gorm:"column:updated_at"`
+}
+
+func (Post) TableName() string { return "posts" }

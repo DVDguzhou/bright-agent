@@ -105,6 +105,7 @@ func Init(dsn string) error {
 		&models.LifeAgentLiveUpdate{},
 		&models.LifeAgentEpisode{},
 		&models.LifeAgentPerceptualTrace{},
+		&models.Post{},
 	); err != nil {
 		return err
 	}

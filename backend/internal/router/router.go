@@ -107,6 +107,12 @@ func Setup(cfg *config.Config) *gin.Engine {
 		api.POST("/upload/life-agent-cover", middleware.RequireAuth(cfg), handler.LifeAgentCoverUpload(cfg))
 		api.GET("/upload/life-agent-cover/:name", handler.LifeAgentCoverGet(cfg))
 
+		posts := api.Group("/posts")
+		{
+			posts.GET("", handler.PostsList(cfg))
+			posts.POST("", middleware.RequireAuth(cfg), handler.PostsCreate(cfg))
+		}
+
 		api.GET("/audio/:filename", handler.ServeAudio)
 		api.POST("/transcribe", middleware.RequireAuth(cfg), handler.AudioTranscribe(cfg))
 	}

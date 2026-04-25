@@ -19,7 +19,7 @@ export default function PostsCreatePage() {
   const canSubmit = trimmed.length > 0 && !submitting;
 
   async function handleSubmit() {
-    if (!canSubmit) return;
+    if (!canSubmit || !user) return;
     setSubmitting(true);
     try {
       const res = await fetch("/api/posts", {
@@ -28,11 +28,13 @@ export default function PostsCreatePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content: trimmed }),
       });
-      if (!res.ok) throw new Error("发布失败");
-      router.push("/life-agents");
-    } catch {
-      alert("发布失败，请稍后重试");
-    } finally {
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({} as Record<string, unknown>));
+        throw new Error(String(body.message || "发布失败"));
+      }
+      router.push("/posts");
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "发布失败，请稍后重试");
       setSubmitting(false);
     }
   }
