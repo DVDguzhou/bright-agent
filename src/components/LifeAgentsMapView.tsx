@@ -7,7 +7,7 @@ import "leaflet.markercluster";
 import "leaflet.markercluster/dist/MarkerCluster.css";
 import { MapContainer, ScaleControl, TileLayer, Marker, useMap } from "react-leaflet";
 import { getLifeAgentLatLng, type MapCoordAgentInput } from "@/lib/life-agent-map-coords";
-import { resolveLifeAgentCoverUrl } from "@/lib/life-agent-covers";
+import { resolveLifeAgentCoverUrl, isLifeAgentDefaultCoverUrl, DEFAULT_COVER_PNG_URL } from "@/lib/life-agent-covers";
 import { agentCategoryColor, LEGEND_ITEMS } from "@/lib/life-agent-category";
 
 export type MapAgentMarker = MapCoordAgentInput & {
@@ -34,26 +34,25 @@ function escHtml(s: string): string {
 
 function createAvatarPinIcon(agent: MapAgentMarker, highlight = false) {
   const bg = agentCategoryColor(agent.headline, agent.displayName);
-  const coverSrc = resolveLifeAgentCoverUrl(agent.coverImageUrl, agent.coverPresetKey);
-  // Sizes: circle diameter / total width, tip height, image diameter
-  const dia = highlight ? 48 : 40;
-  const tip = highlight ? 14 : 12;
-  const imgD = highlight ? 36 : 30;
+  let coverSrc = resolveLifeAgentCoverUrl(agent.coverImageUrl, agent.coverPresetKey);
+  if (isLifeAgentDefaultCoverUrl(coverSrc)) coverSrc = DEFAULT_COVER_PNG_URL;
+  // Sizes: outer circle, tip, border thickness
+  const dia = highlight ? 38 : 30;
+  const tip = highlight ? 10 : 8;
   const w = dia;
   const h = dia + tip;
-  const border = highlight ? 3 : 2.5;
+  const ring = highlight ? 3 : 2.5;
   const shadow = highlight
-    ? "filter:drop-shadow(0 4px 10px rgba(0,0,0,.45))"
-    : "filter:drop-shadow(0 2px 6px rgba(0,0,0,.35))";
-  const ringExtra = highlight ? `box-shadow:0 0 0 4px ${bg}33;` : "";
+    ? "filter:drop-shadow(0 3px 8px rgba(0,0,0,.45))"
+    : "filter:drop-shadow(0 2px 5px rgba(0,0,0,.35))";
+  const outerGlow = highlight ? `box-shadow:0 0 0 3px ${bg}33;` : "";
   return L.divIcon({
     className: "life-agent-map-pin",
     html: `<div style="width:${w}px;height:${h}px;${shadow};position:relative">`
-      + `<div style="width:${dia}px;height:${dia}px;border-radius:50%;background:${bg};display:flex;align-items:center;justify-content:center;position:relative;${ringExtra}">`
-      + `<div style="width:${imgD}px;height:${imgD}px;border-radius:50%;border:${border}px solid rgba(255,255,255,.92);overflow:hidden;flex-shrink:0">`
+      + `<div style="width:${dia}px;height:${dia}px;border-radius:50%;background:#fff;border:${ring}px solid ${bg};display:flex;align-items:center;justify-content:center;position:relative;${outerGlow}overflow:hidden">`
       + `<img src="${escHtml(coverSrc)}" style="width:100%;height:100%;object-fit:cover;display:block" alt=""/>`
-      + `</div></div>`
-      + `<div style="width:0;height:0;border-left:${tip * 0.55}px solid transparent;border-right:${tip * 0.55}px solid transparent;border-top:${tip}px solid ${bg};position:absolute;bottom:0;left:50%;transform:translateX(-50%)"></div>`
+      + `</div>`
+      + `<div style="width:0;height:0;border-left:${tip * 0.6}px solid transparent;border-right:${tip * 0.6}px solid transparent;border-top:${tip}px solid ${bg};position:absolute;bottom:0;left:50%;transform:translateX(-50%)"></div>`
       + `</div>`,
     iconSize: [w, h],
     iconAnchor: [w / 2, h],
@@ -145,6 +144,9 @@ function MapLayoutFit({
     prevNonce.current = layoutNonce;
     if (userLatLng) {
       map.setView([userLatLng.lat, userLatLng.lng], Math.max(map.getZoom(), 10));
+    } else if (points.length > 0) {
+      const bounds = L.latLngBounds(points);
+      map.fitBounds(bounds, { padding: [40, 40], maxZoom: 12 });
     }
   }, [map, points, userLatLng, layoutNonce]);
   return null;
@@ -152,7 +154,7 @@ function MapLayoutFit({
 
 /* ── Clustered markers (hidden at low zoom, visible when zoomed in) ── */
 
-const MARKER_SHOW_ZOOM = 8;
+const MARKER_SHOW_ZOOM = 5;
 
 function ClusteredMarkers({
   markers,
@@ -189,7 +191,7 @@ function ClusteredMarkers({
         className: "life-agent-map-popup",
         maxWidth: 260,
         minWidth: 180,
-        offset: [0, -46],
+        offset: [0, -34],
       });
       return m;
     });
@@ -269,6 +271,7 @@ function MapLegend() {
 
 type Props = {
   agents: MapAgentMarker[];
+  allAgents?: MapAgentMarker[];
   className?: string;
   highlightAgentId?: string | null;
   userLatLng?: { lat: number; lng: number } | null;
@@ -282,6 +285,7 @@ type Props = {
 
 export default function LifeAgentsMapView({
   agents,
+  allAgents,
   className = "",
   highlightAgentId = null,
   userLatLng = null,
@@ -375,7 +379,8 @@ export default function LifeAgentsMapView({
                 const map = mapRef.current;
                 if (!map) return;
                 const bounds = map.getBounds();
-                const visible = agents.filter((a) => {
+                const pool = allAgents ?? agents;
+                const visible = pool.filter((a) => {
                   const [lat, lng] = getLifeAgentLatLng(a);
                   return bounds.contains([lat, lng]);
                 });

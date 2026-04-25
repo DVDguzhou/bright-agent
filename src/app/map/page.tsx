@@ -321,6 +321,7 @@ export default function MapPage() {
         ) : (
           <LifeAgentsMapView
             agents={filteredAgents}
+            allAgents={agents}
             className="flex-1 rounded-none ring-0"
             highlightAgentId={highlightId}
             userLatLng={userLatLng}
