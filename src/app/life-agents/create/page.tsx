@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { OFFICIAL_CONTACT } from "@/lib/official-contact";
 import { translateLifeAgentValidationError } from "@/lib/life-agent-validation-i18n";
+import { AGENT_CATEGORIES } from "@/lib/life-agent-category";
 import { yuanInputToCents } from "@/lib/price";
 import {
   COUNTRY_OPTIONS_FOR_CREATE,
@@ -219,8 +220,8 @@ const PROFILE_CHAT_FIELDS: readonly ProfileChatField[] = [
   },
   {
     key: "expertiseTags",
-    prompt: "你觉得你的 Agent 擅长什么？可以直接写几个关键词，我先给你几个例子：考研、转行、求职、职业规划。",
-    placeholder: "例如：考研、转行、求职、职业规划",
+    prompt: "请选择你的 Agent 擅长哪些领域（最多选 5 个），我们会自动为每个领域匹配相关关键词，提升在动态、地图等场景的曝光和匹配度。",
+    placeholder: "例如：学习、就业、旅游、科技、情感",
   },
   {
     key: "sampleQuestions",
@@ -1374,20 +1375,53 @@ export default function CreateLifeAgentPage() {
                     setTimeout(scrollToLastMessage, 280);
                     setTimeout(scrollToLastMessage, 520);
                   }}
-                  moreOpen={profileMoreOpen}
+                  moreOpen={currentChatField.key === "expertiseTags" ? true : profileMoreOpen}
                   onMoreClick={() => setProfileMoreOpen((o) => !o)}
                   onCloseMorePanel={() => setProfileMoreOpen(false)}
                   morePanel={
-                    <div className="rounded-2xl border border-purple-200/[0.22] bg-white/[0.98] p-2 shadow-[0_8px_36px_-10px_rgba(124,58,237,0.1)] backdrop-blur-md">
-                      <Link
-                        href="/life-agents"
-                        className="block rounded-xl px-3 py-2.5 text-sm text-slate-700 hover:bg-purple-50/90"
-                        onClick={() => setProfileMoreOpen(false)}
-                      >
-                        返回发现页
-                      </Link>
+                    currentChatField.key === "expertiseTags" ? (
+                      <div className="rounded-2xl border border-purple-200/[0.22] bg-white/[0.98] p-3 shadow-[0_8px_36px_-10px_rgba(124,58,237,0.1)] backdrop-blur-md">
+                        <div className="mb-2 text-xs text-slate-500">点击选择擅长领域（可多选）：</div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {AGENT_CATEGORIES.map((cat) => {
+                            const selected = chatInput.split(/[,，\n]/).map(s => s.trim()).filter(Boolean).includes(cat.label);
+                            return (
+                              <button
+                                key={cat.label}
+                                type="button"
+                                onClick={() => {
+                                  const tags = chatInput.split(/[,，\n]/).map(s => s.trim()).filter(Boolean);
+                                  if (selected) {
+                                    setChatInput(tags.filter(t => t !== cat.label).join("、"));
+                                  } else {
+                                    setChatInput(tags.length > 0 ? `${tags.join("、")}、${cat.label}` : cat.label);
+                                  }
+                                }}
+                                className={`rounded-full px-2.5 py-1 text-xs transition ${selected ? "" : "hover:opacity-80"}`}
+                                style={{
+                                  backgroundColor: cat.color + "20",
+                                  color: cat.color,
+                                  boxShadow: selected ? `inset 0 0 0 1.5px ${cat.color}` : "none",
+                                }}
+                              >
+                                {cat.label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="rounded-2xl border border-purple-200/[0.22] bg-white/[0.98] p-2 shadow-[0_8px_36px_-10px_rgba(124,58,237,0.1)] backdrop-blur-md">
+                        <Link
+                          href="/life-agents"
+                          className="block rounded-xl px-3 py-2.5 text-sm text-slate-700 hover:bg-purple-50/90"
+                          onClick={() => setProfileMoreOpen(false)}
+                        >
+                          返回发现页
+                        </Link>
                     </div>
-                  }
+                  )
+                }
                 />
               </div>
             </div>

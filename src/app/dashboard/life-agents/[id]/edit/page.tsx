@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { AGENT_CATEGORIES } from "@/lib/life-agent-category";
 import { OFFICIAL_CONTACT } from "@/lib/official-contact";
 import { VoiceRecordPanel } from "@/components/voice";
 import { LifeAgentCoverPicker } from "@/components/LifeAgentCoverPicker";
@@ -474,7 +475,40 @@ export default function LifeAgentEditPage() {
           <div className="grid gap-5">
             <div>
               <label className="mb-2 block text-sm font-medium text-slate-700">擅长标签</label>
-              <input className="input-shell" value={form.expertiseTags} onChange={(e) => setForm((prev) => (prev ? { ...prev, expertiseTags: e.target.value } : prev))} placeholder="逗号分隔" />
+              <div className="flex flex-wrap gap-1.5">
+                {AGENT_CATEGORIES.map((cat) => {
+                  const selected = form.expertiseTags.split(/[,，\n]/).map((s) => s.trim()).filter(Boolean).includes(cat.label);
+                  return (
+                    <button
+                      key={cat.label}
+                      type="button"
+                      onClick={() => {
+                        const tags = form.expertiseTags.split(/[,，\n]/).map((s) => s.trim()).filter(Boolean);
+                        setForm((prev) =>
+                          prev
+                            ? {
+                                ...prev,
+                                expertiseTags: selected
+                                  ? tags.filter((t) => t !== cat.label).join("、")
+                                  : tags.length > 0
+                                    ? `${tags.join("、")}、${cat.label}`
+                                    : cat.label,
+                              }
+                            : prev
+                        );
+                      }}
+                      className={`rounded-full px-2.5 py-1 text-xs transition ${selected ? "" : "hover:opacity-80"}`}
+                      style={{
+                        backgroundColor: cat.color + "20",
+                        color: cat.color,
+                        boxShadow: selected ? `inset 0 0 0 1.5px ${cat.color}` : "none",
+                      }}
+                    >
+                      {cat.label}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
             <div>
               <label className="mb-2 block text-sm font-medium text-slate-700">示例问题</label>

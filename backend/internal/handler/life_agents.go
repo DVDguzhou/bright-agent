@@ -15,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/agent-marketplace/backend/internal/category"
 	"github.com/agent-marketplace/backend/internal/config"
 	"github.com/agent-marketplace/backend/internal/db"
 	"github.com/agent-marketplace/backend/internal/lifeagent"
@@ -709,7 +710,7 @@ func LifeAgentsCreate(cfg *config.Config) gin.HandlerFunc {
 			Audience:           body.Audience,
 			WelcomeMessage:     body.WelcomeMessage,
 			PricePerQuestion:   body.PricePerQuestion,
-			ExpertiseTags:      models.JSONArray(body.ExpertiseTags),
+			ExpertiseTags:      models.JSONArray(category.ExpandTagsByCategory(body.ExpertiseTags)),
 			SampleQuestions:    models.JSONArray(body.SampleQuestions),
 			Education:          strOpt(body.Education),
 			Income:             strOpt(body.Income),
@@ -1331,7 +1332,7 @@ func LifeAgentsUpdate(cfg *config.Config) gin.HandlerFunc {
 			upd.Update("not_suitable_for", *body.NotSuitableFor)
 		}
 		if body.ExpertiseTags != nil {
-			upd.Update("expertise_tags", models.JSONArray(body.ExpertiseTags))
+			upd.Update("expertise_tags", models.JSONArray(category.ExpandTagsByCategory(body.ExpertiseTags)))
 		}
 		if body.SampleQuestions != nil {
 			upd.Update("sample_questions", models.JSONArray(body.SampleQuestions))

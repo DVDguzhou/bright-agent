@@ -111,6 +111,12 @@ func Setup(cfg *config.Config) *gin.Engine {
 		{
 			posts.GET("", handler.PostsList(cfg))
 			posts.POST("", middleware.RequireAuth(cfg), handler.PostsCreate(cfg))
+			posts.GET("/:id", handler.PostsGet(cfg))
+			posts.PATCH("/:id", middleware.RequireAuth(cfg), handler.PostsUpdate(cfg))
+			posts.DELETE("/:id", middleware.RequireAuth(cfg), handler.PostsDelete(cfg))
+			posts.POST("/:id/like", middleware.RequireAuth(cfg), handler.PostsLikeToggle(cfg))
+			posts.GET("/:id/comments", handler.PostsCommentsList(cfg))
+			posts.POST("/:id/comments", middleware.RequireAuth(cfg), handler.PostsCommentCreate(cfg))
 		}
 
 		api.GET("/audio/:filename", handler.ServeAudio)

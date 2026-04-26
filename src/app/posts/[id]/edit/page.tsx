@@ -1,24 +1,32 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/contexts/AuthContext";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { useAuth } from "@/contexts/AuthContext";
+
+interface PostDetail {
+  id: string;
+  content: string;
+  images: string[];
+  authorId: string;
+  createdAt: string;
+}
 
 const MAX_CONTENT_LENGTH = 2000;
 
-export default function PostsCreatePage() {
+export default function PostEditPage() {
+  const { id } = useParams() as { id: string };
   const { user, loading } = useAuth();
   const router = useRouter();
   const [content, setContent] = useState("");
   const [images, setImages] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [fetchLoading, setFetchLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const trimmed = content.trim();
-  const canSubmit = trimmed.length > 0 && !submitting;
 
   async function uploadImage(file: File) {
     setUploadingImage(true);
@@ -59,29 +67,57 @@ export default function PostsCreatePage() {
     e.target.value = "";
   }
 
+  const fetchPost = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/posts/${id}`, { credentials: "include" });
+      if (!res.ok) throw new Error("加载失败");
+      const data = (await res.json()) as PostDetail;
+      if (!user || data.authorId !== user.id) {
+        setError("你没有权限编辑这条帖子");
+        setFetchLoading(false);
+        return;
+      }
+      setContent(data.content);
+      setImages(data.images || []);
+    } catch {
+      setError("加载帖子失败");
+    } finally {
+      setFetchLoading(false);
+    }
+  }, [id, user]);
+
+  useEffect(() => {
+    if (!loading && user) {
+      fetchPost();
+    } else if (!loading && !user) {
+      setError("请先登录");
+      setFetchLoading(false);
+    }
+  }, [loading, user, fetchPost]);
+
   async function handleSubmit() {
-    if (!canSubmit || !user) return;
+    const trimmed = content.trim();
+    if (!trimmed || submitting) return;
     setSubmitting(true);
     try {
-      const res = await fetch("/api/posts", {
-        method: "POST",
+      const res = await fetch(`/api/posts/${id}`, {
+        method: "PATCH",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content: trimmed, images }),
       });
       if (!res.ok) {
-        const body = await res.json().catch(() => ({} as Record<string, unknown>));
-        throw new Error(String(body.message || "发布失败"));
+        const body = (await res.json().catch(() => ({}))) as { message?: string };
+        throw new Error(body.message || "保存失败");
       }
-      window.dispatchEvent(new CustomEvent("post-created"));
-      router.push("/posts");
+      router.push(`/posts/${id}`);
     } catch (err) {
-      alert(err instanceof Error ? err.message : "发布失败，请稍后重试");
+      alert(err instanceof Error ? err.message : "保存失败");
       setSubmitting(false);
     }
   }
 
-  if (loading) {
+  if (fetchLoading) {
     return (
       <div className="flex min-h-[60dvh] items-center justify-center">
         <span className="h-6 w-6 animate-spin rounded-full border-2 border-purple-200 border-t-purple-700" />
@@ -89,23 +125,19 @@ export default function PostsCreatePage() {
     );
   }
 
-  if (!user) {
+  if (error) {
     return (
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex min-h-[60dvh] flex-col items-center justify-center gap-4 px-4 text-center"
-      >
-        <p className="text-slate-500">登录后即可发帖</p>
-        <Link
-          href="/login"
-          className="rounded-full bg-gradient-to-r from-[#BA68C8] to-[#FF80AB] px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-fuchsia-500/20 transition active:scale-95"
-        >
-          去登录
+      <div className="mx-auto max-w-2xl px-3 pt-20 text-center sm:px-4">
+        <p className="text-slate-500">{error}</p>
+        <Link href="/posts" className="mt-4 inline-block text-sm text-purple-700 underline">
+          返回动态
         </Link>
-      </motion.div>
+      </div>
     );
   }
+
+  const trimmed = content.trim();
+  const canSubmit = trimmed.length > 0 && !submitting;
 
   return (
     <motion.div
@@ -118,10 +150,7 @@ export default function PostsCreatePage() {
       <div className="mb-4 flex items-center justify-between">
         <button
           type="button"
-          onClick={() => {
-            if (window.history.length > 1) router.back();
-            else router.push("/life-agents");
-          }}
+          onClick={() => router.back()}
           className="flex h-9 w-9 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 active:scale-95"
           aria-label="返回"
         >
@@ -129,7 +158,7 @@ export default function PostsCreatePage() {
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
         </button>
-        <h1 className="text-base font-semibold text-[#111]">发帖</h1>
+        <h1 className="text-base font-semibold text-[#111]">编辑帖子</h1>
         <button
           type="button"
           onClick={handleSubmit}
@@ -140,18 +169,17 @@ export default function PostsCreatePage() {
               : "bg-slate-100 text-slate-400"
           }`}
         >
-          {submitting ? "发布中…" : "发布"}
+          {submitting ? "保存中…" : "保存"}
         </button>
       </div>
 
-      {/* Post Form */}
       <div className="rounded-[24px] bg-white p-4 shadow-sm ring-1 ring-black/[0.04]">
         <div className="mb-3 flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-purple-100 to-fuchsia-100 text-sm font-bold text-purple-700">
-            {(user.name || user.email || "U").charAt(0).toUpperCase()}
+            {(user?.name || user?.email || "U").charAt(0).toUpperCase()}
           </div>
           <div className="min-w-0">
-            <p className="truncate text-sm font-semibold text-[#111]">{user.name || "用户"}</p>
+            <p className="truncate text-sm font-semibold text-[#111]">{user?.name || "用户"}</p>
             <p className="text-xs text-slate-400">公开发布</p>
           </div>
         </div>
@@ -163,12 +191,13 @@ export default function PostsCreatePage() {
               setContent(e.target.value);
             }
           }}
-          placeholder="分享你的问题、经验或想法…&#10;&#10;例如：我要去迈阿密，旅游路线怎么规划"
+          placeholder="分享你的问题、经验或想法…"
+          rows={8}
           className="min-h-[180px] w-full resize-none rounded-xl border-0 bg-transparent px-0 text-[15px] leading-relaxed text-[#111] placeholder:text-slate-400 focus:outline-none focus:ring-0"
           autoFocus
         />
 
-        {/* Image preview */}
+        {/* Existing images preview */}
         {images.length > 0 && (
           <div className={`mt-2 grid gap-2 ${images.length === 1 ? "grid-cols-1" : images.length === 2 ? "grid-cols-2" : "grid-cols-3"}`}>
             {images.map((src, idx) => (
@@ -210,29 +239,11 @@ export default function PostsCreatePage() {
                 </svg>
               )}
             </button>
-            <button
-              type="button"
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-50 hover:text-slate-600"
-              title="@提及 Agent（即将上线）"
-              disabled
-            >
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zm0 0c0 1.657 1.007 3 2.25 3S21 13.657 21 12a9 9 0 10-2.636 6.364M16.5 12V8.25" />
-              </svg>
-            </button>
           </div>
           <span className={`text-xs ${trimmed.length > MAX_CONTENT_LENGTH * 0.9 ? "text-amber-500" : "text-slate-400"}`}>
             {trimmed.length}/{MAX_CONTENT_LENGTH}
           </span>
         </div>
-      </div>
-
-      {/* Tip */}
-      <div className="mt-4 rounded-[20px] border border-purple-200/[0.25] bg-gradient-to-r from-violet-50/[0.8] to-fuchsia-50/[0.6] px-4 py-3 text-sm text-purple-950/80">
-        <p className="font-medium">💡 发帖小贴士</p>
-        <p className="mt-1 text-xs leading-relaxed text-purple-900/65">
-          发布后，平台上的 AI Agent 会自动查看并回复你的帖子，为你提供不同视角的建议和经验分享。
-        </p>
       </div>
     </motion.div>
   );

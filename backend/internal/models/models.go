@@ -464,12 +464,48 @@ func (LifeAgentPerceptualTrace) TableName() string { return "life_agent_perceptu
 
 // Post：用户发布的动态帖子
 type Post struct {
+	ID            string    `gorm:"primaryKey;size:36"`
+	UserID        string    `gorm:"column:user_id;size:36;not null;index"`
+	Content       string    `gorm:"type:text;not null"`
+	Images        JSONArray `gorm:"type:json"` // 帖子配图 URL 列表
+	Likes         int       `gorm:"default:0"`
+	CommentsCount int       `gorm:"column:comments_count;default:0"`
+	CreatedAt     time.Time `gorm:"column:created_at"`
+	UpdatedAt     time.Time `gorm:"column:updated_at"`
+}
+
+func (Post) TableName() string { return "posts" }
+
+// PostLike：帖子点赞记录（去重）
+type PostLike struct {
 	ID        string    `gorm:"primaryKey;size:36"`
+	PostID    string    `gorm:"column:post_id;size:36;not null;index"`
+	UserID    string    `gorm:"column:user_id;size:36;not null;index"`
+	CreatedAt time.Time `gorm:"column:created_at"`
+}
+
+func (PostLike) TableName() string { return "post_likes" }
+
+// PostComment：帖子评论
+type PostComment struct {
+	ID        string    `gorm:"primaryKey;size:36"`
+	PostID    string    `gorm:"column:post_id;size:36;not null;index"`
 	UserID    string    `gorm:"column:user_id;size:36;not null;index"`
 	Content   string    `gorm:"type:text;not null"`
-	Likes     int       `gorm:"default:0"`
 	CreatedAt time.Time `gorm:"column:created_at"`
 	UpdatedAt time.Time `gorm:"column:updated_at"`
 }
 
-func (Post) TableName() string { return "posts" }
+func (PostComment) TableName() string { return "post_comments" }
+
+// PostAgentReply：Agent 自动回复（作为特殊评论）
+type PostAgentReply struct {
+	ID          string    `gorm:"primaryKey;size:36"`
+	PostID      string    `gorm:"column:post_id;size:36;not null;index"`
+	ProfileID   string    `gorm:"column:profile_id;size:36;not null;index"` // 回复的 LifeAgentProfile ID
+	Content     string    `gorm:"type:text;not null"`
+	DisplayName string    `gorm:"column:display_name;size:255"` // Agent 显示名快照
+	CreatedAt   time.Time `gorm:"column:created_at"`
+}
+
+func (PostAgentReply) TableName() string { return "post_agent_replies" }

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { LifeAgentMessageComposer } from "@/components/LifeAgentMessageComposer";
 import { AgentTypingIndicator } from "@/components/AgentTypingIndicator";
+import { AGENT_CATEGORIES } from "@/lib/life-agent-category";
 import { WeflowImportGuide } from "@/components/WeflowImportGuide";
 import {
   buildPatchPayloadFromProfile,
@@ -570,9 +571,43 @@ export default function LifeAgentCoEditPage() {
                 <p className="text-[11px] text-purple-600/55">欢迎语</p>
                 <p className="mt-1 line-clamp-2 text-sm text-slate-700">{profile.welcomeMessage || "未设置"}</p>
               </div>
-              <div className="rounded-xl border border-purple-100/40 bg-violet-50/40 px-3 py-2.5 backdrop-blur-sm">
-                <p className="text-[11px] text-purple-600/55">擅长标签</p>
-                <p className="mt-1 line-clamp-2 text-sm text-slate-700">{(profile.expertiseTags ?? []).join("、") || "未设置"}</p>
+              <div className="col-span-2">
+                <div className="text-sm text-slate-500">擅长标签</div>
+                <div className="flex flex-wrap gap-1.5">
+                  {AGENT_CATEGORIES.map((cat) => {
+                    const selected = (profile.expertiseTags ?? []).includes(cat.label);
+                    return (
+                      <button
+                        key={cat.label}
+                        type="button"
+                        onClick={() => {
+                          const tags = profile.expertiseTags ?? [];
+                          setData((prev) =>
+                            prev
+                              ? {
+                                  ...prev,
+                                  profile: {
+                                    ...prev.profile,
+                                    expertiseTags: selected
+                                      ? tags.filter((t) => t !== cat.label)
+                                      : [...tags, cat.label],
+                                  },
+                                }
+                              : prev
+                          );
+                        }}
+                        className={`rounded-full px-2.5 py-1 text-xs transition ${selected ? "" : "hover:opacity-80"}`}
+                        style={{
+                          backgroundColor: cat.color + "20",
+                          color: cat.color,
+                          boxShadow: selected ? `inset 0 0 0 1.5px ${cat.color}` : "none",
+                        }}
+                      >
+                        {cat.label}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
               <div className="rounded-xl border border-purple-100/40 bg-violet-50/40 px-3 py-2.5 backdrop-blur-sm">
                 <p className="text-[11px] text-purple-600/55">示范回答</p>
