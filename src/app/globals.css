@@ -3,11 +3,19 @@
 @tailwind utilities;
 
 :root {
-  /* 使用系统字体，避免构建时拉取 Google Fonts（国内服务器无法访问） */
-  --font-sans: ui-sans-serif, system-ui, "Segoe UI", "Microsoft YaHei", sans-serif;
+  /* 系统字体优先，避免构建时拉取 Google Fonts（国内服务器无法访问） */
+  --font-sans: ui-sans-serif, system-ui, "PingFang SC", "Hiragino Sans GB", "Helvetica Neue", "Microsoft YaHei", sans-serif;
+  --font-serif: "Source Han Serif SC", "Noto Serif SC", "Songti SC", "STSong", "SimSun", Georgia, "Times New Roman", serif;
   --font-mono: ui-monospace, "Cascadia Code", "Consolas", monospace;
-  --gradient-start: #2563eb;
-  --gradient-end: #0ea5e9;
+
+  /* 杂志风设计 token */
+  --paper: #f4efe6;
+  --paper-2: #faf7f1;
+  --ink: #1a1714;
+  --ink-2: #4d463f;
+  --ink-3: #8d8478;
+  --hairline: #d8cfbf;
+  --oxblood: #7a1f1f;
 }
 
 * {
@@ -20,33 +28,30 @@ html {
 
 body {
   font-family: var(--font-sans);
-  background: #f8fafc;
-  background-image: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(59, 130, 246, 0.08), transparent);
-  color: #0f172a;
+  background: var(--paper);
+  color: var(--ink);
+  /* 不加任何渐变 / 装饰；让纸面颜色独自承担氛围 */
 }
 
-/* Custom scrollbar */
+/* 滚动条：极细，与纸面同色 */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
-
 ::-webkit-scrollbar-track {
-  background: rgba(148, 163, 184, 0.14);
+  background: transparent;
 }
-
 ::-webkit-scrollbar-thumb {
-  background: rgba(100, 116, 139, 0.35);
-  border-radius: 4px;
+  background: rgba(26, 23, 20, 0.18);
+  border-radius: 0;
 }
-
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(100, 116, 139, 0.5);
+  background: rgba(26, 23, 20, 0.32);
 }
 
-/* Selection */
+/* 文本选区：酒红 */
 ::selection {
-  background: rgba(59, 130, 246, 0.2);
+  background: rgba(122, 31, 31, 0.18);
   color: inherit;
 }
 
@@ -72,77 +77,101 @@ body {
   }
 }
 
+/* === 编辑风组件类（替换原 glass-card / btn-* / input-shell） ===
+   旧的紫色玻璃风类名保留，但视觉重置为编辑风。
+   全站现有页面无需改动即可继承新外观。 */
 @layer components {
+
+  /* "卡片"：纯纸面 + 发丝线，没有阴影、没有渐变、没有圆角魔法 */
   .glass-card {
-    @apply relative overflow-hidden rounded-2xl shadow-sm backdrop-blur-md;
-    border: 1px solid rgba(186, 104, 200, 0.11);
-    background: linear-gradient(
-      165deg,
-      rgba(255, 255, 255, 0.97) 0%,
-      rgba(253, 251, 255, 0.95) 42%,
-      rgba(248, 244, 255, 0.92) 100%
-    );
-    box-shadow:
-      0 4px 28px rgba(124, 58, 237, 0.055),
-      0 1px 0 rgba(255, 255, 255, 0.75) inset;
+    @apply relative overflow-hidden bg-paper-50 border border-hairline;
+    border-radius: 4px;
+    box-shadow: none;
+    backdrop-filter: none;
   }
-
   .glass-card:hover {
-    border-color: rgba(217, 70, 239, 0.16);
-    box-shadow:
-      0 12px 40px -8px rgba(168, 139, 235, 0.14),
-      0 1px 0 rgba(255, 255, 255, 0.8) inset;
+    border-color: var(--ink-2);
   }
 
+  /* 主按钮：实心墨黑底 + 米白字，类似杂志封面的 sticker */
   .btn-primary {
-    @apply relative inline-flex items-center justify-center overflow-hidden rounded-2xl px-6 py-3 font-semibold text-slate-900 transition-all duration-300;
-    background: linear-gradient(to right, #fff176, #ff80ab, #ba68c8);
-    box-shadow: 0 10px 30px rgba(168, 139, 235, 0.22);
+    @apply relative inline-flex items-center justify-center px-6 py-3 text-sm font-medium tracking-wide;
+    background: var(--ink);
+    color: var(--paper-2);
+    border-radius: 2px;
+    transition: background-color 160ms ease;
+    box-shadow: none;
   }
-
   .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 14px 36px rgba(168, 139, 235, 0.3);
+    background: var(--oxblood);
+    transform: none;
   }
-
   .btn-primary:active {
-    transform: translateY(0);
+    background: #4d1414;
   }
 
-  .input-glow:focus {
-    box-shadow: 0 0 0 4px rgba(168, 139, 235, 0.2);
-  }
-
-  .gradient-text {
-    @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(135deg, #ba68c8 0%, #ff80ab 50%, #7c3aed 100%);
-    background-size: 200% auto;
-  }
-
+  /* 次按钮：透明底 + 单边发丝线 + 墨黑字 */
   .btn-secondary {
-    @apply inline-flex items-center justify-center rounded-2xl border px-5 py-3 font-medium text-slate-700 shadow-sm backdrop-blur-md transition-all duration-300;
-    border-color: rgba(186, 104, 200, 0.14);
-    background: rgba(255, 255, 255, 0.94);
-    box-shadow: 0 4px 22px rgba(168, 139, 235, 0.06);
+    @apply inline-flex items-center justify-center px-5 py-3 text-sm font-medium;
+    color: var(--ink);
+    background: transparent;
+    border: 1px solid var(--ink);
+    border-radius: 2px;
+    box-shadow: none;
+    backdrop-filter: none;
+    transition: background-color 160ms ease, color 160ms ease;
   }
-
   .btn-secondary:hover {
-    @apply text-purple-900 shadow-md;
-    border-color: rgba(232, 121, 249, 0.28);
+    background: var(--ink);
+    color: var(--paper-2);
+    border-color: var(--ink);
   }
 
+  /* 输入框：单边底线，去掉胶囊感 */
   .input-shell {
-    @apply input-glow w-full rounded-2xl border px-4 py-3 text-slate-900 outline-none backdrop-blur-md transition-all placeholder:text-slate-400 focus:border-fuchsia-300;
-    border-color: rgba(186, 104, 200, 0.13);
-    background: rgba(255, 255, 255, 0.93);
-    box-shadow: 0 2px 14px rgba(168, 139, 235, 0.045);
+    @apply w-full px-1 py-2 text-base outline-none transition-colors;
+    background: transparent;
+    color: var(--ink);
+    border: 0;
+    border-bottom: 1px solid var(--hairline);
+    border-radius: 0;
+  }
+  .input-shell::placeholder {
+    color: var(--ink-3);
+  }
+  .input-shell:focus {
+    border-bottom-color: var(--ink);
+    box-shadow: none;
   }
 
+  /* 旧的 "渐变文字" → 改为 serif italic 强调 */
+  .gradient-text {
+    @apply font-serif italic;
+    background-image: none;
+    color: var(--ink);
+    -webkit-text-fill-color: currentColor;
+  }
+
+  /* 章节标题：serif，没有粗黑字感 */
   .section-title {
-    @apply text-3xl font-bold text-slate-900;
+    @apply font-serif text-3xl font-medium tracking-tight;
+    color: var(--ink);
+  }
+  .section-subtitle {
+    @apply text-base leading-relaxed;
+    color: var(--ink-2);
   }
 
-  .section-subtitle {
-    @apply text-slate-600 leading-relaxed;
+  /* 一根从左延伸的发丝线 + 小标题：杂志栏目 kicker */
+  .kicker {
+    @apply flex items-center gap-3 text-[11px] font-medium uppercase tracking-[0.2em];
+    color: var(--ink-3);
+  }
+  .kicker::before {
+    content: "";
+    width: 24px;
+    height: 1px;
+    background: var(--ink-3);
+    flex-shrink: 0;
   }
 }

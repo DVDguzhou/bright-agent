@@ -10,32 +10,47 @@ const config: Config = {
     extend: {
       fontFamily: {
         sans: ["var(--font-sans)", "system-ui", "sans-serif"],
+        serif: ["var(--font-serif)", "Source Han Serif SC", "Noto Serif SC", "Songti SC", "STSong", "serif"],
         mono: ["var(--font-mono)", "monospace"],
       },
       colors: {
-        primary: {
-          50: "#ecfdf5",
-          100: "#d1fae5",
-          200: "#a7f3d0",
-          300: "#6ee7b7",
-          400: "#34d399",
-          500: "#10b981",
-          600: "#059669",
-          700: "#047857",
-          800: "#065f46",
-          900: "#064e3b",
+        // === 杂志风色板（editorial palette） ===
+        paper: {
+          DEFAULT: "#f4efe6", // 主页面：暖米纸
+          50: "#faf7f1",
+          100: "#f4efe6",
+          200: "#ebe3d4",
+          300: "#dccfb8",
         },
-        accent: {
-          50: "#ecfeff",
-          100: "#cffafe",
-          200: "#a5f3fc",
-          300: "#67e8f9",
-          400: "#22d3ee",
-          500: "#06b6d4",
-          600: "#0891b2",
-          700: "#0e7490",
-          800: "#155e75",
-          900: "#164e63",
+        ink: {
+          DEFAULT: "#1a1714", // 主文字：暖近黑
+          50: "#f5f3f0",
+          100: "#e6e1da",
+          200: "#bfb6aa",
+          300: "#8d8478",
+          400: "#6b635a",
+          500: "#4d463f",
+          600: "#3a342e",
+          700: "#272320",
+          800: "#1a1714",
+          900: "#0d0b09",
+        },
+        hairline: "#d8cfbf", // 发丝线分隔
+        oxblood: {
+          DEFAULT: "#7a1f1f", // 主强调色：酒红
+          50: "#fbf3f3",
+          100: "#f1d9d9",
+          200: "#d99a9a",
+          400: "#9b2929",
+          500: "#7a1f1f",
+          600: "#641a1a",
+          700: "#4d1414",
+        },
+        olive: {
+          DEFAULT: "#4a5a2f", // 第二强调色：橄榄绿（用于状态/认证）
+          400: "#5d7140",
+          500: "#4a5a2f",
+          600: "#3a4724",
         },
       },
       animation: {

@@ -335,10 +335,10 @@ function FloatingVoiceCoachFab({ agent }: { agent: BoundLifeAgent }) {
         onTouchCancel={() => {
           handleCancel();
         }}
-        className={`fixed bottom-[calc(env(safe-area-inset-bottom)+2.25rem)] left-1/2 z-[60] flex h-12 w-12 -translate-x-1/2 select-none items-center justify-center rounded-full ring-4 ring-white transition-transform lg:hidden ${
+        className={`fixed bottom-[calc(env(safe-area-inset-bottom)+2.25rem)] left-1/2 z-[60] flex h-12 w-12 -translate-x-1/2 select-none items-center justify-center rounded-full ring-4 ring-paper transition-transform lg:hidden ${
           isActive
-            ? "scale-105 bg-rose-500 text-white shadow-lg shadow-rose-500/30"
-            : "bg-gradient-to-br from-[#BA68C8] via-[#FF80AB] to-[#FFF176] text-slate-900 shadow-lg shadow-fuchsia-500/25 active:scale-95"
+            ? "scale-105 bg-oxblood-500 text-paper"
+            : "bg-ink text-paper active:scale-95"
         }`}
         style={{ touchAction: "none", WebkitTouchCallout: "none" }}
         aria-label={`长按语音调教 ${agent.displayName}`}
@@ -355,32 +355,34 @@ function FloatingVoiceCoachFab({ agent }: { agent: BoundLifeAgent }) {
 
       {/* ── Draft panel / hint bubble (shown when NOT recording) ── */}
       {!isActive && draftText ? (
-        <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+5.9rem)] left-1/2 z-[60] w-[min(92vw,22rem)] -translate-x-1/2 rounded-2xl border border-purple-200/[0.22] bg-white/95 p-3 shadow-[0_10px_32px_rgba(124,58,237,0.14)] backdrop-blur-md lg:hidden">
-          <p className="text-[11px] font-medium text-purple-900/70">语音调教草稿</p>
-          <p className="mt-1 line-clamp-3 text-sm leading-5 text-slate-700">{draftText}</p>
+        <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+5.9rem)] left-1/2 z-[60] w-[min(92vw,22rem)] -translate-x-1/2 border border-ink bg-paper-50 p-3 lg:hidden">
+          <p className="font-serif text-[11px] uppercase tracking-[0.2em] text-ink-400">
+            VOICE DRAFT · 语音草稿
+          </p>
+          <p className="mt-1.5 line-clamp-3 font-serif text-sm leading-snug text-ink">{draftText}</p>
           <div className="mt-3 flex items-center gap-2">
             <button
               type="button"
               onClick={openCoEdit}
-              className="inline-flex flex-1 items-center justify-center rounded-full bg-gradient-to-r from-[#BA68C8] via-[#FF80AB] to-[#FFF176] px-3 py-2 text-xs font-semibold text-slate-900"
+              className="inline-flex flex-1 items-center justify-center bg-ink px-3 py-2 text-xs font-medium tracking-wide text-paper transition hover:bg-oxblood-500"
             >
               进入调教
             </button>
             <button
               type="button"
               onClick={clearDraft}
-              className="inline-flex items-center justify-center rounded-full border border-purple-200/60 px-3 py-2 text-xs font-medium text-slate-600"
+              className="inline-flex items-center justify-center border border-ink px-3 py-2 text-xs font-medium text-ink transition hover:bg-ink hover:text-paper"
             >
               清空
             </button>
           </div>
-          <p className="mt-2 text-[10px] text-slate-500">
-            你可以继续长按补充，也可以先去访问别的 Agent，草稿会暂时保留。
+          <p className="mt-2 font-serif text-[10px] italic text-ink-400">
+            可继续长按补充，或去访问别的 Agent — 草稿暂时保留。
           </p>
         </div>
       ) : !isActive && (submitHint || recError || helperText) ? (
         <div className="pointer-events-none fixed bottom-[calc(env(safe-area-inset-bottom)+5.9rem)] left-1/2 z-[60] -translate-x-1/2 lg:hidden">
-          <div className="rounded-full bg-white/92 px-2.5 py-1 text-[10px] font-medium text-purple-900/80 shadow-[0_6px_20px_rgba(124,58,237,0.12)] backdrop-blur-sm">
+          <div className="border border-hairline bg-paper-50 px-2.5 py-1 font-serif text-[10px] italic text-ink-500">
             {submitHint || recError || helperText}
           </div>
         </div>
@@ -446,8 +448,8 @@ export function Nav() {
   };
 
   const linkClass = (isActive: boolean) =>
-    `py-3 px-3 rounded-lg text-sm font-medium transition-colors block w-full text-left ${
-      isActive ? "text-purple-800 bg-purple-50" : "text-slate-600 hover:bg-purple-50/50"
+    `py-3 px-3 text-sm font-medium transition-colors block w-full text-left ${
+      isActive ? "text-oxblood-500 bg-paper-200" : "text-ink-500 hover:bg-paper-200"
     }`;
 
   const isLifeAgentChatPage = /^\/life-agents\/[^/]+\/chat(?:\/|$)/.test(pathname);
@@ -543,8 +545,8 @@ export function Nav() {
   }, [mobileDrawerOpen]);
 
   const feedTabClass = (active: boolean) =>
-    `relative px-2 py-1 text-[15px] transition-colors ${
-      active ? "font-semibold text-[#111]" : "font-normal text-slate-500"
+    `relative px-2 py-1 font-serif text-[16px] transition-colors ${
+      active ? "font-medium text-ink" : "font-normal italic text-ink-300"
     }`;
 
   const AuthLinks = ({ vertical = false }: { vertical?: boolean }) =>
@@ -645,7 +647,7 @@ export function Nav() {
       <motion.nav
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className={`sticky top-0 z-50 border-b border-purple-200/[0.2] bg-white/[0.92] supports-[backdrop-filter]:backdrop-blur-xl overflow-x-hidden shadow-[0_4px_24px_-8px_rgba(124,58,237,0.07)] pt-[env(safe-area-inset-top)] ${
+        className={`sticky top-0 z-50 border-b border-hairline bg-paper/95 supports-[backdrop-filter]:backdrop-blur-md overflow-x-hidden pt-[env(safe-area-inset-top)] ${
           hideGlobalTopNav ? "hidden" : isLifeAgentChatPage ? "hidden lg:block" : ""
         }`}
       >
@@ -663,7 +665,7 @@ export function Nav() {
                   }
                   setMobileDrawerOpen(true);
                 }}
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-slate-600 transition active:bg-slate-100"
+                className="flex h-10 w-10 shrink-0 items-center justify-center text-ink transition active:opacity-50"
                 aria-label={useBackArrowOnMobileTop ? "返回" : "打开菜单"}
                 aria-expanded={mobileDrawerOpen}
               >
@@ -680,7 +682,7 @@ export function Nav() {
               <div className="relative flex min-w-0 flex-1 items-center justify-center gap-2 sm:gap-4">
                 {touchFeedPager && feedTabUnderlineX !== null ? (
                   <span
-                    className="pointer-events-none absolute bottom-0 h-[2px] w-8 rounded-full bg-gradient-to-r from-[#FF80AB] to-[#BA68C8] transition-[left] duration-75 ease-out sm:w-9"
+                    className="pointer-events-none absolute bottom-0 h-[1px] w-6 bg-ink transition-[left] duration-75 ease-out sm:w-7"
                     style={{ left: feedTabUnderlineX, transform: "translateX(-50%)" }}
                     aria-hidden
                   />
@@ -691,13 +693,13 @@ export function Nav() {
                 >
                   动态
                   {isPostsPage ? (
-                    <span className="absolute bottom-0 left-1 right-1 h-0.5 rounded-full bg-gradient-to-r from-[#FF80AB] to-[#BA68C8]" aria-hidden />
+                    <span className="absolute bottom-0 left-1 right-1 h-[1px] bg-ink" aria-hidden />
                   ) : null}
                 </Link>
                 <Link ref={feedTabDiscRef} href="/life-agents" className={`relative ${feedTabClass(isFeedDiscover)}`} scroll={false}>
                   发现
                   {!touchFeedPager && isFeedDiscover ? (
-                    <span className="absolute bottom-0 left-1 right-1 h-0.5 rounded-full bg-gradient-to-r from-[#FF80AB] to-[#BA68C8]" aria-hidden />
+                    <span className="absolute bottom-0 left-1 right-1 h-[1px] bg-ink" aria-hidden />
                   ) : null}
                 </Link>
                 <Link
@@ -708,13 +710,13 @@ export function Nav() {
                 >
                   已购买
                   {!touchFeedPager && isFeedPurchased ? (
-                    <span className="absolute bottom-0 left-1 right-1 h-0.5 rounded-full bg-gradient-to-r from-[#FF80AB] to-[#BA68C8]" aria-hidden />
+                    <span className="absolute bottom-0 left-1 right-1 h-[1px] bg-ink" aria-hidden />
                   ) : null}
                 </Link>
               </div>
               <Link
                 href={isDashboardHomePage ? "/dashboard/notifications" : "/life-agents/search"}
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-slate-600 transition active:bg-slate-100"
+                className="flex h-10 w-10 shrink-0 items-center justify-center text-ink transition active:opacity-50"
                 title={isDashboardHomePage ? "提醒" : "搜索"}
                 aria-label={isDashboardHomePage ? "提醒" : "搜索"}
               >
@@ -729,7 +731,7 @@ export function Nav() {
                       />
                     </svg>
                     {notificationCount > 0 ? (
-                      <span className="absolute -right-2 -top-2 inline-flex min-w-[18px] items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold leading-[18px] text-white ring-2 ring-white">
+                      <span className="absolute -right-1.5 -top-1.5 inline-flex min-w-[16px] items-center justify-center bg-oxblood-500 px-1 font-serif text-[10px] font-medium leading-[16px] text-paper">
                         {notificationCount > 99 ? "99+" : notificationCount}
                       </span>
                     ) : null}
@@ -819,14 +821,14 @@ export function Nav() {
               animate={{ x: 0 }}
               exit={{ x: "-105%" }}
               transition={{ type: "spring", stiffness: 380, damping: 36 }}
-              className="fixed left-0 top-0 z-[191] flex h-[100dvh] w-[min(100vw,18.5rem)] flex-col border-r border-purple-100/80 bg-white shadow-[4px_0_32px_-8px_rgba(168,139,235,0.15)] lg:hidden"
+              className="fixed left-0 top-0 z-[191] flex h-[100dvh] w-[min(100vw,18.5rem)] flex-col border-r border-hairline bg-paper-50 lg:hidden"
             >
-              <div className="flex items-center justify-between border-b border-purple-100/70 px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
-                <span className="text-sm font-semibold text-slate-800">菜单</span>
+              <div className="flex items-center justify-between border-b border-hairline px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
+                <span className="font-serif text-base italic text-ink">菜单</span>
                 <button
                   type="button"
                   onClick={() => setMobileDrawerOpen(false)}
-                  className="rounded-full p-2 text-slate-500 hover:bg-purple-50"
+                  className="p-2 text-ink-400 transition hover:text-ink"
                   aria-label="关闭"
                 >
                   <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
@@ -838,44 +840,44 @@ export function Nav() {
                 <Link
                   href="/life-agents/create"
                   onClick={() => setMobileDrawerOpen(false)}
-                  className="mb-2 flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-slate-800 hover:bg-purple-50/80"
+                  className="mb-1 flex items-center gap-3 border-b border-hairline px-3 py-3 font-serif text-[15px] text-ink transition hover:text-oxblood-500"
                 >
-                  <svg className="h-5 w-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  <svg className="h-5 w-5 text-oxblood-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v16m8-8H4" />
                   </svg>
                   创建人生 Agent
                 </Link>
                 <Link
                   href="/dashboard/life-agents"
                   onClick={() => setMobileDrawerOpen(false)}
-                  className="mb-2 flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-slate-800 hover:bg-purple-50/80"
+                  className="flex items-center gap-3 border-b border-hairline px-3 py-3 font-serif text-[15px] text-ink transition hover:text-oxblood-500"
                 >
-                  <IconAgent className="h-5 w-5 text-slate-600" />
+                  <IconAgent className="h-5 w-5 text-ink-400" />
                   我创建的
                 </Link>
                 <Link
                   href="/dashboard/messages"
                   onClick={() => setMobileDrawerOpen(false)}
-                  className="mb-2 flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-slate-800 hover:bg-purple-50/80"
+                  className="flex items-center gap-3 border-b border-hairline px-3 py-3 font-serif text-[15px] text-ink transition hover:text-oxblood-500"
                 >
-                  <IconMessages className="h-5 w-5 text-slate-600" />
+                  <IconMessages className="h-5 w-5 text-ink-400" />
                   消息
                 </Link>
                 <Link
                   href="/map"
                   onClick={() => setMobileDrawerOpen(false)}
-                  className="mb-2 flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-slate-800 hover:bg-purple-50/80"
+                  className="flex items-center gap-3 border-b border-hairline px-3 py-3 font-serif text-[15px] text-ink transition hover:text-oxblood-500"
                 >
-                  <IconMap className="h-5 w-5 text-slate-600" />
+                  <IconMap className="h-5 w-5 text-ink-400" />
                   地图
                 </Link>
                 <Link
                   href="/licenses"
                   onClick={() => setMobileDrawerOpen(false)}
-                  className="mb-2 flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-slate-800 hover:bg-purple-50/80"
+                  className="flex items-center gap-3 border-b border-hairline px-3 py-3 font-serif text-[15px] text-ink transition hover:text-oxblood-500"
                 >
-                  <svg className="h-5 w-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                  <svg className="h-5 w-5 text-ink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                   </svg>
                   已购咨询
                 </Link>
@@ -884,18 +886,18 @@ export function Nav() {
                     <Link
                       href="/dashboard"
                       onClick={() => setMobileDrawerOpen(false)}
-                      className="mb-2 flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-slate-800 hover:bg-purple-50/80"
+                      className="flex items-center gap-3 border-b border-hairline px-3 py-3 font-serif text-[15px] text-ink transition hover:text-oxblood-500"
                     >
-                      <IconDashboard className="h-5 w-5 text-slate-600" />
+                      <IconDashboard className="h-5 w-5 text-ink-400" />
                       我的
                     </Link>
                     <Link
                       href="/dashboard/account"
                       onClick={() => setMobileDrawerOpen(false)}
-                      className="mb-2 flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-slate-800 hover:bg-purple-50/80"
+                      className="flex items-center gap-3 border-b border-hairline px-3 py-3 font-serif text-[15px] text-ink transition hover:text-oxblood-500"
                     >
-                      <svg className="h-5 w-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      <svg className="h-5 w-5 text-ink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                       </svg>
                       账号与安全
                     </Link>
@@ -905,14 +907,14 @@ export function Nav() {
                         setMobileDrawerOpen(false);
                         void logout();
                       }}
-                      className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm font-medium text-rose-600 hover:bg-rose-50"
+                      className="flex w-full items-center gap-3 px-3 py-3 text-left font-serif text-[15px] italic text-oxblood-500 transition hover:text-oxblood-700"
                     >
                       <IconLogout className="h-5 w-5" />
                       退出登录
                     </button>
                   </>
                 ) : (
-                  <div className="mt-2 space-y-2 border-t border-purple-100/70 pt-4">
+                  <div className="mt-2 space-y-2 border-t border-hairline pt-4">
                     <Link
                       href="/login"
                       onClick={() => setMobileDrawerOpen(false)}
@@ -944,20 +946,20 @@ export function Nav() {
           ) : shouldShowCreateFab ? (
             <Link
               href="/life-agents/create"
-              className="fixed bottom-[calc(env(safe-area-inset-bottom)+2.25rem)] left-1/2 z-[60] flex h-12 w-12 -translate-x-1/2 lg:hidden items-center justify-center rounded-full bg-gradient-to-br from-[#BA68C8] via-[#FF80AB] to-[#FFF176] shadow-lg shadow-fuchsia-500/25 ring-4 ring-white transition-transform active:scale-95"
+              className="fixed bottom-[calc(env(safe-area-inset-bottom)+2.25rem)] left-1/2 z-[60] flex h-12 w-12 -translate-x-1/2 lg:hidden items-center justify-center rounded-full bg-ink ring-4 ring-paper transition-transform active:scale-95"
               aria-label="创建人生 Agent"
             >
-              <svg className="h-6 w-6 text-slate-900" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+              <svg className="h-6 w-6 text-paper" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
               </svg>
             </Link>
           ) : shouldShowLoadingFab ? (
-            <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+2.25rem)] left-1/2 z-[60] flex h-12 w-12 -translate-x-1/2 items-center justify-center rounded-full bg-white/90 text-purple-700 shadow-lg ring-4 ring-white lg:hidden">
+            <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+2.25rem)] left-1/2 z-[60] flex h-12 w-12 -translate-x-1/2 items-center justify-center rounded-full bg-paper-50 text-ink ring-4 ring-paper lg:hidden">
               <span className="h-5 w-5 animate-spin rounded-full border-2 border-current/25 border-t-current" />
             </div>
           ) : null}
 
-          <div className="fixed bottom-0 left-0 right-0 z-50 flex lg:hidden items-end justify-around border-t border-purple-200/[0.2] bg-white/[0.94] supports-[backdrop-filter]:backdrop-blur-xl pb-[env(safe-area-inset-bottom)] pt-2 shadow-[0_-4px_28px_-8px_rgba(124,58,237,0.075)]">
+          <div className="fixed bottom-0 left-0 right-0 z-50 flex lg:hidden items-end justify-around border-t border-hairline bg-paper/95 supports-[backdrop-filter]:backdrop-blur-md pb-[env(safe-area-inset-bottom)] pt-2">
             {(() => {
               const [lifeAgentsLink, messagesLink, licenseLink] = navLinks;
               const renderTab = (
@@ -969,14 +971,17 @@ export function Nav() {
                   <Link
                     key={link.href}
                     href={link.href}
-                    className={`relative flex min-w-0 flex-1 flex-col items-center gap-0.5 px-2 py-2 transition-colors ${
-                      active ? "text-purple-700" : "text-slate-400"
+                    className={`relative flex min-w-0 flex-1 flex-col items-center gap-1 px-2 py-2 transition-colors ${
+                      active ? "text-ink" : "text-ink-300"
                     }`}
                   >
+                    {active ? (
+                      <span className="absolute inset-x-[22%] top-0 h-[1px] bg-ink" aria-hidden />
+                    ) : null}
                     <span className="relative inline-flex">
-                      <Icon className={`h-6 w-6 shrink-0 ${active ? "stroke-[2.5]" : ""}`} />
+                      <Icon className={`h-[22px] w-[22px] shrink-0 ${active ? "stroke-[1.8]" : "stroke-[1.4]"}`} />
                     </span>
-                    <span className="w-full truncate text-center text-[11px] font-medium">{link.label}</span>
+                    <span className="w-full truncate text-center font-serif text-[11px]">{link.label}</span>
                   </Link>
                 );
               };
@@ -993,22 +998,28 @@ export function Nav() {
             {user ? (
               <Link
                 href="/dashboard"
-                className={`flex flex-col items-center gap-0.5 px-3 py-2 min-w-0 flex-1 transition-colors ${
-                  pathname === "/dashboard" ? "text-purple-700" : "text-slate-400"
+                className={`relative flex flex-col items-center gap-1 px-3 py-2 min-w-0 flex-1 transition-colors ${
+                  pathname === "/dashboard" ? "text-ink" : "text-ink-300"
                 }`}
               >
-                <IconDashboard className={`h-6 w-6 shrink-0 ${pathname === "/dashboard" ? "stroke-[2.5]" : ""}`} />
-                <span className="text-[11px] font-medium">我的</span>
+                {pathname === "/dashboard" ? (
+                  <span className="absolute inset-x-[22%] top-0 h-[1px] bg-ink" aria-hidden />
+                ) : null}
+                <IconDashboard className={`h-[22px] w-[22px] shrink-0 ${pathname === "/dashboard" ? "stroke-[1.8]" : "stroke-[1.4]"}`} />
+                <span className="font-serif text-[11px]">我的</span>
               </Link>
             ) : (
               <Link
                 href="/login"
-                className={`flex flex-col items-center gap-0.5 px-3 py-2 min-w-0 flex-1 transition-colors ${
-                  pathname === "/login" ? "text-purple-700" : "text-slate-400"
+                className={`relative flex flex-col items-center gap-1 px-3 py-2 min-w-0 flex-1 transition-colors ${
+                  pathname === "/login" ? "text-ink" : "text-ink-300"
                 }`}
               >
-                <IconLogin className={`h-6 w-6 shrink-0 ${pathname === "/login" ? "stroke-[2.5]" : ""}`} />
-                <span className="text-[11px] font-medium">登录</span>
+                {pathname === "/login" ? (
+                  <span className="absolute inset-x-[22%] top-0 h-[1px] bg-ink" aria-hidden />
+                ) : null}
+                <IconLogin className={`h-[22px] w-[22px] shrink-0 ${pathname === "/login" ? "stroke-[1.8]" : "stroke-[1.4]"}`} />
+                <span className="font-serif text-[11px]">登录</span>
               </Link>
             )}
           </div>

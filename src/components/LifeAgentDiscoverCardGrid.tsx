@@ -1,11 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
-import { RatingStars } from "@/components/RatingStars";
-import { VerificationBadge } from "@/components/VerificationBadge";
 import { LifeAgentCoverImage } from "@/components/LifeAgentCoverImage";
 import { resolveLifeAgentCoverDisplayUrl } from "@/lib/life-agent-covers";
 import type { LifeAgentListItem } from "@/lib/life-agent-feed-search";
@@ -54,12 +51,18 @@ function chunkIntoRows<T>(items: T[], cols: number): T[][] {
   return rows;
 }
 
+/**
+ * 杂志风卡片：
+ *  - 没有外框、没有阴影、没有圆角
+ *  - 封面图保持 4:5 编辑挑选比，浅米衬底
+ *  - 标题用 serif（衬线），副信息用 sans
+ *  - 价格用 oxblood 强调，tabular-nums 让数字对齐
+ *  - 不做入场动画，hover 仅图片轻微变暗
+ */
 function LifeAgentDiscoverCard({
   profile,
   globalIndex,
   profileHref,
-  /** 虚拟列表回收节点时禁用入场动画，避免反复 mount 触发动效与布局抖动 */
-  skipMountAnimation,
 }: {
   profile: LifeAgentListItem;
   globalIndex: number;
@@ -67,97 +70,69 @@ function LifeAgentDiscoverCard({
   skipMountAnimation?: boolean;
 }) {
   const areaLabel = [profile.city, profile.province].filter(Boolean).join(" · ");
-  const tags = (profile.expertiseTags ?? []).slice(0, 2);
   const coverUrl = resolveLifeAgentCoverDisplayUrl(profile.coverUrl, profile.coverImageUrl, profile.coverPresetKey);
   const headlineShown = cleanLifeAgentIntroText(profile.headline, profile.displayName);
-  const stagger = globalIndex < 8;
-  const shellClass = "min-h-0 [contain-intrinsic-size:auto_300px]";
-  const inner = (
-    <Link href={profileHref(profile.id)} className="group flex h-full min-h-0">
-        <div className="flex h-full min-h-[260px] w-full flex-col overflow-hidden rounded-[22px] border border-purple-200/[0.22] bg-white/[0.98] shadow-[0_5px_28px_-8px_rgba(124,58,237,0.09)] backdrop-blur-sm transition duration-200 group-hover:border-fuchsia-200/35 group-hover:shadow-[0_10px_36px_-10px_rgba(168,139,235,0.14)] sm:min-h-[280px]">
-          <div className="relative aspect-square w-full shrink-0 overflow-hidden bg-violet-100/40">
-            {typeof profile.published === "boolean" && (
-              <div
-                className={`absolute left-2 top-2 z-[1] rounded-full px-2 py-0.5 text-[10px] font-bold shadow-sm ${
-                  profile.published ? "bg-emerald-600 text-white" : "bg-white/95 text-slate-600 ring-1 ring-slate-200/80"
-                }`}
-              >
-                {profile.published ? "已发布" : "未发布"}
-              </div>
-            )}
-            <LifeAgentCoverImage
-              src={coverUrl}
-              alt=""
-              fill
-              className="object-cover"
-              sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 220px"
-              priority={globalIndex < 6}
-              loading={globalIndex < 6 ? undefined : "lazy"}
-            />
-            {(profile.verificationStatus === "verified" || profile.verificationStatus === "pending") && (
-              <div className="absolute right-2 top-2 rounded-full bg-white/90 px-1.5 py-0.5 shadow-sm backdrop-blur-sm">
-                <VerificationBadge status={profile.verificationStatus ?? "none"} size="sm" />
-              </div>
-            )}
-            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/45 via-black/15 to-transparent p-2.5 pt-12">
-              <span className="line-clamp-2 text-[13px] font-semibold leading-snug text-white drop-shadow-md">
-                {headlineShown}
+  const verified = profile.verificationStatus === "verified";
+  const ratingScore =
+    profile.ratings && profile.ratings.raters > 0 ? profile.ratings.averageScore.toFixed(1) : null;
+
+  return (
+    <article className="min-h-0 [contain-intrinsic-size:auto_300px]">
+      <Link
+        href={profileHref(profile.id)}
+        className="group block focus:outline-none focus-visible:outline focus-visible:outline-1 focus-visible:outline-ink"
+      >
+        {/* 封面：4:5 编辑挑选比 */}
+        <div className="relative w-full overflow-hidden bg-paper-200" style={{ aspectRatio: "4 / 5" }}>
+          <LifeAgentCoverImage
+            src={coverUrl}
+            alt=""
+            fill
+            className="object-cover transition-opacity duration-200 group-hover:opacity-90"
+            sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 220px"
+            priority={globalIndex < 6}
+            loading={globalIndex < 6 ? undefined : "lazy"}
+          />
+          {typeof profile.published === "boolean" && profile.published === false ? (
+            <div className="absolute left-0 top-0 bg-paper px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.18em] text-ink-400">
+              未发布
+            </div>
+          ) : null}
+        </div>
+
+        {/* 文字区：发丝线起，editorial caption */}
+        <div className="border-t border-hairline pt-2.5">
+          {/* 大标题：作者主头像名 */}
+          <h3 className="font-serif text-[15px] font-medium leading-tight text-ink line-clamp-1 sm:text-base">
+            {profile.displayName}
+            {verified ? (
+              <span className="ml-1 align-middle text-[10px] tracking-widest text-olive-500" aria-label="已认证">
+                ✓
               </span>
-            </div>
-          </div>
-          <div className="flex min-h-0 flex-1 flex-col px-2.5 pb-2.5 pt-2 sm:p-3">
-            <h3 className="line-clamp-2 min-h-[2.75rem] text-[13px] font-semibold leading-snug text-slate-900 sm:text-sm">
-              {profile.displayName}
-            </h3>
-            <p className="line-clamp-1 min-h-[1.125rem] text-[11px] text-slate-400">{areaLabel || "\u00a0"}</p>
-            <div className="flex items-center justify-between gap-2 pt-0.5">
-              <div className="flex min-w-0 items-center gap-1 text-[11px] text-slate-500">
-                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-100 to-fuchsia-100 text-[10px] font-bold text-purple-800">
-                  {(profile.displayName ?? anonymous).slice(0, 1)}
-                </span>
-                <span className="truncate">{profile.creator.name ?? anonymous}</span>
-              </div>
-              <span className="shrink-0 text-sm font-bold text-purple-700">
-                ¥{(profile.pricePerQuestion / 100).toFixed(0)}
-                <span className="text-[10px] font-medium text-slate-400">/问</span>
-              </span>
-            </div>
-            <div className="flex items-center gap-1.5 border-t border-purple-100/60 pt-2 text-[11px] text-slate-500">
-              <RatingStars score={profile.ratings?.averageScore ?? 0} size="sm" />
-              <span>
-                {profile.ratings && profile.ratings.raters > 0 ? profile.ratings.averageScore.toFixed(1) : "—"}
-              </span>
-              {profile.ratings && profile.ratings.raters > 0 ? (
-                <span className="text-slate-400">· {profile.ratings.raters} 人评</span>
-              ) : null}
-            </div>
-            <div className="flex-1" aria-hidden />
-            <div className="flex min-h-[1.375rem] flex-wrap content-end gap-1">
-              {tags.map((tag: string) => (
-                <span
-                  key={tag}
-                  className="rounded-md bg-violet-50/90 px-1.5 py-0.5 text-[10px] font-medium text-purple-700/90"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
+            ) : null}
+          </h3>
+
+          {/* 副标题：headline，serif italic 给杂志感 */}
+          <p className="mt-0.5 line-clamp-2 min-h-[2.5em] font-serif text-[12.5px] italic leading-snug text-ink-400">
+            {headlineShown}
+          </p>
+
+          {/* 元数据条：地区 · 评分 / 价格 */}
+          <div className="mt-2 flex items-baseline justify-between gap-2 text-[11px] text-ink-300">
+            <span className="truncate">
+              {[areaLabel || null, profile.creator.name ?? anonymous]
+                .filter(Boolean)
+                .join(" · ") || anonymous}
+              {ratingScore ? <span className="text-ink-400"> · {ratingScore}★</span> : null}
+            </span>
+            <span className="shrink-0 font-serif text-[15px] font-medium tabular-nums text-oxblood-500">
+              ¥{(profile.pricePerQuestion / 100).toFixed(0)}
+              <span className="ml-0.5 text-[10px] font-normal not-italic text-ink-300">/问</span>
+            </span>
           </div>
         </div>
       </Link>
-  );
-  if (skipMountAnimation) {
-    return <article className={shellClass}>{inner}</article>;
-  }
-  return (
-    <motion.article
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: stagger ? globalIndex * 0.04 : 0, duration: stagger ? 0.4 : 0.18 }}
-      className={shellClass}
-    >
-      {inner}
-    </motion.article>
+    </article>
   );
 }
 
@@ -201,9 +176,9 @@ export function LifeAgentDiscoverCardGrid({
 
   const rowVirtualizer = useWindowVirtualizer({
     count: rows.length,
-    estimateSize: () => 328,
+    estimateSize: () => 360,
     overscan: 4,
-    gap: 12,
+    gap: 28,
     enabled: virtualized && !loading && profiles.length > 0,
     getItemKey: (i) => rowKeys[i] ?? String(i),
   });
@@ -257,19 +232,14 @@ export function LifeAgentDiscoverCardGrid({
 
   if (loading) {
     return (
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4 xl:grid-cols-5">
+      <div className="grid grid-cols-2 gap-x-3 gap-y-7 sm:grid-cols-3 sm:gap-x-5 sm:gap-y-9 lg:grid-cols-4 xl:grid-cols-5">
         {[1, 2, 3, 4, 5, 6].map((item) => (
-          <div
-            key={item}
-            className="flex min-h-0 flex-col overflow-hidden rounded-[22px] border border-purple-200/[0.18] bg-white/[0.96] shadow-[0_4px_22px_rgba(124,58,237,0.06)]"
-          >
-            <div className="aspect-square w-full shrink-0 animate-pulse bg-gradient-to-br from-violet-100/80 to-fuchsia-100/50" />
-            <div className="flex flex-1 flex-col gap-2 p-2.5">
-              <div className="min-h-[2.75rem] animate-pulse rounded-md bg-slate-100" />
-              <div className="h-3 w-2/3 animate-pulse rounded bg-slate-100" />
-              <div className="h-4 animate-pulse rounded bg-slate-50" />
-              <div className="h-6 animate-pulse rounded bg-slate-50" />
-              <div className="min-h-[1.375rem] animate-pulse rounded bg-slate-100" />
+          <div key={item} className="min-h-0">
+            <div className="w-full animate-pulse bg-paper-200" style={{ aspectRatio: "4 / 5" }} />
+            <div className="mt-2.5 border-t border-hairline pt-2.5 space-y-1.5">
+              <div className="h-3.5 w-3/5 animate-pulse bg-paper-200" />
+              <div className="h-3 w-full animate-pulse bg-paper-200" />
+              <div className="h-3 w-2/3 animate-pulse bg-paper-200" />
             </div>
           </div>
         ))}
@@ -279,30 +249,30 @@ export function LifeAgentDiscoverCardGrid({
 
   if (profiles.length === 0) {
     return (
-      <div className="rounded-[22px] border border-dashed border-purple-200/40 bg-white/[0.97] px-6 py-12 text-center shadow-[0_6px_28px_rgba(124,58,237,0.06)] backdrop-blur-sm">
-        <p className="text-base font-semibold text-purple-950/90">{emptyTitle}</p>
-        <p className="mt-2 text-sm text-slate-500">{emptySubtitle}</p>
+      <div className="border-t border-b border-hairline px-6 py-16 text-center">
+        <p className="font-serif text-xl font-medium text-ink">{emptyTitle}</p>
+        <p className="mt-2 font-serif text-sm italic text-ink-400">{emptySubtitle}</p>
       </div>
     );
   }
 
   if (!virtualized) {
     return (
-      <div className="space-y-3">
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4 xl:grid-cols-5">
+      <div className="space-y-6">
+        <div className="grid grid-cols-2 gap-x-3 gap-y-7 sm:grid-cols-3 sm:gap-x-5 sm:gap-y-9 lg:grid-cols-4 xl:grid-cols-5">
           {toRender.map((profile, index) => (
             <LifeAgentDiscoverCard key={profile.id} profile={profile} globalIndex={index} profileHref={profileHref} />
           ))}
         </div>
         {windowed && hasMore ? (
           <div ref={sentinelRef} className="flex min-h-[52px] items-center justify-center py-2" aria-hidden>
-            <span className="text-xs text-slate-400">向下滑动加载更多…</span>
+            <span className="font-serif text-xs italic text-ink-300">继续阅读</span>
           </div>
         ) : null}
         {onLoadMore && (hasMoreFromServer || loadingMore) ? (
           <div ref={loadMoreSentinelRef} className="flex min-h-[52px] items-center justify-center py-2" aria-hidden>
-            <span className="text-xs text-slate-400">
-              {loadingMore ? "加载更多…" : "向下滑动加载更多…"}
+            <span className="font-serif text-xs italic text-ink-300">
+              {loadingMore ? "正在加载…" : "继续阅读"}
             </span>
           </div>
         ) : null}
@@ -314,7 +284,7 @@ export function LifeAgentDiscoverCardGrid({
   const virtualItems = rowVirtualizer.getVirtualItems();
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-6">
       <div className="relative w-full" style={{ height: totalSize }}>
         {virtualItems.map((virtualRow) => {
           const row = rows[virtualRow.index];
@@ -330,7 +300,7 @@ export function LifeAgentDiscoverCardGrid({
               }}
             >
               <div
-                className="grid gap-2 sm:gap-3"
+                className="grid gap-x-3 gap-y-7 sm:gap-x-5 sm:gap-y-9"
                 style={{ gridTemplateColumns: `repeat(${colCount}, minmax(0, 1fr))` }}
               >
                 {row.map((profile, colIdx) => {
@@ -352,8 +322,8 @@ export function LifeAgentDiscoverCardGrid({
       </div>
       {onLoadMore && (hasMoreFromServer || loadingMore) ? (
         <div ref={loadMoreSentinelRef} className="flex min-h-[52px] items-center justify-center py-2" aria-hidden>
-          <span className="text-xs text-slate-400">
-            {loadingMore ? "加载更多…" : hasMoreFromServer ? "向下滑动加载更多…" : ""}
+          <span className="font-serif text-xs italic text-ink-300">
+            {loadingMore ? "正在加载…" : hasMoreFromServer ? "继续阅读" : ""}
           </span>
         </div>
       ) : null}
