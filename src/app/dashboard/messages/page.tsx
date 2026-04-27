@@ -79,64 +79,64 @@ export default function DashboardMessagesPage() {
   if (loading || !user) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center px-4">
-        <p className="text-sm text-slate-500">{loading ? "加载中…" : "请先登录后查看消息。"}</p>
+        <p className="text-sm text-ink-300">{loading ? "加载中…" : "请先登录后查看消息。"}</p>
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-2xl bg-white pb-6 max-lg:-mx-4 max-lg:min-h-[calc(100dvh-env(safe-area-inset-bottom)-4.25rem)] max-lg:pb-24 lg:pb-8">
+    <div className="mx-auto max-w-2xl bg-paper pb-6 max-lg:-mx-4 max-lg:min-h-[calc(100dvh-env(safe-area-inset-bottom)-4.25rem)] max-lg:pb-24 lg:pb-8">
       <header className="px-4 pb-3 pt-[max(0.25rem,env(safe-area-inset-top))] sm:px-0">
-        <h1 className="text-[26px] font-bold leading-tight tracking-tight text-[#111]">消息</h1>
+        <h1 className="font-serif text-[26px] font-medium leading-tight tracking-tight text-ink">消息</h1>
       </header>
 
       <div className="px-4 pb-3 sm:px-0">
         <label className="sr-only">搜索会话</label>
         <input
-          className="w-full rounded-full border-0 bg-slate-100 px-4 py-2.5 text-[15px] text-[#111] outline-none ring-1 ring-transparent transition placeholder:text-slate-400 focus:bg-slate-50 focus:ring-slate-200"
+          className="w-full border-0 border-b border-hairline bg-paper px-1 py-2.5 text-[15px] text-ink outline-none transition placeholder:text-ink-300 focus:border-ink focus:bg-paper-50"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="搜索会话或 Agent"
         />
       </div>
 
-      <div className="border-t border-slate-100">
+      <div className="border-t border-hairline">
         {dataLoading ? (
-          <ul className="divide-y divide-slate-100 px-4 sm:px-0" aria-busy>
+          <ul className="divide-y divide-hairline px-4 sm:px-0" aria-busy>
             {[1, 2, 3, 4, 5, 6].map((i) => (
               <li key={i} className="flex items-center gap-3 py-3.5">
-                <div className="h-12 w-12 shrink-0 animate-pulse rounded-full bg-slate-200" />
+                <div className="h-12 w-12 shrink-0 animate-pulse rounded-full bg-paper-200" />
                 <div className="min-w-0 flex-1 space-y-2">
-                  <div className="h-4 w-32 animate-pulse rounded bg-slate-200" />
-                  <div className="h-3 w-full max-w-[12rem] animate-pulse rounded bg-slate-100" />
+                  <div className="h-4 w-32 animate-pulse rounded bg-paper-200" />
+                  <div className="h-3 w-full max-w-[12rem] animate-pulse rounded bg-paper-100" />
                 </div>
-                <div className="h-3 w-10 shrink-0 animate-pulse rounded bg-slate-100" />
+                <div className="h-3 w-10 shrink-0 animate-pulse rounded bg-paper-100" />
               </li>
             ))}
           </ul>
         ) : items.length === 0 ? (
           <div className="px-4 py-16 text-center sm:px-0">
-            <p className="text-[15px] text-slate-400">还没有会话</p>
+            <p className="font-serif text-[15px] italic text-ink-300">还没有会话</p>
             <Link
               href="/life-agents"
-              className="mt-5 inline-flex rounded-full bg-[#111] px-6 py-2.5 text-sm font-medium text-white active:opacity-90"
+              className="btn-primary mt-5 inline-flex"
             >
               去找 Agent 聊聊
             </Link>
           </div>
         ) : filteredItems.length === 0 ? (
           <div className="px-4 py-16 text-center sm:px-0">
-            <p className="text-[15px] text-slate-400">没有匹配的会话</p>
+            <p className="text-[15px] text-ink-300">没有匹配的会话</p>
             <button
               type="button"
               onClick={() => setQuery("")}
-              className="mt-4 text-sm font-medium text-slate-600 underline"
+              className="mt-4 text-sm font-medium text-ink-400 underline underline-offset-2 transition hover:text-ink"
             >
               清空搜索
             </button>
           </div>
         ) : (
-          <ul className="divide-y divide-slate-100">
+          <ul className="divide-y divide-hairline">
             {filteredItems.map((item, index) => {
               const avatarSrc = getDisplayAvatar({ name: item.profile.displayName });
               const href = `/life-agents/${item.profile.id}/chat?sessionId=${item.id}`;
@@ -149,9 +149,9 @@ export default function DashboardMessagesPage() {
                 >
                   <Link
                     href={href}
-                    className="flex items-center gap-3 px-4 py-3.5 transition active:bg-slate-50 sm:px-0"
+                    className="flex items-center gap-3 px-4 py-3.5 transition active:bg-paper-100 sm:px-0"
                   >
-                    <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full bg-slate-100 ring-1 ring-black/[0.06]">
+                    <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full bg-paper-200 ring-1 ring-ink/10">
                       <Image
                         src={avatarSrc}
                         alt=""
@@ -163,16 +163,16 @@ export default function DashboardMessagesPage() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex min-w-0 items-center gap-1.5">
-                        <span className="truncate text-[16px] font-semibold text-[#111]">
+                        <span className="truncate text-[16px] font-medium text-ink">
                           {item.profile.displayName}
                         </span>
                       </div>
-                      <p className="mt-0.5 line-clamp-1 text-[13px] leading-snug text-slate-400">
+                      <p className="mt-0.5 line-clamp-1 text-[13px] leading-snug text-ink-300">
                         {previewText(item)}
                       </p>
                     </div>
                     <time
-                      className="shrink-0 pt-0.5 text-xs tabular-nums text-slate-400"
+                      className="shrink-0 pt-0.5 text-xs tabular-nums text-ink-300"
                       dateTime={item.updatedAt}
                     >
                       {formatSessionTime(item.updatedAt)}
