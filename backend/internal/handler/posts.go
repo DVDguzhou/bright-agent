@@ -537,74 +537,77 @@ func PostsCommentsList(cfg *config.Config) gin.HandlerFunc {
 
 // triggerAgentReplies 根据帖子内容与 Agent ExpertiseTags 的匹配度选取相关 Agent 生成自动回复
 func triggerAgentReplies(postID string, content string) {
-	var cfg *config.Config
-	if config := config.Load(); config != nil {
-		cfg = config
-	}
-	var profiles []models.LifeAgentProfile
-	if err := db.DB.Where("published = ?", true).Find(&profiles).Error; err != nil {
-		return
-	}
-	if len(profiles) == 0 {
-		return
-	}
+	// 异步执行，避免阻塞主流程
+	go func() {
+		var cfg *config.Config
+		if config := config.Load(); config != nil {
+			cfg = config
+		}
+		var profiles []models.LifeAgentProfile
+		if err := db.DB.Where("published = ?", true).Find(&profiles).Error; err != nil {
+			return
+		}
+		if len(profiles) == 0 {
+			return
+		}
 
-	// 关键词匹配：帖子内容 vs Agent ExpertiseTags
-	lowerContent := strings.ToLower(content)
-	type scored struct {
-		profile models.LifeAgentProfile
-		score   int
-	}
-	var scoredList []scored
-	for _, p := range profiles {
-		score := 0
-		for _, tag := range p.ExpertiseTags {
-			if strings.Contains(lowerContent, strings.ToLower(tag)) {
-				score++
+		// 关键词匹配：帖子内容 vs Agent ExpertiseTags
+		lowerContent := strings.ToLower(content)
+		type scored struct {
+			profile models.LifeAgentProfile
+			score   int
+		}
+		var scoredList []scored
+		for _, p := range profiles {
+			score := 0
+			for _, tag := range p.ExpertiseTags {
+				if strings.Contains(lowerContent, strings.ToLower(tag)) {
+					score++
+				}
+			}
+			if score > 0 {
+				scoredList = append(scoredList, scored{p, score})
 			}
 		}
-		if score > 0 {
-			scoredList = append(scoredList, scored{p, score})
+
+		// 按匹配度降序
+		sort.Slice(scoredList, func(i, j int) bool {
+			return scoredList[i].score > scoredList[j].score
+		})
+
+		// 随机取 3-11 个匹配的
+		maxReplies := 3 + rand.Intn(9) // 3-11
+		var selected []models.LifeAgentProfile
+		for i := 0; i < len(scoredList) && i < maxReplies; i++ {
+			selected = append(selected, scoredList[i].profile)
 		}
-	}
 
-	// 按匹配度降序
-	sort.Slice(scoredList, func(i, j int) bool {
-		return scoredList[i].score > scoredList[j].score
-	})
-
-	// 随机取 3-11 个匹配的
-	maxReplies := 3 + rand.Intn(9) // 3-11
-	var selected []models.LifeAgentProfile
-	for i := 0; i < len(scoredList) && i < maxReplies; i++ {
-		selected = append(selected, scoredList[i].profile)
-	}
-
-	// Fallback：无匹配时随机选 3-11 个
-	if len(selected) == 0 {
-		if err := db.DB.Where("published = ?", true).Order("RAND()").Limit(maxReplies).Find(&selected).Error; err != nil {
-			return
-		}
+		// Fallback：无匹配时随机选 3-11 个
 		if len(selected) == 0 {
-			return
+			if err := db.DB.Where("published = ?", true).Order("RAND()").Limit(maxReplies).Find(&selected).Error; err != nil {
+				return
+			}
+			if len(selected) == 0 {
+				return
+			}
 		}
-	}
 
-	for _, p := range selected {
-		replyText := generateAgentReply(cfg, p, content)
-		ar := models.PostAgentReply{
-			ID:          models.GenID(),
-			PostID:      postID,
-			ProfileID:   p.ID,
-			Content:     replyText,
-			DisplayName: p.DisplayName,
-			CreatedAt:   time.Now().Add(time.Duration(5+len(replyText)%30) * time.Second), // stagger 避免同时出现
+		for _, p := range selected {
+			replyText := generateAgentReply(cfg, p, content)
+			ar := models.PostAgentReply{
+				ID:          models.GenID(),
+				PostID:      postID,
+				ProfileID:   p.ID,
+				Content:     replyText,
+				DisplayName: p.DisplayName,
+				CreatedAt:   time.Now().Add(time.Duration(5+len(replyText)%30) * time.Second), // stagger 避免同时出现
+			}
+			_ = db.DB.Create(&ar).Error
+
+			// 更新帖子评论计数（Agent 回复也计入）
+			db.DB.Model(&models.Post{}).Where("id = ?", postID).UpdateColumn("comments_count", gorm.Expr("comments_count + 1"))
 		}
-		_ = db.DB.Create(&ar).Error
-
-		// 更新帖子评论计数（Agent 回复也计入）
-		db.DB.Model(&models.Post{}).Where("id = ?", postID).UpdateColumn("comments_count", gorm.Expr("comments_count + 1"))
-	}
+	}()
 }
 
 func generateAgentReply(cfg *config.Config, profile models.LifeAgentProfile, postContent string) string {
@@ -663,8 +666,13 @@ func generateAgentReply(cfg *config.Config, profile models.LifeAgentProfile, pos
 	factsForAI := lifeagent.BuildStructuredFactsForAI(facts)
 	topicsForAI := lifeagent.BuildTopicSummariesForAI(topics)
 
-	// 调用LLM生成回复
-	ctx := context.Background()
+	// 调用LLM生成回复，使用更长的超时时间
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
+	defer cancel()
+
+	// 在帖子内容前添加长度限制提示
+	enhancedPostContent := postContent + "\n\n(请用不超过100字回复，保持句子完整)"
+
 	content, _, err := lifeagent.BuildReplyWithLLM(
 		ctx,
 		cfg.OpenAIApiKey,
@@ -676,7 +684,7 @@ func generateAgentReply(cfg *config.Config, profile models.LifeAgentProfile, pos
 		topicsForAI,
 		entriesForAI,
 		[]lifeagent.ChatMessageForAI{}, // 无历史对话
-		postContent,
+		enhancedPostContent,
 		nil, // ChatOptions - 动态回复不需要特殊选项
 	)
 
@@ -688,11 +696,11 @@ func generateAgentReply(cfg *config.Config, profile models.LifeAgentProfile, pos
 
 	log.Printf("[AgentReply] LLM generated reply: %s", content)
 
-	// 确保不超过50字
+	// 确保不超过100字
 	runes := []rune(content)
-	if len(runes) > 50 {
-		content = string(runes[:50])
-		log.Printf("[AgentReply] Truncated to 50 chars: %s", content)
+	if len(runes) > 100 {
+		content = string(runes[:100])
+		log.Printf("[AgentReply] Truncated to 100 chars: %s", content)
 	}
 
 	return content
