@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   title: "BrightAgent",
   description: "专注本地的经验 Agent 市场：学长分享雅思、大妈分享菜市场、酒吧达人分享探店、创业者分享行业——真实经历做成可对话 Agent，按次付费咨询。",
   manifest: "/manifest.json",
-  themeColor: "#a855f7",
+  themeColor: "#1a1714",
   appleWebApp: { capable: true, title: "BrightAgent" },
   icons: {
     icon: [
@@ -37,7 +37,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN">
-      <body className="min-h-screen bg-gradient-to-b from-[#F3EFFF] via-violet-50/35 to-slate-50 text-slate-900 font-sans antialiased overflow-x-hidden overscroll-x-none">
+      <body className="min-h-screen bg-paper text-ink font-sans antialiased overflow-x-hidden overscroll-x-none">
         <AuthProvider>
           <ChunkLoadRecovery />
           <Suspense fallback={null}>
