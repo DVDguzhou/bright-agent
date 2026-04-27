@@ -680,7 +680,7 @@ func generateAgentReply(cfg *config.Config, profile models.LifeAgentProfile, pos
 		nil, // ChatOptions - 动态回复不需要特殊选项
 	)
 
-	if err != nil || content == "" {
+	if err != nil || content == "" || content == "大模型出错了哦" {
 		log.Printf("[AgentReply] LLM call failed: err=%v, content=%s, falling back to simple template", err, content)
 		// LLM调用失败，回退到简单模板
 		return generateSimpleReply(profile.DisplayName, postContent)
