@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"context"
+	"math/rand"
 	"net/http"
 	"sort"
 	"strconv"
@@ -9,6 +11,7 @@ import (
 
 	"github.com/agent-marketplace/backend/internal/config"
 	"github.com/agent-marketplace/backend/internal/db"
+	"github.com/agent-marketplace/backend/internal/lifeagent"
 	"github.com/agent-marketplace/backend/internal/middleware"
 	"github.com/agent-marketplace/backend/internal/models"
 	"github.com/gin-gonic/gin"
@@ -533,6 +536,10 @@ func PostsCommentsList(cfg *config.Config) gin.HandlerFunc {
 
 // triggerAgentReplies 根据帖子内容与 Agent ExpertiseTags 的匹配度选取相关 Agent 生成自动回复
 func triggerAgentReplies(postID string, content string) {
+	var cfg *config.Config
+	if config := config.Load(); config != nil {
+		cfg = config
+	}
 	var profiles []models.LifeAgentProfile
 	if err := db.DB.Where("published = ?", true).Find(&profiles).Error; err != nil {
 		return
@@ -565,15 +572,16 @@ func triggerAgentReplies(postID string, content string) {
 		return scoredList[i].score > scoredList[j].score
 	})
 
-	// 取前 3 个匹配的
+	// 随机取 3-11 个匹配的
+	maxReplies := 3 + rand.Intn(9) // 3-11
 	var selected []models.LifeAgentProfile
-	for i := 0; i < len(scoredList) && i < 3; i++ {
+	for i := 0; i < len(scoredList) && i < maxReplies; i++ {
 		selected = append(selected, scoredList[i].profile)
 	}
 
-	// Fallback：无匹配时随机选最多 3 个
+	// Fallback：无匹配时随机选 3-11 个
 	if len(selected) == 0 {
-		if err := db.DB.Where("published = ?", true).Order("RAND()").Limit(3).Find(&selected).Error; err != nil {
+		if err := db.DB.Where("published = ?", true).Order("RAND()").Limit(maxReplies).Find(&selected).Error; err != nil {
 			return
 		}
 		if len(selected) == 0 {
@@ -582,7 +590,7 @@ func triggerAgentReplies(postID string, content string) {
 	}
 
 	for _, p := range selected {
-		replyText := generateSimpleReply(p.DisplayName, content)
+		replyText := generateAgentReply(cfg, p, content)
 		ar := models.PostAgentReply{
 			ID:          models.GenID(),
 			PostID:      postID,
@@ -598,10 +606,97 @@ func triggerAgentReplies(postID string, content string) {
 	}
 }
 
+func generateAgentReply(cfg *config.Config, profile models.LifeAgentProfile, postContent string) string {
+	// 如果没有配置LLM，使用简单模板
+	if cfg == nil || cfg.OpenAIApiKey == "" {
+		return generateSimpleReply(profile.DisplayName, postContent)
+	}
+
+	// 转换为ProfileForAI
+	profileForAI := lifeagent.ProfileForAI{
+		DisplayName:      profile.DisplayName,
+		Headline:         profile.Headline,
+		ShortBio:         profile.ShortBio,
+		LongBio:          profile.LongBio,
+		Audience:         profile.Audience,
+		WelcomeMessage:   profile.WelcomeMessage,
+		ExpertiseTags:    profile.ExpertiseTags,
+		MBTI:             safeStringPtr(profile.MBTI),
+		PersonaArchetype: safeStringPtr(profile.PersonaArchetype),
+		ToneStyle:        safeStringPtr(profile.ToneStyle),
+		ResponseStyle:    safeStringPtr(profile.ResponseStyle),
+		ForbiddenPhrases: profile.ForbiddenPhrases,
+		ExampleReplies:   profile.ExampleReplies,
+		NotSuitableFor:   safeStringPtr(profile.NotSuitableFor),
+	}
+
+	// 加载知识库信息
+	var entries []models.LifeAgentKnowledgeEntry
+	db.DB.Where("profile_id = ?", profile.ID).Order("sort_order").Find(&entries)
+
+	var facts []models.LifeAgentStructuredFact
+	db.DB.Where("profile_id = ?", profile.ID).Find(&facts)
+
+	var topics []models.LifeAgentTopicSummary
+	db.DB.Where("profile_id = ?", profile.ID).Find(&topics)
+
+	// 转换为AI格式
+	entriesForAI := make([]lifeagent.KnowledgeEntryForAI, len(entries))
+	for i, e := range entries {
+		entriesForAI[i] = lifeagent.KnowledgeEntryForAI{
+			ID:       e.ID,
+			Category: e.Category,
+			Title:    e.Title,
+			Content:  e.Content,
+			Tags:     []string(e.Tags),
+		}
+	}
+
+	factsForAI := lifeagent.BuildStructuredFactsForAI(facts)
+	topicsForAI := lifeagent.BuildTopicSummariesForAI(topics)
+
+	// 调用LLM生成回复
+	ctx := context.Background()
+	content, _, err := lifeagent.BuildReplyWithLLM(
+		ctx,
+		cfg.OpenAIApiKey,
+		cfg.OpenAIModel,
+		cfg.OpenAIBaseURL,
+		cfg.LLMEnableWebSearch,
+		profileForAI,
+		factsForAI,
+		topicsForAI,
+		entriesForAI,
+		[]lifeagent.ChatMessageForAI{}, // 无历史对话
+		postContent,
+		nil, // ChatOptions - 动态回复不需要特殊选项
+	)
+
+	if err != nil || content == "" {
+		// LLM调用失败，回退到简单模板
+		return generateSimpleReply(profile.DisplayName, postContent)
+	}
+
+	// 确保不超过50字
+	runes := []rune(content)
+	if len(runes) > 50 {
+		content = string(runes[:50])
+	}
+
+	return content
+}
+
 func generateSimpleReply(agentName string, content string) string {
-	// 极简单的回复模板，后续可接入 LLM
+	// 极简单的回复模板，LLM不可用时的回退
 	if len(content) > 50 {
 		return agentName + " 看到了你的分享，想和你深入聊聊这个话题。点击上方头像可以开始对话。"
 	}
 	return agentName + " 很感兴趣，想听听更多细节。"
+}
+
+func safeStringPtr(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
 }
