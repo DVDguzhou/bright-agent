@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"log"
 	"math/rand"
 	"net/http"
 	"sort"
@@ -607,10 +608,15 @@ func triggerAgentReplies(postID string, content string) {
 }
 
 func generateAgentReply(cfg *config.Config, profile models.LifeAgentProfile, postContent string) string {
+	log.Printf("[AgentReply] Generating reply for agent %s, post: %s", profile.DisplayName, postContent)
+
 	// 如果没有配置LLM，使用简单模板
 	if cfg == nil || cfg.OpenAIApiKey == "" {
+		log.Printf("[AgentReply] LLM not configured (cfg=%v, apiKey=%s), using simple template", cfg != nil, cfg.OpenAIApiKey)
 		return generateSimpleReply(profile.DisplayName, postContent)
 	}
+
+	log.Printf("[AgentReply] LLM configured, model=%s, baseURL=%s", cfg.OpenAIModel, cfg.OpenAIBaseURL)
 
 	// 转换为ProfileForAI
 	profileForAI := lifeagent.ProfileForAI{
@@ -639,6 +645,8 @@ func generateAgentReply(cfg *config.Config, profile models.LifeAgentProfile, pos
 
 	var topics []models.LifeAgentTopicSummary
 	db.DB.Where("profile_id = ?", profile.ID).Find(&topics)
+
+	log.Printf("[AgentReply] Loaded knowledge: %d entries, %d facts, %d topics", len(entries), len(facts), len(topics))
 
 	// 转换为AI格式
 	entriesForAI := make([]lifeagent.KnowledgeEntryForAI, len(entries))
@@ -673,14 +681,18 @@ func generateAgentReply(cfg *config.Config, profile models.LifeAgentProfile, pos
 	)
 
 	if err != nil || content == "" {
+		log.Printf("[AgentReply] LLM call failed: err=%v, content=%s, falling back to simple template", err, content)
 		// LLM调用失败，回退到简单模板
 		return generateSimpleReply(profile.DisplayName, postContent)
 	}
+
+	log.Printf("[AgentReply] LLM generated reply: %s", content)
 
 	// 确保不超过50字
 	runes := []rune(content)
 	if len(runes) > 50 {
 		content = string(runes[:50])
+		log.Printf("[AgentReply] Truncated to 50 chars: %s", content)
 	}
 
 	return content
