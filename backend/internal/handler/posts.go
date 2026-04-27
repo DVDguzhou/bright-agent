@@ -467,7 +467,8 @@ func PostsCommentCreate(cfg *config.Config) gin.HandlerFunc {
 		}
 
 		var req struct {
-			Content string `json:"content" binding:"required,min=1,max=2000"`
+			Content        string  `json:"content" binding:"required,min=1,max=2000"`
+			ReplyToAgentID *string `json:"reply_to_agent_id"` // 回复的Agent ID
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "INVALID_INPUT", "message": err.Error()})
@@ -475,12 +476,13 @@ func PostsCommentCreate(cfg *config.Config) gin.HandlerFunc {
 		}
 
 		comment := models.PostComment{
-			ID:        models.GenID(),
-			PostID:    postID,
-			UserID:    user.ID,
-			Content:   req.Content,
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
+			ID:             models.GenID(),
+			PostID:         postID,
+			UserID:         user.ID,
+			ReplyToAgentID: req.ReplyToAgentID,
+			Content:        req.Content,
+			CreatedAt:      time.Now(),
+			UpdatedAt:      time.Now(),
 		}
 		if err := db.DB.Create(&comment).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "CREATE_FAILED"})
@@ -489,6 +491,11 @@ func PostsCommentCreate(cfg *config.Config) gin.HandlerFunc {
 
 		// 更新评论计数
 		db.DB.Model(&models.Post{}).Where("id = ?", postID).UpdateColumn("comments_count", gorm.Expr("comments_count + 1"))
+
+		// 如果回复了Agent，触发Agent回复
+		if req.ReplyToAgentID != nil && *req.ReplyToAgentID != "" {
+			go triggerAgentReplyToComment(postID, *req.ReplyToAgentID, user.ID, req.Content)
+		}
 
 		c.JSON(http.StatusOK, gin.H{"id": comment.ID})
 	}
@@ -534,6 +541,81 @@ func PostsCommentsList(cfg *config.Config) gin.HandlerFunc {
 }
 
 // ---------- Agent 自动回复 ----------
+
+// triggerAgentReplyToComment 用户回复Agent评论后，触发Agent回复
+func triggerAgentReplyToComment(postID, profileID, userID, userComment string) {
+	var cfg *config.Config
+	if config := config.Load(); config != nil {
+		cfg = config
+	}
+
+	var profile models.LifeAgentProfile
+	if err := db.DB.Where("id = ? AND published = ?", profileID, true).First(&profile).Error; err != nil {
+		log.Printf("[AgentReplyToComment] Agent not found: %v", err)
+		return
+	}
+
+	// 获取或创建对话计数
+	var count models.PostAgentConversationCount
+	now := time.Now()
+	if err := db.DB.Where("user_id = ? AND profile_id = ?", userID, profileID).First(&count).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			// 创建新记录
+			count = models.PostAgentConversationCount{
+				ID:         models.GenID(),
+				UserID:     userID,
+				ProfileID:  profileID,
+				ReplyCount: 0,
+				CreatedAt:  now,
+				UpdatedAt:  now,
+			}
+		} else {
+			log.Printf("[AgentReplyToComment] Failed to query conversation count: %v", err)
+			return
+		}
+	}
+
+	// 增加回复次数
+	count.ReplyCount++
+	count.LastReplyAt = &now
+	count.UpdatedAt = now
+	db.DB.Save(&count)
+
+	// 如果是第三次回复，引导私聊
+	if count.ReplyCount >= 3 {
+		replyText := "我们已经聊了很多了，建议你直接找我私聊，我可以更详细地帮你。点击我的头像开始对话吧。"
+		ar := models.PostAgentReply{
+			ID:          models.GenID(),
+			PostID:      postID,
+			ProfileID:   profile.ID,
+			Content:     replyText,
+			DisplayName: profile.DisplayName,
+			CreatedAt:   time.Now().Add(time.Duration(5) * time.Second),
+		}
+		_ = db.DB.Create(&ar).Error
+		db.DB.Model(&models.Post{}).Where("id = ?", postID).UpdateColumn("comments_count", gorm.Expr("comments_count + 1"))
+		log.Printf("[AgentReplyToComment] Guided to private chat for user %s with agent %s", userID, profile.DisplayName)
+		return
+	}
+
+	// 生成回复
+	replyText := generateAgentReply(cfg, profile, userComment)
+	if replyText == "" {
+		return
+	}
+
+	ar := models.PostAgentReply{
+		ID:          models.GenID(),
+		PostID:      postID,
+		ProfileID:   profile.ID,
+		Content:     replyText,
+		DisplayName: profile.DisplayName,
+		CreatedAt:   time.Now().Add(time.Duration(5+len(replyText)%30) * time.Second),
+	}
+	_ = db.DB.Create(&ar).Error
+	db.DB.Model(&models.Post{}).Where("id = ?", postID).UpdateColumn("comments_count", gorm.Expr("comments_count + 1"))
+	log.Printf("[AgentReplyToComment] Agent %s replied to user %s, reply count: %d", profile.DisplayName, userID, count.ReplyCount)
+}
 
 // triggerAgentReplies 根据帖子内容与 Agent ExpertiseTags 的匹配度选取相关 Agent 生成自动回复
 func triggerAgentReplies(postID string, content string) {
@@ -654,6 +736,12 @@ func generateAgentReply(cfg *config.Config, profile models.LifeAgentProfile, pos
 	db.DB.Where("profile_id = ?", profile.ID).Find(&topics)
 
 	log.Printf("[AgentReply] Loaded knowledge: %d entries, %d facts, %d topics", len(entries), len(facts), len(topics))
+
+	// 如果没有相关知识，跳过该Agent
+	if len(entries) == 0 && len(facts) == 0 && len(topics) == 0 {
+		log.Printf("[AgentReply] No knowledge available for agent %s, skipping reply", profile.DisplayName)
+		return ""
+	}
 
 	// 转换为AI格式
 	entriesForAI := make([]lifeagent.KnowledgeEntryForAI, len(entries))

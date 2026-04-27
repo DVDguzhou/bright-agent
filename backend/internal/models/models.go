@@ -488,12 +488,13 @@ func (PostLike) TableName() string { return "post_likes" }
 
 // PostComment：帖子评论
 type PostComment struct {
-	ID        string    `gorm:"primaryKey;size:36"`
-	PostID    string    `gorm:"column:post_id;size:36;not null;index"`
-	UserID    string    `gorm:"column:user_id;size:36;not null;index"`
-	Content   string    `gorm:"type:text;not null"`
-	CreatedAt time.Time `gorm:"column:created_at"`
-	UpdatedAt time.Time `gorm:"column:updated_at"`
+	ID             string    `gorm:"primaryKey;size:36"`
+	PostID         string    `gorm:"column:post_id;size:36;not null;index"`
+	UserID         string    `gorm:"column:user_id;size:36;not null;index"`
+	ReplyToAgentID *string   `gorm:"column:reply_to_agent_id;size:36;index"` // 回复的Agent ID
+	Content        string    `gorm:"type:text;not null"`
+	CreatedAt      time.Time `gorm:"column:created_at"`
+	UpdatedAt      time.Time `gorm:"column:updated_at"`
 }
 
 func (PostComment) TableName() string { return "post_comments" }
@@ -509,3 +510,16 @@ type PostAgentReply struct {
 }
 
 func (PostAgentReply) TableName() string { return "post_agent_replies" }
+
+// PostAgentConversationCount：用户与Agent在帖子中的对话次数追踪
+type PostAgentConversationCount struct {
+	ID          string     `gorm:"primaryKey;size:36"`
+	UserID      string     `gorm:"column:user_id;size:36;not null;index"`
+	ProfileID   string     `gorm:"column:profile_id;size:36;not null;index"`
+	ReplyCount  int        `gorm:"column:reply_count;default:0"`
+	LastReplyAt *time.Time `gorm:"column:last_reply_at"`
+	CreatedAt   time.Time  `gorm:"column:created_at"`
+	UpdatedAt   time.Time  `gorm:"column:updated_at"`
+}
+
+func (PostAgentConversationCount) TableName() string { return "post_agent_conversation_counts" }
