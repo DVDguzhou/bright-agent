@@ -594,6 +594,10 @@ func triggerAgentReplies(postID string, content string) {
 
 		for _, p := range selected {
 			replyText := generateAgentReply(cfg, p, content)
+			if replyText == "" {
+				// LLM调用失败，跳过该回复
+				continue
+			}
 			ar := models.PostAgentReply{
 				ID:          models.GenID(),
 				PostID:      postID,
@@ -667,7 +671,7 @@ func generateAgentReply(cfg *config.Config, profile models.LifeAgentProfile, pos
 	topicsForAI := lifeagent.BuildTopicSummariesForAI(topics)
 
 	// 调用LLM生成回复，使用更长的超时时间
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
 
 	// 在帖子内容前添加长度限制提示
@@ -689,9 +693,9 @@ func generateAgentReply(cfg *config.Config, profile models.LifeAgentProfile, pos
 	)
 
 	if err != nil || content == "" || content == "大模型出错了哦" {
-		log.Printf("[AgentReply] LLM call failed: err=%v, content=%s, falling back to simple template", err, content)
-		// LLM调用失败，回退到简单模板
-		return generateSimpleReply(profile.DisplayName, postContent)
+		log.Printf("[AgentReply] LLM call failed: err=%v, content=%s, skipping reply", err, content)
+		// LLM调用失败，返回空字符串，调用处会跳过该回复
+		return ""
 	}
 
 	log.Printf("[AgentReply] LLM generated reply: %s", content)
