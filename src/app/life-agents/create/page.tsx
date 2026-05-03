@@ -184,8 +184,8 @@ const PROFILE_CHAT_FIELDS: readonly ProfileChatField[] = [
   },
   {
     key: "shortBio",
-    prompt: "简短介绍你的 Agent。",
-    placeholder: "例如：我是一个陪用户聊转行、求职和成长选择的过来人。",
+    prompt: "简单说说你的相关经历或背景，让用户知道为什么你能帮到他。",
+    placeholder: "例如：我自己考研上岸过，知道备考有多难，也知道选对方向比埋头刷题重要",
   },
   {
     key: "school",
