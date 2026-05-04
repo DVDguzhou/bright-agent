@@ -11,12 +11,12 @@ const FIELD_MAP: Record<string, { label: string; step: number; section: string }
   LongBio: { label: "详细背景", step: 1, section: "基本展示信息" },
   Audience: { label: "适合帮助的人群", step: 1, section: "基本展示信息" },
   WelcomeMessage: { label: "首次欢迎语", step: 1, section: "基本展示信息" },
-  PersonaArchetype: { label: "你更像哪种角色", step: 1, section: "基本展示信息" },
-  ToneStyle: { label: "语气", step: 1, section: "基本展示信息" },
-  ResponseStyle: { label: "回答习惯", step: 1, section: "基本展示信息" },
-  ExpertiseTags: { label: "擅长标签", step: 1, section: "基本展示信息" },
+  ExpertiseTags: { label: "擅长标签", step: 2, section: "擅长领域" },
   SampleQuestions: { label: "示例问题", step: 1, section: "基本展示信息" },
-  KnowledgeEntries: { label: "经验对话", step: 2, section: "逐步丰富你的经验" },
+  PersonaArchetype: { label: "你更像哪种角色", step: 4, section: "让回答更像你本人" },
+  ToneStyle: { label: "语气", step: 4, section: "让回答更像你本人" },
+  ResponseStyle: { label: "回答习惯", step: 4, section: "让回答更像你本人" },
+  KnowledgeEntries: { label: "经验对话", step: 3, section: "补充经验" },
 };
 
 const TAG_MAP: Record<string, string> = {

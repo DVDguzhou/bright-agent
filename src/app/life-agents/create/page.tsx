@@ -1624,21 +1624,19 @@ export default function CreateLifeAgentPage() {
                       key={cat.label}
                       type="button"
                       onClick={() => {
-                        const tags = form.expertiseTags
-                          .split(/[,，\n]/)
-                          .map((s) => s.trim())
-                          .filter(Boolean);
-                        if (selected) {
-                          setForm((prev) => ({
-                            ...prev,
-                            expertiseTags: tags.filter((t) => t !== cat.label).join("、"),
-                          }));
-                        } else if (tags.length < 5) {
-                          setForm((prev) => ({
-                            ...prev,
-                            expertiseTags: tags.length > 0 ? `${tags.join("、")}、${cat.label}` : cat.label,
-                          }));
-                        }
+                        setForm((prev) => {
+                          const tags = prev.expertiseTags
+                            .split(/[,，\n]/)
+                            .map((s) => s.trim())
+                            .filter(Boolean);
+                          const isSelected = tags.includes(cat.label);
+                          if (isSelected) {
+                            return { ...prev, expertiseTags: tags.filter((t) => t !== cat.label).join("、") };
+                          } else if (tags.length < 5) {
+                            return { ...prev, expertiseTags: tags.length > 0 ? `${tags.join("、")}、${cat.label}` : cat.label };
+                          }
+                          return prev;
+                        });
                       }}
                       className={`flex items-center gap-2.5 rounded-xl border px-4 py-3 text-left text-sm transition-all ${
                         selected
