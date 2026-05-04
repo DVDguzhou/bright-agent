@@ -686,9 +686,11 @@ export default function LifeAgentCoEditPage() {
 
             {chatHistory.length === 0 ? (
               <div className="flex items-end gap-2 justify-start">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#BA68C8] to-[#FF80AB] text-[10px] font-bold text-white ring-2 ring-white shadow-sm">
-                  AI
-                </div>
+                <img
+                  src="/life-agent-cover-presets/default-cover.png"
+                  alt="AI"
+                  className="h-8 w-8 shrink-0 rounded-full object-cover ring-2 ring-white shadow-sm"
+                />
                 <div className={getChatBubbleClassName("assistant")}>
                   <p className="whitespace-pre-wrap">
                     你可以直接说想改什么，比如“把欢迎语改得更像朋友聊天”“补两条关于留学租房的示范回答”。
@@ -700,9 +702,11 @@ export default function LifeAgentCoEditPage() {
             {chatHistory.map((item, index) => (
               <div key={`${item.role}-${index}`} className={`flex items-end gap-2 ${item.role === "user" ? "justify-end" : "justify-start"}`}>
                 {item.role === "assistant" ? (
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#BA68C8] to-[#FF80AB] text-[10px] font-bold text-white ring-2 ring-white shadow-sm">
-                    AI
-                  </div>
+                  <img
+                    src="/life-agent-cover-presets/default-cover.png"
+                    alt="AI"
+                    className="h-8 w-8 shrink-0 rounded-full object-cover ring-2 ring-white shadow-sm"
+                  />
                 ) : null}
                 <div className={getChatBubbleClassName(item.role)}>
                   {item.role === "assistant" && !item.content.trim() && (modifyLoading || importLoading) ? (

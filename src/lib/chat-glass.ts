@@ -13,7 +13,7 @@ const CHAT_ASSISTANT_BUBBLE =
   "rounded-bl-md border border-gray-200/70 bg-white text-gray-800";
 
 const CHAT_USER_BUBBLE =
-  "rounded-br-md border border-gray-300/60 bg-gray-100 font-medium text-gray-900";
+  "rounded-br-md border border-gray-200/70 bg-white text-gray-800";
 
 export function getChatBubbleClassName(role: ChatBubbleRole) {
   return `${CHAT_BUBBLE_BASE} ${
