@@ -159,7 +159,7 @@ async function readEventStreamPayload<T>(
   return donePayload;
 }
 
-const FIRST_QUESTION = "你希望分享什么样的经验或信息？可以简单说说你擅长的领域，或你最想帮助用户解决什么问题。";
+const FIRST_QUESTION = "为了帮你打造更像你的 Agent，你想先从哪里开始？\n你可以分享一段真实经历、成长过程或做事心得，也可以聊聊你的性格、兴趣、日常生活和说话方式。\n随便从一个方向开始说就好，后面我会继续帮你补充完整。";
 const MBTI_OPTIONS = ["未设置", "INTJ", "INTP", "ENTJ", "ENTP", "INFJ", "INFP", "ENFJ", "ENFP", "ISTJ", "ISFJ", "ESTJ", "ESFJ", "ISTP", "ISFP", "ESTP", "ESFP"];
 const PERSONA_OPTIONS = ["学长学姐型", "朋友陪聊型", "前辈导师型", "冷静分析型", "过来人型", "本地熟人型"];
 const TONE_OPTIONS = ["直接一点", "温柔一点", "理性克制", "接地气一点", "像朋友聊天", "稳重耐心"];
