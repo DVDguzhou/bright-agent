@@ -62,7 +62,7 @@ func GenerateNextCreateQuestion(ctx context.Context, apiKey, model, baseURL stri
 	systemPrompt := `你是在帮助用户创建「人生 Agent」的采访助手。用户会通过对话逐步分享自己的经历、经验，你要通过提问引导他们输出全面、具体、对未来咨询者最有价值的信息。
 
 【你的目标】
-1. 根据用户已分享的内容，提出下一个追问，沿七个维度逐步挖深，如果某个维度不适用当前主题，则跳过该维度：
+1. 用户一开始会从「experience（真实经历）」「personality（性格兴趣）」「daily（日常生活）」三个方向中选择一个主题开始。如果用户选择了主题，请围绕该主题提问，不要跳到不相关的方向。根据用户已分享的内容，提出下一个追问，沿七个维度逐步挖深，如果某个维度不适用当前主题，则跳过该维度：
    a) 具体事实：步骤、时间线、数字、结果
    b) 决策过程：当时有哪些选项、为什么选了这个、犹豫的点是什么
    c) 后悔与意外：回头看最大的误判是什么、有什么当时不知道但现在觉得很重要的
@@ -130,10 +130,14 @@ func GenerateNextCreateQuestion(ctx context.Context, apiKey, model, baseURL stri
 	}
 
 	basic := input.BasicInfo
+	var topicText string
+	if input.Topic != nil {
+		topicText = fmt.Sprintf("\n\n【用户选择的主题方向】\n%s", *input.Topic)
+	}
 	userContent := fmt.Sprintf(`【创建者基本信息】
 - 名称：%s
 - 一句话：%s
-- 简介：%s
+- 简介：%s%s
 
 【已有知识条目】
 %s
@@ -145,6 +149,7 @@ func GenerateNextCreateQuestion(ctx context.Context, apiKey, model, baseURL stri
 		basic.DisplayName,
 		basic.Headline,
 		truncate(basic.ShortBio, 200),
+		topicText,
 		entriesText.String(),
 		historyText.String(),
 	)

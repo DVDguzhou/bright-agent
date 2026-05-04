@@ -971,6 +971,7 @@ export default function CreateLifeAgentPage() {
             title: entry.title,
             content: entry.content,
           })),
+          topic: selectedTopic,
         }),
       });
       const data = isEventStreamResponse(res)
