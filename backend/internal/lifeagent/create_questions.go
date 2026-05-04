@@ -54,7 +54,14 @@ type ToneHints struct {
 // GenerateNextCreateQuestion 根据对话历史生成下一个问题，或判断是否已收集足够信息
 // 暗中从用户回复中学习其语气风格，用于后续 Agent 人格设定
 func GenerateNextCreateQuestion(ctx context.Context, apiKey, model, baseURL string, input *CreateQuestionInput) (*CreateQuestionOutput, error) {
+	receivedTopic := "<nil>"
+	if input.Topic != nil {
+		receivedTopic = *input.Topic
+	}
+	fmt.Printf("[DEBUG] GenerateNextCreateQuestion topic=%s turns=%d entries=%d\n", receivedTopic, len(input.ChatHistory), len(input.KnowledgeEntries))
+
 	if !isLLMEnabled(apiKey, model, baseURL) {
+		fmt.Printf("[DEBUG] LLM not enabled, using fallback\n")
 		return fallbackNextQuestion(input), nil
 	}
 	apiKey = resolveAPIKey(apiKey, baseURL)
@@ -275,14 +282,33 @@ func extractJSONFromContent(s string) string {
 	return s[start:]
 }
 
+func inferTopicFromHistory(input *CreateQuestionInput) string {
+	if input.Topic != nil {
+		return *input.Topic
+	}
+	for _, m := range input.ChatHistory {
+		content := strings.ToLower(m.Content)
+		if strings.Contains(content, "日常") || strings.Contains(content, "作息") || strings.Contains(content, "生活") {
+			return "daily"
+		}
+		if strings.Contains(content, "性格") || strings.Contains(content, "兴趣") || strings.Contains(content, "人格") || strings.Contains(content, "mbti") {
+			return "personality"
+		}
+		if strings.Contains(content, "经历") || strings.Contains(content, "经验") || strings.Contains(content, "选择") || strings.Contains(content, "决策") {
+			return "experience"
+		}
+	}
+	return "experience"
+}
+
 func fallbackNextQuestion(input *CreateQuestionInput) *CreateQuestionOutput {
 	entries := len(input.KnowledgeEntries)
 	turns := len(input.ChatHistory)
+	topicKey := inferTopicFromHistory(input)
 
 	// Handle topic-specific first question (turns<=2 because chatHistory includes initial prompt + topic selection)
-	if turns <= 2 && input.Topic != nil {
-		topic := *input.Topic
-		switch topic {
+	if turns <= 2 {
+		switch topicKey {
 		case "experience":
 			return &CreateQuestionOutput{
 				Done:         false,
@@ -308,7 +334,6 @@ func fallbackNextQuestion(input *CreateQuestionInput) *CreateQuestionOutput {
 		}
 	}
 
-	topicKey := "experience"
 	if input.Topic != nil {
 		topicKey = *input.Topic
 	}
