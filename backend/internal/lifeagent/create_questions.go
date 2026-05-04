@@ -23,18 +23,19 @@ type CreateQuestionInput struct {
 		Title    string `json:"title"`
 		Content  string `json:"content"`
 	} `json:"knowledgeEntries"`
+	Topic *string `json:"topic,omitempty"` // 用户选择的主题：experience/personality/daily
 }
 
 // CreateQuestionOutput 生成结果：下一问、或完成信号，以及暗中提取的语气风格
 type CreateQuestionOutput struct {
-	Done              bool            `json:"done"`                              // 是否已收集足够信息
-	NextQuestion      string          `json:"nextQuestion,omitempty"`            // 下一个问题（done=false 时）
-	QuestionDimension string          `json:"questionDimension,omitempty"`       // fact|decision|regret|adaptation|advice
-	SummaryMessage    string          `json:"summaryMessage,omitempty"`          // 完成时的收尾话（done=true 时）
-	KnowledgeAdd      []KEntry        `json:"knowledgeAdd,omitempty"`            // 本轮回答可提炼的知识条目（AI 可选返回）
-	ExtractedTone     *ToneHints      `json:"extractedTone,omitempty"`           // 从用户回复中学习的语气风格
-	SuggestedTags     []string        `json:"suggestedTags,omitempty"`           // 建议的擅长标签
-	FactCandidates    []FactCandidate `json:"factCandidates,omitempty"`          // 可升级为结构化事实的候选项
+	Done              bool            `json:"done"`                        // 是否已收集足够信息
+	NextQuestion      string          `json:"nextQuestion,omitempty"`      // 下一个问题（done=false 时）
+	QuestionDimension string          `json:"questionDimension,omitempty"` // fact|decision|regret|adaptation|advice
+	SummaryMessage    string          `json:"summaryMessage,omitempty"`    // 完成时的收尾话（done=true 时）
+	KnowledgeAdd      []KEntry        `json:"knowledgeAdd,omitempty"`      // 本轮回答可提炼的知识条目（AI 可选返回）
+	ExtractedTone     *ToneHints      `json:"extractedTone,omitempty"`     // 从用户回复中学习的语气风格
+	SuggestedTags     []string        `json:"suggestedTags,omitempty"`     // 建议的擅长标签
+	FactCandidates    []FactCandidate `json:"factCandidates,omitempty"`    // 可升级为结构化事实的候选项
 }
 
 type KEntry struct {
@@ -153,8 +154,8 @@ func GenerateNextCreateQuestion(ctx context.Context, apiKey, model, baseURL stri
 	client := getClient(apiKey, baseURL)
 
 	resp, err := client.CreateChatCompletion(ctx, openai.ChatCompletionRequest{
-		Model:       model,
-		Messages:    []openai.ChatCompletionMessage{{Role: openai.ChatMessageRoleSystem, Content: systemPrompt}, {Role: openai.ChatMessageRoleUser, Content: userContent}},
+		Model:               model,
+		Messages:            []openai.ChatCompletionMessage{{Role: openai.ChatMessageRoleSystem, Content: systemPrompt}, {Role: openai.ChatMessageRoleUser, Content: userContent}},
 		Temperature:         safeTemperature(model, 0.5),
 		MaxCompletionTokens: 1000,
 	})
@@ -221,6 +222,29 @@ func extractJSONFromContent(s string) string {
 func fallbackNextQuestion(input *CreateQuestionInput) *CreateQuestionOutput {
 	entries := len(input.KnowledgeEntries)
 	turns := len(input.ChatHistory)
+
+	// Handle topic-specific first question
+	if turns == 1 && input.Topic != nil {
+		topic := *input.Topic
+		switch topic {
+		case "experience":
+			return &CreateQuestionOutput{
+				Done:         false,
+				NextQuestion: "可以举个具体的例子吗？比如当时是什么阶段、你做了什么选择、最后结果怎么样？",
+			}
+		case "personality":
+			return &CreateQuestionOutput{
+				Done:         false,
+				NextQuestion: "你平时最常聊什么话题？遇到别人向你倾诉、求建议、开玩笑时，你通常会怎么回应？",
+			}
+		case "daily":
+			return &CreateQuestionOutput{
+				Done:         false,
+				NextQuestion: "你的一天通常是怎么度过的？有什么固定的习惯或喜欢的活动吗？",
+			}
+		}
+	}
+
 	if entries >= 2 && turns >= 6 {
 		return &CreateQuestionOutput{
 			Done:           true,
@@ -281,7 +305,7 @@ type BlindSpotForFollowUp struct {
 
 // WeakTopicForFollowUp 有负面反馈的 Topic
 type WeakTopicForFollowUp struct {
-	TopicLabel   string
+	TopicLabel    string
 	DominantIssue string // not_specific, factual_error, contradiction, too_confident
 	FeedbackCount int
 }
@@ -293,11 +317,11 @@ type FeedbackFollowUpOutput struct {
 
 // FollowUpQuestion 单条追问
 type FollowUpQuestion struct {
-	Question  string `json:"question"`
-	Reason    string `json:"reason"`    // 为什么问这个（展示给创建者看）
-	Source    string `json:"source"`    // blind_spot / weak_topic
-	Priority string `json:"priority"`  // urgent / high / medium / low
-	Color    string `json:"color"`     // red / orange / yellow / blue
+	Question string `json:"question"`
+	Reason   string `json:"reason"`   // 为什么问这个（展示给创建者看）
+	Source   string `json:"source"`   // blind_spot / weak_topic
+	Priority string `json:"priority"` // urgent / high / medium / low
+	Color    string `json:"color"`    // red / orange / yellow / blue
 }
 
 // FeedbackAlert 创建者仪表盘上的反馈告警条目
@@ -309,7 +333,7 @@ type FeedbackAlert struct {
 	Color    string `json:"color"`    // red / orange / yellow / blue
 	Source   string `json:"source"`   // blind_spot / factual_error / not_specific / contradiction / too_confident
 	TopicID  string `json:"topicId,omitempty"`
-	Action   string `json:"action"`   // 建议的操作文案
+	Action   string `json:"action"` // 建议的操作文案
 }
 
 // priorityColor 优先级 → 颜色映射

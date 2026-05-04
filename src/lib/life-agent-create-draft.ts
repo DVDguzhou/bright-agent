@@ -47,6 +47,9 @@ export type LifeAgentCreateDraftV1 = {
   showAdvanced: boolean;
   sampleQuestionsList: string[];
   sampleQuestionsDraft: string;
+  sampleQuestionsHistory: LifeAgentCreateDraftChatMessage[];
+  sampleQuestionsInput: string;
+  sampleQuestionsDone: boolean;
   voiceSkipped: boolean;
   coverImageUrl: string;
 };
@@ -91,6 +94,9 @@ export function parseLifeAgentCreateDraft(raw: string): LifeAgentCreateDraftV1 |
     const experienceHistory = Array.isArray(o.experienceHistory)
       ? o.experienceHistory.filter(isChatMessage)
       : [];
+    const sampleQuestionsHistory = Array.isArray(o.sampleQuestionsHistory)
+      ? o.sampleQuestionsHistory.filter(isChatMessage)
+      : [];
     const knowledgeEntries = Array.isArray(o.knowledgeEntries)
       ? o.knowledgeEntries.filter(isKnowledgeEntry)
       : [];
@@ -118,6 +124,9 @@ export function parseLifeAgentCreateDraft(raw: string): LifeAgentCreateDraftV1 |
         ? o.sampleQuestionsList.filter((s): s is string => typeof s === "string")
         : [],
       sampleQuestionsDraft: typeof o.sampleQuestionsDraft === "string" ? o.sampleQuestionsDraft : "",
+      sampleQuestionsHistory,
+      sampleQuestionsInput: typeof o.sampleQuestionsInput === "string" ? o.sampleQuestionsInput : "",
+      sampleQuestionsDone: Boolean(o.sampleQuestionsDone),
       voiceSkipped: Boolean(o.voiceSkipped),
       coverImageUrl: typeof o.coverImageUrl === "string" ? o.coverImageUrl : "",
     };

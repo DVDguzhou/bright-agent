@@ -63,8 +63,7 @@ type ProfileChatField = {
     | "longBio"
     | "audience"
     | "welcomeMessage"
-    | "expertiseTags"
-    | "sampleQuestions";
+    | "expertiseTags";
   prompt: string;
   placeholder: string;
   required?: boolean;
@@ -159,7 +158,15 @@ async function readEventStreamPayload<T>(
   return donePayload;
 }
 
-const FIRST_QUESTION = "为了帮你打造更像你的 Agent，你想先从哪里开始？\n你可以分享一段真实经历、成长过程或做事心得，也可以聊聊你的性格、兴趣、日常生活和说话方式。\n随便从一个方向开始说就好，后面我会继续帮你补充完整。";
+const FIRST_QUESTION = "为了帮你打造更像你的 Agent，请先选择一个方向开始：";
+
+const EXPERIENCE_TOPICS = [
+  { key: "experience", label: "真实经历", description: "分享一段成长过程或做事心得" },
+  { key: "personality", label: "性格兴趣", description: "聊聊你的性格、兴趣和说话方式" },
+  { key: "daily", label: "日常生活", description: "分享日常场景和习惯" },
+] as const;
+
+type ExperienceTopic = (typeof EXPERIENCE_TOPICS)[number]["key"];
 const MBTI_OPTIONS = ["未设置", "INTJ", "INTP", "ENTJ", "ENTP", "INFJ", "INFP", "ENFJ", "ENFP", "ISTJ", "ISFJ", "ESTJ", "ESFJ", "ISTP", "ISFP", "ESTP", "ESFP"];
 const PERSONA_OPTIONS = ["学长学姐型", "朋友陪聊型", "前辈导师型", "冷静分析型", "过来人型", "本地熟人型"];
 const TONE_OPTIONS = ["直接一点", "温柔一点", "理性克制", "接地气一点", "像朋友聊天", "稳重耐心"];
@@ -222,11 +229,6 @@ const PROFILE_CHAT_FIELDS: readonly ProfileChatField[] = [
     key: "expertiseTags",
     prompt: "请选择你的 Agent 擅长哪些领域（最多选 5 个），我们会自动为每个领域匹配相关关键词，提升在动态、地图等场景的曝光和匹配度。",
     placeholder: "例如：学习、就业、旅游、科技、情感",
-  },
-  {
-    key: "sampleQuestions",
-    prompt: "你觉得用户可以问你什么问题？可以连续写几个问题，一行一个会更清楚。",
-    placeholder: "例如：\n我适合考研还是直接就业？\n裸辞后怎么重新找方向？",
   },
 ] as const;
 
@@ -379,9 +381,14 @@ export default function CreateLifeAgentPage() {
   const [experienceInput, setExperienceInput] = useState("");
   const [experienceDone, setExperienceDone] = useState(false);
   const [experienceLoading, setExperienceLoading] = useState(false);
+  const [selectedTopic, setSelectedTopic] = useState<ExperienceTopic | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [sampleQuestionsList, setSampleQuestionsList] = useState<string[]>([]);
   const [sampleQuestionsDraft, setSampleQuestionsDraft] = useState("");
+  const [sampleQuestionsHistory, setSampleQuestionsHistory] = useState<ChatMessage[]>([]);
+  const [sampleQuestionsInput, setSampleQuestionsInput] = useState("");
+  const [sampleQuestionsDone, setSampleQuestionsDone] = useState(false);
+  const [sampleQuestionsLoading, setSampleQuestionsLoading] = useState(false);
   const [chatFieldIndex, setChatFieldIndex] = useState(0);
   const [voiceSampleBase64, setVoiceSampleBase64] = useState<string | null>(null);
   const [coverImageUrl, setCoverImageUrl] = useState("");
@@ -425,6 +432,9 @@ export default function CreateLifeAgentPage() {
       setShowAdvanced(draft.showAdvanced);
       setSampleQuestionsList(draft.sampleQuestionsList);
       setSampleQuestionsDraft(draft.sampleQuestionsDraft);
+      setSampleQuestionsHistory(draft.sampleQuestionsHistory || []);
+      setSampleQuestionsInput(draft.sampleQuestionsInput || "");
+      setSampleQuestionsDone(draft.sampleQuestionsDone || false);
       setVoiceSampleBase64(null);
       setVoiceSkipped(draft.voiceSkipped);
       setCoverImageUrl(draft.coverImageUrl);
@@ -453,6 +463,9 @@ export default function CreateLifeAgentPage() {
       showAdvanced,
       sampleQuestionsList,
       sampleQuestionsDraft,
+      sampleQuestionsHistory,
+      sampleQuestionsInput,
+      sampleQuestionsDone,
       voiceSkipped,
       coverImageUrl,
     };
@@ -472,6 +485,9 @@ export default function CreateLifeAgentPage() {
     showAdvanced,
     sampleQuestionsList,
     sampleQuestionsDraft,
+    sampleQuestionsHistory,
+    sampleQuestionsInput,
+    sampleQuestionsDone,
     voiceSkipped,
     coverImageUrl,
   ]);
@@ -624,14 +640,20 @@ export default function CreateLifeAgentPage() {
     }
   }, [draftReady, step, experienceHistory.length]);
 
+  useEffect(() => {
+    if (!draftReady) return;
+    if (step === 1 && chatDone && sampleQuestionsHistory.length === 0) {
+      setSampleQuestionsHistory([{ role: "assistant", content: "用户可能会问你什么问题？" }]);
+      setSampleQuestionsDone(false);
+      setError("");
+    }
+  }, [draftReady, step, chatDone, sampleQuestionsHistory.length]);
+
   const currentChatField = PROFILE_CHAT_FIELDS[Math.min(chatFieldIndex, PROFILE_CHAT_FIELDS.length - 1)];
   const completedChatCount = chatDone ? PROFILE_CHAT_FIELDS.length : chatFieldIndex;
 
   const setChatFieldValue = (key: ProfileChatField["key"], value: string) => {
     switch (key) {
-      case "sampleQuestions":
-        setSampleQuestionsDraft(value);
-        break;
       case "displayName":
       case "headline":
       case "shortBio":
@@ -665,7 +687,6 @@ export default function CreateLifeAgentPage() {
     audience: currentKey === "audience" ? currentValue ?? "" : form.audience,
     welcomeMessage: currentKey === "welcomeMessage" ? currentValue ?? "" : form.welcomeMessage,
     expertiseTagsText: currentKey === "expertiseTags" ? currentValue ?? "" : form.expertiseTags,
-    sampleQuestionsText: currentKey === "sampleQuestions" ? currentValue ?? "" : sampleQuestionsDraft,
   });
 
   const submitProfileSummary = async (
@@ -755,6 +776,143 @@ export default function CreateLifeAgentPage() {
       setChatFieldIndex(startIdx);
       setChatDone(false);
     }
+  };
+
+  const handleTopicSelection = async (topic: ExperienceTopic) => {
+    setSelectedTopic(topic);
+    setExperienceLoading(true);
+    setError("");
+
+    const topicLabel = EXPERIENCE_TOPICS.find((t) => t.key === topic)?.label || topic;
+    const updatedHistory = [
+      ...experienceHistory,
+      { role: "user" as const, content: topicLabel },
+      { role: "assistant" as const, content: "" },
+    ];
+    const assistantRowIndex = updatedHistory.length - 1;
+    setExperienceHistory(updatedHistory);
+
+    try {
+      const res = await fetch("/api/life-agents/create/next-question", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "text/event-stream",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          basicInfo: { displayName: form.displayName, headline: form.headline, shortBio: form.shortBio },
+          chatHistory: updatedHistory.slice(0, -1),
+          knowledgeEntries: knowledgeEntries.map((entry) => ({
+            category: entry.category,
+            title: entry.title,
+            content: entry.content,
+          })),
+          topic,
+        }),
+      });
+
+      const data = isEventStreamResponse(res)
+        ? await readEventStreamPayload<CreateQuestionResponse>(res, (chunk) => {
+            setExperienceHistory((prev) =>
+              prev.map((msg, index) =>
+                index === assistantRowIndex ? { ...msg, content: msg.content + chunk } : msg
+              )
+            );
+          })
+        : ((await res.json()) as CreateQuestionResponse);
+
+      if (!res.ok) {
+        setError(data.detail || "生成下一问失败，请重试");
+        setExperienceHistory((prev) =>
+          prev.map((msg, index) =>
+            index === assistantRowIndex ? { ...msg, content: "出了点小问题，你可以继续补充回答，或稍后再试一次。" } : msg
+          )
+        );
+        return;
+      }
+
+      if (data.extractedTone) {
+        const tone = data.extractedTone;
+        setForm((prev) => ({
+          ...prev,
+          ...(tone.personaArchetype && { personaArchetype: tone.personaArchetype }),
+          ...(tone.toneStyle && { toneStyle: tone.toneStyle }),
+          ...(tone.responseStyle && { responseStyle: tone.responseStyle }),
+        }));
+      }
+      if (data.suggestedTags?.length) {
+        setForm((prev) => {
+          const existing = prev.expertiseTags.split(/[,，\n]/).map((item) => item.trim()).filter(Boolean);
+          const suggestedTags = data.suggestedTags ?? [];
+          const merged = Array.from(new Set([...existing, ...suggestedTags])).slice(0, 8);
+          return { ...prev, expertiseTags: merged.join(", ") };
+        });
+      }
+      if (data.knowledgeAdd?.length) {
+        setKnowledgeEntries((prev) => {
+          const existing = prev.map((entry) => entry.content);
+          const knowledgeAdd = data.knowledgeAdd ?? [];
+          const added = knowledgeAdd.filter((item: { content: string }) => item.content && !existing.includes(item.content));
+          return [
+            ...prev,
+            ...added.map((item: { category: string; title: string; content: string; tags?: string[] }) => ({
+              category: item.category || "经验",
+              title: item.title,
+              content: item.content,
+              tags: item.tags || [],
+            })),
+          ];
+        });
+      }
+      if (data.factCandidates?.length) {
+        setStructuredFacts((prev) => {
+          const existing = prev.map((f) => f.factKey);
+          const candidates = data.factCandidates ?? [];
+          const added = candidates.filter((f) => f.factKey && !existing.includes(f.factKey));
+          return [...prev, ...added];
+        });
+      }
+    } catch (err) {
+      setError("网络错误，请重试");
+      setExperienceHistory((prev) =>
+        prev.map((msg, index) =>
+          index === assistantRowIndex ? { ...msg, content: "出了点小问题，你可以继续补充回答，或稍后再试一次。" } : msg
+        )
+      );
+    } finally {
+      setExperienceLoading(false);
+    }
+  };
+
+  const submitSampleQuestionsAnswer = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    const answer = sampleQuestionsInput.trim();
+    if (!answer || sampleQuestionsDone || sampleQuestionsLoading) return;
+
+    setSampleQuestionsInput("");
+    setSampleQuestionsLoading(true);
+    setError("");
+
+    const updatedHistory = [...sampleQuestionsHistory, { role: "user" as const, content: answer }];
+    const assistantRowIndex = updatedHistory.length;
+
+    // Check if user wants to end
+    if (/^(没有了|跳过|没有了。|跳过。|没有了，|跳过，)$/.test(answer)) {
+      setSampleQuestionsHistory(updatedHistory);
+      setSampleQuestionsDone(true);
+      setSampleQuestionsLoading(false);
+      // Move to next step
+      setStep((prev) => prev + 1);
+      return;
+    }
+
+    // Add question to list
+    setSampleQuestionsList((prev) => [...prev, answer]);
+
+    // Ask follow-up
+    setSampleQuestionsHistory([...updatedHistory, { role: "assistant", content: "还有其他问题吗？可以继续写，或者直接说'没有了'或'跳过'。" }]);
+    setSampleQuestionsLoading(false);
   };
 
   const submitExperienceAnswer = async (e?: React.FormEvent, voiceText?: string) => {
@@ -1278,7 +1436,9 @@ export default function CreateLifeAgentPage() {
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
           {/* 单行提示 */}
           <div className="shrink-0 flex items-center justify-between gap-2 px-3 py-1.5 text-xs text-purple-900/50">
-            <span>基础资料 {completedChatCount}/{PROFILE_CHAT_FIELDS.length}</span>
+            <span>
+              {!chatDone ? `基础资料 ${completedChatCount}/${PROFILE_CHAT_FIELDS.length}` : sampleQuestionsDone ? "基础资料完成" : "示例问题"}
+            </span>
             <span>可回复「跳过」略过</span>
           </div>
 
@@ -1289,9 +1449,10 @@ export default function CreateLifeAgentPage() {
             onTouchStart={dismissKeyboard}
             role="presentation"
           >
-            <div className={`mx-auto max-w-3xl space-y-4 ${chatDone ? "pb-24" : "pb-4"}`}>
+            <div className={`mx-auto max-w-3xl space-y-4 ${chatDone ? (sampleQuestionsDone ? "pb-24" : "pb-4") : "pb-4"}`}>
+              {/* Profile chat messages */}
               {chatHistory.map((msg, i) => (
-                <div key={i} className={`flex items-end gap-2 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                <div key={`profile-${i}`} className={`flex items-end gap-2 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                   {msg.role === "assistant" ? (
                     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#BA68C8] to-[#FF80AB] text-[10px] font-bold text-white ring-2 ring-white shadow-sm">
                       AI
@@ -1312,7 +1473,27 @@ export default function CreateLifeAgentPage() {
                 </div>
               ))}
 
-              {chatDone && (
+              {/* Sample questions chat messages */}
+              {chatDone && sampleQuestionsHistory.map((msg, i) => (
+                <div key={`sample-${i}`} className={`flex items-end gap-2 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                  {msg.role === "assistant" ? (
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#BA68C8] to-[#FF80AB] text-[10px] font-bold text-white ring-2 ring-white shadow-sm">
+                      AI
+                    </div>
+                  ) : null}
+                  <div className={getChatBubbleClassName(msg.role)}>
+                    <p className="whitespace-pre-wrap">{msg.content}</p>
+                  </div>
+                  {msg.role === "user" ? (
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#FFF176] to-[#FF80AB] text-xs font-bold text-slate-900 shadow-sm ring-2 ring-white">
+                      我
+                    </div>
+                  ) : null}
+                </div>
+              ))}
+
+              {/* Summary shown when both profile chat and sample questions are done */}
+              {chatDone && sampleQuestionsDone && (
                 <div className="space-y-3 pt-2">
                   <div className="rounded-2xl border border-purple-200/[0.2] bg-gradient-to-r from-violet-50/[0.92] to-fuchsia-50/[0.78] px-4 py-3 text-sm text-purple-900/88 shadow-[0_4px_22px_rgba(124,58,237,0.065)] backdrop-blur-[2px]">
                     基础资料已整理好，下一步补充真实经历。
@@ -1358,7 +1539,26 @@ export default function CreateLifeAgentPage() {
           ) : null}
 
           {/* 输入栏（与 Agent 聊天页同款） */}
-          {!chatDone && (
+          {chatDone && !sampleQuestionsDone ? (
+            <div className="shrink-0 border-t border-purple-200/[0.16] bg-white/[0.94] px-3 pb-[env(safe-area-inset-bottom)] pt-2 shadow-[0_-4px_28px_-8px_rgba(124,58,237,0.07)] backdrop-blur-lg sm:px-4">
+              <div className="mx-auto max-w-3xl">
+                <LifeAgentMessageComposer
+                  formRef={profileFormRef}
+                  textareaRef={profileInputRef}
+                  value={sampleQuestionsInput}
+                  onChange={setSampleQuestionsInput}
+                  onSubmit={(e) => void submitSampleQuestionsAnswer(e)}
+                  disabled={sampleQuestionsLoading}
+                  placeholder={sampleQuestionsLoading ? "AI 正在整理…" : "输入一个问题，或说「没有了」结束"}
+                  required={false}
+                  onTextareaFocus={() => {
+                    setTimeout(scrollToLastMessage, 280);
+                    setTimeout(scrollToLastMessage, 520);
+                  }}
+                />
+              </div>
+            </div>
+          ) : !chatDone && (
             <div className="shrink-0 border-t border-purple-200/[0.16] bg-white/[0.94] px-3 pb-[env(safe-area-inset-bottom)] pt-2 shadow-[0_-4px_28px_-8px_rgba(124,58,237,0.07)] backdrop-blur-lg sm:px-4">
               <div className="mx-auto max-w-3xl">
                 <LifeAgentMessageComposer
@@ -1467,6 +1667,32 @@ export default function CreateLifeAgentPage() {
                 </div>
               ))}
 
+              {/* Topic selector shown only on first message and no topic selected yet */}
+              {experienceHistory.length === 1 && !selectedTopic && !experienceDone && (
+                <div className="space-y-2 pt-2">
+                  {EXPERIENCE_TOPICS.map((topic) => (
+                    <button
+                      key={topic.key}
+                      type="button"
+                      onClick={() => void handleTopicSelection(topic.key)}
+                      disabled={experienceLoading}
+                      className="group flex items-center gap-3 rounded-2xl bg-white px-4 py-4 text-left shadow-sm ring-1 ring-black/[0.06] transition hover:ring-purple-300 hover:shadow-md disabled:opacity-50"
+                    >
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-100 text-base font-bold text-purple-700 group-hover:bg-violet-200 transition-colors">
+                        {topic.label.slice(0, 1)}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-sm font-semibold text-slate-900">{topic.label}</div>
+                        <div className="mt-0.5 text-xs text-slate-500">{topic.description}</div>
+                      </div>
+                      <svg className="h-4 w-4 shrink-0 text-slate-300 group-hover:text-purple-500 transition-colors" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  ))}
+                </div>
+              )}
+
               {experienceDone && (
                 <div className="space-y-3 pt-2">
                   <div className="rounded-2xl border border-purple-200/[0.2] bg-gradient-to-r from-violet-50/[0.92] to-fuchsia-50/[0.78] px-4 py-3 text-sm text-purple-900/88 shadow-[0_4px_22px_rgba(124,58,237,0.065)] backdrop-blur-[2px]">
@@ -1501,7 +1727,7 @@ export default function CreateLifeAgentPage() {
           ) : null}
 
           {/* 输入栏（与 Agent 聊天页同款） */}
-          {!experienceDone && (
+          {!experienceDone && selectedTopic && (
             <div className="shrink-0 border-t border-purple-200/[0.16] bg-white/[0.94] px-3 pb-[env(safe-area-inset-bottom)] pt-2 shadow-[0_-4px_28px_-8px_rgba(124,58,237,0.07)] backdrop-blur-lg sm:px-4">
               {experienceHistory.filter((m) => m.role === "user").length >= 4 && (
                 <div className="mx-auto mb-2 max-w-3xl text-center">
