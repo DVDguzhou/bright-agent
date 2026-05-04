@@ -279,8 +279,8 @@ func fallbackNextQuestion(input *CreateQuestionInput) *CreateQuestionOutput {
 	entries := len(input.KnowledgeEntries)
 	turns := len(input.ChatHistory)
 
-	// Handle topic-specific first question
-	if turns == 1 && input.Topic != nil {
+	// Handle topic-specific first question (turns<=2 because chatHistory includes initial prompt + topic selection)
+	if turns <= 2 && input.Topic != nil {
 		topic := *input.Topic
 		switch topic {
 		case "experience":

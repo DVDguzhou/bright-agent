@@ -1705,7 +1705,7 @@ export default function CreateLifeAgentPage() {
               {experienceDone && (
                 <div className="space-y-3 pt-2">
                   <div className="rounded-2xl border border-purple-200/[0.2] bg-gradient-to-r from-violet-50/[0.92] to-fuchsia-50/[0.78] px-4 py-3 text-sm text-purple-900/88 shadow-[0_4px_22px_rgba(124,58,237,0.065)] backdrop-blur-[2px]">
-                    经验记录得差不多了，可以进入下一步设置回答风格。
+                    经验记录得差不多了，可以进入下一步设置回答风格。也可以继续补充更多信息～
                   </div>
                   <div className="flex flex-col gap-2 sm:flex-row">
                     <button
@@ -1714,6 +1714,16 @@ export default function CreateLifeAgentPage() {
                       className="btn-secondary min-h-[44px] flex-1"
                     >
                       上一步
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setExperienceDone(false);
+                        setError("");
+                      }}
+                      className="btn-secondary min-h-[44px] flex-1"
+                    >
+                      继续补充
                     </button>
                     <button
                       type="button"
