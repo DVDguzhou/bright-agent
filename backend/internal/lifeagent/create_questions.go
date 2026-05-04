@@ -236,7 +236,7 @@ func fallbackNextQuestion(input *CreateQuestionInput) *CreateQuestionOutput {
 	var q fallbackQ
 	switch {
 	case turns == 0:
-		q = fallbackQ{"你希望分享什么样的经验？可以简单说说你擅长的领域或想帮别人解决什么问题。", "fact"}
+		q = fallbackQ{"为了帮你打造更像你的 Agent，你想先从哪里开始？你可以分享一段真实经历、成长过程或做事心得，也可以聊聊你的性格、兴趣、日常生活和说话方式。随便从一个方向开始说就好，后面我会继续帮你补充完整。", "fact"}
 	case entries == 0 && turns >= 2:
 		q = fallbackQ{"可以举个具体的例子吗？比如时间、你做了什么、最后结果怎么样？", "fact"}
 	case turns%7 == 1:
