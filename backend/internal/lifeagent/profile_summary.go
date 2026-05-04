@@ -102,7 +102,8 @@ func GenerateProfileCreateSummary(ctx context.Context, apiKey, model, baseURL st
 - 所有字符串字段都去掉首尾空格。
 - knowledgeEntries 的 title/category 要简洁清楚，content 要像可直接给 AI 使用的经验描述。
 - structuredFacts 只保留明确填写或明确表达过的事实，不要脑补。
-- 如果用户没有明确填写某个字段，就返回空字符串或空数组。`
+- 如果用户没有明确填写某个字段，就返回空字符串或空数组。
+- 特别注意：如果用户输入了"跳过"、"不填"、"先空着"、"暂无"、"没有"、"无"、"不知道"、"不清楚"、"pass"、"skip"、"忽略"、"略过"、"先跳过"、"不用填"、"不想填"、"以后再填"、"没"、"略"等跳过意图的表达，对应字段必须返回空字符串或空数组，不要保留这些跳过词。`
 
 	userContent := fmt.Sprintf(`请整理下面这些回答：
 
@@ -160,20 +161,38 @@ func GenerateProfileCreateSummary(ctx context.Context, apiKey, model, baseURL st
 	return &out, nil
 }
 
+func isSkipAnswer(s string) bool {
+	s = strings.TrimSpace(strings.ToLower(s))
+	if s == "" {
+		return true
+	}
+	skipPatterns := []string{
+		"跳过", "不填", "先空着", "暂无", "没有", "无", "不知道", "不清楚",
+		"pass", "skip", "忽略", "略过", "先跳过", "不用填", "不想填",
+		"以后再填", "没", "略",
+	}
+	for _, p := range skipPatterns {
+		if s == p {
+			return true
+		}
+	}
+	return false
+}
+
 func fallbackProfileSummary(input *ProfileSummaryInput) *ProfileSummaryOutput {
 	out := &ProfileSummaryOutput{
 		SummaryMessage: "我已经帮你整理好基础资料，下一步继续补充你的真实经历和经验。",
 	}
-	out.Profile.DisplayName = truncateRunes(strings.TrimSpace(input.DisplayName), 10)
-	out.Profile.Headline = strings.TrimSpace(input.Headline)
-	out.Profile.ShortBio = strings.TrimSpace(input.ShortBio)
-	out.Profile.School = strings.TrimSpace(input.School)
-	out.Profile.Education = strings.TrimSpace(input.Education)
-	out.Profile.Job = strings.TrimSpace(input.Job)
-	out.Profile.Income = strings.TrimSpace(input.Income)
-	out.Profile.LongBio = strings.TrimSpace(input.LongBio)
-	out.Profile.Audience = strings.TrimSpace(input.Audience)
-	out.Profile.WelcomeMessage = strings.TrimSpace(input.WelcomeMessage)
+	out.Profile.DisplayName = truncateRunes(filterSkip(input.DisplayName), 10)
+	out.Profile.Headline = filterSkip(input.Headline)
+	out.Profile.ShortBio = filterSkip(input.ShortBio)
+	out.Profile.School = filterSkip(input.School)
+	out.Profile.Education = filterSkip(input.Education)
+	out.Profile.Job = filterSkip(input.Job)
+	out.Profile.Income = filterSkip(input.Income)
+	out.Profile.LongBio = filterSkip(input.LongBio)
+	out.Profile.Audience = filterSkip(input.Audience)
+	out.Profile.WelcomeMessage = filterSkip(input.WelcomeMessage)
 	out.Profile.ExpertiseTags = splitListText(input.ExpertiseTagsText, 8)
 	out.Profile.SampleQuestions = splitQuestionText(input.SampleQuestionsText, 6)
 	out.KnowledgeEntries = buildFallbackKnowledgeEntries(out)
@@ -181,20 +200,27 @@ func fallbackProfileSummary(input *ProfileSummaryInput) *ProfileSummaryOutput {
 	return out
 }
 
+func filterSkip(s string) string {
+	if isSkipAnswer(s) {
+		return ""
+	}
+	return strings.TrimSpace(s)
+}
+
 func normalizeProfileSummary(out *ProfileSummaryOutput, input *ProfileSummaryInput) {
 	if out.SummaryMessage == "" {
 		out.SummaryMessage = "我已经帮你整理好基础资料，下一步继续补充你的真实经历和经验。"
 	}
-	out.Profile.DisplayName = truncateRunes(strings.TrimSpace(firstNonEmpty(out.Profile.DisplayName, input.DisplayName)), 10)
-	out.Profile.Headline = strings.TrimSpace(firstNonEmpty(out.Profile.Headline, input.Headline))
-	out.Profile.ShortBio = strings.TrimSpace(firstNonEmpty(out.Profile.ShortBio, input.ShortBio))
-	out.Profile.School = strings.TrimSpace(firstNonEmpty(out.Profile.School, input.School))
-	out.Profile.Education = strings.TrimSpace(firstNonEmpty(out.Profile.Education, input.Education))
-	out.Profile.Job = strings.TrimSpace(firstNonEmpty(out.Profile.Job, input.Job))
-	out.Profile.Income = strings.TrimSpace(firstNonEmpty(out.Profile.Income, input.Income))
-	out.Profile.LongBio = strings.TrimSpace(firstNonEmpty(out.Profile.LongBio, input.LongBio))
-	out.Profile.Audience = strings.TrimSpace(firstNonEmpty(out.Profile.Audience, input.Audience))
-	out.Profile.WelcomeMessage = strings.TrimSpace(firstNonEmpty(out.Profile.WelcomeMessage, input.WelcomeMessage))
+	out.Profile.DisplayName = truncateRunes(strings.TrimSpace(firstNonEmpty(out.Profile.DisplayName, filterSkip(input.DisplayName))), 10)
+	out.Profile.Headline = strings.TrimSpace(firstNonEmpty(out.Profile.Headline, filterSkip(input.Headline)))
+	out.Profile.ShortBio = strings.TrimSpace(firstNonEmpty(out.Profile.ShortBio, filterSkip(input.ShortBio)))
+	out.Profile.School = strings.TrimSpace(firstNonEmpty(out.Profile.School, filterSkip(input.School)))
+	out.Profile.Education = strings.TrimSpace(firstNonEmpty(out.Profile.Education, filterSkip(input.Education)))
+	out.Profile.Job = strings.TrimSpace(firstNonEmpty(out.Profile.Job, filterSkip(input.Job)))
+	out.Profile.Income = strings.TrimSpace(firstNonEmpty(out.Profile.Income, filterSkip(input.Income)))
+	out.Profile.LongBio = strings.TrimSpace(firstNonEmpty(out.Profile.LongBio, filterSkip(input.LongBio)))
+	out.Profile.Audience = strings.TrimSpace(firstNonEmpty(out.Profile.Audience, filterSkip(input.Audience)))
+	out.Profile.WelcomeMessage = strings.TrimSpace(firstNonEmpty(out.Profile.WelcomeMessage, filterSkip(input.WelcomeMessage)))
 	if len(out.Profile.ExpertiseTags) == 0 {
 		out.Profile.ExpertiseTags = splitListText(input.ExpertiseTagsText, 8)
 	}

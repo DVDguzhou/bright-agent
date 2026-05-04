@@ -171,8 +171,6 @@ const MBTI_OPTIONS = ["未设置", "INTJ", "INTP", "ENTJ", "ENTP", "INFJ", "INFP
 const PERSONA_OPTIONS = ["学长学姐型", "朋友陪聊型", "前辈导师型", "冷静分析型", "过来人型", "本地熟人型"];
 const TONE_OPTIONS = ["直接一点", "温柔一点", "理性克制", "接地气一点", "像朋友聊天", "稳重耐心"];
 const RESPONSE_STYLE_OPTIONS = ["先给判断再解释", "先理解处境再建议", "多举自己的例子", "短一点别太满", "先拆选项再给建议", "像微信聊天少分点"];
-const OPTIONAL_SKIP_RE = /^(跳过|不填|先空着|暂无|没有|无)$/;
-
 function getPlaceholderExample(placeholder: string) {
   return placeholder.replace(/^例如[:：]\s*/, "").trim();
 }
@@ -224,11 +222,6 @@ const PROFILE_CHAT_FIELDS: readonly ProfileChatField[] = [
     prompt: "用户第一次打开聊天时，你希望 Agent 先说什么？",
     placeholder: "例如：你好，我会根据自己的真实经历，陪你一起想清楚下一步。",
     required: true,
-  },
-  {
-    key: "expertiseTags",
-    prompt: "请选择你的 Agent 擅长哪些领域（最多选 5 个），我们会自动为每个领域匹配相关关键词，提升在动态、地图等场景的曝光和匹配度。",
-    placeholder: "例如：学习、就业、旅游、科技、情感",
   },
 ] as const;
 
@@ -406,11 +399,13 @@ export default function CreateLifeAgentPage() {
     }
     const draft = loadLifeAgentCreateDraft(user.id);
     if (draft) {
-      const stepClamped = Math.max(1, Math.min(5, Math.floor(Number(draft.step)) || 1));
+      // Compatibility: old drafts used 5 steps, new uses 6 (expertise selector inserted between profile and experience)
+      const rawStep = Math.floor(Number(draft.step)) || 1;
+      const migratedStep = rawStep <= 1 ? rawStep : rawStep + 1;
+      const stepClamped = Math.max(1, Math.min(6, migratedStep));
       const maxField = PROFILE_CHAT_FIELDS.length - 1;
       const idx = Math.max(0, Math.min(maxField, Math.floor(Number(draft.chatFieldIndex)) || 0));
-      const needsVoiceResample = stepClamped >= 4 && !draft.voiceSkipped;
-      setStep(needsVoiceResample ? 4 : stepClamped);
+      setStep(stepClamped);
       setForm({ ...DEFAULT_FORM, ...draft.form });
       setNotSuitableFor(draft.notSuitableFor);
       setKnowledgeEntries(
@@ -445,7 +440,7 @@ export default function CreateLifeAgentPage() {
       setVoiceSkipped(draft.voiceSkipped);
       setCoverImageUrl(draft.coverImageUrl);
       setTemplatePicked(true);
-      setError(needsVoiceResample ? "已恢复草稿，录音样本不会自动保存，请重新录制一次音色。" : "");
+      setError("");
     }
     setDraftReady(true);
   }, [user?.id]);
@@ -641,7 +636,7 @@ export default function CreateLifeAgentPage() {
 
   useEffect(() => {
     if (!draftReady) return;
-    if (step === 2 && experienceHistory.length === 0) {
+    if (step === 3 && experienceHistory.length === 0) {
       setExperienceHistory([{ role: "assistant", content: FIRST_QUESTION }]);
       setExperienceDone(false);
       setError("");
@@ -672,7 +667,6 @@ export default function CreateLifeAgentPage() {
       case "longBio":
       case "audience":
       case "welcomeMessage":
-      case "expertiseTags":
         setForm((prev) => ({ ...prev, [key]: value }));
         break;
       default:
@@ -694,7 +688,6 @@ export default function CreateLifeAgentPage() {
     longBio: currentKey === "longBio" ? currentValue ?? "" : form.longBio,
     audience: currentKey === "audience" ? currentValue ?? "" : form.audience,
     welcomeMessage: currentKey === "welcomeMessage" ? currentValue ?? "" : form.welcomeMessage,
-    expertiseTagsText: currentKey === "expertiseTags" ? currentValue ?? "" : form.expertiseTags,
   });
 
   const submitProfileSummary = async (
@@ -1059,7 +1052,6 @@ export default function CreateLifeAgentPage() {
 
     const field = PROFILE_CHAT_FIELDS[chatFieldIndex];
     const rawAnswer = (voiceText ?? chatInput).trim();
-    let normalizedAnswer = rawAnswer;
 
     if (!rawAnswer) {
       if (field.required) {
@@ -1069,27 +1061,24 @@ export default function CreateLifeAgentPage() {
       setError("请输入内容，或回复「跳过」以略过此项");
       return;
     }
-    if (OPTIONAL_SKIP_RE.test(rawAnswer) && !field.required) {
-      normalizedAnswer = "";
-    }
 
     if (field.key === "displayName") {
-      if (normalizedAnswer.length < 1 || normalizedAnswer.length > 10) {
+      if (rawAnswer.length < 1 || rawAnswer.length > 10) {
         setError("Agent 名称长度需为 1 到 10 个字");
         return;
       }
     }
 
-    if (field.key === "welcomeMessage" && normalizedAnswer.length < 1) {
+    if (field.key === "welcomeMessage" && rawAnswer.length < 1) {
       setError("首次欢迎语还不能为空哦");
       return;
     }
 
     setError("");
     setChatInput("");
-    setChatFieldValue(field.key, normalizedAnswer);
+    setChatFieldValue(field.key, rawAnswer);
 
-    const nextHistory = [...chatHistory, { role: "user" as const, content: normalizedAnswer || "跳过" }];
+    const nextHistory = [...chatHistory, { role: "user" as const, content: rawAnswer }];
     const isLastField = chatFieldIndex === PROFILE_CHAT_FIELDS.length - 1;
     if (!isLastField) {
       const nextIndex = chatFieldIndex + 1;
@@ -1108,7 +1097,7 @@ export default function CreateLifeAgentPage() {
       );
     };
     try {
-      const data = await submitProfileSummary(buildProfileSummaryPayload(field.key, normalizedAnswer), (chunk) => {
+      const data = await submitProfileSummary(buildProfileSummaryPayload(field.key, rawAnswer), (chunk) => {
         setChatHistory((prev) =>
           prev.map((msg, index) =>
             index === assistantRowIndex ? { ...msg, content: msg.content + chunk } : msg
@@ -1396,19 +1385,22 @@ export default function CreateLifeAgentPage() {
           <div className="flex min-w-0 flex-col items-center justify-center gap-0.5 text-center sm:flex-row sm:gap-2">
             <h1 className="text-[15px] font-semibold text-purple-950/90 sm:text-base">创建 Agent</h1>
             <span className="shrink-0 rounded-full bg-gradient-to-r from-violet-100 to-fuchsia-100 px-2.5 py-0.5 text-xs font-semibold text-purple-900 shadow-sm ring-1 ring-purple-200/40">
-              {step}/5
+              {step >= 6 ? step - 1 : step}/5
             </span>
           </div>
           <span className="justify-self-end sm:w-12" aria-hidden />
         </div>
         <div className="mx-auto mt-2 max-w-5xl">
           <div className="flex gap-1">
-            {[1, 2, 3, 4, 5].map((s) => (
-              <div
-                key={s}
-                className={`h-1 flex-1 rounded-full transition-all ${s <= step ? "bg-gradient-to-r from-[#FFF176] via-[#FF80AB] to-[#BA68C8] shadow-[0_0_10px_rgba(168,139,235,0.45)]" : "bg-purple-100/80"}`}
-              />
-            ))}
+            {[1, 2, 3, 4, 5].map((s) => {
+              const visualStep = step >= 6 ? step - 1 : step;
+              return (
+                <div
+                  key={s}
+                  className={`h-1 flex-1 rounded-full transition-all ${s <= visualStep ? "bg-gradient-to-r from-[#FFF176] via-[#FF80AB] to-[#BA68C8] shadow-[0_0_10px_rgba(168,139,235,0.45)]" : "bg-purple-100/80"}`}
+                />
+              );
+            })}
           </div>
         </div>
       </header>
@@ -1463,9 +1455,11 @@ export default function CreateLifeAgentPage() {
               {chatHistory.map((msg, i) => (
                 <div key={`profile-${i}`} className={`flex items-end gap-2 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                   {msg.role === "assistant" ? (
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#BA68C8] to-[#FF80AB] text-[10px] font-bold text-white ring-2 ring-white shadow-sm">
-                      AI
-                    </div>
+                    <img
+                      src="/life-agent-cover-presets/default-cover.png"
+                      alt="AI"
+                      className="h-8 w-8 shrink-0 rounded-full object-cover ring-2 ring-white shadow-sm"
+                    />
                   ) : null}
                   <div className={getChatBubbleClassName(msg.role)}>
                     {msg.role === "assistant" && !msg.content.trim() && chatLoading ? (
@@ -1475,7 +1469,7 @@ export default function CreateLifeAgentPage() {
                     )}
                   </div>
                   {msg.role === "user" ? (
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#FFF176] to-[#FF80AB] text-xs font-bold text-slate-900 shadow-sm ring-2 ring-white">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gray-300 text-xs font-bold text-gray-700 shadow-sm ring-2 ring-white">
                       我
                     </div>
                   ) : null}
@@ -1486,15 +1480,17 @@ export default function CreateLifeAgentPage() {
               {chatDone && sampleQuestionsHistory.map((msg, i) => (
                 <div key={`sample-${i}`} className={`flex items-end gap-2 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                   {msg.role === "assistant" ? (
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#BA68C8] to-[#FF80AB] text-[10px] font-bold text-white ring-2 ring-white shadow-sm">
-                      AI
-                    </div>
+                    <img
+                      src="/life-agent-cover-presets/default-cover.png"
+                      alt="AI"
+                      className="h-8 w-8 shrink-0 rounded-full object-cover ring-2 ring-white shadow-sm"
+                    />
                   ) : null}
                   <div className={getChatBubbleClassName(msg.role)}>
                     <p className="whitespace-pre-wrap">{msg.content}</p>
                   </div>
                   {msg.role === "user" ? (
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#FFF176] to-[#FF80AB] text-xs font-bold text-slate-900 shadow-sm ring-2 ring-white">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gray-300 text-xs font-bold text-gray-700 shadow-sm ring-2 ring-white">
                       我
                     </div>
                   ) : null}
@@ -1532,7 +1528,7 @@ export default function CreateLifeAgentPage() {
                       onClick={() => goToStep(2)}
                       className="btn-primary min-h-[44px] flex-1"
                     >
-                      下一步：补充经验
+                      下一步：选择擅长领域
                     </button>
                   </div>
                 </div>
@@ -1584,53 +1580,20 @@ export default function CreateLifeAgentPage() {
                     setTimeout(scrollToLastMessage, 280);
                     setTimeout(scrollToLastMessage, 520);
                   }}
-                  moreOpen={currentChatField.key === "expertiseTags" ? true : profileMoreOpen}
+                  moreOpen={profileMoreOpen}
                   onMoreClick={() => setProfileMoreOpen((o) => !o)}
                   onCloseMorePanel={() => setProfileMoreOpen(false)}
                   morePanel={
-                    currentChatField.key === "expertiseTags" ? (
-                      <div className="rounded-2xl border border-purple-200/[0.22] bg-white/[0.98] p-3 shadow-[0_8px_36px_-10px_rgba(124,58,237,0.1)] backdrop-blur-md">
-                        <div className="mb-2 text-xs text-slate-500">点击选择擅长领域（可多选）：</div>
-                        <div className="flex flex-wrap gap-1.5">
-                          {AGENT_CATEGORIES.map((cat) => {
-                            const selected = chatInput.split(/[,，\n]/).map(s => s.trim()).filter(Boolean).includes(cat.label);
-                            return (
-                              <button
-                                key={cat.label}
-                                type="button"
-                                onClick={() => {
-                                  const tags = chatInput.split(/[,，\n]/).map(s => s.trim()).filter(Boolean);
-                                  if (selected) {
-                                    setChatInput(tags.filter(t => t !== cat.label).join("、"));
-                                  } else {
-                                    setChatInput(tags.length > 0 ? `${tags.join("、")}、${cat.label}` : cat.label);
-                                  }
-                                }}
-                                className={`rounded-full px-2.5 py-1 text-xs transition ${selected ? "" : "hover:opacity-80"}`}
-                                style={{
-                                  backgroundColor: cat.color + "20",
-                                  color: cat.color,
-                                  boxShadow: selected ? `inset 0 0 0 1.5px ${cat.color}` : "none",
-                                }}
-                              >
-                                {cat.label}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="rounded-2xl border border-purple-200/[0.22] bg-white/[0.98] p-2 shadow-[0_8px_36px_-10px_rgba(124,58,237,0.1)] backdrop-blur-md">
-                        <Link
-                          href="/life-agents"
-                          className="block rounded-xl px-3 py-2.5 text-sm text-slate-700 hover:bg-purple-50/90"
-                          onClick={() => setProfileMoreOpen(false)}
-                        >
-                          返回发现页
-                        </Link>
+                    <div className="rounded-2xl border border-purple-200/[0.22] bg-white/[0.98] p-2 shadow-[0_8px_36px_-10px_rgba(124,58,237,0.1)] backdrop-blur-md">
+                      <Link
+                        href="/life-agents"
+                        className="block rounded-xl px-3 py-2.5 text-sm text-slate-700 hover:bg-purple-50/90"
+                        onClick={() => setProfileMoreOpen(false)}
+                      >
+                        返回发现页
+                      </Link>
                     </div>
-                  )
-                }
+                  }
                 />
               </div>
             </div>
@@ -1639,6 +1602,98 @@ export default function CreateLifeAgentPage() {
       )}
 
       {step === 2 && (
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-white">
+          <div className="flex-1 overflow-y-auto px-4 py-8 sm:px-6">
+            <div className="mx-auto max-w-3xl">
+              <div className="mb-8 text-center">
+                <h2 className="text-xl font-semibold text-slate-900">选择你的擅长领域</h2>
+                <p className="mt-2 text-sm text-slate-500">
+                  选择你最熟悉、最有经验的领域，帮助用户更快找到你
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+                {AGENT_CATEGORIES.map((cat) => {
+                  const selected = form.expertiseTags
+                    .split(/[,，\n]/)
+                    .map((s) => s.trim())
+                    .filter(Boolean)
+                    .includes(cat.label);
+                  return (
+                    <button
+                      key={cat.label}
+                      type="button"
+                      onClick={() => {
+                        const tags = form.expertiseTags
+                          .split(/[,，\n]/)
+                          .map((s) => s.trim())
+                          .filter(Boolean);
+                        if (selected) {
+                          setForm((prev) => ({
+                            ...prev,
+                            expertiseTags: tags.filter((t) => t !== cat.label).join("、"),
+                          }));
+                        } else if (tags.length < 5) {
+                          setForm((prev) => ({
+                            ...prev,
+                            expertiseTags: tags.length > 0 ? `${tags.join("、")}、${cat.label}` : cat.label,
+                          }));
+                        }
+                      }}
+                      className={`flex items-center gap-2.5 rounded-xl border px-4 py-3 text-left text-sm transition-all ${
+                        selected
+                          ? "border-gray-900 bg-gray-900 text-white shadow-sm"
+                          : "border-gray-200 bg-white text-slate-700 hover:border-gray-300 hover:bg-gray-50"
+                      }`}
+                    >
+                      <span
+                        className="h-2.5 w-2.5 shrink-0 rounded-full"
+                        style={{ backgroundColor: selected ? "#fff" : cat.color }}
+                      />
+                      <span className="min-w-0 truncate font-medium">{cat.label}</span>
+                      {selected && (
+                        <svg className="ml-auto h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          <div className="shrink-0 border-t border-gray-100 bg-white px-4 py-4 pb-24 shadow-[0_-4px_20px_-8px_rgba(0,0,0,0.06)] sm:px-6 lg:pb-6">
+            <div className="mx-auto flex max-w-3xl items-center justify-between gap-4">
+              <div className="text-sm text-slate-500">
+                已选{" "}
+                <span className="font-semibold text-slate-900">
+                  {form.expertiseTags.split(/[,，\n]/).filter(Boolean).length}
+                </span>
+                /5
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => goToStep(1)}
+                  className="btn-secondary min-h-[44px]"
+                >
+                  上一步
+                </button>
+                <button
+                  type="button"
+                  onClick={() => goToStep(3)}
+                  className="btn-primary min-h-[44px]"
+                >
+                  下一步：补充经验
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {step === 3 && (
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
           {/* 单行提示 */}
           <div className="shrink-0 flex items-center justify-between gap-2 px-3 py-1.5 text-xs text-purple-900/50">
@@ -1657,9 +1712,11 @@ export default function CreateLifeAgentPage() {
               {experienceHistory.map((msg, i) => (
                 <div key={i} className={`flex items-end gap-2 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                   {msg.role === "assistant" ? (
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#BA68C8] to-[#FF80AB] text-[10px] font-bold text-white ring-2 ring-white shadow-sm">
-                      AI
-                    </div>
+                    <img
+                      src="/life-agent-cover-presets/default-cover.png"
+                      alt="AI"
+                      className="h-8 w-8 shrink-0 rounded-full object-cover ring-2 ring-white shadow-sm"
+                    />
                   ) : null}
                   <div className={getChatBubbleClassName(msg.role)}>
                     {msg.role === "assistant" && !msg.content.trim() && experienceLoading ? (
@@ -1669,7 +1726,7 @@ export default function CreateLifeAgentPage() {
                     )}
                   </div>
                   {msg.role === "user" ? (
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#FFF176] to-[#FF80AB] text-xs font-bold text-slate-900 shadow-sm ring-2 ring-white">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gray-300 text-xs font-bold text-gray-700 shadow-sm ring-2 ring-white">
                       我
                     </div>
                   ) : null}
@@ -1710,7 +1767,7 @@ export default function CreateLifeAgentPage() {
                   <div className="flex flex-col gap-2 sm:flex-row">
                     <button
                       type="button"
-                      onClick={() => goToStep(1)}
+                      onClick={() => goToStep(2)}
                       className="btn-secondary min-h-[44px] flex-1"
                     >
                       上一步
@@ -1727,7 +1784,7 @@ export default function CreateLifeAgentPage() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => goToStep(3)}
+                      onClick={() => goToStep(4)}
                       className="btn-primary min-h-[44px] flex-1"
                     >
                       下一步：让回答更像你
@@ -1798,11 +1855,11 @@ export default function CreateLifeAgentPage() {
         </div>
       )}
 
-      {step === 3 && (
+      {step === 4 && (
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            goToStep(4);
+            goToStep(6);
           }}
           className="flex min-h-0 flex-1 flex-col"
         >
@@ -2003,7 +2060,7 @@ export default function CreateLifeAgentPage() {
               <button
                 type="button"
                 onClick={() => {
-                  setStep(2);
+                  setStep(3);
                   setError("");
                 }}
                 className="btn-secondary min-h-[44px]"
@@ -2011,69 +2068,14 @@ export default function CreateLifeAgentPage() {
                 上一步
               </button>
               <button type="submit" className="btn-primary min-h-[44px]">
-                下一步：采集音色
+                下一步：确认发布
               </button>
             </div>
           </div>
         </form>
       )}
 
-      {step === 4 && (
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-          <div className={`flex-1 overflow-y-auto px-4 py-6 sm:px-6 ${CHAT_SCROLL_SURFACE_CLASSNAME}`}>
-            <div className="mx-auto max-w-2xl">
-              <VoiceRecordPanel
-                accent="pastel"
-                onComplete={(blob) => {
-                  const reader = new FileReader();
-                  reader.onerror = () => {
-                    setVoiceSampleBase64(null);
-                    setError("录音读取失败，请重新录制一次");
-                  };
-                  reader.onloadend = () => {
-                    const result = typeof reader.result === "string" ? reader.result : "";
-                    const base64 = result.includes(",") ? result.split(",")[1] : "";
-                    if (!base64) {
-                      setVoiceSampleBase64(null);
-                      setError("录音读取失败，请重新录制一次");
-                      return;
-                    }
-                    setVoiceSampleBase64(base64);
-                    setVoiceSkipped(false);
-                    goToStep(5, { voiceSkipped: false });
-                  };
-                  reader.readAsDataURL(blob);
-                }}
-                onSkip={() => {
-                  setVoiceSampleBase64(null);
-                  setVoiceSkipped(true);
-                  goToStep(5, { voiceSkipped: true });
-                }}
-                minDurationSeconds={10}
-                maxDurationSeconds={30}
-              />
-              {error ? (
-                <p className="mt-4 rounded-2xl border border-orange-100/80 bg-orange-50/90 px-4 py-3 text-sm text-orange-800/90">
-                  {error}
-                </p>
-              ) : null}
-            </div>
-          </div>
-          <div className="shrink-0 border-t border-purple-200/[0.18] bg-white/[0.94] px-4 py-4 pb-24 shadow-[0_-5px_32px_-10px_rgba(124,58,237,0.08)] backdrop-blur-lg sm:px-6 lg:pb-6">
-            <div className="mx-auto flex max-w-2xl justify-between">
-              <button
-                type="button"
-                onClick={() => goToStep(3)}
-                className="btn-secondary min-h-[44px]"
-              >
-                上一步
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {step === 5 && (
+      {step === 6 && (
         <form onSubmit={submit} className="flex min-h-0 flex-1 flex-col">
           <div className="flex-1 overflow-y-auto">
             <div className="mx-auto max-w-3xl space-y-6 px-4 py-6 sm:px-6">
