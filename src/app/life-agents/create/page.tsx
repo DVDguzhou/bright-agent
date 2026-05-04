@@ -435,6 +435,12 @@ export default function CreateLifeAgentPage() {
       setSampleQuestionsHistory(draft.sampleQuestionsHistory || []);
       setSampleQuestionsInput(draft.sampleQuestionsInput || "");
       setSampleQuestionsDone(draft.sampleQuestionsDone || false);
+      const validTopics: ExperienceTopic[] = ["experience", "personality", "daily"];
+      setSelectedTopic(
+        draft.selectedTopic && validTopics.includes(draft.selectedTopic as ExperienceTopic)
+          ? (draft.selectedTopic as ExperienceTopic)
+          : null
+      );
       setVoiceSampleBase64(null);
       setVoiceSkipped(draft.voiceSkipped);
       setCoverImageUrl(draft.coverImageUrl);
@@ -466,6 +472,7 @@ export default function CreateLifeAgentPage() {
       sampleQuestionsHistory,
       sampleQuestionsInput,
       sampleQuestionsDone,
+      selectedTopic,
       voiceSkipped,
       coverImageUrl,
     };
@@ -488,6 +495,7 @@ export default function CreateLifeAgentPage() {
     sampleQuestionsHistory,
     sampleQuestionsInput,
     sampleQuestionsDone,
+    selectedTopic,
     voiceSkipped,
     coverImageUrl,
   ]);

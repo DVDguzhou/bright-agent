@@ -50,6 +50,7 @@ export type LifeAgentCreateDraftV1 = {
   sampleQuestionsHistory: LifeAgentCreateDraftChatMessage[];
   sampleQuestionsInput: string;
   sampleQuestionsDone: boolean;
+  selectedTopic: string | null;
   voiceSkipped: boolean;
   coverImageUrl: string;
 };
@@ -127,6 +128,7 @@ export function parseLifeAgentCreateDraft(raw: string): LifeAgentCreateDraftV1 |
       sampleQuestionsHistory,
       sampleQuestionsInput: typeof o.sampleQuestionsInput === "string" ? o.sampleQuestionsInput : "",
       sampleQuestionsDone: Boolean(o.sampleQuestionsDone),
+      selectedTopic: typeof o.selectedTopic === "string" ? o.selectedTopic : null,
       voiceSkipped: Boolean(o.voiceSkipped),
       coverImageUrl: typeof o.coverImageUrl === "string" ? o.coverImageUrl : "",
     };
