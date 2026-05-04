@@ -4,6 +4,7 @@
  * 使用：node scripts/experiments/test-topic-followup.mjs
  * 会从项目根目录 .env 读取 TEST_BASE_URL（默认 http://localhost:8080）
  * 可选：TEST_TOPIC="experience|personality|daily" 指定测试的 topic
+ * 可选：TEST_EMAIL 和 TEST_PASSWORD 指定测试账号（默认会创建临时账号）
  */
 import { config } from "dotenv";
 import { resolve, dirname } from "path";
@@ -14,11 +15,69 @@ config({ path: resolve(__dirname, "../../.env") });
 
 const BASE_URL = process.env.TEST_BASE_URL || "http://localhost:8080";
 const TEST_TOPIC = process.env.TEST_TOPIC || "experience";
+const TEST_EMAIL = process.env.TEST_EMAIL;
+const TEST_PASSWORD = process.env.TEST_PASSWORD;
+
+async function login() {
+  const email = TEST_EMAIL || `test-${Date.now()}@example.com`;
+  const password = TEST_PASSWORD || `testpass-${Date.now()}`;
+
+  console.log("登录中...");
+  console.log(`Email: ${email}`);
+
+  // 先尝试登录
+  let loginRes = await fetch(`${BASE_URL}/api/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+
+  // 如果登录失败，尝试注册
+  if (!loginRes.ok) {
+    console.log("登录失败，尝试注册...");
+    const signupRes = await fetch(`${BASE_URL}/api/auth/signup`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email,
+        password,
+        name: `测试用户${Date.now()}`,
+      }),
+    });
+
+    if (!signupRes.ok) {
+      const err = await signupRes.json();
+      throw new Error(`注册失败: ${JSON.stringify(err)}`);
+    }
+
+    console.log("注册成功，重新登录...");
+    loginRes = await fetch(`${BASE_URL}/api/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+
+    if (!loginRes.ok) {
+      throw new Error("注册后登录失败");
+    }
+  }
+
+  const setCookieHeader = loginRes.headers.get("set-cookie");
+  if (!setCookieHeader) {
+    throw new Error("登录成功但未收到 cookie");
+  }
+
+  console.log("登录成功\n");
+  return setCookieHeader;
+}
 
 async function testTopicFollowup() {
   console.log("=== 测试 Step 2 Topic 选择和 LLM 追问 ===\n");
   console.log(`Base URL: ${BASE_URL}`);
   console.log(`测试 Topic: ${TEST_TOPIC}\n`);
+
+  // 登录获取 session
+  const cookie = await login();
 
   // 模拟用户选择 topic 后的请求
   const payload = {
@@ -44,6 +103,7 @@ async function testTopicFollowup() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "Cookie": cookie,
       },
       body: JSON.stringify(payload),
     });
