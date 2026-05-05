@@ -4,7 +4,6 @@ import "./globals.css";
 import { Nav } from "@/components/Nav";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ChunkLoadRecovery } from "@/components/ChunkLoadRecovery";
-import { InstallPWA } from "@/components/InstallPWA";
 import { RegisterSW } from "@/components/RegisterSW";
 
 export const viewport: Viewport = {
@@ -45,7 +44,6 @@ export default function RootLayout({
           </Suspense>
           <main className="container mx-auto px-4 py-3 sm:py-8 max-w-7xl relative z-10 pb-20 lg:pb-8 overflow-x-hidden">{children}</main>
           <RegisterSW />
-          <InstallPWA />
         </AuthProvider>
       </body>
     </html>

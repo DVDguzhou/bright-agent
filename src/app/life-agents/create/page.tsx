@@ -1577,7 +1577,25 @@ export default function CreateLifeAgentPage() {
 
           {/* 输入栏（与 Agent 聊天页同款） */}
           {chatDone && !sampleQuestionsDone ? (
-            <div className="shrink-0 border-t border-purple-200/[0.16] bg-white/[0.94] px-3 pb-[env(safe-area-inset-bottom)] pt-2 shadow-[0_-4px_28px_-8px_rgba(124,58,237,0.07)] backdrop-blur-lg sm:px-4">
+            <div className="shrink-0 border-t border-purple-200/[0.16] bg-white/[0.94] px-3 pb-[env(safe-area-inset-bottom)] pt-2 shadow-[0_-4px_28px_-8px_rgba(124,58,237,0.07)] backdrop-blur-lg sm:px-4 relative">
+              {draftReady && (
+                <div className="absolute -top-12 right-4 z-10">
+                  <button
+                    type="button"
+                    onClick={() => setDraftDrawerOpen(!draftDrawerOpen)}
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 shadow-lg shadow-purple-500/30 transition hover:scale-105 hover:from-violet-600 hover:to-fuchsia-600"
+                  >
+                    <svg
+                      className={`h-3 w-3 shrink-0 text-white transition-transform ${draftDrawerOpen ? "rotate-180" : ""}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                    </svg>
+                  </button>
+                </div>
+              )}
               <div className="mx-auto max-w-3xl">
                 <LifeAgentMessageComposer
                   formRef={profileFormRef}
@@ -1596,7 +1614,25 @@ export default function CreateLifeAgentPage() {
               </div>
             </div>
           ) : !chatDone && (
-            <div className="shrink-0 border-t border-purple-200/[0.16] bg-white/[0.94] px-3 pb-[env(safe-area-inset-bottom)] pt-2 shadow-[0_-4px_28px_-8px_rgba(124,58,237,0.07)] backdrop-blur-lg sm:px-4">
+            <div className="shrink-0 border-t border-purple-200/[0.16] bg-white/[0.94] px-3 pb-[env(safe-area-inset-bottom)] pt-2 shadow-[0_-4px_28px_-8px_rgba(124,58,237,0.07)] backdrop-blur-lg sm:px-4 relative">
+              {draftReady && (
+                <div className="absolute -top-12 right-4 z-10">
+                  <button
+                    type="button"
+                    onClick={() => setDraftDrawerOpen(!draftDrawerOpen)}
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 shadow-lg shadow-purple-500/30 transition hover:scale-105 hover:from-violet-600 hover:to-fuchsia-600"
+                  >
+                    <svg
+                      className={`h-3 w-3 shrink-0 text-white transition-transform ${draftDrawerOpen ? "rotate-180" : ""}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                    </svg>
+                  </button>
+                </div>
+              )}
               <div className="mx-auto max-w-3xl">
                 <LifeAgentMessageComposer
                   formRef={profileFormRef}
@@ -1607,25 +1643,10 @@ export default function CreateLifeAgentPage() {
                   disabled={chatLoading || chatDone}
                   placeholder={chatLoading ? "AI 正在整理资料…" : currentChatField.placeholder}
                   required={Boolean(currentChatField.required)}
-                  onVoiceFinal={(text) => void submitChatAnswer(undefined, text.trim())}
                   onTextareaFocus={() => {
                     setTimeout(scrollToLastMessage, 280);
                     setTimeout(scrollToLastMessage, 520);
                   }}
-                  moreOpen={profileMoreOpen}
-                  onMoreClick={() => setProfileMoreOpen((o) => !o)}
-                  onCloseMorePanel={() => setProfileMoreOpen(false)}
-                  morePanel={
-                    <div className="rounded-2xl border border-purple-200/[0.22] bg-white/[0.98] p-2 shadow-[0_8px_36px_-10px_rgba(124,58,237,0.1)] backdrop-blur-md">
-                      <Link
-                        href="/life-agents"
-                        className="block rounded-xl px-3 py-2.5 text-sm text-slate-700 hover:bg-purple-50/90"
-                        onClick={() => setProfileMoreOpen(false)}
-                      >
-                        返回发现页
-                      </Link>
-                    </div>
-                  }
                 />
               </div>
             </div>
@@ -1834,7 +1855,25 @@ export default function CreateLifeAgentPage() {
 
           {/* 输入栏（与 Agent 聊天页同款） */}
           {!experienceDone && selectedTopic && (
-            <div className="shrink-0 border-t border-purple-200/[0.16] bg-white/[0.94] px-3 pb-[env(safe-area-inset-bottom)] pt-2 shadow-[0_-4px_28px_-8px_rgba(124,58,237,0.07)] backdrop-blur-lg sm:px-4">
+            <div className="shrink-0 border-t border-purple-200/[0.16] bg-white/[0.94] px-3 pb-[env(safe-area-inset-bottom)] pt-2 shadow-[0_-4px_28px_-8px_rgba(124,58,237,0.07)] backdrop-blur-lg sm:px-4 relative">
+              {draftReady && (
+                <div className="absolute -top-12 right-4 z-10">
+                  <button
+                    type="button"
+                    onClick={() => setDraftDrawerOpen(!draftDrawerOpen)}
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 shadow-lg shadow-purple-500/30 transition hover:scale-105 hover:from-violet-600 hover:to-fuchsia-600"
+                  >
+                    <svg
+                      className={`h-3 w-3 shrink-0 text-white transition-transform ${draftDrawerOpen ? "rotate-180" : ""}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                    </svg>
+                  </button>
+                </div>
+              )}
               {experienceHistory.filter((m) => m.role === "user").length >= 4 && (
                 <div className="mx-auto mb-2 max-w-3xl text-center">
                   <button
@@ -2208,38 +2247,18 @@ export default function CreateLifeAgentPage() {
         </form>
       )}
 
-      {/* 底部浮条：档案进度 */}
-      {draftReady && step >= 1 && step <= 5 && (
-        <>
-          <div className="fixed bottom-6 right-6 z-40">
+      {/* 底部抽屉：草稿详情 */}
+      {draftDrawerOpen && (
+        <div className="fixed inset-x-0 bottom-0 z-50 flex flex-col bg-white/98 shadow-[0_-8px_40px_-12px_rgba(124,58,237,0.15)] backdrop-blur-xl">
+          <div className="flex items-center justify-between border-b border-purple-200/[0.18] px-4 py-3 sm:px-6">
+            <h3 className="text-base font-semibold text-purple-950/90">Agent 档案草稿</h3>
             <button
               type="button"
-              onClick={() => setDraftDrawerOpen(!draftDrawerOpen)}
-              className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 shadow-lg shadow-purple-500/30 transition hover:scale-105 hover:from-violet-600 hover:to-fuchsia-600"
+              onClick={() => setDraftDrawerOpen(false)}
+              className="flex h-8 w-8 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100"
             >
-              <svg
-                className={`h-6 w-6 shrink-0 text-white transition-transform ${draftDrawerOpen ? "rotate-180" : ""}`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-              </svg>
-            </button>
-          </div>
-
-          {/* 底部抽屉：草稿详情 */}
-          {draftDrawerOpen && (
-            <div className="fixed inset-x-0 bottom-0 z-50 flex flex-col bg-white/98 shadow-[0_-8px_40px_-12px_rgba(124,58,237,0.15)] backdrop-blur-xl">
-              <div className="flex items-center justify-between border-b border-purple-200/[0.18] px-4 py-3 sm:px-6">
-                <h3 className="text-base font-semibold text-purple-950/90">Agent 档案草稿</h3>
-                <button
-                  type="button"
-                  onClick={() => setDraftDrawerOpen(false)}
-                  className="flex h-8 w-8 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100"
-                >
-                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
               </div>
@@ -2290,8 +2309,6 @@ export default function CreateLifeAgentPage() {
               </div>
             </div>
           )}
-        </>
-      )}
     </div>
   );
 }
