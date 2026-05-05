@@ -2211,19 +2211,14 @@ export default function CreateLifeAgentPage() {
       {/* 底部浮条：档案进度 */}
       {draftReady && step >= 1 && step <= 5 && (
         <>
-          <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-purple-200/[0.18] bg-white/[0.95] px-4 py-3 shadow-[0_-4px_24px_-8px_rgba(124,58,237,0.1)] backdrop-blur-md sm:px-6">
+          <div className="fixed bottom-6 right-6 z-40">
             <button
               type="button"
               onClick={() => setDraftDrawerOpen(!draftDrawerOpen)}
-              className="mx-auto flex w-full max-w-3xl items-center justify-between rounded-xl bg-gradient-to-r from-violet-50 to-fuchsia-50 px-4 py-2.5 transition hover:from-violet-100 hover:to-fuchsia-100"
+              className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 shadow-lg shadow-purple-500/30 transition hover:scale-105 hover:from-violet-600 hover:to-fuchsia-600"
             >
-              <div className="flex items-center gap-4 text-sm text-slate-700">
-                <span className="font-medium text-purple-900/90">已生成档案 {profileCompletionCount} 项</span>
-                <span className="text-slate-500">|</span>
-                <span>记忆 {knowledgeEntries.length} 条</span>
-              </div>
               <svg
-                className={`h-4 w-4 shrink-0 text-purple-800/60 transition-transform ${draftDrawerOpen ? "rotate-180" : ""}`}
+                className={`h-6 w-6 shrink-0 text-white transition-transform ${draftDrawerOpen ? "rotate-180" : ""}`}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
