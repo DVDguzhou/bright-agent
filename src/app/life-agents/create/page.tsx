@@ -387,6 +387,7 @@ export default function CreateLifeAgentPage() {
   const [coverImageUrl, setCoverImageUrl] = useState("");
   const [voiceSkipped, setVoiceSkipped] = useState(false);
   const [templatePicked, setTemplatePicked] = useState(false);
+  const [draftDrawerOpen, setDraftDrawerOpen] = useState(false);
   /** 为 true 表示已尝试从 localStorage 恢复草稿，避免与「空聊天自动插入首条」冲突 */
   const [draftReady, setDraftReady] = useState(false);
   const saveDraftTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -1360,6 +1361,37 @@ export default function CreateLifeAgentPage() {
     if (el?.matches?.("input, textarea")) el.blur();
   };
 
+  // 判断是否是跳过字段
+  const isSkipField = (value: string) => {
+    const skipPatterns = [/^暂无$/, /^无$/, /^没有$/, /^跳过$/, /^pass$/i];
+    return skipPatterns.some((pattern) => pattern.test(value.trim()));
+  };
+
+  // 计算档案完成项数
+  const profileCompletionCount = (() => {
+    let count = 0;
+    const requiredFields = [
+      form.displayName,
+      form.headline,
+      form.shortBio,
+      form.longBio,
+      form.audience,
+      form.welcomeMessage,
+    ];
+    requiredFields.forEach((field) => {
+      if (field && field.trim() !== "" && !isSkipField(field)) count++;
+    });
+    if (form.school && form.school.trim() !== "" && !isSkipField(form.school)) count++;
+    if (form.education && form.education.trim() !== "" && !isSkipField(form.education)) count++;
+    if (form.job && form.job.trim() !== "" && !isSkipField(form.job)) count++;
+    if (form.income && form.income.trim() !== "" && !isSkipField(form.income)) count++;
+    if (form.expertiseTags && form.expertiseTags.trim() !== "" && !isSkipField(form.expertiseTags)) count++;
+    if (form.personaArchetype && form.personaArchetype.trim() !== "" && !isSkipField(form.personaArchetype)) count++;
+    if (form.toneStyle && form.toneStyle.trim() !== "" && !isSkipField(form.toneStyle)) count++;
+    if (form.responseStyle && form.responseStyle.trim() !== "" && !isSkipField(form.responseStyle)) count++;
+    return count;
+  })();
+
   return (
     <div
       className={
@@ -2174,6 +2206,96 @@ export default function CreateLifeAgentPage() {
             </div>
           </div>
         </form>
+      )}
+
+      {/* 底部浮条：档案进度 */}
+      {draftReady && step >= 1 && step <= 5 && (
+        <>
+          <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-purple-200/[0.18] bg-white/[0.95] px-4 py-3 shadow-[0_-4px_24px_-8px_rgba(124,58,237,0.1)] backdrop-blur-md sm:px-6">
+            <button
+              type="button"
+              onClick={() => setDraftDrawerOpen(!draftDrawerOpen)}
+              className="mx-auto flex w-full max-w-3xl items-center justify-between rounded-xl bg-gradient-to-r from-violet-50 to-fuchsia-50 px-4 py-2.5 transition hover:from-violet-100 hover:to-fuchsia-100"
+            >
+              <div className="flex items-center gap-4 text-sm text-slate-700">
+                <span className="font-medium text-purple-900/90">已生成档案 {profileCompletionCount} 项</span>
+                <span className="text-slate-500">|</span>
+                <span>记忆 {knowledgeEntries.length} 条</span>
+              </div>
+              <svg
+                className={`h-4 w-4 shrink-0 text-purple-800/60 transition-transform ${draftDrawerOpen ? "rotate-180" : ""}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+              </svg>
+            </button>
+          </div>
+
+          {/* 底部抽屉：草稿详情 */}
+          {draftDrawerOpen && (
+            <div className="fixed inset-x-0 bottom-0 z-50 flex flex-col bg-white/98 shadow-[0_-8px_40px_-12px_rgba(124,58,237,0.15)] backdrop-blur-xl">
+              <div className="flex items-center justify-between border-b border-purple-200/[0.18] px-4 py-3 sm:px-6">
+                <h3 className="text-base font-semibold text-purple-950/90">Agent 档案草稿</h3>
+                <button
+                  type="button"
+                  onClick={() => setDraftDrawerOpen(false)}
+                  className="flex h-8 w-8 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100"
+                >
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6">
+                <div className="mx-auto max-w-2xl space-y-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-slate-600">名称：</span>
+                    <span className="text-sm text-slate-900">{form.displayName || "未填写"}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-slate-600">一句话介绍：</span>
+                    <span className="text-sm text-slate-900">{form.headline || "未填写"}</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="text-sm font-medium text-slate-600 shrink-0">人格：</span>
+                    <span className="text-sm text-slate-900">{form.personaArchetype || "未填写"}</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="text-sm font-medium text-slate-600 shrink-0">擅长：</span>
+                    <span className="text-sm text-slate-900">{form.expertiseTags || "未填写"}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-slate-600">记忆：</span>
+                    <span className="text-sm text-slate-900">{knowledgeEntries.length} 条候选</span>
+                  </div>
+                </div>
+              </div>
+              <div className="border-t border-purple-200/[0.18] px-4 py-3 sm:px-6">
+                <div className="mx-auto flex max-w-2xl gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setDraftDrawerOpen(false)}
+                    className="flex-1 rounded-xl border border-purple-200/40 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
+                  >
+                    继续创建
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDraftDrawerOpen(false);
+                      goToStep(6);
+                    }}
+                    className="flex-1 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-4 py-2.5 text-sm font-medium text-white shadow-lg shadow-purple-500/25 transition hover:from-violet-700 hover:to-fuchsia-700"
+                  >
+                    查看全部
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
