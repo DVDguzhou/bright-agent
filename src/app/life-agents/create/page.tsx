@@ -107,6 +107,20 @@ type CreateQuestionResponse = {
     tags?: string[];
   }>;
   factCandidates?: StructuredFact[];
+  profile?: {
+    displayName?: string;
+    headline?: string;
+    shortBio?: string;
+    school?: string;
+    education?: string;
+    job?: string;
+    income?: string;
+    longBio?: string;
+    audience?: string;
+    welcomeMessage?: string;
+    expertiseTags?: string[];
+    sampleQuestions?: string[];
+  };
   detail?: string;
 };
 
@@ -374,6 +388,7 @@ export default function CreateLifeAgentPage() {
   const [experienceInput, setExperienceInput] = useState("");
   const [experienceDone, setExperienceDone] = useState(false);
   const [experienceLoading, setExperienceLoading] = useState(false);
+  const [isContinuingExperience, setIsContinuingExperience] = useState(false);
   const [selectedTopic, setSelectedTopic] = useState<ExperienceTopic | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [sampleQuestionsList, setSampleQuestionsList] = useState<string[]>([]);
@@ -1032,13 +1047,16 @@ export default function CreateLifeAgentPage() {
         });
       }
 
-      if (data.done) {
+      if (data.done && !isContinuingExperience) {
         replaceAssistantMessage(
           data.summaryMessage || "很好！你的经验已经记录下来，可以继续下一步设置 Agent 的回答风格。"
         );
         setExperienceDone(true);
       } else {
         replaceAssistantMessage(data.nextQuestion || "还能补充一些具体经历吗？");
+      }
+      if (isContinuingExperience) {
+        setIsContinuingExperience(false);
       }
     } catch {
       setError("网络错误，请重试");
@@ -1052,83 +1070,140 @@ export default function CreateLifeAgentPage() {
     e?.preventDefault();
     if (chatDone || chatLoading) return;
 
-    const field = PROFILE_CHAT_FIELDS[chatFieldIndex];
     const rawAnswer = (voiceText ?? chatInput).trim();
 
     if (!rawAnswer) {
-      if (field.required) {
-        setError(field.key === "displayName" ? "请先填写 Agent 名称" : "这一项先回答一下再继续");
-        return;
-      }
       setError("请输入内容，或回复「跳过」以略过此项");
-      return;
-    }
-
-    if (field.key === "displayName") {
-      if (rawAnswer.length < 1 || rawAnswer.length > 10) {
-        setError("Agent 名称长度需为 1 到 10 个字");
-        return;
-      }
-    }
-
-    if (field.key === "welcomeMessage" && rawAnswer.length < 1) {
-      setError("首次欢迎语还不能为空哦");
       return;
     }
 
     setError("");
     setChatInput("");
-    setChatFieldValue(field.key, rawAnswer);
 
     const nextHistory = [...chatHistory, { role: "user" as const, content: rawAnswer }];
-    const isLastField = chatFieldIndex === PROFILE_CHAT_FIELDS.length - 1;
-    if (!isLastField) {
-      const nextIndex = chatFieldIndex + 1;
-      setChatFieldIndex(nextIndex);
-      setChatHistory([...nextHistory, { role: "assistant", content: PROFILE_CHAT_FIELDS[nextIndex].prompt }]);
-      return;
-    }
-
     const assistantRowIndex = nextHistory.length;
     setChatHistory([...nextHistory, { role: "assistant", content: "" }]);
-    setChatDone(false);
     setChatLoading(true);
+
     const replaceAssistantMessage = (text: string) => {
       setChatHistory((prev) =>
         prev.map((msg, index) => (index === assistantRowIndex ? { ...msg, content: text } : msg))
       );
     };
+
     try {
-      const data = await submitProfileSummary(buildProfileSummaryPayload(field.key, rawAnswer), (chunk) => {
-        setChatHistory((prev) =>
-          prev.map((msg, index) =>
-            index === assistantRowIndex ? { ...msg, content: msg.content + chunk } : msg
-          )
-        );
+      const res = await fetch("/api/life-agents/create/next-question", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "text/event-stream",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          basicInfo: { displayName: form.displayName, headline: form.headline, shortBio: form.shortBio },
+          chatHistory: nextHistory,
+          knowledgeEntries: knowledgeEntries.map((entry) => ({
+            category: entry.category,
+            title: entry.title,
+            content: entry.content,
+          })),
+          topic: "profile",
+        }),
       });
-      const profile = data.profile ?? {};
-      const tags = profile.expertiseTags ?? [];
-      const questions = profile.sampleQuestions ?? [];
-      setForm((prev) => ({
-        ...prev,
-        displayName: profile.displayName ?? prev.displayName,
-        headline: profile.headline ?? prev.headline,
-        shortBio: profile.shortBio ?? prev.shortBio,
-        school: profile.school ?? prev.school,
-        education: profile.education ?? prev.education,
-        job: profile.job ?? prev.job,
-        income: profile.income ?? prev.income,
-        longBio: profile.longBio ?? prev.longBio,
-        audience: profile.audience ?? prev.audience,
-        welcomeMessage: profile.welcomeMessage ?? prev.welcomeMessage,
-        expertiseTags: tags.join(", "),
-      }));
-      setSampleQuestionsList(questions);
-      setSampleQuestionsDraft(questions.join("\n"));
-      setKnowledgeEntries((data.knowledgeEntries ?? []).filter((item) => item?.content?.trim()));
-      setStructuredFacts((data.structuredFacts ?? []).filter((item) => item?.factKey && item?.factValue));
-      replaceAssistantMessage(data.summaryMessage || "我已经帮你整理好基础资料，下一步继续补充你的真实经历和经验。");
-      setChatDone(true);
+
+      const data = isEventStreamResponse(res)
+        ? await readEventStreamPayload<CreateQuestionResponse>(res, (chunk) => {
+            setChatHistory((prev) =>
+              prev.map((msg, index) =>
+                index === assistantRowIndex ? { ...msg, content: msg.content + chunk } : msg
+              )
+            );
+          })
+        : ((await res.json()) as CreateQuestionResponse);
+
+      if (!res.ok) {
+        setError(data.detail || "生成下一问失败，请重试");
+        replaceAssistantMessage("出了点小问题，你可以继续补充回答，或稍后再试一次。");
+        return;
+      }
+
+      if (data.extractedTone) {
+        const tone = data.extractedTone;
+        setForm((prev) => ({
+          ...prev,
+          ...(tone.personaArchetype && { personaArchetype: tone.personaArchetype }),
+          ...(tone.toneStyle && { toneStyle: tone.toneStyle }),
+          ...(tone.responseStyle && { responseStyle: tone.responseStyle }),
+        }));
+      }
+      if (data.suggestedTags?.length) {
+        setForm((prev) => {
+          const existing = prev.expertiseTags.split(/[,，、\n]/).map((item) => item.trim()).filter(Boolean);
+          const suggestedTags = data.suggestedTags ?? [];
+          const merged = Array.from(new Set([...existing, ...suggestedTags])).slice(0, 8);
+          return { ...prev, expertiseTags: merged.join(", ") };
+        });
+      }
+      if (data.knowledgeAdd?.length) {
+        setKnowledgeEntries((prev) => {
+          const existing = prev.map((entry) => entry.content);
+          const knowledgeAdd = data.knowledgeAdd ?? [];
+          const added = knowledgeAdd.filter((item: { content: string }) => item.content && !existing.includes(item.content));
+          return [
+            ...prev,
+            ...added.map((item: { category: string; title: string; content: string; tags?: string[] }) => ({
+              category: item.category || "基础资料",
+              title: item.title || item.content.slice(0, 20),
+              content: item.content,
+              tags: item.tags?.length ? item.tags : [item.category || "基础资料"],
+            })),
+          ];
+        });
+      }
+      if (data.factCandidates?.length) {
+        setStructuredFacts((prev) => {
+          const existing = new Set(prev.map((item) => `${item.factKey}:${item.factValue}`));
+          const next = [...prev];
+          for (const item of data.factCandidates as StructuredFact[]) {
+            const key = `${item.factKey}:${item.factValue}`;
+            if (!item.factKey || !item.factValue || existing.has(key)) continue;
+            existing.add(key);
+            next.push(item);
+          }
+          return next;
+        });
+      }
+
+      if (data.profile) {
+        const profile = data.profile;
+        const tags = profile.expertiseTags ?? [];
+        const questions = profile.sampleQuestions ?? [];
+        setForm((prev) => ({
+          ...prev,
+          displayName: profile.displayName ?? prev.displayName,
+          headline: profile.headline ?? prev.headline,
+          shortBio: profile.shortBio ?? prev.shortBio,
+          school: profile.school ?? prev.school,
+          education: profile.education ?? prev.education,
+          job: profile.job ?? prev.job,
+          income: profile.income ?? prev.income,
+          longBio: profile.longBio ?? prev.longBio,
+          audience: profile.audience ?? prev.audience,
+          welcomeMessage: profile.welcomeMessage ?? prev.welcomeMessage,
+          expertiseTags: tags.length > 0 ? tags.join(", ") : prev.expertiseTags,
+        }));
+        setSampleQuestionsList(questions);
+        setSampleQuestionsDraft(questions.join("\n"));
+      }
+
+      if (data.summaryMessage) {
+        replaceAssistantMessage(data.summaryMessage);
+        setChatDone(true);
+      } else if (data.nextQuestion) {
+        replaceAssistantMessage(data.nextQuestion);
+      } else {
+        replaceAssistantMessage("还能补充一些具体信息吗？");
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : "网络错误，请重试";
       setError(message);
@@ -1684,17 +1759,13 @@ export default function CreateLifeAgentPage() {
                             .map((s) => s.trim())
                             .filter(Boolean);
                           const isSelected = tags.includes(cat.label);
-                          console.log("Click tag:", cat.label, "isSelected:", isSelected, "currentTags:", tags, "tags.length:", tags.length);
                           if (isSelected) {
                             const newTags = tags.filter((t) => t !== cat.label);
-                            console.log("Removing tag, newTags:", newTags);
                             return { ...prev, expertiseTags: newTags.join(", ") };
                           } else if (tags.length < 5) {
                             const newTags = [...tags, cat.label];
-                            console.log("Adding tag, newTags:", newTags);
                             return { ...prev, expertiseTags: newTags.join(", ") };
                           }
-                          console.log("Max tags reached, not adding");
                           return prev;
                         });
                       }}
@@ -1832,9 +1903,114 @@ export default function CreateLifeAgentPage() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => {
+                      onClick={async () => {
                         setExperienceDone(false);
+                        setIsContinuingExperience(true);
                         setError("");
+                        setExperienceLoading(true);
+                        const updatedHistory = [...experienceHistory, { role: "assistant" as const, content: "" }];
+                        const assistantRowIndex = updatedHistory.length - 1;
+                        setExperienceHistory(updatedHistory);
+
+                        const replaceAssistantMessage = (text: string) => {
+                          setExperienceHistory((prev) =>
+                            prev.map((msg, index) => (index === assistantRowIndex ? { ...msg, content: text } : msg))
+                          );
+                        };
+
+                        try {
+                          const res = await fetch("/api/life-agents/create/next-question", {
+                            method: "POST",
+                            headers: {
+                              "Content-Type": "application/json",
+                              Accept: "text/event-stream",
+                            },
+                            credentials: "include",
+                            body: JSON.stringify({
+                              basicInfo: { displayName: form.displayName, headline: form.headline, shortBio: form.shortBio },
+                              chatHistory: experienceHistory,
+                              knowledgeEntries: knowledgeEntries.map((entry) => ({
+                                category: entry.category,
+                                title: entry.title,
+                                content: entry.content,
+                              })),
+                              topic: selectedTopic ?? "experience",
+                            }),
+                          });
+                          const data = isEventStreamResponse(res)
+                            ? await readEventStreamPayload<CreateQuestionResponse>(res, (chunk) => {
+                                setExperienceHistory((prev) =>
+                                  prev.map((msg, index) =>
+                                    index === assistantRowIndex ? { ...msg, content: msg.content + chunk } : msg
+                                  )
+                                );
+                              })
+                            : ((await res.json()) as CreateQuestionResponse);
+
+                          if (!res.ok) {
+                            setError(data.detail || "生成下一问失败，请重试");
+                            replaceAssistantMessage("出了点小问题，你可以继续补充回答，或稍后再试一次。");
+                            return;
+                          }
+
+                          if (data.extractedTone) {
+                            const tone = data.extractedTone;
+                            setForm((prev) => ({
+                              ...prev,
+                              ...(tone.personaArchetype && { personaArchetype: tone.personaArchetype }),
+                              ...(tone.toneStyle && { toneStyle: tone.toneStyle }),
+                              ...(tone.responseStyle && { responseStyle: tone.responseStyle }),
+                            }));
+                          }
+                          if (data.suggestedTags?.length) {
+                            setForm((prev) => {
+                              const existing = prev.expertiseTags.split(/[,，、\n]/).map((item) => item.trim()).filter(Boolean);
+                              const suggestedTags = data.suggestedTags ?? [];
+                              const merged = Array.from(new Set([...existing, ...suggestedTags])).slice(0, 8);
+                              return { ...prev, expertiseTags: merged.join(", ") };
+                            });
+                          }
+                          if (data.knowledgeAdd?.length) {
+                            setKnowledgeEntries((prev) => {
+                              const existing = prev.map((entry) => entry.content);
+                              const knowledgeAdd = data.knowledgeAdd ?? [];
+                              const added = knowledgeAdd.filter((item: { content: string }) => item.content && !existing.includes(item.content));
+                              return [
+                                ...prev,
+                                ...added.map((item: { category: string; title: string; content: string; tags?: string[] }) => ({
+                                  category: item.category || "经验",
+                                  title: item.title || item.content.slice(0, 20),
+                                  content: item.content,
+                                  tags: item.tags?.length ? item.tags : [item.category || "经验"],
+                                })),
+                              ];
+                            });
+                          }
+                          if (data.factCandidates?.length) {
+                            setStructuredFacts((prev) => {
+                              const existing = new Set(prev.map((item) => `${item.factKey}:${item.factValue}`));
+                              const next = [...prev];
+                              for (const item of data.factCandidates as StructuredFact[]) {
+                                const key = `${item.factKey}:${item.factValue}`;
+                                if (!item.factKey || !item.factValue || existing.has(key)) continue;
+                                existing.add(key);
+                                next.push(item);
+                              }
+                              return next;
+                            });
+                          }
+
+                          if (data.nextQuestion) {
+                            replaceAssistantMessage(data.nextQuestion);
+                          } else {
+                            replaceAssistantMessage("还能补充一些具体经历吗？");
+                          }
+                        } catch {
+                          setError("网络错误，请重试");
+                          replaceAssistantMessage("出了点小问题，你可以继续补充回答，或稍后再试一次。");
+                        } finally {
+                          setExperienceLoading(false);
+                        }
                       }}
                       className="btn-secondary min-h-[44px] flex-1"
                     >
