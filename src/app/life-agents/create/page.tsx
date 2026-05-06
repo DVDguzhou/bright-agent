@@ -388,6 +388,7 @@ export default function CreateLifeAgentPage() {
   const [voiceSkipped, setVoiceSkipped] = useState(false);
   const [templatePicked, setTemplatePicked] = useState(false);
   const [draftDrawerOpen, setDraftDrawerOpen] = useState(false);
+  const [draftDrawerExpanded, setDraftDrawerExpanded] = useState(false);
   /** 为 true 表示已尝试从 localStorage 恢复草稿，避免与「空聊天自动插入首条」冲突 */
   const [draftReady, setDraftReady] = useState(false);
   const saveDraftTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -2254,61 +2255,108 @@ export default function CreateLifeAgentPage() {
             <h3 className="text-base font-semibold text-purple-950/90">Agent 档案草稿</h3>
             <button
               type="button"
-              onClick={() => setDraftDrawerOpen(false)}
+              onClick={() => {
+                setDraftDrawerOpen(false);
+                setDraftDrawerExpanded(false);
+              }}
               className="flex h-8 w-8 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100"
             >
               <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
+              </svg>
+            </button>
+          </div>
+          <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6">
+            <div className="mx-auto max-w-2xl space-y-3">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-slate-600">名称：</span>
+                <span className="text-sm text-slate-900">{form.displayName || "未填写"}</span>
               </div>
-              <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6">
-                <div className="mx-auto max-w-2xl space-y-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-slate-600">名称：</span>
-                    <span className="text-sm text-slate-900">{form.displayName || "未填写"}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-slate-600">一句话介绍：</span>
-                    <span className="text-sm text-slate-900">{form.headline || "未填写"}</span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-slate-600">一句话介绍：</span>
+                <span className="text-sm text-slate-900">{form.headline || "未填写"}</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="text-sm font-medium text-slate-600 shrink-0">人格：</span>
+                <span className="text-sm text-slate-900">{form.personaArchetype || "未填写"}</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="text-sm font-medium text-slate-600 shrink-0">擅长：</span>
+                <span className="text-sm text-slate-900">{form.expertiseTags || "未填写"}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-slate-600">记忆：</span>
+                <span className="text-sm text-slate-900">{knowledgeEntries.length} 条候选</span>
+              </div>
+              {draftDrawerExpanded && (
+                <>
+                  <div className="flex items-start gap-2">
+                    <span className="text-sm font-medium text-slate-600 shrink-0">简介：</span>
+                    <span className="text-sm text-slate-900">{form.shortBio || "未填写"}</span>
                   </div>
                   <div className="flex items-start gap-2">
-                    <span className="text-sm font-medium text-slate-600 shrink-0">人格：</span>
-                    <span className="text-sm text-slate-900">{form.personaArchetype || "未填写"}</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <span className="text-sm font-medium text-slate-600 shrink-0">擅长：</span>
-                    <span className="text-sm text-slate-900">{form.expertiseTags || "未填写"}</span>
+                    <span className="text-sm font-medium text-slate-600 shrink-0">详细介绍：</span>
+                    <span className="text-sm text-slate-900">{form.longBio || "未填写"}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-slate-600">记忆：</span>
-                    <span className="text-sm text-slate-900">{knowledgeEntries.length} 条候选</span>
+                    <span className="text-sm font-medium text-slate-600">目标用户：</span>
+                    <span className="text-sm text-slate-900">{form.audience || "未填写"}</span>
                   </div>
-                </div>
-              </div>
-              <div className="border-t border-purple-200/[0.18] px-4 py-3 sm:px-6">
-                <div className="mx-auto flex max-w-2xl gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setDraftDrawerOpen(false)}
-                    className="flex-1 rounded-xl border border-purple-200/40 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
-                  >
-                    继续创建
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setDraftDrawerOpen(false);
-                      goToStep(6);
-                    }}
-                    className="flex-1 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-4 py-2.5 text-sm font-medium text-white shadow-lg shadow-purple-500/25 transition hover:from-violet-700 hover:to-fuchsia-700"
-                  >
-                    查看全部
-                  </button>
-                </div>
-              </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-slate-600">欢迎语：</span>
+                    <span className="text-sm text-slate-900">{form.welcomeMessage || "未填写"}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-slate-600">学校：</span>
+                    <span className="text-sm text-slate-900">{form.school || "未填写"}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-slate-600">学历：</span>
+                    <span className="text-sm text-slate-900">{form.education || "未填写"}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-slate-600">职业：</span>
+                    <span className="text-sm text-slate-900">{form.job || "未填写"}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-slate-600">收入：</span>
+                    <span className="text-sm text-slate-900">{form.income || "未填写"}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-slate-600">语气风格：</span>
+                    <span className="text-sm text-slate-900">{form.toneStyle || "未填写"}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-slate-600">回复风格：</span>
+                    <span className="text-sm text-slate-900">{form.responseStyle || "未填写"}</span>
+                  </div>
+                </>
+              )}
             </div>
-          )}
+          </div>
+          <div className="border-t border-purple-200/[0.18] px-4 py-3 sm:px-6">
+            <div className="mx-auto flex max-w-2xl gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setDraftDrawerOpen(false);
+                  setDraftDrawerExpanded(false);
+                }}
+                className="flex-1 rounded-xl border border-purple-200/40 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
+              >
+                继续创建
+              </button>
+              <button
+                type="button"
+                onClick={() => setDraftDrawerExpanded(!draftDrawerExpanded)}
+                className="flex-1 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-4 py-2.5 text-sm font-medium text-white shadow-lg shadow-purple-500/25 transition hover:from-violet-700 hover:to-fuchsia-700"
+              >
+                {draftDrawerExpanded ? "收起" : "查看全部"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
