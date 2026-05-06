@@ -173,9 +173,10 @@ func GenerateNextCreateQuestion(ctx context.Context, apiKey, model, baseURL stri
 
 【规则】
 - 每次只问一个问题，不要一次问多个。
-- **追问必须严格基于用户上一轮的具体回答内容来生成**。不要问"还能补充一些具体的经历吗？"这种通用问题。
+- **追问必须严格基于用户上一轮的具体回答内容来生成**。不要问"还能补充一些具体的经历吗？"、"还有什么想补充的吗？"这类通用问题。
 - 必须从用户的回答中提取具体的人、事、物、场景、时间、地点等细节，然后针对这些细节追问。
 - 例如：用户说"我每天和女朋友打电话"→你应该追问"一般什么时候打电话？聊些什么话题？这对你意味着什么？"，而不是跳到另一个无关维度问"你理想中的一天是什么样的"。
+- 例如：用户说"我早上7点起床，先喝咖啡"→你应该追问"喝咖啡是固定习惯吗？一般喝什么类型的咖啡？喝完之后会做什么？"，而不是问"还有什么想补充的吗？"。
 - 用户提到的具体人/事/物/场景，都要追问细节（时间、方式、原因、感受、和谁一起、频率、变化等）。
 - 只有当一个维度已经追问出足够细节（至少2-3轮有意义的细节回答），才可以自然地转到下一个相关维度。
 - 不要反复在同一个维度上追问。如果连续两轮都在问同一个维度且用户没给出新信息，下一轮应该转到下一个维度。
@@ -236,18 +237,22 @@ func GenerateNextCreateQuestion(ctx context.Context, apiKey, model, baseURL stri
 		MaxCompletionTokens: 1000,
 	})
 	if err != nil {
+		fmt.Printf("[DEBUG] LLM API error: %v\n", err)
 		return fallbackNextQuestion(input), nil
 	}
 
 	if len(resp.Choices) == 0 || resp.Choices[0].Message.Content == "" {
+		fmt.Printf("[DEBUG] LLM returned empty response\n")
 		return fallbackNextQuestion(input), nil
 	}
 
 	raw := strings.TrimSpace(resp.Choices[0].Message.Content)
+	fmt.Printf("[DEBUG] LLM raw response: %s\n", raw)
 	raw = extractJSONFromContent(raw)
 
 	var out CreateQuestionOutput
 	if err := json.Unmarshal([]byte(raw), &out); err != nil {
+		fmt.Printf("[DEBUG] JSON parse error: %v, raw: %s\n", err, raw)
 		return fallbackNextQuestion(input), nil
 	}
 
