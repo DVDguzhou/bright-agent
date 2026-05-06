@@ -846,7 +846,7 @@ export default function CreateLifeAgentPage() {
       }
       if (data.suggestedTags?.length) {
         setForm((prev) => {
-          const existing = prev.expertiseTags.split(/[,，\n]/).map((item) => item.trim()).filter(Boolean);
+          const existing = prev.expertiseTags.split(/[,，、\n]/).map((item) => item.trim()).filter(Boolean);
           const suggestedTags = data.suggestedTags ?? [];
           const merged = Array.from(new Set([...existing, ...suggestedTags])).slice(0, 8);
           return { ...prev, expertiseTags: merged.join(", ") };
@@ -996,7 +996,7 @@ export default function CreateLifeAgentPage() {
       }
       if (data.suggestedTags?.length) {
         setForm((prev) => {
-          const existing = prev.expertiseTags.split(/[,，\n]/).map((item) => item.trim()).filter(Boolean);
+          const existing = prev.expertiseTags.split(/[,，、\n]/).map((item) => item.trim()).filter(Boolean);
           const suggestedTags = data.suggestedTags ?? [];
           const merged = Array.from(new Set([...existing, ...suggestedTags])).slice(0, 8);
           return { ...prev, expertiseTags: merged.join(", ") };
@@ -1170,7 +1170,7 @@ export default function CreateLifeAgentPage() {
     }
 
     const expertiseTagsArr = form.expertiseTags
-      .split(/[,，\n]/)
+      .split(/[,，、\n]/)
       .map((item) => item.trim())
       .filter(Boolean);
     const sampleQuestionsArr = sampleQuestionsList
@@ -1669,7 +1669,7 @@ export default function CreateLifeAgentPage() {
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
                 {AGENT_CATEGORIES.map((cat) => {
                   const selected = form.expertiseTags
-                    .split(/[,，\n]/)
+                    .split(/[,，、\n]/)
                     .map((s) => s.trim())
                     .filter(Boolean)
                     .includes(cat.label);
@@ -1678,20 +1678,19 @@ export default function CreateLifeAgentPage() {
                       key={cat.label}
                       type="button"
                       onClick={() => {
-                        const currentTags = form.expertiseTags
-                          .split(/[,，\n]/)
-                          .map((s) => s.trim())
-                          .filter(Boolean);
-                        const isSelected = currentTags.includes(cat.label);
-                        let newTags: string[];
-                        if (isSelected) {
-                          newTags = currentTags.filter((t) => t !== cat.label);
-                        } else if (currentTags.length < 5) {
-                          newTags = [...currentTags, cat.label];
-                        } else {
-                          return;
-                        }
-                        setForm((prev) => ({ ...prev, expertiseTags: newTags.join("、") }));
+                        setForm((prev) => {
+                          const tags = prev.expertiseTags
+                            .split(/[,，、\n]/)
+                            .map((s) => s.trim())
+                            .filter(Boolean);
+                          const isSelected = tags.includes(cat.label);
+                          if (isSelected) {
+                            return { ...prev, expertiseTags: tags.filter((t) => t !== cat.label).join(", ") };
+                          } else if (tags.length < 5) {
+                            return { ...prev, expertiseTags: tags.length > 0 ? `${tags.join(", ")}, ${cat.label}` : cat.label };
+                          }
+                          return prev;
+                        });
                       }}
                       className={`flex items-center gap-2.5 rounded-xl border px-4 py-3 text-left text-sm transition-all ${
                         selected
@@ -1721,7 +1720,7 @@ export default function CreateLifeAgentPage() {
               <div className="text-sm text-slate-500">
                 已选{" "}
                 <span className="font-semibold text-slate-900">
-                  {form.expertiseTags.split(/[,，\n]/).filter(Boolean).length}
+                  {form.expertiseTags.split(/[,，、\n]/).filter(Boolean).length}
                 </span>
                 /5
               </div>
