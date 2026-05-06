@@ -390,6 +390,7 @@ export default function CreateLifeAgentPage() {
   const [experienceLoading, setExperienceLoading] = useState(false);
   const [isContinuingExperience, setIsContinuingExperience] = useState(false);
   const [selectedTopic, setSelectedTopic] = useState<ExperienceTopic | null>(null);
+  const [showRetractMenu, setShowRetractMenu] = useState<{ type: 'chat' | 'experience' | 'sample', index: number } | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [sampleQuestionsList, setSampleQuestionsList] = useState<string[]>([]);
   const [sampleQuestionsDraft, setSampleQuestionsDraft] = useState("");
@@ -914,23 +915,58 @@ export default function CreateLifeAgentPage() {
 
     const updatedHistory = [...sampleQuestionsHistory, { role: "user" as const, content: answer }];
     const assistantRowIndex = updatedHistory.length;
+    setSampleQuestionsHistory([...updatedHistory, { role: "assistant", content: "" }]);
 
-    // Check if user wants to end
-    if (/^(没有了|跳过|没有了。|跳过。|没有了，|跳过，)$/.test(answer)) {
-      setSampleQuestionsHistory(updatedHistory);
-      setSampleQuestionsDone(true);
+    const replaceAssistantMessage = (text: string) => {
+      setSampleQuestionsHistory((prev) =>
+        prev.map((msg, index) => (index === assistantRowIndex ? { ...msg, content: text } : msg))
+      );
+    };
+
+    try {
+      const res = await fetch("/api/life-agents/create/next-question", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          basicInfo: { displayName: form.displayName, headline: form.headline, shortBio: form.shortBio },
+          chatHistory: updatedHistory,
+          knowledgeEntries: knowledgeEntries.map((entry) => ({
+            category: entry.category,
+            title: entry.title,
+            content: entry.content,
+          })),
+          topic: "sample_questions",
+        }),
+      });
+
+      const data = (await res.json()) as CreateQuestionResponse;
+
+      if (!res.ok) {
+        replaceAssistantMessage("出了点小问题，你可以继续补充回答，或稍后再试一次。");
+        return;
+      }
+
+      // Check if LLM detected skip intent
+      if (data.done) {
+        setSampleQuestionsDone(true);
+        setSampleQuestionsLoading(false);
+        setStep((prev) => prev + 1);
+        return;
+      }
+
+      // Add question to list
+      setSampleQuestionsList((prev) => [...prev, answer]);
+
+      // Ask follow-up
+      replaceAssistantMessage("还有其他问题吗？可以继续写，或者直接说'没有了'或'跳过'。");
+    } catch {
+      replaceAssistantMessage("出了点小问题，你可以继续补充回答，或稍后再试一次。");
+    } finally {
       setSampleQuestionsLoading(false);
-      // Move to next step
-      setStep((prev) => prev + 1);
-      return;
     }
-
-    // Add question to list
-    setSampleQuestionsList((prev) => [...prev, answer]);
-
-    // Ask follow-up
-    setSampleQuestionsHistory([...updatedHistory, { role: "assistant", content: "还有其他问题吗？可以继续写，或者直接说'没有了'或'跳过'。" }]);
-    setSampleQuestionsLoading(false);
   };
 
   const submitExperienceAnswer = async (e?: React.FormEvent, voiceText?: string) => {
@@ -1569,7 +1605,15 @@ export default function CreateLifeAgentPage() {
                       className="h-8 w-8 shrink-0 rounded-full object-cover ring-2 ring-white shadow-sm"
                     />
                   ) : null}
-                  <div className={getChatBubbleClassName(msg.role)}>
+                  <div
+                    className={getChatBubbleClassName(msg.role)}
+                    onContextMenu={(e) => {
+                      e.preventDefault();
+                      if (msg.role === "user" && i > 0 && !chatDone && !msg.content.includes("你撤回了一条消息")) {
+                        setShowRetractMenu({ type: 'chat', index: i });
+                      }
+                    }}
+                  >
                     {msg.role === "assistant" && !msg.content.trim() && chatLoading ? (
                       <AgentTypingIndicator />
                     ) : (
@@ -1594,7 +1638,15 @@ export default function CreateLifeAgentPage() {
                       className="h-8 w-8 shrink-0 rounded-full object-cover ring-2 ring-white shadow-sm"
                     />
                   ) : null}
-                  <div className={getChatBubbleClassName(msg.role)}>
+                  <div
+                    className={getChatBubbleClassName(msg.role)}
+                    onContextMenu={(e) => {
+                      e.preventDefault();
+                      if (msg.role === "user" && i > 0 && !sampleQuestionsDone && !msg.content.includes("你撤回了一条消息")) {
+                        setShowRetractMenu({ type: 'sample', index: i });
+                      }
+                    }}
+                  >
                     <p className="whitespace-pre-wrap">{msg.content}</p>
                   </div>
                   {msg.role === "user" ? (
@@ -1847,7 +1899,15 @@ export default function CreateLifeAgentPage() {
                       className="h-8 w-8 shrink-0 rounded-full object-cover ring-2 ring-white shadow-sm"
                     />
                   ) : null}
-                  <div className={getChatBubbleClassName(msg.role)}>
+                  <div
+                    className={getChatBubbleClassName(msg.role)}
+                    onContextMenu={(e) => {
+                      e.preventDefault();
+                      if (msg.role === "user" && i > 0 && !experienceDone && !msg.content.includes("你撤回了一条消息")) {
+                        setShowRetractMenu({ type: 'experience', index: i });
+                      }
+                    }}
+                  >
                     {msg.role === "assistant" && !msg.content.trim() && experienceLoading ? (
                       <AgentTypingIndicator />
                     ) : (
@@ -2534,6 +2594,60 @@ export default function CreateLifeAgentPage() {
                 className="flex-1 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-4 py-2.5 text-sm font-medium text-white shadow-lg shadow-purple-500/25 transition hover:from-violet-700 hover:to-fuchsia-700"
               >
                 {draftDrawerExpanded ? "收起" : "查看全部"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Retract context menu (WeChat style) */}
+      {showRetractMenu && (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 sm:items-center"
+          onClick={() => setShowRetractMenu(null)}
+        >
+          <div
+            className="w-full max-w-sm rounded-t-2xl bg-white p-4 shadow-xl sm:rounded-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-4 text-center text-sm font-semibold text-slate-900">撤回消息</div>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setShowRetractMenu(null)}
+                className="flex-1 rounded-xl bg-slate-100 px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-200"
+              >
+                取消
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const { type, index } = showRetractMenu;
+                  if (type === 'chat') {
+                    setChatHistory((prev: ChatMessage[]) => {
+                      const newHistory = [...prev];
+                      newHistory[index] = { ...newHistory[index], content: "你撤回了一条消息" };
+                      return newHistory;
+                    });
+                  } else if (type === 'experience') {
+                    setExperienceHistory((prev: ChatMessage[]) => {
+                      const newHistory = [...prev];
+                      newHistory[index] = { ...newHistory[index], content: "你撤回了一条消息" };
+                      return newHistory;
+                    });
+                  } else if (type === 'sample') {
+                    setSampleQuestionsHistory((prev: ChatMessage[]) => {
+                      const newHistory = [...prev];
+                      newHistory[index] = { ...newHistory[index], content: "你撤回了一条消息" };
+                      return newHistory;
+                    });
+                    setSampleQuestionsList((prev: string[]) => prev.slice(0, index));
+                  }
+                  setShowRetractMenu(null);
+                }}
+                className="flex-1 rounded-xl bg-red-500 px-4 py-3 text-sm font-medium text-white transition hover:bg-red-600"
+              >
+                撤回
               </button>
             </div>
           </div>

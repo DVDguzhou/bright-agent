@@ -73,6 +73,15 @@ func GenerateNextCreateQuestion(ctx context.Context, apiKey, model, baseURL stri
 		topicKey = *input.Topic
 	}
 	switch topicKey {
+	case "sample_questions":
+		topicSection = `用户正在补充「用户可能会问的问题」。用户输入一个问题后，你需要判断：
+1. 如果用户输入的是跳过意图（如"没有了"、"跳过"、"无"、"没有"、"pass"等），则输出 done=true
+2. 如果用户输入的是一个有效问题，则输出 done=false，表示继续收集
+
+【判断规则】
+- 用户说"没有了"、"跳过"、"无"、"没有"、"pass"等类似表达→done=true
+- 用户输入的是一个具体问题→done=false
+- 用户输入空内容或无关内容→done=false（前端会处理）`
 	case "personality":
 		topicSection = `用户选择了「性格兴趣」主题。请围绕性格、兴趣、沟通方式、价值观等方向提问，帮助 Agent 了解这个人的内在特点和外在表现。
 
@@ -308,6 +317,32 @@ func fallbackNextQuestion(input *CreateQuestionInput) *CreateQuestionOutput {
 	entries := len(input.KnowledgeEntries)
 	turns := len(input.ChatHistory)
 	topicKey := inferTopicFromHistory(input)
+
+	// Handle sample_questions topic
+	if topicKey == "sample_questions" {
+		lastUserMsg := ""
+		if len(input.ChatHistory) > 0 {
+			for i := len(input.ChatHistory) - 1; i >= 0; i-- {
+				if input.ChatHistory[i].Role == "user" {
+					lastUserMsg = strings.ToLower(strings.TrimSpace(input.ChatHistory[i].Content))
+					break
+				}
+			}
+		}
+		// Check for skip intent
+		if strings.Contains(lastUserMsg, "没有了") || strings.Contains(lastUserMsg, "跳过") ||
+			strings.Contains(lastUserMsg, "无") || strings.Contains(lastUserMsg, "没有") ||
+			strings.Contains(lastUserMsg, "pass") {
+			return &CreateQuestionOutput{
+				Done:           true,
+				SummaryMessage: "好的，问题收集完成。点击下方「下一步」继续设置 Agent 的回答风格即可～",
+			}
+		}
+		return &CreateQuestionOutput{
+			Done:         false,
+			NextQuestion: "还有其他问题吗？可以继续写，或者直接说'没有了'或'跳过'。",
+		}
+	}
 
 	// Handle topic-specific first question (turns<=2 because chatHistory includes initial prompt + topic selection)
 	if turns <= 2 {
