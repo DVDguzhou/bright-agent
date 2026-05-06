@@ -28,14 +28,23 @@ type CreateQuestionInput struct {
 
 // CreateQuestionOutput 生成结果：下一问、或完成信号，以及暗中提取的语气风格
 type CreateQuestionOutput struct {
-	Done              bool            `json:"done"`                        // 是否已收集足够信息
-	NextQuestion      string          `json:"nextQuestion,omitempty"`      // 下一个问题（done=false 时）
-	QuestionDimension string          `json:"questionDimension,omitempty"` // fact|decision|regret|adaptation|advice
-	SummaryMessage    string          `json:"summaryMessage,omitempty"`    // 完成时的收尾话（done=true 时）
-	KnowledgeAdd      []KEntry        `json:"knowledgeAdd,omitempty"`      // 本轮回答可提炼的知识条目（AI 可选返回）
-	ExtractedTone     *ToneHints      `json:"extractedTone,omitempty"`     // 从用户回复中学习的语气风格
-	SuggestedTags     []string        `json:"suggestedTags,omitempty"`     // 建议的擅长标签
-	FactCandidates    []FactCandidate `json:"factCandidates,omitempty"`    // 可升级为结构化事实的候选项
+	Done              bool              `json:"done"`                        // 是否已收集足够信息
+	NextQuestion      string            `json:"nextQuestion,omitempty"`      // 下一个问题（done=false 时）
+	QuestionDimension string            `json:"questionDimension,omitempty"` // fact|decision|regret|adaptation|advice
+	SummaryMessage    string            `json:"summaryMessage,omitempty"`    // 完成时的收尾话（done=true 时）
+	KnowledgeAdd      []KEntry          `json:"knowledgeAdd,omitempty"`      // 本轮回答可提炼的知识条目（AI 可选返回）
+	ExtractedTone     *ToneHints        `json:"extractedTone,omitempty"`     // 从用户回复中学习的语气风格
+	SuggestedTags     []string          `json:"suggestedTags,omitempty"`     // 建议的擅长标签
+	FactCandidates    []FactCandidate   `json:"factCandidates,omitempty"`    // 可升级为结构化事实的候选项
+	ReferenceQuote    string            `json:"referenceQuote,omitempty"`    // nextQuestion 引用的用户原话片段（2-12 字），用于联调与可视化
+	AnswerHighlights  []AnswerHighlight `json:"answerHighlights,omitempty"`  // 从用户最近一次回答中提取的关键点
+}
+
+// AnswerHighlight 表达「AI 听到了什么」，用于驱动下一问 + 在记忆库中可视化。
+type AnswerHighlight struct {
+	Text   string `json:"text"`             // 用户原话中的关键词/短语，2-20 字
+	Kind   string `json:"kind"`             // entity | event | emotion | decision | habit | place | time | other
+	Reason string `json:"reason,omitempty"` // AI 选择追问这一点的理由（一句话）
 }
 
 type KEntry struct {
@@ -151,8 +160,12 @@ func GenerateNextCreateQuestion(ctx context.Context, apiKey, model, baseURL stri
 【输出格式】必须严格输出一个 JSON 对象，不要 markdown 代码块、不要额外说明：
 {
   "done": false,
-  "nextQuestion": "下一个问题，自然口语化，一次只问一个方向",
+  "nextQuestion": "下一个问题。自然口语化、一次只问一个方向，且必须以用户上一句回答里的具体词或事件作为锚点（用「」括起来重复一次）。例如：你刚才提到「凌晨三点改 PPT」，那一晚你脑子里在想什么？",
   "questionDimension": "本次追问所属维度的简短英文标识",
+  "referenceQuote": "用户上一句里被你引用的那个 2-12 字短语原文",
+  "answerHighlights": [
+    { "text": "用户原话里的关键词或短语，2-20 字，必须能在最近一条用户消息里精确匹配到", "kind": "entity|event|emotion|decision|habit|place|time|other", "reason": "为什么这个点值得追问，一句话" }
+  ],
   "extractedTone": {
     "personaArchetype": "基于用户实际表现描述，如：说话直来直去带点自嘲的过来人、温和但有主见的学姐、嘴贫但干货多的技术人",
     "toneStyle": "基于用户实际用词描述，如：句子偏短，爱用省略号，偶尔用哈哈，不用emoji，语气比较随意口语化",
@@ -167,20 +180,23 @@ func GenerateNextCreateQuestion(ctx context.Context, apiKey, model, baseURL stri
 {
   "done": true,
   "summaryMessage": "很好！你的信息已经记录下来，AI 会基于这些内容来回答来访者。点击下方「下一步」继续设置 Agent 的回答风格即可～",
+  "answerHighlights": [ ... ],
   "extractedTone": { ... },
   "suggestedTags": [ ... ]
 }
 
 【规则】
 - 每次只问一个问题，不要一次问多个。
-- **追问必须严格基于用户上一轮的具体回答内容来生成**。不要问"还能补充一些具体的经历吗？"、"还有什么想补充的吗？"这类通用问题。
+- **追问必须以用户最近一次回答里的具体词或事件为锚点**，并在 nextQuestion 里把这个锚点用「」括起来复述一次，让用户能直接看出你在回应他刚才说的那句话。referenceQuote 必须就是这段被引用的原话片段。
+- 严禁出现"还能补充一些具体的经历吗？""还有什么想补充的吗？""能再具体一点吗？"这类没有锚点的通用问句。
+- answerHighlights 至少给出 1 条、最多 4 条，必须从最近一条 user 消息里逐字摘出短语（不要改写、不要总结成抽象概念），用来证明你听到了什么。如果用户只回了「无 / 暂无 / 没有 / 跳过」，answerHighlights 留空即可。
 - 必须从用户的回答中提取具体的人、事、物、场景、时间、地点等细节，然后针对这些细节追问。
-- 例如：用户说"我每天和女朋友打电话"→你应该追问"一般什么时候打电话？聊些什么话题？这对你意味着什么？"，而不是跳到另一个无关维度问"你理想中的一天是什么样的"。
-- 例如：用户说"我早上7点起床，先喝咖啡"→你应该追问"喝咖啡是固定习惯吗？一般喝什么类型的咖啡？喝完之后会做什么？"，而不是问"还有什么想补充的吗？"。
+- 例如：用户说"我每天和女朋友打电话"→nextQuestion 应类似"你说每天「和女朋友打电话」，一般是什么时间、聊些什么？"；referenceQuote="和女朋友打电话"。
+- 例如：用户说"我早上7点起床，先喝咖啡"→nextQuestion 应类似"你提到「先喝咖啡」，是固定习惯吗？平时喝哪种？"；referenceQuote="先喝咖啡"。
 - 用户提到的具体人/事/物/场景，都要追问细节（时间、方式、原因、感受、和谁一起、频率、变化等）。
 - 只有当一个维度已经追问出足够细节（至少2-3轮有意义的细节回答），才可以自然地转到下一个相关维度。
-- 不要反复在同一个维度上追问。如果连续两轮都在问同一个维度且用户没给出新信息，下一轮应该转到下一个维度。
-- 用户回答「暂无」「无」「没有」等时，可适当换个维度或方向问，或若已有足够信息则结束。
+- 不要反复在同一个维度上追问。如果连续两轮都在问同一个维度且用户没给出新信息，下一轮应该转到下一个维度，但仍然要从用户上一句里挑一个新锚点。
+- 用户回答「暂无」「无」「没有」等时，可适当换个维度或方向问，或若已有足够信息则结束；此时可以不带锚点，但要明确说"那我们换个方向"。
 - extractedTone 不要选枚举值，要基于用户实际回复的用词、句式、长度、语气词来具体描述。例如：用户爱用"反正""其实""说白了"这类词→写到 toneStyle 里；用户回答很长很细→写到 responseStyle 里。每轮都更新，越来越准。
 - suggestedTags 最多 8 个，基于用户分享的内容提炼。
 - knowledgeAdd 可选：若用户某段回复可直接作为一条「知识条目」存储（有明确 category/title/content），可填；否则留空数组。
@@ -206,6 +222,11 @@ func GenerateNextCreateQuestion(ctx context.Context, apiKey, model, baseURL stri
 	if input.Topic != nil {
 		topicText = fmt.Sprintf("\n\n【用户选择的主题方向】\n%s", *input.Topic)
 	}
+	lastUserAnswer := lastUserMessage(input.ChatHistory)
+	lastUserSection := "（暂无）"
+	if strings.TrimSpace(lastUserAnswer) != "" {
+		lastUserSection = lastUserAnswer
+	}
 	userContent := fmt.Sprintf(`【创建者基本信息】
 - 名称：%s
 - 一句话：%s
@@ -217,13 +238,17 @@ func GenerateNextCreateQuestion(ctx context.Context, apiKey, model, baseURL stri
 【对话历史】
 %s
 
-请根据以上内容，生成下一个问题或判断是否结束。只输出 JSON。`,
+【⚠️ 用户最近一次回答（你必须以这段话里的具体词为锚点来生成 nextQuestion 和 answerHighlights）】
+%s
+
+请根据以上内容，生成下一个问题或判断是否结束。answerHighlights 中的 text 字段必须是上面这段「用户最近一次回答」里能逐字找到的短语。只输出 JSON。`,
 		basic.DisplayName,
 		basic.Headline,
 		truncate(basic.ShortBio, 200),
 		topicText,
 		entriesText.String(),
 		historyText.String(),
+		lastUserSection,
 	)
 
 	ctx, cancel := withLLMTimeout(ctx)
@@ -263,8 +288,67 @@ func GenerateNextCreateQuestion(ctx context.Context, apiKey, model, baseURL stri
 	if len(out.FactCandidates) == 0 {
 		out.FactCandidates = BuildStructuredFactsFromCreateQuestionOutput(&out)
 	}
+	out.AnswerHighlights = sanitizeAnswerHighlights(out.AnswerHighlights, lastUserAnswer)
+	out.ReferenceQuote = strings.TrimSpace(out.ReferenceQuote)
 
 	return &out, nil
+}
+
+// lastUserMessage 返回对话历史里最近一条用户消息原文。
+func lastUserMessage(history []ChatMessageForAI) string {
+	for i := len(history) - 1; i >= 0; i-- {
+		if history[i].Role == "user" {
+			return strings.TrimSpace(history[i].Content)
+		}
+	}
+	return ""
+}
+
+// sanitizeAnswerHighlights 过滤掉无法在最近用户回答里精确匹配到的 highlight，并归一化 kind。
+// 这样可以保证前端拿到的 highlight 一定是用户原话片段，避免 LLM 编造抽象总结。
+func sanitizeAnswerHighlights(items []AnswerHighlight, lastAnswer string) []AnswerHighlight {
+	if len(items) == 0 {
+		return nil
+	}
+	corpus := strings.TrimSpace(lastAnswer)
+	out := make([]AnswerHighlight, 0, len(items))
+	seen := map[string]bool{}
+	allowedKinds := map[string]bool{
+		"entity": true, "event": true, "emotion": true, "decision": true,
+		"habit": true, "place": true, "time": true, "other": true,
+	}
+	for _, h := range items {
+		text := strings.TrimSpace(h.Text)
+		if text == "" {
+			continue
+		}
+		runes := []rune(text)
+		if len(runes) < 2 {
+			continue
+		}
+		if len(runes) > 30 {
+			text = string(runes[:30])
+		}
+		// 必须能在最近用户消息里匹配到原文（去除空格后再比对一次以防 LLM 误加空格）
+		if corpus != "" {
+			if !strings.Contains(corpus, text) && !strings.Contains(strings.ReplaceAll(corpus, " ", ""), strings.ReplaceAll(text, " ", "")) {
+				continue
+			}
+		}
+		if seen[text] {
+			continue
+		}
+		seen[text] = true
+		kind := strings.ToLower(strings.TrimSpace(h.Kind))
+		if !allowedKinds[kind] {
+			kind = "other"
+		}
+		out = append(out, AnswerHighlight{Text: text, Kind: kind, Reason: strings.TrimSpace(h.Reason)})
+		if len(out) >= 4 {
+			break
+		}
+	}
+	return out
 }
 
 func truncate(s string, max int) string {
@@ -323,22 +407,15 @@ func fallbackNextQuestion(input *CreateQuestionInput) *CreateQuestionOutput {
 	entries := len(input.KnowledgeEntries)
 	turns := len(input.ChatHistory)
 	topicKey := inferTopicFromHistory(input)
+	lastUserAnswer := lastUserMessage(input.ChatHistory)
+	lastUserLower := strings.ToLower(lastUserAnswer)
 
 	// Handle sample_questions topic
 	if topicKey == "sample_questions" {
-		lastUserMsg := ""
-		if len(input.ChatHistory) > 0 {
-			for i := len(input.ChatHistory) - 1; i >= 0; i-- {
-				if input.ChatHistory[i].Role == "user" {
-					lastUserMsg = strings.ToLower(strings.TrimSpace(input.ChatHistory[i].Content))
-					break
-				}
-			}
-		}
 		// Check for skip intent
-		if strings.Contains(lastUserMsg, "没有了") || strings.Contains(lastUserMsg, "跳过") ||
-			strings.Contains(lastUserMsg, "无") || strings.Contains(lastUserMsg, "没有") ||
-			strings.Contains(lastUserMsg, "pass") {
+		if strings.Contains(lastUserLower, "没有了") || strings.Contains(lastUserLower, "跳过") ||
+			strings.Contains(lastUserLower, "无") || strings.Contains(lastUserLower, "没有") ||
+			strings.Contains(lastUserLower, "pass") {
 			return &CreateQuestionOutput{
 				Done:           true,
 				SummaryMessage: "好的，问题收集完成。点击下方「下一步」继续设置 Agent 的回答风格即可～",
@@ -348,6 +425,30 @@ func fallbackNextQuestion(input *CreateQuestionInput) *CreateQuestionOutput {
 			Done:         false,
 			NextQuestion: "还有其他问题吗？可以继续写，或者直接说'没有了'或'跳过'。",
 		}
+	}
+
+	// 基于最近一次用户回答，挑一个锚点短语；找不到时退化到模板。
+	anchor := pickAnchorPhrase(lastUserAnswer)
+	if anchor != "" {
+		out := &CreateQuestionOutput{
+			Done:              false,
+			NextQuestion:      buildAnchoredQuestion(anchor, topicKey, turns),
+			QuestionDimension: "follow_up",
+			ReferenceQuote:    anchor,
+			AnswerHighlights: []AnswerHighlight{{
+				Text:   anchor,
+				Kind:   guessAnchorKind(anchor),
+				Reason: "围绕用户刚才提到的具体内容继续追问",
+			}},
+		}
+		// 收尾条件依然成立时让 LLM-fallback 也能结束。
+		if entries >= 3 && turns >= 8 {
+			out.Done = true
+			out.NextQuestion = ""
+			out.SummaryMessage = "你已经分享了不少具体的细节，AI 可以基于这些来回答来访者了。点击下方「下一步」继续设置 Agent 的回答风格即可～"
+		}
+		out.FactCandidates = BuildStructuredFactsFromCreateQuestionOutput(out)
+		return out
 	}
 
 	// Handle topic-specific first question (turns<=2 because chatHistory includes initial prompt + topic selection)
@@ -440,6 +541,122 @@ func fallbackNextQuestion(input *CreateQuestionInput) *CreateQuestionOutput {
 	out := &CreateQuestionOutput{Done: false, NextQuestion: q.question, QuestionDimension: q.dimension}
 	out.FactCandidates = BuildStructuredFactsFromCreateQuestionOutput(out)
 	return out
+}
+
+// ── Anchor extraction for fallback (no-LLM) follow-up ──
+//
+// 基于用户最近一句回答，挑一个 2-12 字短语作为追问锚点，让 fallback 也不再问"还有什么想补充的吗？"。
+
+var (
+	// 中文词或较长英文词，作为"短语"切分依据；标点/空格视为分隔符。
+	anchorChunkRe = regexp.MustCompile(`[\p{Han}A-Za-z0-9]{2,}`)
+	// 时间相关：用于猜 kind=time
+	anchorTimeRe = regexp.MustCompile(`^(凌晨|早上|上午|中午|下午|傍晚|晚上|半夜|周一|周二|周三|周四|周五|周六|周日|周末|每天|每周|每月|今天|昨天|去年|前年|大学|高中|初中|本科|研究生|大一|大二|大三|大四)$|^[0-9]{1,4}年$|^[0-9]{1,2}(点|月|日|号|岁)$`)
+	// 地点相关：用于猜 kind=place
+	anchorPlaceRe = regexp.MustCompile(`(市|省|县|区|镇|村|大学|学校|公司|宿舍|办公室|国|州|城)$`)
+	// 跳过类
+	skipAnchorRe = regexp.MustCompile(`^(无|暂无|没有|没有了|跳过|pass|skip|不知道|不清楚|没什么|不太清楚)$`)
+)
+
+// pickAnchorPhrase 从最近一句用户回答中挑一个有信息量的短语（去停用词、按长度排序）。
+func pickAnchorPhrase(answer string) string {
+	answer = strings.TrimSpace(answer)
+	if answer == "" {
+		return ""
+	}
+	if skipAnchorRe.MatchString(strings.ToLower(answer)) {
+		return ""
+	}
+	stop := map[string]bool{
+		"我": true, "你": true, "他": true, "她": true, "它": true, "我们": true,
+		"什么": true, "怎么": true, "这个": true, "那个": true, "这样": true, "那样": true,
+		"觉得": true, "应该": true, "可能": true, "比较": true, "有点": true, "其实": true,
+		"就是": true, "然后": true, "所以": true, "如果": true, "因为": true, "但是": true,
+		"the": true, "and": true, "for": true, "with": true, "that": true, "this": true,
+	}
+	chunks := anchorChunkRe.FindAllString(answer, -1)
+	type cand struct {
+		text  string
+		score int
+	}
+	cands := make([]cand, 0, len(chunks))
+	seen := map[string]bool{}
+	for _, ch := range chunks {
+		runes := []rune(ch)
+		if len(runes) < 2 || len(runes) > 12 {
+			continue
+		}
+		lc := strings.ToLower(ch)
+		if stop[lc] || seen[lc] {
+			continue
+		}
+		seen[lc] = true
+		score := len(runes)
+		// 含数字（年龄/时间/数额）通常是有价值的事实
+		for _, r := range runes {
+			if r >= '0' && r <= '9' {
+				score += 2
+				break
+			}
+		}
+		cands = append(cands, cand{text: ch, score: score})
+	}
+	if len(cands) == 0 {
+		// 直接截一段原文兜底
+		runes := []rune(answer)
+		if len(runes) <= 12 {
+			return answer
+		}
+		return string(runes[:12])
+	}
+	best := cands[0]
+	for _, c := range cands[1:] {
+		if c.score > best.score {
+			best = c
+		}
+	}
+	return best.text
+}
+
+func guessAnchorKind(anchor string) string {
+	switch {
+	case anchorTimeRe.MatchString(anchor):
+		return "time"
+	case anchorPlaceRe.MatchString(anchor):
+		return "place"
+	default:
+		return "entity"
+	}
+}
+
+// buildAnchoredQuestion 围绕锚点生成一句口语化追问，按 topic + turns 在多模板间轮转。
+func buildAnchoredQuestion(anchor, topic string, turns int) string {
+	templates := map[string][]string{
+		"experience": {
+			"你刚才提到「%s」，能详细说说当时是什么情况吗？",
+			"你说的「%s」，背后有什么具体的故事？最后是怎么处理的？",
+			"关于「%s」，当时你是怎么决定的？现在回头看会有不一样的选择吗？",
+			"「%s」这件事对你产生了什么影响？现在还会想起吗？",
+		},
+		"personality": {
+			"你刚提到「%s」，能举个具体场景说说你怎么表现出这一点吗？",
+			"「%s」这一点，身边的人通常会怎么评价你？",
+			"你说的「%s」，是从什么时候开始变成你比较明显的特点的？",
+			"在「%s」这一点上，你跟别人最大的不一样是什么？",
+		},
+		"daily": {
+			"你说「%s」，是每天都这样吗？一般和谁、在什么场景下进行？",
+			"关于「%s」，你最享受/最在意它的哪一点？",
+			"「%s」这件事你坚持多久了？有没有什么固定的方式或仪式感？",
+			"如果哪天没法「%s」，你会有什么感觉？",
+		},
+	}
+	pool, ok := templates[topic]
+	if !ok || len(pool) == 0 {
+		pool = templates["experience"]
+	}
+	tmpl := pool[turns%len(pool)]
+	return fmt.Sprintf(tmpl, anchor)
 }
 
 // ── Feedback-Driven Follow-up Questions ──

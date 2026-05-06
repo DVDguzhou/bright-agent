@@ -811,13 +811,15 @@ func LifeAgentsCreateNextQuestion(cfg *config.Config) gin.HandlerFunc {
 			return
 		}
 		resp := gin.H{
-			"done":           out.Done,
-			"nextQuestion":   out.NextQuestion,
-			"summaryMessage": out.SummaryMessage,
-			"extractedTone":  out.ExtractedTone,
-			"suggestedTags":  out.SuggestedTags,
-			"knowledgeAdd":   out.KnowledgeAdd,
-			"factCandidates": out.FactCandidates,
+			"done":             out.Done,
+			"nextQuestion":     out.NextQuestion,
+			"summaryMessage":   out.SummaryMessage,
+			"extractedTone":    out.ExtractedTone,
+			"suggestedTags":    out.SuggestedTags,
+			"knowledgeAdd":     out.KnowledgeAdd,
+			"factCandidates":   out.FactCandidates,
+			"referenceQuote":   out.ReferenceQuote,
+			"answerHighlights": out.AnswerHighlights,
 		}
 		if wantsEventStream(c) {
 			streamText := strings.TrimSpace(out.NextQuestion)
