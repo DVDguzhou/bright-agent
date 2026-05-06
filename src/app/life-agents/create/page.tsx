@@ -1678,19 +1678,20 @@ export default function CreateLifeAgentPage() {
                       key={cat.label}
                       type="button"
                       onClick={() => {
-                        setForm((prev) => {
-                          const tags = prev.expertiseTags
-                            .split(/[,，\n]/)
-                            .map((s) => s.trim())
-                            .filter(Boolean);
-                          const isSelected = tags.includes(cat.label);
-                          if (isSelected) {
-                            return { ...prev, expertiseTags: tags.filter((t) => t !== cat.label).join("、") };
-                          } else if (tags.length < 5) {
-                            return { ...prev, expertiseTags: tags.length > 0 ? `${tags.join("、")}、${cat.label}` : cat.label };
-                          }
-                          return prev;
-                        });
+                        const currentTags = form.expertiseTags
+                          .split(/[,，\n]/)
+                          .map((s) => s.trim())
+                          .filter(Boolean);
+                        const isSelected = currentTags.includes(cat.label);
+                        let newTags: string[];
+                        if (isSelected) {
+                          newTags = currentTags.filter((t) => t !== cat.label);
+                        } else if (currentTags.length < 5) {
+                          newTags = [...currentTags, cat.label];
+                        } else {
+                          return;
+                        }
+                        setForm((prev) => ({ ...prev, expertiseTags: newTags.join("、") }));
                       }}
                       className={`flex items-center gap-2.5 rounded-xl border px-4 py-3 text-left text-sm transition-all ${
                         selected
