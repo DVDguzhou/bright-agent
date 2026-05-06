@@ -1684,11 +1684,17 @@ export default function CreateLifeAgentPage() {
                             .map((s) => s.trim())
                             .filter(Boolean);
                           const isSelected = tags.includes(cat.label);
+                          console.log("Click tag:", cat.label, "isSelected:", isSelected, "currentTags:", tags, "tags.length:", tags.length);
                           if (isSelected) {
-                            return { ...prev, expertiseTags: tags.filter((t) => t !== cat.label).join(", ") };
+                            const newTags = tags.filter((t) => t !== cat.label);
+                            console.log("Removing tag, newTags:", newTags);
+                            return { ...prev, expertiseTags: newTags.join(", ") };
                           } else if (tags.length < 5) {
-                            return { ...prev, expertiseTags: tags.length > 0 ? `${tags.join(", ")}, ${cat.label}` : cat.label };
+                            const newTags = [...tags, cat.label];
+                            console.log("Adding tag, newTags:", newTags);
+                            return { ...prev, expertiseTags: newTags.join(", ") };
                           }
+                          console.log("Max tags reached, not adding");
                           return prev;
                         });
                       }}
