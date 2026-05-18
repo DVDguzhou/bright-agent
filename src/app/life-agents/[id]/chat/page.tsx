@@ -247,15 +247,25 @@ export default function LifeAgentChatPage() {
     };
   }, [menuOpen]);
 
+  // 是否桌面（lg 断点 ≥1024px）。响应式跟踪，控制是否使用 visualViewport 内联高度。
+  const [isDesktop, setIsDesktop] = useState(false);
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const isDesktop = window.matchMedia("(min-width: 1024px)").matches;
+    const mql = window.matchMedia("(min-width: 1024px)");
+    const apply = () => setIsDesktop(mql.matches);
+    apply();
+    mql.addEventListener("change", apply);
+    return () => mql.removeEventListener("change", apply);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
     if (!isDesktop) {
       const prev = document.body.style.overflow;
       document.body.style.overflow = "hidden";
       return () => { document.body.style.overflow = prev; };
     }
-  }, []);
+  }, [isDesktop]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -547,9 +557,15 @@ export default function LifeAgentChatPage() {
     <div
       className={`flex min-h-0 flex-col lg:-mx-4 lg:-mt-3 lg:-mb-8 lg:min-h-[calc(100dvh-5rem)] max-lg:fixed max-lg:inset-x-0 max-lg:top-0 max-lg:z-[35] max-lg:overflow-hidden ${CHAT_PAGE_BACKGROUND_CLASSNAME}`}
       style={
-        viewportBox
-          ? { height: `${viewportBox.height}px`, top: `${viewportBox.offsetTop}px` }
-          : { height: "100dvh" }
+        // 桌面端不使用 visualViewport 内联高度：根容器在文档流中、上方还有 navbar，
+        // 强行 height=window.innerHeight 会把输入框挤到视口外（用户报告 PC 看不到输入框）。
+        // 桌面端交给 Tailwind 的 lg:min-h-[calc(100dvh-5rem)] 控制。
+        // 移动端必须保留，用以处理 iOS 虚拟键盘弹起时的 visualViewport 变化。
+        isDesktop
+          ? undefined
+          : viewportBox
+            ? { height: `${viewportBox.height}px`, top: `${viewportBox.offsetTop}px` }
+            : { height: "100dvh" }
       }
     >
       <AnimatePresence>

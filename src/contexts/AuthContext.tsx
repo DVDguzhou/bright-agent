@@ -16,22 +16,29 @@ type User = {
   roleFlags?: { is_buyer?: boolean; is_seller?: boolean } | null;
 };
 
-const AuthContext = createContext<{ user: User | null; loading: boolean; refetch: () => void }>({
+const AuthContext = createContext<{ user: User | null; loading: boolean; refetch: () => Promise<User | null> }>({
   user: null,
   loading: true,
-  refetch: () => {},
+  refetch: async () => null,
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchUser = () => {
-    fetch("/api/auth/me", { credentials: "include" })
-      .then((r) => (r.ok ? r.json() : null))
-      .then(setUser)
-      .catch(() => setUser(null))
-      .finally(() => setLoading(false));
+  // 返回 Promise，调用方 await 后再跳转才能确保 user 已更新，避免登录后落地页出现「请先登录」闪烁。
+  const fetchUser = async (): Promise<User | null> => {
+    try {
+      const res = await fetch("/api/auth/me", { credentials: "include" });
+      const data: User | null = res.ok ? await res.json() : null;
+      setUser(data);
+      return data;
+    } catch {
+      setUser(null);
+      return null;
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
