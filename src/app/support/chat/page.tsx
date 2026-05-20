@@ -19,7 +19,9 @@ const SUPPORT_TOPICS = [
 ] as const;
 
 const pageShellClass =
-  "mx-auto flex min-h-[50vh] w-full max-w-2xl flex-col max-lg:-mx-4 max-lg:min-h-[calc(100dvh-env(safe-area-inset-bottom)-4.25rem)] max-lg:pb-24 lg:min-h-[60vh]";
+  "relative left-1/2 flex min-h-[calc(100dvh-env(safe-area-inset-bottom)-4.25rem)] w-screen max-w-none -translate-x-1/2 flex-col pb-24 lg:min-h-[calc(100dvh-6rem)] lg:pb-8";
+const contentClass = "mx-auto w-full max-w-2xl";
+const cardClass = "rounded-2xl bg-[#FEFEF6] shadow-sm ring-1 ring-black/[0.08]";
 
 export default function SupportChatPage() {
   const router = useRouter();
@@ -57,10 +59,10 @@ export default function SupportChatPage() {
 
   return (
     <div className={pageShellClass} style={{ backgroundColor: SUPPORT_PAGE_BG }}>
-      <header className="flex items-center gap-3 px-4 pb-4 pt-[max(0.25rem,env(safe-area-inset-top))] sm:px-0">
+      <header className={`${contentClass} flex items-center gap-3 px-4 pb-4 pt-[max(0.25rem,env(safe-area-inset-top))]`}>
         <Link
           href="/map"
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/90 text-[#111] shadow-sm ring-1 ring-black/[0.06] transition active:bg-white"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#FEFEF6] text-[#111] shadow-sm ring-1 ring-black/[0.08] transition active:bg-[#f7f7ec]"
           aria-label="返回地图"
           title="返回"
         >
@@ -71,8 +73,8 @@ export default function SupportChatPage() {
         <h1 className="flex-1 text-[26px] font-bold leading-tight tracking-tight text-[#111]">联系客服</h1>
       </header>
 
-      <div className="flex flex-1 flex-col gap-4 px-4 pb-8 sm:px-0">
-        <section className="rounded-2xl bg-white px-5 py-5 shadow-sm ring-1 ring-black/[0.06]">
+      <div className={`${contentClass} flex flex-1 flex-col gap-4 px-4`}>
+        <section className={`${cardClass} px-5 py-5`}>
           <p className="text-[15px] font-semibold text-[#111]">邮件联系 BrightAgent</p>
           <p className="mt-2 text-sm leading-relaxed text-slate-600">
             {OFFICIAL_CONTACT.description}。请发邮件说明你的账号、订单或认证问题，我们会尽快回复。
@@ -93,14 +95,14 @@ export default function SupportChatPage() {
             <button
               type="button"
               onClick={() => void copyEmail()}
-              className="inline-flex w-full items-center justify-center rounded-full border border-slate-200 bg-[#FEFEF6] px-6 py-3 text-sm font-semibold text-[#111] active:bg-white"
+              className="inline-flex w-full items-center justify-center rounded-full border border-black/[0.08] bg-[#FEFEF6] px-6 py-3 text-sm font-semibold text-[#111] active:bg-[#f7f7ec]"
             >
               {copied ? "已复制邮箱" : "复制邮箱地址"}
             </button>
           </div>
         </section>
 
-        <section className="rounded-2xl bg-white/80 px-4 py-4 ring-1 ring-black/[0.05]">
+        <section className={`${cardClass} px-4 py-4`}>
           <h2 className="text-sm font-semibold text-[#111]">写信时请尽量包含</h2>
           <ul className="mt-3 space-y-2 text-sm leading-relaxed text-slate-600">
             <li>· 注册邮箱或手机号</li>
@@ -114,7 +116,7 @@ export default function SupportChatPage() {
           {SUPPORT_TOPICS.map((item) => (
             <div
               key={item.title}
-              className="rounded-xl bg-white/90 px-4 py-3 ring-1 ring-black/[0.05]"
+              className="rounded-xl bg-[#FEFEF6] px-4 py-3 ring-1 ring-black/[0.06]"
             >
               <p className="text-[15px] font-medium text-[#111]">{item.title}</p>
               <p className="mt-1 text-sm text-slate-500">{item.desc}</p>
