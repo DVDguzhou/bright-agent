@@ -136,11 +136,18 @@ export default function AccountPage() {
         </form>
       )}
 
-      <p className="mt-8 text-slate-500 text-sm">
-        <Link href="/dashboard" className="text-sky-700 hover:text-sky-600">
-          返回工作台
-        </Link>
-      </p>
+      <div className="mt-8 space-y-2 text-sm text-slate-500">
+        <p>
+          <Link href="/privacy" className="text-sky-700 hover:text-sky-600">
+            隐私政策
+          </Link>
+        </p>
+        <p>
+          <Link href="/dashboard" className="text-sky-700 hover:text-sky-600">
+            返回工作台
+          </Link>
+        </p>
+      </div>
     </motion.div>
   );
 }

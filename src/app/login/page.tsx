@@ -490,6 +490,11 @@ function LoginContent() {
           注册
         </Link>
       </p>
+      <p className="mt-4 text-center text-slate-500 text-xs">
+        <Link href="/privacy" className="text-sky-700 hover:text-sky-600 underline-offset-2 hover:underline">
+          隐私政策
+        </Link>
+      </p>
     </motion.div>
   );
 }

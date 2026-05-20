@@ -230,7 +230,13 @@ export default function SignupPage() {
           {loading ? "注册中..." : "注册"}
         </motion.button>
       </form>
-      <p className="mt-6 text-slate-500 text-sm">
+      <p className="mt-6 text-center text-slate-500 text-xs leading-relaxed">
+        注册即表示您同意{" "}
+        <Link href="/privacy" className="text-sky-700 hover:text-sky-600 underline-offset-2 hover:underline">
+          《隐私政策》
+        </Link>
+      </p>
+      <p className="mt-4 text-slate-500 text-sm">
         已有账号？{" "}
         <Link href="/login" className="text-sky-700 hover:text-sky-600 transition-colors">
           登录
