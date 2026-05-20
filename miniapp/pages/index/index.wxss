@@ -1,0 +1,82 @@
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24rpx;
+}
+
+.brand {
+  font-size: 40rpx;
+  font-weight: 700;
+}
+
+.top-actions {
+  display: flex;
+  gap: 24rpx;
+}
+
+.link {
+  color: #111;
+  font-size: 28rpx;
+}
+
+.agent-card {
+  display: flex;
+  gap: 24rpx;
+  padding: 24rpx;
+}
+
+.cover {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 16rpx;
+  flex-shrink: 0;
+  background: #eee7db;
+}
+
+.agent-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.name-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.name {
+  font-size: 32rpx;
+  font-weight: 600;
+}
+
+.badge {
+  font-size: 20rpx;
+  color: #2d6a4f;
+  border: 1rpx solid #2d6a4f;
+  border-radius: 8rpx;
+  padding: 2rpx 8rpx;
+}
+
+.headline {
+  display: block;
+  margin-top: 8rpx;
+  color: #444;
+  font-size: 26rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meta {
+  margin-top: 8rpx;
+  color: #888;
+  font-size: 24rpx;
+}
+
+.price {
+  display: block;
+  margin-top: 12rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+}

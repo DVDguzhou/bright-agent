@@ -36,6 +36,7 @@
 | [阿里云部署步步指南.md](./阿里云部署步步指南.md) | 阿里云部署步骤 |
 | [DNS方式申请SSL证书步骤.md](./DNS方式申请SSL证书步骤.md) | SSL 证书申请流程 |
 | [MOBILE_APP.md](./MOBILE_APP.md) | 移动端打包与运行 |
+| [MINIAPP.md](./MINIAPP.md) | 微信小程序 Phase 1 开发与发布 |
 
 ## 产品与业务
 

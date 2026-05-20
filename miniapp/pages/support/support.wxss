@@ -1,0 +1,48 @@
+.title {
+  display: block;
+  font-size: 34rpx;
+  font-weight: 700;
+}
+
+.email {
+  display: block;
+  margin: 24rpx 0;
+  font-size: 30rpx;
+  font-weight: 600;
+  word-break: break-all;
+}
+
+.actions {
+  display: flex;
+  gap: 16rpx;
+}
+
+.actions button {
+  flex: 1;
+}
+
+.section-title {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 16rpx;
+}
+
+.topic {
+  margin-bottom: 20rpx;
+}
+
+.topic-title {
+  display: block;
+  font-weight: 600;
+}
+
+.link-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.arrow {
+  color: #999;
+  font-size: 36rpx;
+}

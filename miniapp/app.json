@@ -1,0 +1,20 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/login/login",
+    "pages/agent-detail/agent-detail",
+    "pages/chat/chat",
+    "pages/mine/mine",
+    "pages/support/support",
+    "pages/privacy/privacy"
+  ],
+  "window": {
+    "navigationBarBackgroundColor": "#f4efe6",
+    "navigationBarTitleText": "BrightAgent",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#f4efe6",
+    "backgroundTextStyle": "dark"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

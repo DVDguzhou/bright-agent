@@ -47,6 +47,10 @@ func wantsEventStream(c *gin.Context) bool {
 	return strings.Contains(strings.ToLower(c.GetHeader("Accept")), "text/event-stream")
 }
 
+func isMiniAppClient(c *gin.Context) bool {
+	return strings.EqualFold(strings.TrimSpace(c.GetHeader("X-BrightAgent-Client")), "miniapp")
+}
+
 func writeSSE(c *gin.Context, eventType string, payload interface{}) {
 	data, _ := json.Marshal(payload)
 	fmt.Fprintf(c.Writer, "event: %s\ndata: %s\n\n", eventType, data)
@@ -2277,57 +2281,75 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 			ExampleReplies:   []string(p.ExampleReplies),
 			NotSuitableFor:   ptrStr(p.NotSuitableFor),
 		}
-		// --- SSE streaming ---
-		c.Header("Content-Type", "text/event-stream")
-		c.Header("Cache-Control", "no-cache")
-		c.Header("Connection", "keep-alive")
-		c.Header("X-Accel-Buffering", "no")
-		c.Status(http.StatusOK)
-		c.Writer.Flush()
-
-		writeSSE := func(eventType string, payload interface{}) {
-			data, _ := json.Marshal(payload)
-			fmt.Fprintf(c.Writer, "event: %s\ndata: %s\n\n", eventType, data)
-			c.Writer.Flush()
-		}
-
 		log.Printf("[chat-timing] DB+prep done in %dms", time.Since(chatStartTime).Milliseconds())
+
+		chatOpts := &lifeagent.ChatOptions{
+			SessionSummary:       sessionSummary,
+			CrossSessionMemory:   crossMemory,
+			LiveUpdates:          liveUpdatesForAI,
+			RecentlyUsedEntryIDs: recentlyUsedEntryIDs,
+			FeedbackSignals:      feedbackSignals,
+			WorkingState:         ws,
+			Embedder:             embedder,
+			Episodes:             episodes,
+			TurnIndex:            userTurns,
+		}
 
 		var content string
 		var refs []map[string]string
 		if reply, replyRefs, ok := lifeagent.ResolveGroundedFactReply(profileForAI, factsForAI, body.Message); ok {
 			content = reply
 			refs = replyRefs
-			lifeagent.EmitReplyChunks(content, func(chunk string) {
-				writeSSE("content", gin.H{"content": chunk})
-			})
 		} else if lifeagent.ClassifyQuestionIntent(body.Message) {
 			content = lifeagent.BuildIdentityReply(profileForAI)
-			lifeagent.EmitReplyChunks(content, func(chunk string) {
-				writeSSE("content", gin.H{"content": chunk})
-			})
-		} else {
-			content, refs, _ = lifeagent.BuildReplyWithLLMStream(
+		} else if isMiniAppClient(c) {
+			content, refs, _ = lifeagent.BuildReplyWithLLM(
 				c.Request.Context(),
 				cfg.OpenAIApiKey, cfg.OpenAIModel, cfg.OpenAIBaseURL,
 				cfg.LLMEnableWebSearch,
 				profileForAI,
 				factsForAI, topicsForAI, entriesForAI, hist, body.Message,
-				func(chunk string) {
-					writeSSE("content", gin.H{"content": chunk})
-				},
-				&lifeagent.ChatOptions{
-					SessionSummary:       sessionSummary,
-					CrossSessionMemory:   crossMemory,
-					LiveUpdates:          liveUpdatesForAI,
-					RecentlyUsedEntryIDs: recentlyUsedEntryIDs,
-					FeedbackSignals:      feedbackSignals,
-					WorkingState:         ws,
-					Embedder:             embedder,
-					Episodes:             episodes,
-					TurnIndex:            userTurns,
-				},
+				chatOpts,
 			)
+		} else {
+			// --- SSE streaming ---
+			c.Header("Content-Type", "text/event-stream")
+			c.Header("Cache-Control", "no-cache")
+			c.Header("Connection", "keep-alive")
+			c.Header("X-Accel-Buffering", "no")
+			c.Status(http.StatusOK)
+			c.Writer.Flush()
+
+			writeSSE := func(eventType string, payload interface{}) {
+				data, _ := json.Marshal(payload)
+				fmt.Fprintf(c.Writer, "event: %s\ndata: %s\n\n", eventType, data)
+				c.Writer.Flush()
+			}
+
+			if reply, replyRefs, ok := lifeagent.ResolveGroundedFactReply(profileForAI, factsForAI, body.Message); ok {
+				content = reply
+				refs = replyRefs
+				lifeagent.EmitReplyChunks(content, func(chunk string) {
+					writeSSE("content", gin.H{"content": chunk})
+				})
+			} else if lifeagent.ClassifyQuestionIntent(body.Message) {
+				content = lifeagent.BuildIdentityReply(profileForAI)
+				lifeagent.EmitReplyChunks(content, func(chunk string) {
+					writeSSE("content", gin.H{"content": chunk})
+				})
+			} else {
+				content, refs, _ = lifeagent.BuildReplyWithLLMStream(
+					c.Request.Context(),
+					cfg.OpenAIApiKey, cfg.OpenAIModel, cfg.OpenAIBaseURL,
+					cfg.LLMEnableWebSearch,
+					profileForAI,
+					factsForAI, topicsForAI, entriesForAI, hist, body.Message,
+					func(chunk string) {
+						writeSSE("content", gin.H{"content": chunk})
+					},
+					chatOpts,
+				)
+			}
 		}
 		refsMap := make([]map[string]interface{}, len(refs))
 		for i, r := range refs {
@@ -2429,7 +2451,11 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 			"remainingQuestions": remaining - 1,
 			"rating":             ratingState,
 		}
-		writeSSE("done", donePayload)
+		if isMiniAppClient(c) {
+			c.JSON(http.StatusOK, donePayload)
+			return
+		}
+		writeSSE(c, "done", donePayload)
 
 		// TTS 在 done 之后执行，不阻塞文本展示；完成后发 audio_ready 事件
 		resolvedTTS := cfg.ResolveTTSProvider()
@@ -2456,7 +2482,7 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 						"audio_data":         decoded,
 						"audio_duration_sec": dur,
 					})
-					writeSSE("audio_ready", gin.H{
+					writeSSE(c, "audio_ready", gin.H{
 						"audioUrl":         url,
 						"audioDurationSec": dur,
 					})

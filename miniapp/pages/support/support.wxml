@@ -1,0 +1,24 @@
+<view class="container">
+  <view class="card">
+    <text class="title">邮件联系 BrightAgent</text>
+    <text class="text-muted">账号、订单、认证与商务合作。工作日 24 小时内回复。</text>
+    <text class="email">{{email}}</text>
+    <view class="actions">
+      <button class="btn-primary" bindtap="copyEmail">复制邮箱</button>
+      <button class="btn-secondary" bindtap="sendMail">如何发邮件</button>
+    </view>
+  </view>
+
+  <view class="card">
+    <text class="section-title">常见问题</text>
+    <view wx:for="{{topics}}" wx:key="title" class="topic">
+      <text class="topic-title">{{item.title}}</text>
+      <text class="text-muted">{{item.desc}}</text>
+    </view>
+  </view>
+
+  <view class="card link-card" bindtap="goPrivacy">
+    <text>隐私政策</text>
+    <text class="arrow">›</text>
+  </view>
+</view>

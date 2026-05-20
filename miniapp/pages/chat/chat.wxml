@@ -1,0 +1,27 @@
+<view class="page">
+  <view class="remain-bar text-muted">剩余 {{remaining}} 次提问</view>
+
+  <scroll-view class="messages" scroll-y scroll-into-view="{{scrollTo}}" scroll-with-animation>
+    <view
+      wx:for="{{messages}}"
+      wx:key="index"
+      id="msg-{{index}}"
+      class="msg-row {{item.role === 'user' ? 'user' : 'assistant'}}"
+    >
+      <view class="bubble {{item.error ? 'error' : ''}}">{{item.content}}</view>
+    </view>
+  </scroll-view>
+
+  <view class="composer">
+    <input
+      class="composer-input"
+      placeholder="输入问题…"
+      value="{{input}}"
+      bindinput="onInput"
+      confirm-type="send"
+      bindconfirm="send"
+      disabled="{{sending}}"
+    />
+    <button class="send-btn btn-primary" size="mini" loading="{{sending}}" disabled="{{sending}}" bindtap="send">发送</button>
+  </view>
+</view>

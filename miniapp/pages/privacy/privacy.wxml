@@ -1,0 +1,12 @@
+<view class="container">
+  <view class="card">
+    <text class="title">BrightAgent 隐私政策</text>
+    <text class="text-muted">生效日期：{{effectiveDate}}</text>
+    <text class="text-muted">网站：{{siteUrl}}</text>
+  </view>
+
+  <view wx:for="{{sections}}" wx:key="title" class="card section">
+    <text class="section-title">{{item.title}}</text>
+    <text wx:for="{{item.paragraphs}}" wx:for-item="p" wx:key="*this" class="para">{{p}}</text>
+  </view>
+</view>

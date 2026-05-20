@@ -1,0 +1,41 @@
+<view class="container">
+  <view wx:if="{{loading}}" class="empty">加载中…</view>
+  <block wx:elif="{{!user}}">
+    <view class="card">
+      <text class="title">未登录</text>
+      <text class="text-muted">登录后可查看已购 Agent 与剩余提问次数</text>
+      <button class="btn-primary" style="margin-top: 32rpx;" bindtap="goLogin">去登录</button>
+    </view>
+  </block>
+  <block wx:else>
+    <view class="card profile">
+      <text class="title">{{user.name || '用户'}}</text>
+      <text class="text-muted">{{user.email || user.phone || ''}}</text>
+    </view>
+
+    <view class="section-head">
+      <text>已购 Agent</text>
+    </view>
+    <view wx:if="{{purchased.length === 0}}" class="empty">暂无已购 Agent</view>
+    <view
+      wx:for="{{purchased}}"
+      wx:key="id"
+      class="card purchased"
+    >
+      <view class="purchased-main" bindtap="goDetail" data-id="{{item.id}}">
+        <image wx:if="{{item.coverFull}}" class="thumb" src="{{item.coverFull}}" mode="aspectFill" />
+        <view>
+          <text class="name">{{item.displayName}}</text>
+          <text class="text-muted">剩余 {{item.remainingQuestions || 0}} 次</text>
+        </view>
+      </view>
+      <button class="btn-secondary mini" size="mini" bindtap="goChat" data-id="{{item.id}}">对话</button>
+    </view>
+
+    <view class="links card">
+      <view class="link-row" bindtap="goSupport">联系客服</view>
+      <view class="link-row" bindtap="goPrivacy">隐私政策</view>
+      <view class="link-row danger" bindtap="logout">退出登录</view>
+    </view>
+  </block>
+</view>

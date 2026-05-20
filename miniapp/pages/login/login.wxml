@@ -1,0 +1,29 @@
+<view class="container">
+  <view class="card">
+    <text class="title">登录 BrightAgent</text>
+    <text class="subtitle text-muted">使用已注册邮箱登录</text>
+
+    <view class="tabs">
+      <text class="tab {{mode === 'code' ? 'active' : ''}}" data-mode="code" bindtap="switchMode">验证码</text>
+      <text class="tab {{mode === 'password' ? 'active' : ''}}" data-mode="password" bindtap="switchMode">密码</text>
+    </view>
+
+    <input class="input" type="text" placeholder="邮箱" value="{{email}}" bindinput="onEmailInput" />
+
+    <block wx:if="{{mode === 'code'}}">
+      <view class="code-row">
+        <input class="input flex" type="number" maxlength="6" placeholder="验证码" value="{{code}}" bindinput="onCodeInput" />
+        <button class="btn-secondary code-btn" size="mini" disabled="{{countdown > 0 || loading}}" bindtap="sendCode">
+          {{countdown > 0 ? countdown + 's' : (codeSent ? '重发' : '获取验证码')}}
+        </button>
+      </view>
+    </block>
+    <block wx:else>
+      <input class="input" password placeholder="密码" value="{{password}}" bindinput="onPasswordInput" />
+    </block>
+
+    <text wx:if="{{error}}" class="text-error">{{error}}</text>
+
+    <button class="btn-primary login-btn" loading="{{loading}}" disabled="{{loading}}" bindtap="submit">登录</button>
+  </view>
+</view>

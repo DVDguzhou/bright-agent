@@ -1,0 +1,34 @@
+<view class="container">
+  <view wx:if="{{loading}}" class="empty">加载中…</view>
+  <view wx:elif="{{error}}" class="empty">{{error}}</view>
+  <block wx:else>
+    <image wx:if="{{agent.coverFull}}" class="hero" src="{{agent.coverFull}}" mode="aspectFill" />
+    <view class="card">
+      <text class="name">{{agent.displayName}}</text>
+      <text class="headline">{{agent.headline}}</text>
+      <view class="tags" wx:if="{{agent.expertiseTags && agent.expertiseTags.length}}">
+        <text wx:for="{{agent.expertiseTags}}" wx:key="*this" class="tag">{{item}}</text>
+      </view>
+      <text class="bio">{{agent.shortBio || agent.longBio}}</text>
+      <view class="facts">
+        <text wx:if="{{agent.school}}">学校：{{agent.school}}</text>
+        <text wx:if="{{agent.job}}">职业：{{agent.job}}</text>
+        <text wx:if="{{agent.city}}">城市：{{agent.city}}</text>
+      </view>
+      <text class="price">¥{{agent.pricePerQuestion / 100}} / 问</text>
+      <text wx:if="{{isLoggedIn}}" class="remain text-muted">剩余提问：{{remaining}} 次</text>
+    </view>
+
+    <view wx:if="{{agent.welcomeMessage}}" class="card">
+      <text class="section-title">欢迎语</text>
+      <text>{{agent.welcomeMessage}}</text>
+    </view>
+
+    <view wx:if="{{agent.sampleQuestions && agent.sampleQuestions.length}}" class="card">
+      <text class="section-title">示例问题</text>
+      <text wx:for="{{agent.sampleQuestions}}" wx:key="*this" class="sample">· {{item}}</text>
+    </view>
+
+    <button class="btn-primary chat-btn" bindtap="goChat">开始对话</button>
+  </block>
+</view>

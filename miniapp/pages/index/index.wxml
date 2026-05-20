@@ -1,0 +1,42 @@
+<view class="container">
+  <view class="top-bar">
+    <text class="brand">BrightAgent</text>
+    <view class="top-actions">
+      <text class="link" bindtap="goSupport">客服</text>
+      <text class="link" bindtap="goMine">我的</text>
+    </view>
+  </view>
+
+  <view wx:if="{{loading}}" class="empty">加载中…</view>
+  <view wx:elif="{{error}}" class="empty">{{error}}</view>
+  <view wx:elif="{{agents.length === 0}}" class="empty">暂无已发布的人生 Agent</view>
+
+  <view wx:else class="list">
+    <view
+      wx:for="{{agents}}"
+      wx:key="id"
+      class="card agent-card"
+      bindtap="goDetail"
+      data-id="{{item.id}}"
+    >
+      <image
+        wx:if="{{item.coverFull}}"
+        class="cover"
+        src="{{item.coverFull}}"
+        mode="aspectFill"
+      />
+      <view class="agent-body">
+        <view class="name-row">
+          <text class="name">{{item.displayName}}</text>
+          <text wx:if="{{item.verificationStatus === 'verified'}}" class="badge">认证</text>
+        </view>
+        <text class="headline">{{item.headline || item.shortBio}}</text>
+        <view class="meta">
+          <text wx:if="{{item.school}}">{{item.school}}</text>
+          <text wx:if="{{item.city}}"> · {{item.city}}</text>
+        </view>
+        <text class="price">¥{{item.pricePerQuestion / 100}}/问</text>
+      </view>
+    </view>
+  </view>
+</view>
