@@ -1,10 +1,11 @@
 /**
- * 平台官方联系方式，用于认证申请等
- * 请根据实际情况修改
+ * 平台官方联系方式（认证、客服、商务）
+ * 生产发信 SMTP 账号需与 OFFICIAL_CONTACT.email 一致。
  */
 export const OFFICIAL_CONTACT = {
-  email: "support@brightagenthub.com",
-  description: "认证申请、商务合作请联系平台官方",
+  email: "brightagent2026@163.com",
+  description: "账号、订单、认证与商务合作",
+  replyHint: "工作日 24 小时内回复",
 };
 
 /**
@@ -14,3 +15,7 @@ export const OFFICIAL_CONTACT = {
 export const PLATFORM_SUPPORT_LIFE_AGENT_ID = (
   process.env.NEXT_PUBLIC_PLATFORM_SUPPORT_AGENT_ID ?? ""
 ).trim();
+
+export function officialMailtoUrl(subject = "BrightAgent 用户咨询") {
+  return `mailto:${OFFICIAL_CONTACT.email}?subject=${encodeURIComponent(subject)}`;
+}
