@@ -68,6 +68,8 @@ services:
       args:
         API_BACKEND_URL: http://backend:8080
         NODE_BASE_IMAGE: ${NODE_BASE_IMAGE:-node:20-alpine}
+        NEXT_PUBLIC_LOGIN_SHOW_WECHAT: ${NEXT_PUBLIC_LOGIN_SHOW_WECHAT:-false}
+        NEXT_PUBLIC_LOGIN_SHOW_PHONE: ${NEXT_PUBLIC_LOGIN_SHOW_PHONE:-false}
     restart: unless-stopped
     ports:
       - "3000:3000"

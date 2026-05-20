@@ -1,11 +1,12 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { fetchWithTimeout } from "@/lib/fetchWithTimeout";
+import { LOGIN_SHOW_PHONE, LOGIN_SHOW_WECHAT } from "@/lib/login-features";
 
 type Tab = "email" | "wechat" | "phone";
 type EmailLoginMode = "code" | "password";
@@ -22,6 +23,12 @@ function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { refetch } = useAuth();
+  const tabs = useMemo(() => {
+    const list: { key: Tab; label: string }[] = [{ key: "email", label: "邮箱" }];
+    if (LOGIN_SHOW_WECHAT) list.push({ key: "wechat", label: "微信" });
+    if (LOGIN_SHOW_PHONE) list.push({ key: "phone", label: "手机号" });
+    return list;
+  }, []);
   const [tab, setTab] = useState<Tab>("email");
   const [emailLoginMode, setEmailLoginMode] = useState<EmailLoginMode>("code");
   const [email, setEmail] = useState("");
@@ -37,6 +44,7 @@ function LoginContent() {
   const [loading, setLoading] = useState(false);
 
   const urlError = searchParams.get("error");
+  const showTabBar = tabs.length > 1;
 
   const submitEmail = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,13 +63,15 @@ function LoginContent() {
       );
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        const code = data.error as string | undefined;
+        const errCode = data.error as string | undefined;
         const msg =
-          code === "INVALID_CREDENTIALS"
+          errCode === "INVALID_CREDENTIALS"
             ? "邮箱或密码错误"
-            : code === "USE_OTHER_LOGIN"
-            ? "该账号请使用微信或手机号登录"
-            : code === "VALIDATION_ERROR"
+            : errCode === "USE_OTHER_LOGIN"
+            ? LOGIN_SHOW_WECHAT || LOGIN_SHOW_PHONE
+              ? "该账号请使用微信或手机号登录"
+              : "该账号请使用注册时的登录方式，或联系客服"
+            : errCode === "VALIDATION_ERROR"
             ? "请填写有效的邮箱和密码"
             : "登录失败";
         setError(msg);
@@ -96,7 +106,7 @@ function LoginContent() {
         return;
       }
       setError("获取授权链接失败");
-    } catch (e) {
+    } catch {
       setError("网络错误，请检查连接后重试");
     } finally {
       setLoading(false);
@@ -144,7 +154,7 @@ function LoginContent() {
       }
       setEmailOtpSent(true);
       startCountdown(setEmailOtpCountdown);
-    } catch (e) {
+    } catch {
       setError("网络错误，请检查连接后重试");
     } finally {
       setLoading(false);
@@ -224,7 +234,7 @@ function LoginContent() {
       }
       setCodeSent(true);
       startCountdown(setCountdown);
-    } catch (e) {
+    } catch {
       setError("网络错误，请检查连接后重试");
     } finally {
       setLoading(false);
@@ -261,18 +271,12 @@ function LoginContent() {
       await refetch();
       router.push("/dashboard");
       router.refresh();
-    } catch (e) {
+    } catch {
       setError("网络错误，请检查连接后重试");
     } finally {
       setLoading(false);
     }
   };
-
-  const tabs: { key: Tab; label: string }[] = [
-    { key: "email", label: "邮箱" },
-    { key: "wechat", label: "微信" },
-    { key: "phone", label: "手机号" },
-  ];
 
   return (
     <motion.div
@@ -285,32 +289,34 @@ function LoginContent() {
       </h1>
       <p className="text-slate-500 mb-6">欢迎回来</p>
 
-      <div className="flex gap-2 mb-6">
-        {tabs.map((t) => (
-          <button
-            key={t.key}
-            type="button"
-            onClick={() => {
-              setTab(t.key);
-              setError("");
-            }}
-            className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${
-              tab === t.key ? "bg-sky-100 text-sky-700" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
+      {showTabBar && (
+        <div className="flex gap-2 mb-6">
+          {tabs.map((t) => (
+            <button
+              key={t.key}
+              type="button"
+              onClick={() => {
+                setTab(t.key);
+                setError("");
+              }}
+              className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${
+                tab === t.key ? "bg-sky-100 text-sky-700" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       {(urlError || error) && (
         <p className="mb-4 text-red-400 text-sm">
           {urlError === "invalid_code" && "授权失败，请重试"}
-          {urlError === "wechat_not_configured" && "微信登录未配置"}
-          {urlError === "invalid_state" && "登录状态已失效，请重新点击微信登录"}
+          {LOGIN_SHOW_WECHAT && urlError === "wechat_not_configured" && "微信登录未配置"}
+          {LOGIN_SHOW_WECHAT && urlError === "invalid_state" && "登录状态已失效，请重新点击微信登录"}
           {urlError === "missing_code" && "未收到授权码，请重试"}
-          {urlError === "network_error" && "连接微信失败，请检查网络后重试"}
-          {urlError === "invalid_response" && "微信返回异常，请稍后重试"}
+          {LOGIN_SHOW_WECHAT && urlError === "network_error" && "连接微信失败，请检查网络后重试"}
+          {LOGIN_SHOW_WECHAT && urlError === "invalid_response" && "微信返回异常，请稍后重试"}
           {urlError === "create_failed" && "创建账号失败，请稍后重试"}
           {urlError &&
             ![
@@ -329,7 +335,9 @@ function LoginContent() {
 
       {tab === "email" && emailLoginMode === "code" && (
         <form onSubmit={submitEmailOtp} className="space-y-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <p className="text-sm text-slate-600">验证码将发送至邮箱，与手机号登录相同流程。</p>
+          <p className="text-sm text-slate-600">
+            {LOGIN_SHOW_PHONE ? "验证码将发送至邮箱，与手机号登录相同流程。" : "验证码将发送至你的注册邮箱。"}
+          </p>
           <label className="block text-sm font-medium text-slate-700">邮箱</label>
           <input
             type="email"
@@ -428,7 +436,7 @@ function LoginContent() {
         </form>
       )}
 
-      {tab === "wechat" && (
+      {LOGIN_SHOW_WECHAT && tab === "wechat" && (
         <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
           <p className="text-slate-600 text-sm mb-6">点击下方按钮跳转至微信授权页面</p>
           <button
@@ -437,7 +445,7 @@ function LoginContent() {
             disabled={loading}
             className="w-full py-3 rounded-xl bg-[#07c160] text-white font-medium hover:bg-[#06ad56] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
-            <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+            <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
               <path d="M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 0 1 .213.665l-.39 1.48c-.019.07-.048.141-.048.213 0 .163.13.295.29.295a.326.326 0 0 0 .167-.054l1.903-1.114a.864.864 0 0 1 .717-.098 10.16 10.16 0 0 0 2.837.403c.276 0 .543-.027.811-.05-.857-2.578-.857-1.98.857-5.245C11.31 3.666 10.318 2.188 8.691 2.188zm.405 2.376c.584 0 1.06.475 1.06 1.06.001.584-.475 1.06-1.06 1.06-.584 0-1.06-.475-1.06-1.06 0-.585.476-1.06 1.06-1.06zm4.065 0c.584 0 1.06.475 1.06 1.06.001.584-.475 1.06-1.06 1.06-.584 0-1.06-.475-1.06-1.06 0-.585.476-1.06 1.06-1.06zm4.318 2.898c-.072-1.08-.543-2.1-1.352-2.907-1.02-1.02-2.43-1.582-3.91-1.582-2.42 0-4.392 1.97-4.392 4.392 0 .96.31 1.89.89 2.69l.12.163-.051 1.02.923-.49a1.5 1.5 0 0 1 .8-.24c.66 0 1.29.21 1.81.59.82-.55 1.42-1.33 1.73-2.2.39-.02.77-.08 1.14-.13.18-.02.36-.05.54-.08.02-.16.01-.32-.01-.48z" />
             </svg>
             {loading ? "跳转中..." : "微信扫码登录"}
@@ -445,7 +453,7 @@ function LoginContent() {
         </div>
       )}
 
-      {tab === "phone" && (
+      {LOGIN_SHOW_PHONE && tab === "phone" && (
         <form onSubmit={submitPhone} className="space-y-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
           <label className="block text-sm font-medium text-slate-700">手机号</label>
           <input
