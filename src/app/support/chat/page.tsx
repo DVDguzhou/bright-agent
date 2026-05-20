@@ -9,8 +9,8 @@ import {
   officialMailtoUrl,
 } from "@/lib/official-contact";
 
-/** 联系客服页背景（与产品指定色一致） */
-const SUPPORT_PAGE_BG = "#F4FEF6";
+/** 与全局纸面背景 `--paper` 保持一致，避免顶部和内容区色差。 */
+const SUPPORT_PAGE_BG = "#f4efe6";
 
 const SUPPORT_TOPICS = [
   { title: "账号与登录", desc: "注册、验证码、密码、微信/手机号绑定" },
@@ -21,7 +21,7 @@ const SUPPORT_TOPICS = [
 const pageShellClass =
   "relative left-1/2 flex min-h-[calc(100dvh-env(safe-area-inset-bottom)-4.25rem)] w-screen max-w-none -translate-x-1/2 flex-col pb-24 lg:min-h-[calc(100dvh-6rem)] lg:pb-8";
 const contentClass = "mx-auto w-full max-w-2xl";
-const cardClass = "rounded-2xl bg-[#FEFEF6] shadow-sm ring-1 ring-black/[0.08]";
+const cardClass = "rounded-2xl bg-[#f4efe6] shadow-sm ring-1 ring-black/[0.08]";
 
 export default function SupportChatPage() {
   const router = useRouter();
@@ -62,7 +62,7 @@ export default function SupportChatPage() {
       <header className={`${contentClass} flex items-center gap-3 px-4 pb-4 pt-[max(0.25rem,env(safe-area-inset-top))]`}>
         <Link
           href="/map"
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#FEFEF6] text-[#111] shadow-sm ring-1 ring-black/[0.08] transition active:bg-[#f7f7ec]"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#f4efe6] text-[#111] shadow-sm ring-1 ring-black/[0.08] transition active:bg-[#eee7db]"
           aria-label="返回地图"
           title="返回"
         >
@@ -95,7 +95,7 @@ export default function SupportChatPage() {
             <button
               type="button"
               onClick={() => void copyEmail()}
-              className="inline-flex w-full items-center justify-center rounded-full border border-black/[0.08] bg-[#FEFEF6] px-6 py-3 text-sm font-semibold text-[#111] active:bg-[#f7f7ec]"
+              className="inline-flex w-full items-center justify-center rounded-full border border-black/[0.08] bg-[#f4efe6] px-6 py-3 text-sm font-semibold text-[#111] active:bg-[#eee7db]"
             >
               {copied ? "已复制邮箱" : "复制邮箱地址"}
             </button>
@@ -116,7 +116,7 @@ export default function SupportChatPage() {
           {SUPPORT_TOPICS.map((item) => (
             <div
               key={item.title}
-              className="rounded-xl bg-[#FEFEF6] px-4 py-3 ring-1 ring-black/[0.06]"
+              className="rounded-xl bg-[#f4efe6] px-4 py-3 ring-1 ring-black/[0.06]"
             >
               <p className="text-[15px] font-medium text-[#111]">{item.title}</p>
               <p className="mt-1 text-sm text-slate-500">{item.desc}</p>
