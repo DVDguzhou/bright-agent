@@ -51,6 +51,16 @@ func isMiniAppClient(c *gin.Context) bool {
 	return strings.EqualFold(strings.TrimSpace(c.GetHeader("X-BrightAgent-Client")), "miniapp")
 }
 
+// 无限对话模式下 API 返回的 remainingQuestions 哨兵值（前端不展示次数）。
+const lifeAgentUnlimitedRemainingSentinel = -1
+
+func lifeAgentViewerRemaining(cfg *config.Config, remaining int) int {
+	if cfg.LifeAgentUnlimitedChat {
+		return lifeAgentUnlimitedRemainingSentinel
+	}
+	return remaining
+}
+
 func writeSSE(c *gin.Context, eventType string, payload interface{}) {
 	data, _ := json.Marshal(payload)
 	fmt.Fprintf(c.Writer, "event: %s\ndata: %s\n\n", eventType, data)
@@ -1168,7 +1178,8 @@ func LifeAgentsGet(cfg *config.Config) gin.HandlerFunc {
 			"viewerState": gin.H{
 				"isLoggedIn":         user != nil,
 				"isOwner":            user != nil && user.ID == p.UserID,
-				"remainingQuestions": remaining,
+				"remainingQuestions": lifeAgentViewerRemaining(cfg, remaining),
+				"unlimitedChat":      cfg.LifeAgentUnlimitedChat,
 				"rating":             ratingState,
 			},
 		})
@@ -2114,19 +2125,22 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 			return
 		}
 		var packs []models.LifeAgentQuestionPack
-		db.DB.Where("profile_id = ? AND buyer_id = ? AND status = ?", id, user.ID, "paid").Order("created_at ASC").Find(&packs)
-		remaining := 0
+		remaining := lifeAgentUnlimitedRemainingSentinel
 		var packToConsume *models.LifeAgentQuestionPack
-		for i := range packs {
-			r := packs[i].QuestionCount - packs[i].QuestionsUsed
-			remaining += r
-			if r > 0 && packToConsume == nil {
-				packToConsume = &packs[i]
+		if !cfg.LifeAgentUnlimitedChat {
+			db.DB.Where("profile_id = ? AND buyer_id = ? AND status = ?", id, user.ID, "paid").Order("created_at ASC").Find(&packs)
+			remaining = 0
+			for i := range packs {
+				r := packs[i].QuestionCount - packs[i].QuestionsUsed
+				remaining += r
+				if r > 0 && packToConsume == nil {
+					packToConsume = &packs[i]
+				}
 			}
-		}
-		if remaining <= 0 || packToConsume == nil {
-			c.JSON(http.StatusPaymentRequired, gin.H{"error": "NO_QUESTIONS_LEFT"})
-			return
+			if remaining <= 0 || packToConsume == nil {
+				c.JSON(http.StatusPaymentRequired, gin.H{"error": "NO_QUESTIONS_LEFT"})
+				return
+			}
 		}
 		sessionID := body.SessionID
 		var sessionSummary string
@@ -2373,7 +2387,9 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 			Content:   content,
 			Refs:      refsAny,
 		})
-		db.DB.Model(packToConsume).Update("questions_used", packToConsume.QuestionsUsed+1)
+		if !cfg.LifeAgentUnlimitedChat && packToConsume != nil {
+			db.DB.Model(packToConsume).Update("questions_used", packToConsume.QuestionsUsed+1)
+		}
 		db.DB.Model(&models.LifeAgentChatSession{}).Where("id = ?", sessionID).Update("updated_at", db.DB.NowFunc())
 
 		// 感知轨迹异步落库：让下次回合能感知到 EmotionArc/长度粘性
@@ -2442,13 +2458,17 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 		}
 
 		ratingState := buildLifeAgentRatingState(id, user.ID)
+		remainingOut := remaining - 1
+		if cfg.LifeAgentUnlimitedChat {
+			remainingOut = lifeAgentUnlimitedRemainingSentinel
+		}
 		donePayload := gin.H{
 			"sessionId":          sessionID,
 			"sessionTitle":       buildLifeAgentSessionTitle(body.Message),
 			"messageId":          assistantMsgID,
 			"reply":              content,
 			"references":         refsMap,
-			"remainingQuestions": remaining - 1,
+			"remainingQuestions": remainingOut,
 			"rating":             ratingState,
 		}
 		if isMiniAppClient(c) {

@@ -60,6 +60,7 @@ services:
       PASSWORD_RESET_TTL: ${PASSWORD_RESET_TTL:-1h}
       # 聊天记录导入
       MAX_CHAT_IMPORT_MESSAGES: ${MAX_CHAT_IMPORT_MESSAGES:-100}
+      LIFE_AGENT_UNLIMITED_CHAT: ${LIFE_AGENT_UNLIMITED_CHAT:-true}
 
   frontend:
     build:

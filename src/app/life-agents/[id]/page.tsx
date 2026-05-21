@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { RatingStars } from "@/components/RatingStars";
@@ -11,10 +10,10 @@ import { resolveLifeAgentCoverDisplayUrl } from "@/lib/life-agent-covers";
 import { isFavoriteAgentId, toggleFavoriteAgentId } from "@/lib/life-agent-favorites";
 import { useEdgeSwipeBack } from "@/hooks/use-edge-swipe-back";
 import { useMobileTouchNavEnabled } from "@/hooks/use-life-agents-feed-gestures";
-import { cleanLifeAgentIntroMultiline,
+import {
+  cleanLifeAgentIntroMultiline,
   cleanLifeAgentIntroText,
 } from "@/lib/life-agent-intro-clean";
-import { iosBlocksInAppDigitalPurchase } from "@/lib/capacitor-platform";
 
 type DetailData = {
   id: string;
@@ -93,9 +92,6 @@ type DetailData = {
   coverPresetKey?: string;
 };
 
-const MIN_QUESTIONS = 1;
-const MAX_QUESTIONS = 500;
-
 export default function LifeAgentDetailPage() {
   const params = useParams();
   const id = params.id as string;
@@ -103,24 +99,9 @@ export default function LifeAgentDetailPage() {
   useEdgeSwipeBack(touchNavEnabled);
   const [profile, setProfile] = useState<DetailData | null>(null);
   const [loaded, setLoaded] = useState(false);
-  const [purchaseCount, setPurchaseCount] = useState(1);
-  const [payMethod, setPayMethod] = useState<"balance" | "wechat">("balance");
-  const [wechatNativeEnabled, setWechatNativeEnabled] = useState<boolean | null>(null);
-  const [wechatCheckout, setWechatCheckout] = useState<{ codeUrl: string; outTradeNo: string } | null>(null);
-  const payAbortRef = useRef<AbortController | null>(null);
-  const [purchasing, setPurchasing] = useState(false);
-  const [message, setMessage] = useState("");
-  const [showPurchase, setShowPurchase] = useState(false);
   const [voiceEnrollBanner, setVoiceEnrollBanner] = useState<"warn" | null>(null);
-  const [portalReady, setPortalReady] = useState(false);
   const [starred, setStarred] = useState(false);
   const [liveUpdates, setLiveUpdates] = useState<Array<{ id: string; content: string; category: string; location?: string; createdAt: string; freshDays: number }>>([]);
-  const [iosNoInAppPurchase, setIosNoInAppPurchase] = useState(false);
-
-  useEffect(() => {
-    setPortalReady(true);
-    setIosNoInAppPurchase(iosBlocksInAppDigitalPurchase());
-  }, []);
 
   useEffect(() => {
     const sync = () => setStarred(isFavoriteAgentId(id));
@@ -128,47 +109,6 @@ export default function LifeAgentDetailPage() {
     window.addEventListener("la-favorite-change", sync);
     return () => window.removeEventListener("la-favorite-change", sync);
   }, [id]);
-
-  useEffect(() => {
-    if (!showPurchase) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, [showPurchase]);
-
-  useEffect(() => {
-    if (!showPurchase) {
-      payAbortRef.current?.abort();
-      payAbortRef.current = null;
-      setWechatCheckout(null);
-      return;
-    }
-    setPayMethod("balance");
-    setMessage("");
-    setWechatCheckout(null);
-    payAbortRef.current?.abort();
-    payAbortRef.current = null;
-    setWechatNativeEnabled(null);
-    void fetch("/api/pay/wechat/native/enabled")
-      .then((r) => r.json())
-      .then((d: { enabled?: boolean }) => setWechatNativeEnabled(!!d.enabled))
-      .catch(() => setWechatNativeEnabled(false));
-  }, [showPurchase]);
-
-  useEffect(() => {
-    if (payMethod === "balance") {
-      setWechatCheckout(null);
-      payAbortRef.current?.abort();
-      payAbortRef.current = null;
-    }
-  }, [payMethod]);
-
-  const questionCount = useMemo(
-    () => Math.min(MAX_QUESTIONS, Math.max(MIN_QUESTIONS, purchaseCount)),
-    [purchaseCount]
-  );
 
   useEffect(() => {
     setLoaded(false);
@@ -204,12 +144,6 @@ export default function LifeAgentDetailPage() {
     setVoiceEnrollBanner(null);
   };
 
-  const totalPrice = useMemo(() => {
-    if (!profile) return 0;
-    const count = Math.min(MAX_QUESTIONS, Math.max(MIN_QUESTIONS, purchaseCount));
-    return (profile.pricePerQuestion * count) / 100;
-  }, [profile, purchaseCount]);
-
   const averageScore = profile?.ratings?.averageScore ?? 0;
   const heroCoverUrl = profile
     ? resolveLifeAgentCoverDisplayUrl(profile.coverUrl, profile.coverImageUrl, profile.coverPresetKey)
@@ -230,98 +164,6 @@ export default function LifeAgentDetailPage() {
       sampleQuestions: (profile.sampleQuestions ?? []).map((q) => cleanLifeAgentIntroText(q, dn)),
     };
   }, [profile]);
-
-  const purchase = async () => {
-    if (!profile) return;
-    const count = Math.min(MAX_QUESTIONS, Math.max(MIN_QUESTIONS, questionCount));
-    setMessage("");
-    if (payMethod === "wechat") {
-      if (!wechatNativeEnabled) {
-        setMessage("微信支付尚未配置，请使用账户余额（演示）或联系管理员。");
-        return;
-      }
-      setPurchasing(true);
-      payAbortRef.current?.abort();
-      const ac = new AbortController();
-      payAbortRef.current = ac;
-      try {
-        const prepay = await fetch(`/api/pay/wechat/native/life-agent/${profile.id}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          signal: ac.signal,
-          body: JSON.stringify({ questionCount: count }),
-        });
-        const pdata = await prepay.json();
-        if (!prepay.ok) {
-          if (pdata.error === "WECHAT_PAY_NOT_CONFIGURED") {
-            setMessage("微信支付未配置。");
-          } else if (pdata.error === "CANNOT_BUY_OWN_PROFILE") {
-            setMessage("不能购买自己的 Agent。");
-          } else {
-            setMessage("无法发起微信支付，请稍后重试。");
-          }
-          return;
-        }
-        const codeUrl = typeof pdata.codeUrl === "string" ? pdata.codeUrl : "";
-        const outTradeNo = typeof pdata.outTradeNo === "string" ? pdata.outTradeNo : "";
-        if (!codeUrl || !outTradeNo) {
-          setMessage("微信支付返回异常，请稍后重试。");
-          return;
-        }
-        setWechatCheckout({ codeUrl, outTradeNo });
-        for (let i = 0; i < 120; i++) {
-          if (ac.signal.aborted) return;
-          await new Promise((r) => setTimeout(r, 2000));
-          const qr = await fetch(`/api/pay/wechat/orders/${encodeURIComponent(outTradeNo)}`, {
-            credentials: "include",
-            signal: ac.signal,
-          });
-          const qd = await qr.json();
-          if (qd.status === "paid" && typeof qd.remainingQuestions === "number") {
-            setWechatCheckout(null);
-            setProfile((prev) =>
-              prev
-                ? { ...prev, viewerState: { ...prev.viewerState, remainingQuestions: qd.remainingQuestions } }
-                : prev
-            );
-            setMessage(`支付成功，当前剩余 ${qd.remainingQuestions} 次提问。`);
-            return;
-          }
-        }
-        setMessage("等待支付超时，若已付款请稍后刷新页面查看剩余次数。");
-      } catch (e) {
-        if ((e as Error)?.name !== "AbortError") {
-          setMessage("支付流程异常，请稍后重试。");
-        }
-      } finally {
-        setPurchasing(false);
-        payAbortRef.current = null;
-      }
-      return;
-    }
-
-    setPurchasing(true);
-    try {
-      const res = await fetch(`/api/life-agents/${profile.id}/purchase`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ questionCount: count, amountPaid: profile.pricePerQuestion * count }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setMessage(data.error === "UNAUTHORIZED" ? "请先登录后再购买。" : "购买失败，请稍后重试。");
-        return;
-      }
-      setProfile((prev) =>
-        prev ? { ...prev, viewerState: { ...prev.viewerState, remainingQuestions: data.remainingQuestions } } : prev
-      );
-      setMessage(`购买成功，当前剩余 ${data.remainingQuestions} 次提问。`);
-    } finally {
-      setPurchasing(false);
-    }
-  };
 
   /* ---------- loading / 404 ---------- */
   if (!loaded) {
@@ -413,13 +255,9 @@ export default function LifeAgentDetailPage() {
       {/* ===== 主内容（底部留出固定栏空间） ===== */}
       <div className="mx-auto max-w-2xl space-y-2 pb-24 sm:pb-28">
 
-        {/* --- 价格 + 名称 --- */}
+        {/* --- 名称 --- */}
         <div className="-mx-4 bg-white/[0.98] px-4 pb-4 pt-5 backdrop-blur-sm sm:-mx-6 sm:px-6">
-          <p className="text-2xl font-bold text-purple-700">
-            ¥{(profile.pricePerQuestion / 100).toFixed(2)}
-            <span className="ml-1 text-sm font-medium text-slate-400">/次提问</span>
-          </p>
-          <h1 className="mt-3 text-lg font-bold leading-snug text-slate-900 sm:text-xl">
+          <h1 className="text-lg font-bold leading-snug text-slate-900 sm:text-xl">
             {profile.displayName}
           </h1>
           <p className="mt-1.5 text-sm leading-relaxed text-slate-500">{ci.headline}</p>
@@ -434,16 +272,9 @@ export default function LifeAgentDetailPage() {
             </div>
           )}
 
-          {/* 小数据条 */}
           <div className="mt-4 flex items-center gap-4 border-t border-purple-100/60 pt-3 text-xs text-slate-400">
-            <span>{profile.stats.soldQuestionPacks} 次已售</span>
             <span>{profile.stats.sessionCount} 场聊天</span>
             <span>{profile.stats.knowledgeCount} 条知识</span>
-            {profile.viewerState.remainingQuestions > 0 && (
-              <span className="ml-auto font-medium text-purple-700">
-                剩余 {profile.viewerState.remainingQuestions} 次
-              </span>
-            )}
           </div>
         </div>
 
@@ -638,215 +469,22 @@ export default function LifeAgentDetailPage() {
 
       </div>
 
-      {/* 购买面板：闲鱼式底部弹层（挂 body） */}
-      {portalReady &&
-        showPurchase &&
-        !iosNoInAppPurchase &&
-        createPortal(
-          <>
-            <div
-              className="fixed inset-0 z-[200] bg-black/45"
-              aria-hidden
-              onClick={() => setShowPurchase(false)}
-            />
-            <div
-              className="fixed inset-x-0 bottom-0 z-[210] flex max-h-[90vh] flex-col rounded-t-[22px] bg-gradient-to-b from-[#f3efff] via-[#ebe4f7] to-[#e4daf5] shadow-[0_-10px_40px_-8px_rgba(124,58,237,0.18)]"
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="la-purchase-title"
-            >
-              <button
-                type="button"
-                onClick={() => setShowPurchase(false)}
-                className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full text-slate-500 transition hover:bg-black/5"
-                aria-label="关闭"
-              >
-                <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-
-              {/* 顶部商品区（白底） */}
-              <div className="shrink-0 rounded-t-[22px] border-b border-purple-200/[0.2] bg-white/[0.98] px-4 pb-4 pt-5 backdrop-blur-md">
-                <div className="flex gap-3 pr-10">
-                  <div className="relative h-[4.5rem] w-[4.5rem] shrink-0 overflow-hidden rounded-lg bg-violet-100/50 ring-1 ring-purple-200/30">
-                    {heroCoverUrl ? (
-                      <LifeAgentCoverImage
-                        src={heroCoverUrl}
-                        alt=""
-                        fill
-                        className="object-cover"
-                        sizes="72px"
-                      />
-                    ) : null}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p id="la-purchase-title" className="line-clamp-2 text-[15px] font-semibold leading-snug text-[#111]">
-                      {profile.displayName}
-                    </p>
-                    <p className="mt-1 line-clamp-1 text-xs text-slate-500">{ci.headline}</p>
-                    <p className="mt-2 text-[22px] font-bold leading-none text-purple-800">
-                      ¥{(profile.pricePerQuestion / 100).toFixed(2)}
-                      <span className="ml-1 text-xs font-normal text-slate-400">/ 次提问</span>
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* 中间可滚动：白卡片分区 */}
-              <div className="min-h-0 flex-1 space-y-2 overflow-y-auto px-3 py-2 pb-[calc(5.5rem+env(safe-area-inset-bottom))]">
-                <div className="flex items-center justify-between rounded-xl border border-purple-200/[0.2] bg-white/[0.98] px-4 py-3.5 text-sm shadow-[0_3px_16px_rgba(124,58,237,0.06)] backdrop-blur-sm">
-                  <span className="text-slate-600">服务类型</span>
-                  <span className="font-medium text-[#111]">按次付费 · 提问咨询</span>
-                </div>
-
-                <div className="flex items-center justify-between rounded-xl border border-purple-200/[0.2] bg-white/[0.98] px-4 py-3.5 text-sm shadow-[0_3px_16px_rgba(124,58,237,0.06)] backdrop-blur-sm">
-                  <span className="text-[#111]">购买数量</span>
-                  <div className="flex items-center rounded-lg border border-purple-200/[0.25] bg-violet-50/50">
-                    <button
-                      type="button"
-                      disabled={purchaseCount <= MIN_QUESTIONS}
-                      onClick={() => setPurchaseCount((c) => Math.max(MIN_QUESTIONS, c - 1))}
-                      className="flex h-9 w-10 items-center justify-center text-lg text-slate-600 transition active:bg-slate-200 disabled:opacity-35"
-                    >
-                      −
-                    </button>
-                    <span className="min-w-[2.25rem] text-center text-base font-semibold tabular-nums text-[#111]">
-                      {purchaseCount}
-                    </span>
-                    <button
-                      type="button"
-                      disabled={purchaseCount >= MAX_QUESTIONS}
-                      onClick={() => setPurchaseCount((c) => Math.min(MAX_QUESTIONS, c + 1))}
-                      className="flex h-9 w-10 items-center justify-center text-lg text-slate-600 transition active:bg-slate-200 disabled:opacity-35"
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between rounded-xl border border-purple-200/[0.2] bg-white/[0.98] px-4 py-3.5 text-sm shadow-[0_3px_16px_rgba(124,58,237,0.06)] backdrop-blur-sm">
-                  <span className="text-slate-600">应付合计</span>
-                  <span className="text-lg font-bold text-purple-800">¥{totalPrice.toFixed(2)}</span>
-                </div>
-
-                <div className="overflow-hidden rounded-xl border border-purple-200/[0.2] bg-white/[0.98] shadow-[0_3px_16px_rgba(124,58,237,0.06)] backdrop-blur-sm">
-                  <p className="border-b border-purple-100/60 px-4 py-2 text-xs text-slate-400">支付方式</p>
-                  <button
-                    type="button"
-                    onClick={() => setPayMethod("balance")}
-                    className="flex w-full items-center gap-3 border-b border-purple-50/80 px-4 py-3.5 text-left text-sm"
-                  >
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-400 text-xs font-bold text-white">
-                      余
-                    </span>
-                    <span className="flex-1 font-medium text-[#111]">账户余额（演示）</span>
-                    <span
-                      className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${
-                        payMethod === "balance" ? "border-amber-500 bg-amber-400" : "border-slate-300"
-                      }`}
-                    >
-                      {payMethod === "balance" ? (
-                        <svg className="h-3 w-3 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                        </svg>
-                      ) : null}
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setPayMethod("wechat")}
-                    className="flex w-full items-center gap-3 px-4 py-3.5 text-left text-sm"
-                  >
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#07c160] text-[10px] font-bold text-white">
-                      微
-                    </span>
-                    <span className="flex-1 font-medium text-[#111]">
-                      {wechatNativeEnabled === null
-                        ? "微信支付（检测配置…）"
-                        : wechatNativeEnabled
-                          ? "微信支付（扫码）"
-                          : "微信支付（未配置）"}
-                    </span>
-                    <span
-                      className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${
-                        payMethod === "wechat" ? "border-[#07c160] bg-[#07c160]" : "border-slate-300"
-                      }`}
-                    >
-                      {payMethod === "wechat" ? (
-                        <svg className="h-3 w-3 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                        </svg>
-                      ) : null}
-                    </span>
-                  </button>
-                </div>
-
-                {wechatCheckout ? (
-                  <div className="rounded-xl border border-emerald-200/80 bg-white/[0.98] px-4 py-4 text-center shadow-[0_3px_16px_rgba(16,185,129,0.08)] backdrop-blur-sm">
-                    <p className="text-sm text-slate-600">请使用微信扫描下方二维码完成支付</p>
-                    {/* code_url 仅用于生成二维码；生产环境可改为自建二维码服务 */}
-                    <img
-                      alt="微信支付二维码"
-                      width={220}
-                      height={220}
-                      className="mx-auto mt-3 rounded-lg bg-white p-2 ring-1 ring-slate-100"
-                      src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(wechatCheckout.codeUrl)}`}
-                    />
-                    <p className="mt-3 text-xs text-slate-400">支付成功后本页会自动更新剩余次数。</p>
-                  </div>
-                ) : null}
-
-                {message ? (
-                  <p className="px-1 text-center text-sm text-orange-800/90">{message}</p>
-                ) : null}
-              </div>
-
-              {/* 底部固定：闲鱼式橙色胶囊按钮 */}
-              <div className="shrink-0 border-t border-purple-200/[0.25] bg-white/[0.96] px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-md">
-                <button
-                  type="button"
-                  onClick={purchase}
-                  disabled={purchasing || (payMethod === "wechat" && !!wechatCheckout)}
-                  className="btn-primary w-full py-3.5 text-base font-bold disabled:opacity-50"
-                >
-                  {purchasing
-                    ? payMethod === "wechat" && wechatCheckout
-                      ? "等待支付确认…"
-                      : "提交中…"
-                    : `确认购买 ¥${totalPrice.toFixed(2)}`}
-                </button>
-              </div>
-            </div>
-          </>,
-          document.body
-        )}
-
       {/* ===== 底部固定操作栏 ===== */}
       <div className="fixed inset-x-0 bottom-0 z-50 border-t border-purple-200/[0.2] bg-white/[0.94] backdrop-blur-lg shadow-[0_-4px_28px_-8px_rgba(124,58,237,0.08)]">
-        <div className="mx-auto flex max-w-2xl items-center gap-3 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 sm:px-6">
-          <div className="min-w-0 flex-1">
-            <p className="text-lg font-bold text-purple-700">
-              ¥{(profile.pricePerQuestion / 100).toFixed(2)}
-              <span className="ml-1 text-xs font-normal text-slate-400">/次</span>
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={() => !iosNoInAppPurchase && setShowPurchase(!showPurchase)}
-            disabled={iosNoInAppPurchase}
-            className="btn-secondary shrink-0 px-5 py-2.5 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-45"
-            title={iosNoInAppPurchase ? "iOS App 内暂不支持购买提问包" : undefined}
-          >
-            {iosNoInAppPurchase ? "App 内不可购" : "购买提问"}
-          </button>
+        <div className="mx-auto max-w-2xl px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 sm:px-6">
           {profile.viewerState.isLoggedIn ? (
-            <Link href={`/life-agents/${profile.id}/chat`} className="btn-primary shrink-0 px-6 py-2.5 text-sm font-semibold">
+            <Link
+              href={`/life-agents/${profile.id}/chat`}
+              className="btn-primary flex w-full items-center justify-center py-3 text-base font-semibold"
+            >
               进入聊天
             </Link>
           ) : (
-            <Link href="/login" className="btn-primary shrink-0 px-6 py-2.5 text-sm font-semibold">
-              登录后咨询
+            <Link
+              href={`/login?redirect=${encodeURIComponent(`/life-agents/${profile.id}/chat`)}`}
+              className="btn-primary flex w-full items-center justify-center py-3 text-base font-semibold"
+            >
+              进入聊天
             </Link>
           )}
         </div>

@@ -1,3 +1,5 @@
+import { Capacitor } from "@capacitor/core";
+
 /** Capacitor 原生壳平台检测（App Store 合规等） */
 
 let cachedIosNative: boolean | null = null;
@@ -7,8 +9,6 @@ export function isIosNativeApp(): boolean {
   if (typeof window === "undefined") return false;
   if (cachedIosNative !== null) return cachedIosNative;
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { Capacitor } = require("@capacitor/core") as typeof import("@capacitor/core");
     cachedIosNative = Capacitor.isNativePlatform() && Capacitor.getPlatform() === "ios";
   } catch {
     cachedIosNative = false;

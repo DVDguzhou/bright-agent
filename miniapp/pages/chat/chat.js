@@ -5,7 +5,6 @@ Page({
     id: "",
     agentName: "",
     sessionId: "",
-    remaining: 0,
     messages: [],
     input: "",
     sending: false,
@@ -21,7 +20,6 @@ Page({
         const welcome = agent.welcomeMessage || "你好，有什么想聊的？";
         this.setData({
           agentName: agent.displayName || "Agent",
-          remaining: (agent.viewerState && agent.viewerState.remainingQuestions) || 0,
           messages: [{ role: "assistant", content: welcome }],
         });
         wx.setNavigationBarTitle({ title: agent.displayName || "对话" });
@@ -36,10 +34,6 @@ Page({
   send() {
     const text = (this.data.input || "").trim();
     if (!text || this.data.sending) return;
-    if (this.data.remaining <= 0) {
-      wx.showToast({ title: "提问次数已用完", icon: "none" });
-      return;
-    }
 
     const userMsg = { role: "user", content: text };
     const messages = this.data.messages.concat([userMsg]);
@@ -64,10 +58,6 @@ Page({
         this.setData({
           messages: next,
           sessionId: data.sessionId || this.data.sessionId,
-          remaining:
-            typeof data.remainingQuestions === "number"
-              ? data.remainingQuestions
-              : this.data.remaining - 1,
           sending: false,
           scrollTo: `msg-${next.length - 1}`,
         });
@@ -78,8 +68,6 @@ Page({
         if (err.statusCode === 401) {
           tip = "请先登录";
           wx.navigateTo({ url: "/pages/login/login" });
-        } else if (err.statusCode === 402 || (err.data && err.data.error === "NO_QUESTIONS_LEFT")) {
-          tip = "提问次数已用完";
         }
         next.push({ role: "assistant", content: tip, error: true });
         this.setData({ messages: next, sending: false });

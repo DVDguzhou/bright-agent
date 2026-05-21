@@ -18,6 +18,7 @@ import {
 } from "@/lib/chat-glass";
 import { useEdgeSwipeBack } from "@/hooks/use-edge-swipe-back";
 import { useMobileTouchNavEnabled } from "@/hooks/use-life-agents-feed-gestures";
+import { LIFE_AGENT_UNLIMITED_CHAT } from "@/lib/life-agent-commerce";
 
 type Profile = {
   id: string;
@@ -346,7 +347,7 @@ export default function LifeAgentChatPage() {
           const data = await res.json();
           if (!res.ok) {
             setError(
-              data.error === "NO_QUESTIONS_LEFT"
+              data.error === "NO_QUESTIONS_LEFT" && !LIFE_AGENT_UNLIMITED_CHAT
                 ? "你的提问次数已经用完，请先返回详情页购买次数。"
                 : data.error === "UNAUTHORIZED"
                   ? "请先登录。"
@@ -632,10 +633,12 @@ export default function LifeAgentChatPage() {
                   </div>
                 )}
 
+                {!LIFE_AGENT_UNLIMITED_CHAT && (
                 <div className="mt-4 rounded-2xl border border-purple-200/[0.18] bg-gradient-to-br from-violet-50/[0.9] to-fuchsia-50/[0.65] p-4 backdrop-blur-sm">
                   <p className="text-sm text-slate-500">剩余提问次数</p>
                   <p className="mt-1 text-2xl font-semibold text-purple-800">{profile.viewerState.remainingQuestions}</p>
                 </div>
+                )}
 
                 {profile.viewerState.isLoggedIn && (
                   <div className="mt-4 rounded-2xl border border-purple-200/[0.22] bg-white/[0.98] p-4 text-sm text-slate-600 shadow-[0_4px_20px_rgba(124,58,237,0.05)] backdrop-blur-sm">

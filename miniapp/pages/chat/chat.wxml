@@ -1,6 +1,4 @@
 <view class="page">
-  <view class="remain-bar text-muted">剩余 {{remaining}} 次提问</view>
-
   <scroll-view class="messages" scroll-y scroll-into-view="{{scrollTo}}" scroll-with-animation>
     <view
       wx:for="{{messages}}"

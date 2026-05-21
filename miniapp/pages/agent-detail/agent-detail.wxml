@@ -15,8 +15,6 @@
         <text wx:if="{{agent.job}}">职业：{{agent.job}}</text>
         <text wx:if="{{agent.city}}">城市：{{agent.city}}</text>
       </view>
-      <text class="price">¥{{agent.pricePerQuestion / 100}} / 问</text>
-      <text wx:if="{{isLoggedIn}}" class="remain text-muted">剩余提问：{{remaining}} 次</text>
     </view>
 
     <view wx:if="{{agent.welcomeMessage}}" class="card">
