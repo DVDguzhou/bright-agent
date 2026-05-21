@@ -36,6 +36,7 @@
     "@tanstack/react-virtual": "^3.13.23",
     "@types/leaflet.markercluster": "^1.5.6",
     "bcryptjs": "^2.4.3",
+    "capacitor-plugin-app-tracking-transparency": "^3.0.0",
     "framer-motion": "^12.35.0",
     "iconv-lite": "^0.7.2",
     "leaflet": "^1.9.4",

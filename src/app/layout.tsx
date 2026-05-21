@@ -5,6 +5,7 @@ import { Nav } from "@/components/Nav";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ChunkLoadRecovery } from "@/components/ChunkLoadRecovery";
 import { RegisterSW } from "@/components/RegisterSW";
+import { AppTrackingTransparencyPrompt } from "@/components/AppTrackingTransparencyPrompt";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -43,6 +44,7 @@ export default function RootLayout({
             <Nav />
           </Suspense>
           <main className="container mx-auto px-4 py-3 sm:py-8 max-w-7xl relative z-10 pb-20 lg:pb-8 overflow-x-hidden">{children}</main>
+          <AppTrackingTransparencyPrompt />
           <RegisterSW />
         </AuthProvider>
       </body>

@@ -58,5 +58,7 @@
 	<string>BrightAgent 需要在地图上显示您的大致位置（仅本机展示，不上传坐标）。</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>BrightAgent 需要使用麦克风来录制语音，用于调教您的 Agent。</string>
+	<key>NSUserTrackingUsageDescription</key>
+	<string>BrightAgent 希望获得您的授权，以便根据您的兴趣推荐更合适的人生 Agent，并在未来为您提供更相关的推广内容。您可随时在「设置 → 隐私与安全性 → 跟踪」中更改。</string>
 </dict>
 </plist>
