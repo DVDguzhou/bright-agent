@@ -11,7 +11,10 @@ param(
     [Parameter(Mandatory = $true)]
     [string]$AppSpecificPassword,
 
-    [string]$TransporterPath = ""
+    [string]$TransporterPath = "",
+
+    # Team ID from Apple Developer / DistributionSummary.plist (fixes "Client configuration failed")
+    [string]$AscProvider = "488YD7DW8G"
 )
 
 $candidates = @(
@@ -27,6 +30,7 @@ if (-not $Transporter) {
 }
 
 Write-Host "Transporter: $Transporter"
+Write-Host "Provider (Team ID): $AscProvider"
 
 $Ipa = Join-Path $IpaDir "App.ipa"
 $Plist = Join-Path $IpaDir "AppStoreInfo.plist"
@@ -46,6 +50,8 @@ Write-Host "Uploading $Ipa ..."
     -assetDescription $Plist `
     -u $AppleId `
     -p $AppSpecificPassword `
+    -asc_provider $AscProvider `
+    -WONoPause true `
     -v eXtreme
 
 if ($LASTEXITCODE -ne 0) {
