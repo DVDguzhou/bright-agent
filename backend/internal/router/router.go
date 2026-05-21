@@ -22,6 +22,7 @@ func Setup(cfg *config.Config) *gin.Engine {
 			auth.POST("/forgot-password", handler.ForgotPassword(cfg))
 			auth.POST("/reset-password", handler.ResetPassword(cfg))
 			auth.POST("/change-password", middleware.RequireAuth(cfg), handler.ChangePassword(cfg))
+			auth.DELETE("/account", middleware.RequireAuth(cfg), handler.DeleteAccount(cfg))
 			auth.GET("/me", middleware.RequireAuth(cfg), handler.Me(cfg))
 			auth.GET("/wechat/redirect", handler.WeChatRedirect(cfg))
 			auth.GET("/wechat/callback", handler.WeChatCallback(cfg))

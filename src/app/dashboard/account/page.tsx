@@ -16,6 +16,10 @@ export default function AccountPage() {
   const [error, setError] = useState("");
   const [ok, setOk] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState("");
+  const [deletePassword, setDeletePassword] = useState("");
+  const [deleteError, setDeleteError] = useState("");
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -73,6 +77,50 @@ export default function AccountPage() {
       setError(msg);
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const deleteAccount = async () => {
+    setDeleteError("");
+    if (deleteConfirm.trim() !== "DELETE") {
+      setDeleteError('请在下方输入大写 DELETE 以确认注销');
+      return;
+    }
+    setDeleting(true);
+    try {
+      const body: { confirm: string; password?: string } = { confirm: "DELETE" };
+      if (!placeholder && deletePassword) {
+        body.password = deletePassword;
+      }
+      const res = await fetchWithTimeout(
+        "/api/auth/account",
+        {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(body),
+        },
+        30000
+      );
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const code = data.error as string | undefined;
+        setDeleteError(
+          code === "WRONG_PASSWORD"
+            ? "密码不正确"
+            : code === "PASSWORD_REQUIRED"
+            ? "请输入当前密码以确认注销"
+            : code === "CONFIRM_REQUIRED"
+            ? '请输入 DELETE 确认'
+            : "注销失败，请稍后重试"
+        );
+        return;
+      }
+      router.replace("/login?deleted=1");
+    } catch {
+      setDeleteError("网络错误，请稍后重试");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -135,6 +183,45 @@ export default function AccountPage() {
           </button>
         </form>
       )}
+
+      <div className="mt-8 rounded-2xl border border-red-200 bg-red-50/60 p-6 shadow-sm">
+        <h2 className="text-lg font-semibold text-red-900">注销账号</h2>
+        <p className="mt-2 text-sm text-red-800/90 leading-relaxed">
+          永久删除账号及关联的个人资料、对话记录、已购提问包等数据，且无法恢复。若你创建了人生 Agent，也会一并删除。
+        </p>
+        {!placeholder && (
+          <>
+            <label className="mt-4 block text-sm font-medium text-red-900">当前密码</label>
+            <input
+              type="password"
+              value={deletePassword}
+              onChange={(e) => setDeletePassword(e.target.value)}
+              className="input-shell mt-1"
+              autoComplete="current-password"
+            />
+          </>
+        )}
+        <label className="mt-4 block text-sm font-medium text-red-900">
+          输入 <span className="font-mono">DELETE</span> 确认注销
+        </label>
+        <input
+          type="text"
+          value={deleteConfirm}
+          onChange={(e) => setDeleteConfirm(e.target.value)}
+          className="input-shell mt-1 font-mono"
+          placeholder="DELETE"
+          autoComplete="off"
+        />
+        {deleteError && <p className="mt-2 text-red-600 text-sm">{deleteError}</p>}
+        <button
+          type="button"
+          onClick={deleteAccount}
+          disabled={deleting}
+          className="mt-4 w-full rounded-xl border border-red-300 bg-white py-2.5 text-sm font-semibold text-red-700 transition hover:bg-red-50 disabled:opacity-50"
+        >
+          {deleting ? "注销中…" : "永久注销账号"}
+        </button>
+      </div>
 
       <div className="mt-8 space-y-2 text-sm text-slate-500">
         <p>

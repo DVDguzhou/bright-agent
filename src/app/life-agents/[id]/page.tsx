@@ -11,10 +11,10 @@ import { resolveLifeAgentCoverDisplayUrl } from "@/lib/life-agent-covers";
 import { isFavoriteAgentId, toggleFavoriteAgentId } from "@/lib/life-agent-favorites";
 import { useEdgeSwipeBack } from "@/hooks/use-edge-swipe-back";
 import { useMobileTouchNavEnabled } from "@/hooks/use-life-agents-feed-gestures";
-import {
-  cleanLifeAgentIntroMultiline,
+import { cleanLifeAgentIntroMultiline,
   cleanLifeAgentIntroText,
 } from "@/lib/life-agent-intro-clean";
+import { iosBlocksInAppDigitalPurchase } from "@/lib/capacitor-platform";
 
 type DetailData = {
   id: string;
@@ -115,9 +115,11 @@ export default function LifeAgentDetailPage() {
   const [portalReady, setPortalReady] = useState(false);
   const [starred, setStarred] = useState(false);
   const [liveUpdates, setLiveUpdates] = useState<Array<{ id: string; content: string; category: string; location?: string; createdAt: string; freshDays: number }>>([]);
+  const [iosNoInAppPurchase, setIosNoInAppPurchase] = useState(false);
 
   useEffect(() => {
     setPortalReady(true);
+    setIosNoInAppPurchase(iosBlocksInAppDigitalPurchase());
   }, []);
 
   useEffect(() => {
@@ -639,6 +641,7 @@ export default function LifeAgentDetailPage() {
       {/* 购买面板：闲鱼式底部弹层（挂 body） */}
       {portalReady &&
         showPurchase &&
+        !iosNoInAppPurchase &&
         createPortal(
           <>
             <div
@@ -830,10 +833,12 @@ export default function LifeAgentDetailPage() {
           </div>
           <button
             type="button"
-            onClick={() => setShowPurchase(!showPurchase)}
-            className="btn-secondary shrink-0 px-5 py-2.5 text-sm font-semibold"
+            onClick={() => !iosNoInAppPurchase && setShowPurchase(!showPurchase)}
+            disabled={iosNoInAppPurchase}
+            className="btn-secondary shrink-0 px-5 py-2.5 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-45"
+            title={iosNoInAppPurchase ? "iOS App 内暂不支持购买提问包" : undefined}
           >
-            购买提问
+            {iosNoInAppPurchase ? "App 内不可购" : "购买提问"}
           </button>
           {profile.viewerState.isLoggedIn ? (
             <Link href={`/life-agents/${profile.id}/chat`} className="btn-primary shrink-0 px-6 py-2.5 text-sm font-semibold">
