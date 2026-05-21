@@ -10,14 +10,24 @@ param(
     [string]$AppleId,
 
     [Parameter(Mandatory = $true)]
-    [string]$AppSpecificPassword
+    [string]$AppSpecificPassword,
+
+    [string]$TransporterPath = ""
 )
 
-$Transporter = "C:\Program Files\itms\bin\iTMSTransporter.cmd"
-if (-not (Test-Path $Transporter)) {
-    Write-Error "未找到 iTMSTransporter。请先以管理员身份安装 Transporter。"
+$candidates = @(
+    $TransporterPath,
+    "C:\Program Files\itms\bin\iTMSTransporter.cmd",
+    "$env:USERPROFILE\Downloads\itms-portable\iTMSTransporter.cmd"
+) | Where-Object { $_ -and (Test-Path $_) }
+
+$Transporter = $candidates | Select-Object -First 1
+if (-not $Transporter) {
+    Write-Error "未找到 iTMSTransporter。请先安装 Transporter，或用 -TransporterPath 指定 iTMSTransporter.cmd 路径。"
     exit 1
 }
+
+Write-Host "使用 Transporter: $Transporter"
 
 $Ipa = Join-Path $IpaDir "App.ipa"
 $Plist = Join-Path $IpaDir "AppStoreInfo.plist"
