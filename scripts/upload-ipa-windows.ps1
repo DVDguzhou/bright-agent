@@ -1,6 +1,5 @@
-# Windows 上用 iTMSTransporter 上传 IPA 到 App Store Connect
-# 前置：已安装 Transporter（需管理员权限运行安装包）
-# 下载：https://help.apple.com/itc/transporteruserguide/en.lproj/static.html → Install Transporter on Windows
+# Upload IPA to App Store Connect via iTMSTransporter on Windows.
+# Requires: App.ipa + AppStoreInfo.plist in -IpaDir
 
 param(
     [Parameter(Mandatory = $true)]
@@ -23,26 +22,25 @@ $candidates = @(
 
 $Transporter = $candidates | Select-Object -First 1
 if (-not $Transporter) {
-    Write-Error "未找到 iTMSTransporter。请先安装 Transporter，或用 -TransporterPath 指定 iTMSTransporter.cmd 路径。"
+    Write-Error "iTMSTransporter not found. Install Transporter or pass -TransporterPath."
     exit 1
 }
 
-Write-Host "使用 Transporter: $Transporter"
+Write-Host "Transporter: $Transporter"
 
 $Ipa = Join-Path $IpaDir "App.ipa"
 $Plist = Join-Path $IpaDir "AppStoreInfo.plist"
 
 if (-not (Test-Path $Ipa)) {
-    Write-Error "找不到 $Ipa"
+    Write-Error "Missing App.ipa: $Ipa"
     exit 1
 }
 if (-not (Test-Path $Plist)) {
-    Write-Error "找不到 AppStoreInfo.plist。Windows 上传必须同时有 IPA 和 AppStoreInfo.plist。"
-    Write-Error "请重新从 GitHub Actions 下载 ios-ipa 产物（已更新 CI 会自动生成该文件）。"
+    Write-Error "Missing AppStoreInfo.plist in $IpaDir (required on Windows)."
     exit 1
 }
 
-Write-Host "正在上传 $Ipa ..."
+Write-Host "Uploading $Ipa ..."
 & $Transporter -m upload `
     -assetFile $Ipa `
     -assetDescription $Plist `
@@ -51,8 +49,8 @@ Write-Host "正在上传 $Ipa ..."
     -v eXtreme
 
 if ($LASTEXITCODE -ne 0) {
-    Write-Error "上传失败，退出码 $LASTEXITCODE"
+    Write-Error "Upload failed, exit code $LASTEXITCODE"
     exit $LASTEXITCODE
 }
 
-Write-Host "上传成功。请到 App Store Connect 等待 Build 处理完成（约 5–30 分钟）。"
+Write-Host "Upload OK. Check App Store Connect in 5-30 minutes for Build processing."
