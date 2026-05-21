@@ -151,7 +151,9 @@ jobs:
 
       - name: 生成 ExportOptions.plist
         run: |
-          sed "s|PROFILE_NAME_PLACEHOLDER|${{ env.PP_UUID }}|g" .github/ExportOptions.plist.example > .github/ExportOptions.plist
+          sed "s|PROFILE_NAME_PLACEHOLDER|${{ env.PP_UUID }}|g" .github/ExportOptions.plist.example \
+            | sed "s|TEAM_ID_PLACEHOLDER|${{ secrets.APPLE_TEAM_ID }}|g" \
+            > .github/ExportOptions.plist
 
       - name: 设置 Node.js
         uses: actions/setup-node@v4
@@ -186,6 +188,24 @@ jobs:
             -exportOptionsPlist .github/ExportOptions.plist \
             -exportPath output \
             -allowProvisioningUpdates
+
+      - name: 生成 AppStoreInfo.plist（Windows Transporter 上传必需）
+        run: |
+          if [ ! -f output/AppStoreInfo.plist ]; then
+            xcrun swinfo -f output/App.ipa -o output/AppStoreInfo.plist -prettyprint true --plistFormat binary \
+              || xcrun swinfo -f output/App.ipa -o output/AppStoreInfo.plist
+          fi
+          ls -la output/
+
+      - name: 上传到 App Store Connect
+        if: vars.UPLOAD_TO_APP_STORE == 'true'
+        uses: apple-actions/upload-testflight-build@v3
+        with:
+          app-path: output/App.ipa
+          app-type: ios
+          issuer-id: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          api-key-id: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          api-private-key: ${{ secrets.APP_STORE_CONNECT_API_KEY_CONTENT }}
 
       - name: 上传 IPA
         uses: actions/upload-artifact@v4

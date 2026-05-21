@@ -3,9 +3,13 @@
 <plist version="1.0">
 <dict>
     <key>method</key>
-    <string>app-store</string>
+    <string>app-store-connect</string>
+    <key>generateAppStoreInformation</key>
+    <true/>
     <key>signingStyle</key>
     <string>manual</string>
+    <key>teamID</key>
+    <string>TEAM_ID_PLACEHOLDER</string>
     <key>provisioningProfiles</key>
     <dict>
         <key>com.yourname.agentmarketplace</key>
