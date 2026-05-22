@@ -1,14 +1,26 @@
 import UIKit
 import Capacitor
+import AppTrackingTransparency
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
+    private var didRequestTrackingAuthorization = false
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
         return true
+    }
+
+    /// App Store 5.1.2: ATT must run while UIApplicationState is active (not from WebView on first paint).
+    private func requestTrackingAuthorizationIfNeeded() {
+        guard !didRequestTrackingAuthorization else { return }
+        guard #available(iOS 14, *) else { return }
+        guard ATTrackingManager.trackingAuthorizationStatus == .notDetermined else { return }
+
+        didRequestTrackingAuthorization = true
+        ATTrackingManager.requestTrackingAuthorization { _ in }
     }
 
     func applicationWillResignActive(_ application: UIApplication) {
@@ -26,7 +38,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func applicationDidBecomeActive(_ application: UIApplication) {
-        // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
+        requestTrackingAuthorizationIfNeeded()
     }
 
     func applicationWillTerminate(_ application: UIApplication) {
