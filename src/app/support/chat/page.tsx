@@ -14,7 +14,7 @@ const SUPPORT_PAGE_BG = "#f4efe6";
 
 const SUPPORT_TOPICS = [
   { title: "账号与登录", desc: "注册、验证码、密码、微信/手机号绑定" },
-  { title: "购买与提问包", desc: "支付、剩余次数、已购 Agent 无法使用" },
+  { title: "对话与 Agent", desc: "聊天异常、Agent 回复、认证与资料问题" },
   { title: "认证与 Agent", desc: "人生 Agent 认证、资料修改、音色与对话" },
 ] as const;
 

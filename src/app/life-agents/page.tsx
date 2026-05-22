@@ -19,6 +19,7 @@ import { fetchFavoriteLifeAgents, fetchLifeAgentsPage } from "@/lib/life-agents-
 import { cleanLifeAgentIntroText } from "@/lib/life-agent-intro-clean";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLifeAgentsFeedGestures, useMobileTouchNavEnabled } from "@/hooks/use-life-agents-feed-gestures";
+import { lifeAgentShowsPurchaseUi } from "@/lib/life-agent-commerce";
 
 type PurchasedAgentRow = {
   id: string;
@@ -197,6 +198,7 @@ function LifeAgentsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const feedTab = searchParams.get("tab");
+  const showPurchaseUi = lifeAgentShowsPurchaseUi();
   const initialFeedTabRef = useRef<FeedTabKey>(normalizeFeedTab(feedTab));
   const [discoverItems, setDiscoverItems] = useState<LifeAgentListItem[]>([]);
   const [discoverNextCursor, setDiscoverNextCursor] = useState<string | null>(null);
@@ -234,6 +236,11 @@ function LifeAgentsPageContent() {
   const purchasedLastLoadedAtRef = useRef(0);
   const purchasedRequestInFlightRef = useRef(false);
   const initialFeedTab = initialFeedTabRef.current;
+
+  useEffect(() => {
+    if (showPurchaseUi || feedTab !== "purchased") return;
+    router.replace("/life-agents", { scroll: false });
+  }, [showPurchaseUi, feedTab, router]);
 
   const visitPanel = useCallback((i: number) => {
     setVisitedMask((m) => {
@@ -806,6 +813,7 @@ function LifeAgentsPageContent() {
                 virtualized={false}
               />
             </section>
+            {showPurchaseUi ? (
             <section
               ref={(node) => {
                 feedPanelElsRef.current[1] = node;
@@ -817,17 +825,18 @@ function LifeAgentsPageContent() {
               {purchasedHeading}
               {purchasedBody}
             </section>
+            ) : null}
             </div>
           </div>
         </>
       ) : (
         <section>
-          {feedTab === "favorites" ? favoritesIntro : feedTab === "purchased" ? purchasedIntro : null}
-          {feedTab === "favorites" || feedTab === "purchased" ? (
+          {feedTab === "favorites" ? favoritesIntro : feedTab === "purchased" && showPurchaseUi ? purchasedIntro : null}
+          {feedTab === "favorites" || (feedTab === "purchased" && showPurchaseUi) ? (
             feedTab === "favorites" ? favoritesHeading : purchasedHeading
           ) : null}
           {loadErrorBanner}
-          {feedTab === "purchased" ? (
+          {feedTab === "purchased" && showPurchaseUi ? (
             purchasedBody
           ) : (
             <LifeAgentDiscoverCardGrid
@@ -855,6 +864,7 @@ function LifeAgentsPageContent() {
 
 /** 已购列表：与发现页一致，分批挂载卡片，避免一次渲染过多 */
 function PurchasedAgentsWindowedGrid({ rows }: { rows: PurchasedAgentRow[] }) {
+  const showPrice = lifeAgentShowsPurchaseUi();
   const { slice, hasMore, sentinelRef } = useWindowedSlice(rows, { initial: 12, page: 12 });
   return (
     <div className="space-y-3">
@@ -887,9 +897,11 @@ function PurchasedAgentsWindowedGrid({ rows }: { rows: PurchasedAgentRow[] }) {
                         <VerificationBadge status={row.verificationStatus ?? "none"} size="sm" />
                       </div>
                     )}
+                    {showPrice ? (
                     <div className="absolute left-2 top-2 rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
                       剩余 {row.remainingQuestions} 次
                     </div>
+                    ) : null}
                     <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/45 via-black/15 to-transparent p-2.5 pt-12">
                       <span className="line-clamp-2 text-[13px] font-semibold leading-snug text-white drop-shadow-md">
                         {headlineShown}
@@ -901,6 +913,7 @@ function PurchasedAgentsWindowedGrid({ rows }: { rows: PurchasedAgentRow[] }) {
                       {row.displayName}
                     </h3>
                     <p className="mt-1 text-[11px] text-slate-400">点击进入对话</p>
+                    {showPrice ? (
                     <div className="mt-auto flex items-center justify-between border-t border-purple-100/60 pt-2 text-[11px] text-slate-500">
                       <span>按次咨询</span>
                       <span className="font-bold text-purple-700">
@@ -908,6 +921,7 @@ function PurchasedAgentsWindowedGrid({ rows }: { rows: PurchasedAgentRow[] }) {
                         <span className="text-[10px] font-medium text-slate-400">/问</span>
                       </span>
                     </div>
+                    ) : null}
                   </div>
                 </div>
               </Link>

@@ -7,6 +7,7 @@ import { LifeAgentCoverImage } from "@/components/LifeAgentCoverImage";
 import { resolveLifeAgentCoverDisplayUrl } from "@/lib/life-agent-covers";
 import type { LifeAgentListItem } from "@/lib/life-agent-feed-search";
 import { cleanLifeAgentIntroText } from "@/lib/life-agent-intro-clean";
+import { lifeAgentShowsPurchaseUi } from "@/lib/life-agent-commerce";
 import { useWindowedSlice } from "@/lib/use-windowed-slice";
 
 const anonymous = "佚";
@@ -73,6 +74,7 @@ function LifeAgentDiscoverCard({
   const coverUrl = resolveLifeAgentCoverDisplayUrl(profile.coverUrl, profile.coverImageUrl, profile.coverPresetKey);
   const headlineShown = cleanLifeAgentIntroText(profile.headline, profile.displayName);
   const verified = profile.verificationStatus === "verified";
+  const showPrice = lifeAgentShowsPurchaseUi();
   const ratingScore =
     profile.ratings && profile.ratings.raters > 0 ? profile.ratings.averageScore.toFixed(1) : null;
 
@@ -125,10 +127,12 @@ function LifeAgentDiscoverCard({
                 .join(" · ") || anonymous}
               {ratingScore ? <span className="text-ink-400"> · {ratingScore}★</span> : null}
             </span>
-            <span className="shrink-0 font-serif text-[15px] font-medium tabular-nums text-oxblood-500">
-              ¥{(profile.pricePerQuestion / 100).toFixed(0)}
-              <span className="ml-0.5 text-[10px] font-normal not-italic text-ink-300">/问</span>
-            </span>
+            {showPrice ? (
+              <span className="shrink-0 font-serif text-[15px] font-medium tabular-nums text-oxblood-500">
+                ¥{(profile.pricePerQuestion / 100).toFixed(0)}
+                <span className="ml-0.5 text-[10px] font-normal not-italic text-ink-300">/问</span>
+              </span>
+            ) : null}
           </div>
         </div>
       </Link>

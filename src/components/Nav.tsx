@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { fetchBoundLifeAgents, type BoundLifeAgent } from "@/lib/bound-life-agents";
 import { useMobileTouchNavEnabled } from "@/hooks/use-life-agents-feed-gestures";
+import { lifeAgentShowsPurchaseUi } from "@/lib/life-agent-commerce";
 import { useMediaRecorder } from "@/lib/voice/useMediaRecorder";
 
 // 人生 Agent: 智能体/对话
@@ -496,19 +497,25 @@ export function Nav() {
   const shouldShowLoadingFab = Boolean(user && ownedLifeAgents === null);
 
   const touchFeedPager = useMobileTouchNavEnabled() && isDiscoverEntryPage;
+  const showFeedPurchasedTab = lifeAgentShowsPurchaseUi();
   const feedTabDiscRef = useRef<HTMLAnchorElement | null>(null);
   const feedTabPurRef = useRef<HTMLAnchorElement | null>(null);
   const [feedTabUnderlineX, setFeedTabUnderlineX] = useState<number | null>(null);
 
   const updateFeedUnderlineFromProgress = useCallback((progress: number) => {
     const disc = feedTabDiscRef.current;
+    if (!disc) return;
+    if (!showFeedPurchasedTab) {
+      setFeedTabUnderlineX(disc.offsetLeft + disc.offsetWidth / 2);
+      return;
+    }
     const pur = feedTabPurRef.current;
-    if (!disc || !pur) return;
+    if (!pur) return;
     const a = disc.offsetLeft + disc.offsetWidth / 2;
     const b = pur.offsetLeft + pur.offsetWidth / 2;
     const x = a + (b - a) * Math.min(1, Math.max(0, progress));
     setFeedTabUnderlineX(x);
-  }, []);
+  }, [showFeedPurchasedTab]);
 
   useEffect(() => {
     if (!touchFeedPager) {
@@ -702,6 +709,7 @@ export function Nav() {
                     <span className="absolute bottom-0 left-1 right-1 h-[1px] bg-ink" aria-hidden />
                   ) : null}
                 </Link>
+                {showFeedPurchasedTab ? (
                 <Link
                   ref={feedTabPurRef}
                   href="/life-agents?tab=purchased"
@@ -713,6 +721,7 @@ export function Nav() {
                     <span className="absolute bottom-0 left-1 right-1 h-[1px] bg-ink" aria-hidden />
                   ) : null}
                 </Link>
+                ) : null}
               </div>
               <Link
                 href={isDashboardHomePage ? "/dashboard/notifications" : "/life-agents/search"}
@@ -871,6 +880,7 @@ export function Nav() {
                   <IconMap className="h-5 w-5 text-ink-400" />
                   地图
                 </Link>
+                {showFeedPurchasedTab ? (
                 <Link
                   href="/licenses"
                   onClick={() => setMobileDrawerOpen(false)}
@@ -881,6 +891,7 @@ export function Nav() {
                   </svg>
                   已购咨询
                 </Link>
+                ) : null}
                 {user ? (
                   <>
                     <Link

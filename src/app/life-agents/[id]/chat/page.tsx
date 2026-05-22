@@ -18,7 +18,7 @@ import {
 } from "@/lib/chat-glass";
 import { useEdgeSwipeBack } from "@/hooks/use-edge-swipe-back";
 import { useMobileTouchNavEnabled } from "@/hooks/use-life-agents-feed-gestures";
-import { LIFE_AGENT_UNLIMITED_CHAT } from "@/lib/life-agent-commerce";
+import { LIFE_AGENT_UNLIMITED_CHAT, lifeAgentShowsPurchaseUi } from "@/lib/life-agent-commerce";
 
 type Profile = {
   id: string;
@@ -347,9 +347,11 @@ export default function LifeAgentChatPage() {
           const data = await res.json();
           if (!res.ok) {
             setError(
-              data.error === "NO_QUESTIONS_LEFT" && !LIFE_AGENT_UNLIMITED_CHAT
+              data.error === "NO_QUESTIONS_LEFT" && lifeAgentShowsPurchaseUi()
                 ? "你的提问次数已经用完，请先返回详情页购买次数。"
-                : data.error === "UNAUTHORIZED"
+                : data.error === "NO_QUESTIONS_LEFT"
+                  ? "发送失败，请稍后重试。"
+                  : data.error === "UNAUTHORIZED"
                   ? "请先登录。"
                   : data.error === "SESSION_NOT_FOUND"
                     ? "会话已失效，请重新选择历史会话或新建聊天。"
@@ -790,19 +792,23 @@ export default function LifeAgentChatPage() {
                     <li>• 说清楚你的<strong>具体处境</strong>（如：二本大三、想转行、时间紧）</li>
                     <li>• 问得越具体，回答越有用</li>
                     <li>• 可以连续追问，一步步深入</li>
-                    <li>• 每次提问扣 1 次额度</li>
+                    {lifeAgentShowsPurchaseUi() && <li>• 每次提问扣 1 次额度</li>}
                   </ul>
                 </div>
+                {(lifeAgentShowsPurchaseUi() || !profile.viewerState.isLoggedIn) && (
                 <div className="mt-4 flex flex-wrap gap-3">
-                  <Link href={`/life-agents/${id}`} onClick={closeMenu} className="btn-secondary">
-                    去购买次数
-                  </Link>
+                  {lifeAgentShowsPurchaseUi() && (
+                    <Link href={`/life-agents/${id}`} onClick={closeMenu} className="btn-secondary">
+                      去购买次数
+                    </Link>
+                  )}
                   {!profile.viewerState.isLoggedIn && (
                     <Link href="/login" onClick={closeMenu} className="btn-primary">
                       登录后聊天
                     </Link>
                   )}
                 </div>
+                )}
               </div>
             </motion.aside>
           </>

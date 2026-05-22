@@ -9,6 +9,7 @@ import { VerificationBadge } from "@/components/VerificationBadge";
 import { useAuth } from "@/contexts/AuthContext";
 import { resolveLifeAgentCoverDisplayUrl } from "@/lib/life-agent-covers";
 import { cleanLifeAgentIntroText } from "@/lib/life-agent-intro-clean";
+import { lifeAgentShowsPurchaseUi } from "@/lib/life-agent-commerce";
 
 type LifeAgentPurchased = {
   id: string;
@@ -29,6 +30,7 @@ function tabClass(active: boolean) {
 }
 
 function PurchasedGrid({ items }: { items: LifeAgentPurchased[] }) {
+  const showPrice = lifeAgentShowsPurchaseUi();
   if (items.length === 0) return null;
   return (
     <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4 xl:grid-cols-5">
@@ -59,9 +61,11 @@ function PurchasedGrid({ items }: { items: LifeAgentPurchased[] }) {
                       <VerificationBadge status={row.verificationStatus ?? "none"} size="sm" />
                     </div>
                   )}
+                  {showPrice ? (
                   <div className="absolute left-2 top-2 rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
                     剩余 {row.remainingQuestions} 次
                   </div>
+                  ) : null}
                   <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/45 via-black/15 to-transparent p-2.5 pt-12">
                     <span className="line-clamp-2 text-[13px] font-semibold leading-snug text-white drop-shadow-md">
                       {headlineShown}
@@ -73,6 +77,7 @@ function PurchasedGrid({ items }: { items: LifeAgentPurchased[] }) {
                     {row.displayName}
                   </h3>
                   <p className="mt-1 text-[11px] text-slate-400">点击进入对话</p>
+                  {showPrice ? (
                   <div className="mt-auto flex items-center justify-between border-t border-slate-100 pt-2 text-[11px] text-slate-500">
                     <span>按次咨询</span>
                     <span className="font-bold text-emerald-600">
@@ -80,6 +85,7 @@ function PurchasedGrid({ items }: { items: LifeAgentPurchased[] }) {
                       <span className="text-[10px] font-medium text-slate-400">/问</span>
                     </span>
                   </div>
+                  ) : null}
                 </div>
               </div>
             </Link>
@@ -95,10 +101,17 @@ function LicensesPageContent() {
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
   const tab: "verified" | "unverified" = tabParam === "unverified" ? "unverified" : "verified";
+  const showPurchaseUi = lifeAgentShowsPurchaseUi();
 
   const { user, loading: authLoading } = useAuth();
   const [lifeAgentPacks, setLifeAgentPacks] = useState<LifeAgentPurchased[]>([]);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!showPurchaseUi) {
+      router.replace("/life-agents");
+    }
+  }, [showPurchaseUi, router]);
 
   useEffect(() => {
     if (!user) {
@@ -125,6 +138,14 @@ function LicensesPageContent() {
   }, [lifeAgentPacks]);
 
   const list = tab === "verified" ? verified : unverified;
+
+  if (!showPurchaseUi) {
+    return (
+      <div className="flex min-h-[40vh] items-center justify-center px-4">
+        <p className="text-sm text-slate-500">正在跳转…</p>
+      </div>
+    );
+  }
 
   if (authLoading) {
     return (

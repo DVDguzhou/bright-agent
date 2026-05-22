@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { getDisplayAvatar } from "@/lib/avatar";
+import { lifeAgentShowsPurchaseUi } from "@/lib/life-agent-commerce";
 
 type LifeAgentCreated = {
   id: string;
@@ -89,8 +90,12 @@ export default function DashboardPage() {
   const topStats = [
     { label: "我的创建", value: totals.createdCount, sub: "人生 Agent" },
     { label: "累计对话", value: totals.createdSessions, sub: "聊天场次" },
-    { label: "已购次数", value: totals.purchasedQuestions, sub: "剩余提问" },
-    { label: "累计售出", value: totals.soldPacks, sub: "提问包" },
+    ...(lifeAgentShowsPurchaseUi()
+      ? [
+          { label: "已购次数", value: totals.purchasedQuestions, sub: "剩余提问" },
+          { label: "累计售出", value: totals.soldPacks, sub: "提问包" },
+        ]
+      : []),
   ];
 
   const quickActions = [
@@ -105,17 +110,21 @@ export default function DashboardPage() {
         </svg>
       ),
     },
-    {
-      href: "/life-agents",
-      label: "我的购买",
-      desc: `${totals.purchasedQuestions} 次`,
-      bgClass: "bg-emerald-100",
-      icon: (
-        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 1.119-3 2.5S10.343 13 12 13s3 1.119 3 2.5S13.657 18 12 18m0-10V6m0 12v-2m7-4a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      ),
-    },
+    ...(lifeAgentShowsPurchaseUi()
+      ? [
+          {
+            href: "/life-agents",
+            label: "我的购买",
+            desc: `${totals.purchasedQuestions} 次`,
+            bgClass: "bg-emerald-100",
+            icon: (
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 1.119-3 2.5S10.343 13 12 13s3 1.119 3 2.5S13.657 18 12 18m0-10V6m0 12v-2m7-4a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            ),
+          },
+        ]
+      : []),
     {
       href: "/life-agents?tab=favorites",
       label: "我的收藏",
@@ -138,17 +147,21 @@ export default function DashboardPage() {
         </svg>
       ),
     },
-    {
-      href: "/licenses",
-      label: "已购咨询",
-      desc: "提问包与认证",
-      bgClass: "bg-indigo-100",
-      icon: (
-        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-        </svg>
-      ),
-    },
+    ...(lifeAgentShowsPurchaseUi()
+      ? [
+          {
+            href: "/licenses",
+            label: "已购咨询",
+            desc: "提问包与认证",
+            bgClass: "bg-indigo-100",
+            icon: (
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              </svg>
+            ),
+          },
+        ]
+      : []),
   ];
 
   if (loading || !user) {

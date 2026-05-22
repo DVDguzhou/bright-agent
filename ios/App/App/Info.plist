@@ -58,6 +58,10 @@
 	<string>BrightAgent 需要在地图上显示您的大致位置（仅本机展示，不上传坐标）。</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>BrightAgent 需要在地图上显示您的大致位置（仅本机展示，不上传坐标）。</string>
+	<key>NSCameraUsageDescription</key>
+	<string>BrightAgent 需要使用相机拍摄头像照片。</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>BrightAgent 需要访问您的照片库，以便选择头像图片。</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>BrightAgent 需要使用麦克风来录制语音，用于调教您的 Agent。</string>
 	<key>NSUserTrackingUsageDescription</key>
