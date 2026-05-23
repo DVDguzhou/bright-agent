@@ -2299,6 +2299,7 @@ export default function CreateLifeAgentPage() {
             />
           </section>
 
+          {/* 原「设置收费」区块，审核期暂隐藏
           <section className="border-b border-purple-200/[0.22] pb-6">
             <h2 className="text-xl font-semibold text-purple-950/90">设置收费</h2>
             <div className="mt-5 max-w-sm">
@@ -2314,6 +2315,7 @@ export default function CreateLifeAgentPage() {
               />
             </div>
           </section>
+          */}
 
           <section className="border-b border-purple-200/[0.22] py-6">
             <p className="font-medium text-purple-950/90">申请官方认证</p>

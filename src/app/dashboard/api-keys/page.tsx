@@ -249,7 +249,7 @@ export default function ApiKeysPage() {
 
       <div className="px-4 pb-3 sm:px-0">
         <p className="text-[15px] leading-relaxed text-slate-500">
-          为每个人生 Agent 管理调用 Key、公示单价（分/次）与调用数据。开放调用不消耗咨询者提问包，按次记账供后续结算。
+          为每个人生 Agent 管理调用 Key 与调用数据。开放 API 供第三方集成，当前展示累计调用与会话统计。
         </p>
       </div>
 
@@ -303,9 +303,7 @@ export default function ApiKeysPage() {
                           )}
                         </div>
                         <p className="mt-0.5 text-xs text-slate-500">
-                          累计 API 回复 {a.apiTotalCalls} 次 · 会话 {a.apiSessionCount} 个 · 公示{" "}
-                          {formatYuanFromFen(a.effectiveApiPricePerCallCents)} 元/次
-                          {a.apiPriceFollowsConsultation ? "（与单次咨询同价）" : "（独立定价）"}
+                          累计 API 回复 {a.apiTotalCalls} 次 · 会话 {a.apiSessionCount} 个
                         </p>
                       </div>
                       <span className="shrink-0 text-slate-400">{expanded ? "▲" : "▼"}</span>
@@ -325,12 +323,7 @@ export default function ApiKeysPage() {
                           </label>
                         </div>
 
-                        <AgentPricingForm
-                          agent={a}
-                          disabled={busy}
-                          saving={pricingSavingId === a.profileId}
-                          onSave={savePricing}
-                        />
+                        <AgentPricingForm agent={a} />
 
                         <div className="grid gap-4 lg:grid-cols-2">
                           <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-4">
@@ -499,78 +492,20 @@ export default function ApiKeysPage() {
   );
 }
 
-function AgentPricingForm({
-  agent,
-  disabled,
-  saving,
-  onSave,
-}: {
-  agent: AgentApiRow;
-  disabled: boolean;
-  saving: boolean;
-  onSave: (a: AgentApiRow, follow: boolean, centsStr: string) => void;
-}) {
-  const [follow, setFollow] = useState(agent.apiPriceFollowsConsultation);
-  const [cents, setCents] = useState(
-    String(agent.apiPricePerCallCents ?? agent.pricePerQuestion ?? 0),
-  );
-
-  useEffect(() => {
-    setFollow(agent.apiPriceFollowsConsultation);
-    setCents(String(agent.apiPricePerCallCents ?? agent.pricePerQuestion ?? 0));
-  }, [
-    agent.profileId,
-    agent.apiPriceFollowsConsultation,
-    agent.apiPricePerCallCents,
-    agent.pricePerQuestion,
-  ]);
-
+function AgentPricingForm({ agent }: { agent: AgentApiRow }) {
   return (
     <div className="rounded-xl border border-slate-100 bg-white p-4 ring-1 ring-black/[0.03]">
+      {/* 原「对外收费策略」表单，审核期暂隐藏
       <h3 className="text-sm font-semibold text-slate-800">对外收费策略（公示单价，单位：分/次）</h3>
       <p className="mt-1 text-xs text-slate-500">
         当前单次咨询定价 {formatYuanFromFen(agent.pricePerQuestion)} 元（{agent.pricePerQuestion} 分）。API 可单独定价或跟随咨询价；实际扣费与分账以后台规则为准。
       </p>
-      <div className="mt-3 space-y-2">
-        <label className="flex cursor-pointer items-center gap-2 text-sm">
-          <input
-            type="radio"
-            name={`apimode-${agent.profileId}`}
-            checked={follow}
-            disabled={disabled}
-            onChange={() => setFollow(true)}
-          />
-          与单次咨询同价
-        </label>
-        <label className="flex cursor-pointer items-center gap-2 text-sm">
-          <input
-            type="radio"
-            name={`apimode-${agent.profileId}`}
-            checked={!follow}
-            disabled={disabled}
-            onChange={() => setFollow(false)}
-          />
-          自定义 API 单价（分）
-        </label>
-      </div>
-      {!follow && (
-        <input
-          type="number"
-          min={0}
-          value={cents}
-          disabled={disabled}
-          onChange={(e) => setCents(e.target.value)}
-          className="mt-2 w-full max-w-xs rounded-lg border border-slate-200 px-3 py-2 text-sm sm:w-48"
-        />
-      )}
-      <button
-        type="button"
-        disabled={disabled || saving}
-        onClick={() => onSave(agent, follow, cents)}
-        className="mt-3 rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-700 disabled:opacity-50"
-      >
-        {saving ? "保存中…" : "保存收费策略"}
-      </button>
+      ...
+      */}
+      <h3 className="text-sm font-semibold text-slate-800">调用统计</h3>
+      <p className="mt-1 text-xs text-slate-500">
+        当前累计 API 回复 {agent.apiTotalCalls} 次，活跃会话 {agent.apiSessionCount} 个。对外收费策略配置审核期暂不展示。
+      </p>
     </div>
   );
 }

@@ -302,6 +302,7 @@ export default function LifeAgentManageHomePage() {
           </div>
         </div>
 
+        {/* 原统计条（含金额/售出，审核期暂隐藏）
         <div className="grid grid-cols-2 border-t border-slate-100 sm:grid-cols-4">
           <StatCard label="累计收入" value={`¥${(data.stats.totalRevenue / 100).toFixed(2)}`} sub="元" />
           <StatCard label="售出次数包" value={data.stats.soldPacks} sub="次" href={`/dashboard/life-agents/${id}/sales`} />
@@ -311,6 +312,18 @@ export default function LifeAgentManageHomePage() {
             value={feedbackTotal}
             sub={`有帮助 ${data.feedback?.counts.helpful ?? 0} 条`}
             href={`/dashboard/life-agents/${id}/feedback`}
+          />
+        </div>
+        */}
+        <div className="grid grid-cols-2 border-t border-slate-100 sm:grid-cols-4">
+          <StatCard label="被提问" value={data.stats.soldPacks} sub="次" href={`/dashboard/life-agents/${id}/sales`} />
+          <StatCard label="互动用户" value={data.questionPacks.length} sub="人" href={`/dashboard/life-agents/${id}/sales`} />
+          <StatCard label="累计对话" value={data.stats.sessionCount} sub="场" href={`/dashboard/life-agents/${id}/sessions`} />
+          <StatCard
+            label="热度指数"
+            value={data.stats.soldPacks + data.stats.sessionCount + data.questionPacks.length}
+            sub="综合"
+            href={`/dashboard/life-agents/${id}/sales`}
           />
         </div>
       </section>
@@ -333,16 +346,25 @@ export default function LifeAgentManageHomePage() {
           <QuickAction
             href={`/dashboard/life-agents/${id}/edit`}
             title="编辑资料"
-            desc="分组修改封面、价格、人设、示范回答与地区信息"
+            desc="分组修改封面、人设、示范回答与地区信息"
             colorClass="bg-amber-100 text-amber-700"
             icon={<svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>}
           />
+          {/* 原「销量记录」入口（含购买语义，审核期暂隐藏）
           <QuickAction
             href={`/dashboard/life-agents/${id}/sales`}
             title="销量记录"
             desc="查看近 7 天、30 天和全部购买记录"
             colorClass="bg-emerald-100 text-emerald-700"
             icon={<svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 1.119-3 2.5S10.343 13 12 13s3 1.119 3 2.5S13.657 18 12 18m0-10V6m0 12v-2m7-4a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
+          />
+          */}
+          <QuickAction
+            href={`/dashboard/life-agents/${id}/sales`}
+            title="互动记录"
+            desc="查看近 7 天、30 天和全部用户提问互动"
+            colorClass="bg-emerald-100 text-emerald-700"
+            icon={<svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>}
           />
           <QuickAction
             href={`/dashboard/life-agents/${id}/sessions`}
@@ -375,7 +397,7 @@ export default function LifeAgentManageHomePage() {
           <QuickAction
             href="/dashboard/api-keys"
             title="开放 API"
-            desc="管理调用 Key、定价和数据，让别人直接调用你的 Agent"
+            desc="管理调用 Key 与调用数据，让别人直接调用你的 Agent"
             colorClass="bg-indigo-100 text-indigo-700"
             icon={<svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a5 5 0 11-9.9 1H3m0 0l3-3m-3 3l3 3m6 6a5 5 0 109.9-1H21m0 0l-3 3m3-3l-3-3" /></svg>}
           />
@@ -460,6 +482,7 @@ export default function LifeAgentManageHomePage() {
       <section className="rounded-[28px] bg-white px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
         <h2 className="text-xl font-black tracking-tight text-[#111]">最近动态</h2>
         <div className="mt-4 grid gap-4 lg:grid-cols-3">
+          {/* 原「最近购买」卡片（含金额，审核期暂隐藏）
           <div className="rounded-2xl bg-[#fafbfc] p-4 ring-1 ring-black/[0.04]">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold text-slate-800">最近购买</h3>
@@ -476,6 +499,25 @@ export default function LifeAgentManageHomePage() {
                 </li>
               ))}
               {data.questionPacks.length === 0 && <p className="text-sm text-slate-400">暂时还没有购买记录</p>}
+            </ul>
+          </div>
+          */}
+          <div className="rounded-2xl bg-[#fafbfc] p-4 ring-1 ring-black/[0.04]">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-slate-800">最近互动</h3>
+              <Link href={`/dashboard/life-agents/${id}/sales`} className="text-xs font-medium text-sky-600">查看全部</Link>
+            </div>
+            <ul className="mt-3 space-y-3">
+              {data.questionPacks.slice(0, 3).map((item) => (
+                <li key={item.id} className="text-sm">
+                  <p className="font-medium text-[#111]">{item.buyer.name || item.buyer.email}</p>
+                  <p className="mt-0.5 text-slate-500">
+                    提问 {item.questionCount} 次，已对话 {item.questionsUsed} 次
+                  </p>
+                  <p className="mt-1 text-xs text-slate-400">{formatShortTime(item.createdAt)}</p>
+                </li>
+              ))}
+              {data.questionPacks.length === 0 && <p className="text-sm text-slate-400">暂时还没有互动记录</p>}
             </ul>
           </div>
 

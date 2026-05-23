@@ -224,6 +224,7 @@ export default function DashboardPage() {
         </div>
       </section>
 
+      {/* 原「我的收益」区块（含金额文案，审核期暂隐藏）
       <section className="rounded-[28px] bg-white px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
         <div className="flex items-center justify-between">
           <div className="min-w-0">
@@ -256,6 +257,39 @@ export default function DashboardPage() {
           </div>
         </div>
       </section>
+      */}
+
+      <section className="rounded-[28px] bg-white px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
+        <div className="flex items-center justify-between">
+          <div className="min-w-0">
+            <h2 className="text-xl font-black tracking-tight text-[#111]">我的热度</h2>
+          </div>
+          <span className="shrink-0 rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">
+            上架中 {totals.createdCount}
+          </span>
+        </div>
+
+        <div className="mt-4 grid grid-cols-4 gap-2 rounded-[24px] bg-[#fafbfc] p-3 text-center">
+          <div className="rounded-2xl bg-white px-2 py-3 shadow-sm ring-1 ring-black/[0.03]">
+            <p className="text-lg font-black text-[#111]">{totals.purchasedProfiles}</p>
+            <p className="mt-1 text-[11px] text-slate-500">对话 Agent</p>
+          </div>
+          <div className="rounded-2xl bg-white px-2 py-3 shadow-sm ring-1 ring-black/[0.03]">
+            <p className="text-lg font-black text-[#111]">{totals.soldPacks}</p>
+            <p className="mt-1 text-[11px] text-slate-500">被提问</p>
+          </div>
+          <div className="rounded-2xl bg-white px-2 py-3 shadow-sm ring-1 ring-black/[0.03]">
+            <p className="text-lg font-black text-[#111]">{totals.createdSessions}</p>
+            <p className="mt-1 text-[11px] text-slate-500">累计对话</p>
+          </div>
+          <div className="rounded-2xl bg-white px-2 py-3 shadow-sm ring-1 ring-black/[0.03]">
+            <p className="text-lg font-black text-[#111]">
+              {totals.createdSessions + totals.soldPacks + totals.purchasedProfiles}
+            </p>
+            <p className="mt-1 text-[11px] text-slate-500">热度指数</p>
+          </div>
+        </div>
+      </section>
 
       <section className="rounded-[28px] bg-white px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
         <div className="grid grid-cols-3 gap-3 text-center sm:grid-cols-5 sm:gap-2">
@@ -276,10 +310,10 @@ export default function DashboardPage() {
           <div className="min-w-0">
             <p className="text-sm font-semibold text-amber-950">继续打磨你的专属顾问主页</p>
             <h2 className="mt-1 text-2xl font-black tracking-tight text-[#111]">
-              让真实经历更值钱
+              让真实经历更有影响力
             </h2>
             <p className="mt-2 text-sm text-amber-950/80">
-              补全欢迎语、示范回答和经验条目，更容易提高转化。
+              补全欢迎语、示范回答和经验条目，更容易获得用户互动。
             </p>
           </div>
           <Link

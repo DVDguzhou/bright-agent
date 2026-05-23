@@ -402,7 +402,7 @@ export default function LifeAgentEditPage() {
           </div>
         </Section>
 
-        <Section title="售卖信息" hint="价格、欢迎语、适用范围和上架状态" defaultOpen>
+        <Section title="发布信息" hint="欢迎语、适用范围和上架状态" defaultOpen>
           <div className="grid gap-5 md:grid-cols-2">
             <div>
               <label className="mb-2 block text-sm font-medium text-slate-700">适合帮助的人群</label>
@@ -412,10 +412,12 @@ export default function LifeAgentEditPage() {
               <label className="mb-2 block text-sm font-medium text-slate-700">首次欢迎语</label>
               <textarea className="input-shell min-h-24" value={form.welcomeMessage} onChange={(e) => setForm((prev) => (prev ? { ...prev, welcomeMessage: e.target.value } : prev))} required />
             </div>
+            {/* 原「每次提问价格（元）」字段，审核期暂隐藏
             <div>
               <label className="mb-2 block text-sm font-medium text-slate-700">每次提问价格（元）</label>
               <input type="number" min="0.01" step="0.01" className="input-shell" value={form.pricePerQuestion} onChange={(e) => setForm((prev) => (prev ? { ...prev, pricePerQuestion: e.target.value } : prev))} />
             </div>
+            */}
             <div className="flex items-center gap-3 pt-7">
               <label className="flex cursor-pointer items-center gap-2">
                 <input type="checkbox" checked={form.published} onChange={(e) => setForm((prev) => (prev ? { ...prev, published: e.target.checked } : prev))} className="rounded border-slate-300" />
