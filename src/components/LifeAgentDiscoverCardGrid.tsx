@@ -73,13 +73,17 @@ function LifeAgentDiscoverCard({
   const areaLabel = [profile.city, profile.province].filter(Boolean).join(" · ");
   const coverUrl = resolveLifeAgentCoverDisplayUrl(profile.coverUrl, profile.coverImageUrl, profile.coverPresetKey);
   const headlineShown = cleanLifeAgentIntroText(profile.headline, profile.displayName);
+  const sampleQuestionsShown = (profile.sampleQuestions ?? [])
+    .map((q) => q.trim())
+    .filter(Boolean)
+    .slice(0, 2);
   const verified = profile.verificationStatus === "verified";
   const showPrice = lifeAgentShowsPurchaseUi();
   const ratingScore =
     profile.ratings && profile.ratings.raters > 0 ? profile.ratings.averageScore.toFixed(1) : null;
 
   return (
-    <article className="min-h-0 [contain-intrinsic-size:auto_300px]">
+    <article className="min-h-0 [contain-intrinsic-size:auto_340px]">
       <Link
         href={profileHref(profile.id)}
         className="group block focus:outline-none focus-visible:outline focus-visible:outline-1 focus-visible:outline-ink"
@@ -118,6 +122,20 @@ function LifeAgentDiscoverCard({
           <p className="mt-0.5 line-clamp-2 min-h-[2.5em] font-serif text-[12.5px] italic leading-snug text-ink-400">
             {headlineShown}
           </p>
+
+          {/* 示例问题：帮助用户快速了解可问什么 */}
+          {sampleQuestionsShown.length > 0 ? (
+            <ul className="mt-1.5 space-y-0.5" aria-label="你可以问">
+              {sampleQuestionsShown.map((q, i) => (
+                <li
+                  key={i}
+                  className="line-clamp-1 pl-2.5 text-[11px] leading-snug text-ink-300 before:-ml-2.5 before:mr-1 before:inline-block before:w-2 before:text-center before:text-[10px] before:text-ink-200 before:content-['·']"
+                >
+                  {q}
+                </li>
+              ))}
+            </ul>
+          ) : null}
 
           {/* 元数据条：地区 · 评分 / 价格 */}
           <div className="mt-2 flex items-baseline justify-between gap-2 text-[11px] text-ink-300">
@@ -180,7 +198,7 @@ export function LifeAgentDiscoverCardGrid({
 
   const rowVirtualizer = useWindowVirtualizer({
     count: rows.length,
-    estimateSize: () => 360,
+    estimateSize: () => 400,
     overscan: 4,
     gap: 28,
     enabled: virtualized && !loading && profiles.length > 0,
@@ -244,6 +262,7 @@ export function LifeAgentDiscoverCardGrid({
               <div className="h-3.5 w-3/5 animate-pulse bg-paper-200" />
               <div className="h-3 w-full animate-pulse bg-paper-200" />
               <div className="h-3 w-2/3 animate-pulse bg-paper-200" />
+              <div className="h-2.5 w-4/5 animate-pulse bg-paper-200" />
             </div>
           </div>
         ))}
