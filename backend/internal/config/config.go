@@ -38,6 +38,7 @@ type Config struct {
 	DashScopeTTSModel    string // 默认 qwen3-tts-flash
 	DashScopeTTSVoice    string // 默认 Cherry
 	DashScopeTTSLanguage string // 默认 Chinese
+	DashScopeASRModel    string // 默认 qwen3-asr-flash（语音转文字）
 	// 声音复刻（与 enrollment target_model 须一致）
 	DashScopeVCModel          string // 默认 qwen3-tts-vc-2026-01-22
 	DashScopeVoiceEnrollURL   string // 创建音色 API
@@ -113,6 +114,7 @@ func Load() *Config {
 		DashScopeTTSModel:    getEnv("DASHSCOPE_TTS_MODEL", "qwen3-tts-flash"),
 		DashScopeTTSVoice:    getEnv("DASHSCOPE_TTS_VOICE", "Cherry"),
 		DashScopeTTSLanguage: getEnv("DASHSCOPE_TTS_LANGUAGE", "Chinese"),
+		DashScopeASRModel:    getEnv("DASHSCOPE_ASR_MODEL", "qwen3-asr-flash"),
 		DashScopeVCModel: getEnv(
 			"DASHSCOPE_VC_MODEL",
 			"qwen3-tts-vc-2026-01-22",

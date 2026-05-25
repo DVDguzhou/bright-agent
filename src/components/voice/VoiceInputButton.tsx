@@ -55,8 +55,18 @@ export function VoiceInputButton({
         fd.append("language", "zh");
         const res = await fetch("/api/transcribe", { method: "POST", body: fd, credentials: "include" });
         const data = (await res.json()) as { text?: string; error?: string };
+        if (res.status === 401) {
+          setError("请先登录后再使用语音");
+          return;
+        }
         if (!res.ok) {
-          setError(data.error === "speech-to-text not configured" ? "语音转写未配置" : "语音识别失败，请重试");
+          setError(
+            data.error === "speech-to-text not configured"
+              ? "语音转写未配置，请联系管理员"
+              : data.error === "transcription failed"
+                ? "语音识别服务异常，请稍后重试"
+                : "语音识别失败，请重试",
+          );
           return;
         }
         const text = (data.text ?? "").trim();

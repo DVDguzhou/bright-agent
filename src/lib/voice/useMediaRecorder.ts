@@ -40,6 +40,8 @@ export function useMediaRecorder(options?: {
   const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const durationIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const onDataAvailableRef = useRef(options?.onDataAvailable);
+  onDataAvailableRef.current = options?.onDataAvailable;
 
   const start = useCallback(async () => {
     try {
@@ -71,7 +73,7 @@ export function useMediaRecorder(options?: {
         if (chunksRef.current.length > 0) {
           const resultBlob = new Blob(chunksRef.current, { type: supported });
           setBlob(resultBlob);
-          options?.onDataAvailable?.(resultBlob);
+          onDataAvailableRef.current?.(resultBlob);
         }
         setStatus("idle");
         if (durationIntervalRef.current) {
@@ -102,7 +104,7 @@ export function useMediaRecorder(options?: {
       setError(msg);
       setStatus("error");
     }
-  }, [options?.mimeType, options?.audioBitsPerSecond, options?.onDataAvailable]);
+  }, [options?.mimeType, options?.audioBitsPerSecond]);
 
   const stop = useCallback(() => {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
