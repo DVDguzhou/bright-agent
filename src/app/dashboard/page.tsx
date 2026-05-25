@@ -1,11 +1,10 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { getDisplayAvatar } from "@/lib/avatar";
+import { ProfileAvatarEditor } from "@/components/ProfileAvatarEditor";
 import { lifeAgentShowsPurchaseUi } from "@/lib/life-agent-commerce";
 
 type LifeAgentCreated = {
@@ -45,7 +44,7 @@ function IconBox({
 }
 
 export default function DashboardPage() {
-  const { user, loading } = useAuth();
+  const { user, loading, refetch } = useAuth();
   const [lifeAgentsCreated, setLifeAgentsCreated] = useState<LifeAgentCreated[]>([]);
   const [lifeAgentsPurchased, setLifeAgentsPurchased] = useState<LifeAgentPurchased[]>([]);
 
@@ -189,16 +188,14 @@ export default function DashboardPage() {
         <div className="bg-gradient-to-r from-amber-50 via-white to-sky-50 px-4 pb-4 pt-3 sm:px-6">
           <div className="flex items-start justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
-              <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full ring-1 ring-black/5">
-                <Image
-                  src={getDisplayAvatar({ avatarUrl: user.avatarUrl, name: user.name, email: user.email })}
-                  alt={user.name || user.email}
-                  fill
-                  className="object-cover"
-                  sizes="64px"
-                  unoptimized
-                />
-              </div>
+              <ProfileAvatarEditor
+                avatarUrl={user.avatarUrl}
+                name={user.name}
+                email={user.email}
+                onUpdated={() => {
+                  void refetch();
+                }}
+              />
               <div className="min-w-0">
                 <h1 className="truncate text-[28px] font-black tracking-tight text-[#111]">
                   {user.name || "我的"}
