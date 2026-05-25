@@ -1,5 +1,5 @@
 /**
- * 为所有人生 Agent 分配不重复的「微信风格」头像（下载到本地 uploads，写入 cover_image_url）。
+ * 为人生 Agent 分配不重复的「微信风格」头像（下载到本地 uploads，写入 cover_image_url）。
  *
  * 头像来源（按优先级尝试，直到拿到不重复图片）：
  *   1. v2.xxapi.cn 随机头像 API（国内常见 QQ/微信用户头像风格）
@@ -9,6 +9,7 @@
  * 用法：
  *   npx tsx scripts/life-agent/assign-wechat-avatars.ts          # 预览
  *   npx tsx scripts/life-agent/assign-wechat-avatars.ts --apply  # 写入 DB + 保存文件
+ *   npx tsx scripts/life-agent/assign-wechat-avatars.ts --podcast-only --apply  # 仅四批播客（59 条）
  *   LIMIT=20 npx tsx scripts/life-agent/assign-wechat-avatars.ts --apply
  */
 import "dotenv/config";
@@ -20,7 +21,15 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 const APPLY = process.argv.includes("--apply") || process.env.APPLY === "1";
+const PODCAST_ONLY =
+  process.argv.includes("--podcast-only") || process.env.PODCAST_ONLY === "1";
 const LIMIT = Number(process.env.LIMIT || 0);
+const PODCAST_SOURCES = [
+  "不止大学播客",
+  "我下班了播客",
+  "校招飞播客",
+  "迷你退休播客",
+] as const;
 const FETCH_TIMEOUT_MS = Number(process.env.AVATAR_FETCH_TIMEOUT_MS || 25000);
 const LOCAL_COVER_DIR =
   process.env.LIFE_AGENT_COVER_DIR ||
@@ -145,11 +154,13 @@ async function main() {
 
   const rows = await prisma.lifeAgentProfile.findMany({
     select: { id: true, displayName: true, coverImageUrl: true },
+    where: PODCAST_ONLY ? { source: { in: [...PODCAST_SOURCES] } } : undefined,
     orderBy: { createdAt: "asc" },
     ...(LIMIT > 0 ? { take: LIMIT } : {}),
   });
 
   console.log(`Agents to process: ${rows.length}`);
+  console.log(`Podcast only: ${PODCAST_ONLY}`);
   console.log(`Mode: ${APPLY ? "APPLY (write files + DB)" : "DRY RUN"}`);
   console.log(`Cover dir: ${LOCAL_COVER_DIR}`);
 

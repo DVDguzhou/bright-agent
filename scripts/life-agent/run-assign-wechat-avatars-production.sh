@@ -5,6 +5,7 @@
 # 用法：
 #   sh scripts/life-agent/run-assign-wechat-avatars-production.sh
 #   sh scripts/life-agent/run-assign-wechat-avatars-production.sh --apply
+#   sh scripts/life-agent/run-assign-wechat-avatars-production.sh --podcast-only --apply
 #   LIMIT=10 sh scripts/life-agent/run-assign-wechat-avatars-production.sh --apply
 
 set -eu

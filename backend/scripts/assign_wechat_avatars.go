@@ -1,9 +1,10 @@
-// 为所有人生 Agent 下载不重复的「微信风格」头像到 uploads，并写入 cover_image_url。
+// 为人生 Agent 下载不重复的「微信风格」头像到 uploads，并写入 cover_image_url。
 //
 // 在 backend 目录执行（需 DATABASE_URL，与 seed 相同）：
 //
 //	go run ./scripts/assign_wechat_avatars.go
 //	go run ./scripts/assign_wechat_avatars.go --apply
+//	go run ./scripts/assign_wechat_avatars.go --podcast-only --apply   # 仅四批播客（59 条）
 //	LIMIT=20 go run ./scripts/assign_wechat_avatars.go --apply
 //
 // 生产 Docker 宿主机示例（~/regr）：
@@ -29,6 +30,7 @@ import (
 
 	"github.com/agent-marketplace/backend/internal/db"
 	"github.com/agent-marketplace/backend/internal/models"
+	"github.com/agent-marketplace/backend/internal/yantuseed"
 	"github.com/joho/godotenv"
 )
 
@@ -50,9 +52,13 @@ func main() {
 	_ = godotenv.Load("../.env")
 
 	apply := false
+	podcastOnly := os.Getenv("PODCAST_ONLY") == "1"
 	for _, arg := range os.Args[1:] {
-		if arg == "--apply" {
+		switch arg {
+		case "--apply":
 			apply = true
+		case "--podcast-only":
+			podcastOnly = true
 		}
 	}
 
@@ -83,6 +89,9 @@ func main() {
 
 	var profiles []models.LifeAgentProfile
 	q := db.DB.Order("created_at ASC")
+	if podcastOnly {
+		q = q.Where("source IN ?", yantuseed.PodcastSources())
+	}
 	if limit > 0 {
 		q = q.Limit(limit)
 	}
@@ -94,7 +103,7 @@ func main() {
 	used := make(map[string]struct{})
 	ok, fail := 0, 0
 
-	fmt.Printf("agents=%d mode=%s coverDir=%s\n", len(profiles), modeLabel(apply), coverDir)
+	fmt.Printf("agents=%d mode=%s podcastOnly=%t coverDir=%s\n", len(profiles), modeLabel(apply), podcastOnly, coverDir)
 
 	for _, p := range profiles {
 		img, source, ext, err := downloadUniqueAvatar(client, p.ID, used)

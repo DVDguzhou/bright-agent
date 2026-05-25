@@ -16,3 +16,13 @@ func PodcastProfiles() []Profile {
 func PodcastProfileStartIndex() int {
 	return len(Profiles()) - len(PodcastProfiles())
 }
+
+// PodcastSources 四批播客写入 life_agent_profiles.source 的值，用于按来源筛选。
+func PodcastSources() []string {
+	return []string{
+		"不止大学播客",
+		"我下班了播客",
+		"校招飞播客",
+		"迷你退休播客",
+	}
+}

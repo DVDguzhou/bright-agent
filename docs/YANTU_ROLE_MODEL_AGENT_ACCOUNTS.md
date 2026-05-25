@@ -489,6 +489,13 @@
 
 **仅导入播客（59 条，不动飞跃手册等）**：在 `backend` 目录执行 `go run ./scripts/seed_podcast_text.go`（全量仍用 `go run ./scripts/seed_yantu_text.go`）。
 
+**仅给播客分配微信风格头像（59 条）**（按 `source` 筛选四批播客，不动飞跃手册等）：
+
+- 本地预览：`npm run assign:wechat-avatars:podcast`
+- 本地写入：`npm run assign:wechat-avatars:podcast -- --apply`
+- 后端脚本（`backend` 目录）：`go run ./scripts/assign_wechat_avatars.go --podcast-only --apply`
+- 生产 Docker：`sh scripts/life-agent/run-assign-wechat-avatars-production.sh --podcast-only --apply`（完成后 `docker compose -f docker-compose.production.yml restart backend`）
+
 ## 删除研途榜样种子数据（危险操作）
 
 级联清理：知识库、买家会话与消息、反馈、评分、提问包、调用密钥、共编状态、收藏等。
