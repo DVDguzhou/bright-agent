@@ -1,18 +1,16 @@
-// 导出 yantuseed 全部档案的有效 welcome_message（与 UpsertProfile 逻辑一致）。
+// 在终端打印 yantuseed 档案的有效 welcome_message（与 UpsertProfile 逻辑一致）。
 //
-// 在 backend 目录执行：
+// 在 backend 目录执行（直接打印到终端，不写文件）：
 //
 //	go run ./scripts/export_welcome_messages.go
 //	go run ./scripts/export_welcome_messages.go --podcast-only
-//	go run ./scripts/export_welcome_messages.go --out ../docs/WELCOME_MESSAGES_EXPORT.md
-//	go run ./scripts/export_welcome_messages.go --podcast-only --out ../docs/WELCOME_MESSAGES_PODCAST.md
-//	go run ./scripts/export_welcome_messages.go --csv --out ../docs/welcome_messages.csv
+//	LIMIT=10 go run ./scripts/export_welcome_messages.go --podcast-only
 package main
 
 import (
-	"encoding/csv"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/agent-marketplace/backend/internal/yantuseed"
@@ -27,93 +25,51 @@ func effectiveWelcome(p yantuseed.Profile) string {
 
 func main() {
 	podcastOnly := os.Getenv("PODCAST_ONLY") == "1"
-	csvMode := false
-	outPath := ""
-	for i := 1; i < len(os.Args); i++ {
-		arg := os.Args[i]
-		switch arg {
-		case "--podcast-only":
+	limit := 0
+	if v := strings.TrimSpace(os.Getenv("LIMIT")); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n > 0 {
+			limit = n
+		}
+	}
+	for _, arg := range os.Args[1:] {
+		if arg == "--podcast-only" {
 			podcastOnly = true
-		case "--csv":
-			csvMode = true
-		case "--out":
-			if i+1 < len(os.Args) {
-				outPath = os.Args[i+1]
-				i++
-			}
-		default:
-			if strings.HasPrefix(arg, "--out=") {
-				outPath = strings.TrimPrefix(arg, "--out=")
-			}
 		}
 	}
 
 	profiles := yantuseed.Profiles()
-	if podcastOnly {
-		profiles = yantuseed.PodcastProfiles()
-	}
-
-	var out *os.File
-	if outPath != "" {
-		f, err := os.Create(outPath)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, "create:", err)
-			os.Exit(1)
-		}
-		defer f.Close()
-		out = f
-	} else {
-		out = os.Stdout
-	}
-
-	if csvMode {
-		w := csv.NewWriter(out)
-		_ = w.Write([]string{"seq", "display_name", "source", "custom", "welcome_message"})
-		base := 0
-		if podcastOnly {
-			base = yantuseed.PodcastProfileStartIndex()
-		}
-		for i, p := range profiles {
-			custom := strings.TrimSpace(p.WelcomeMessage) != ""
-			src := strings.TrimSpace(p.Source)
-			_ = w.Write([]string{
-				fmt.Sprintf("%d", base+i+1),
-				p.DisplayName,
-				src,
-				fmt.Sprintf("%t", custom),
-				effectiveWelcome(p),
-			})
-		}
-		w.Flush()
-		return
-	}
-
-	fmt.Fprintln(out, "# 人生 Agent 欢迎语导出")
-	fmt.Fprintln(out)
-	if podcastOnly {
-		fmt.Fprintf(out, "范围：播客 %d 条\n\n", len(profiles))
-	} else {
-		fmt.Fprintf(out, "范围：全部 %d 条\n\n", len(profiles))
-	}
-	fmt.Fprintln(out, "| 序号 | 昵称 | 来源 | 自定义 | 欢迎语 |")
-	fmt.Fprintln(out, "| --- | --- | --- | --- | --- |")
-
 	base := 0
 	if podcastOnly {
+		profiles = yantuseed.PodcastProfiles()
 		base = yantuseed.PodcastProfileStartIndex()
 	}
+	if limit > 0 && limit < len(profiles) {
+		profiles = profiles[:limit]
+	}
+
+	scope := fmt.Sprintf("全部 %d 条", len(yantuseed.Profiles()))
+	if podcastOnly {
+		scope = fmt.Sprintf("播客 %d 条", len(yantuseed.PodcastProfiles()))
+	}
+	if limit > 0 {
+		scope += fmt.Sprintf("（仅前 %d 条）", limit)
+	}
+	fmt.Printf("欢迎语导出 · %s\n", scope)
+	fmt.Println(strings.Repeat("=", 72))
+
 	for i, p := range profiles {
-		custom := "否"
-		if strings.TrimSpace(p.WelcomeMessage) != "" {
-			custom = "是"
-		}
+		seq := base + i + 1
 		src := strings.TrimSpace(p.Source)
 		if src == "" {
 			src = "—"
 		}
-		welcome := effectiveWelcome(p)
-		welcome = strings.ReplaceAll(welcome, "|", "\\|")
-		welcome = strings.ReplaceAll(welcome, "\n", " ")
-		fmt.Fprintf(out, "| %d | %s | %s | %s | %s |\n", base+i+1, p.DisplayName, src, custom, welcome)
+		custom := "默认模板"
+		if strings.TrimSpace(p.WelcomeMessage) != "" {
+			custom = "自定义"
+		}
+		fmt.Printf("\n[%d] %s · %s · %s\n", seq, p.DisplayName, src, custom)
+		fmt.Println(effectiveWelcome(p))
 	}
+	fmt.Println()
+	fmt.Printf("共 %d 条\n", len(profiles))
 }
