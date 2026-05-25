@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { LifeAgentCoverImage } from "@/components/LifeAgentCoverImage";
 import { getDisplayAvatar } from "@/lib/avatar";
+import { compressImageFileToJpeg } from "@/lib/compress-image";
 
 type ProfileAvatarEditorProps = {
   avatarUrl?: string | null;
@@ -11,6 +12,37 @@ type ProfileAvatarEditorProps = {
   onUpdated: (avatarUrl: string | null) => void;
   size?: "md" | "lg";
 };
+
+function mapUploadError(code?: string, status?: number): string {
+  switch (code) {
+    case "FILE_TOO_LARGE":
+      return "图片不能超过 2MB";
+    case "UNSUPPORTED_TYPE":
+      return "仅支持 PNG、JPG、WebP";
+    case "UNAUTHORIZED":
+      return "请先登录后再上传";
+    case "UPLOAD_STORE_ERROR":
+      return "服务器保存图片失败，请联系管理员";
+    case "NO_FILE":
+      return "未收到图片，请重试";
+    case "UPLOAD_PROXY_FAILED":
+      return "无法连接上传服务";
+    default:
+      if (status === 404 || status === 405) {
+        return "上传接口未就绪，请确认后端已更新并重启";
+      }
+      return "上传失败，请重试";
+  }
+}
+
+function mapPatchError(status?: number, code?: string): string {
+  if (status === 404 || status === 405) {
+    return "保存接口未就绪，请更新并重启后端";
+  }
+  if (code === "UNAUTHORIZED") return "请先登录";
+  if (code === "VALIDATION_ERROR") return "头像格式无效";
+  return "保存头像失败，请重试";
+}
 
 export function ProfileAvatarEditor({
   avatarUrl,
@@ -31,8 +63,16 @@ export function ProfileAvatarEditor({
     setError(null);
     setUploading(true);
     try {
+      let prepared: File;
+      try {
+        prepared = await compressImageFileToJpeg(file);
+      } catch {
+        setError("无法读取该图片，请换一张 JPG/PNG 或从相册选「兼容性最佳」");
+        return;
+      }
+
       const fd = new FormData();
-      fd.append("file", file);
+      fd.append("file", prepared);
       const uploadRes = await fetch("/api/upload/life-agent-cover", {
         method: "POST",
         body: fd,
@@ -40,13 +80,7 @@ export function ProfileAvatarEditor({
       });
       const uploadData = (await uploadRes.json().catch(() => ({}))) as { url?: string; error?: string };
       if (!uploadRes.ok || typeof uploadData.url !== "string") {
-        setError(
-          uploadData.error === "FILE_TOO_LARGE"
-            ? "图片不能超过 2MB"
-            : uploadData.error === "UNSUPPORTED_TYPE"
-              ? "仅支持 PNG、JPG、WebP"
-              : "上传失败，请重试",
-        );
+        setError(mapUploadError(uploadData.error, uploadRes.status));
         return;
       }
 
@@ -56,9 +90,12 @@ export function ProfileAvatarEditor({
         credentials: "include",
         body: JSON.stringify({ avatarUrl: uploadData.url }),
       });
-      const patchData = (await patchRes.json().catch(() => ({}))) as { avatarUrl?: string | null; error?: string };
+      const patchData = (await patchRes.json().catch(() => ({}))) as {
+        avatarUrl?: string | null;
+        error?: string;
+      };
       if (!patchRes.ok) {
-        setError("保存头像失败，请重试");
+        setError(mapPatchError(patchRes.status, patchData.error));
         return;
       }
       onUpdated(patchData.avatarUrl ?? uploadData.url);
@@ -91,7 +128,8 @@ export function ProfileAvatarEditor({
         body: JSON.stringify({ avatarUrl: "" }),
       });
       if (!res.ok) {
-        setError("恢复默认头像失败");
+        const data = (await res.json().catch(() => ({}))) as { error?: string };
+        setError(mapPatchError(res.status, data.error));
         return;
       }
       onUpdated(null);
@@ -138,7 +176,7 @@ export function ProfileAvatarEditor({
       <input
         ref={inputRef}
         type="file"
-        accept="image/png,image/jpeg,image/webp"
+        accept="image/*"
         className="hidden"
         onChange={onPickFile}
       />
