@@ -487,6 +487,8 @@
 | 1667 | 旅行边赚Allen | 旅行·Allen | minituixiu-import@demo.com | pod_mnr11@163.com | YantuLa2026! |
 | 1668 | AI写真被动收入 | AI写真·布噜 | minituixiu-import@demo.com | pod_mnr12@163.com | YantuLa2026! |
 
+**仅导入播客（59 条，不动飞跃手册等）**：在 `backend` 目录执行 `go run ./scripts/seed_podcast_text.go`（全量仍用 `go run ./scripts/seed_yantu_text.go`）。
+
 ## 删除研途榜样种子数据（危险操作）
 
 级联清理：知识库、买家会话与消息、反馈、评分、提问包、调用密钥、共编状态、收藏等。
