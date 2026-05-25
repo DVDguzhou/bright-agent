@@ -30,6 +30,8 @@ fi
 
 docker run --rm \
   $ENV_FILE_ARGS \
+  -e GOPROXY="${GOPROXY:-https://goproxy.cn,direct}" \
+  -e GOSUMDB="${GOSUMDB:-sum.golang.google.cn}" \
   -e LIFE_AGENT_COVER_DIR=/covers \
   -e LIMIT="${LIMIT:-}" \
   -v "$ROOT/backend:/src" \

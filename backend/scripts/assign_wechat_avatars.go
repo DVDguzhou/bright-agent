@@ -8,7 +8,9 @@
 //
 // 生产 Docker 宿主机示例（~/regr）：
 //
-//	cd backend && go run ./scripts/assign_wechat_avatars.go --apply
+//	sh scripts/life-agent/run-assign-wechat-avatars-production.sh --apply
+//
+// 若 go run 拉模块超时，脚本已默认 GOPROXY=https://goproxy.cn,direct
 package main
 
 import (
