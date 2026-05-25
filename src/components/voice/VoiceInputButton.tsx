@@ -23,6 +23,25 @@ const sizeClasses = {
   lg: "h-12 w-12",
 };
 
+function MicIcon({ className = "h-5 w-5", filled = false }: { className?: string; filled?: boolean }) {
+  if (filled) {
+    return (
+      <svg className={className} fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.91-3c-.49 0-.9.36-.98.85C16.52 14.2 14.47 16 12 16s-4.52-1.8-4.93-4.15c-.08-.49-.49-.85-.98-.85-.61 0-1.09.54-1 1.14.49 3 2.89 5.35 5.91 5.83V20c0 .55.45 1 1 1s1-.45 1-1v-2.18c3.02-.48 5.42-2.83 5.91-5.83.1-.6-.39-1.14-1-1.14z" />
+      </svg>
+    );
+  }
+  return (
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M12 18a5 5 0 005-5V8a5 5 0 10-10 0v5a5 5 0 005 5zm0 0v3m-3 0h6"
+      />
+    </svg>
+  );
+}
+
 export function VoiceInputButton({
   onTranscript,
   disabled = false,
@@ -152,31 +171,11 @@ export function VoiceInputButton({
         } disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
       >
         {isPreparing ? (
-          <span className="h-5 w-5 rounded-full border-2 border-current/25 border-t-current animate-spin" />
+          <MicIcon className="h-5 w-5 animate-pulse opacity-70" />
         ) : isPressActive ? (
-          <svg
-            className="h-5 w-5 animate-pulse"
-            fill="currentColor"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
-            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.91-3c-.49 0-.9.36-.98.85C16.52 14.2 14.47 16 12 16s-4.52-1.8-4.93-4.15c-.08-.49-.49-.85-.98-.85-.61 0-1.09.54-1 1.14.49 3 2.89 5.35 5.91 5.83V20c0 .55.45 1 1 1s1-.45 1-1v-2.18c3.02-.48 5.42-2.83 5.91-5.83.1-.6-.39-1.14-1-1.14z" />
-          </svg>
+          <MicIcon className="h-5 w-5 animate-pulse" filled />
         ) : (
-          <svg
-            className="h-5 w-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0z"
-            />
-          </svg>
+          <MicIcon className="h-5 w-5" />
         )}
       </button>
       {error && (

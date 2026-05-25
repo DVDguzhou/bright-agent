@@ -180,8 +180,18 @@ function FloatingVoiceCoachFab({ agent }: { agent: BoundLifeAgent }) {
   }, [submitHint, recError]);
 
   const openCoEdit = useCallback(() => {
+    try {
+      const trimmed = draftText.trim();
+      if (trimmed) {
+        sessionStorage.setItem(pendingVoicePromptKey(agent.id), trimmed);
+      } else {
+        sessionStorage.removeItem(pendingVoicePromptKey(agent.id));
+      }
+    } catch {
+      // ignore storage errors
+    }
     router.push(`/dashboard/life-agents/${agent.id}/co-edit`);
-  }, [agent.id, router]);
+  }, [agent.id, draftText, router]);
 
   const clearDraft = useCallback(() => {
     setDraftText("");
@@ -380,7 +390,17 @@ function FloatingVoiceCoachFab({ agent }: { agent: BoundLifeAgent }) {
           <p className="font-serif text-[11px] uppercase tracking-[0.2em] text-ink-400">
             VOICE DRAFT · 语音草稿
           </p>
-          <p className="mt-1.5 line-clamp-3 font-serif text-sm leading-snug text-ink">{draftText}</p>
+          <label className="mt-1.5 block font-serif text-[10px] text-ink-400" htmlFor={`voice-draft-${agent.id}`}>
+            可直接修改识别结果
+          </label>
+          <textarea
+            id={`voice-draft-${agent.id}`}
+            value={draftText}
+            onChange={(e) => setDraftText(e.target.value)}
+            rows={3}
+            className="mt-1 w-full resize-none border border-hairline bg-paper px-2.5 py-2 font-serif text-sm leading-snug text-ink outline-none transition focus:border-ink/40"
+            placeholder="语音识别内容…"
+          />
           <div className="mt-3 flex items-center gap-2">
             <button
               type="button"
@@ -398,7 +418,7 @@ function FloatingVoiceCoachFab({ agent }: { agent: BoundLifeAgent }) {
             </button>
           </div>
           <p className="mt-2 font-serif text-[10px] italic text-ink-400">
-            可继续长按补充，或去访问别的 Agent — 草稿暂时保留。
+            可在此修改文字、继续长按补充，或点「进入调教」发送。
           </p>
         </div>
       ) : !isActive && (submitHint || recError || helperText) ? (
