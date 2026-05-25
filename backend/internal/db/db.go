@@ -65,6 +65,44 @@ func dropAllForeignKeys(db *gorm.DB) {
 	}
 }
 
+func trimRunes(s string, max int) string {
+	r := []rune(s)
+	if len(r) <= max {
+		return s
+	}
+	return string(r[:max])
+}
+
+// sanitizeLifeAgentProfileColumnsBeforeMigrate 截断超出模型长度限制的存量数据，
+// 否则 MySQL 在 AutoMigrate 收紧 varchar 时会报 Error 1406。
+func sanitizeLifeAgentProfileColumnsBeforeMigrate(db *gorm.DB) {
+	type row struct {
+		ID       string
+		ShortBio string
+		Headline string
+	}
+	var rows []row
+	if err := db.Raw(`
+		SELECT id, short_bio, headline FROM life_agent_profiles
+		WHERE CHAR_LENGTH(short_bio) > 500 OR CHAR_LENGTH(headline) > 512
+	`).Scan(&rows).Error; err != nil || len(rows) == 0 {
+		return
+	}
+	for _, r := range rows {
+		updates := map[string]interface{}{}
+		if len([]rune(r.ShortBio)) > 500 {
+			updates["short_bio"] = trimRunes(r.ShortBio, 500)
+		}
+		if len([]rune(r.Headline)) > 512 {
+			updates["headline"] = trimRunes(r.Headline, 512)
+		}
+		if len(updates) == 0 {
+			continue
+		}
+		_ = db.Model(&models.LifeAgentProfile{}).Where("id = ?", r.ID).Updates(updates).Error
+	}
+}
+
 func Init(dsn string) error {
 	if err := ensureDB(dsn); err != nil {
 		return err
@@ -79,6 +117,7 @@ func Init(dsn string) error {
 		return err
 	}
 	dropAllForeignKeys(DB)
+	sanitizeLifeAgentProfileColumnsBeforeMigrate(DB)
 	if err := DB.AutoMigrate(
 		&models.User{},
 		&models.UserApiKey{},
