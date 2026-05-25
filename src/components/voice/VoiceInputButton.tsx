@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 import { CHAT_GLASS_PANEL_CLASSNAME } from "@/lib/chat-glass";
-import { useSpeechRecognition } from "@/lib/voice";
+import { getMicrophoneEnvIssue, useMediaRecorder } from "@/lib/voice";
 
 type VoiceInputButtonProps = {
   onTranscript: (text: string, isFinal: boolean) => void;
@@ -17,51 +17,97 @@ const sizeClasses = {
   lg: "h-12 w-12",
 };
 
+function pickRecorderMimeType(): string {
+  const candidates = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/aac"];
+  for (const mime of candidates) {
+    if (typeof MediaRecorder !== "undefined" && MediaRecorder.isTypeSupported(mime)) {
+      return mime;
+    }
+  }
+  return "audio/webm";
+}
+
 export function VoiceInputButton({
   onTranscript,
   disabled = false,
   className = "",
   size = "md",
 }: VoiceInputButtonProps) {
-  const { isSupported, status, error, start, stop, reset } =
-    useSpeechRecognition({
-      lang: "zh-CN",
-      continuous: true,
-      interimResults: true,
-      onSessionEnd: (finalTranscript) => {
-        const text = finalTranscript.trim();
-        if (text) {
-          onTranscript(text, true);
-        }
-        reset();
-      },
-    });
+  const mimeTypeRef = useRef(pickRecorderMimeType());
+  const transcribingRef = useRef(false);
+  const [isTranscribing, setIsTranscribing] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
 
-  const isPressActive = status === "listening" || status === "processing";
-  const isPreparing = status === "processing";
+  const micIssue = typeof window !== "undefined" ? getMicrophoneEnvIssue() : null;
+  const isSupported = typeof window !== "undefined" && !micIssue && typeof MediaRecorder !== "undefined";
+
+  const { status, error: recError, start, stop, reset } = useMediaRecorder({
+    mimeType: mimeTypeRef.current,
+    onDataAvailable: async (blob) => {
+      if (transcribingRef.current) return;
+      transcribingRef.current = true;
+      setIsTranscribing(true);
+      setError(null);
+      try {
+        const ext = blob.type.includes("mp4") ? "m4a" : blob.type.includes("aac") ? "aac" : "webm";
+        const fd = new FormData();
+        fd.append("audio", blob, `voice.${ext}`);
+        fd.append("language", "zh");
+        const res = await fetch("/api/transcribe", { method: "POST", body: fd, credentials: "include" });
+        const data = (await res.json()) as { text?: string; error?: string };
+        if (!res.ok) {
+          setError(data.error === "speech-to-text not configured" ? "语音转写未配置" : "语音识别失败，请重试");
+          return;
+        }
+        const text = (data.text ?? "").trim();
+        if (!text) {
+          setError("没有识别到内容，请再说一次");
+          return;
+        }
+        onTranscript(text, true);
+      } catch {
+        setError("语音识别失败，请检查网络后重试");
+      } finally {
+        transcribingRef.current = false;
+        setIsTranscribing(false);
+        reset();
+      }
+    },
+  });
+
+  const isPressActive = status === "recording" || isTranscribing;
+  const isPreparing = status === "processing" || isTranscribing;
 
   const handlePressStart = useCallback(() => {
     if (disabled || !isSupported) return;
+    setError(null);
     reset();
-    start();
+    void start();
   }, [disabled, isSupported, reset, start]);
 
   const handlePressEnd = useCallback(() => {
-    stop();
-  }, [stop]);
+    if (status === "recording") {
+      stop();
+    }
+  }, [status, stop]);
 
   useEffect(() => {
-    if (error) {
-      const timer = setTimeout(reset, 3000);
-      return () => clearTimeout(timer);
+    if (recError) {
+      setError(recError);
     }
-  }, [error, reset]);
+  }, [recError]);
+
+  useEffect(() => {
+    if (!error) return;
+    const timer = setTimeout(() => setError(null), 3500);
+    return () => clearTimeout(timer);
+  }, [error]);
 
   if (!isSupported) {
     return (
       <div className={`inline-flex items-center gap-2 rounded-full px-3 py-2 text-xs text-slate-500 ${CHAT_GLASS_PANEL_CLASSNAME}`}>
         <span className="h-2 w-2 rounded-full bg-slate-300" aria-hidden />
-        当前设备暂不支持语音
+        {micIssue ?? "当前设备暂不支持语音"}
       </div>
     );
   }
@@ -70,11 +116,14 @@ export function VoiceInputButton({
     <div className="relative flex items-center">
       <button
         type="button"
-        disabled={disabled}
+        disabled={disabled || isPreparing}
         onMouseDown={handlePressStart}
         onMouseUp={handlePressEnd}
         onMouseLeave={handlePressEnd}
-        onTouchStart={handlePressStart}
+        onTouchStart={(e) => {
+          e.preventDefault();
+          handlePressStart();
+        }}
         onTouchEnd={(e) => {
           e.preventDefault();
           handlePressEnd();
@@ -120,7 +169,7 @@ export function VoiceInputButton({
         )}
       </button>
       {error && (
-        <div className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-rose-600 px-3 py-1.5 text-xs text-white shadow-lg">
+        <div className="absolute -top-8 left-1/2 z-30 max-w-[min(16rem,calc(100vw-2rem))] -translate-x-1/2 rounded-lg bg-rose-600 px-3 py-1.5 text-xs text-white shadow-lg">
           {error}
         </div>
       )}

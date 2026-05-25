@@ -110,6 +110,8 @@ export function useSpeechRecognition(options?: {
             ? "请允许麦克风权限"
             : event.error === "no-speech"
               ? "未检测到语音，请重试"
+              : event.error === "service-not-allowed"
+              ? "当前浏览器不支持语音输入，请改用文字"
               : event.error === "network"
                 ? "网络错误，请检查连接"
                 : `语音识别错误: ${event.error}`;

@@ -8,7 +8,11 @@ import {
   type ReactEventHandler,
   type SyntheticEvent,
 } from "react";
-import { nextLifeAgentCoverFallbackSrc, normalizeLifeAgentCoverImgSrc } from "@/lib/life-agent-covers";
+import {
+  DEFAULT_COVER_FINAL_FALLBACK_SRC,
+  nextLifeAgentCoverFallbackSrc,
+  normalizeLifeAgentCoverImgSrc,
+} from "@/lib/life-agent-covers";
 
 export type LifeAgentCoverImageProps = Omit<ImgHTMLAttributes<HTMLImageElement>, "src" | "onError"> & {
   src: string;
@@ -17,6 +21,8 @@ export type LifeAgentCoverImageProps = Omit<ImgHTMLAttributes<HTMLImageElement>,
   priority?: boolean;
   /** 仅为与 next/image API 对齐，原生 img 不使用 */
   sizes?: string;
+  /** 小头像模式：不显示「正在加载中」文字，只用浅色占位 */
+  compact?: boolean;
   onError?: ReactEventHandler<HTMLImageElement>;
 };
 
@@ -31,6 +37,7 @@ export function LifeAgentCoverImage({
   priority,
   loading,
   sizes: _sizes,
+  compact = false,
   className,
   alt = "",
   ...rest
@@ -47,15 +54,22 @@ export function LifeAgentCoverImage({
   useEffect(() => {
     const img = imgRef.current;
     if (!img) return;
-    if (img.complete && img.naturalWidth > 0) {
-      setLoaded(true);
-    }
+
+    const markIfReady = () => {
+      if (img.complete && img.naturalWidth > 0) {
+        setLoaded(true);
+      }
+    };
+
+    markIfReady();
+    img.addEventListener("load", markIfReady);
+    return () => img.removeEventListener("load", markIfReady);
   }, [resolved]);
 
   const cls = [fill ? "absolute inset-0 h-full w-full" : "", className].filter(Boolean).join(" ") || undefined;
 
   return (
-    <>
+    <div className={fill ? "relative h-full w-full" : "relative inline-block"}>
       <img
         {...rest}
         ref={imgRef}
@@ -70,22 +84,37 @@ export function LifeAgentCoverImage({
           onLoad?.(e);
         }}
         onError={(e: SyntheticEvent<HTMLImageElement>) => {
-          setLoaded(false);
           onError?.(e);
-          setResolved((cur) => nextLifeAgentCoverFallbackSrc(cur));
+          setResolved((cur) => {
+            const next = nextLifeAgentCoverFallbackSrc(cur);
+            if (next === DEFAULT_COVER_FINAL_FALLBACK_SRC) {
+              setLoaded(true);
+            }
+            return next;
+          });
         }}
       />
       {!loaded ? (
-        <div
-          className={[
-            fill ? "absolute inset-0" : "absolute inset-0",
-            "pointer-events-none flex items-center justify-center bg-gradient-to-br from-violet-100/85 to-fuchsia-100/65 text-xs font-medium text-slate-500",
-          ].join(" ")}
-          aria-live="polite"
-        >
-          正在加载中
-        </div>
+        compact ? (
+          <div
+            className={[
+              fill ? "absolute inset-0" : "absolute inset-0",
+              "pointer-events-none animate-pulse bg-gradient-to-br from-violet-100/90 to-fuchsia-100/70",
+            ].join(" ")}
+            aria-hidden
+          />
+        ) : (
+          <div
+            className={[
+              fill ? "absolute inset-0" : "absolute inset-0",
+              "pointer-events-none flex items-center justify-center bg-gradient-to-br from-violet-100/85 to-fuchsia-100/65 text-xs font-medium text-slate-500",
+            ].join(" ")}
+            aria-live="polite"
+          >
+            正在加载中
+          </div>
+        )
       ) : null}
-    </>
+    </div>
   );
 }

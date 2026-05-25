@@ -837,6 +837,7 @@ export default function LifeAgentChatPage() {
                   src={agentCoverUrl}
                   alt=""
                   fill
+                  compact
                   className="object-cover"
                   sizes="36px"
                 />
@@ -892,6 +893,7 @@ export default function LifeAgentChatPage() {
                             src={agentCoverUrl}
                             alt=""
                             fill
+                            compact
                             className="object-cover"
                             sizes="32px"
                           />
