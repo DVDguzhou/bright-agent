@@ -9,7 +9,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { fetchBoundLifeAgents, type BoundLifeAgent } from "@/lib/bound-life-agents";
 import { useMobileTouchNavEnabled } from "@/hooks/use-life-agents-feed-gestures";
 import { lifeAgentShowsPurchaseUi } from "@/lib/life-agent-commerce";
-import { useMediaRecorder } from "@/lib/voice/useMediaRecorder";
+import {
+  MIN_VOICE_BLOB_BYTES,
+  pickRecorderMimeType,
+  useMediaRecorder,
+  voiceFilenameForBlob,
+} from "@/lib/voice";
 
 // 人生 Agent: 智能体/对话
 const IconAgent = ({ className }: { className?: string }) => (
@@ -103,16 +108,31 @@ function FloatingVoiceCoachFab({ agent }: { agent: BoundLifeAgent }) {
   const cancelledRef = useRef(false);
   const { status: recStatus, error: recError, duration, start: recStart, stop: recStop, reset: recReset } =
     useMediaRecorder({
+      mimeType: pickRecorderMimeType(),
       onDataAvailable: async (blob) => {
         if (cancelledRef.current) return;
+        if (blob.size < MIN_VOICE_BLOB_BYTES) {
+          setSubmitHint("说话时间太短，请长按至少一秒");
+          return;
+        }
         setIsTranscribing(true);
         setSubmitHint("正在识别...");
         try {
           const fd = new FormData();
-          fd.append("audio", blob, "voice.webm");
+          fd.append("audio", blob, voiceFilenameForBlob(blob));
           fd.append("language", "zh");
           const res = await fetch("/api/transcribe", { method: "POST", body: fd, credentials: "include" });
           const data = await res.json();
+          if (!res.ok) {
+            setSubmitHint(
+              data.error === "recording too short"
+                ? "说话时间太短，请长按至少一秒"
+                : data.error === "speech-to-text not configured"
+                  ? "语音转写未配置"
+                  : "语音识别失败，请重试",
+            );
+            return;
+          }
           const text = (data.text ?? "").trim();
           if (!text) {
             setSubmitHint("没有识别到内容，请再说一次");

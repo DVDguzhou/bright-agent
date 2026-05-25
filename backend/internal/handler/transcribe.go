@@ -15,6 +15,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const minTranscribeAudioBytes = 800
+
 // AudioTranscribe accepts an audio file upload and returns transcribed text.
 // DashScope (Qwen) deployments use qwen3-asr-flash via chat/completions;
 // OpenAI deployments use /audio/transcriptions (Whisper).
@@ -32,6 +34,10 @@ func AudioTranscribe(cfg *config.Config) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "cannot read audio data"})
 			return
 		}
+		if len(audioBytes) < minTranscribeAudioBytes {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "recording too short"})
+			return
+		}
 
 		apiKey, baseURL, useDashScopeASR := resolveSTTConfig(cfg)
 		if apiKey == "" {
@@ -45,6 +51,8 @@ func AudioTranscribe(cfg *config.Config) gin.HandlerFunc {
 		if filename == "" {
 			filename = "audio.webm"
 		}
+		contentType := header.Header.Get("Content-Type")
+		mime := resolveAudioMime(filename, contentType, audioBytes)
 
 		var text string
 		if useDashScopeASR {
@@ -52,7 +60,7 @@ func AudioTranscribe(cfg *config.Config) gin.HandlerFunc {
 			if model == "" {
 				model = "qwen3-asr-flash"
 			}
-			text, err = callDashScopeASR(apiKey, baseURL, model, audioBytes, filename, lang)
+			text, err = callDashScopeASR(apiKey, baseURL, model, audioBytes, mime, lang)
 		} else {
 			text, err = callWhisperAPI(apiKey, baseURL, audioBytes, filename, lang)
 		}
@@ -103,6 +111,38 @@ func audioMimeFromFilename(name string) string {
 	}
 }
 
+func audioMimeFromMagic(data []byte) string {
+	if len(data) < 12 {
+		return ""
+	}
+	if string(data[4:8]) == "ftyp" {
+		return "audio/mp4"
+	}
+	if string(data[0:4]) == "RIFF" && string(data[8:12]) == "WAVE" {
+		return "audio/wav"
+	}
+	if string(data[0:3]) == "ID3" || (data[0] == 0xFF && (data[1]&0xE0) == 0xE0) {
+		return "audio/mpeg"
+	}
+	if data[0] == 0x1A && data[1] == 0x45 && data[2] == 0xDF && data[3] == 0xA3 {
+		return "audio/webm"
+	}
+	if string(data[0:4]) == "OggS" {
+		return "audio/ogg"
+	}
+	return ""
+}
+
+func resolveAudioMime(filename, contentType string, data []byte) string {
+	if ct := strings.TrimSpace(strings.Split(contentType, ";")[0]); ct != "" && ct != "application/octet-stream" {
+		return ct
+	}
+	if mime := audioMimeFromMagic(data); mime != "" {
+		return mime
+	}
+	return audioMimeFromFilename(filename)
+}
+
 type whisperResponse struct {
 	Text string `json:"text"`
 }
@@ -110,7 +150,7 @@ type whisperResponse struct {
 type dashScopeASRResponse struct {
 	Choices []struct {
 		Message struct {
-			Content string `json:"content"`
+			Content json.RawMessage `json:"content"`
 		} `json:"message"`
 	} `json:"choices"`
 	Error *struct {
@@ -119,11 +159,35 @@ type dashScopeASRResponse struct {
 	} `json:"error"`
 }
 
-func callDashScopeASR(apiKey, baseURL, model string, audio []byte, filename, lang string) (string, error) {
+func extractDashScopeASRContent(raw json.RawMessage) string {
+	if len(raw) == 0 || string(raw) == "null" {
+		return ""
+	}
+	var text string
+	if err := json.Unmarshal(raw, &text); err == nil {
+		return strings.TrimSpace(text)
+	}
+	var parts []struct {
+		Text string `json:"text"`
+	}
+	if err := json.Unmarshal(raw, &parts); err == nil {
+		var b strings.Builder
+		for _, p := range parts {
+			b.WriteString(p.Text)
+		}
+		return strings.TrimSpace(b.String())
+	}
+	return strings.TrimSpace(string(raw))
+}
+
+func callDashScopeASR(apiKey, baseURL, model string, audio []byte, mime, lang string) (string, error) {
 	if strings.TrimSpace(model) == "" {
 		model = "qwen3-asr-flash"
 	}
-	mime := audioMimeFromFilename(filename)
+	mime = strings.TrimSpace(mime)
+	if mime == "" {
+		mime = "audio/webm"
+	}
 	dataURI := fmt.Sprintf("data:%s;base64,%s", mime, base64.StdEncoding.EncodeToString(audio))
 
 	asrOptions := map[string]interface{}{
@@ -186,7 +250,11 @@ func callDashScopeASR(apiKey, baseURL, model string, audio []byte, filename, lan
 	if len(result.Choices) == 0 {
 		return "", fmt.Errorf("dashscope asr: empty choices")
 	}
-	return strings.TrimSpace(result.Choices[0].Message.Content), nil
+	text := extractDashScopeASRContent(result.Choices[0].Message.Content)
+	if text == "" {
+		log.Printf("transcribe: dashscope asr empty text (mime=%s bytes=%d body=%s)", mime, len(audio), string(respBody))
+	}
+	return text, nil
 }
 
 func callWhisperAPI(apiKey, baseURL string, audio []byte, filename, lang string) (string, error) {

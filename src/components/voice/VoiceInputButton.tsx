@@ -2,7 +2,13 @@
 
 import React, { useCallback, useEffect, useRef } from "react";
 import { CHAT_GLASS_PANEL_CLASSNAME } from "@/lib/chat-glass";
-import { getMicrophoneEnvIssue, useMediaRecorder } from "@/lib/voice";
+import {
+  getMicrophoneEnvIssue,
+  MIN_VOICE_BLOB_BYTES,
+  pickRecorderMimeType,
+  useMediaRecorder,
+  voiceFilenameForBlob,
+} from "@/lib/voice";
 
 type VoiceInputButtonProps = {
   onTranscript: (text: string, isFinal: boolean) => void;
@@ -49,9 +55,12 @@ export function VoiceInputButton({
       setIsTranscribing(true);
       setError(null);
       try {
-        const ext = blob.type.includes("mp4") ? "m4a" : blob.type.includes("aac") ? "aac" : "webm";
+        if (blob.size < MIN_VOICE_BLOB_BYTES) {
+          setError("说话时间太短，请长按至少一秒");
+          return;
+        }
         const fd = new FormData();
-        fd.append("audio", blob, `voice.${ext}`);
+        fd.append("audio", blob, voiceFilenameForBlob(blob));
         fd.append("language", "zh");
         const res = await fetch("/api/transcribe", { method: "POST", body: fd, credentials: "include" });
         const data = (await res.json()) as { text?: string; error?: string };
@@ -61,11 +70,13 @@ export function VoiceInputButton({
         }
         if (!res.ok) {
           setError(
-            data.error === "speech-to-text not configured"
-              ? "语音转写未配置，请联系管理员"
-              : data.error === "transcription failed"
-                ? "语音识别服务异常，请稍后重试"
-                : "语音识别失败，请重试",
+            data.error === "recording too short"
+              ? "说话时间太短，请长按至少一秒"
+              : data.error === "speech-to-text not configured"
+                ? "语音转写未配置，请联系管理员"
+                : data.error === "transcription failed"
+                  ? "语音识别服务异常，请稍后重试"
+                  : "语音识别失败，请重试",
           );
           return;
         }

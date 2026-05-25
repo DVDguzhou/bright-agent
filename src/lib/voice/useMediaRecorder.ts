@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
+import { pickRecorderMimeType } from "./audioUpload";
 
 export type RecordingStatus = "idle" | "recording" | "processing" | "error";
 
@@ -53,10 +54,11 @@ export function useMediaRecorder(options?: {
       const stream = await getAudioStream();
       streamRef.current = stream;
 
-      const mimeType = options?.mimeType ?? "audio/webm;codecs=opus";
-      const supported = MediaRecorder.isTypeSupported(mimeType)
-        ? mimeType
-        : "audio/webm";
+      const preferred = options?.mimeType ?? pickRecorderMimeType();
+      const supported =
+        typeof MediaRecorder !== "undefined" && MediaRecorder.isTypeSupported(preferred)
+          ? preferred
+          : pickRecorderMimeType();
 
       const recorder = new MediaRecorder(stream, {
         mimeType: supported,
