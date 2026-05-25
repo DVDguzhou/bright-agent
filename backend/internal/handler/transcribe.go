@@ -75,14 +75,18 @@ func AudioTranscribe(cfg *config.Config) gin.HandlerFunc {
 }
 
 func resolveSTTConfig(cfg *config.Config) (apiKey string, baseURL string, useDashScopeASR bool) {
+	// 百炼 ASR 直连 DashScope，不走 LLM 第三方代理（代理通常无 whisper-1 / qwen3-asr-flash）。
+	if key := strings.TrimSpace(cfg.DashScopeAPIKey); key != "" {
+		return key, dashScopeASRBaseURL(cfg), true
+	}
 	if cfg.LikelyDashScopeLLM() {
-		key := cfg.DashScopeTTSEffectiveKey()
-		if key != "" {
-			base := strings.TrimSpace(cfg.OpenAIBaseURL)
-			if base == "" {
-				base = "https://dashscope.aliyuncs.com/compatible-mode/v1"
-			}
-			return key, strings.TrimSuffix(base, "/"), true
+		if key := cfg.DashScopeTTSEffectiveKey(); key != "" {
+			return key, dashScopeASRBaseURL(cfg), true
+		}
+	}
+	if cfg.ResolveTTSProvider() == "dashscope" {
+		if key := cfg.DashScopeTTSEffectiveKey(); key != "" {
+			return key, dashScopeASRBaseURL(cfg), true
 		}
 	}
 	if k := strings.TrimSpace(cfg.OpenAIApiKey); k != "" {
@@ -93,6 +97,14 @@ func resolveSTTConfig(cfg *config.Config) (apiKey string, baseURL string, useDas
 		return k, strings.TrimSuffix(base, "/"), false
 	}
 	return "", "", false
+}
+
+func dashScopeASRBaseURL(cfg *config.Config) string {
+	base := strings.TrimSpace(cfg.OpenAIBaseURL)
+	if strings.Contains(strings.ToLower(base), "dashscope") {
+		return strings.TrimSuffix(base, "/")
+	}
+	return "https://dashscope.aliyuncs.com/compatible-mode/v1"
 }
 
 func audioMimeFromFilename(name string) string {
