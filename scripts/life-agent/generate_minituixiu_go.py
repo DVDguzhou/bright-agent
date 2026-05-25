@@ -7,6 +7,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 JSON = Path(__file__).resolve().parent / "minituixiu_episodes.json"
+WELCOMES = Path(__file__).resolve().parent / "podcast_welcome_messages.json"
 GO = ROOT / "backend/internal/yantuseed/profiles_minituixiu_podcast.go"
 
 EXPERTISE = {
@@ -41,14 +42,12 @@ def go_strings(items: list[str]) -> str:
 
 def main() -> None:
     profiles = json.loads(JSON.read_text(encoding="utf-8"))
+    welcomes = json.loads(WELCOMES.read_text(encoding="utf-8"))
     blocks = []
     for p in profiles:
         ep = p["ep"]
         title = f"迷你退休 · {p['title']}"
-        welcome = (
-            f"你好，我是{p['display']}，来自播客《迷你退休》。"
-            f"欢迎问我关于「{p['title'][:22]}…」相关的问题。"
-        )
+        welcome = welcomes.get(p["display"], f"我是{p['display']}。欢迎直接问我这期节目里聊到的经历和方法。")
         tags = EXPERTISE.get(ep, ["迷你退休", "播客", "副业"])
         blocks.append(
             f"""\t{{

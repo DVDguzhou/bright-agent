@@ -7,6 +7,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 JSON = Path(__file__).resolve().parent / "xiabanle_episodes.json"
+WELCOMES = Path(__file__).resolve().parent / "podcast_welcome_messages.json"
 GO = ROOT / "backend/internal/yantuseed/profiles_xiabanle_podcast.go"
 
 EXPERTISE = {
@@ -44,14 +45,12 @@ def go_strings(items: list[str]) -> str:
 
 def main() -> None:
     profiles = json.loads(JSON.read_text(encoding="utf-8"))
+    welcomes = json.loads(WELCOMES.read_text(encoding="utf-8"))
     blocks = []
     for p in profiles:
         ep = p["ep"]
         title = f"我下班了 EP{ep} | {p['title']}"
-        welcome = (
-            f"你好，我是{p['display']}，来自《我下班了》EP{ep}。"
-            f"欢迎问我关于「{p['title'][:24]}…」相关的问题。"
-        )
+        welcome = welcomes.get(p["display"], f"我是{p['display']}。欢迎直接问我这期节目里聊到的经历和方法。")
         tags = EXPERTISE.get(ep, ["我下班了", "播客", "轻资产创业"])
         sq_placeholder = go_strings([])  # patched by patch_xiabanle_sample_questions.py
         blocks.append(
