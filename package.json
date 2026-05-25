@@ -16,6 +16,7 @@
     "db:migrate": "prisma migrate dev",
     "db:seed": "tsx prisma/seed.ts",
     "fix:missing-covers": "tsx scripts/life-agent/reset-missing-cover-images.ts",
+    "assign:wechat-avatars": "tsx scripts/life-agent/assign-wechat-avatars.ts",
     "create:laoda": "tsx scripts/life-agent/create-laoda.ts",
     "enroll:laoda-voice": "node scripts/life-agent/enroll-laoda-voice.mjs",
     "db:studio": "prisma studio",
