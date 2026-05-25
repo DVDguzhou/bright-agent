@@ -23,16 +23,6 @@ const sizeClasses = {
   lg: "h-12 w-12",
 };
 
-function pickRecorderMimeType(): string {
-  const candidates = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/aac"];
-  for (const mime of candidates) {
-    if (typeof MediaRecorder !== "undefined" && MediaRecorder.isTypeSupported(mime)) {
-      return mime;
-    }
-  }
-  return "audio/webm";
-}
-
 export function VoiceInputButton({
   onTranscript,
   disabled = false,
