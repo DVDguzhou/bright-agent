@@ -561,43 +561,52 @@ export default function LifeAgentCoEditPage() {
           </div>
         </div>
 
-        <div className="shrink-0 px-3 pb-3 sm:px-4">
-          <div className="mx-auto max-w-3xl rounded-[22px] border border-purple-200/[0.22] bg-white/[0.98] p-4 shadow-[0_6px_30px_-12px_rgba(124,58,237,0.09)] backdrop-blur-sm">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-sm font-semibold text-purple-950/90">当前 Agent 状态</p>
-                <p className="mt-1 text-xs text-slate-500">
-                  {profile.displayName} · {(profile.expertiseTags ?? []).length} 个标签 · {(profile.knowledgeEntries ?? []).length} 条知识
-                </p>
-              </div>
-              {lastChange ? (
-                <span className="rounded-full bg-gradient-to-r from-violet-100 to-fuchsia-100 px-3 py-1 text-xs font-medium text-purple-800 ring-1 ring-purple-200/40">
-                  刚更新 {new Date(lastChange.appliedAt).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit", hour12: false })}
-                </span>
-              ) : null}
-            </div>
-
-            <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="rounded-xl border border-purple-100/40 bg-violet-50/40 px-3 py-2.5 backdrop-blur-sm">
-                <p className="text-[11px] text-purple-600/55">一句话介绍</p>
-                <p className="mt-1 line-clamp-2 text-sm text-slate-700">
-                  {cleanLifeAgentIntroText(profile.headline, profile.displayName) || "未设置"}
-                </p>
-              </div>
-              <div className="rounded-xl border border-purple-100/40 bg-violet-50/40 px-3 py-2.5 backdrop-blur-sm">
-                <p className="text-[11px] text-purple-600/55">欢迎语</p>
-                <p className="mt-1 line-clamp-2 text-sm text-slate-700">{profile.welcomeMessage || "未设置"}</p>
-              </div>
-              <div className="rounded-xl border border-purple-100/40 bg-violet-50/40 px-3 py-2.5 backdrop-blur-sm">
-                <p className="text-[11px] text-purple-600/55">示范回答</p>
-                <p className="mt-1 text-sm text-slate-700">{(profile.exampleReplies ?? []).length} 条</p>
-              </div>
-            </div>
-
-            <details className="mt-3">
-              <summary className="cursor-pointer list-none text-sm font-medium text-purple-800 [&::-webkit-details-marker]:hidden">
-                展开完整状态
+        <div className="shrink-0 px-3 pb-2 sm:px-4">
+          <div className="mx-auto max-w-3xl rounded-[22px] border border-purple-200/[0.22] bg-white/[0.98] p-3 shadow-[0_6px_30px_-12px_rgba(124,58,237,0.09)] backdrop-blur-sm sm:p-4">
+            <details>
+              <summary className="flex cursor-pointer list-none items-start justify-between gap-3 [&::-webkit-details-marker]:hidden">
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-purple-950/90">当前 Agent 状态</p>
+                  <p className="mt-1 text-xs text-slate-500">
+                    {profile.displayName} · {(profile.expertiseTags ?? []).length} 个标签 · {(profile.knowledgeEntries ?? []).length} 条知识
+                  </p>
+                </div>
+                <div className="flex shrink-0 items-center gap-2 pt-0.5">
+                  {lastChange ? (
+                    <span className="rounded-full bg-gradient-to-r from-violet-100 to-fuchsia-100 px-2.5 py-1 text-[10px] font-medium text-purple-800 ring-1 ring-purple-200/40">
+                      刚更新
+                    </span>
+                  ) : null}
+                  <svg
+                    className="h-4 w-4 text-purple-700/60"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                    viewBox="0 0 24 24"
+                    aria-hidden
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
               </summary>
+
+              <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="rounded-xl border border-purple-100/40 bg-violet-50/40 px-3 py-2.5 backdrop-blur-sm">
+                  <p className="text-[11px] text-purple-600/55">一句话介绍</p>
+                  <p className="mt-1 line-clamp-2 text-sm text-slate-700">
+                    {cleanLifeAgentIntroText(profile.headline, profile.displayName) || "未设置"}
+                  </p>
+                </div>
+                <div className="rounded-xl border border-purple-100/40 bg-violet-50/40 px-3 py-2.5 backdrop-blur-sm">
+                  <p className="text-[11px] text-purple-600/55">欢迎语</p>
+                  <p className="mt-1 line-clamp-2 text-sm text-slate-700">{profile.welcomeMessage || "未设置"}</p>
+                </div>
+                <div className="rounded-xl border border-purple-100/40 bg-violet-50/40 px-3 py-2.5 backdrop-blur-sm">
+                  <p className="text-[11px] text-purple-600/55">示范回答</p>
+                  <p className="mt-1 text-sm text-slate-700">{(profile.exampleReplies ?? []).length} 条</p>
+                </div>
+              </div>
+
               <div className="mt-3 space-y-3">
                 <div>
                   <p className="text-[11px] text-purple-600/55">擅长标签</p>
@@ -638,57 +647,57 @@ export default function LifeAgentCoEditPage() {
                   </div>
                 </div>
                 <div className="grid gap-2 sm:grid-cols-2">
-                <div className="rounded-xl border border-purple-100/40 bg-violet-50/40 px-3 py-2.5 backdrop-blur-sm">
-                  <p className="text-[11px] text-purple-600/55">人设与语气</p>
-                  <p className="mt-1 text-sm text-slate-700">
-                    {[profile.personaArchetype, profile.toneStyle, profile.responseStyle].filter(Boolean).join(" · ") || "未设置"}
-                  </p>
-                </div>
-                <div className="rounded-xl border border-purple-100/40 bg-violet-50/40 px-3 py-2.5 backdrop-blur-sm">
-                  <p className="text-[11px] text-purple-600/55">不能回答的问题</p>
-                  <p className="mt-1 line-clamp-3 text-sm text-slate-700">{profile.notSuitableFor || "未设置"}</p>
-                </div>
+                  <div className="rounded-xl border border-purple-100/40 bg-violet-50/40 px-3 py-2.5 backdrop-blur-sm">
+                    <p className="text-[11px] text-purple-600/55">人设与语气</p>
+                    <p className="mt-1 text-sm text-slate-700">
+                      {[profile.personaArchetype, profile.toneStyle, profile.responseStyle].filter(Boolean).join(" · ") || "未设置"}
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-purple-100/40 bg-violet-50/40 px-3 py-2.5 backdrop-blur-sm">
+                    <p className="text-[11px] text-purple-600/55">不能回答的问题</p>
+                    <p className="mt-1 line-clamp-3 text-sm text-slate-700">{profile.notSuitableFor || "未设置"}</p>
+                  </div>
                 </div>
               </div>
-            </details>
 
-            {lastChange ? (
-              <div className="mt-3 rounded-2xl border border-purple-200/[0.22] bg-gradient-to-r from-violet-50/[0.92] to-fuchsia-50/[0.75] px-3 py-3 backdrop-blur-sm">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-purple-950/90">本次已影响字段</p>
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {impactedFields.map((item) => (
-                        <span key={item} className="rounded-full bg-white/[0.95] px-2.5 py-1 text-xs font-medium text-purple-800 ring-1 ring-purple-200/40">
-                          {item}
-                        </span>
-                      ))}
+              {lastChange ? (
+                <div className="mt-3 rounded-2xl border border-purple-200/[0.22] bg-gradient-to-r from-violet-50/[0.92] to-fuchsia-50/[0.75] px-3 py-3 backdrop-blur-sm">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-purple-950/90">本次已影响字段</p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {impactedFields.map((item) => (
+                          <span key={item} className="rounded-full bg-white/[0.95] px-2.5 py-1 text-xs font-medium text-purple-800 ring-1 ring-purple-200/40">
+                            {item}
+                          </span>
+                        ))}
+                      </div>
+                      <p className="mt-2 line-clamp-2 text-xs text-slate-500">最近指令：{lastChange.message}</p>
                     </div>
-                    <p className="mt-2 line-clamp-2 text-xs text-slate-500">最近指令：{lastChange.message}</p>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setLastChange(null);
-                        setBanner("这次修改已保留");
-                      }}
-                      className="btn-secondary rounded-full px-4 py-2 text-sm"
-                    >
-                      保留这次修改
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => void undoLastChange()}
-                      disabled={modifyLoading}
-                      className="btn-primary rounded-full px-4 py-2 text-sm disabled:opacity-50"
-                    >
-                      撤回上次修改
-                    </button>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setLastChange(null);
+                          setBanner("这次修改已保留");
+                        }}
+                        className="btn-secondary rounded-full px-4 py-2 text-sm"
+                      >
+                        保留这次修改
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void undoLastChange()}
+                        disabled={modifyLoading}
+                        className="btn-primary rounded-full px-4 py-2 text-sm disabled:opacity-50"
+                      >
+                        撤回上次修改
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ) : null}
+              ) : null}
+            </details>
           </div>
         </div>
 
