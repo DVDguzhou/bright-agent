@@ -2311,20 +2311,22 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 
 		var content string
 		var refs []map[string]string
-		if reply, replyRefs, ok := lifeagent.ResolveGroundedFactReply(profileForAI, factsForAI, body.Message); ok {
-			content = reply
-			refs = replyRefs
-		} else if lifeagent.ClassifyQuestionIntent(body.Message) {
-			content = lifeagent.BuildIdentityReply(profileForAI)
-		} else if isMiniAppClient(c) {
-			content, refs, _ = lifeagent.BuildReplyWithLLM(
-				c.Request.Context(),
-				cfg.OpenAIApiKey, cfg.OpenAIModel, cfg.OpenAIBaseURL,
-				cfg.LLMEnableWebSearch,
-				profileForAI,
-				factsForAI, topicsForAI, entriesForAI, hist, body.Message,
-				chatOpts,
-			)
+		if isMiniAppClient(c) {
+			if reply, replyRefs, ok := lifeagent.ResolveGroundedFactReply(profileForAI, factsForAI, body.Message); ok {
+				content = reply
+				refs = replyRefs
+			} else if lifeagent.ClassifyQuestionIntent(body.Message) {
+				content = lifeagent.BuildIdentityReply(profileForAI)
+			} else {
+				content, refs, _ = lifeagent.BuildReplyWithLLM(
+					c.Request.Context(),
+					cfg.OpenAIApiKey, cfg.OpenAIModel, cfg.OpenAIBaseURL,
+					cfg.LLMEnableWebSearch,
+					profileForAI,
+					factsForAI, topicsForAI, entriesForAI, hist, body.Message,
+					chatOpts,
+				)
+			}
 		} else {
 			// --- SSE streaming ---
 			c.Header("Content-Type", "text/event-stream")
