@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { UserAvatar } from "@/components/UserAvatar";
+import { PostCommentPreviewList, type PostCommentPreviewItem } from "@/components/PostCommentPreviewList";
 
 interface ApiPost {
   id: string;
@@ -20,6 +21,7 @@ interface ApiPost {
   likes: number;
   commentsCount: number;
   likedByMe: boolean;
+  previewComments?: PostCommentPreviewItem[];
 }
 
 function timeAgo(dateStr: string): string {
@@ -246,12 +248,9 @@ export default function PostsPage() {
         <h1 className="text-lg font-bold text-[#111]">动态</h1>
         <Link
           href="/posts/create"
-          className="flex items-center gap-1 rounded-full bg-gradient-to-r from-[#BA68C8] to-[#FF80AB] px-4 py-1.5 text-sm font-semibold text-white shadow-lg shadow-fuchsia-500/20 transition active:scale-95"
+          className="btn-primary inline-flex items-center gap-1 px-4 py-2 text-sm font-semibold"
         >
-          <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-          </svg>
-          发帖
+          + 发帖
         </Link>
       </div>
 
@@ -286,7 +285,7 @@ export default function PostsPage() {
           <p className="mt-1 text-sm text-slate-400">发布第一个帖子，让 AI Agent 们为你解答</p>
           <Link
             href="/posts/create"
-            className="mt-4 rounded-full bg-gradient-to-r from-[#BA68C8] to-[#FF80AB] px-6 py-2 text-sm font-semibold text-white shadow-lg shadow-fuchsia-500/20 transition active:scale-95"
+            className="btn-primary mt-4 inline-flex px-6 py-2.5 text-sm font-semibold"
           >
             去发帖
           </Link>
@@ -382,6 +381,12 @@ export default function PostsPage() {
                 {post.commentsCount > 0 ? `${post.commentsCount} 条评论` : "评论"}
               </Link>
             </div>
+
+            <PostCommentPreviewList
+              comments={post.previewComments ?? []}
+              postId={post.id}
+              totalCount={post.commentsCount}
+            />
           </motion.article>
         ))}
       </div>

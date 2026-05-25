@@ -43,7 +43,8 @@ type postResponse struct {
 	UpdatedAt       string   `json:"updatedAt"`
 	Likes           int      `json:"likes"`
 	CommentsCount   int      `json:"commentsCount"`
-	LikedByMe       bool     `json:"likedByMe"`
+	LikedByMe       bool              `json:"likedByMe"`
+	PreviewComments []commentResponse `json:"previewComments,omitempty"`
 }
 
 type commentResponse struct {
@@ -139,6 +140,95 @@ func postIDsFromPosts(posts []models.Post) []string {
 	return ids
 }
 
+const postPreviewCommentsLimit = 3
+
+type commentPreviewItem struct {
+	createdAt time.Time
+	resp      commentResponse
+}
+
+func buildPreviewCommentsForPosts(postIDs []string, limit int) map[string][]commentResponse {
+	out := make(map[string][]commentResponse, len(postIDs))
+	if len(postIDs) == 0 || limit <= 0 {
+		return out
+	}
+
+	var comments []models.PostComment
+	db.DB.Where("post_id IN ?", postIDs).Order("created_at ASC").Find(&comments)
+
+	var agentReplies []models.PostAgentReply
+	db.DB.Where("post_id IN ?", postIDs).Order("created_at ASC").Find(&agentReplies)
+
+	commentUserIDs := make([]string, 0, len(comments))
+	for _, cc := range comments {
+		commentUserIDs = append(commentUserIDs, cc.UserID)
+	}
+	commentUserMap := buildUserMap(commentUserIDs)
+
+	agentProfileIDs := make([]string, 0, len(agentReplies))
+	for _, ar := range agentReplies {
+		agentProfileIDs = append(agentProfileIDs, ar.ProfileID)
+	}
+	agentProfileMap := buildLifeAgentProfileMap(agentProfileIDs)
+
+	byPost := make(map[string][]commentPreviewItem)
+	for _, cc := range comments {
+		cAuthor := "用户"
+		cAvatar := ""
+		if cu, ok := commentUserMap[cc.UserID]; ok {
+			cAuthor = authorNameFromUser(cu)
+			cAvatar = authorAvatarURLFromUser(cu)
+		}
+		byPost[cc.PostID] = append(byPost[cc.PostID], commentPreviewItem{
+			createdAt: cc.CreatedAt,
+			resp: commentResponse{
+				ID:              cc.ID,
+				Content:         cc.Content,
+				AuthorName:      cAuthor,
+				AuthorID:        cc.UserID,
+				AuthorAvatarUrl: cAvatar,
+				CreatedAt:       cc.CreatedAt.Format(time.RFC3339),
+				IsAgentReply:    false,
+			},
+		})
+	}
+	for _, ar := range agentReplies {
+		agentCoverUrl := ""
+		if p, ok := agentProfileMap[ar.ProfileID]; ok {
+			agentCoverUrl = lifeAgentCoverURL(&p)
+		}
+		byPost[ar.PostID] = append(byPost[ar.PostID], commentPreviewItem{
+			createdAt: ar.CreatedAt,
+			resp: commentResponse{
+				ID:            ar.ID,
+				Content:       ar.Content,
+				AuthorName:    ar.DisplayName,
+				AuthorID:      ar.ProfileID,
+				CreatedAt:     ar.CreatedAt.Format(time.RFC3339),
+				IsAgentReply:  true,
+				AgentName:     ar.DisplayName,
+				AgentID:       ar.ProfileID,
+				AgentCoverUrl: agentCoverUrl,
+			},
+		})
+	}
+
+	for postID, items := range byPost {
+		sort.Slice(items, func(i, j int) bool {
+			return items[i].createdAt.Before(items[j].createdAt)
+		})
+		if len(items) > limit {
+			items = items[:limit]
+		}
+		preview := make([]commentResponse, 0, len(items))
+		for _, item := range items {
+			preview = append(preview, item.resp)
+		}
+		out[postID] = preview
+	}
+	return out
+}
+
 // ---------- Handlers ----------
 
 // PostsCreate 创建帖子（支持图片）
@@ -218,6 +308,8 @@ func PostsList(cfg *config.Config) gin.HandlerFunc {
 			likedMap = likedPostIDs(currentUser.ID, postIDsFromPosts(posts))
 		}
 
+		previewMap := buildPreviewCommentsForPosts(postIDsFromPosts(posts), postPreviewCommentsLimit)
+
 		resp := make([]postResponse, 0, len(posts))
 		for _, p := range posts {
 			u, ok := userMap[p.UserID]
@@ -242,6 +334,7 @@ func PostsList(cfg *config.Config) gin.HandlerFunc {
 				Likes:           p.Likes,
 				CommentsCount:   p.CommentsCount,
 				LikedByMe:       likedMap[p.ID],
+				PreviewComments: previewMap[p.ID],
 			})
 		}
 

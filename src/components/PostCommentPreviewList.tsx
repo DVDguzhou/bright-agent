@@ -1,0 +1,104 @@
+"use client";
+
+import Link from "next/link";
+import { LifeAgentCoverImage } from "@/components/LifeAgentCoverImage";
+import { getDisplayAvatar } from "@/lib/avatar";
+import { DEFAULT_COVER_URL, normalizeLifeAgentCoverImgSrc } from "@/lib/life-agent-covers";
+
+export type PostCommentPreviewItem = {
+  id: string;
+  content: string;
+  authorName: string;
+  authorId: string;
+  authorAvatarUrl?: string;
+  isAgentReply: boolean;
+  agentName?: string;
+  agentId?: string;
+  agentCoverUrl?: string;
+};
+
+function truncateComment(text: string, max = 120): string {
+  const s = text.trim();
+  if (s.length <= max) return s;
+  return `${s.slice(0, max)}…`;
+}
+
+function PostCommentPreviewRow({ comment }: { comment: PostCommentPreviewItem }) {
+  const agentProfileId = comment.agentId || comment.authorId;
+  const displayName = comment.isAgentReply
+    ? comment.agentName || "Agent"
+    : comment.authorName;
+  const agentCoverSrc = comment.agentCoverUrl
+    ? normalizeLifeAgentCoverImgSrc(comment.agentCoverUrl)
+    : DEFAULT_COVER_URL;
+
+  return (
+    <div className="flex items-start gap-2">
+      {comment.isAgentReply && agentProfileId ? (
+        <Link
+          href={`/life-agents/${agentProfileId}`}
+          className="relative mt-0.5 h-6 w-6 shrink-0 overflow-hidden rounded-full bg-violet-100/60 ring-1 ring-purple-200/25"
+          aria-label={`查看 ${displayName} 的资料`}
+        >
+          <LifeAgentCoverImage
+            src={agentCoverSrc}
+            alt=""
+            fill
+            compact
+            className="object-cover"
+            sizes="24px"
+          />
+        </Link>
+      ) : (
+        <div className="relative mt-0.5 h-6 w-6 shrink-0 overflow-hidden rounded-full bg-gradient-to-br from-[#FFF176] to-[#FF80AB]">
+          <LifeAgentCoverImage
+            src={getDisplayAvatar({ avatarUrl: comment.authorAvatarUrl, name: comment.authorName })}
+            alt=""
+            fill
+            compact
+            className="object-cover"
+            sizes="24px"
+          />
+        </div>
+      )}
+      <p className="min-w-0 flex-1 text-[13px] leading-snug text-[#111]">
+        {comment.isAgentReply && agentProfileId ? (
+          <Link href={`/life-agents/${agentProfileId}`} className="font-semibold text-purple-800">
+            {displayName}
+          </Link>
+        ) : (
+          <span className="font-semibold">{displayName}</span>
+        )}
+        <span className="text-slate-600">：{truncateComment(comment.content)}</span>
+      </p>
+    </div>
+  );
+}
+
+export function PostCommentPreviewList({
+  comments,
+  postId,
+  totalCount,
+}: {
+  comments: PostCommentPreviewItem[];
+  postId: string;
+  totalCount: number;
+}) {
+  if (comments.length === 0) return null;
+
+  return (
+    <div className="mt-2.5 space-y-2 rounded-xl bg-slate-50/90 px-3 py-2.5">
+      {comments.map((comment) => (
+        <PostCommentPreviewRow key={comment.id} comment={comment} />
+      ))}
+      {totalCount > comments.length ? (
+        <Link
+          href={`/posts/${postId}`}
+          className="block pt-0.5 text-xs font-medium text-slate-400 transition hover:text-purple-600"
+        >
+          查看全部 {totalCount} 条评论
+        </Link>
+      ) : null}
+    </div>
+  );
+}
