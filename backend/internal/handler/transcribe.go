@@ -188,6 +188,17 @@ func callDashScopeASR(apiKey, baseURL, model string, audio []byte, mime, lang st
 	if mime == "" {
 		mime = "audio/webm"
 	}
+
+	prepared, preparedMIME, err := prepareAudioForDashScopeASR(audio, mime)
+	if err != nil {
+		return "", fmt.Errorf("prepare audio: %w", err)
+	}
+	if preparedMIME != mime {
+		log.Printf("transcribe: converted %s (%d bytes) -> %s (%d bytes) for dashscope asr", mime, len(audio), preparedMIME, len(prepared))
+	}
+	audio = prepared
+	mime = preparedMIME
+
 	dataURI := fmt.Sprintf("data:%s;base64,%s", mime, base64.StdEncoding.EncodeToString(audio))
 
 	asrOptions := map[string]interface{}{
