@@ -46,13 +46,15 @@ type postResponse struct {
 }
 
 type commentResponse struct {
-	ID           string `json:"id"`
-	Content      string `json:"content"`
-	AuthorName   string `json:"authorName"`
-	AuthorID     string `json:"authorId"`
-	CreatedAt    string `json:"createdAt"`
-	IsAgentReply bool   `json:"isAgentReply"`
-	AgentName    string `json:"agentName,omitempty"`
+	ID            string `json:"id"`
+	Content       string `json:"content"`
+	AuthorName    string `json:"authorName"`
+	AuthorID      string `json:"authorId"`
+	CreatedAt     string `json:"createdAt"`
+	IsAgentReply  bool   `json:"isAgentReply"`
+	AgentName     string `json:"agentName,omitempty"`
+	AgentID       string `json:"agentId,omitempty"`
+	AgentCoverUrl string `json:"agentCoverUrl,omitempty"`
 }
 
 type postDetailResponse struct {
@@ -84,6 +86,19 @@ func buildUserMap(userIDs []string) map[string]models.User {
 		userMap[u.ID] = u
 	}
 	return userMap
+}
+
+func buildLifeAgentProfileMap(profileIDs []string) map[string]models.LifeAgentProfile {
+	profileMap := make(map[string]models.LifeAgentProfile)
+	if len(profileIDs) == 0 {
+		return profileMap
+	}
+	var profiles []models.LifeAgentProfile
+	db.DB.Where("id IN ?", profileIDs).Find(&profiles)
+	for _, p := range profiles {
+		profileMap[p.ID] = p
+	}
+	return profileMap
 }
 
 func authorNameFromUser(u models.User) string {
@@ -279,16 +294,28 @@ func PostsGet(cfg *config.Config) gin.HandlerFunc {
 			})
 		}
 
+		agentProfileIDs := make([]string, 0, len(agentReplies))
+		for _, ar := range agentReplies {
+			agentProfileIDs = append(agentProfileIDs, ar.ProfileID)
+		}
+		agentProfileMap := buildLifeAgentProfileMap(agentProfileIDs)
+
 		agentReplyResp := make([]commentResponse, 0, len(agentReplies))
 		for _, ar := range agentReplies {
+			agentCoverUrl := ""
+			if p, ok := agentProfileMap[ar.ProfileID]; ok {
+				agentCoverUrl = lifeAgentCoverURL(&p)
+			}
 			agentReplyResp = append(agentReplyResp, commentResponse{
-				ID:           ar.ID,
-				Content:      ar.Content,
-				AuthorName:   ar.DisplayName,
-				AuthorID:     "",
-				CreatedAt:    ar.CreatedAt.Format(time.RFC3339),
-				IsAgentReply: true,
-				AgentName:    ar.DisplayName,
+				ID:            ar.ID,
+				Content:       ar.Content,
+				AuthorName:    ar.DisplayName,
+				AuthorID:      ar.ProfileID,
+				CreatedAt:     ar.CreatedAt.Format(time.RFC3339),
+				IsAgentReply:  true,
+				AgentName:     ar.DisplayName,
+				AgentID:       ar.ProfileID,
+				AgentCoverUrl: agentCoverUrl,
 			})
 		}
 

@@ -830,7 +830,11 @@ export default function LifeAgentChatPage() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <div className="flex min-w-0 flex-1 items-center justify-center gap-2.5 px-1">
+          <Link
+            href={`/life-agents/${id}`}
+            className="flex min-w-0 flex-1 items-center justify-center gap-2.5 px-1 transition hover:opacity-90"
+            aria-label={`查看 ${profile.displayName} 的资料`}
+          >
             <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full bg-violet-100/60 ring-1 ring-purple-200/30">
               {agentCoverUrl ? (
                 <LifeAgentCoverImage
@@ -851,7 +855,7 @@ export default function LifeAgentChatPage() {
               <p className="truncate text-[15px] font-semibold text-[#111]">{profile.displayName}</p>
               <p className="truncate text-xs text-slate-500">{profile.headline || "在线咨询"}</p>
             </div>
-          </div>
+          </Link>
           <button
             type="button"
             onClick={openMenu}
@@ -887,7 +891,11 @@ export default function LifeAgentChatPage() {
                     className={`flex items-end gap-2 ${message.role === "user" ? "justify-end" : "justify-start"}`}
                   >
                     {message.role === "assistant" ? (
-                      <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full bg-violet-100/60 ring-1 ring-purple-200/25">
+                      <Link
+                        href={`/life-agents/${id}`}
+                        className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full bg-violet-100/60 ring-1 ring-purple-200/25 transition hover:ring-purple-300/45"
+                        aria-label={`查看 ${profile.displayName} 的资料`}
+                      >
                         {agentCoverUrl ? (
                           <LifeAgentCoverImage
                             src={agentCoverUrl}
@@ -902,7 +910,7 @@ export default function LifeAgentChatPage() {
                             {profile.displayName.slice(0, 1)}
                           </span>
                         )}
-                      </div>
+                      </Link>
                     ) : null}
                     <div className={getChatBubbleClassName(message.role)}>
                       {message.role === "assistant" && message.audioUrl ? (

@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
+import { LifeAgentCoverImage } from "@/components/LifeAgentCoverImage";
 
 interface CommentItem {
   id: string;
@@ -14,6 +15,8 @@ interface CommentItem {
   createdAt: string;
   isAgentReply: boolean;
   agentName?: string;
+  agentId?: string;
+  agentCoverUrl?: string;
 }
 
 interface PostDetail {
@@ -311,19 +314,45 @@ export default function PostDetailPage() {
               }`}
             >
               <div className="mb-1 flex items-center gap-2">
-                <div
-                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
-                    comment.isAgentReply
-                      ? "bg-gradient-to-br from-purple-200 to-fuchsia-200 text-purple-800"
-                      : "bg-gradient-to-br from-slate-100 to-slate-200 text-slate-700"
-                  }`}
-                >
-                  {comment.isAgentReply ? "AI" : comment.authorName.charAt(0)}
-                </div>
+                {comment.isAgentReply && comment.agentId ? (
+                  <Link
+                    href={`/life-agents/${comment.agentId}`}
+                    className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full bg-violet-100/60 ring-1 ring-purple-200/30 transition hover:ring-purple-300/45"
+                    aria-label={`查看 ${comment.agentName || "Agent"} 的资料`}
+                  >
+                    {comment.agentCoverUrl ? (
+                      <LifeAgentCoverImage
+                        src={comment.agentCoverUrl}
+                        alt=""
+                        fill
+                        compact
+                        className="object-cover"
+                        sizes="32px"
+                      />
+                    ) : (
+                      <span className="flex h-full w-full items-center justify-center text-[10px] font-bold text-purple-800">
+                        {(comment.agentName || "A").charAt(0)}
+                      </span>
+                    )}
+                  </Link>
+                ) : (
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-slate-100 to-slate-200 text-xs font-bold text-slate-700">
+                    {comment.authorName.charAt(0)}
+                  </div>
+                )}
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-[#111]">
                     {comment.isAgentReply ? (
-                      <span className="text-purple-800">{comment.agentName || "Agent"}</span>
+                      comment.agentId ? (
+                        <Link
+                          href={`/life-agents/${comment.agentId}`}
+                          className="text-purple-800 transition hover:text-purple-950"
+                        >
+                          {comment.agentName || "Agent"}
+                        </Link>
+                      ) : (
+                        <span className="text-purple-800">{comment.agentName || "Agent"}</span>
+                      )
                     ) : (
                       comment.authorName
                     )}
