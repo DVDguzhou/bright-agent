@@ -6,6 +6,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { LifeAgentCoverImage } from "@/components/LifeAgentCoverImage";
+import { UserAvatar } from "@/components/UserAvatar";
 import { DEFAULT_COVER_URL, normalizeLifeAgentCoverImgSrc } from "@/lib/life-agent-covers";
 
 interface CommentItem {
@@ -13,6 +14,7 @@ interface CommentItem {
   content: string;
   authorName: string;
   authorId: string;
+  authorAvatarUrl?: string;
   createdAt: string;
   isAgentReply: boolean;
   agentName?: string;
@@ -27,6 +29,7 @@ interface PostDetail {
   authorName: string;
   authorEmail: string;
   authorId: string;
+  authorAvatarUrl?: string;
   createdAt: string;
   updatedAt: string;
   likes: number;
@@ -209,9 +212,11 @@ export default function PostDetailPage() {
       <div className="rounded-[20px] bg-white p-4 shadow-sm ring-1 ring-black/[0.04]">
         {/* Author */}
         <div className="mb-3 flex items-center gap-2.5">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-purple-100 to-fuchsia-100 text-sm font-bold text-purple-700">
-            {post.authorName.charAt(0)}
-          </div>
+          <UserAvatar
+            avatarUrl={post.authorAvatarUrl}
+            name={post.authorName}
+            email={post.authorEmail}
+          />
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-[#111]">{post.authorName}</p>
             <p className="text-xs text-slate-400">{timeAgo(post.createdAt)}</p>
@@ -337,9 +342,12 @@ export default function PostDetailPage() {
                     />
                   </Link>
                 ) : (
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-slate-100 to-slate-200 text-xs font-bold text-slate-700">
-                    {comment.authorName.charAt(0)}
-                  </div>
+                  <UserAvatar
+                    avatarUrl={comment.authorAvatarUrl}
+                    name={comment.authorName}
+                    size="sm"
+                    className="ring-0"
+                  />
                 )}
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-[#111]">

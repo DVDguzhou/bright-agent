@@ -8,6 +8,7 @@ import { LifeAgentCoverImage } from "@/components/LifeAgentCoverImage";
 import { AnimatePresence, motion } from "framer-motion";
 import { VoiceMessageBubble, VoiceMessageLoadingBubble, VoiceReplyToggle } from "@/components/voice";
 import { LifeAgentMessageComposer } from "@/components/LifeAgentMessageComposer";
+import { UserAvatar } from "@/components/UserAvatar";
 import { AgentTypingIndicator } from "@/components/AgentTypingIndicator";
 import { useAuth } from "@/contexts/AuthContext";
 import { resolveLifeAgentCoverDisplayUrl } from "@/lib/life-agent-covers";
@@ -296,8 +297,6 @@ export default function LifeAgentChatPage() {
   const agentCoverUrl = profile
     ? resolveLifeAgentCoverDisplayUrl(profile.coverUrl, profile.coverImageUrl, profile.coverPresetKey)
     : null;
-
-  const userLetter = (user?.name?.trim() || user?.email || "我").slice(0, 1).toUpperCase();
 
   const sendMessageWithText = useCallback(
     async (text: string) => {
@@ -946,9 +945,12 @@ export default function LifeAgentChatPage() {
                       )}
                     </div>
                     {message.role === "user" ? (
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#FFF176] to-[#FF80AB] text-xs font-bold text-slate-900 shadow-sm ring-2 ring-white">
-                        {userLetter}
-                      </div>
+                      <UserAvatar
+                        avatarUrl={user?.avatarUrl}
+                        name={user?.name}
+                        email={user?.email}
+                        size="sm"
+                      />
                     ) : null}
                   </div>
                   {message.role === "assistant" && message.messageId && message.sessionId ? (

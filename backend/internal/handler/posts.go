@@ -32,45 +32,48 @@ type postUpdateReq struct {
 }
 
 type postResponse struct {
-	ID            string   `json:"id"`
-	Content       string   `json:"content"`
-	Images        []string `json:"images"`
-	AuthorName    string   `json:"authorName"`
-	AuthorEmail   string   `json:"authorEmail"`
-	AuthorID      string   `json:"authorId"`
-	CreatedAt     string   `json:"createdAt"`
-	UpdatedAt     string   `json:"updatedAt"`
-	Likes         int      `json:"likes"`
-	CommentsCount int      `json:"commentsCount"`
-	LikedByMe     bool     `json:"likedByMe"`
+	ID              string   `json:"id"`
+	Content         string   `json:"content"`
+	Images          []string `json:"images"`
+	AuthorName      string   `json:"authorName"`
+	AuthorEmail     string   `json:"authorEmail"`
+	AuthorID        string   `json:"authorId"`
+	AuthorAvatarUrl string   `json:"authorAvatarUrl,omitempty"`
+	CreatedAt       string   `json:"createdAt"`
+	UpdatedAt       string   `json:"updatedAt"`
+	Likes           int      `json:"likes"`
+	CommentsCount   int      `json:"commentsCount"`
+	LikedByMe       bool     `json:"likedByMe"`
 }
 
 type commentResponse struct {
-	ID            string `json:"id"`
-	Content       string `json:"content"`
-	AuthorName    string `json:"authorName"`
-	AuthorID      string `json:"authorId"`
-	CreatedAt     string `json:"createdAt"`
-	IsAgentReply  bool   `json:"isAgentReply"`
-	AgentName     string `json:"agentName,omitempty"`
-	AgentID       string `json:"agentId,omitempty"`
-	AgentCoverUrl string `json:"agentCoverUrl,omitempty"`
+	ID              string `json:"id"`
+	Content         string `json:"content"`
+	AuthorName      string `json:"authorName"`
+	AuthorID        string `json:"authorId"`
+	AuthorAvatarUrl string `json:"authorAvatarUrl,omitempty"`
+	CreatedAt       string `json:"createdAt"`
+	IsAgentReply    bool   `json:"isAgentReply"`
+	AgentName       string `json:"agentName,omitempty"`
+	AgentID         string `json:"agentId,omitempty"`
+	AgentCoverUrl   string `json:"agentCoverUrl,omitempty"`
 }
 
 type postDetailResponse struct {
-	ID            string            `json:"id"`
-	Content       string            `json:"content"`
-	Images        []string          `json:"images"`
-	AuthorName    string            `json:"authorName"`
-	AuthorEmail   string            `json:"authorEmail"`
-	AuthorID      string            `json:"authorId"`
-	CreatedAt     string            `json:"createdAt"`
-	UpdatedAt     string            `json:"updatedAt"`
-	Likes         int               `json:"likes"`
-	CommentsCount int               `json:"commentsCount"`
-	LikedByMe     bool              `json:"likedByMe"`
-	Comments      []commentResponse `json:"comments"`
-	AgentReplies  []commentResponse `json:"agentReplies"`
+	ID              string            `json:"id"`
+	Content         string            `json:"content"`
+	Images          []string          `json:"images"`
+	AuthorName      string            `json:"authorName"`
+	AuthorEmail     string            `json:"authorEmail"`
+	AuthorID        string            `json:"authorId"`
+	AuthorAvatarUrl string            `json:"authorAvatarUrl,omitempty"`
+	CreatedAt       string            `json:"createdAt"`
+	UpdatedAt       string            `json:"updatedAt"`
+	Likes           int               `json:"likes"`
+	CommentsCount   int               `json:"commentsCount"`
+	LikedByMe       bool              `json:"likedByMe"`
+	Comments        []commentResponse `json:"comments"`
+	AgentReplies    []commentResponse `json:"agentReplies"`
 }
 
 // ---------- Helpers ----------
@@ -106,6 +109,13 @@ func authorNameFromUser(u models.User) string {
 		return *u.Name
 	}
 	return "用户"
+}
+
+func authorAvatarURLFromUser(u models.User) string {
+	if u.AvatarURL != nil {
+		return strings.TrimSpace(*u.AvatarURL)
+	}
+	return ""
 }
 
 func likedPostIDs(userID string, postIDs []string) map[string]bool {
@@ -213,22 +223,25 @@ func PostsList(cfg *config.Config) gin.HandlerFunc {
 			u, ok := userMap[p.UserID]
 			authorName := "用户"
 			authorEmail := ""
+			authorAvatarUrl := ""
 			if ok {
 				authorName = authorNameFromUser(u)
 				authorEmail = u.Email
+				authorAvatarUrl = authorAvatarURLFromUser(u)
 			}
 			resp = append(resp, postResponse{
-				ID:            p.ID,
-				Content:       p.Content,
-				Images:        p.Images,
-				AuthorName:    authorName,
-				AuthorEmail:   authorEmail,
-				AuthorID:      p.UserID,
-				CreatedAt:     p.CreatedAt.Format(time.RFC3339),
-				UpdatedAt:     p.UpdatedAt.Format(time.RFC3339),
-				Likes:         p.Likes,
-				CommentsCount: p.CommentsCount,
-				LikedByMe:     likedMap[p.ID],
+				ID:              p.ID,
+				Content:         p.Content,
+				Images:          p.Images,
+				AuthorName:      authorName,
+				AuthorEmail:     authorEmail,
+				AuthorID:        p.UserID,
+				AuthorAvatarUrl: authorAvatarUrl,
+				CreatedAt:       p.CreatedAt.Format(time.RFC3339),
+				UpdatedAt:       p.UpdatedAt.Format(time.RFC3339),
+				Likes:           p.Likes,
+				CommentsCount:   p.CommentsCount,
+				LikedByMe:       likedMap[p.ID],
 			})
 		}
 
@@ -281,16 +294,19 @@ func PostsGet(cfg *config.Config) gin.HandlerFunc {
 		for _, cc := range comments {
 			cu, ok := commentUserMap[cc.UserID]
 			cAuthor := "用户"
+			cAvatar := ""
 			if ok {
 				cAuthor = authorNameFromUser(cu)
+				cAvatar = authorAvatarURLFromUser(cu)
 			}
 			commentResp = append(commentResp, commentResponse{
-				ID:           cc.ID,
-				Content:      cc.Content,
-				AuthorName:   cAuthor,
-				AuthorID:     cc.UserID,
-				CreatedAt:    cc.CreatedAt.Format(time.RFC3339),
-				IsAgentReply: false,
+				ID:              cc.ID,
+				Content:         cc.Content,
+				AuthorName:      cAuthor,
+				AuthorID:        cc.UserID,
+				AuthorAvatarUrl: cAvatar,
+				CreatedAt:       cc.CreatedAt.Format(time.RFC3339),
+				IsAgentReply:    false,
 			})
 		}
 
@@ -320,19 +336,20 @@ func PostsGet(cfg *config.Config) gin.HandlerFunc {
 		}
 
 		c.JSON(http.StatusOK, postDetailResponse{
-			ID:            post.ID,
-			Content:       post.Content,
-			Images:        post.Images,
-			AuthorName:    authorName,
-			AuthorEmail:   author.Email,
-			AuthorID:      post.UserID,
-			CreatedAt:     post.CreatedAt.Format(time.RFC3339),
-			UpdatedAt:     post.UpdatedAt.Format(time.RFC3339),
-			Likes:         post.Likes,
-			CommentsCount: post.CommentsCount,
-			LikedByMe:     likedByMe,
-			Comments:      commentResp,
-			AgentReplies:  agentReplyResp,
+			ID:              post.ID,
+			Content:         post.Content,
+			Images:          post.Images,
+			AuthorName:      authorName,
+			AuthorEmail:     author.Email,
+			AuthorID:        post.UserID,
+			AuthorAvatarUrl: authorAvatarURLFromUser(author),
+			CreatedAt:       post.CreatedAt.Format(time.RFC3339),
+			UpdatedAt:       post.UpdatedAt.Format(time.RFC3339),
+			Likes:           post.Likes,
+			CommentsCount:   post.CommentsCount,
+			LikedByMe:       likedByMe,
+			Comments:        commentResp,
+			AgentReplies:    agentReplyResp,
 		})
 	}
 }
@@ -551,15 +568,18 @@ func PostsCommentsList(cfg *config.Config) gin.HandlerFunc {
 		for _, cc := range comments {
 			cu, ok := userMap[cc.UserID]
 			cAuthor := "用户"
+			cAvatar := ""
 			if ok {
 				cAuthor = authorNameFromUser(cu)
+				cAvatar = authorAvatarURLFromUser(cu)
 			}
 			resp = append(resp, commentResponse{
-				ID:         cc.ID,
-				Content:    cc.Content,
-				AuthorName: cAuthor,
-				AuthorID:   cc.UserID,
-				CreatedAt:  cc.CreatedAt.Format(time.RFC3339),
+				ID:              cc.ID,
+				Content:         cc.Content,
+				AuthorName:      cAuthor,
+				AuthorID:        cc.UserID,
+				AuthorAvatarUrl: cAvatar,
+				CreatedAt:       cc.CreatedAt.Format(time.RFC3339),
 			})
 		}
 

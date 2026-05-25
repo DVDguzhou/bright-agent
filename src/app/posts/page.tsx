@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
+import { UserAvatar } from "@/components/UserAvatar";
 
 interface ApiPost {
   id: string;
@@ -13,6 +14,7 @@ interface ApiPost {
   authorName: string;
   authorEmail: string;
   authorId: string;
+  authorAvatarUrl?: string;
   createdAt: string;
   updatedAt: string;
   likes: number;
@@ -303,9 +305,12 @@ export default function PostsPage() {
             {/* Author + actions */}
             <div className="mb-2 flex items-center justify-between gap-2">
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-purple-100 to-fuchsia-100 text-sm font-bold text-purple-700">
-                  {post.authorName.charAt(0)}
-                </div>
+                <UserAvatar
+                  avatarUrl={post.authorAvatarUrl}
+                  name={post.authorName}
+                  email={post.authorEmail}
+                  className="ring-0"
+                />
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold text-[#111]">{post.authorName}</p>
                   <p className="text-xs text-slate-400">{timeAgo(post.createdAt)}</p>
