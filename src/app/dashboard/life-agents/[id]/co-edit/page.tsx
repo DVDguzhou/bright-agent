@@ -10,11 +10,13 @@ import { WeflowImportGuide } from "@/components/WeflowImportGuide";
 import {
   buildPatchPayloadFromProfile,
   fetchManageData,
+  PERSONA_OPTIONS,
+  RESPONSE_STYLE_OPTIONS,
   summarizeProfileChanges,
+  TONE_OPTIONS,
   type ManageData,
   type ManageProfile,
 } from "@/app/dashboard/life-agents/_lib/manage";
-import { cleanLifeAgentIntroText } from "@/lib/life-agent-intro-clean";
 import {
   CHAT_PAGE_BACKGROUND_CLASSNAME,
   CHAT_SCROLL_SURFACE_CLASSNAME,
@@ -60,6 +62,9 @@ function mergeManageProfile(prev: ManageProfile, patch: Partial<ManageProfile>):
   };
 }
 
+const profileFieldClassName =
+  "mt-1 w-full rounded-lg border border-purple-200/50 bg-white/90 px-2.5 py-2 text-sm text-slate-700 outline-none transition focus:border-purple-400 focus:ring-2 focus:ring-purple-200/40";
+
 export default function LifeAgentCoEditPage() {
   const params = useParams();
   const router = useRouter();
@@ -77,6 +82,7 @@ export default function LifeAgentCoEditPage() {
   const [importOpen, setImportOpen] = useState(false);
   const [importLoading, setImportLoading] = useState(false);
   const [importProgress, setImportProgress] = useState<string | null>(null);
+  const [profileSaving, setProfileSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const chatHistoryRef = useRef<ChatRow[]>([]);
   const pendingVoicePromptRef = useRef<string | null>(null);
@@ -203,6 +209,35 @@ export default function LifeAgentCoEditPage() {
 
   const impactedFields = useMemo(() => lastChange?.summary ?? [], [lastChange]);
   const turnCount = useMemo(() => chatHistory.filter((item) => item.role === "user").length, [chatHistory]);
+
+  const updateProfile = useCallback((patch: Partial<ManageProfile>) => {
+    setData((prev) => (prev ? { ...prev, profile: { ...prev.profile, ...patch } } : prev));
+  }, []);
+
+  const saveProfileFields = useCallback(async () => {
+    if (!data || profileSaving || modifyLoading) return;
+    setProfileSaving(true);
+    setBanner(null);
+    try {
+      const res = await fetch(`/api/life-agents/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(buildPatchPayloadFromProfile(data.profile)),
+      });
+      const next = await res.json().catch(() => null);
+      if (!res.ok || !next) {
+        setBanner("资料保存失败，请稍后再试");
+        return;
+      }
+      setData((prev) => (prev ? { ...prev, profile: mergeManageProfile(prev.profile, next) } : prev));
+      setBanner("资料已保存");
+    } catch {
+      setBanner("资料保存失败，请检查网络后重试");
+    } finally {
+      setProfileSaving(false);
+    }
+  }, [data, id, modifyLoading, profileSaving]);
 
   const runModify = useCallback(async (msg: string) => {
     if (!data) return;
@@ -590,20 +625,52 @@ export default function LifeAgentCoEditPage() {
                 </div>
               </summary>
 
-              <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
                 <div className="rounded-xl border border-purple-100/40 bg-violet-50/40 px-3 py-2.5 backdrop-blur-sm">
-                  <p className="text-[11px] text-purple-600/55">一句话介绍</p>
-                  <p className="mt-1 line-clamp-2 text-sm text-slate-700">
-                    {cleanLifeAgentIntroText(profile.headline, profile.displayName) || "未设置"}
-                  </p>
+                  <label className="text-[11px] text-purple-600/55" htmlFor="co-edit-headline">
+                    一句话介绍
+                  </label>
+                  <textarea
+                    id="co-edit-headline"
+                    rows={2}
+                    value={profile.headline}
+                    onChange={(e) => updateProfile({ headline: e.target.value })}
+                    className={profileFieldClassName}
+                    placeholder="未设置"
+                  />
                 </div>
                 <div className="rounded-xl border border-purple-100/40 bg-violet-50/40 px-3 py-2.5 backdrop-blur-sm">
-                  <p className="text-[11px] text-purple-600/55">欢迎语</p>
-                  <p className="mt-1 line-clamp-2 text-sm text-slate-700">{profile.welcomeMessage || "未设置"}</p>
+                  <label className="text-[11px] text-purple-600/55" htmlFor="co-edit-welcome">
+                    欢迎语
+                  </label>
+                  <textarea
+                    id="co-edit-welcome"
+                    rows={3}
+                    value={profile.welcomeMessage}
+                    onChange={(e) => updateProfile({ welcomeMessage: e.target.value })}
+                    className={profileFieldClassName}
+                    placeholder="未设置"
+                  />
                 </div>
-                <div className="rounded-xl border border-purple-100/40 bg-violet-50/40 px-3 py-2.5 backdrop-blur-sm">
-                  <p className="text-[11px] text-purple-600/55">示范回答</p>
-                  <p className="mt-1 text-sm text-slate-700">{(profile.exampleReplies ?? []).length} 条</p>
+                <div className="rounded-xl border border-purple-100/40 bg-violet-50/40 px-3 py-2.5 backdrop-blur-sm sm:col-span-2">
+                  <label className="text-[11px] text-purple-600/55" htmlFor="co-edit-examples">
+                    示范回答（每行一条）
+                  </label>
+                  <textarea
+                    id="co-edit-examples"
+                    rows={3}
+                    value={(profile.exampleReplies ?? []).join("\n")}
+                    onChange={(e) =>
+                      updateProfile({
+                        exampleReplies: e.target.value
+                          .split("\n")
+                          .map((line) => line.trim())
+                          .filter(Boolean),
+                      })
+                    }
+                    className={profileFieldClassName}
+                    placeholder="每行写一条示范回答"
+                  />
                 </div>
               </div>
 
@@ -619,19 +686,11 @@ export default function LifeAgentCoEditPage() {
                           type="button"
                           onClick={() => {
                             const tags = profile.expertiseTags ?? [];
-                            setData((prev) =>
-                              prev
-                                ? {
-                                    ...prev,
-                                    profile: {
-                                      ...prev.profile,
-                                      expertiseTags: selected
-                                        ? tags.filter((t) => t !== cat.label)
-                                        : [...tags, cat.label],
-                                    },
-                                  }
-                                : prev
-                            );
+                            updateProfile({
+                              expertiseTags: selected
+                                ? tags.filter((t) => t !== cat.label)
+                                : [...tags, cat.label],
+                            });
                           }}
                           className={`rounded-full px-2.5 py-1 text-xs transition ${selected ? "" : "hover:opacity-80"}`}
                           style={{
@@ -647,17 +706,72 @@ export default function LifeAgentCoEditPage() {
                   </div>
                 </div>
                 <div className="grid gap-2 sm:grid-cols-2">
-                  <div className="rounded-xl border border-purple-100/40 bg-violet-50/40 px-3 py-2.5 backdrop-blur-sm">
+                  <div className="rounded-xl border border-purple-100/40 bg-violet-50/40 px-3 py-2.5 backdrop-blur-sm sm:col-span-2">
                     <p className="text-[11px] text-purple-600/55">人设与语气</p>
-                    <p className="mt-1 text-sm text-slate-700">
-                      {[profile.personaArchetype, profile.toneStyle, profile.responseStyle].filter(Boolean).join(" · ") || "未设置"}
-                    </p>
+                    <div className="mt-2 grid gap-2 sm:grid-cols-3">
+                      <select
+                        value={profile.personaArchetype ?? ""}
+                        onChange={(e) => updateProfile({ personaArchetype: e.target.value })}
+                        className={profileFieldClassName}
+                      >
+                        <option value="">角色类型</option>
+                        {PERSONA_OPTIONS.map((opt) => (
+                          <option key={opt} value={opt}>
+                            {opt}
+                          </option>
+                        ))}
+                      </select>
+                      <select
+                        value={profile.toneStyle ?? ""}
+                        onChange={(e) => updateProfile({ toneStyle: e.target.value })}
+                        className={profileFieldClassName}
+                      >
+                        <option value="">语气</option>
+                        {TONE_OPTIONS.map((opt) => (
+                          <option key={opt} value={opt}>
+                            {opt}
+                          </option>
+                        ))}
+                      </select>
+                      <select
+                        value={profile.responseStyle ?? ""}
+                        onChange={(e) => updateProfile({ responseStyle: e.target.value })}
+                        className={profileFieldClassName}
+                      >
+                        <option value="">回答习惯</option>
+                        {RESPONSE_STYLE_OPTIONS.map((opt) => (
+                          <option key={opt} value={opt}>
+                            {opt}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
-                  <div className="rounded-xl border border-purple-100/40 bg-violet-50/40 px-3 py-2.5 backdrop-blur-sm">
-                    <p className="text-[11px] text-purple-600/55">不能回答的问题</p>
-                    <p className="mt-1 line-clamp-3 text-sm text-slate-700">{profile.notSuitableFor || "未设置"}</p>
+                  <div className="rounded-xl border border-purple-100/40 bg-violet-50/40 px-3 py-2.5 backdrop-blur-sm sm:col-span-2">
+                    <label className="text-[11px] text-purple-600/55" htmlFor="co-edit-not-suitable">
+                      不能回答的问题
+                    </label>
+                    <textarea
+                      id="co-edit-not-suitable"
+                      rows={2}
+                      value={profile.notSuitableFor ?? ""}
+                      onChange={(e) => updateProfile({ notSuitableFor: e.target.value })}
+                      className={profileFieldClassName}
+                      placeholder="未设置"
+                    />
                   </div>
                 </div>
+              </div>
+
+              <div className="mt-3 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => void saveProfileFields()}
+                  disabled={profileSaving || modifyLoading}
+                  className="btn-primary rounded-full px-5 py-2 text-sm disabled:opacity-50"
+                >
+                  {profileSaving ? "保存中…" : "保存资料修改"}
+                </button>
               </div>
 
               {lastChange ? (
