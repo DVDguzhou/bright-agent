@@ -392,6 +392,101 @@
 | 327 | 红薯_青蛙 | 川师升学Wiki | yantu-import@demo.com | pathchip64@163.com | YantuLa2026! |
 | 328 | 自在的饼干oo | 川师升学Wiki | yantu-import@demo.com | bit_path83@163.com | YantuLa2026! |
 
+## 《不止大学》播客访谈系列（23 条）
+
+来源：小宇宙/播客《不止大学》访谈逐字稿；嘉宾主内容取自对应期数的**发言人1或发言人2**（见各期表格），另一发言人为主持人君怡的追问与补充语境。
+档案文件：`backend/internal/yantuseed/profiles_buzhi_podcast.go`
+统一导入号仍可用 `yantu-import@demo.com`，seed 后会归属各 @163.com。
+
+| 序号 | 人生 Agent 显示名 | 原嘉宾/期数 | 原归属账号 | 新登录邮箱 | 初始密码 |
+|-----|------------------|-------------|------------|------------|----------|
+| 1610 | 一楠说不要了 | EP01 一楠 | buzhi-import@demo.com | pod_yinan01@163.com | YantuLa2026! |
+| 1611 | 董淇祛魅打野 | EP04 董淇 | buzhi-import@demo.com | pod_dongqi04@163.com | YantuLa2026! |
+| 1612 | 琼月旷野行 | EP05 琼月 | buzhi-import@demo.com | pod_qiongyue05@163.com | YantuLa2026! |
+| 1613 | 温特多边形 | EP06 温特 | buzhi-import@demo.com | pod_winter06@163.com | YantuLa2026! |
+| 1614 | 西部小城第一 | EP07 第一代大学生 | buzhi-import@demo.com | pod_west07@163.com | YantuLa2026! |
+| 1615 | 乡村振兴创客 | EP08 乡村振兴创业者 | buzhi-import@demo.com | pod_village08@163.com | YantuLa2026! |
+| 1616 | 林老师聊留学 | EP09 留学顾问 | buzhi-import@demo.com | pod_lin09@163.com | YantuLa2026! |
+| 1617 | 伊岚强者思维 | EP10 伊岚 | buzhi-import@demo.com | pod_yilan10@163.com | YantuLa2026! |
+| 1618 | 依兰学习升值 | EP11 依兰 | buzhi-import@demo.com | pod_yilan11@163.com | YantuLa2026! |
+| 1619 | 廖翔榨干复盘 | EP12 廖翔 | buzhi-import@demo.com | pod_liaoxiang12@163.com | YantuLa2026! |
+| 1620 | 万万放弃保研 | EP13 万万 | buzhi-import@demo.com | pod_wanwan13@163.com | YantuLa2026! |
+| 1621 | 小红书年入百万 | EP14 方迪迪 | buzhi-import@demo.com | pod_xhs14@163.com | YantuLa2026! |
+| 1622 | 篮球商业操盘 | EP15 金哥 | buzhi-import@demo.com | pod_bball15@163.com | YantuLa2026! |
+| 1623 | 砸碎精英滤镜 | EP19 认知进化嘉宾 | buzhi-import@demo.com | pod_elite19@163.com | YantuLa2026! |
+| 1624 | 算法副业试错 | EP20 算法工程师 | buzhi-import@demo.com | pod_algo20@163.com | YantuLa2026! |
+| 1625 | 创赛破局女生 | EP21 李琪 | buzhi-import@demo.com | pod_chuang21@163.com | YantuLa2026! |
+| 1626 | 联合国开挂史 | EP22 韦轩 | buzhi-import@demo.com | pod_un22@163.com | YantuLa2026! |
+| 1627 | 阿里破局女孩 | EP23 月白 | buzhi-import@demo.com | pod_ali23@163.com | YantuLa2026! |
+| 1628 | 二本到小米 | EP24 小米逆袭 | buzhi-import@demo.com | pod_xiaomi24@163.com | YantuLa2026! |
+| 1629 | 南海到Web3 | EP25 石辉 | buzhi-import@demo.com | pod_web325@163.com | YantuLa2026! |
+| 1630 | 口吃到央视 | EP26 志浩 | buzhi-import@demo.com | pod_cctv26@163.com | YantuLa2026! |
+| 1631 | 留学返点轻创 | EP27 英澳留学合伙人 | buzhi-import@demo.com | pod_ab27@163.com | YantuLa2026! |
+| 1632 | 北欧Solotrip | EP28 北欧独游女孩 | buzhi-import@demo.com | pod_solo28@163.com | YantuLa2026! |
+
+## 《我下班了》播客访谈系列（15 条）
+
+来源：播客《我下班了》访谈逐字稿；嘉宾主内容取自对应期数的**发言人1或发言人2**（见各期表格），另一发言人为主持人阿拉的追问与补充语境。EP06 含黄豆老师（发言人1）与小鱼儿（发言人2）；EP08 逐字稿未区分编号，按交替段落解析；EP14 转写较乱，已合并多位嘉宾内容。
+档案文件：`backend/internal/yantuseed/profiles_xiabanle_podcast.go`
+统一导入号仍可用 `yantu-import@demo.com`，seed 后会归属各 @163.com。
+
+| 序号 | 人生 Agent 显示名 | 原嘉宾/期数 | 原归属账号 | 新登录邮箱 | 初始密码 |
+|-----|------------------|-------------|------------|------------|----------|
+| 1633 | 成都土著家居服 | EP03 文婷 | xiabanle-import@demo.com | pod_xbl03@163.com | YantuLa2026! |
+| 1634 | 成都躺平创业 | EP04 阿基/明宇 | xiabanle-import@demo.com | pod_xbl04@163.com | YantuLa2026! |
+| 1635 | 一线闯二线副本 | EP05 范寒 | xiabanle-import@demo.com | pod_xbl05@163.com | YantuLa2026! |
+| 1636 | 社交app新关系 | EP06 黄豆老师/小鱼儿 | xiabanle-import@demo.com | pod_xbl06@163.com | YantuLa2026! |
+| 1637 | 七年七份工作 | EP07 小郭 | xiabanle-import@demo.com | pod_xbl07@163.com | YantuLa2026! |
+| 1638 | 盖洛普自由职业 | EP08 大鱼 | xiabanle-import@demo.com | pod_xbl08@163.com | YantuLa2026! |
+| 1639 | 30岁热爱生活 | EP09 狗哥 | xiabanle-import@demo.com | pod_xbl09@163.com | YantuLa2026! |
+| 1640 | 字节裁员百万 | EP10 陈楠 | xiabanle-import@demo.com | pod_xbl10@163.com | YantuLa2026! |
+| 1641 | Gap探索AI创业 | EP11 耗子学长 | xiabanle-import@demo.com | pod_xbl11@163.com | YantuLa2026! |
+| 1642 | 运营顾问Sina | EP12 思娜 | xiabanle-import@demo.com | pod_xbl12@163.com | YantuLa2026! |
+| 1643 | 杭州B面人生 | EP13 七天 | xiabanle-import@demo.com | pod_xbl13@163.com | YantuLa2026! |
+| 1644 | 成都自由职业 | EP14 范范/Peter/君明 | xiabanle-import@demo.com | pod_xbl14@163.com | YantuLa2026! |
+| 1645 | 阿里回成都卖水果 | EP15 红伶 | xiabanle-import@demo.com | pod_xbl15@163.com | YantuLa2026! |
+| 1646 | 旅游博主月入几万 | EP16 苏苏 | xiabanle-import@demo.com | pod_xbl16@163.com | YantuLa2026! |
+| 1647 | 辍学百万影视 | EP17 于小航 | xiabanle-import@demo.com | pod_xbl17@163.com | YantuLa2026! |
+
+## 《校招飞》播客访谈系列（9 条）
+
+来源：播客《校招飞》访谈逐字稿；嘉宾主内容取自对应 vol 的**发言人1或发言人2**（见各期表格），另一发言人为主持人追问与补充语境。
+档案文件：`backend/internal/yantuseed/profiles_xiaozhaofei_podcast.go`
+统一导入号仍可用 `yantu-import@demo.com`，seed 后会归属各 @163.com。
+
+| 序号 | 人生 Agent 显示名 | 原嘉宾/vol | 原归属账号 | 新登录邮箱 | 初始密码 |
+|-----|------------------|-----------|------------|------------|----------|
+| 1648 | 红总大厂运营 | vol.01 董红庄 | xiaozhaofei-import@demo.com | pod_xzf01@163.com | YantuLa2026! |
+| 1649 | 职高字节AI | vol.02 伟东 | xiaozhaofei-import@demo.com | pod_xzf02@163.com | YantuLa2026! |
+| 1650 | 武大新闻秋招 | vol.03 燕婷 | xiaozhaofei-import@demo.com | pod_xzf03@163.com | YantuLa2026! |
+| 1651 | 理想转美团HR | vol.04 Jeffrey | xiaozhaofei-import@demo.com | pod_xzf04@163.com | YantuLa2026! |
+| 1652 | 产运offer五连斩 | vol.05 王同学 | xiaozhaofei-import@demo.com | pod_xzf05@163.com | YantuLa2026! |
+| 1653 | 腾讯面11次 | vol.06 陈同学 | xiaozhaofei-import@demo.com | pod_xzf06@163.com | YantuLa2026! |
+| 1654 | 芯片offer收割 | vol.07 哈维同学 | xiaozhaofei-import@demo.com | pod_xzf07@163.com | YantuLa2026! |
+| 1655 | 英语本硕秋招 | vol.08 小凡 | xiaozhaofei-import@demo.com | pod_xzf08@163.com | YantuLa2026! |
+| 1656 | 博士AI收割机 | vol.09 文轩 | xiaozhaofei-import@demo.com | pod_xzf09@163.com | YantuLa2026! |
+
+## 《迷你退休》播客访谈系列（12 条）
+
+来源：播客《迷你退休》访谈逐字稿；嘉宾主内容取自对应期数的**发言人1或发言人2**（见各期表格），另一发言人为主持人程小咩的追问与补充语境。部分期数为反向采访（嘉宾为发言人2、程小咩为发言人1）。
+档案文件：`backend/internal/yantuseed/profiles_minituixiu_podcast.go`
+统一导入号仍可用 `yantu-import@demo.com`，seed 后会归属各 @163.com。
+
+| 序号 | 人生 Agent 显示名 | 原嘉宾/期数 | 原归属账号 | 新登录邮箱 | 初始密码 |
+|-----|------------------|-------------|------------|------------|----------|
+| 1657 | 越想越不自由 | 越想赚钱·杨德佳 | minituixiu-import@demo.com | pod_mnr01@163.com | YantuLa2026! |
+| 1658 | 心理师全国旅居 | 心理师旅居·李恩 | minituixiu-import@demo.com | pod_mnr02@163.com | YantuLa2026! |
+| 1659 | 不想成功的大人 | 佩轩采访程小咩 | minituixiu-import@demo.com | pod_mnr03@163.com | YantuLa2026! |
+| 1660 | 碎片时间社群 | 糖糖·社群副业 | minituixiu-import@demo.com | pod_mnr04@163.com | YantuLa2026! |
+| 1661 | 副业关键一步 | 橙子·10种副业 | minituixiu-import@demo.com | pod_mnr05@163.com | YantuLa2026! |
+| 1662 | KV数字游民 | 一人公司·KV | minituixiu-import@demo.com | pod_mnr06@163.com | YantuLa2026! |
+| 1663 | AI电商转IP | AI电商·阿龙 | minituixiu-import@demo.com | pod_mnr07@163.com | YantuLa2026! |
+| 1664 | 同龄人贵人 | 破圈·千儿 | minituixiu-import@demo.com | pod_mnr08@163.com | YantuLa2026! |
+| 1665 | 占星1小时工作 | 占星·JK老师 | minituixiu-import@demo.com | pod_mnr09@163.com | YantuLa2026! |
+| 1666 | 24h自动赚钱店 | 24h店·渺渺 | minituixiu-import@demo.com | pod_mnr10@163.com | YantuLa2026! |
+| 1667 | 旅行边赚Allen | 旅行·Allen | minituixiu-import@demo.com | pod_mnr11@163.com | YantuLa2026! |
+| 1668 | AI写真被动收入 | AI写真·布噜 | minituixiu-import@demo.com | pod_mnr12@163.com | YantuLa2026! |
+
 ## 删除研途榜样种子数据（危险操作）
 
 级联清理：知识库、买家会话与消息、反馈、评分、提问包、调用密钥、共编状态、收藏等。
