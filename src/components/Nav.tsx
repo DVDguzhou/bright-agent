@@ -756,11 +756,12 @@ export function Nav() {
           <div className="hidden min-h-[52px] items-center justify-between lg:flex sm:h-16">
           <Link href="/" className="group flex min-w-0 shrink-0 items-center gap-2" title="BrightAgent">
             <Image
-              src="/bright-agent-icon.png"
+              src="/bright-agent-icon.png?v=2"
               alt="BrightAgent"
               width={36}
               height={36}
               className="h-7 w-7 shrink-0 rounded-lg object-contain sm:h-9 sm:w-9"
+              unoptimized
             />
             <span className="hidden truncate whitespace-nowrap bg-gradient-to-r from-[#BA68C8] via-[#FF80AB] to-[#7c3aed] bg-clip-text text-base font-bold text-transparent md:inline xl:inline 2xl:text-xl">
               BrightAgent
