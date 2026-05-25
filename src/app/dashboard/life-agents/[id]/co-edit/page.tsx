@@ -47,6 +47,19 @@ function dismissKeyboard() {
   }
 }
 
+function mergeManageProfile(prev: ManageProfile, patch: Partial<ManageProfile>): ManageProfile {
+  return {
+    ...prev,
+    ...patch,
+    knowledgeEntries: patch.knowledgeEntries ?? prev.knowledgeEntries ?? [],
+    expertiseTags: patch.expertiseTags ?? prev.expertiseTags ?? [],
+    sampleQuestions: patch.sampleQuestions ?? prev.sampleQuestions ?? [],
+    exampleReplies: patch.exampleReplies ?? prev.exampleReplies ?? [],
+    forbiddenPhrases: patch.forbiddenPhrases ?? prev.forbiddenPhrases ?? [],
+    regions: patch.regions ?? prev.regions ?? [],
+  };
+}
+
 export default function LifeAgentCoEditPage() {
   const params = useParams();
   const router = useRouter();
@@ -285,7 +298,7 @@ export default function LifeAgentCoEditPage() {
           appliedAt: new Date().toISOString(),
         });
         const profileAfter = next.profile;
-        setData((prev) => (prev ? { ...prev, profile: profileAfter } : prev));
+        setData((prev) => (prev ? { ...prev, profile: mergeManageProfile(prev.profile, profileAfter) } : prev));
         setChatHistory((prev) =>
           prev.map((row, i) =>
             i === assistantRowIndex
@@ -321,7 +334,7 @@ export default function LifeAgentCoEditPage() {
         message: msg,
         appliedAt: new Date().toISOString(),
       });
-      setData((prev) => (prev ? { ...prev, profile: profileAfter } : prev));
+      setData((prev) => (prev ? { ...prev, profile: mergeManageProfile(prev.profile, profileAfter) } : prev));
     } catch {
       replaceAssistantMessage("请求失败，请检查网络后重试");
     } finally {
@@ -362,7 +375,7 @@ export default function LifeAgentCoEditPage() {
         setBanner("撤回失败，请稍后再试");
         return;
       }
-      setData((prev) => (prev ? { ...prev, profile: next } : prev));
+      setData((prev) => (prev ? { ...prev, profile: lastChange.before } : prev));
       setChatHistory((prev) => [...prev, { role: "assistant", content: "已撤回上次修改，资料恢复到修改前状态。" }]);
       setLastChange(null);
       setBanner("已撤回上次修改");
@@ -465,7 +478,11 @@ export default function LifeAgentCoEditPage() {
         message: `导入聊天记录：${file.name}`,
         appliedAt: new Date().toISOString(),
       });
-      setData((prev) => (prev ? { ...prev, profile: donePayload!.profile! } : prev));
+      setData((prev) =>
+        prev && donePayload?.profile
+          ? { ...prev, profile: mergeManageProfile(prev.profile, donePayload.profile) }
+          : prev
+      );
       setChatHistory((prev) =>
         prev.map((row, i) =>
           i === assistantIdx
@@ -550,7 +567,7 @@ export default function LifeAgentCoEditPage() {
               <div>
                 <p className="text-sm font-semibold text-purple-950/90">当前 Agent 状态</p>
                 <p className="mt-1 text-xs text-slate-500">
-                  {profile.displayName} · {(profile.expertiseTags ?? []).length} 个标签 · {profile.knowledgeEntries.length} 条知识
+                  {profile.displayName} · {(profile.expertiseTags ?? []).length} 个标签 · {(profile.knowledgeEntries ?? []).length} 条知识
                 </p>
               </div>
               {lastChange ? (
