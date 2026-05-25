@@ -6,6 +6,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { LifeAgentCoverImage } from "@/components/LifeAgentCoverImage";
+import { DEFAULT_COVER_URL, normalizeLifeAgentCoverImgSrc } from "@/lib/life-agent-covers";
 
 interface CommentItem {
   id: string;
@@ -304,7 +305,13 @@ export default function PostDetailPage() {
 
         {/* Comments list */}
         <div className="space-y-3">
-          {allComments.map((comment) => (
+          {allComments.map((comment) => {
+            const agentProfileId = comment.agentId || comment.authorId;
+            const agentCoverSrc = comment.agentCoverUrl
+              ? normalizeLifeAgentCoverImgSrc(comment.agentCoverUrl)
+              : DEFAULT_COVER_URL;
+
+            return (
             <div
               key={comment.id}
               className={`rounded-[16px] p-3 shadow-sm ring-1 ${
@@ -314,26 +321,20 @@ export default function PostDetailPage() {
               }`}
             >
               <div className="mb-1 flex items-center gap-2">
-                {comment.isAgentReply && comment.agentId ? (
+                {comment.isAgentReply && agentProfileId ? (
                   <Link
-                    href={`/life-agents/${comment.agentId}`}
+                    href={`/life-agents/${agentProfileId}`}
                     className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full bg-violet-100/60 ring-1 ring-purple-200/30 transition hover:ring-purple-300/45"
                     aria-label={`查看 ${comment.agentName || "Agent"} 的资料`}
                   >
-                    {comment.agentCoverUrl ? (
-                      <LifeAgentCoverImage
-                        src={comment.agentCoverUrl}
-                        alt=""
-                        fill
-                        compact
-                        className="object-cover"
-                        sizes="32px"
-                      />
-                    ) : (
-                      <span className="flex h-full w-full items-center justify-center text-[10px] font-bold text-purple-800">
-                        {(comment.agentName || "A").charAt(0)}
-                      </span>
-                    )}
+                    <LifeAgentCoverImage
+                      src={agentCoverSrc}
+                      alt=""
+                      fill
+                      compact
+                      className="object-cover"
+                      sizes="32px"
+                    />
                   </Link>
                 ) : (
                   <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-slate-100 to-slate-200 text-xs font-bold text-slate-700">
@@ -343,9 +344,9 @@ export default function PostDetailPage() {
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-[#111]">
                     {comment.isAgentReply ? (
-                      comment.agentId ? (
+                      agentProfileId ? (
                         <Link
-                          href={`/life-agents/${comment.agentId}`}
+                          href={`/life-agents/${agentProfileId}`}
                           className="text-purple-800 transition hover:text-purple-950"
                         >
                           {comment.agentName || "Agent"}
@@ -369,7 +370,8 @@ export default function PostDetailPage() {
                 {comment.content}
               </p>
             </div>
-          ))}
+            );
+          })}
 
           {allComments.length === 0 && (
             <div className="py-8 text-center text-sm text-slate-400">

@@ -832,6 +832,7 @@ export default function LifeAgentChatPage() {
           </button>
           <Link
             href={`/life-agents/${id}`}
+            onClick={(e) => e.stopPropagation()}
             className="flex min-w-0 flex-1 items-center justify-center gap-2.5 px-1 transition hover:opacity-90"
             aria-label={`查看 ${profile.displayName} 的资料`}
           >
@@ -893,6 +894,7 @@ export default function LifeAgentChatPage() {
                     {message.role === "assistant" ? (
                       <Link
                         href={`/life-agents/${id}`}
+                        onClick={(e) => e.stopPropagation()}
                         className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full bg-violet-100/60 ring-1 ring-purple-200/25 transition hover:ring-purple-300/45"
                         aria-label={`查看 ${profile.displayName} 的资料`}
                       >

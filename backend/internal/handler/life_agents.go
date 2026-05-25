@@ -2027,6 +2027,9 @@ func LifeAgentsBuyerChatSessions(cfg *config.Config) gin.HandlerFunc {
 					"displayName":        profile.DisplayName,
 					"headline":           profile.Headline,
 					"verificationStatus": coalesceVerificationStatus(profile.VerificationStatus),
+					"coverUrl":           lifeAgentCoverURL(&profile),
+					"coverImageUrl":      ptrStr(profile.CoverImageURL),
+					"coverPresetKey":     ptrStr(profile.CoverPresetKey),
 				},
 			})
 		}

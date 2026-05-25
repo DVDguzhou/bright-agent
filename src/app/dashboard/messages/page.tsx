@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
-import { getDisplayAvatar } from "@/lib/avatar";
+import { LifeAgentCoverImage } from "@/components/LifeAgentCoverImage";
 import { cleanLifeAgentIntroText } from "@/lib/life-agent-intro-clean";
+import { resolveLifeAgentCoverDisplayUrl } from "@/lib/life-agent-covers";
 
 type ChatHistoryItem = {
   id: string;
@@ -19,6 +19,9 @@ type ChatHistoryItem = {
     displayName: string;
     headline: string;
     verificationStatus?: string;
+    coverUrl?: string;
+    coverImageUrl?: string;
+    coverPresetKey?: string;
   };
 };
 
@@ -138,29 +141,39 @@ export default function DashboardMessagesPage() {
         ) : (
           <ul className="divide-y divide-hairline">
             {filteredItems.map((item, index) => {
-              const avatarSrc = getDisplayAvatar({ name: item.profile.displayName });
-              const href = `/life-agents/${item.profile.id}/chat?sessionId=${item.id}`;
+              const coverUrl = resolveLifeAgentCoverDisplayUrl(
+                item.profile.coverUrl,
+                item.profile.coverImageUrl,
+                item.profile.coverPresetKey,
+              );
+              const chatHref = `/life-agents/${item.profile.id}/chat?sessionId=${item.id}`;
+              const profileHref = `/life-agents/${item.profile.id}`;
               return (
                 <motion.li
                   key={item.id}
                   initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index < 10 ? index * 0.02 : 0 }}
+                  className="flex items-center gap-3 px-4 py-3.5 sm:px-0"
                 >
                   <Link
-                    href={href}
-                    className="flex items-center gap-3 px-4 py-3.5 transition active:bg-paper-100 sm:px-0"
+                    href={profileHref}
+                    className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full bg-paper-200 ring-1 ring-ink/10 transition hover:ring-purple-300/40"
+                    aria-label={`查看 ${item.profile.displayName} 的资料`}
                   >
-                    <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full bg-paper-200 ring-1 ring-ink/10">
-                      <Image
-                        src={avatarSrc}
-                        alt=""
-                        fill
-                        className="object-cover"
-                        sizes="48px"
-                        unoptimized
-                      />
-                    </div>
+                    <LifeAgentCoverImage
+                      src={coverUrl}
+                      alt=""
+                      fill
+                      compact
+                      className="object-cover"
+                      sizes="48px"
+                    />
+                  </Link>
+                  <Link
+                    href={chatHref}
+                    className="flex min-w-0 flex-1 items-center gap-3 transition active:bg-paper-100"
+                  >
                     <div className="min-w-0 flex-1">
                       <div className="flex min-w-0 items-center gap-1.5">
                         <span className="truncate text-[16px] font-medium text-ink">
