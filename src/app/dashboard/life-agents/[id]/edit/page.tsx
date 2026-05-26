@@ -317,7 +317,7 @@ export default function LifeAgentEditPage() {
             type="submit"
             form="life-agent-edit-form"
             disabled={saving}
-            className="rounded-full bg-[#111] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+            className="inline-flex shrink-0 items-center justify-center rounded-full bg-[#111] px-4 py-2 text-sm font-semibold text-white whitespace-nowrap active:scale-[0.98] disabled:opacity-50"
           >
             {saving ? "保存中…" : "保存修改"}
           </button>
@@ -609,7 +609,11 @@ export default function LifeAgentEditPage() {
         {error ? <p className="rounded-2xl bg-rose-50 px-4 py-3 text-sm text-rose-600">{error}</p> : null}
 
         <div className="flex justify-end pb-4">
-          <button type="submit" disabled={saving} className="rounded-full bg-[#111] px-6 py-2.5 text-sm font-semibold text-white disabled:opacity-50">
+          <button
+            type="submit"
+            disabled={saving}
+            className="inline-flex items-center justify-center rounded-full bg-[#111] px-4 py-2 text-sm font-semibold text-white whitespace-nowrap active:scale-[0.98] disabled:opacity-50"
+          >
             {saving ? "保存中…" : "保存全部修改"}
           </button>
         </div>
