@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { FieldInfoButton } from "@/components/FieldInfoButton";
 
 type TopicItem = {
   id: string;
@@ -61,6 +62,28 @@ function badgeClass(status?: string) {
       return "bg-slate-100 text-slate-700";
   }
 }
+
+const TOPIC_STATUS_INFO = {
+  title: "Topic 状态有什么用？",
+  ariaLabel: "Topic 状态说明",
+  body: [
+    "状态决定这个 Topic 会不会被 Agent 用在对话里。",
+    "candidate（待审核）：系统自动提取，还没确认，建议先人工看一眼。",
+    "active（已启用）：确认可用，用户提问时会参与检索匹配。",
+    "archived（已归档）：不再使用；归并到其他 Topic 后也会变成此状态。",
+  ],
+} as const;
+
+const TOPIC_CONFIDENCE_INFO = {
+  title: "Topic 置信度有什么用？",
+  ariaLabel: "Topic 置信度说明",
+  body: [
+    "置信度表示你对这条 Topic 摘要有多少把握。",
+    "low：不太确定，可能是推断或待核实。",
+    "medium：一般确定，适合大多数自动生成的主题。",
+    "high：很确定、有充分依据；Agent 检索时会优先引用，回答也会更笃定。",
+  ],
+} as const;
 
 export default function LifeAgentTopicsPage() {
   const params = useParams();
@@ -304,7 +327,14 @@ export default function LifeAgentTopicsPage() {
                   </label>
                   <div className="grid grid-cols-2 gap-3">
                     <label className="block">
-                      <span className="text-xs font-medium text-slate-500">状态</span>
+                      <span className="inline-flex items-center gap-1 text-xs font-medium text-slate-500">
+                        状态
+                        <FieldInfoButton
+                          title={TOPIC_STATUS_INFO.title}
+                          body={TOPIC_STATUS_INFO.body}
+                          ariaLabel={TOPIC_STATUS_INFO.ariaLabel}
+                        />
+                      </span>
                       <select
                         value={edit.status}
                         onChange={(e) => updateEdit(topic.id, { status: e.target.value })}
@@ -316,7 +346,14 @@ export default function LifeAgentTopicsPage() {
                       </select>
                     </label>
                     <label className="block">
-                      <span className="text-xs font-medium text-slate-500">置信度</span>
+                      <span className="inline-flex items-center gap-1 text-xs font-medium text-slate-500">
+                        置信度
+                        <FieldInfoButton
+                          title={TOPIC_CONFIDENCE_INFO.title}
+                          body={TOPIC_CONFIDENCE_INFO.body}
+                          ariaLabel={TOPIC_CONFIDENCE_INFO.ariaLabel}
+                        />
+                      </span>
                       <select
                         value={edit.confidence}
                         onChange={(e) => updateEdit(topic.id, { confidence: e.target.value })}
