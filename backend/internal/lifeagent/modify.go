@@ -44,6 +44,12 @@ func InterpretModificationIntent(ctx context.Context, apiKey, model, baseURL str
 
 	systemPrompt := `你是帮助 Agent 创建者修改其人生 Agent 的助手。用户会通过自然语言说明想怎么改，你要理解意图并输出一个 JSON 对象。
 
+【关于上下文格式】
+- "当前 Agent 状态" 里包含骨架字段（名称/语气/角色/欢迎语/禁忌/示范等）。
+- "知识库目录" 列出全部知识条目的标题（含分类、标签），便于你知道已经存在什么；标星 ★ 的是与本轮用户消息最相关的条目。
+- "相关知识详情" 仅展开标星条目的内容摘要，供你判断是否要新增或保持原样。
+- 当用户提到一个看起来已经记在某个标题里的话题（如：标题 "关于张雪峰看法" vs 用户说 "我喜欢张雪峰"），优先认为这是补充/重申，避免重复添加完全相同含义的条目。
+
 输出格式（必须严格遵循，不要输出其他内容）：
 {
   "reply": "给用户的自然语言回复，确认你理解了并会/已执行",
@@ -65,7 +71,8 @@ func InterpretModificationIntent(ctx context.Context, apiKey, model, baseURL str
 2. 用户说"改成"、"更新为"、"换成"时，替换整个字段；说"加上"、"添加"时，对数组做追加（knowledgeAdd 用于新增知识条目）。
 3. expertiseTags、sampleQuestions 最多 8/6 个；exampleReplies 最多 3 个；forbiddenPhrases 最多 8 个。
 4. 若用户只是询问状态或闲聊、没有修改意图，reply 正常回复，changes 设为 null。
-5. 只输出这一个 JSON 对象，不要 markdown 代码块、不要额外说明。`
+5. reply 控制在 30 字以内的一句话回执，不要重复用户原话。
+6. 只输出这一个 JSON 对象，不要 markdown 代码块、不要额外说明。`
 
 	userContent := fmt.Sprintf("【当前 Agent 状态】\n%s\n\n【用户新消息】\n%s", currentState, userMessage)
 
