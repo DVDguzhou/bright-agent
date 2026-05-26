@@ -2,10 +2,19 @@ import { z } from "zod";
 
 // buyandsell.md - 平台校验与请求格式
 
+export const passwordSchema = z
+  .string()
+  .min(8, "密码至少 8 位")
+  .max(72, "密码不能超过 72 位");
+
 export const signupSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(6),
+  email: z.string().email("请输入有效邮箱"),
+  password: passwordSchema,
   name: z.string().min(2, "用户名至少 2 位").max(32, "用户名最多 32 位"),
+  verificationCode: z.string().regex(/^\d{6}$/, "请输入 6 位验证码"),
+  acceptTerms: z.literal(true, {
+    errorMap: () => ({ message: "请阅读并同意隐私政策" }),
+  }),
 });
 
 export const loginSchema = z.object({

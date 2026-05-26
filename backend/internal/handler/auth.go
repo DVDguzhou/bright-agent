@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/agent-marketplace/backend/internal/config"
 	"github.com/agent-marketplace/backend/internal/cookieutil"
@@ -59,18 +60,37 @@ func Login(cfg *config.Config) gin.HandlerFunc {
 func Signup(cfg *config.Config) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var body struct {
-			Email     string  `json:"email" binding:"required,email"`
-			Password  string  `json:"password" binding:"required,min=6"`
-			Name      string  `json:"name" binding:"required,min=2,max=32"`
-			AvatarURL *string `json:"avatarUrl"`
+			Email            string  `json:"email" binding:"required,email"`
+			Password         string  `json:"password" binding:"required"`
+			Name             string  `json:"name" binding:"required,min=2,max=32"`
+			AvatarURL        *string `json:"avatarUrl"`
+			VerificationCode string  `json:"verificationCode" binding:"required"`
+			AcceptTerms      bool    `json:"acceptTerms"`
 		}
 		if err := c.ShouldBindJSON(&body); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "VALIDATION_ERROR"})
 			return
 		}
+		if !body.AcceptTerms {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "TERMS_REQUIRED"})
+			return
+		}
+		ip := authClientIP(c)
+		if !authRateLimit(c, "signup-ip", ip, 10, time.Hour) {
+			c.JSON(http.StatusTooManyRequests, gin.H{"error": "RATE_LIMITED"})
+			return
+		}
+		if pwdErr := validatePassword(body.Password); pwdErr != "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": pwdErr})
+			return
+		}
 		email := normalizeAuthEmail(body.Email)
 		if isPlaceholderAuthEmail(email) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "INVALID_EMAIL"})
+			return
+		}
+		if !verifySignupCode(email, body.VerificationCode) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "INVALID_CODE"})
 			return
 		}
 		var existingUser models.User
@@ -88,23 +108,33 @@ func Signup(cfg *config.Config) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "NAME_EXISTS"})
 			return
 		}
+		if body.AvatarURL != nil {
+			s := strings.TrimSpace(*body.AvatarURL)
+			if s != "" && !validateUserAvatarURL(s) {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "VALIDATION_ERROR"})
+				return
+			}
+		}
 		hash, err := bcrypt.GenerateFromPassword([]byte(body.Password), 12)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "INTERNAL_ERROR"})
 			return
 		}
+		verifiedAt := time.Now().UTC()
 		u := models.User{
-			ID:        models.GenID(),
-			Email:     email,
-			Password:  string(hash),
-			Name:      ptr(cleanName),
-			AvatarURL: normalizeOptionalText(body.AvatarURL),
-			RoleFlags: nil,
+			ID:              models.GenID(),
+			Email:           email,
+			Password:        string(hash),
+			Name:            ptr(cleanName),
+			AvatarURL:       normalizeOptionalText(body.AvatarURL),
+			RoleFlags:       nil,
+			EmailVerifiedAt: &verifiedAt,
 		}
 		if err := db.DB.Create(&u).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "INTERNAL_ERROR"})
 			return
 		}
+		consumeSignupCode(email)
 		setSessionCookie(c, cfg, u.ID)
 		c.JSON(http.StatusOK, gin.H{
 			"user": gin.H{

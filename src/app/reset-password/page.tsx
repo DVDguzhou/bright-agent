@@ -6,6 +6,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { fetchWithTimeout } from "@/lib/fetchWithTimeout";
+import { passwordSchema } from "@/lib/validators";
 
 export default function ResetPasswordPage() {
   return (
@@ -28,8 +29,9 @@ function ResetPasswordContent() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    if (password.length < 6) {
-      setError("密码至少 6 位");
+    const pwdCheck = passwordSchema.safeParse(password);
+    if (!pwdCheck.success) {
+      setError(pwdCheck.error.errors[0]?.message ?? "请检查密码");
       return;
     }
     if (password !== password2) {
@@ -59,8 +61,12 @@ function ResetPasswordContent() {
         setError(
           code === "INVALID_TOKEN" || code === "TOKEN_EXPIRED"
             ? "链接无效或已过期，请重新申请找回密码"
+            : code === "PASSWORD_TOO_SHORT"
+            ? "密码至少 8 位"
+            : code === "PASSWORD_TOO_LONG"
+            ? "密码不能超过 72 位"
             : code === "VALIDATION_ERROR"
-            ? "密码至少 6 位"
+            ? "请检查密码"
             : "重置失败，请稍后重试"
         );
         return;
@@ -91,13 +97,14 @@ function ResetPasswordContent() {
       <p className="text-slate-500 mb-6">请输入新密码完成重置。</p>
 
       <form onSubmit={submit} className="space-y-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-        <label className="block text-sm font-medium text-slate-700">新密码（至少 6 位）</label>
+        <label className="block text-sm font-medium text-slate-700">新密码（8–72 位）</label>
         <input
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           className="input-shell"
-          minLength={6}
+          minLength={8}
+          maxLength={72}
           required
         />
         <label className="block text-sm font-medium text-slate-700">确认新密码</label>
@@ -106,7 +113,8 @@ function ResetPasswordContent() {
           value={password2}
           onChange={(e) => setPassword2(e.target.value)}
           className="input-shell"
-          minLength={6}
+          minLength={8}
+          maxLength={72}
           required
         />
         {error && <p className="text-red-400 text-sm">{error}</p>}

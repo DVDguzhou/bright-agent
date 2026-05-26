@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { fetchWithTimeout } from "@/lib/fetchWithTimeout";
 import { getDisplayAvatar } from "@/lib/avatar";
+import { signupSchema } from "@/lib/validators";
 
 async function fileToCompressedDataUrl(file: File): Promise<string> {
   const fileDataUrl = await new Promise<string>((resolve, reject) => {
@@ -36,19 +37,100 @@ async function fileToCompressedDataUrl(file: File): Promise<string> {
   return canvas.toDataURL("image/jpeg", 0.86);
 }
 
+function signupErrorMessage(code: string | undefined) {
+  switch (code) {
+    case "EMAIL_EXISTS":
+      return "该邮箱已被注册";
+    case "NAME_EXISTS":
+      return "该用户名已被使用，请换一个";
+    case "INVALID_EMAIL":
+      return "不能使用此类邮箱注册，请使用真实邮箱";
+    case "INVALID_CODE":
+      return "验证码错误或已过期，请重新获取";
+    case "PASSWORD_TOO_SHORT":
+      return "密码至少 8 位";
+    case "PASSWORD_TOO_LONG":
+      return "密码不能超过 72 位";
+    case "TERMS_REQUIRED":
+      return "请阅读并同意隐私政策";
+    case "RATE_LIMITED":
+      return "操作过于频繁，请稍后再试";
+    case "EMAIL_SEND_FAILED":
+      return "邮件发送失败，请稍后重试";
+    case "VALIDATION_ERROR":
+      return "请检查输入";
+    default:
+      return "注册失败";
+  }
+}
+
 export default function SignupPage() {
   const router = useRouter();
   const { refetch } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [email, setEmail] = useState("");
+  const [verificationCode, setVerificationCode] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [codeSent, setCodeSent] = useState(false);
+  const [codeCountdown, setCodeCountdown] = useState(0);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [avatarUploading, setAvatarUploading] = useState(false);
 
   const previewAvatar = getDisplayAvatar({ avatarUrl, name, email });
+
+  const startCountdown = () => {
+    setCodeCountdown(60);
+    const timer = setInterval(() => {
+      setCodeCountdown((c) => {
+        if (c <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return c - 1;
+      });
+    }, 1000);
+  };
+
+  const sendVerificationCode = async () => {
+    const em = email.trim();
+    if (!em || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) {
+      setError("请输入有效邮箱");
+      return;
+    }
+    setError("");
+    setLoading(true);
+    try {
+      const res = await fetchWithTimeout(
+        "/api/auth/signup/send-code",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ email: em }),
+        },
+        20000
+      );
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(signupErrorMessage(data.error as string | undefined));
+        return;
+      }
+      setCodeSent(true);
+      startCountdown();
+    } catch (e) {
+      const msg =
+        e instanceof Error && e.name === "AbortError"
+          ? "请求超时，请检查网络后重试"
+          : "网络错误，请检查连接后重试";
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -77,6 +159,23 @@ export default function SignupPage() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    const parsed = signupSchema.safeParse({
+      email: email.trim(),
+      password,
+      name: name.trim(),
+      verificationCode: verificationCode.trim(),
+      acceptTerms: acceptTerms ? true : undefined,
+    });
+    if (!parsed.success) {
+      setError(parsed.error.errors[0]?.message ?? "请检查输入");
+      return;
+    }
+    if (!codeSent) {
+      setError("请先获取邮箱验证码");
+      return;
+    }
+
     setLoading(true);
     try {
       const res = await fetchWithTimeout(
@@ -86,9 +185,11 @@ export default function SignupPage() {
           headers: { "Content-Type": "application/json" },
           credentials: "include",
           body: JSON.stringify({
-            email,
-            password,
-            name: name.trim(),
+            email: parsed.data.email,
+            password: parsed.data.password,
+            name: parsed.data.name,
+            verificationCode: parsed.data.verificationCode,
+            acceptTerms: true,
             avatarUrl: avatarUrl || undefined,
           }),
         },
@@ -96,20 +197,10 @@ export default function SignupPage() {
       );
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(
-          data.error === "EMAIL_EXISTS"
-            ? "该邮箱已被注册"
-            : data.error === "NAME_EXISTS"
-            ? "该用户名已被使用，请换一个"
-            : data.error === "INVALID_EMAIL"
-            ? "不能使用此类邮箱注册，请使用真实邮箱"
-            : data.error === "VALIDATION_ERROR"
-            ? "请检查输入"
-            : "注册失败"
-        );
+        setError(signupErrorMessage(data.error as string | undefined));
         return;
       }
-      await refetch(); // 刷新登录状态后再跳转
+      await refetch();
       router.push("/dashboard");
       router.refresh();
     } catch (e) {
@@ -132,7 +223,7 @@ export default function SignupPage() {
       <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-sky-500 bg-clip-text text-transparent mb-2">
         注册
       </h1>
-      <p className="text-slate-500 mb-8">创建你的 AI Agent Marketplace 账号</p>
+      <p className="text-slate-500 mb-8">验证邮箱后即可创建账号</p>
       <form onSubmit={submit} className="space-y-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
         <motion.div
           initial={{ opacity: 0 }}
@@ -180,17 +271,54 @@ export default function SignupPage() {
             </div>
           </div>
         </motion.div>
+
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}>
           <label className="block text-sm font-medium text-slate-700 mb-2">邮箱</label>
+          <div className="flex gap-2">
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if (codeSent) {
+                  setCodeSent(false);
+                  setVerificationCode("");
+                }
+              }}
+              className="input-shell min-w-0 flex-1"
+              placeholder="you@example.com"
+              autoComplete="email"
+              required
+            />
+            <button
+              type="button"
+              onClick={sendVerificationCode}
+              disabled={loading || codeCountdown > 0}
+              className="btn-secondary shrink-0 px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {codeCountdown > 0 ? `${codeCountdown}s` : codeSent ? "重新发送" : "发送验证码"}
+            </button>
+          </div>
+          {codeSent ? (
+            <p className="mt-2 text-xs text-slate-500">验证码已发送至邮箱，10 分钟内有效</p>
+          ) : null}
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.12 }}>
+          <label className="block text-sm font-medium text-slate-700 mb-2">邮箱验证码</label>
           <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="input-shell"
-            placeholder="you@example.com"
+            type="text"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            value={verificationCode}
+            onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+            className="input-shell tracking-[0.3em]"
+            placeholder="6 位数字"
+            maxLength={6}
             required
           />
         </motion.div>
+
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15 }}>
           <label className="block text-sm font-medium text-slate-700 mb-2">用户名</label>
           <input
@@ -201,25 +329,48 @@ export default function SignupPage() {
             placeholder="2-32 位，用于展示"
             minLength={2}
             maxLength={32}
+            autoComplete="username"
             required
           />
         </motion.div>
+
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
-          <label className="block text-sm font-medium text-slate-700 mb-2">密码（至少6位）</label>
+          <label className="block text-sm font-medium text-slate-700 mb-2">密码（8–72 位）</label>
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="input-shell"
-            minLength={6}
+            minLength={8}
+            maxLength={72}
+            autoComplete="new-password"
             required
           />
+          <p className="mt-1.5 text-xs text-slate-500">建议使用不易猜测的 passphrase，无需强制大小写或符号</p>
         </motion.div>
+
+        <label className="flex items-start gap-2 text-sm text-slate-600">
+          <input
+            type="checkbox"
+            checked={acceptTerms}
+            onChange={(e) => setAcceptTerms(e.target.checked)}
+            className="mt-1 h-4 w-4 rounded border-slate-300"
+            required
+          />
+          <span>
+            我已阅读并同意{" "}
+            <Link href="/privacy" className="text-sky-700 hover:text-sky-600 underline-offset-2 hover:underline">
+              《隐私政策》
+            </Link>
+          </span>
+        </label>
+
         {error && (
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-red-400 text-sm">
             {error}
           </motion.p>
         )}
+
         <motion.button
           type="submit"
           disabled={loading}
@@ -230,12 +381,6 @@ export default function SignupPage() {
           {loading ? "注册中..." : "注册"}
         </motion.button>
       </form>
-      <p className="mt-6 text-center text-slate-500 text-xs leading-relaxed">
-        注册即表示您同意{" "}
-        <Link href="/privacy" className="text-sky-700 hover:text-sky-600 underline-offset-2 hover:underline">
-          《隐私政策》
-        </Link>
-      </p>
       <p className="mt-4 text-slate-500 text-sm">
         已有账号？{" "}
         <Link href="/login" className="text-sky-700 hover:text-sky-600 transition-colors">

@@ -84,7 +84,7 @@ func ResetPassword(cfg *config.Config) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var body struct {
 			Token    string `json:"token" binding:"required"`
-			Password string `json:"password" binding:"required,min=6"`
+			Password string `json:"password" binding:"required"`
 		}
 		if err := c.ShouldBindJSON(&body); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "VALIDATION_ERROR"})
@@ -102,6 +102,10 @@ func ResetPassword(cfg *config.Config) gin.HandlerFunc {
 		}
 		if u.PasswordResetExpiresAt == nil || time.Now().UTC().After(*u.PasswordResetExpiresAt) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "TOKEN_EXPIRED"})
+			return
+		}
+		if pwdErr := validatePassword(body.Password); pwdErr != "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": pwdErr})
 			return
 		}
 		hash, err := bcrypt.GenerateFromPassword([]byte(body.Password), 12)
@@ -140,7 +144,7 @@ func ChangePassword(cfg *config.Config) gin.HandlerFunc {
 		}
 		var body struct {
 			OldPassword string `json:"oldPassword" binding:"required"`
-			NewPassword string `json:"newPassword" binding:"required,min=6"`
+			NewPassword string `json:"newPassword" binding:"required"`
 		}
 		if err := c.ShouldBindJSON(&body); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "VALIDATION_ERROR"})
@@ -153,6 +157,10 @@ func ChangePassword(cfg *config.Config) gin.HandlerFunc {
 		}
 		if err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(body.OldPassword)); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "WRONG_PASSWORD"})
+			return
+		}
+		if pwdErr := validatePassword(body.NewPassword); pwdErr != "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": pwdErr})
 			return
 		}
 		hash, err := bcrypt.GenerateFromPassword([]byte(body.NewPassword), 12)

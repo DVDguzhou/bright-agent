@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { fetchWithTimeout } from "@/lib/fetchWithTimeout";
+import { passwordSchema } from "@/lib/validators";
 
 export default function AccountPage() {
   const router = useRouter();
@@ -31,8 +32,9 @@ export default function AccountPage() {
     e.preventDefault();
     setError("");
     setOk(false);
-    if (newPassword.length < 6) {
-      setError("新密码至少 6 位");
+    const pwdCheck = passwordSchema.safeParse(newPassword);
+    if (!pwdCheck.success) {
+      setError(pwdCheck.error.errors[0]?.message ?? "请检查新密码");
       return;
     }
     if (newPassword !== newPassword2) {
@@ -57,6 +59,10 @@ export default function AccountPage() {
         setError(
           code === "WRONG_PASSWORD"
             ? "当前密码不正确"
+            : code === "PASSWORD_TOO_SHORT"
+            ? "新密码至少 8 位"
+            : code === "PASSWORD_TOO_LONG"
+            ? "新密码不能超过 72 位"
             : code === "VALIDATION_ERROR"
             ? "请检查输入"
             : code === "UNAUTHORIZED"
@@ -154,13 +160,14 @@ export default function AccountPage() {
             className="input-shell"
             required
           />
-          <label className="block text-sm font-medium text-slate-700">新密码（至少 6 位）</label>
+          <label className="block text-sm font-medium text-slate-700">新密码（8–72 位）</label>
           <input
             type="password"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             className="input-shell"
-            minLength={6}
+            minLength={8}
+            maxLength={72}
             required
           />
           <label className="block text-sm font-medium text-slate-700">确认新密码</label>
@@ -169,7 +176,8 @@ export default function AccountPage() {
             value={newPassword2}
             onChange={(e) => setNewPassword2(e.target.value)}
             className="input-shell"
-            minLength={6}
+            minLength={8}
+            maxLength={72}
             required
           />
           {error && <p className="text-red-500 text-sm">{error}</p>}

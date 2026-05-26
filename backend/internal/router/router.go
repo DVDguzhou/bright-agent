@@ -18,6 +18,7 @@ func Setup(cfg *config.Config) *gin.Engine {
 		{
 			auth.POST("/login", handler.Login(cfg))
 			auth.POST("/signup", handler.Signup(cfg))
+			auth.POST("/signup/send-code", handler.SignupSendCode(cfg))
 			auth.POST("/logout", handler.Logout(cfg))
 			auth.POST("/forgot-password", handler.ForgotPassword(cfg))
 			auth.POST("/reset-password", handler.ResetPassword(cfg))
