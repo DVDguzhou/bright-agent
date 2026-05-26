@@ -7,14 +7,16 @@ import (
 	"sync"
 	"time"
 
+	"github.com/agent-marketplace/backend/internal/netutil"
 	openai "github.com/sashabaranov/go-openai"
 )
 
-// --- OpenAI client cache (keyed by apiKey+baseURL) ---
+// --- OpenAI client cache (keyed by apiKey+baseURL+proxy) ---
 
 type clientKey struct {
 	apiKey  string
 	baseURL string
+	proxy   string
 }
 
 var (
@@ -25,7 +27,8 @@ var (
 // getClient returns a cached *openai.Client, creating one if needed.
 // The underlying http.Client and connection pool are reused across calls.
 func getClient(apiKey, baseURL string) *openai.Client {
-	key := clientKey{apiKey: apiKey, baseURL: baseURL}
+	proxyURL := netutil.ResolveLLMProxyURL(baseURL)
+	key := clientKey{apiKey: apiKey, baseURL: baseURL, proxy: proxyURL}
 
 	clientMu.RLock()
 	if c, ok := clientCache[key]; ok {
@@ -44,6 +47,8 @@ func getClient(apiKey, baseURL string) *openai.Client {
 	if baseURL != "" {
 		cfg.BaseURL = baseURL
 	}
+	// 不设 Client.Timeout，长任务（如对话调教 150s）由调用方 context 控制。
+	cfg.HTTPClient = netutil.NewHTTPClient(proxyURL, 0)
 	c := openai.NewClientWithConfig(cfg)
 	clientCache[key] = c
 	return c

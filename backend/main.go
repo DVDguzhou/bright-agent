@@ -6,6 +6,7 @@ import (
 
 	"github.com/agent-marketplace/backend/internal/config"
 	"github.com/agent-marketplace/backend/internal/db"
+	"github.com/agent-marketplace/backend/internal/netutil"
 	"github.com/agent-marketplace/backend/internal/router"
 	"github.com/agent-marketplace/backend/internal/wechatpay"
 	"github.com/joho/godotenv"
@@ -17,6 +18,9 @@ func main() {
 	_ = godotenv.Load(".env")
 
 	cfg := config.Load()
+	if p := netutil.LLMProxyConfigured(); p != "" {
+		log.Printf("LLM HTTP proxy enabled: %s", p)
+	}
 	if err := db.Init(cfg.DatabaseURL); err != nil {
 		log.Fatal("db init:", err)
 	}
