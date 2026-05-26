@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { UserAvatar } from "@/components/UserAvatar";
 
 const MAX_CONTENT_LENGTH = 2000;
 
@@ -134,11 +135,7 @@ export default function PostsCreatePage() {
           type="button"
           onClick={handleSubmit}
           disabled={!canSubmit}
-          className={`rounded-full px-5 py-1.5 text-sm font-semibold transition active:scale-95 ${
-            canSubmit
-              ? "bg-gradient-to-r from-[#BA68C8] to-[#FF80AB] text-white shadow-lg shadow-fuchsia-500/20"
-              : "bg-slate-100 text-slate-400"
-          }`}
+          className={`btn-primary px-4 py-2 text-sm font-semibold ${canSubmit ? "" : "pointer-events-none opacity-40"}`}
         >
           {submitting ? "发布中…" : "发布"}
         </button>
@@ -147,9 +144,12 @@ export default function PostsCreatePage() {
       {/* Post Form */}
       <div className="rounded-[24px] bg-white p-4 shadow-sm ring-1 ring-black/[0.04]">
         <div className="mb-3 flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-purple-100 to-fuchsia-100 text-sm font-bold text-purple-700">
-            {(user.name || user.email || "U").charAt(0).toUpperCase()}
-          </div>
+          <UserAvatar
+            avatarUrl={user.avatarUrl}
+            name={user.name}
+            email={user.email}
+            className="h-10 w-10"
+          />
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-[#111]">{user.name || "用户"}</p>
             <p className="text-xs text-slate-400">公开发布</p>
