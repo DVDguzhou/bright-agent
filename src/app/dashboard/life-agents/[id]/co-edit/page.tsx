@@ -25,6 +25,11 @@ import {
   CHAT_SCROLL_SURFACE_CLASSNAME,
   getChatBubbleClassName,
 } from "@/lib/chat-glass";
+import {
+  DEFAULT_COVER_URL,
+  nextLifeAgentCoverFallbackSrc,
+  resolveLifeAgentCoverUrl,
+} from "@/lib/life-agent-covers";
 
 type ChatRow = { role: "user" | "assistant"; content: string };
 type LastChange = {
@@ -643,6 +648,8 @@ export default function LifeAgentCoEditPage() {
   }
 
   const profile = data.profile;
+  const agentAvatarUrl =
+    resolveLifeAgentCoverUrl(profile.coverImageUrl, profile.coverPresetKey) || DEFAULT_COVER_URL;
 
   return (
     <div
@@ -920,8 +927,13 @@ export default function LifeAgentCoEditPage() {
             {chatHistory.length === 0 ? (
               <div className="flex items-end gap-2 justify-start">
                 <img
-                  src="/life-agent-cover-presets/default-cover.png"
-                  alt="AI"
+                  src={agentAvatarUrl}
+                  alt={data?.profile.displayName || "Agent"}
+                  onError={(e) => {
+                    const t = e.currentTarget;
+                    const fallback = nextLifeAgentCoverFallbackSrc(t.src);
+                    if (fallback && fallback !== t.src) t.src = fallback;
+                  }}
                   className="h-8 w-8 shrink-0 rounded-full object-cover ring-2 ring-paper shadow-sm"
                 />
                 <div className={getChatBubbleClassName("assistant")}>
@@ -936,8 +948,13 @@ export default function LifeAgentCoEditPage() {
               <div key={`${item.role}-${index}`} className={`flex items-end gap-2 ${item.role === "user" ? "justify-end" : "justify-start"}`}>
                 {item.role === "assistant" ? (
                   <img
-                    src="/life-agent-cover-presets/default-cover.png"
-                    alt="AI"
+                    src={agentAvatarUrl}
+                    alt={data?.profile.displayName || "Agent"}
+                    onError={(e) => {
+                      const t = e.currentTarget;
+                      const fallback = nextLifeAgentCoverFallbackSrc(t.src);
+                      if (fallback && fallback !== t.src) t.src = fallback;
+                    }}
                     className="h-8 w-8 shrink-0 rounded-full object-cover ring-2 ring-paper shadow-sm"
                   />
                 ) : null}
