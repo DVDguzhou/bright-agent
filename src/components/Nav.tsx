@@ -67,6 +67,8 @@ const navLinks = [
 ];
 
 const CO_EDIT_PENDING_VOICE_STORAGE_PREFIX = "life-agent-co-edit-pending-voice:";
+/** 上滑超过该距离即进入「松开取消」状态（px） */
+const VOICE_CANCEL_SWIPE_PX = 36;
 
 function pendingVoicePromptKey(agentId: string) {
   return `${CO_EDIT_PENDING_VOICE_STORAGE_PREFIX}${agentId}`;
@@ -106,6 +108,22 @@ function FloatingVoiceCoachFab({ agent }: { agent: BoundLifeAgent }) {
   const [isTranscribing, setIsTranscribing] = useState(false);
   const touchStartY = useRef(0);
   const cancelledRef = useRef(false);
+
+  const onCancelTouchMove = useCallback((e: TouchEvent) => {
+    if (e.touches.length === 0) return;
+    const dy = touchStartY.current - e.touches[0].clientY;
+    const cancelled = dy > VOICE_CANCEL_SWIPE_PX;
+    cancelledRef.current = cancelled;
+    setIsCancelled(cancelled);
+  }, []);
+
+  const attachCancelTracking = useCallback(() => {
+    document.addEventListener("touchmove", onCancelTouchMove, { passive: true });
+  }, [onCancelTouchMove]);
+
+  const detachCancelTracking = useCallback(() => {
+    document.removeEventListener("touchmove", onCancelTouchMove);
+  }, [onCancelTouchMove]);
   const { status: recStatus, error: recError, duration, start: recStart, stop: recStop, reset: recReset } =
     useMediaRecorder({
       mimeType: pickRecorderMimeType(),
@@ -150,6 +168,8 @@ function FloatingVoiceCoachFab({ agent }: { agent: BoundLifeAgent }) {
 
   const isRecording = recStatus === "recording";
   const isActive = isRecording || isTranscribing;
+
+  useEffect(() => () => detachCancelTracking(), [detachCancelTracking]);
 
   useEffect(() => {
     try {
@@ -198,12 +218,13 @@ function FloatingVoiceCoachFab({ agent }: { agent: BoundLifeAgent }) {
   }, []);
 
   const handleCancel = useCallback(() => {
+    detachCancelTracking();
     cancelledRef.current = true;
     setIsCancelled(false);
     recReset();
     setIsTranscribing(false);
     setSubmitHint("已取消");
-  }, [recReset]);
+  }, [detachCancelTracking, recReset]);
 
   const beginVoice = useCallback(() => {
     cancelledRef.current = false;
@@ -214,12 +235,13 @@ function FloatingVoiceCoachFab({ agent }: { agent: BoundLifeAgent }) {
   }, [recReset, recStart]);
 
   const endVoice = useCallback(() => {
+    detachCancelTracking();
     if (isCancelled || cancelledRef.current) {
       handleCancel();
     } else {
       recStop();
     }
-  }, [isCancelled, handleCancel, recStop]);
+  }, [detachCancelTracking, isCancelled, handleCancel, recStop]);
 
   const formatDuration = (s: number) => `${Math.floor(s / 60).toString().padStart(2, "0")}:${(s % 60).toString().padStart(2, "0")}`;
   const liveText = isTranscribing ? "正在转文字..." : isRecording ? `录音中 ${formatDuration(duration)}` : "";
@@ -237,10 +259,6 @@ function FloatingVoiceCoachFab({ agent }: { agent: BoundLifeAgent }) {
             transition={{ duration: 0.2 }}
             className="fixed inset-0 z-[200] flex select-none flex-col items-center justify-between lg:hidden"
             style={{ touchAction: "none", WebkitTouchCallout: "none" }}
-            onTouchMove={(e) => {
-              const dy = touchStartY.current - e.touches[0].clientY;
-              setIsCancelled(dy > 80);
-            }}
           >
             <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-[#1a0a2e]/85 to-[#0d001a]/95 backdrop-blur-xl" />
 
@@ -356,6 +374,7 @@ function FloatingVoiceCoachFab({ agent }: { agent: BoundLifeAgent }) {
         }}
         onTouchStart={(e) => {
           touchStartY.current = e.touches[0].clientY;
+          attachCancelTracking();
           beginVoice();
         }}
         onTouchEnd={(e) => {
