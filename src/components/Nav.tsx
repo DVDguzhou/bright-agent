@@ -567,8 +567,10 @@ export function Nav() {
   const isFeedPurchased = isDiscoverEntryPage && feedTab === "purchased";
   const isDashboardHomePage = pathname === "/dashboard";
   const topicSearchQuery = searchParams.get("q") ?? "";
+  const [topicSearchDraft, setTopicSearchDraft] = useState("");
+  const topicSearchComposingRef = useRef(false);
 
-  const updateTopicSearchQuery = useCallback(
+  const commitTopicSearchQuery = useCallback(
     (value: string) => {
       const params = new URLSearchParams(searchParams.toString());
       if (value) params.set("q", value);
@@ -578,6 +580,17 @@ export function Nav() {
     },
     [pathname, router, searchParams],
   );
+
+  useEffect(() => {
+    if (!isDashboardLifeAgentTopicsPage) {
+      topicSearchComposingRef.current = false;
+      setTopicSearchDraft("");
+      return;
+    }
+    if (!topicSearchComposingRef.current) {
+      setTopicSearchDraft(topicSearchQuery);
+    }
+  }, [isDashboardLifeAgentTopicsPage, topicSearchQuery]);
 
   const primaryOwnedLifeAgent = ownedLifeAgents?.[0] ?? null;
   const shouldShowCreateFab = !user || (ownedLifeAgents !== null && ownedLifeAgents.length === 0);
@@ -814,9 +827,26 @@ export function Nav() {
                 <label className="flex h-10 w-[7.25rem] shrink-0 items-center sm:w-40">
                   <span className="sr-only">搜索 Topic</span>
                   <input
-                    type="search"
-                    value={topicSearchQuery}
-                    onChange={(e) => updateTopicSearchQuery(e.target.value)}
+                    type="text"
+                    inputMode="search"
+                    enterKeyHint="search"
+                    value={topicSearchDraft}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setTopicSearchDraft(value);
+                      if (!topicSearchComposingRef.current) {
+                        commitTopicSearchQuery(value);
+                      }
+                    }}
+                    onCompositionStart={() => {
+                      topicSearchComposingRef.current = true;
+                    }}
+                    onCompositionEnd={(e) => {
+                      topicSearchComposingRef.current = false;
+                      const value = e.currentTarget.value;
+                      setTopicSearchDraft(value);
+                      commitTopicSearchQuery(value);
+                    }}
                     placeholder="搜索 Topic…"
                     className="h-9 w-full min-w-0 rounded-full border-0 bg-paper-200/80 px-3 text-sm text-ink outline-none ring-1 ring-transparent placeholder:text-ink-300 focus:bg-paper focus:ring-hairline"
                   />
