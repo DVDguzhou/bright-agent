@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useState } from "react";
+import { createPortal } from "react-dom";
 
 const EXPLANATION = {
   title: "什么是心智？",
@@ -13,7 +14,12 @@ const EXPLANATION = {
 
 export function MindScoreInfoButton({ className = "" }: { className?: string }) {
   const [open, setOpen] = useState(false);
+  const [portalReady, setPortalReady] = useState(false);
   const titleId = useId();
+
+  useEffect(() => {
+    setPortalReady(true);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -28,6 +34,42 @@ export function MindScoreInfoButton({ className = "" }: { className?: string }) 
       document.body.style.overflow = prev;
     };
   }, [open]);
+
+  const dialog =
+    open && portalReady
+      ? createPortal(
+          <div
+            className="fixed inset-0 z-[9999] flex items-end justify-center bg-black/35 p-4 sm:items-center"
+            role="presentation"
+            onClick={() => setOpen(false)}
+          >
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby={titleId}
+              className="w-full max-w-sm rounded-2xl bg-white px-5 py-4 shadow-xl ring-1 ring-black/5"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 id={titleId} className="font-serif text-base font-medium text-ink">
+                {EXPLANATION.title}
+              </h3>
+              <div className="mt-3 space-y-2 text-sm leading-relaxed text-ink-500">
+                {EXPLANATION.body.map((line) => (
+                  <p key={line}>{line}</p>
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="mt-4 w-full rounded-full bg-ink py-2.5 text-sm font-medium text-white active:opacity-90"
+              >
+                知道了
+              </button>
+            </div>
+          </div>,
+          document.body,
+        )
+      : null;
 
   return (
     <>
@@ -51,37 +93,7 @@ export function MindScoreInfoButton({ className = "" }: { className?: string }) 
           />
         </svg>
       </button>
-      {open ? (
-        <div
-          className="fixed inset-0 z-[200] flex items-end justify-center bg-black/35 p-4 sm:items-center"
-          role="presentation"
-          onClick={() => setOpen(false)}
-        >
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby={titleId}
-            className="w-full max-w-sm rounded-2xl bg-white px-5 py-4 shadow-xl ring-1 ring-black/5"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 id={titleId} className="font-serif text-base font-medium text-ink">
-              {EXPLANATION.title}
-            </h3>
-            <div className="mt-3 space-y-2 text-sm leading-relaxed text-ink-500">
-              {EXPLANATION.body.map((line) => (
-                <p key={line}>{line}</p>
-              ))}
-            </div>
-            <button
-              type="button"
-              onClick={() => setOpen(false)}
-              className="mt-4 w-full rounded-full bg-ink py-2.5 text-sm font-medium text-white active:opacity-90"
-            >
-              知道了
-            </button>
-          </div>
-        </div>
-      ) : null}
+      {dialog}
     </>
   );
 }
