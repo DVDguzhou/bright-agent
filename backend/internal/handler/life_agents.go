@@ -1794,7 +1794,7 @@ func LifeAgentsModifyViaChat(cfg *config.Config) gin.HandlerFunc {
 			err    error
 		}
 		llmCh := make(chan llmResult, 1)
-		llmCtx, cancelLLM := context.WithTimeout(context.Background(), 90*time.Second)
+		llmCtx, cancelLLM := context.WithTimeout(context.Background(), 150*time.Second)
 		defer cancelLLM()
 		go func() {
 			intent, err := lifeagent.InterpretModificationIntent(

@@ -80,8 +80,8 @@ func InterpretModificationIntent(ctx context.Context, apiKey, model, baseURL str
 	}
 	messages = append(messages, openai.ChatCompletionMessage{Role: openai.ChatMessageRoleUser, Content: userContent})
 
-	ctx, cancel := withLLMTimeout(ctx)
-	defer cancel()
+	// 不再叠加内部 60s 超时：调用方（如 SSE handler）会根据链路状况自带 ctx 截止时间，
+	// 经 packyapi 等中转时整体耗时可能超过 60s。
 	client := getClient(apiKey, baseURL)
 
 	resp, err := client.CreateChatCompletion(ctx, openai.ChatCompletionRequest{
