@@ -505,7 +505,7 @@ func LifeAgentsSearch(cfg *config.Config) gin.HandlerFunc {
 			pageProfiles = append(pageProfiles, s.profile)
 		}
 
-		items := lifeAgentListResponseItems(pageProfiles)
+		items := lifeAgentListResponseItems(pageProfiles, cfg)
 		nextCursor := ""
 		if end < total {
 			nextCursor = strconv.Itoa(end)

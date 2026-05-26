@@ -205,6 +205,197 @@ func buildFeedbackSignals(profileID string) *lifeagent.FeedbackSignals {
 	}
 }
 
+func loadMindScoreInput(profileID string, p *models.LifeAgentProfile, cfg *config.Config) lifeagent.MindScoreInput {
+	var entries []models.LifeAgentKnowledgeEntry
+	db.DB.Where("profile_id = ?", profileID).Order("sort_order").Find(&entries)
+	var facts []models.LifeAgentStructuredFact
+	db.DB.Where("profile_id = ?", profileID).Find(&facts)
+	var topics []models.LifeAgentTopicSummary
+	db.DB.Where("profile_id = ?", profileID).Find(&topics)
+	var totalSess, helpful, notSpecific, notSuitable, factualError, contradiction, tooConfident, blindSpots int64
+	db.DB.Model(&models.LifeAgentChatSession{}).Where("profile_id = ?", profileID).Count(&totalSess)
+	db.DB.Model(&models.LifeAgentFeedback{}).Where("profile_id = ? AND feedback_type = ?", profileID, "helpful").Count(&helpful)
+	db.DB.Model(&models.LifeAgentFeedback{}).Where("profile_id = ? AND feedback_type = ?", profileID, "not_specific").Count(&notSpecific)
+	db.DB.Model(&models.LifeAgentFeedback{}).Where("profile_id = ? AND feedback_type = ?", profileID, "not_suitable").Count(&notSuitable)
+	db.DB.Model(&models.LifeAgentFeedback{}).Where("profile_id = ? AND feedback_type = ?", profileID, "factual_error").Count(&factualError)
+	db.DB.Model(&models.LifeAgentFeedback{}).Where("profile_id = ? AND feedback_type = ?", profileID, "contradiction").Count(&contradiction)
+	db.DB.Model(&models.LifeAgentFeedback{}).Where("profile_id = ? AND feedback_type = ?", profileID, "too_confident").Count(&tooConfident)
+	db.DB.Model(&models.LifeAgentBlindSpot{}).Where("profile_id = ? AND resolved = ?", profileID, false).Count(&blindSpots)
+	return lifeagent.MindScoreInput{
+		Profile:      p,
+		Entries:      entries,
+		Facts:        facts,
+		Topics:       topics,
+		HasVoice:     cfg.VoiceReplyConfigured(ptrStr(p.VoiceCloneID)),
+		SessionCount: totalSess,
+		Helpful:      helpful,
+		NotSpecific:  notSpecific,
+		NotSuitable:  notSuitable,
+		FactualError: factualError,
+		Contradict:   contradiction,
+		TooConfident: tooConfident,
+		BlindSpots:   blindSpots,
+	}
+}
+
+type mindScoreFeedbackCounts struct {
+	Helpful      int64
+	NotSpecific  int64
+	NotSuitable  int64
+	FactualError int64
+	Contradict   int64
+	TooConfident int64
+	BlindSpots   int64
+}
+
+func batchComputeMindScores(profiles []models.LifeAgentProfile, cfg *config.Config) map[string]lifeagent.MindScoreBreakdown {
+	if len(profiles) == 0 {
+		return nil
+	}
+	ids := make([]string, len(profiles))
+	for i, p := range profiles {
+		ids[i] = p.ID
+	}
+
+	var allEntries []models.LifeAgentKnowledgeEntry
+	db.DB.Where("profile_id IN ?", ids).Order("sort_order").Find(&allEntries)
+	entriesByProfile := make(map[string][]models.LifeAgentKnowledgeEntry, len(ids))
+	for _, e := range allEntries {
+		entriesByProfile[e.ProfileID] = append(entriesByProfile[e.ProfileID], e)
+	}
+
+	var allFacts []models.LifeAgentStructuredFact
+	db.DB.Where("profile_id IN ?", ids).Find(&allFacts)
+	factsByProfile := make(map[string][]models.LifeAgentStructuredFact, len(ids))
+	for _, f := range allFacts {
+		factsByProfile[f.ProfileID] = append(factsByProfile[f.ProfileID], f)
+	}
+
+	var allTopics []models.LifeAgentTopicSummary
+	db.DB.Where("profile_id IN ?", ids).Find(&allTopics)
+	topicsByProfile := make(map[string][]models.LifeAgentTopicSummary, len(ids))
+	for _, t := range allTopics {
+		topicsByProfile[t.ProfileID] = append(topicsByProfile[t.ProfileID], t)
+	}
+
+	type aggRow struct {
+		ProfileID string `gorm:"column:profile_id"`
+		Cnt       int64  `gorm:"column:cnt"`
+	}
+	sessMap := make(map[string]int64, len(ids))
+	var sessRows []aggRow
+	db.DB.Raw("SELECT profile_id, COUNT(*) AS cnt FROM life_agent_chat_sessions WHERE profile_id IN ? GROUP BY profile_id", ids).Scan(&sessRows)
+	for _, r := range sessRows {
+		sessMap[r.ProfileID] = r.Cnt
+	}
+
+	fbMap := make(map[string]mindScoreFeedbackCounts, len(ids))
+	type fbRow struct {
+		ProfileID    string `gorm:"column:profile_id"`
+		FeedbackType string `gorm:"column:feedback_type"`
+		Cnt          int64  `gorm:"column:cnt"`
+	}
+	var fbRows []fbRow
+	db.DB.Raw("SELECT profile_id, feedback_type, COUNT(*) AS cnt FROM life_agent_feedbacks WHERE profile_id IN ? GROUP BY profile_id, feedback_type", ids).Scan(&fbRows)
+	for _, r := range fbRows {
+		c := fbMap[r.ProfileID]
+		switch r.FeedbackType {
+		case "helpful":
+			c.Helpful = r.Cnt
+		case "not_specific":
+			c.NotSpecific = r.Cnt
+		case "not_suitable":
+			c.NotSuitable = r.Cnt
+		case "factual_error":
+			c.FactualError = r.Cnt
+		case "contradiction":
+			c.Contradict = r.Cnt
+		case "too_confident":
+			c.TooConfident = r.Cnt
+		}
+		fbMap[r.ProfileID] = c
+	}
+	var blindRows []aggRow
+	db.DB.Raw("SELECT profile_id, COUNT(*) AS cnt FROM life_agent_blind_spots WHERE profile_id IN ? AND resolved = ? GROUP BY profile_id", ids, false).Scan(&blindRows)
+	for _, r := range blindRows {
+		c := fbMap[r.ProfileID]
+		c.BlindSpots = r.Cnt
+		fbMap[r.ProfileID] = c
+	}
+
+	out := make(map[string]lifeagent.MindScoreBreakdown, len(profiles))
+	for i := range profiles {
+		p := profiles[i]
+		fb := fbMap[p.ID]
+		out[p.ID] = lifeagent.ComputeMindScore(lifeagent.MindScoreInput{
+			Profile:      &p,
+			Entries:      entriesByProfile[p.ID],
+			Facts:        factsByProfile[p.ID],
+			Topics:       topicsByProfile[p.ID],
+			HasVoice:     cfg.VoiceReplyConfigured(ptrStr(p.VoiceCloneID)),
+			SessionCount: sessMap[p.ID],
+			Helpful:      fb.Helpful,
+			NotSpecific:  fb.NotSpecific,
+			NotSuitable:  fb.NotSuitable,
+			FactualError: fb.FactualError,
+			Contradict:   fb.Contradict,
+			TooConfident: fb.TooConfident,
+			BlindSpots:   fb.BlindSpots,
+		})
+	}
+	return out
+}
+
+func mindScoreToJSON(score lifeagent.MindScoreBreakdown, delta *int) gin.H {
+	resp := gin.H{
+		"total":                score.Total,
+		"level":                score.Level,
+		"levelLabel":           score.LevelLabel,
+		"foundation":           score.Foundation,
+		"topicCoverage":        score.TopicCoverage,
+		"topicDepth":           score.TopicDepth,
+		"experience":           score.Experience,
+		"relationship":         score.Relationship,
+		"opinion":              score.Opinion,
+		"style":                score.Style,
+		"conversation":         score.Conversation,
+		"feedbackFix":          score.FeedbackFix,
+		"feedbackQualityRatio": score.FeedbackQualityRatio,
+	}
+	if delta != nil {
+		resp["delta"] = *delta
+	}
+	return resp
+}
+
+func buildNextSuggestionContext(profileID string, p *models.LifeAgentProfile, cfg *config.Config, lastMessage string, turnCount int, toneChanged, exampleRepliesChanged bool) lifeagent.NextSuggestionContext {
+	input := loadMindScoreInput(profileID, p, cfg)
+	var blindSpots []models.LifeAgentBlindSpot
+	db.DB.Where("profile_id = ? AND resolved = ?", profileID, false).Order("created_at DESC").Limit(10).Find(&blindSpots)
+	topicLabels := make(map[string]string)
+	for _, t := range input.Topics {
+		topicLabels[t.ID] = t.TopicLabel
+	}
+	var bsForAlert []lifeagent.BlindSpotForFollowUp
+	for _, s := range blindSpots {
+		bsForAlert = append(bsForAlert, lifeagent.BlindSpotForFollowUp{UserQuestion: s.UserQuestion, Route: s.Route})
+	}
+	return lifeagent.NextSuggestionContext{
+		Profile:               p,
+		Entries:               input.Entries,
+		Facts:                 input.Facts,
+		Topics:                input.Topics,
+		HasVoice:              input.HasVoice,
+		FeedbackSignals:       buildFeedbackSignals(profileID),
+		TopicLabels:           topicLabels,
+		BlindSpots:            bsForAlert,
+		LastMessage:           lastMessage,
+		TurnCount:             turnCount,
+		ToneChanged:           toneChanged,
+		ExampleRepliesChanged: exampleRepliesChanged,
+	}
+}
+
 func buildLifeAgentRatingState(profileID, buyerID string) gin.H {
 	var usedQuestions int
 	db.DB.Raw(
@@ -369,7 +560,7 @@ func decodeLifeAgentListCursor(s string) (time.Time, string, error) {
 }
 
 // lifeAgentListResponseItems 将一批已排序的 profile 转为广场列表 JSON（含聚合统计）。
-func lifeAgentListResponseItems(profiles []models.LifeAgentProfile) []gin.H {
+func lifeAgentListResponseItems(profiles []models.LifeAgentProfile, cfg *config.Config) []gin.H {
 	if len(profiles) == 0 {
 		return []gin.H{}
 	}
@@ -428,10 +619,12 @@ func lifeAgentListResponseItems(profiles []models.LifeAgentProfile) []gin.H {
 		}
 	}
 	resp := make([]gin.H, 0, len(profiles))
+	mindScores := batchComputeMindScores(profiles, cfg)
 	for _, p := range profiles {
 		u := userMap[p.UserID]
 		ratingsSummary := ratingMap[p.ID]
 		cu := lifeAgentCoverURL(&p)
+		ms := mindScores[p.ID]
 		resp = append(resp, gin.H{
 			"id":                 p.ID,
 			"displayName":        p.DisplayName,
@@ -460,6 +653,9 @@ func lifeAgentListResponseItems(profiles []models.LifeAgentProfile) []gin.H {
 			"coverImageUrl":      ptrStr(p.CoverImageURL),
 			"coverPresetKey":     ptrStr(p.CoverPresetKey),
 			"coverUrl":           cu,
+			"mindScore":          ms.Total,
+			"mindScoreLevel":     ms.Level,
+			"mindScoreLevelLabel": ms.LevelLabel,
 		})
 	}
 	return resp
@@ -519,7 +715,7 @@ func LifeAgentsList(cfg *config.Config) gin.HandlerFunc {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "INTERNAL_ERROR"})
 				return
 			}
-			c.JSON(http.StatusOK, lifeAgentListResponseItems(profiles))
+			c.JSON(http.StatusOK, lifeAgentListResponseItems(profiles, cfg))
 			return
 		}
 
@@ -566,7 +762,7 @@ func LifeAgentsList(cfg *config.Config) gin.HandlerFunc {
 			}
 
 			c.JSON(http.StatusOK, gin.H{
-				"items":      lifeAgentListResponseItems(profiles),
+				"items":      lifeAgentListResponseItems(profiles, cfg),
 				"nextCursor": nextCursor,
 			})
 			return
@@ -596,7 +792,7 @@ func LifeAgentsList(cfg *config.Config) gin.HandlerFunc {
 		}
 
 		c.JSON(http.StatusOK, gin.H{
-			"items":      lifeAgentListResponseItems(profiles),
+			"items":      lifeAgentListResponseItems(profiles, cfg),
 			"nextCursor": nextCursor,
 		})
 	}
@@ -911,6 +1107,7 @@ func LifeAgentsMine(cfg *config.Config) gin.HandlerFunc {
 			db.DB.Model(&models.LifeAgentQuestionPack{}).Where("profile_id = ?", p.ID).Count(&qpCount)
 			db.DB.Model(&models.LifeAgentChatSession{}).Where("profile_id = ?", p.ID).Count(&sessCount)
 			db.DB.Model(&models.LifeAgentQuestionPack{}).Where("profile_id = ? AND status = ?", p.ID, "paid").Select("COALESCE(SUM(amount_paid),0)").Scan(&revenue)
+			mindScore := lifeagent.ComputeMindScore(loadMindScoreInput(p.ID, &p, cfg))
 			resp = append(resp, gin.H{
 				"id":                 p.ID,
 				"displayName":        p.DisplayName,
@@ -928,6 +1125,9 @@ func LifeAgentsMine(cfg *config.Config) gin.HandlerFunc {
 				"sessionCount":       sessCount,
 				"soldPacks":          qpCount,
 				"totalRevenue":       revenue,
+				"mindScore":          mindScore.Total,
+				"mindScoreLevel":     mindScore.Level,
+				"mindScoreLevelLabel": mindScore.LevelLabel,
 			})
 		}
 		c.JSON(http.StatusOK, resp)
@@ -1203,6 +1403,7 @@ func LifeAgentsUpdate(cfg *config.Config) gin.HandlerFunc {
 			c.JSON(http.StatusForbidden, gin.H{"error": "FORBIDDEN"})
 			return
 		}
+		beforeScore := lifeagent.ComputeMindScore(loadMindScoreInput(id, &p, cfg)).Total
 		var body struct {
 			DisplayName        *string   `json:"displayName"`
 			Headline           *string   `json:"headline"`
@@ -1440,6 +1641,9 @@ func LifeAgentsUpdate(cfg *config.Config) gin.HandlerFunc {
 		db.DB.Where("profile_id = ?", id).Order("fact_key ASC, created_at ASC").Find(&facts)
 		var topics []models.LifeAgentTopicSummary
 		db.DB.Where("profile_id = ?", id).Order("topic_group ASC, topic_key ASC").Find(&topics)
+		afterScore := lifeagent.ComputeMindScore(loadMindScoreInput(id, &p, cfg))
+		delta := afterScore.Total - beforeScore
+		nextSuggestion := lifeagent.GenerateNextSuggestion(buildNextSuggestionContext(id, &p, cfg, "", 0, false, false))
 		c.JSON(http.StatusOK, gin.H{
 			"id":                            p.ID,
 			"displayName":                   p.DisplayName,
@@ -1480,6 +1684,8 @@ func LifeAgentsUpdate(cfg *config.Config) gin.HandlerFunc {
 			"coverUrl":                      lifeAgentCoverURL(&p),
 			"structuredFacts":               buildStructuredFactResponses(facts),
 			"topicSummaries":                buildTopicSummaryResponses(topics),
+			"mindScore":                     mindScoreToJSON(afterScore, &delta),
+			"nextSuggestion":                nextSuggestion,
 		})
 	}
 }
@@ -1503,6 +1709,7 @@ func LifeAgentsModifyViaChat(cfg *config.Config) gin.HandlerFunc {
 		}
 		var entries []models.LifeAgentKnowledgeEntry
 		db.DB.Where("profile_id = ?", id).Order("sort_order").Find(&entries)
+		beforeScore := lifeagent.ComputeMindScore(loadMindScoreInput(id, &p, cfg)).Total
 		var body struct {
 			Message     string                       `json:"message" binding:"required"`
 			ChatHistory []lifeagent.ChatMessageForAI `json:"chatHistory"`
@@ -1620,9 +1827,22 @@ func LifeAgentsModifyViaChat(cfg *config.Config) gin.HandlerFunc {
 		db.DB.Where("id = ?", id).First(&p)
 		db.DB.Where("profile_id = ?", id).Order("sort_order").Find(&entries)
 		profileResp := buildManageProfileResp(&p, entries)
+		afterScore := lifeagent.ComputeMindScore(loadMindScoreInput(id, &p, cfg))
+		delta := afterScore.Total - beforeScore
+		turnCount := 1
+		for _, m := range body.ChatHistory {
+			if m.Role == "user" {
+				turnCount++
+			}
+		}
+		toneChanged := intent.Changes != nil && intent.Changes.ToneStyle != ""
+		exampleChanged := intent.Changes != nil && len(intent.Changes.ExampleReplies) > 0
+		nextSuggestion := lifeagent.GenerateNextSuggestion(buildNextSuggestionContext(id, &p, cfg, body.Message, turnCount, toneChanged, exampleChanged))
 		writeModifySSE("done", gin.H{
 			"assistantMessage": reply,
 			"profile":          profileResp,
+			"mindScore":        mindScoreToJSON(afterScore, &delta),
+			"nextSuggestion":   nextSuggestion,
 		})
 	}
 }
@@ -1789,6 +2009,8 @@ func LifeAgentsManage(cfg *config.Config) gin.HandlerFunc {
 			bsForAlert = append(bsForAlert, lifeagent.BlindSpotForFollowUp{UserQuestion: s.UserQuestion, Route: s.Route})
 		}
 		feedbackAlerts := lifeagent.BuildFeedbackAlerts(manageFbSignals, manageTopicLabels, bsForAlert)
+		mindScore := lifeagent.ComputeMindScore(loadMindScoreInput(id, &p, cfg))
+		nextSuggestion := lifeagent.GenerateNextSuggestion(buildNextSuggestionContext(id, &p, cfg, "", 0, false, false))
 
 		type packResp struct {
 			ID            string `json:"id"`
@@ -1880,7 +2102,11 @@ func LifeAgentsManage(cfg *config.Config) gin.HandlerFunc {
 				"sessionCount":   totalSess,
 				"topicCount":     len(topics),
 				"blindSpotCount": blindSpotCount,
+				"mindScore":      mindScore.Total,
+				"mindScoreLevel": mindScore.Level,
 			},
+			"mindScore":      mindScoreToJSON(mindScore, nil),
+			"nextSuggestion": nextSuggestion,
 			"feedback": gin.H{
 				"counts":  gin.H{"helpful": helpful, "notSpecific": notSpecific, "notSuitable": notSuitable, "factualError": factualError, "contradiction": contradiction, "tooConfident": tooConfident},
 				"recent":  fbList,

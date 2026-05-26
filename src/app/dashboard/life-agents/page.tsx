@@ -22,6 +22,9 @@ type ProfileItem = {
   sessionCount: number;
   soldPacks: number;
   totalRevenue: number;
+  mindScore?: number;
+  mindScoreLevel?: number;
+  mindScoreLevelLabel?: string;
 } & Partial<
   Pick<
     LifeAgentListItem,
@@ -55,6 +58,9 @@ function mineToListItem(p: ProfileItem): LifeAgentListItem {
     coverImageUrl: p.coverImageUrl,
     coverPresetKey: p.coverPresetKey,
     published: p.published,
+    mindScore: p.mindScore,
+    mindScoreLevel: p.mindScoreLevel,
+    mindScoreLevelLabel: p.mindScoreLevelLabel,
   };
 }
 

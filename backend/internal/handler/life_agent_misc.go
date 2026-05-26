@@ -84,7 +84,7 @@ func LifeAgentFavoritesList(cfg *config.Config) gin.HandlerFunc {
 					ordered = append(ordered, p)
 				}
 			}
-			c.JSON(http.StatusOK, lifeAgentListResponseItems(ordered))
+			c.JSON(http.StatusOK, lifeAgentListResponseItems(ordered, cfg))
 			return
 		}
 		c.JSON(http.StatusOK, gin.H{"ids": ids})

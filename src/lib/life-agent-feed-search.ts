@@ -45,6 +45,9 @@ export type LifeAgentListItem = {
   coverPresetKey?: string;
   /** 创作者「我的人生 Agent」列表用：是否在广场发布 */
   published?: boolean;
+  mindScore?: number;
+  mindScoreLevel?: number;
+  mindScoreLevelLabel?: string;
 };
 
 function clamp01(v: number): number {

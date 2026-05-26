@@ -16,6 +16,8 @@ import {
   TONE_OPTIONS,
   type ManageData,
   type ManageProfile,
+  type MindScoreBreakdown,
+  type NextSuggestion,
 } from "@/app/dashboard/life-agents/_lib/manage";
 import {
   CHAT_PAGE_BACKGROUND_CLASSNAME,
@@ -62,6 +64,23 @@ function mergeManageProfile(prev: ManageProfile, patch: Partial<ManageProfile>):
   };
 }
 
+function applyMindScoreUpdate(
+  payload: { mindScore?: MindScoreBreakdown; nextSuggestion?: NextSuggestion | null },
+  setMindScore: (v: MindScoreBreakdown | null) => void,
+  setNextSuggestion: (v: NextSuggestion | null) => void,
+  setScoreFlash: (v: number | null) => void,
+) {
+  if (payload.mindScore) {
+    setMindScore(payload.mindScore);
+    if (typeof payload.mindScore.delta === "number" && payload.mindScore.delta > 0) {
+      setScoreFlash(payload.mindScore.delta);
+    }
+  }
+  if (payload.nextSuggestion !== undefined) {
+    setNextSuggestion(payload.nextSuggestion);
+  }
+}
+
 const profileFieldClassName =
   "mt-1 w-full rounded-lg border border-purple-200/50 bg-white/90 px-2.5 py-2 text-sm text-slate-700 outline-none transition focus:border-purple-400 focus:ring-2 focus:ring-purple-200/40";
 
@@ -83,6 +102,9 @@ export default function LifeAgentCoEditPage() {
   const [importLoading, setImportLoading] = useState(false);
   const [importProgress, setImportProgress] = useState<string | null>(null);
   const [profileSaving, setProfileSaving] = useState(false);
+  const [mindScore, setMindScore] = useState<MindScoreBreakdown | null>(null);
+  const [nextSuggestion, setNextSuggestion] = useState<NextSuggestion | null>(null);
+  const [scoreFlash, setScoreFlash] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const chatHistoryRef = useRef<ChatRow[]>([]);
   const pendingVoicePromptRef = useRef<string | null>(null);
@@ -123,6 +145,18 @@ export default function LifeAgentCoEditPage() {
       cancelled = true;
     };
   }, [id]);
+
+  useEffect(() => {
+    if (!data) return;
+    if (data.mindScore) setMindScore(data.mindScore);
+    if (data.nextSuggestion) setNextSuggestion(data.nextSuggestion);
+  }, [data]);
+
+  useEffect(() => {
+    if (scoreFlash == null) return;
+    const t = window.setTimeout(() => setScoreFlash(null), 3200);
+    return () => window.clearTimeout(t);
+  }, [scoreFlash]);
 
   useEffect(() => {
     if (!data || data.profile.id !== id) return;
@@ -231,6 +265,7 @@ export default function LifeAgentCoEditPage() {
         return;
       }
       setData((prev) => (prev ? { ...prev, profile: mergeManageProfile(prev.profile, next) } : prev));
+      applyMindScoreUpdate(next, setMindScore, setNextSuggestion, setScoreFlash);
       setBanner("资料已保存");
     } catch {
       setBanner("资料保存失败，请检查网络后重试");
@@ -285,7 +320,12 @@ export default function LifeAgentCoEditPage() {
         const reader = res.body.getReader();
         const decoder = new TextDecoder();
         let buffer = "";
-        let donePayload: { assistantMessage?: string; profile?: ManageProfile } | null = null;
+        let donePayload: {
+          assistantMessage?: string;
+          profile?: ManageProfile;
+          mindScore?: MindScoreBreakdown;
+          nextSuggestion?: NextSuggestion | null;
+        } | null = null;
 
         while (true) {
           const { done, value } = await reader.read();
@@ -311,7 +351,12 @@ export default function LifeAgentCoEditPage() {
                   )
                 );
               } else if (eventType === "done") {
-                donePayload = parsed as { assistantMessage?: string; profile?: ManageProfile };
+                donePayload = parsed as {
+                  assistantMessage?: string;
+                  profile?: ManageProfile;
+                  mindScore?: MindScoreBreakdown;
+                  nextSuggestion?: NextSuggestion | null;
+                };
               }
             } catch {
               // ignore malformed SSE
@@ -334,6 +379,7 @@ export default function LifeAgentCoEditPage() {
         });
         const profileAfter = next.profile;
         setData((prev) => (prev ? { ...prev, profile: mergeManageProfile(prev.profile, profileAfter) } : prev));
+        applyMindScoreUpdate(next, setMindScore, setNextSuggestion, setScoreFlash);
         setChatHistory((prev) =>
           prev.map((row, i) =>
             i === assistantRowIndex
@@ -350,6 +396,8 @@ export default function LifeAgentCoEditPage() {
       const next = (await res.json().catch(() => null)) as {
         assistantMessage?: string;
         profile?: ManageProfile;
+        mindScore?: MindScoreBreakdown;
+        nextSuggestion?: NextSuggestion | null;
         detail?: string;
       } | null;
       if (!next?.profile) {
@@ -370,6 +418,7 @@ export default function LifeAgentCoEditPage() {
         appliedAt: new Date().toISOString(),
       });
       setData((prev) => (prev ? { ...prev, profile: mergeManageProfile(prev.profile, profileAfter) } : prev));
+      applyMindScoreUpdate(next, setMindScore, setNextSuggestion, setScoreFlash);
     } catch {
       replaceAssistantMessage("请求失败，请检查网络后重试");
     } finally {
@@ -872,6 +921,42 @@ export default function LifeAgentCoEditPage() {
 
         <div className="shrink-0 border-t border-purple-200/[0.16] bg-white/[0.94] px-3 pb-[env(safe-area-inset-bottom)] pt-2 shadow-[0_-4px_28px_-8px_rgba(124,58,237,0.07)] backdrop-blur-lg sm:px-4">
           <div className="mx-auto max-w-3xl">
+            {mindScore ? (
+              <div className="mb-2 rounded-2xl border border-purple-200/30 bg-gradient-to-r from-violet-50/95 to-fuchsia-50/80 px-3 py-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-[11px] font-medium text-purple-700/70">心智值</p>
+                    <p className="mt-0.5 text-xl font-black text-purple-950">
+                      {mindScore.total.toLocaleString("zh-CN")}
+                      <span className="ml-2 text-sm font-semibold text-purple-700">Lv.{mindScore.level}</span>
+                    </p>
+                    <p className="text-[11px] text-slate-500">{mindScore.levelLabel}</p>
+                  </div>
+                  {scoreFlash != null && scoreFlash > 0 ? (
+                    <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-sm font-bold text-emerald-700">
+                      +{scoreFlash}
+                    </span>
+                  ) : null}
+                </div>
+                {nextSuggestion ? (
+                  <div className="mt-3 rounded-xl bg-white/90 px-3 py-2.5 ring-1 ring-purple-100/80">
+                    <p className="text-sm font-semibold text-purple-950">{nextSuggestion.title}</p>
+                    <p className="mt-1 text-xs leading-5 text-slate-600">{nextSuggestion.reason}</p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setModifyInput(nextSuggestion.prompt);
+                        window.setTimeout(() => inputRef.current?.focus(), 0);
+                      }}
+                      disabled={modifyLoading}
+                      className="mt-2 rounded-full bg-purple-600 px-4 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
+                    >
+                      继续调教
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
             <LifeAgentMessageComposer
               formRef={formRef}
               textareaRef={inputRef}

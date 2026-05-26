@@ -15,6 +15,9 @@ type LifeAgentCreated = {
   sessionCount: number;
   soldPacks: number;
   totalRevenue: number;
+  mindScore?: number;
+  mindScoreLevel?: number;
+  mindScoreLevelLabel?: string;
 };
 type LifeAgentPurchased = {
   id: string;
@@ -75,6 +78,7 @@ export default function DashboardPage() {
     const soldPacks = lifeAgentsCreated.reduce((sum, item) => sum + item.soldPacks, 0);
     const revenue = lifeAgentsCreated.reduce((sum, item) => sum + item.totalRevenue, 0);
     const purchasedQuestions = lifeAgentsPurchased.reduce((sum, item) => sum + item.remainingQuestions, 0);
+    const totalMindScore = lifeAgentsCreated.reduce((sum, item) => sum + (item.mindScore ?? 0), 0);
 
     return {
       createdCount,
@@ -83,6 +87,7 @@ export default function DashboardPage() {
       revenue,
       purchasedQuestions,
       purchasedProfiles: lifeAgentsPurchased.length,
+      totalMindScore,
     };
   }, [lifeAgentsCreated, lifeAgentsPurchased]);
 
@@ -259,7 +264,7 @@ export default function DashboardPage() {
       <section className="rounded-[28px] bg-white px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
         <div className="flex items-center justify-between">
           <div className="min-w-0">
-            <h2 className="text-xl font-black tracking-tight text-[#111]">我的热度</h2>
+            <h2 className="text-xl font-black tracking-tight text-[#111]">我的心智值</h2>
           </div>
           <span className="shrink-0 rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">
             上架中 {totals.createdCount}
@@ -280,10 +285,8 @@ export default function DashboardPage() {
             <p className="mt-1 text-[11px] text-slate-500">累计对话</p>
           </div>
           <div className="rounded-2xl bg-white px-2 py-3 shadow-sm ring-1 ring-black/[0.03]">
-            <p className="text-lg font-black text-[#111]">
-              {totals.createdSessions + totals.soldPacks + totals.purchasedProfiles}
-            </p>
-            <p className="mt-1 text-[11px] text-slate-500">热度指数</p>
+            <p className="text-lg font-black text-[#111]">{totals.totalMindScore.toLocaleString("zh-CN")}</p>
+            <p className="mt-1 text-[11px] text-slate-500">心智值</p>
           </div>
         </div>
       </section>

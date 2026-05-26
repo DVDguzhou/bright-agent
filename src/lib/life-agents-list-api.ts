@@ -62,6 +62,9 @@ export function normalizeLifeAgentListRow(row: unknown): LifeAgentListItem | nul
     coverImageUrl: typeof r.coverImageUrl === "string" ? r.coverImageUrl : undefined,
     coverPresetKey: typeof r.coverPresetKey === "string" ? r.coverPresetKey : undefined,
     published: typeof r.published === "boolean" ? r.published : undefined,
+    mindScore: typeof r.mindScore === "number" ? r.mindScore : undefined,
+    mindScoreLevel: typeof r.mindScoreLevel === "number" ? r.mindScoreLevel : undefined,
+    mindScoreLevelLabel: typeof r.mindScoreLevelLabel === "string" ? r.mindScoreLevelLabel : undefined,
   };
 }
 

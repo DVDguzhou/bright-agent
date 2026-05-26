@@ -1,5 +1,32 @@
 import { centsToYuanInput, yuanInputToCents } from "@/lib/price";
 
+export type MindScoreBreakdown = {
+  total: number;
+  level: number;
+  levelLabel: string;
+  foundation: number;
+  topicCoverage: number;
+  topicDepth: number;
+  experience: number;
+  relationship: number;
+  opinion: number;
+  style: number;
+  conversation: number;
+  feedbackFix: number;
+  feedbackQualityRatio: number;
+  delta?: number;
+};
+
+export type NextSuggestion = {
+  ruleId: string;
+  type: string;
+  title: string;
+  reason: string;
+  prompt: string;
+  priority: number;
+  estimatedGain?: number;
+};
+
 export type ManageProfile = {
   id: string;
   displayName: string;
@@ -77,7 +104,11 @@ export type ManageData = {
     sessionCount: number;
     topicCount?: number;
     blindSpotCount?: number;
+    mindScore?: number;
+    mindScoreLevel?: number;
   };
+  mindScore?: MindScoreBreakdown;
+  nextSuggestion?: NextSuggestion | null;
   feedback?: {
     counts: {
       helpful: number;

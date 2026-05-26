@@ -320,10 +320,10 @@ export default function LifeAgentManageHomePage() {
           <StatCard label="互动用户" value={data.questionPacks.length} sub="人" href={`/dashboard/life-agents/${id}/sales`} />
           <StatCard label="累计对话" value={data.stats.sessionCount} sub="场" href={`/dashboard/life-agents/${id}/sessions`} />
           <StatCard
-            label="热度指数"
-            value={data.stats.soldPacks + data.stats.sessionCount + data.questionPacks.length}
-            sub="综合"
-            href={`/dashboard/life-agents/${id}/sales`}
+            label="心智值"
+            value={(data.mindScore?.total ?? data.stats.mindScore ?? 0).toLocaleString("zh-CN")}
+            sub={data.mindScore?.levelLabel ?? `Lv.${data.stats.mindScoreLevel ?? 1}`}
+            href={`/dashboard/life-agents/${id}/co-edit`}
           />
         </div>
       </section>

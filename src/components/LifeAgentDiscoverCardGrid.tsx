@@ -104,6 +104,12 @@ function LifeAgentDiscoverCard({
               未发布
             </div>
           ) : null}
+          {typeof profile.mindScore === "number" && profile.mindScore > 0 ? (
+            <div className="absolute bottom-0 left-0 bg-paper/95 px-2 py-1 text-[10px] font-medium tabular-nums text-ink-500 backdrop-blur-sm">
+              心智 {(profile.mindScore ?? 0).toLocaleString("zh-CN")}
+              {profile.mindScoreLevel ? ` · Lv.${profile.mindScoreLevel}` : ""}
+            </div>
+          ) : null}
         </div>
 
         {/* 文字区：发丝线起，editorial caption */}
