@@ -102,9 +102,16 @@ function buildPopupHtml(agent: MapAgentMarker): string {
   const headline = agent.headline ? escHtml(agent.headline).slice(0, 60) : "";
   const serif = `'Source Han Serif SC','Noto Serif SC','Songti SC','STSong',Georgia,serif`;
   const sans = `-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif`;
+  let avatarSrc = resolveLifeAgentCoverUrl(agent.coverImageUrl, agent.coverPresetKey);
+  if (isLifeAgentDefaultCoverUrl(avatarSrc)) avatarSrc = "";
+  const avatarBlock = avatarSrc
+    ? `<div style="width:40px;height:40px;border-radius:50%;background:${bg};flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center">`
+      + `<img src="${escHtml(avatarSrc)}" alt="" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display='none';this.parentElement.innerHTML='<span style=\\'color:#f4efe6;font-family:${serif};font-weight:600;font-size:18px;letter-spacing:.02em\\'>${ch}</span>'"/>`
+      + `</div>`
+    : `<div style="width:40px;height:40px;border-radius:50%;background:${bg};color:#f4efe6;display:flex;align-items:center;justify-content:center;font-family:${serif};font-weight:600;font-size:18px;flex-shrink:0;letter-spacing:.02em">${ch}</div>`;
   return `<div style="min-width:220px;max-width:260px;font-family:${sans};padding:2px;color:#1a1714">
   <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;padding-bottom:9px;border-bottom:1px solid #d8cfbf">
-    <div style="width:40px;height:40px;border-radius:2px;background:${bg};color:#f4efe6;display:flex;align-items:center;justify-content:center;font-family:${serif};font-weight:600;font-size:18px;flex-shrink:0;letter-spacing:.02em">${ch}</div>
+    ${avatarBlock}
     <div style="min-width:0;flex:1">
       <div style="font-family:${serif};font-weight:700;font-size:15px;color:#1a1714;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${name}</div>
       ${school ? `<div style="font-size:10px;color:#8d8478;line-height:1.3;margin-top:3px;letter-spacing:.14em;text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${school}</div>` : ""}
