@@ -14,7 +14,6 @@ import { cleanLifeAgentIntroMultiline,
   cleanLifeAgentIntroText,
 } from "@/lib/life-agent-intro-clean";
 import { MindScoreBadge } from "@/components/MindScoreBadge";
-import { MindScoreBadge } from "@/components/MindScoreBadge";
 
 type DetailData = {
   id: string;
