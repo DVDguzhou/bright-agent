@@ -10,6 +10,10 @@ import { fetchBoundLifeAgents, type BoundLifeAgent } from "@/lib/bound-life-agen
 import { useMobileTouchNavEnabled } from "@/hooks/use-life-agents-feed-gestures";
 import { lifeAgentShowsPurchaseUi } from "@/lib/life-agent-commerce";
 import {
+  fetchAgentNotificationUnreadCount,
+  readUnreadCount,
+} from "@/lib/notifications-read";
+import {
   MIN_VOICE_BLOB_BYTES,
   pickRecorderMimeType,
   useMediaRecorder,
@@ -464,17 +468,34 @@ export function Nav() {
       setNotificationCount(0);
       return;
     }
+    let cancelled = false;
+    const applyCount = (data: unknown) => {
+      if (cancelled) return;
+      setNotificationCount(readUnreadCount(data as Parameters<typeof readUnreadCount>[0]));
+    };
     fetch("/api/life-agents/feedback/all", { credentials: "include" })
-      .then((r) => (r.ok ? r.json() : []))
-      .then((d) => {
-        const count =
-          (Array.isArray((d as { recent?: unknown[] })?.recent) ? (d as { recent?: unknown[] }).recent!.length : 0) +
-          (Array.isArray((d as { ratings?: { recent?: unknown[] } })?.ratings?.recent)
-            ? (d as { ratings?: { recent?: unknown[] } }).ratings!.recent!.length
-            : 0);
-        setNotificationCount(count);
-      })
-      .catch(() => setNotificationCount(0));
+      .then((r) => (r.ok ? r.json() : null))
+      .then(applyCount)
+      .catch(() => {
+        if (!cancelled) setNotificationCount(0);
+      });
+    const onSeen = () => {
+      setNotificationCount(0);
+    };
+    const refetchCount = () => {
+      fetchAgentNotificationUnreadCount()
+        .then((count) => {
+          if (!cancelled) setNotificationCount(count);
+        })
+        .catch(() => {});
+    };
+    window.addEventListener("notifications-seen", onSeen);
+    window.addEventListener("focus", refetchCount);
+    return () => {
+      cancelled = true;
+      window.removeEventListener("notifications-seen", onSeen);
+      window.removeEventListener("focus", refetchCount);
+    };
   }, [user]);
 
   useEffect(() => {
@@ -492,12 +513,6 @@ export function Nav() {
       });
     return () => controller.abort();
   }, [user]);
-
-  useEffect(() => {
-    if (pathname === "/dashboard/notifications") {
-      setNotificationCount(0);
-    }
-  }, [pathname]);
 
   const logout = async () => {
     await fetch("/api/auth/logout", { method: "POST", credentials: "include" });

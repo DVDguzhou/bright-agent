@@ -25,6 +25,7 @@ type User struct {
 	PasswordResetToken     *string    `gorm:"column:password_reset_token;size:64;index"`
 	PasswordResetExpiresAt *time.Time `gorm:"column:password_reset_expires_at"`
 	EmailVerifiedAt        *time.Time `gorm:"column:email_verified_at"`
+	NotificationsReadAt    *time.Time `gorm:"column:notifications_read_at"`
 
 	// relations - no fk for simplicity, use manual queries
 }

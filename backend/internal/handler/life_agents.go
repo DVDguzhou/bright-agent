@@ -1164,13 +1164,19 @@ func LifeAgentsFeedbackAll(cfg *config.Config) gin.HandlerFunc {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "UNAUTHORIZED"})
 			return
 		}
+		var owner models.User
+		if err := db.DB.Select("id", "notifications_read_at").Where("id = ?", user.ID).First(&owner).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "INTERNAL_ERROR"})
+			return
+		}
 		var profiles []models.LifeAgentProfile
 		db.DB.Where("user_id = ?", user.ID).Find(&profiles)
 		if len(profiles) == 0 {
 			c.JSON(http.StatusOK, gin.H{
-				"counts":  gin.H{"helpful": 0, "notSpecific": 0, "notSuitable": 0, "factualError": 0, "contradiction": 0, "tooConfident": 0},
-				"ratings": gin.H{"averageScore": 0, "raters": 0, "recent": []gin.H{}},
-				"recent":  []gin.H{},
+				"counts":      gin.H{"helpful": 0, "notSpecific": 0, "notSuitable": 0, "factualError": 0, "contradiction": 0, "tooConfident": 0},
+				"ratings":     gin.H{"averageScore": 0, "raters": 0, "recent": []gin.H{}},
+				"recent":      []gin.H{},
+				"unreadCount": 0,
 			})
 			return
 		}
@@ -1232,9 +1238,43 @@ func LifeAgentsFeedbackAll(cfg *config.Config) gin.HandlerFunc {
 				"raters":       raters,
 				"recent":       ratingList,
 			},
-			"recent": list,
+			"recent":      list,
+			"unreadCount": countUnreadAgentNotifications(ids, owner.NotificationsReadAt),
 		})
 	}
+}
+
+// LifeAgentsFeedbackMarkRead 标记当前用户的 Agent 反馈/评分提醒为已读
+func LifeAgentsFeedbackMarkRead(cfg *config.Config) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		user := middleware.MustGetUser(c)
+		if user == nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "UNAUTHORIZED"})
+			return
+		}
+		now := time.Now().UTC()
+		if err := db.DB.Model(&models.User{}).Where("id = ?", user.ID).Update("notifications_read_at", now).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "INTERNAL_ERROR"})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"ok": true, "unreadCount": 0, "readAt": now.Format(time.RFC3339)})
+	}
+}
+
+func countUnreadAgentNotifications(profileIDs []string, readAt *time.Time) int64 {
+	if len(profileIDs) == 0 {
+		return 0
+	}
+	var feedbackCount, ratingCount int64
+	fbQuery := db.DB.Model(&models.LifeAgentFeedback{}).Where("profile_id IN ?", profileIDs)
+	rtQuery := db.DB.Model(&models.LifeAgentRating{}).Where("profile_id IN ?", profileIDs)
+	if readAt != nil {
+		fbQuery = fbQuery.Where("created_at > ?", *readAt)
+		rtQuery = rtQuery.Where("updated_at > ?", *readAt)
+	}
+	fbQuery.Count(&feedbackCount)
+	rtQuery.Count(&ratingCount)
+	return feedbackCount + ratingCount
 }
 
 // LifeAgentsPurchased 返回当前用户购买过额度的人生 Agent（作为咨询者）

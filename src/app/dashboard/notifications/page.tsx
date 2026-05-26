@@ -8,6 +8,7 @@ import { motion } from "framer-motion";
 import { RatingStars } from "@/components/RatingStars";
 import { useAuth } from "@/contexts/AuthContext";
 import { getDisplayAvatar } from "@/lib/avatar";
+import { markAgentNotificationsRead } from "@/lib/notifications-read";
 
 type FeedbackItem = {
   id: string;
@@ -128,6 +129,8 @@ export default function DashboardNotificationsPage() {
       .then((d) => setData(normalizeSummary(d)))
       .catch(() => setData(normalizeSummary(null)))
       .finally(() => setDataLoading(false));
+
+    void markAgentNotificationsRead();
   }, [user]);
 
   const rows = useMemo<NotificationRow[]>(() => {

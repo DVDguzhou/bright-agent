@@ -52,6 +52,7 @@ model User {
   passwordResetToken     String?   @map("password_reset_token") @db.VarChar(64)
   passwordResetExpiresAt DateTime? @map("password_reset_expires_at")
   emailVerifiedAt        DateTime? @map("email_verified_at")
+  notificationsReadAt    DateTime? @map("notifications_read_at")
 
   userApiKeys   UserApiKey[]
   ownedAgents   Agent[]       @relation("AgentOwner")
