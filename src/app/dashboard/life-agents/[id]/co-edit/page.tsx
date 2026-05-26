@@ -7,6 +7,7 @@ import { LifeAgentMessageComposer } from "@/components/LifeAgentMessageComposer"
 import { AgentTypingIndicator } from "@/components/AgentTypingIndicator";
 import { AGENT_CATEGORIES } from "@/lib/life-agent-category";
 import { WeflowImportGuide } from "@/components/WeflowImportGuide";
+import { MindScoreBadge } from "@/components/MindScoreBadge";
 import {
   buildPatchPayloadFromProfile,
   fetchManageData,
@@ -926,9 +927,9 @@ export default function LifeAgentCoEditPage() {
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="text-[11px] font-medium text-purple-700/70">心智值</p>
-                    <p className="mt-0.5 text-xl font-black text-purple-950">
-                      {mindScore.total.toLocaleString("zh-CN")}
-                    </p>
+                    <div className="mt-1">
+                      <MindScoreBadge value={mindScore.total} size="md" />
+                    </div>
                   </div>
                   {scoreFlash != null && scoreFlash > 0 ? (
                     <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-sm font-bold text-emerald-700">

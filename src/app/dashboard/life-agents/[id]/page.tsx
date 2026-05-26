@@ -15,6 +15,7 @@ import {
   type ManageData,
 } from "@/app/dashboard/life-agents/_lib/manage";
 import { cleanLifeAgentIntroText } from "@/lib/life-agent-intro-clean";
+import { MindScoreBadge } from "@/components/MindScoreBadge";
 
 type LoadState = {
   data: ManageData | null;
@@ -46,6 +47,24 @@ const LIVE_CATEGORIES = [
   { value: "weather", label: "气候/环境" },
   { value: "resource", label: "本地资源" },
 ];
+
+function MindScoreStatCard({ value, href }: { value: number; href?: string }) {
+  const content = (
+    <div className="rounded-2xl bg-violet-50 px-3 py-3 text-center ring-1 ring-violet-200/60">
+      <div className="flex justify-center">
+        <MindScoreBadge value={value} size="lg" prefix="" />
+      </div>
+      <p className="mt-2 text-[11px] font-medium text-violet-800">心智值</p>
+      <p className="mt-0.5 text-[10px] text-violet-600/70">无上限</p>
+    </div>
+  );
+  if (!href) return content;
+  return (
+    <Link href={href} className="block transition active:scale-[0.99]">
+      {content}
+    </Link>
+  );
+}
 
 function StatCard({
   label,
@@ -319,10 +338,8 @@ export default function LifeAgentManageHomePage() {
           <StatCard label="被提问" value={data.stats.soldPacks} sub="次" href={`/dashboard/life-agents/${id}/sales`} />
           <StatCard label="互动用户" value={data.questionPacks.length} sub="人" href={`/dashboard/life-agents/${id}/sales`} />
           <StatCard label="累计对话" value={data.stats.sessionCount} sub="场" href={`/dashboard/life-agents/${id}/sessions`} />
-          <StatCard
-            label="心智值"
-            value={(data.mindScore?.total ?? data.stats.mindScore ?? 0).toLocaleString("zh-CN")}
-            sub="无上限"
+          <MindScoreStatCard
+            value={data.mindScore?.total ?? data.stats.mindScore ?? 0}
             href={`/dashboard/life-agents/${id}/co-edit`}
           />
         </div>

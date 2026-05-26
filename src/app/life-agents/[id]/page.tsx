@@ -10,10 +10,11 @@ import { resolveLifeAgentCoverDisplayUrl } from "@/lib/life-agent-covers";
 import { isFavoriteAgentId, toggleFavoriteAgentId } from "@/lib/life-agent-favorites";
 import { useEdgeSwipeBack } from "@/hooks/use-edge-swipe-back";
 import { useMobileTouchNavEnabled } from "@/hooks/use-life-agents-feed-gestures";
-import {
-  cleanLifeAgentIntroMultiline,
+import { cleanLifeAgentIntroMultiline,
   cleanLifeAgentIntroText,
 } from "@/lib/life-agent-intro-clean";
+import { MindScoreBadge } from "@/components/MindScoreBadge";
+import { MindScoreBadge } from "@/components/MindScoreBadge";
 
 type DetailData = {
   id: string;
@@ -279,12 +280,10 @@ export default function LifeAgentDetailPage() {
             </div>
           )}
 
-          <div className="mt-4 flex items-center gap-4 border-t border-purple-100/60 pt-3 text-xs text-slate-400">
+          <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-purple-100/60 pt-3 text-xs text-slate-400">
             <span>{profile.stats.sessionCount} 场聊天</span>
             {typeof (profile.mindScore?.total ?? profile.stats.mindScore) === "number" ? (
-              <span className="font-medium text-purple-700">
-                心智 {(profile.mindScore?.total ?? profile.stats.mindScore ?? 0).toLocaleString("zh-CN")}
-              </span>
+              <MindScoreBadge value={profile.mindScore?.total ?? profile.stats.mindScore ?? 0} size="sm" />
             ) : null}
           </div>
         </div>

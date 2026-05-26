@@ -9,7 +9,7 @@ import type { LifeAgentListItem } from "@/lib/life-agent-feed-search";
 import { cleanLifeAgentIntroText } from "@/lib/life-agent-intro-clean";
 import { lifeAgentShowsPurchaseUi } from "@/lib/life-agent-commerce";
 import { useWindowedSlice } from "@/lib/use-windowed-slice";
-import { MindScoreInfoButton } from "@/components/MindScoreInfoButton";
+import { MindScoreBadge } from "@/components/MindScoreBadge";
 
 const anonymous = "佚";
 
@@ -65,13 +65,11 @@ function LifeAgentDiscoverCard({
   profile,
   globalIndex,
   profileHref,
-  showMindScoreInfo = false,
 }: {
   profile: LifeAgentListItem;
   globalIndex: number;
   profileHref: (id: string) => string;
   skipMountAnimation?: boolean;
-  showMindScoreInfo?: boolean;
 }) {
   const areaLabel = [profile.city, profile.province].filter(Boolean).join(" · ");
   const coverUrl = resolveLifeAgentCoverDisplayUrl(profile.coverUrl, profile.coverImageUrl, profile.coverPresetKey);
@@ -107,10 +105,9 @@ function LifeAgentDiscoverCard({
             </div>
           ) : null}
         </Link>
-        {typeof profile.mindScore === "number" && profile.mindScore > 0 ? (
-          <div className="absolute bottom-0 left-0 z-10 flex items-center gap-0.5 bg-paper/95 py-1 pl-2 pr-1 text-[10px] font-medium tabular-nums text-ink-500 backdrop-blur-sm">
-            <span>心智 {(profile.mindScore ?? 0).toLocaleString("zh-CN")}</span>
-            {showMindScoreInfo ? <MindScoreInfoButton /> : null}
+        {typeof profile.mindScore === "number" ? (
+          <div className="absolute bottom-0 left-0 z-10 p-1.5">
+            <MindScoreBadge value={profile.mindScore} size="xs" className="shadow-sm" />
           </div>
         ) : null}
       </div>
@@ -184,8 +181,6 @@ type Props = {
    * 未传时：与 windowed 联动，`windowed={false}`（管理页）默认关虚拟列表。
    */
   virtualized?: boolean;
-  /** 是否在「心智」旁显示说明入口（发现页） */
-  showMindScoreInfo?: boolean;
   /** 分页：触底加载下一页（与 hasMoreFromServer 配合） */
   onLoadMore?: () => void | Promise<void>;
   hasMoreFromServer?: boolean;
@@ -201,7 +196,6 @@ export function LifeAgentDiscoverCardGrid({
   windowResetKey,
   windowed = true,
   virtualized: virtualizedProp,
-  showMindScoreInfo = false,
   onLoadMore,
   hasMoreFromServer = false,
   loadingMore = false,
@@ -299,7 +293,7 @@ export function LifeAgentDiscoverCardGrid({
       <div className="space-y-6">
         <div className="grid grid-cols-2 gap-x-3 gap-y-7 sm:grid-cols-3 sm:gap-x-5 sm:gap-y-9 lg:grid-cols-4 xl:grid-cols-5">
           {toRender.map((profile, index) => (
-            <LifeAgentDiscoverCard key={profile.id} profile={profile} globalIndex={index} profileHref={profileHref} showMindScoreInfo={showMindScoreInfo} />
+            <LifeAgentDiscoverCard key={profile.id} profile={profile} globalIndex={index} profileHref={profileHref} />
           ))}
         </div>
         {windowed && hasMore ? (
@@ -349,7 +343,6 @@ export function LifeAgentDiscoverCardGrid({
                       profile={profile}
                       globalIndex={globalIndex}
                       profileHref={profileHref}
-                      showMindScoreInfo={showMindScoreInfo}
                       skipMountAnimation
                     />
                   );

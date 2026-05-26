@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { ProfileAvatarEditor } from "@/components/ProfileAvatarEditor";
 import { lifeAgentShowsPurchaseUi } from "@/lib/life-agent-commerce";
+import { MindScoreBadge } from "@/components/MindScoreBadge";
 
 type LifeAgentCreated = {
   id: string;
@@ -284,9 +285,11 @@ export default function DashboardPage() {
             <p className="text-lg font-black text-[#111]">{totals.createdSessions}</p>
             <p className="mt-1 text-[11px] text-slate-500">累计对话</p>
           </div>
-          <div className="rounded-2xl bg-white px-2 py-3 shadow-sm ring-1 ring-black/[0.03]">
-            <p className="text-lg font-black text-[#111]">{totals.totalMindScore.toLocaleString("zh-CN")}</p>
-            <p className="mt-1 text-[11px] text-slate-500">心智值</p>
+          <div className="rounded-2xl bg-violet-50 px-2 py-3 text-center shadow-sm ring-1 ring-violet-200/60">
+            <div className="flex justify-center">
+              <MindScoreBadge value={totals.totalMindScore} size="sm" prefix="" />
+            </div>
+            <p className="mt-1.5 text-[11px] font-medium text-violet-800">心智值</p>
           </div>
         </div>
       </section>
