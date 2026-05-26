@@ -103,6 +103,23 @@ func sanitizeLifeAgentProfileColumnsBeforeMigrate(db *gorm.DB) {
 	}
 }
 
+// scrubHiddenExpertiseTags 移除存量 life_agent_profiles.expertise_tags 中不希望
+// 对外展示的标签（如「飞跃手册」）。幂等：未命中时无写入。
+func scrubHiddenExpertiseTags(db *gorm.DB) {
+	hidden := []string{"飞跃手册"}
+	for _, tag := range hidden {
+		// 仅扫描包含该值的行，避免全表写。
+		_ = db.Exec(`
+			UPDATE life_agent_profiles
+			SET expertise_tags = JSON_REMOVE(
+				expertise_tags,
+				REPLACE(JSON_UNQUOTE(JSON_SEARCH(expertise_tags, 'one', ?)), '"', '')
+			)
+			WHERE JSON_SEARCH(expertise_tags, 'one', ?) IS NOT NULL
+		`, tag, tag).Error
+	}
+}
+
 func Init(dsn string) error {
 	if err := ensureDB(dsn); err != nil {
 		return err
@@ -151,6 +168,7 @@ func Init(dsn string) error {
 	); err != nil {
 		return err
 	}
+	scrubHiddenExpertiseTags(DB)
 	return ensureLifeAgentAPICallerUser(DB)
 }
 

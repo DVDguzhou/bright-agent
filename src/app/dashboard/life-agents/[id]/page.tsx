@@ -427,8 +427,9 @@ export default function LifeAgentManageHomePage() {
             <h2 className="text-xl font-black tracking-tight text-ink">实时更新</h2>
             <p className="mt-1 text-sm text-ink-400">像发朋友圈一样分享最新信息，Agent 回答时会优先引用。</p>
           </div>
-          <span className="rounded-full bg-olive-400/20 px-2.5 py-1 text-xs font-medium text-olive-600">
-            {liveUpdates.length} 条有效
+          <span className="inline-flex items-baseline gap-1 font-serif text-[11px] uppercase tracking-[0.18em] text-ink-400">
+            <span className="text-base font-semibold tabular-nums text-ink">{liveUpdates.length}</span>
+            <span>条有效</span>
           </span>
         </div>
 

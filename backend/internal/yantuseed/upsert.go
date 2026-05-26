@@ -103,15 +103,33 @@ func schoolTierTags(school string) []string {
 	return []string{"海外院校"}
 }
 
+// 不希望对外展示的标签（保留在原始 seed 数据里，落库时过滤掉）。
+var hiddenExpertiseTags = map[string]bool{
+	"飞跃手册": true,
+}
+
+func filterHiddenTags(tags []string) []string {
+	out := make([]string, 0, len(tags))
+	for _, t := range tags {
+		s := strings.TrimSpace(t)
+		if s == "" || hiddenExpertiseTags[s] {
+			continue
+		}
+		out = append(out, s)
+	}
+	return out
+}
+
 func expertiseTagsFor(p Profile) models.JSONArray {
 	var base []string
 	if len(p.ExpertiseTags) > 0 {
 		base = p.ExpertiseTags
 	} else if strings.TrimSpace(p.LongBioPrefix) != "" {
-		base = []string{"考研", "数学", "浙江大学", "飞跃手册"}
+		base = []string{"考研", "数学", "浙江大学"}
 	} else {
 		base = []string{"考研", "计算机考研", "备考经验", "温州大学"}
 	}
+	base = filterHiddenTags(base)
 	tierTags := schoolTierTags(p.School)
 	if len(tierTags) == 0 {
 		return models.JSONArray(base)

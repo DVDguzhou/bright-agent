@@ -32,7 +32,12 @@ type ProfileItem = {
   >
 >;
 
-function mineToListItem(p: ProfileItem): LifeAgentListItem {
+function mineToListItem(p: ProfileItem, userAvatarUrl?: string | null): LifeAgentListItem {
+  // 优先使用 Agent 自身封面；未设置时回退到当前用户头像（而非默认猫 SVG）。
+  const hasAgentCover = Boolean((p.coverImageUrl ?? "").trim() || (p.coverPresetKey ?? "").trim() || (p.coverUrl ?? "").trim());
+  const userAvatar = (userAvatarUrl ?? "").trim();
+  const fallbackCoverImageUrl = !hasAgentCover && userAvatar ? userAvatar : p.coverImageUrl;
+  const fallbackCoverUrl = !hasAgentCover && userAvatar ? userAvatar : p.coverUrl;
   return {
     id: p.id,
     displayName: p.displayName,
@@ -54,9 +59,9 @@ function mineToListItem(p: ProfileItem): LifeAgentListItem {
     sessionCount: p.sessionCount,
     ratings: p.ratings,
     creator: { name: p.displayName },
-    coverUrl: p.coverUrl,
-    coverImageUrl: p.coverImageUrl,
-    coverPresetKey: p.coverPresetKey,
+    coverUrl: fallbackCoverUrl,
+    coverImageUrl: fallbackCoverImageUrl,
+    coverPresetKey: hasAgentCover ? p.coverPresetKey : undefined,
     published: p.published,
     mindScore: p.mindScore,
     mindScoreLevel: p.mindScoreLevel,
@@ -89,7 +94,10 @@ export default function LifeAgentsManagePage() {
       });
   }, [user]);
 
-  const listItems = useMemo(() => profiles.map(mineToListItem), [profiles]);
+  const listItems = useMemo(
+    () => profiles.map((p) => mineToListItem(p, user?.avatarUrl)),
+    [profiles, user?.avatarUrl],
+  );
 
   const filteredItems = useMemo(() => {
     const keyword = query.trim().toLowerCase();

@@ -200,13 +200,27 @@ export default function LifeAgentDetailPage() {
 
   const ci = cleanedIntro!;
   const areaText = [profile.country, profile.province, profile.city, profile.county].filter(Boolean).join(" · ");
+  // 仅展示「短词式标签」：过滤掉句号/分号/中文逗号等明显是说明性文案的字段。
+  // personaArchetype / toneStyle / responseStyle 在表单里既可能是短词，也可能是
+  // 整段 prompt 描述；后者不能当作 tag 展示。
+  const isShortTag = (s?: string | null): s is string => {
+    const v = (s ?? "").trim();
+    if (!v) return false;
+    if (v.length > 12) return false;
+    // 含标点（中英文逗号、句号、分号、冒号、感叹号、问号、引号、括号、顿号、破折号、省略号、箭头、空白）→ 视为说明性文案。
+    if (/[，。；：、！？,;:!?·…—\-—·"'""''()（）\s→↔]/.test(v)) return false;
+    return true;
+  };
   const allTags = [
     profile.personaArchetype,
     profile.toneStyle,
     profile.responseStyle,
     profile.mbti,
     ...(profile.expertiseTags ?? []),
-  ].filter(Boolean) as string[];
+  ]
+    .filter(isShortTag)
+    // 去重，保持出现顺序
+    .filter((tag, i, arr) => arr.indexOf(tag) === i);
 
   return (
     <>
