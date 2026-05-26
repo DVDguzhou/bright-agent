@@ -176,11 +176,11 @@ export default function LifeAgentDetailPage() {
   if (!loaded) {
     return (
       <div className="mx-auto max-w-lg">
-        <div className="mx-auto aspect-square w-full max-w-[min(88vw,320px)] animate-pulse rounded-[22px] bg-gradient-to-br from-violet-100/90 to-fuchsia-100/50" />
+        <div className="mx-auto aspect-square w-full max-w-[min(88vw,320px)] animate-pulse rounded-[22px] bg-gradient-to-br from-paper-100/90 to-paper-100/50" />
         <div className="space-y-3 p-4">
-          <div className="h-6 w-1/3 animate-pulse rounded bg-violet-100/80" />
-          <div className="h-5 w-2/3 animate-pulse rounded bg-violet-100/80" />
-          <div className="h-4 w-full animate-pulse rounded bg-violet-50/60" />
+          <div className="h-6 w-1/3 animate-pulse rounded bg-paper-200/80" />
+          <div className="h-5 w-2/3 animate-pulse rounded bg-paper-200/80" />
+          <div className="h-4 w-full animate-pulse rounded bg-paper-50/60" />
         </div>
       </div>
     );
@@ -189,7 +189,7 @@ export default function LifeAgentDetailPage() {
   if (!profile) {
     return (
       <div className="mx-auto max-w-lg space-y-4 px-4 pt-12 text-center">
-        <p className="text-lg font-medium text-purple-950/90">未找到该 Agent</p>
+        <p className="text-lg font-medium text-ink">未找到该 Agent</p>
         <p className="text-slate-500">链接可能已失效，请从列表重新进入。</p>
         <Link href="/life-agents" className="btn-primary mt-4 inline-flex">
           返回列表
@@ -213,7 +213,7 @@ export default function LifeAgentDetailPage() {
       {/* ===== 方形头图（与 Unsplash 720×720 头像素材一致） ===== */}
       <div className="relative -mx-4 -mt-4 sm:-mx-6 sm:-mt-6 lg:-mx-8">
         <div className="flex justify-center px-4 pb-1 pt-5 sm:px-6 sm:pb-2 sm:pt-7">
-          <div className="relative aspect-square w-full max-w-[min(88vw,320px)] overflow-hidden rounded-[22px] bg-violet-100/50 shadow-[0_10px_40px_-14px_rgba(124,58,237,0.18)] ring-1 ring-purple-200/25">
+          <div className="relative aspect-square w-full max-w-[min(88vw,320px)] overflow-hidden rounded-[22px] bg-paper-200/50 shadow-[0_10px_40px_-14px_rgba(26,23,20,0.10)] ring-1 ring-hairline/25">
           {heroCoverUrl && (
             <LifeAgentCoverImage
               src={heroCoverUrl}
@@ -250,7 +250,7 @@ export default function LifeAgentDetailPage() {
               )}
             </button>
             {(profile.verificationStatus === "verified" || profile.verificationStatus === "pending") && (
-              <div className="rounded-full bg-white/90 px-2 py-1 shadow-sm backdrop-blur-sm">
+              <div className="rounded-full bg-paper/90 px-2 py-1 shadow-sm backdrop-blur-sm">
                 <VerificationBadge status={profile.verificationStatus ?? "none"} size="sm" />
               </div>
             )}
@@ -263,7 +263,7 @@ export default function LifeAgentDetailPage() {
       <div className="mx-auto max-w-2xl space-y-2 pb-24 sm:pb-28">
 
         {/* --- 名称 --- */}
-        <div className="-mx-4 bg-white/[0.98] px-4 pb-4 pt-5 backdrop-blur-sm sm:-mx-6 sm:px-6">
+        <div className="-mx-4 bg-paper/[0.98] px-4 pb-4 pt-5 backdrop-blur-sm sm:-mx-6 sm:px-6">
           <h1 className="text-lg font-bold leading-snug text-slate-900 sm:text-xl">
             {profile.displayName}
           </h1>
@@ -272,14 +272,14 @@ export default function LifeAgentDetailPage() {
           {allTags.length > 0 && (
             <div className="mt-3 flex flex-wrap gap-1.5">
               {allTags.map((tag) => (
-                <span key={tag} className="rounded-md bg-violet-50/95 px-2 py-0.5 text-xs font-medium text-purple-700">
+                <span key={tag} className="rounded-md bg-paper-50/95 px-2 py-0.5 text-xs font-medium text-ink-600">
                   {tag}
                 </span>
               ))}
             </div>
           )}
 
-          <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-purple-100/60 pt-3 text-xs text-slate-400">
+          <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-hairline/50/60 pt-3 text-xs text-slate-400">
             <span>{profile.stats.sessionCount} 场聊天</span>
             {typeof (profile.mindScore?.total ?? profile.stats.mindScore) === "number" ? (
               <MindScoreBadge value={profile.mindScore?.total ?? profile.stats.mindScore ?? 0} size="sm" />
@@ -288,9 +288,9 @@ export default function LifeAgentDetailPage() {
         </div>
 
         {/* --- 创作者卡片 --- */}
-        <div className="-mx-4 bg-white/[0.98] px-4 py-4 backdrop-blur-sm sm:-mx-6 sm:px-6">
+        <div className="-mx-4 bg-paper/[0.98] px-4 py-4 backdrop-blur-sm sm:-mx-6 sm:px-6">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#BA68C8] to-[#FF80AB] text-base font-bold text-white shadow-sm">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-ink to-oxblood text-base font-bold text-white shadow-sm">
               {(profile.displayName ?? "?").slice(0, 1)}
             </div>
             <div className="min-w-0 flex-1">
@@ -333,8 +333,8 @@ export default function LifeAgentDetailPage() {
         )}
 
         {/* --- 适合人群 --- */}
-        <div className="-mx-4 bg-white/[0.98] px-4 py-4 backdrop-blur-sm sm:-mx-6 sm:px-6">
-          <h2 className="text-sm font-semibold text-purple-950/90">适合咨询的人群</h2>
+        <div className="-mx-4 bg-paper/[0.98] px-4 py-4 backdrop-blur-sm sm:-mx-6 sm:px-6">
+          <h2 className="text-sm font-semibold text-ink">适合咨询的人群</h2>
           <p className="mt-2 text-sm leading-7 text-slate-600">{ci.audience}</p>
         </div>
 
@@ -349,8 +349,8 @@ export default function LifeAgentDetailPage() {
             income: "收入", company: "公司", major: "专业", event_name: "经历",
           };
           return (
-            <div className="-mx-4 bg-white/[0.98] px-4 py-4 backdrop-blur-sm sm:-mx-6 sm:px-6">
-              <h2 className="text-sm font-semibold text-purple-950/90">已认证信息</h2>
+            <div className="-mx-4 bg-paper/[0.98] px-4 py-4 backdrop-blur-sm sm:-mx-6 sm:px-6">
+              <h2 className="text-sm font-semibold text-ink">已认证信息</h2>
               <div className="mt-3 flex flex-wrap gap-2">
                 {confirmed.map((f) => (
                   <span
@@ -379,17 +379,17 @@ export default function LifeAgentDetailPage() {
             lifeChoice: "人生选择", social: "社交", other: "其他",
           };
           return (
-            <div className="-mx-4 bg-white/[0.98] px-4 py-4 backdrop-blur-sm sm:-mx-6 sm:px-6">
-              <h2 className="text-sm font-semibold text-purple-950/90">擅长回答的话题</h2>
+            <div className="-mx-4 bg-paper/[0.98] px-4 py-4 backdrop-blur-sm sm:-mx-6 sm:px-6">
+              <h2 className="text-sm font-semibold text-ink">擅长回答的话题</h2>
               <div className="mt-3 flex flex-wrap gap-1.5">
                 {activeTopics.map((t) => (
                   <span
                     key={t.id}
-                    className="rounded-md bg-violet-50/95 px-2.5 py-1 text-xs font-medium text-purple-700"
+                    className="rounded-md bg-paper-50/95 px-2.5 py-1 text-xs font-medium text-ink-600"
                     title={t.summary}
                   >
                     {t.topicLabel}
-                    <span className="ml-1 text-purple-400">
+                    <span className="ml-1 text-ink-400">
                       {groupLabels[t.topicGroup] ?? t.topicGroup}
                     </span>
                   </span>
@@ -401,8 +401,8 @@ export default function LifeAgentDetailPage() {
 
         {/* --- 最近动态 --- */}
         {liveUpdates.length > 0 && (
-          <div className="-mx-4 bg-white/[0.98] px-4 py-4 backdrop-blur-sm sm:-mx-6 sm:px-6">
-            <h2 className="text-sm font-semibold text-purple-950/90">最近动态</h2>
+          <div className="-mx-4 bg-paper/[0.98] px-4 py-4 backdrop-blur-sm sm:-mx-6 sm:px-6">
+            <h2 className="text-sm font-semibold text-ink">最近动态</h2>
             <div className="mt-3 space-y-2">
               {liveUpdates.slice(0, 5).map((u) => (
                 <div key={u.id} className="rounded-xl border border-amber-100/50 bg-amber-50/50 px-3 py-2.5 backdrop-blur-sm">
@@ -420,12 +420,12 @@ export default function LifeAgentDetailPage() {
 
         {/* --- 你可以问 --- */}
         {ci.sampleQuestions.length > 0 && (
-          <div className="-mx-4 bg-white/[0.98] px-4 py-4 backdrop-blur-sm sm:-mx-6 sm:px-6">
-            <h2 className="text-sm font-semibold text-purple-950/90">你可以问这些问题</h2>
+          <div className="-mx-4 bg-paper/[0.98] px-4 py-4 backdrop-blur-sm sm:-mx-6 sm:px-6">
+            <h2 className="text-sm font-semibold text-ink">你可以问这些问题</h2>
             <div className="mt-3 space-y-2">
               {ci.sampleQuestions.map((q, i) => (
-                <div key={i} className="flex items-start gap-2 rounded-xl border border-purple-100/50 bg-violet-50/50 px-3 py-2.5 backdrop-blur-sm">
-                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-fuchsia-100/90 text-[10px] font-bold text-purple-700">
+                <div key={i} className="flex items-start gap-2 rounded-xl border border-hairline/50/50 bg-paper-50/50 px-3 py-2.5 backdrop-blur-sm">
+                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-paper-100/90 text-[10px] font-bold text-ink-600">
                     {i + 1}
                   </span>
                   <span className="text-sm leading-relaxed text-slate-700">{q}</span>
@@ -436,16 +436,16 @@ export default function LifeAgentDetailPage() {
         )}
 
         {/* --- 欢迎语 --- */}
-        <div className="-mx-4 bg-white/[0.98] px-4 py-4 backdrop-blur-sm sm:-mx-6 sm:px-6">
-          <h2 className="text-sm font-semibold text-purple-950/90">开场欢迎语</h2>
-          <div className="mt-2 rounded-xl border border-purple-100/50 bg-gradient-to-br from-violet-50/80 to-fuchsia-50/50 px-3.5 py-3 text-sm leading-6 text-slate-700 backdrop-blur-sm">
+        <div className="-mx-4 bg-paper/[0.98] px-4 py-4 backdrop-blur-sm sm:-mx-6 sm:px-6">
+          <h2 className="text-sm font-semibold text-ink">开场欢迎语</h2>
+          <div className="mt-2 rounded-xl border border-hairline/50/50 bg-gradient-to-br from-paper-50/80 to-paper/50 px-3.5 py-3 text-sm leading-6 text-slate-700 backdrop-blur-sm">
             {ci.welcomeMessage}
           </div>
         </div>
 
         {/* --- 评价 --- */}
-        <div className="-mx-4 bg-white/[0.98] px-4 py-4 backdrop-blur-sm sm:-mx-6 sm:px-6">
-          <h2 className="text-sm font-semibold text-purple-950/90">用户评价</h2>
+        <div className="-mx-4 bg-paper/[0.98] px-4 py-4 backdrop-blur-sm sm:-mx-6 sm:px-6">
+          <h2 className="text-sm font-semibold text-ink">用户评价</h2>
           <div className="mt-3 flex items-center gap-3">
             <span className="text-3xl font-bold text-slate-900">
               {profile.ratings && profile.ratings.raters > 0
@@ -462,7 +462,7 @@ export default function LifeAgentDetailPage() {
             </div>
           </div>
           {profile.ratings?.recent && profile.ratings.recent.length > 0 && (
-            <div className="mt-4 space-y-3 border-t border-purple-100/60 pt-3">
+            <div className="mt-4 space-y-3 border-t border-hairline/50/60 pt-3">
               {profile.ratings.recent.slice(0, 5).map((r) => (
                 <div key={r.id} className="text-sm">
                   <div className="flex items-center gap-2">
@@ -479,7 +479,7 @@ export default function LifeAgentDetailPage() {
       </div>
 
       {/* ===== 底部固定操作栏 ===== */}
-      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-purple-200/[0.2] bg-white/[0.94] backdrop-blur-lg shadow-[0_-4px_28px_-8px_rgba(124,58,237,0.08)]">
+      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-hairline/30 bg-paper/[0.94] backdrop-blur-lg shadow-[0_-4px_28px_-8px_rgba(26,23,20,0.07)]">
         <div className="mx-auto max-w-2xl px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 sm:px-6">
           {profile.viewerState.isLoggedIn ? (
             <Link

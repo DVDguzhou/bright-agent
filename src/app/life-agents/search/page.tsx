@@ -422,7 +422,7 @@ function SearchPageInner() {
 export default function LifeAgentsSearchPage() {
   return (
     <Suspense
-      fallback={<div className="min-h-[100dvh] animate-pulse bg-white pt-16" aria-hidden />}
+      fallback={<div className="min-h-[100dvh] animate-pulse bg-paper pt-16" aria-hidden />}
     >
       <SearchPageInner />
     </Suspense>

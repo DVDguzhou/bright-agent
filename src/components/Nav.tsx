@@ -292,7 +292,7 @@ function FloatingVoiceCoachFab({ agent }: { agent: BoundLifeAgent }) {
               {[0, 1, 2].map((i) => (
                 <motion.div
                   key={i}
-                  className="absolute rounded-full border border-purple-400/20"
+                  className="absolute rounded-full border border-ink-200/20"
                   animate={{
                     width: [80 + i * 40, 120 + i * 50],
                     height: [80 + i * 40, 120 + i * 50],
@@ -667,12 +667,12 @@ export function Nav() {
       >
         <Link
           href="/dashboard"
-          className={vertical ? linkClass(pathname === "/dashboard") : "inline-flex items-center gap-2 rounded-lg px-2 py-2 text-slate-600 transition-colors hover:text-purple-800"}
+          className={vertical ? linkClass(pathname === "/dashboard") : "inline-flex items-center gap-2 rounded-lg px-2 py-2 text-slate-600 transition-colors hover:text-ink"}
           title="个人主页"
         >
           {!vertical && <IconDashboard className="h-5 w-5 shrink-0" />}
           <motion.span
-            className={`text-sm transition-colors ${vertical ? "text-slate-600 hover:text-purple-800" : "hidden xl:inline text-slate-600"}`}
+            className={`text-sm transition-colors ${vertical ? "text-slate-600 hover:text-ink" : "hidden xl:inline text-slate-600"}`}
             whileHover={{ scale: vertical ? 1 : 1.02 }}
           >
             个人主页
@@ -683,12 +683,12 @@ export function Nav() {
           className={
             vertical
               ? linkClass(pathname === "/dashboard/account")
-              : "inline-flex items-center gap-2 rounded-lg px-2 py-2 text-slate-600 transition-colors hover:text-purple-800"
+              : "inline-flex items-center gap-2 rounded-lg px-2 py-2 text-slate-600 transition-colors hover:text-ink"
           }
           title="账号与安全"
         >
           <motion.span
-            className={`text-sm transition-colors ${vertical ? "text-slate-600 hover:text-purple-800" : "hidden lg:inline text-slate-600"}`}
+            className={`text-sm transition-colors ${vertical ? "text-slate-600 hover:text-ink" : "hidden lg:inline text-slate-600"}`}
             whileHover={{ scale: vertical ? 1 : 1.02 }}
           >
             账号
@@ -893,10 +893,10 @@ export function Nav() {
               className="h-7 w-7 shrink-0 rounded-lg object-contain sm:h-9 sm:w-9"
               unoptimized
             />
-            <span className="hidden truncate whitespace-nowrap bg-gradient-to-r from-[#BA68C8] via-[#FF80AB] to-[#7c3aed] bg-clip-text text-base font-bold text-transparent md:inline xl:inline 2xl:text-xl">
+            <span className="hidden truncate whitespace-nowrap bg-gradient-to-r from-ink via-ink-400 to-ink-600 bg-clip-text text-base font-bold text-transparent md:inline xl:inline 2xl:text-xl">
               BrightAgent
             </span>
-            <span className="hidden truncate whitespace-nowrap text-sm text-slate-500 transition-colors group-hover:text-purple-700 2xl:inline">
+            <span className="hidden truncate whitespace-nowrap text-sm text-slate-500 transition-colors group-hover:text-oxblood 2xl:inline">
               本地经验 · 对话咨询 · Agent as Service
             </span>
           </Link>
@@ -910,7 +910,7 @@ export function Nav() {
                   <motion.span
                     className={`relative flex items-center gap-1.5 xl:gap-2 px-2 xl:px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
                       active
-                        ? "text-purple-800"
+                        ? "text-oxblood"
                         : "text-slate-600 hover:text-slate-900"
                     }`}
                     whileHover={{ scale: 1.02 }}

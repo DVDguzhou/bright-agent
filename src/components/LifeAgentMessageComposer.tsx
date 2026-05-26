@@ -74,12 +74,12 @@ export function LifeAgentMessageComposer({
     >
       <div ref={wrapRef} className="relative mx-auto w-full max-w-3xl">
         {emojiOpen ? (
-          <div className="absolute bottom-full left-0 right-0 z-20 mb-2 flex flex-wrap gap-1.5 rounded-2xl border border-white/45 bg-white/55 p-3 shadow-[0_14px_40px_-16px_rgba(124,58,237,0.24)] ring-1 ring-white/25 backdrop-blur-xl supports-[backdrop-filter]:bg-white/42">
+          <div className="absolute bottom-full left-0 right-0 z-20 mb-2 flex flex-wrap gap-1.5 rounded-2xl border border-paper/45 bg-paper/55 p-3 shadow-[0_8px_24px_-12px_rgba(26,23,20,0.1)] ring-1 ring-hairline/20 backdrop-blur-xl supports-[backdrop-filter]:bg-paper/75">
             {QUICK_EMOJIS.map((em) => (
               <button
                 key={em}
                 type="button"
-                className="flex h-9 w-9 items-center justify-center rounded-lg text-lg transition hover:bg-purple-50/90"
+                className="flex h-9 w-9 items-center justify-center rounded-lg text-lg transition hover:bg-paper-50/90"
                 onClick={() => {
                   onChange(value + em);
                   setEmojiOpen(false);
@@ -93,14 +93,14 @@ export function LifeAgentMessageComposer({
         {moreOpen && morePanel ? (
           <div className="absolute bottom-full left-0 right-0 z-20 mb-2">{morePanel}</div>
         ) : null}
-        <div className="flex items-end gap-1.5 rounded-full border border-white/40 bg-white/55 py-1.5 pl-2 pr-1 shadow-[0_14px_36px_-18px_rgba(124,58,237,0.28)] ring-1 ring-white/20 backdrop-blur-xl supports-[backdrop-filter]:bg-white/42 sm:gap-2 sm:py-2 sm:pl-3">
+        <div className="flex items-end gap-1.5 rounded-full border border-paper/40 bg-paper/55 py-1.5 pl-2 pr-1 shadow-[0_8px_24px_-12px_rgba(26,23,20,0.12)] ring-1 ring-hairline/20 backdrop-blur-xl supports-[backdrop-filter]:bg-paper/75 sm:gap-2 sm:py-2 sm:pl-3">
           <VoiceInputButton
             onTranscript={(text, isFinal) => {
               if (isFinal && text.trim()) onVoiceFinal?.(text);
             }}
             disabled={disabled}
             size="sm"
-            className="!h-9 !w-9 shrink-0 border-purple-200/40 sm:!h-10 sm:!w-10"
+            className="!h-9 !w-9 shrink-0 border-hairline/40 sm:!h-10 sm:!w-10"
           />
           <textarea
             ref={textareaRef}
@@ -136,7 +136,7 @@ export function LifeAgentMessageComposer({
               });
             }}
             disabled={disabled}
-            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-purple-800/50 transition hover:bg-purple-50/90 disabled:opacity-40"
+            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-ink-400/50 transition hover:bg-paper-50/90 disabled:opacity-40"
             aria-label="表情"
           >
             <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24" aria-hidden>
@@ -152,7 +152,7 @@ export function LifeAgentMessageComposer({
                 onMoreClick?.();
               }}
               disabled={disabled}
-              className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-purple-800/50 transition hover:bg-purple-50/90 disabled:opacity-40"
+              className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-ink-400/50 transition hover:bg-paper-50/90 disabled:opacity-40"
               aria-label="更多功能"
             >
               <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden>

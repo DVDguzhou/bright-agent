@@ -57,13 +57,13 @@ export function LifeAgentCoverPicker({ coverImageUrl, onChange, disabled, accent
 
   return (
     <div className="space-y-3">
-      <p className={`text-sm font-medium ${pastel ? "text-purple-950/90" : "text-slate-800"}`}>封面图</p>
+      <p className={`text-sm font-medium ${pastel ? "text-ink" : "text-slate-800"}`}>封面图</p>
       <p className="text-xs text-slate-500">默认使用统一封面，也可上传自己的图片。</p>
 
       <div
         className={`relative mx-auto aspect-[4/5] w-full max-w-[200px] overflow-hidden rounded-2xl border bg-slate-50 ${
           pastel
-            ? "border-purple-200/[0.3] bg-white/[0.4] shadow-[0_6px_30px_rgba(124,58,237,0.07)] backdrop-blur-sm"
+            ? "border-hairline/30 bg-paper/[0.4] shadow-[0_6px_30px_rgba(26,23,20,0.06)] backdrop-blur-sm"
             : "border-slate-200"
         }`}
       >
@@ -78,8 +78,8 @@ export function LifeAgentCoverPicker({ coverImageUrl, onChange, disabled, accent
           onClick={() => inputRef.current?.click()}
           className={
             pastel
-              ? "rounded-xl border border-purple-200/[0.22] bg-white/[0.94] px-4 py-2 text-sm font-medium text-slate-700 shadow-[0_2px_14px_rgba(124,58,237,0.05)] backdrop-blur-sm hover:border-fuchsia-300/80 hover:text-purple-900 disabled:opacity-50"
-              : "rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:border-rose-300 hover:text-rose-700 disabled:opacity-50"
+              ? "rounded-xl border border-hairline/40 bg-paper/[0.94] px-4 py-2 text-sm font-medium text-slate-700 shadow-[0_2px_14px_rgba(26,23,20,0.05)] backdrop-blur-sm hover:border-hairline/80 hover:text-ink disabled:opacity-50"
+              : "rounded-xl border border-slate-200 bg-paper px-4 py-2 text-sm font-medium text-slate-700 hover:border-rose-300 hover:text-rose-700 disabled:opacity-50"
           }
         >
           {uploading ? "上传中…" : "上传自己的封面"}

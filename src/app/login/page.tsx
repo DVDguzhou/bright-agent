@@ -334,7 +334,7 @@ function LoginContent() {
       )}
 
       {tab === "email" && emailLoginMode === "code" && (
-        <form onSubmit={submitEmailOtp} className="space-y-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <form onSubmit={submitEmailOtp} className="space-y-5 rounded-3xl border border-slate-200 bg-paper p-6 shadow-sm">
           <p className="text-sm text-slate-600">
             {LOGIN_SHOW_PHONE ? "验证码将发送至邮箱，与手机号登录相同流程。" : "验证码将发送至你的注册邮箱。"}
           </p>
@@ -390,7 +390,7 @@ function LoginContent() {
       )}
 
       {tab === "email" && emailLoginMode === "password" && (
-        <form onSubmit={submitEmail} className="space-y-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <form onSubmit={submitEmail} className="space-y-5 rounded-3xl border border-slate-200 bg-paper p-6 shadow-sm">
           <label className="block text-sm font-medium text-slate-700">邮箱</label>
           <input
             type="email"
@@ -437,7 +437,7 @@ function LoginContent() {
       )}
 
       {LOGIN_SHOW_WECHAT && tab === "wechat" && (
-        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="rounded-3xl border border-slate-200 bg-paper p-6 shadow-sm">
           <p className="text-slate-600 text-sm mb-6">点击下方按钮跳转至微信授权页面</p>
           <button
             type="button"
@@ -454,7 +454,7 @@ function LoginContent() {
       )}
 
       {LOGIN_SHOW_PHONE && tab === "phone" && (
-        <form onSubmit={submitPhone} className="space-y-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <form onSubmit={submitPhone} className="space-y-5 rounded-3xl border border-slate-200 bg-paper p-6 shadow-sm">
           <label className="block text-sm font-medium text-slate-700">手机号</label>
           <input
             type="tel"

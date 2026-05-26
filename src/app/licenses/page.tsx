@@ -46,7 +46,7 @@ function PurchasedGrid({ items }: { items: LifeAgentPurchased[] }) {
             className="min-h-0"
           >
             <Link href={`/life-agents/${row.id}/chat`} className="group flex h-full min-h-0">
-              <div className="flex h-full min-h-[260px] w-full flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/70 transition duration-200 group-hover:shadow-md group-hover:ring-emerald-200/70 sm:min-h-[280px]">
+              <div className="flex h-full min-h-[260px] w-full flex-col overflow-hidden rounded-2xl bg-paper shadow-sm ring-1 ring-slate-200/70 transition duration-200 group-hover:shadow-md group-hover:ring-emerald-200/70 sm:min-h-[280px]">
                 <div className="relative aspect-square w-full shrink-0 overflow-hidden bg-slate-100">
                   <LifeAgentCoverImage
                     src={coverUrl}
@@ -57,7 +57,7 @@ function PurchasedGrid({ items }: { items: LifeAgentPurchased[] }) {
                     priority={index < 8}
                   />
                   {(row.verificationStatus === "verified" || row.verificationStatus === "pending") && (
-                    <div className="absolute right-2 top-2 rounded-full bg-white/90 px-1.5 py-0.5 shadow-sm backdrop-blur-sm">
+                    <div className="absolute right-2 top-2 rounded-full bg-paper/90 px-1.5 py-0.5 shadow-sm backdrop-blur-sm">
                       <VerificationBadge status={row.verificationStatus ?? "none"} size="sm" />
                     </div>
                   )}
@@ -170,7 +170,7 @@ function LicensesPageContent() {
   }
 
   return (
-    <div className="-mx-1 space-y-4 pb-4 max-lg:-mx-4 max-lg:min-h-[calc(100dvh-env(safe-area-inset-bottom)-4.25rem)] max-lg:bg-white max-lg:pb-24 sm:mx-0 sm:space-y-5">
+    <div className="-mx-1 space-y-4 pb-4 max-lg:-mx-4 max-lg:min-h-[calc(100dvh-env(safe-area-inset-bottom)-4.25rem)] max-lg:bg-paper max-lg:pb-24 sm:mx-0 sm:space-y-5">
       <header className="flex items-center justify-between gap-2 px-4 pb-1 pt-[max(0.25rem,env(safe-area-inset-top))] sm:px-4">
         <button
           type="button"
@@ -242,7 +242,7 @@ function LicensesPageContent() {
             {[1, 2, 3, 4, 5, 6].map((item) => (
               <div
                 key={item}
-                className="flex min-h-0 flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/60"
+                className="flex min-h-0 flex-col overflow-hidden rounded-2xl bg-paper shadow-sm ring-1 ring-slate-200/60"
               >
                 <div className="aspect-square w-full shrink-0 animate-pulse bg-gradient-to-br from-slate-100 to-slate-200/90" />
                 <div className="flex flex-1 flex-col gap-2 p-2.5">
@@ -253,7 +253,7 @@ function LicensesPageContent() {
             ))}
           </div>
         ) : lifeAgentPacks.length === 0 ? (
-          <div className="mx-1 rounded-2xl border border-dashed border-slate-200 bg-white px-6 py-12 text-center">
+          <div className="mx-1 rounded-2xl border border-dashed border-slate-200 bg-paper px-6 py-12 text-center">
             <p className="text-base font-semibold text-slate-900">暂无已购额度</p>
             <p className="mt-2 text-sm text-slate-500">购买提问包后，对应 Agent 会出现在地图上。</p>
             <Link
@@ -264,7 +264,7 @@ function LicensesPageContent() {
             </Link>
           </div>
         ) : list.length === 0 ? (
-          <div className="mx-1 rounded-2xl border border-dashed border-slate-200 bg-white px-6 py-12 text-center">
+          <div className="mx-1 rounded-2xl border border-dashed border-slate-200 bg-paper px-6 py-12 text-center">
             <p className="text-base font-semibold text-slate-900">
               {tab === "verified" ? "暂无已认证的已购 Agent" : "暂无未认证的已购 Agent"}
             </p>

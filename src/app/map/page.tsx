@@ -273,7 +273,7 @@ export default function MapPage() {
   return (
     <div className="relative -mx-4 flex min-h-[calc(100dvh-env(safe-area-inset-bottom)-4.5rem)] flex-col bg-[#e8ecf0] max-lg:-mx-4 max-lg:pb-20 sm:mx-0 sm:min-h-[70vh] sm:rounded-2xl sm:ring-1 sm:ring-slate-200/80">
       <div className="pointer-events-none absolute left-0 right-0 top-0 z-[500] px-3 pt-[max(0.5rem,env(safe-area-inset-top))]">
-        <div className="pointer-events-auto mx-auto flex max-w-lg items-center gap-2 rounded-2xl bg-white/95 px-3 py-2 shadow-md ring-1 ring-black/5 backdrop-blur-sm">
+        <div className="pointer-events-auto mx-auto flex max-w-lg items-center gap-2 rounded-2xl bg-paper/95 px-3 py-2 shadow-md ring-1 ring-black/5 backdrop-blur-sm">
           <span className="text-[#0091ff]" aria-hidden>
             <svg className="h-5 w-5 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -355,7 +355,7 @@ export default function MapPage() {
                     role="dialog"
                     aria-modal="true"
                     aria-labelledby="map-gps-sheet-title"
-                    className="fixed inset-x-0 bottom-0 z-[10001] flex max-h-[min(88dvh,600px)] flex-col rounded-t-3xl bg-white shadow-2xl ring-1 ring-black/5"
+                    className="fixed inset-x-0 bottom-0 z-[10001] flex max-h-[min(88dvh,600px)] flex-col rounded-t-3xl bg-paper shadow-2xl ring-1 ring-black/5"
                     initial={{ y: "100%" }}
                     animate={{ y: 0 }}
                     exit={{ y: "100%" }}
@@ -429,7 +429,7 @@ export default function MapPage() {
                               <label
                                 key={b.id}
                                 className={`flex cursor-pointer items-start gap-3 rounded-2xl border px-3 py-3 transition ${
-                                  checked ? "border-[#0091ff] bg-sky-50/80" : "border-slate-200 bg-white active:bg-slate-50"
+                                  checked ? "border-[#0091ff] bg-sky-50/80" : "border-slate-200 bg-paper active:bg-slate-50"
                                 }`}
                               >
                                 <input
@@ -454,7 +454,7 @@ export default function MapPage() {
                       )}
                     </div>
 
-                    <div className="shrink-0 space-y-3 border-t border-slate-100 bg-white px-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-3">
+                    <div className="shrink-0 space-y-3 border-t border-slate-100 bg-paper px-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-3">
                       {user && boundAgents.length > 0 ? (
                         <>
                           <p className="text-center text-xs leading-relaxed text-slate-500">
@@ -486,7 +486,7 @@ export default function MapPage() {
                               <p className="text-red-800">{geoError}</p>
                               <button
                                 type="button"
-                                className="w-full rounded-xl bg-white py-2.5 text-sm font-semibold text-[#0091ff] ring-1 ring-[#0091ff]/40 active:bg-sky-50"
+                                className="w-full rounded-xl bg-paper py-2.5 text-sm font-semibold text-[#0091ff] ring-1 ring-[#0091ff]/40 active:bg-sky-50"
                                 onClick={() => {
                                   setGeoError(null);
                                   enableSharing();
@@ -560,7 +560,7 @@ export default function MapPage() {
                     role="dialog"
                     aria-modal="true"
                     aria-labelledby="explore-sheet-title"
-                    className="fixed inset-x-0 bottom-0 z-[10001] flex max-h-[min(80dvh,600px)] flex-col rounded-t-3xl bg-white shadow-2xl ring-1 ring-black/5"
+                    className="fixed inset-x-0 bottom-0 z-[10001] flex max-h-[min(80dvh,600px)] flex-col rounded-t-3xl bg-paper shadow-2xl ring-1 ring-black/5"
                     initial={{ y: "100%" }}
                     animate={{ y: 0 }}
                     exit={{ y: "100%" }}
@@ -621,7 +621,7 @@ export default function MapPage() {
                       )}
                     </div>
 
-                    <div className="shrink-0 border-t border-slate-100 bg-white px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3">
+                    <div className="shrink-0 border-t border-slate-100 bg-paper px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3">
                       <button
                         type="button"
                         className="w-full rounded-2xl bg-[#111] py-3.5 text-sm font-semibold text-white active:opacity-90"

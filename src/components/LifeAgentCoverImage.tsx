@@ -99,7 +99,7 @@ export function LifeAgentCoverImage({
           <div
             className={[
               fill ? "absolute inset-0" : "absolute inset-0",
-              "pointer-events-none animate-pulse bg-gradient-to-br from-violet-100/90 to-fuchsia-100/70",
+              "pointer-events-none animate-pulse bg-gradient-to-br from-paper-100/90 to-paper-100/70",
             ].join(" ")}
             aria-hidden
           />
@@ -107,7 +107,7 @@ export function LifeAgentCoverImage({
           <div
             className={[
               fill ? "absolute inset-0" : "absolute inset-0",
-              "pointer-events-none flex items-center justify-center bg-gradient-to-br from-violet-100/85 to-fuchsia-100/65 text-xs font-medium text-slate-500",
+              "pointer-events-none flex items-center justify-center bg-gradient-to-br from-paper-100/85 to-paper-100/65 text-xs font-medium text-slate-500",
             ].join(" ")}
             aria-live="polite"
           >

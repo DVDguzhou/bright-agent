@@ -40,7 +40,7 @@ export default function PrivacyPolicyPage() {
         ))}
       </div>
 
-      <footer className="mt-12 rounded-2xl border border-slate-200 bg-white/80 p-6 text-sm text-slate-600">
+      <footer className="mt-12 rounded-2xl border border-slate-200 bg-paper/80 p-6 text-sm text-slate-600">
         <p>
           联系我们：
           <a

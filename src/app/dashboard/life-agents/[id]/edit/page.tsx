@@ -33,7 +33,7 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <details open={defaultOpen} className="rounded-[28px] bg-white px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
+    <details open={defaultOpen} className="rounded-[28px] bg-paper px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
       <summary className="cursor-pointer list-none">
         <h2 className="text-lg font-semibold text-[#111]">{title}</h2>
         <p className="mt-1 text-sm text-slate-500">{hint}</p>
@@ -281,7 +281,7 @@ export default function LifeAgentEditPage() {
   }, [persistProfile]);
 
   if (loading) {
-    return <div className="mx-auto h-64 max-w-3xl animate-pulse rounded-[28px] bg-white shadow-sm ring-1 ring-black/[0.04]" />;
+    return <div className="mx-auto h-64 max-w-3xl animate-pulse rounded-[28px] bg-paper shadow-sm ring-1 ring-black/[0.04]" />;
   }
 
   if (!data || !form) {
@@ -302,7 +302,7 @@ export default function LifeAgentEditPage() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-4 max-lg:-mx-4 max-lg:bg-[#f7f8fa] max-lg:px-3 max-lg:pb-24">
-      <header className="rounded-[28px] bg-white px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
+      <header className="rounded-[28px] bg-paper px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
         <div className="flex items-start justify-between gap-3">
           <div>
             <Link href={`/dashboard/life-agents/${id}`} className="text-sm font-medium text-slate-500 transition hover:text-[#111]">

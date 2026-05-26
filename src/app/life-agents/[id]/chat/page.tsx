@@ -547,7 +547,7 @@ export default function LifeAgentChatPage() {
   );
 
   if (!profile) {
-    return <div className="h-72 animate-pulse rounded-3xl bg-gradient-to-br from-violet-100/90 to-fuchsia-100/50 shadow-[0_6px_28px_rgba(124,58,237,0.08)]" />;
+    return <div className="h-72 animate-pulse rounded-3xl bg-gradient-to-br from-paper-100/90 to-paper-100/50 shadow-[0_6px_28px_rgba(26,23,20,0.07)]" />;
   }
 
   const ratingState = profile.viewerState.rating;
@@ -594,14 +594,14 @@ export default function LifeAgentChatPage() {
               animate={{ x: 0 }}
               exit={{ x: "-105%" }}
               transition={{ type: "spring", stiffness: 380, damping: 36 }}
-              className="fixed left-0 top-0 z-[101] flex h-[100dvh] w-[min(100vw,20rem)] flex-col border-r border-purple-200/[0.25] bg-white/[0.97] shadow-[4px_0_32px_-8px_rgba(124,58,237,0.12)] backdrop-blur-lg sm:w-[22rem] sm:max-w-[88vw]"
+              className="fixed left-0 top-0 z-[101] flex h-[100dvh] w-[min(100vw,20rem)] flex-col border-r border-hairline/25 bg-paper/[0.97] shadow-[4px_0_32px_-8px_rgba(26,23,20,0.08)] backdrop-blur-lg sm:w-[22rem] sm:max-w-[88vw]"
             >
-              <div className="flex items-center justify-between border-b border-purple-100/70 px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
-                <span className="text-sm font-semibold text-purple-950/90">更多</span>
+              <div className="flex items-center justify-between border-b border-hairline/50/70 px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
+                <span className="text-sm font-semibold text-ink">更多</span>
                 <button
                   type="button"
                   onClick={closeMenu}
-                  className="rounded-full p-2 text-slate-500 hover:bg-purple-50/90 hover:text-purple-900"
+                  className="rounded-full p-2 text-slate-500 hover:bg-paper-50/90 hover:text-ink"
                   aria-label="关闭"
                 >
                   <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
@@ -613,7 +613,7 @@ export default function LifeAgentChatPage() {
                 <Link
                   href={`/life-agents/${id}`}
                   onClick={closeMenu}
-                  className="text-sm text-slate-500 hover:text-purple-800"
+                  className="text-sm text-slate-500 hover:text-ink-700"
                 >
                   ← 返回详情页
                 </Link>
@@ -621,7 +621,7 @@ export default function LifeAgentChatPage() {
                 <p className="mt-1 text-sm text-slate-600">{profile.headline}</p>
 
                 {profile.hasVoiceClone && (
-                  <div className="mt-4 rounded-2xl border border-purple-200/[0.2] bg-violet-50/40 px-3 py-3 backdrop-blur-sm">
+                  <div className="mt-4 rounded-2xl border border-hairline/30 bg-paper-50/40 px-3 py-3 backdrop-blur-sm">
                     <p className="text-xs font-medium text-slate-600">回复形式</p>
                     <div className="mt-2 flex justify-start">
                       <VoiceReplyToggle
@@ -635,22 +635,22 @@ export default function LifeAgentChatPage() {
                 )}
 
                 {!LIFE_AGENT_UNLIMITED_CHAT && (
-                <div className="mt-4 rounded-2xl border border-purple-200/[0.18] bg-gradient-to-br from-violet-50/[0.9] to-fuchsia-50/[0.65] p-4 backdrop-blur-sm">
+                <div className="mt-4 rounded-2xl border border-hairline/30 bg-gradient-to-br from-paper-50/[0.9] to-paper/[0.65] p-4 backdrop-blur-sm">
                   <p className="text-sm text-slate-500">剩余提问次数</p>
-                  <p className="mt-1 text-2xl font-semibold text-purple-800">{profile.viewerState.remainingQuestions}</p>
+                  <p className="mt-1 text-2xl font-semibold text-ink-700">{profile.viewerState.remainingQuestions}</p>
                 </div>
                 )}
 
                 {profile.viewerState.isLoggedIn && (
-                  <div className="mt-4 rounded-2xl border border-purple-200/[0.22] bg-white/[0.98] p-4 text-sm text-slate-600 shadow-[0_4px_20px_rgba(124,58,237,0.05)] backdrop-blur-sm">
+                  <div className="mt-4 rounded-2xl border border-hairline/40 bg-paper/[0.98] p-4 text-sm text-slate-600 shadow-[0_4px_20px_rgba(26,23,20,0.05)] backdrop-blur-sm">
                     <div className="flex items-center justify-between gap-3">
                       <div>
-                        <p className="font-medium text-purple-950/90">我的聊天记录</p>
+                        <p className="font-medium text-ink">我的聊天记录</p>
                         <p className="mt-1 text-xs text-slate-500">仅你自己可见，Agent 创建者看不到聊天正文。</p>
                       </div>
                       <button
                         type="button"
-                        className="shrink-0 rounded-full bg-gradient-to-r from-[#BA68C8] to-[#FF80AB] px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:opacity-95"
+                        className="shrink-0 rounded-full bg-gradient-to-r from-ink to-oxblood px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:opacity-95"
                         onClick={() => {
                           setError("");
                           resetToWelcome(profile.welcomeMessage);
@@ -677,8 +677,8 @@ export default function LifeAgentChatPage() {
                             }}
                             className={`w-full rounded-2xl border px-3 py-3 text-left transition ${
                               session.id === sessionId
-                                ? "border-fuchsia-300/60 bg-gradient-to-br from-violet-50 to-fuchsia-50/80"
-                                : "border-purple-100/80 bg-white/[0.85] hover:border-purple-200/50 hover:bg-white"
+                                ? "border-hairline/60 bg-gradient-to-br from-paper-50 to-paper/80"
+                                : "border-hairline/80 bg-paper/[0.85] hover:border-hairline/50 hover:bg-paper"
                             }`}
                           >
                             <div className="flex items-center justify-between gap-3">
@@ -696,8 +696,8 @@ export default function LifeAgentChatPage() {
                 )}
 
                 {profile.viewerState.isLoggedIn && (
-                  <div className="mt-4 rounded-2xl border border-purple-200/[0.22] bg-white/[0.98] p-4 text-sm text-slate-600 shadow-[0_4px_20px_rgba(124,58,237,0.05)] backdrop-blur-sm">
-                    <p className="font-medium text-purple-950/90">Agent 评分</p>
+                  <div className="mt-4 rounded-2xl border border-hairline/40 bg-paper/[0.98] p-4 text-sm text-slate-600 shadow-[0_4px_20px_rgba(26,23,20,0.05)] backdrop-blur-sm">
+                    <p className="font-medium text-ink">Agent 评分</p>
                     <p className="mt-1 text-xs text-slate-500">
                       每满 10 次提问会解锁一次评分。你的新评分会覆盖旧评分，但始终只算 1 位用户。
                     </p>
@@ -707,7 +707,7 @@ export default function LifeAgentChatPage() {
                     </p>
                     {ratingState?.eligible ? (
                       <div className="mt-3 space-y-3">
-                        <p className="text-xs text-purple-800">
+                        <p className="text-xs text-ink-700">
                           已到第 {ratingState.currentMilestone} 次评价节点，现在可以更新一次评分。
                         </p>
                         <div className="flex flex-wrap gap-2">
@@ -719,7 +719,7 @@ export default function LifeAgentChatPage() {
                               className={`rounded-full px-3 py-1 text-sm transition ${
                                 ratingScore === score
                                   ? "bg-gradient-to-r from-[#BA68C8] to-[#FF80AB] text-white shadow-sm"
-                                  : "bg-violet-50/80 text-slate-600 hover:bg-purple-100/60"
+                                  : "bg-paper-50/80 text-slate-600 hover:bg-paper-100/60"
                               }`}
                             >
                               {score} 分
@@ -785,8 +785,8 @@ export default function LifeAgentChatPage() {
                   </div>
                 )}
 
-                <div className="mt-4 rounded-2xl border border-purple-100/50 bg-violet-50/35 p-4 text-sm text-slate-600 backdrop-blur-sm">
-                  <p className="font-medium text-purple-950/85">怎么聊更好？</p>
+                <div className="mt-4 rounded-2xl border border-hairline/50/50 bg-paper-50/35 p-4 text-sm text-slate-600 backdrop-blur-sm">
+                  <p className="font-medium text-ink/85">怎么聊更好？</p>
                   <ul className="mt-2 space-y-1">
                     <li>• 说清楚你的<strong>具体处境</strong>（如：二本大三、想转行、时间紧）</li>
                     <li>• 问得越具体，回答越有用</li>
@@ -814,15 +814,15 @@ export default function LifeAgentChatPage() {
         )}
       </AnimatePresence>
 
-      <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-none border-0 border-purple-200/[0.2] bg-white/[0.98] shadow-[0_6px_32px_-12px_rgba(124,58,237,0.1)] backdrop-blur-sm sm:rounded-3xl sm:border lg:rounded-3xl max-lg:flex-1">
-        <header className="z-20 flex shrink-0 items-center gap-2 border-b border-purple-100/70 bg-white/[0.95] px-1 py-2 pt-[env(safe-area-inset-top)] backdrop-blur-md sm:px-3">
+      <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-none border-0 border-hairline/30 bg-paper/[0.98] shadow-[0_6px_32px_-12px_rgba(26,23,20,0.08)] backdrop-blur-sm sm:rounded-3xl sm:border lg:rounded-3xl max-lg:flex-1">
+        <header className="z-20 flex shrink-0 items-center gap-2 border-b border-hairline/50/70 bg-paper/[0.95] px-1 py-2 pt-[env(safe-area-inset-top)] backdrop-blur-md sm:px-3">
           <button
             type="button"
             onClick={() => {
               if (window.history.length > 1) router.back();
               else router.push(`/life-agents/${id}`);
             }}
-            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-purple-950/90 transition hover:bg-purple-50/90"
+            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-ink transition hover:bg-paper-50/90"
             aria-label="返回"
           >
             <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24" aria-hidden>
@@ -835,7 +835,7 @@ export default function LifeAgentChatPage() {
             className="flex min-w-0 flex-1 items-center justify-center gap-2.5 px-1 transition hover:opacity-90"
             aria-label={`查看 ${profile.displayName} 的资料`}
           >
-            <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full bg-violet-100/60 ring-1 ring-purple-200/30">
+            <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full bg-paper-200/60 ring-1 ring-hairline/30">
               {agentCoverUrl ? (
                 <LifeAgentCoverImage
                   src={agentCoverUrl}
@@ -859,7 +859,7 @@ export default function LifeAgentChatPage() {
           <button
             type="button"
             onClick={openMenu}
-            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-purple-950/90 transition hover:bg-purple-50/90"
+            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-ink transition hover:bg-paper-50/90"
             aria-expanded={menuOpen}
             aria-controls="chat-side-panel"
             aria-label="更多"
@@ -894,7 +894,7 @@ export default function LifeAgentChatPage() {
                       <Link
                         href={`/life-agents/${id}`}
                         onClick={(e) => e.stopPropagation()}
-                        className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full bg-violet-100/60 ring-1 ring-purple-200/25 transition hover:ring-purple-300/45"
+                        className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full bg-paper-200/60 ring-1 ring-hairline/25 transition hover:ring-hairline/45"
                         aria-label={`查看 ${profile.displayName} 的资料`}
                       >
                         {agentCoverUrl ? (
@@ -929,9 +929,9 @@ export default function LifeAgentChatPage() {
                         </div>
                       ) : isVoiceLoadingForMsg ? (
                         <div className="space-y-2">
-                          <div className="flex items-center gap-2 rounded-xl bg-violet-50/80 px-2.5 py-1.5">
-                            <span className="h-3 w-3 shrink-0 rounded-full border-[1.5px] border-violet-300/40 border-t-violet-500 animate-spin" />
-                            <span className="text-xs text-violet-600/80">语音生成中…</span>
+                          <div className="flex items-center gap-2 rounded-xl bg-paper-50/80 px-2.5 py-1.5">
+                            <span className="h-3 w-3 shrink-0 rounded-full border-[1.5px] border-hairline/40 border-t-ink animate-spin" />
+                            <span className="text-xs text-ink-600/80">语音生成中…</span>
                           </div>
                           <p className="whitespace-pre-wrap">{message.content || ""}</p>
                         </div>
@@ -978,7 +978,7 @@ export default function LifeAgentChatPage() {
                                     : "border-amber-200 bg-amber-50 text-amber-700 shadow-sm ring-1 ring-amber-200"
                                   : hasSelection
                                     ? "border-gray-100 bg-gray-50/50 text-gray-400"
-                                    : "border-purple-100/60 bg-violet-50/80 text-purple-900/70 hover:bg-purple-100/50"
+                                    : "border-hairline/50/60 bg-paper-50/80 text-ink-700/70 hover:bg-paper-100/50"
                               } disabled:opacity-60`}
                             >
                               {isSelected && <span className="mr-0.5">{item.id === "helpful" ? "✓" : item.icon || "✓"}</span>}
@@ -1001,7 +1001,7 @@ export default function LifeAgentChatPage() {
                                 }))
                               }
                               rows={2}
-                              className="flex-1 resize-none rounded-xl border border-purple-100/60 bg-white/80 px-3 py-2 text-xs text-gray-700 placeholder:text-gray-400 focus:border-purple-300 focus:outline-none focus:ring-1 focus:ring-purple-200"
+                              className="flex-1 resize-none rounded-xl border border-hairline/50/60 bg-paper/80 px-3 py-2 text-xs text-gray-700 placeholder:text-gray-400 focus:border-hairline focus:outline-none focus:ring-1 focus:ring-hairline"
                             />
                             <button
                               type="button"
@@ -1016,7 +1016,7 @@ export default function LifeAgentChatPage() {
                                   feedbackComment[message.messageId!]?.trim()
                                 )
                               }
-                              className="shrink-0 rounded-xl bg-purple-500 px-3 py-2 text-xs font-medium text-white transition hover:bg-purple-600 disabled:opacity-40"
+                              className="shrink-0 rounded-xl bg-paper-500 px-3 py-2 text-xs font-medium text-white transition hover:bg-oxblood disabled:opacity-40"
                             >
                               提交
                             </button>
@@ -1040,7 +1040,7 @@ export default function LifeAgentChatPage() {
           </div>
         )}
 
-        <div className="shrink-0 border-t border-purple-200/[0.16] bg-white/[0.94] px-3 pb-[env(safe-area-inset-bottom)] pt-2 shadow-[0_-4px_28px_-8px_rgba(124,58,237,0.07)] backdrop-blur-lg sm:px-4">
+        <div className="shrink-0 border-t border-hairline/25 bg-paper/[0.94] px-3 pb-[env(safe-area-inset-bottom)] pt-2 shadow-[0_-4px_28px_-8px_rgba(26,23,20,0.06)] backdrop-blur-lg sm:px-4">
           <div className="mx-auto max-w-3xl">
             <LifeAgentMessageComposer
               value={input}

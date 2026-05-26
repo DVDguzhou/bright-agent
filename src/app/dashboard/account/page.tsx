@@ -150,7 +150,7 @@ export default function AccountPage() {
           当前账号通过微信或手机号注册，无独立邮箱密码。如需邮箱登录，请使用「注册」绑定新邮箱账号。
         </div>
       ) : (
-        <form onSubmit={submit} className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <form onSubmit={submit} className="space-y-4 rounded-2xl border border-slate-200 bg-paper p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-slate-800">修改密码</h2>
           <label className="block text-sm font-medium text-slate-700">当前密码</label>
           <input
@@ -225,7 +225,7 @@ export default function AccountPage() {
           type="button"
           onClick={deleteAccount}
           disabled={deleting}
-          className="mt-4 w-full rounded-xl border border-red-300 bg-white py-2.5 text-sm font-semibold text-red-700 transition hover:bg-red-50 disabled:opacity-50"
+          className="mt-4 w-full rounded-xl border border-red-300 bg-paper py-2.5 text-sm font-semibold text-red-700 transition hover:bg-red-50 disabled:opacity-50"
         >
           {deleting ? "注销中…" : "永久注销账号"}
         </button>

@@ -85,7 +85,7 @@ export default function PostsCreatePage() {
   if (loading) {
     return (
       <div className="flex min-h-[60dvh] items-center justify-center">
-        <span className="h-6 w-6 animate-spin rounded-full border-2 border-purple-200 border-t-purple-700" />
+        <span className="h-6 w-6 animate-spin rounded-full border-2 border-hairline border-t-ink" />
       </div>
     );
   }
@@ -100,7 +100,7 @@ export default function PostsCreatePage() {
         <p className="text-slate-500">登录后即可发帖</p>
         <Link
           href="/login"
-          className="rounded-full bg-gradient-to-r from-[#BA68C8] to-[#FF80AB] px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-fuchsia-500/20 transition active:scale-95"
+          className="rounded-full bg-gradient-to-r from-ink to-oxblood px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-ink/15 transition active:scale-95"
         >
           去登录
         </Link>
@@ -142,7 +142,7 @@ export default function PostsCreatePage() {
       </div>
 
       {/* Post Form */}
-      <div className="rounded-[24px] bg-white p-4 shadow-sm ring-1 ring-black/[0.04]">
+      <div className="rounded-[24px] bg-paper p-4 shadow-sm ring-1 ring-black/[0.04]">
         <div className="mb-3 flex items-center gap-3">
           <UserAvatar
             avatarUrl={user.avatarUrl}
@@ -203,7 +203,7 @@ export default function PostsCreatePage() {
               title={images.length >= 9 ? "最多 9 张图片" : "添加图片"}
             >
               {uploadingImage ? (
-                <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-purple-200 border-t-purple-700" />
+                <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-hairline border-t-ink" />
               ) : (
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z" />
@@ -228,9 +228,9 @@ export default function PostsCreatePage() {
       </div>
 
       {/* Tip */}
-      <div className="mt-4 rounded-[20px] border border-purple-200/[0.25] bg-gradient-to-r from-violet-50/[0.8] to-fuchsia-50/[0.6] px-4 py-3 text-sm text-purple-950/80">
+      <div className="mt-4 rounded-[20px] border border-hairline/25 bg-gradient-to-r from-paper-50/[0.8] to-paper/[0.6] px-4 py-3 text-sm text-ink/80">
         <p className="font-medium">💡 发帖小贴士</p>
-        <p className="mt-1 text-xs leading-relaxed text-purple-900/65">
+        <p className="mt-1 text-xs leading-relaxed text-ink-600/65">
           发布后，平台上的 AI Agent 会自动查看并回复你的帖子，为你提供不同视角的建议和经验分享。
         </p>
       </div>

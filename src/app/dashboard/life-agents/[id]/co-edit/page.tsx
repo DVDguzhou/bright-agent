@@ -83,7 +83,7 @@ function applyMindScoreUpdate(
 }
 
 const profileFieldClassName =
-  "mt-1 w-full rounded-lg border border-purple-200/50 bg-white/90 px-2.5 py-2 text-sm text-slate-700 outline-none transition focus:border-purple-400 focus:ring-2 focus:ring-purple-200/40";
+  "mt-1 w-full rounded-lg border border-hairline/50 bg-paper/90 px-2.5 py-2 text-sm text-slate-700 outline-none transition focus:border-ink-400 focus:ring-2 focus:ring-hairline/40";
 
 export default function LifeAgentCoEditPage() {
   const params = useParams();
@@ -589,7 +589,7 @@ export default function LifeAgentCoEditPage() {
   }, [data, id]);
 
   if (loading) {
-    return <div className="mx-auto h-64 max-w-4xl animate-pulse rounded-[28px] bg-gradient-to-br from-violet-100/90 to-fuchsia-100/50 shadow-[0_6px_28px_rgba(124,58,237,0.08)] ring-1 ring-purple-200/20" />;
+    return <div className="mx-auto h-64 max-w-4xl animate-pulse rounded-[28px] bg-gradient-to-br from-paper-100/90 to-paper-100/50 shadow-[0_6px_28px_rgba(26,23,20,0.07)] ring-1 ring-hairline/20" />;
   }
 
   if (!data) {
@@ -613,7 +613,7 @@ export default function LifeAgentCoEditPage() {
         "lg:relative lg:z-auto lg:-mx-4 lg:-mt-8 lg:-mb-8 lg:min-h-[calc(100dvh-4rem)] max-lg:min-h-0"
       }
     >
-      <header className="z-40 shrink-0 border-b border-purple-200/[0.18] bg-white/[0.91] px-4 pb-1 pt-[max(0.25rem,env(safe-area-inset-top))] shadow-[0_4px_28px_-10px_rgba(124,58,237,0.08)] backdrop-blur-xl sm:px-4 lg:sticky lg:top-0">
+      <header className="z-40 shrink-0 border-b border-hairline/30 bg-paper/[0.91] px-4 pb-1 pt-[max(0.25rem,env(safe-area-inset-top))] shadow-[0_4px_28px_-10px_rgba(26,23,20,0.07)] backdrop-blur-xl sm:px-4 lg:sticky lg:top-0">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-2">
           <button
             type="button"
@@ -621,7 +621,7 @@ export default function LifeAgentCoEditPage() {
               if (window.history.length > 1) router.back();
               else router.push(`/dashboard/life-agents/${id}`);
             }}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-purple-50 text-purple-950/90 transition active:bg-purple-100/80"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-paper-50 text-ink transition active:bg-paper-100/80"
             aria-label="返回"
             title="返回"
           >
@@ -630,16 +630,16 @@ export default function LifeAgentCoEditPage() {
             </svg>
           </button>
           <div className="min-w-0 flex-1">
-            <h1 className="text-[26px] font-bold leading-tight tracking-tight text-purple-950/90">对话调教</h1>
+            <h1 className="text-[26px] font-bold leading-tight tracking-tight text-ink">对话调教</h1>
           </div>
-          <div className="flex h-10 min-w-10 shrink-0 items-center justify-center rounded-full px-2 text-xs font-medium text-purple-800">
+          <div className="flex h-10 min-w-10 shrink-0 items-center justify-center rounded-full px-2 text-xs font-medium text-ink-700">
             已调教 {turnCount} 轮
           </div>
         </div>
       </header>
 
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-        <div className="shrink-0 px-3 py-1.5 text-xs text-purple-900/50 sm:px-4">
+        <div className="shrink-0 px-3 py-1.5 text-xs text-ink-400/50 sm:px-4">
           <div className="mx-auto flex max-w-3xl items-center justify-between gap-2">
             <span>像聊天一样改资料，发送后会自动同步当前 Agent 状态。</span>
             <span>历史已保存到服务器，并同步本机缓存</span>
@@ -647,23 +647,23 @@ export default function LifeAgentCoEditPage() {
         </div>
 
         <div className="shrink-0 px-3 pb-2 sm:px-4">
-          <div className="mx-auto max-w-3xl rounded-[22px] border border-purple-200/[0.22] bg-white/[0.98] p-3 shadow-[0_6px_30px_-12px_rgba(124,58,237,0.09)] backdrop-blur-sm sm:p-4">
+          <div className="mx-auto max-w-3xl rounded-[22px] border border-hairline/40 bg-paper/[0.98] p-3 shadow-[0_6px_30px_-12px_rgba(26,23,20,0.07)] backdrop-blur-sm sm:p-4">
             <details>
               <summary className="flex cursor-pointer list-none items-start justify-between gap-3 [&::-webkit-details-marker]:hidden">
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-purple-950/90">当前 Agent 状态</p>
+                  <p className="text-sm font-semibold text-ink">当前 Agent 状态</p>
                   <p className="mt-1 text-xs text-slate-500">
                     {profile.displayName} · {(profile.expertiseTags ?? []).length} 个标签 · {(profile.knowledgeEntries ?? []).length} 条知识
                   </p>
                 </div>
                 <div className="flex shrink-0 items-center gap-2 pt-0.5">
                   {lastChange ? (
-                    <span className="rounded-full bg-gradient-to-r from-violet-100 to-fuchsia-100 px-2.5 py-1 text-[10px] font-medium text-purple-800 ring-1 ring-purple-200/40">
+                    <span className="rounded-full bg-gradient-to-r from-paper-100 to-paper-100 px-2.5 py-1 text-[10px] font-medium text-ink-700 ring-1 ring-hairline/40">
                       刚更新
                     </span>
                   ) : null}
                   <svg
-                    className="h-4 w-4 text-purple-700/60"
+                    className="h-4 w-4 text-ink-600/60"
                     fill="none"
                     stroke="currentColor"
                     strokeWidth={2}
@@ -676,8 +676,8 @@ export default function LifeAgentCoEditPage() {
               </summary>
 
               <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                <div className="rounded-xl border border-purple-100/40 bg-violet-50/40 px-3 py-2.5 backdrop-blur-sm">
-                  <label className="text-[11px] text-purple-600/55" htmlFor="co-edit-headline">
+                <div className="rounded-xl border border-hairline/40 bg-paper-50/40 px-3 py-2.5 backdrop-blur-sm">
+                  <label className="text-[11px] text-ink-400/60" htmlFor="co-edit-headline">
                     一句话介绍
                   </label>
                   <textarea
@@ -689,8 +689,8 @@ export default function LifeAgentCoEditPage() {
                     placeholder="未设置"
                   />
                 </div>
-                <div className="rounded-xl border border-purple-100/40 bg-violet-50/40 px-3 py-2.5 backdrop-blur-sm">
-                  <label className="text-[11px] text-purple-600/55" htmlFor="co-edit-welcome">
+                <div className="rounded-xl border border-hairline/40 bg-paper-50/40 px-3 py-2.5 backdrop-blur-sm">
+                  <label className="text-[11px] text-ink-400/60" htmlFor="co-edit-welcome">
                     欢迎语
                   </label>
                   <textarea
@@ -702,8 +702,8 @@ export default function LifeAgentCoEditPage() {
                     placeholder="未设置"
                   />
                 </div>
-                <div className="rounded-xl border border-purple-100/40 bg-violet-50/40 px-3 py-2.5 backdrop-blur-sm sm:col-span-2">
-                  <label className="text-[11px] text-purple-600/55" htmlFor="co-edit-examples">
+                <div className="rounded-xl border border-hairline/40 bg-paper-50/40 px-3 py-2.5 backdrop-blur-sm sm:col-span-2">
+                  <label className="text-[11px] text-ink-400/60" htmlFor="co-edit-examples">
                     示范回答（每行一条）
                   </label>
                   <textarea
@@ -726,7 +726,7 @@ export default function LifeAgentCoEditPage() {
 
               <div className="mt-3 space-y-3">
                 <div>
-                  <p className="text-[11px] text-purple-600/55">擅长标签</p>
+                  <p className="text-[11px] text-ink-400/60">擅长标签</p>
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     {AGENT_CATEGORIES.map((cat) => {
                       const selected = (profile.expertiseTags ?? []).includes(cat.label);
@@ -756,8 +756,8 @@ export default function LifeAgentCoEditPage() {
                   </div>
                 </div>
                 <div className="grid gap-2 sm:grid-cols-2">
-                  <div className="rounded-xl border border-purple-100/40 bg-violet-50/40 px-3 py-2.5 backdrop-blur-sm sm:col-span-2">
-                    <p className="text-[11px] text-purple-600/55">人设与语气</p>
+                  <div className="rounded-xl border border-hairline/40 bg-paper-50/40 px-3 py-2.5 backdrop-blur-sm sm:col-span-2">
+                    <p className="text-[11px] text-ink-400/60">人设与语气</p>
                     <div className="mt-2 grid gap-2 sm:grid-cols-3">
                       <select
                         value={profile.personaArchetype ?? ""}
@@ -797,8 +797,8 @@ export default function LifeAgentCoEditPage() {
                       </select>
                     </div>
                   </div>
-                  <div className="rounded-xl border border-purple-100/40 bg-violet-50/40 px-3 py-2.5 backdrop-blur-sm sm:col-span-2">
-                    <label className="text-[11px] text-purple-600/55" htmlFor="co-edit-not-suitable">
+                  <div className="rounded-xl border border-hairline/40 bg-paper-50/40 px-3 py-2.5 backdrop-blur-sm sm:col-span-2">
+                    <label className="text-[11px] text-ink-400/60" htmlFor="co-edit-not-suitable">
                       不能回答的问题
                     </label>
                     <textarea
@@ -825,13 +825,13 @@ export default function LifeAgentCoEditPage() {
               </div>
 
               {lastChange ? (
-                <div className="mt-3 rounded-2xl border border-purple-200/[0.22] bg-gradient-to-r from-violet-50/[0.92] to-fuchsia-50/[0.75] px-3 py-3 backdrop-blur-sm">
+                <div className="mt-3 rounded-2xl border border-hairline/40 bg-gradient-to-r from-paper-50/[0.92] to-paper/[0.75] px-3 py-3 backdrop-blur-sm">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div>
-                      <p className="text-sm font-medium text-purple-950/90">本次已影响字段</p>
+                      <p className="text-sm font-medium text-ink">本次已影响字段</p>
                       <div className="mt-2 flex flex-wrap gap-2">
                         {impactedFields.map((item) => (
-                          <span key={item} className="rounded-full bg-white/[0.95] px-2.5 py-1 text-xs font-medium text-purple-800 ring-1 ring-purple-200/40">
+                          <span key={item} className="rounded-full bg-paper/[0.95] px-2.5 py-1 text-xs font-medium text-ink-700 ring-1 ring-hairline/40">
                             {item}
                           </span>
                         ))}
@@ -873,7 +873,7 @@ export default function LifeAgentCoEditPage() {
         >
           <div className="mx-auto max-w-3xl space-y-4 pb-4">
             {banner ? (
-              <div className="rounded-2xl border border-purple-200/[0.2] bg-gradient-to-r from-violet-50/90 to-fuchsia-50/70 px-4 py-3 text-sm text-purple-900/85 backdrop-blur-sm">
+              <div className="rounded-2xl border border-hairline/30 bg-gradient-to-r from-paper-50/90 to-paper/70 px-4 py-3 text-sm text-ink-800 backdrop-blur-sm">
                 {banner}
               </div>
             ) : null}
@@ -910,7 +910,7 @@ export default function LifeAgentCoEditPage() {
                   )}
                 </div>
                 {item.role === "user" ? (
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#FFF176] to-[#FF80AB] text-xs font-bold text-slate-900 shadow-sm ring-2 ring-white">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-ink-300 to-oxblood text-xs font-bold text-slate-900 shadow-sm ring-2 ring-white">
                     我
                   </div>
                 ) : null}
@@ -920,13 +920,13 @@ export default function LifeAgentCoEditPage() {
           </div>
         </div>
 
-        <div className="shrink-0 border-t border-purple-200/[0.16] bg-white/[0.94] px-3 pb-[env(safe-area-inset-bottom)] pt-2 shadow-[0_-4px_28px_-8px_rgba(124,58,237,0.07)] backdrop-blur-lg sm:px-4">
+        <div className="shrink-0 border-t border-hairline/25 bg-paper/[0.94] px-3 pb-[env(safe-area-inset-bottom)] pt-2 shadow-[0_-4px_28px_-8px_rgba(26,23,20,0.06)] backdrop-blur-lg sm:px-4">
           <div className="mx-auto max-w-3xl">
             {mindScore ? (
-              <div className="mb-2 rounded-2xl border border-purple-200/30 bg-gradient-to-r from-violet-50/95 to-fuchsia-50/80 px-3 py-3">
+              <div className="mb-2 rounded-2xl border border-hairline/30 bg-gradient-to-r from-paper-50/95 to-paper/80 px-3 py-3">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="text-[11px] font-medium text-purple-700/70">心智值</p>
+                    <p className="text-[11px] font-medium text-ink-600/70">心智值</p>
                     <div className="mt-1">
                       <MindScoreBadge value={mindScore.total} size="md" />
                     </div>
@@ -938,8 +938,8 @@ export default function LifeAgentCoEditPage() {
                   ) : null}
                 </div>
                 {nextSuggestion ? (
-                  <div className="mt-3 rounded-xl bg-white/90 px-3 py-2.5 ring-1 ring-purple-100/80">
-                    <p className="text-sm font-semibold text-purple-950">{nextSuggestion.title}</p>
+                  <div className="mt-3 rounded-xl bg-paper/90 px-3 py-2.5 ring-1 ring-hairline/50/80">
+                    <p className="text-sm font-semibold text-ink">{nextSuggestion.title}</p>
                     <p className="mt-1 text-xs leading-5 text-slate-600">{nextSuggestion.reason}</p>
                     <button
                       type="button"
@@ -948,7 +948,7 @@ export default function LifeAgentCoEditPage() {
                         window.setTimeout(() => inputRef.current?.focus(), 0);
                       }}
                       disabled={modifyLoading}
-                      className="mt-2 rounded-full bg-purple-600 px-4 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
+                      className="mt-2 rounded-full bg-oxblood px-4 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
                     >
                       继续调教
                     </button>
@@ -973,10 +973,10 @@ export default function LifeAgentCoEditPage() {
               onMoreClick={() => setMoreOpen((o) => !o)}
               onCloseMorePanel={() => setMoreOpen(false)}
               morePanel={
-                <div className="rounded-2xl border border-purple-200/[0.22] bg-white/[0.98] p-2 shadow-[0_8px_36px_-10px_rgba(124,58,237,0.1)] backdrop-blur-md">
+                <div className="rounded-2xl border border-hairline/40 bg-paper/[0.98] p-2 shadow-[0_8px_36px_-10px_rgba(26,23,20,0.08)] backdrop-blur-md">
                   <button
                     type="button"
-                    className="block w-full rounded-xl px-3 py-2.5 text-left text-sm text-slate-700 hover:bg-purple-50/90"
+                    className="block w-full rounded-xl px-3 py-2.5 text-left text-sm text-slate-700 hover:bg-paper-50/90"
                     onClick={() => {
                       setMoreOpen(false);
                       setImportOpen(true);
@@ -987,14 +987,14 @@ export default function LifeAgentCoEditPage() {
                   </button>
                   <Link
                     href={`/dashboard/life-agents/${id}`}
-                    className="block rounded-xl px-3 py-2.5 text-sm text-slate-700 hover:bg-purple-50/90"
+                    className="block rounded-xl px-3 py-2.5 text-sm text-slate-700 hover:bg-paper-50/90"
                     onClick={() => setMoreOpen(false)}
                   >
                     返回工作台
                   </Link>
                   <Link
                     href={`/dashboard/life-agents/${id}/edit`}
-                    className="block rounded-xl px-3 py-2.5 text-sm text-slate-700 hover:bg-purple-50/90"
+                    className="block rounded-xl px-3 py-2.5 text-sm text-slate-700 hover:bg-paper-50/90"
                     onClick={() => setMoreOpen(false)}
                   >
                     去编辑资料
@@ -1008,7 +1008,7 @@ export default function LifeAgentCoEditPage() {
 
       {/* Import progress banner */}
       {importProgress ? (
-        <div className="fixed inset-x-0 bottom-0 z-50 flex items-center justify-center bg-violet-600/90 px-4 py-3 text-sm text-white backdrop-blur-sm">
+        <div className="fixed inset-x-0 bottom-0 z-50 flex items-center justify-center bg-ink-600/90 px-4 py-3 text-sm text-white backdrop-blur-sm">
           <svg className="mr-2 h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
@@ -1088,7 +1088,7 @@ function ImportChatModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-3" onClick={onClose}>
       <div
-        className="mx-auto w-full max-w-md max-h-[min(92vh,720px)] overflow-y-auto overscroll-contain rounded-2xl border border-purple-200/30 bg-white p-5 shadow-2xl sm:max-w-2xl sm:p-6"
+        className="mx-auto w-full max-w-md max-h-[min(92vh,720px)] overflow-y-auto overscroll-contain rounded-2xl border border-hairline/30 bg-paper p-5 shadow-2xl sm:max-w-2xl sm:p-6"
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="mb-1 text-lg font-semibold text-slate-800">导入聊天记录</h3>
@@ -1096,10 +1096,10 @@ function ImportChatModal({
           上传导出文件后，AI 会分析聊天风格与语气，并用于优化 Agent 人设与知识。
         </p>
 
-        <details className="mb-4 rounded-xl border border-purple-100 bg-purple-50/50 px-3.5 py-2.5 text-sm open:bg-purple-50/80">
-          <summary className="cursor-pointer select-none font-medium text-violet-900 outline-none [&::-webkit-details-marker]:hidden">
+        <details className="mb-4 rounded-xl border border-hairline/50 bg-paper-50/50 px-3.5 py-2.5 text-sm open:bg-paper-50/80">
+          <summary className="cursor-pointer select-none font-medium text-ink-800 outline-none [&::-webkit-details-marker]:hidden">
             <span className="inline-flex items-center gap-2">
-              <svg className="h-4 w-4 shrink-0 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} aria-hidden>
+              <svg className="h-4 w-4 shrink-0 text-ink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} aria-hidden>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z" />
               </svg>
               用 WeFlow 导出 CSV：图文步骤
@@ -1114,7 +1114,7 @@ function ImportChatModal({
             href="https://github.com/hicccc77/WeFlow/blob/main/docs/HTTP-API.md"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-violet-600 underline decoration-violet-300 underline-offset-2 hover:text-violet-700"
+            className="text-ink-600 underline decoration-hairline underline-offset-2 hover:text-ink-700"
           >
             WeFlow HTTP API
           </a>
@@ -1136,11 +1136,11 @@ function ImportChatModal({
           />
           <button
             type="button"
-            className="flex w-full items-center gap-2 rounded-xl border border-dashed border-purple-300/60 bg-purple-50/40 px-4 py-3 text-sm text-slate-600 transition hover:border-purple-400 hover:bg-purple-50/80"
+            className="flex w-full items-center gap-2 rounded-xl border border-dashed border-hairline/60 bg-paper-50/40 px-4 py-3 text-sm text-slate-600 transition hover:border-ink-400 hover:bg-paper-50/80"
             onClick={() => fileRef.current?.click()}
             disabled={parsing || loading}
           >
-            <svg className="h-5 w-5 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <svg className="h-5 w-5 text-ink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
             </svg>
             {parsing ? "解析中..." : file ? file.name : "点击选择 HTML / CSV / TXT 文件"}
@@ -1164,7 +1164,7 @@ function ImportChatModal({
             <select
               value={targetName}
               onChange={(e) => setTargetName(e.target.value)}
-              className="w-full rounded-xl border border-purple-200/50 bg-white px-3.5 py-2.5 text-sm text-slate-800 outline-none transition focus:border-purple-400 focus:ring-2 focus:ring-purple-200/50"
+              className="w-full rounded-xl border border-hairline/50 bg-paper px-3.5 py-2.5 text-sm text-slate-800 outline-none transition focus:border-ink-400 focus:ring-2 focus:ring-hairline/50"
             >
               <option value="">请选择…</option>
               {senders.map((s) => (
@@ -1189,7 +1189,7 @@ function ImportChatModal({
           </button>
           <button
             type="button"
-            className="rounded-xl bg-gradient-to-r from-violet-500 to-fuchsia-500 px-5 py-2 text-sm font-medium text-white shadow-md transition hover:shadow-lg disabled:opacity-50"
+            className="rounded-xl bg-gradient-to-r from-paper-500 to-paper0 px-5 py-2 text-sm font-medium text-white shadow-md transition hover:shadow-lg disabled:opacity-50"
             disabled={!file || !targetName || loading || parsing}
             onClick={() => {
               if (file && targetName) {

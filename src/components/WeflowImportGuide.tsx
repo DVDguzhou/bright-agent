@@ -19,7 +19,7 @@ const STEPS: {
           href={WEFLOW_README}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-violet-600 underline decoration-violet-300 underline-offset-2 hover:text-violet-700"
+          className="text-ink-600 underline decoration-hairline underline-offset-2 hover:text-ink-700"
         >
           GitHub README
         </a>{" "}
@@ -28,7 +28,7 @@ const STEPS: {
           href={WEFLOW_README}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-violet-600 underline decoration-violet-300 underline-offset-2 hover:text-violet-700"
+          className="text-ink-600 underline decoration-hairline underline-offset-2 hover:text-ink-700"
         >
           官方仓库说明
         </a>
@@ -106,9 +106,9 @@ export function WeflowImportGuide() {
   return (
     <div className="mt-3 space-y-5 text-slate-600">
       {STEPS.map((step, i) => (
-        <div key={i} className="border-b border-purple-100/80 pb-4 last:border-0 last:pb-0">
+        <div key={i} className="border-b border-hairline/80 pb-4 last:border-0 last:pb-0">
           <div className="mb-1.5 flex items-baseline gap-2">
-            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-violet-100 text-xs font-semibold text-violet-800">
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-paper-200 text-xs font-semibold text-ink-800">
               {i + 1}
             </span>
             <h4 className="text-sm font-semibold text-slate-800">{step.title}</h4>

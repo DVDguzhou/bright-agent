@@ -167,7 +167,7 @@ export function VoiceInputButton({
         } ${
           isPressActive
             ? "border-rose-400 bg-rose-500 text-white shadow-lg shadow-rose-500/30 scale-110"
-            : "border-white/38 bg-white/55 text-slate-600 shadow-[0_10px_26px_-14px_rgba(124,58,237,0.25)] ring-1 ring-white/18 backdrop-blur-xl hover:bg-white/66 hover:border-white/50"
+            : "border-paper/38 bg-paper/55 text-slate-600 shadow-[0_10px_26px_-14px_rgba(26,23,20,0.12)] ring-1 ring-paper/18 backdrop-blur-xl hover:bg-paper/66 hover:border-paper/50"
         } disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
       >
         {isPreparing ? (

@@ -45,7 +45,7 @@ export function FieldInfoButton({ title, body, ariaLabel, className = "" }: Fiel
               role="dialog"
               aria-modal="true"
               aria-labelledby={titleId}
-              className="w-full max-w-sm rounded-2xl bg-white px-5 py-4 shadow-xl ring-1 ring-black/5"
+              className="w-full max-w-sm rounded-2xl bg-paper px-5 py-4 shadow-xl ring-1 ring-black/5"
               onClick={(e) => e.stopPropagation()}
             >
               <h3 id={titleId} className="font-serif text-base font-medium text-ink">

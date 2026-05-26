@@ -27,10 +27,10 @@ export function MindScoreBadge({
 
   return (
     <span
-      className={`inline-flex items-center bg-violet-100 font-medium tabular-nums text-violet-800 ring-1 ring-violet-200/70 ${SIZE_CLASS[size]} ${className}`}
+      className={`inline-flex items-center bg-paper-200 font-medium tabular-nums text-ink-800 ring-1 ring-hairline/70 ${SIZE_CLASS[size]} ${className}`}
     >
       <span>{label}</span>
-      <MindScoreInfoButton className="text-violet-600/80 hover:text-violet-800" />
+      <MindScoreInfoButton className="text-ink-600/80 hover:text-ink-800" />
     </span>
   );
 }

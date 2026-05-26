@@ -51,7 +51,7 @@ export default function LifeAgentSalesPage() {
   }, [filtered]);
 
   if (loading) {
-    return <div className="mx-auto h-56 max-w-4xl animate-pulse rounded-[28px] bg-white shadow-sm ring-1 ring-black/[0.04]" />;
+    return <div className="mx-auto h-56 max-w-4xl animate-pulse rounded-[28px] bg-paper shadow-sm ring-1 ring-black/[0.04]" />;
   }
 
   if (!data) {
@@ -67,7 +67,7 @@ export default function LifeAgentSalesPage() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-4 max-lg:-mx-4 max-lg:bg-[#f7f8fa] max-lg:px-3 max-lg:pb-24">
-      <header className="rounded-[28px] bg-white px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
+      <header className="rounded-[28px] bg-paper px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
         <Link href={`/dashboard/life-agents/${id}`} className="text-sm font-medium text-slate-500 transition hover:text-[#111]">
           ← 返回工作台
         </Link>
@@ -101,21 +101,21 @@ export default function LifeAgentSalesPage() {
       <section className="grid grid-cols-3 gap-3">...</section>
       */}
       <section className="grid grid-cols-3 gap-3">
-        <div className="rounded-2xl bg-white px-3 py-4 text-center shadow-sm ring-1 ring-black/[0.04]">
+        <div className="rounded-2xl bg-paper px-3 py-4 text-center shadow-sm ring-1 ring-black/[0.04]">
           <p className="text-2xl font-black text-[#111]">{summary.buyers}</p>
           <p className="mt-1 text-xs text-slate-500">互动用户</p>
         </div>
-        <div className="rounded-2xl bg-white px-3 py-4 text-center shadow-sm ring-1 ring-black/[0.04]">
+        <div className="rounded-2xl bg-paper px-3 py-4 text-center shadow-sm ring-1 ring-black/[0.04]">
           <p className="text-2xl font-black text-[#111]">{summary.asked}</p>
           <p className="mt-1 text-xs text-slate-500">被提问</p>
         </div>
-        <div className="rounded-2xl bg-white px-3 py-4 text-center shadow-sm ring-1 ring-black/[0.04]">
+        <div className="rounded-2xl bg-paper px-3 py-4 text-center shadow-sm ring-1 ring-black/[0.04]">
           <p className="text-2xl font-black text-sky-700">{summary.heat}</p>
           <p className="mt-1 text-xs text-slate-500">热度指数</p>
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-[28px] bg-white shadow-sm ring-1 ring-black/[0.04]">
+      <section className="overflow-hidden rounded-[28px] bg-paper shadow-sm ring-1 ring-black/[0.04]">
         <div className="border-b border-slate-100 px-4 py-4 sm:px-6">
           {/* 原：购买记录 */}
           <h2 className="text-lg font-semibold text-[#111]">互动明细</h2>

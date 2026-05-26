@@ -224,7 +224,7 @@ export default function SignupPage() {
         注册
       </h1>
       <p className="text-slate-500 mb-8">验证邮箱后即可创建账号</p>
-      <form onSubmit={submit} className="space-y-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+      <form onSubmit={submit} className="space-y-5 rounded-3xl border border-slate-200 bg-paper p-6 shadow-sm">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -255,7 +255,7 @@ export default function SignupPage() {
                   <button
                     type="button"
                     onClick={() => setAvatarUrl(null)}
-                    className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 transition-colors hover:border-slate-300 hover:text-slate-900"
+                    className="rounded-xl border border-slate-200 bg-paper px-4 py-2 text-sm font-medium text-slate-600 transition-colors hover:border-slate-300 hover:text-slate-900"
                   >
                     使用默认头像
                   </button>

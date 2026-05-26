@@ -54,7 +54,7 @@ export default function LifeAgentSessionsPage() {
   );
 
   if (loading) {
-    return <div className="mx-auto h-56 max-w-4xl animate-pulse rounded-[28px] bg-white shadow-sm ring-1 ring-black/[0.04]" />;
+    return <div className="mx-auto h-56 max-w-4xl animate-pulse rounded-[28px] bg-paper shadow-sm ring-1 ring-black/[0.04]" />;
   }
 
   if (!data) {
@@ -70,7 +70,7 @@ export default function LifeAgentSessionsPage() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-4 max-lg:-mx-4 max-lg:bg-[#f7f8fa] max-lg:px-3 max-lg:pb-24">
-      <header className="rounded-[28px] bg-white px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
+      <header className="rounded-[28px] bg-paper px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
         <Link href={`/dashboard/life-agents/${id}`} className="text-sm font-medium text-slate-500 transition hover:text-[#111]">
           ← 返回工作台
         </Link>
@@ -87,15 +87,15 @@ export default function LifeAgentSessionsPage() {
       </header>
 
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <div className="rounded-2xl bg-white px-3 py-4 text-center shadow-sm ring-1 ring-black/[0.04]">
+        <div className="rounded-2xl bg-paper px-3 py-4 text-center shadow-sm ring-1 ring-black/[0.04]">
           <p className="text-2xl font-black text-[#111]">{data.chatSessions.length}</p>
           <p className="mt-1 text-xs text-slate-500">总会话数</p>
         </div>
-        <div className="rounded-2xl bg-white px-3 py-4 text-center shadow-sm ring-1 ring-black/[0.04]">
+        <div className="rounded-2xl bg-paper px-3 py-4 text-center shadow-sm ring-1 ring-black/[0.04]">
           <p className="text-2xl font-black text-[#111]">{totalMessages}</p>
           <p className="mt-1 text-xs text-slate-500">总消息数</p>
         </div>
-        <div className="col-span-2 rounded-2xl bg-white px-4 py-4 shadow-sm ring-1 ring-black/[0.04]">
+        <div className="col-span-2 rounded-2xl bg-paper px-4 py-4 shadow-sm ring-1 ring-black/[0.04]">
           <p className="text-xs font-medium text-slate-500">最近高频主题</p>
           <div className="mt-3 flex flex-wrap gap-2">
             {topKeywords.length > 0 ? (
@@ -111,7 +111,7 @@ export default function LifeAgentSessionsPage() {
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-[28px] bg-white shadow-sm ring-1 ring-black/[0.04]">
+      <section className="overflow-hidden rounded-[28px] bg-paper shadow-sm ring-1 ring-black/[0.04]">
         <div className="border-b border-slate-100 px-4 py-4 sm:px-6">
           <h2 className="text-lg font-semibold text-[#111]">最近 50 个会话</h2>
           <p className="mt-1 text-sm text-slate-500">默认仅展示脱敏摘要，不暴露完整对话内容。</p>

@@ -47,7 +47,7 @@ export function MindScoreInfoButton({ className = "" }: { className?: string }) 
               role="dialog"
               aria-modal="true"
               aria-labelledby={titleId}
-              className="w-full max-w-sm rounded-2xl bg-white px-5 py-4 shadow-xl ring-1 ring-black/5"
+              className="w-full max-w-sm rounded-2xl bg-paper px-5 py-4 shadow-xl ring-1 ring-black/5"
               onClick={(e) => e.stopPropagation()}
             >
               <h3 id={titleId} className="font-serif text-base font-medium text-ink">
@@ -80,7 +80,7 @@ export function MindScoreInfoButton({ className = "" }: { className?: string }) 
           e.stopPropagation();
           setOpen(true);
         }}
-        className={`inline-flex shrink-0 items-center justify-center rounded-full text-current transition hover:bg-violet-200/50 ${className}`}
+        className={`inline-flex shrink-0 items-center justify-center rounded-full text-current transition hover:bg-paper-200/50 ${className}`}
         aria-label="什么是心智"
         title="什么是心智"
       >

@@ -86,7 +86,7 @@ export default function DashboardFeedbackPage() {
         : t === "factual_error"
           ? "bg-red-50 text-red-800 ring-1 ring-red-100"
           : t === "contradiction"
-            ? "bg-violet-50 text-violet-800 ring-1 ring-violet-100"
+            ? "bg-paper-50 text-ink-800 ring-1 ring-hairline/50"
             : t === "too_confident"
               ? "bg-orange-50 text-orange-900 ring-1 ring-orange-100"
         : "bg-rose-50 text-rose-800 ring-1 ring-rose-100";
@@ -97,12 +97,12 @@ export default function DashboardFeedbackPage() {
   if (loading) {
     return (
       <div className={shellClass}>
-        <div className="rounded-[28px] bg-white px-4 py-5 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
+        <div className="rounded-[28px] bg-paper px-4 py-5 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
           <div className="h-8 w-40 animate-pulse rounded-lg bg-slate-200" />
           <div className="mt-3 h-4 w-full max-w-md animate-pulse rounded bg-slate-100" />
         </div>
-        <div className="h-48 animate-pulse rounded-[28px] bg-white shadow-sm ring-1 ring-black/[0.04]" />
-        <div className="h-64 animate-pulse rounded-[28px] bg-white shadow-sm ring-1 ring-black/[0.04]" />
+        <div className="h-48 animate-pulse rounded-[28px] bg-paper shadow-sm ring-1 ring-black/[0.04]" />
+        <div className="h-64 animate-pulse rounded-[28px] bg-paper shadow-sm ring-1 ring-black/[0.04]" />
       </div>
     );
   }
@@ -117,7 +117,7 @@ export default function DashboardFeedbackPage() {
     { label: "不够具体", value: counts.notSpecific, valueClass: "text-amber-700" },
     { label: "不适合我", value: counts.notSuitable, valueClass: "text-rose-700" },
     { label: "事实错误", value: counts.factualError ?? 0, valueClass: "text-red-700" },
-    { label: "前后矛盾", value: counts.contradiction ?? 0, valueClass: "text-violet-700" },
+    { label: "前后矛盾", value: counts.contradiction ?? 0, valueClass: "text-ink-700" },
     { label: "过度自信", value: counts.tooConfident ?? 0, valueClass: "text-orange-700" },
   ];
 
@@ -135,7 +135,7 @@ export default function DashboardFeedbackPage() {
         </p>
       </header>
 
-      <section className="rounded-[28px] bg-white px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
+      <section className="rounded-[28px] bg-paper px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
         <h2 className="text-sm font-semibold text-slate-500">反馈概览</h2>
         <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
           {statTiles.map((t) => (
@@ -162,7 +162,7 @@ export default function DashboardFeedbackPage() {
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-[28px] bg-white shadow-sm ring-1 ring-black/[0.04]">
+      <section className="overflow-hidden rounded-[28px] bg-paper shadow-sm ring-1 ring-black/[0.04]">
         <div className="border-b border-slate-100 px-4 py-4 sm:px-6">
           <h2 className="text-xl font-black tracking-tight text-[#111]">最近反馈</h2>
           <p className="mt-1 text-sm text-slate-500">最近 50 条 · 来自用户对单条回复的评价</p>
@@ -203,7 +203,7 @@ export default function DashboardFeedbackPage() {
                     </p>
                   )}
                   {fb.comment && (
-                    <p className="mt-2 rounded-xl bg-white/80 px-3 py-2 text-[13px] leading-relaxed text-slate-700 ring-1 ring-black/[0.04]">
+                    <p className="mt-2 rounded-xl bg-paper/80 px-3 py-2 text-[13px] leading-relaxed text-slate-700 ring-1 ring-black/[0.04]">
                       {fb.comment}
                     </p>
                   )}
@@ -214,7 +214,7 @@ export default function DashboardFeedbackPage() {
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-[28px] bg-white shadow-sm ring-1 ring-black/[0.04]">
+      <section className="overflow-hidden rounded-[28px] bg-paper shadow-sm ring-1 ring-black/[0.04]">
         <div className="border-b border-slate-100 px-4 py-4 sm:px-6">
           <h2 className="text-xl font-black tracking-tight text-[#111]">最近评分</h2>
           <p className="mt-1 text-sm text-slate-500">
@@ -241,7 +241,7 @@ export default function DashboardFeedbackPage() {
                     >
                       {item.profileName}
                     </Link>
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-2 py-0.5 text-[11px] font-semibold text-sky-800 ring-1 ring-sky-100">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-paper px-2 py-0.5 text-[11px] font-semibold text-sky-800 ring-1 ring-sky-100">
                       <RatingStars score={item.score} size="sm" />
                       {item.score}/5
                     </span>

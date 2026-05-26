@@ -39,7 +39,7 @@ function timeAgo(dateStr: string): string {
 // 骨架屏占位
 function PostSkeleton() {
   return (
-    <div className="rounded-[20px] bg-white p-4 shadow-sm ring-1 ring-black/[0.04]">
+    <div className="rounded-[20px] bg-paper p-4 shadow-sm ring-1 ring-black/[0.04]">
       <div className="mb-2 flex items-center gap-2.5">
         <div className="h-9 w-9 animate-pulse rounded-full bg-slate-100" />
         <div className="min-w-0 flex-1">
@@ -234,7 +234,7 @@ export default function PostsPage() {
         <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
           {pullRefreshing ? (
             <>
-              <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-purple-200 border-t-purple-700" />
+              <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-hairline border-t-ink" />
               刷新中…
             </>
           ) : (
@@ -278,7 +278,7 @@ export default function PostsPage() {
 
       {loaded && posts.length === 0 && !error && (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-purple-50 text-3xl">
+          <div className="mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-paper-50 text-3xl">
             📝
           </div>
           <p className="text-base font-semibold text-[#111]">还没有动态</p>
@@ -299,7 +299,7 @@ export default function PostsPage() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i < 6 ? i * 0.05 : 0 }}
-            className="rounded-[20px] bg-white p-4 shadow-sm ring-1 ring-black/[0.04]"
+            className="rounded-[20px] bg-paper p-4 shadow-sm ring-1 ring-black/[0.04]"
           >
             {/* Author + actions */}
             <div className="mb-2 flex items-center justify-between gap-2">
@@ -319,7 +319,7 @@ export default function PostsPage() {
                 <div className="flex items-center gap-2 shrink-0">
                   <Link
                     href={`/posts/${post.id}/edit`}
-                    className="text-xs text-slate-400 hover:text-purple-600"
+                    className="text-xs text-slate-400 hover:text-ink-500"
                   >
                     编辑
                   </Link>
@@ -373,7 +373,7 @@ export default function PostsPage() {
               </button>
               <Link
                 href={`/posts/${post.id}`}
-                className="flex items-center gap-1 text-sm text-slate-400 hover:text-purple-500 transition"
+                className="flex items-center gap-1 text-sm text-slate-400 hover:text-oxblood transition"
               >
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.76c0 1.768 7.5 2.25 7.5 2.25s7.5-.482 7.5-2.25c0-1.768-7.5-2.25-7.5-2.25s-7.5.482-7.5 2.25zM2.25 12.76v3.93c0 1.768 7.5 2.25 7.5 2.25s7.5-.482 7.5-2.25v-3.93M12 15V3.75" />
@@ -393,7 +393,7 @@ export default function PostsPage() {
 
       {loadingMore && (
         <div className="py-4 text-center text-sm text-slate-400">
-          <span className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-purple-200 border-t-purple-700" />
+          <span className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-hairline border-t-ink" />
           <span className="ml-2">加载更多…</span>
         </div>
       )}

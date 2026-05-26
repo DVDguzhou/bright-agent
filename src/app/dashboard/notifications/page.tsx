@@ -87,7 +87,7 @@ function feedbackBadgeClass(t: string) {
   if (t === "helpful") return "bg-emerald-50 text-emerald-800 ring-1 ring-emerald-100";
   if (t === "not_specific") return "bg-amber-50 text-amber-900 ring-1 ring-amber-100";
   if (t === "factual_error") return "bg-red-50 text-red-800 ring-1 ring-red-100";
-  if (t === "contradiction") return "bg-violet-50 text-violet-800 ring-1 ring-violet-100";
+  if (t === "contradiction") return "bg-paper-50 text-ink-800 ring-1 ring-hairline/50";
   if (t === "too_confident") return "bg-orange-50 text-orange-900 ring-1 ring-orange-100";
   return "bg-rose-50 text-rose-800 ring-1 ring-rose-100";
 }
@@ -169,7 +169,7 @@ export default function DashboardNotificationsPage() {
 
   if (loading || !user) {
     return (
-      <div className="mx-auto max-w-2xl bg-white pb-6 max-lg:-mx-4 max-lg:min-h-[calc(100dvh-env(safe-area-inset-bottom)-4.25rem)] max-lg:pb-24 lg:pb-8">
+      <div className="mx-auto max-w-2xl bg-paper pb-6 max-lg:-mx-4 max-lg:min-h-[calc(100dvh-env(safe-area-inset-bottom)-4.25rem)] max-lg:pb-24 lg:pb-8">
         <header className="flex items-center gap-2 px-4 pb-3 pt-[max(0.25rem,env(safe-area-inset-top))] sm:px-0">
           <button
             type="button"
@@ -196,7 +196,7 @@ export default function DashboardNotificationsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl bg-white pb-6 max-lg:-mx-4 max-lg:min-h-[calc(100dvh-env(safe-area-inset-bottom)-4.25rem)] max-lg:pb-24 lg:pb-8">
+    <div className="mx-auto max-w-2xl bg-paper pb-6 max-lg:-mx-4 max-lg:min-h-[calc(100dvh-env(safe-area-inset-bottom)-4.25rem)] max-lg:pb-24 lg:pb-8">
       <header className="flex items-center gap-2 px-4 pb-3 pt-[max(0.25rem,env(safe-area-inset-top))] sm:px-0">
         <button
           type="button"

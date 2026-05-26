@@ -62,18 +62,18 @@ export function VoiceRecordPanel({
   const shell =
     accent === "pastel"
       ? `rounded-[22px] p-6 ${CHAT_GLASS_PANEL_CLASSNAME}`
-      : "rounded-2xl border border-slate-200 bg-white p-6 shadow-sm";
+      : "rounded-2xl border border-slate-200 bg-paper p-6 shadow-sm";
   const micIdle =
     accent === "pastel"
-      ? "border border-white/18 bg-gradient-to-br from-[#FF8FD8]/82 via-[#D79BFF]/78 to-[#9B8CFF]/74 text-white shadow-lg shadow-fuchsia-500/25 backdrop-blur-xl hover:opacity-95"
+      ? "border border-hairline/30 bg-gradient-to-br from-ink/82 via-ink-600/78 to-oxblood/74 text-white shadow-lg shadow-ink/20 backdrop-blur-xl hover:opacity-95"
       : "bg-sky-500 text-white hover:bg-sky-600";
   const successBox =
     accent === "pastel"
-      ? "border border-purple-200/[0.18] bg-gradient-to-r from-violet-50/[0.9] to-fuchsia-50/[0.75] backdrop-blur-[2px]"
+      ? "border border-hairline/40 bg-gradient-to-r from-paper-50/[0.95] to-paper/[0.85] backdrop-blur-[2px]"
       : "bg-emerald-50";
-  const successIcon = accent === "pastel" ? "text-purple-600" : "text-emerald-600";
-  const successText = accent === "pastel" ? "text-purple-900/85" : "text-emerald-800";
-  const titleClass = accent === "pastel" ? "text-lg font-semibold text-purple-950/90" : "text-lg font-semibold text-slate-900";
+  const successIcon = accent === "pastel" ? "text-oxblood" : "text-emerald-600";
+  const successText = accent === "pastel" ? "text-ink-800" : "text-emerald-800";
+  const titleClass = accent === "pastel" ? "text-lg font-semibold text-ink" : "text-lg font-semibold text-slate-900";
 
   return (
     <div className={shell}>
@@ -92,7 +92,7 @@ export function VoiceRecordPanel({
       <div
         className={
           accent === "pastel"
-            ? "mt-5 rounded-xl border border-white/42 bg-white/48 p-4 shadow-[0_10px_26px_-16px_rgba(124,58,237,0.18)] ring-1 ring-white/20 backdrop-blur-xl"
+            ? "mt-5 rounded-xl border border-hairline/30 bg-paper/60 p-4 shadow-[0_8px_24px_-12px_rgba(26,23,20,0.1)] ring-1 ring-hairline/20 backdrop-blur-xl"
             : "mt-5 rounded-xl bg-slate-50 p-4"
         }
       >
@@ -102,7 +102,7 @@ export function VoiceRecordPanel({
       <div
         className={
           accent === "pastel"
-            ? "mt-4 rounded-xl border border-white/42 bg-white/48 px-4 py-3 text-sm text-slate-600 shadow-[0_10px_26px_-16px_rgba(124,58,237,0.18)] ring-1 ring-white/20 backdrop-blur-xl"
+            ? "mt-4 rounded-xl border border-hairline/30 bg-paper/60 px-4 py-3 text-sm text-slate-600 shadow-[0_8px_24px_-12px_rgba(26,23,20,0.1)] ring-1 ring-hairline/20 backdrop-blur-xl"
             : "mt-4 rounded-xl border border-slate-200 bg-slate-50/80 px-4 py-3 text-sm text-slate-600"
         }
       >
@@ -113,8 +113,8 @@ export function VoiceRecordPanel({
 
       <div className="mt-6 flex flex-col items-center gap-4">
         {status === "processing" ? (
-          <div className="w-full rounded-2xl border border-white/42 bg-white/50 px-4 py-4 text-center shadow-[0_10px_26px_-16px_rgba(124,58,237,0.18)] ring-1 ring-white/20 backdrop-blur-xl">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-white/70 text-violet-600 shadow-sm">
+          <div className="w-full rounded-2xl border border-hairline/30 bg-paper/60 px-4 py-4 text-center shadow-[0_8px_24px_-12px_rgba(26,23,20,0.1)] ring-1 ring-hairline/20 backdrop-blur-xl">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-paper/70 text-ink-600 shadow-sm">
               <span className="h-5 w-5 rounded-full border-2 border-current/25 border-t-current animate-spin" />
             </div>
             <p className="mt-3 text-sm font-medium text-slate-800">正在处理语音...</p>

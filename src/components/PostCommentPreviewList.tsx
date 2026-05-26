@@ -37,7 +37,7 @@ function PostCommentPreviewRow({ comment }: { comment: PostCommentPreviewItem })
       {comment.isAgentReply && agentProfileId ? (
         <Link
           href={`/life-agents/${agentProfileId}`}
-          className="relative mt-0.5 h-6 w-6 shrink-0 overflow-hidden rounded-full bg-violet-100/60 ring-1 ring-purple-200/25"
+          className="relative mt-0.5 h-6 w-6 shrink-0 overflow-hidden rounded-full bg-paper-200/60 ring-1 ring-hairline/25"
           aria-label={`查看 ${displayName} 的资料`}
         >
           <LifeAgentCoverImage
@@ -50,7 +50,7 @@ function PostCommentPreviewRow({ comment }: { comment: PostCommentPreviewItem })
           />
         </Link>
       ) : (
-        <div className="relative mt-0.5 h-6 w-6 shrink-0 overflow-hidden rounded-full bg-gradient-to-br from-[#FFF176] to-[#FF80AB]">
+        <div className="relative mt-0.5 h-6 w-6 shrink-0 overflow-hidden rounded-full bg-gradient-to-br from-ink-300 to-oxblood">
           <LifeAgentCoverImage
             src={getDisplayAvatar({ avatarUrl: comment.authorAvatarUrl, name: comment.authorName })}
             alt=""
@@ -63,7 +63,7 @@ function PostCommentPreviewRow({ comment }: { comment: PostCommentPreviewItem })
       )}
       <p className="min-w-0 flex-1 text-[13px] leading-snug text-[#111]">
         {comment.isAgentReply && agentProfileId ? (
-          <Link href={`/life-agents/${agentProfileId}`} className="font-semibold text-purple-800">
+          <Link href={`/life-agents/${agentProfileId}`} className="font-semibold text-ink-700">
             {displayName}
           </Link>
         ) : (
@@ -94,7 +94,7 @@ export function PostCommentPreviewList({
       {totalCount > comments.length ? (
         <Link
           href={`/posts/${postId}`}
-          className="block pt-0.5 text-xs font-medium text-slate-400 transition hover:text-purple-600"
+          className="block pt-0.5 text-xs font-medium text-slate-400 transition hover:text-ink-500"
         >
           查看全部 {totalCount} 条评论
         </Link>

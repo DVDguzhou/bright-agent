@@ -50,12 +50,12 @@ const LIVE_CATEGORIES = [
 
 function MindScoreStatCard({ value, href }: { value: number; href?: string }) {
   const content = (
-    <div className="rounded-2xl bg-violet-50 px-3 py-3 text-center ring-1 ring-violet-200/60">
+    <div className="rounded-2xl bg-paper-50 px-3 py-3 text-center ring-1 ring-hairline/60">
       <div className="flex justify-center">
         <MindScoreBadge value={value} size="lg" prefix="" />
       </div>
-      <p className="mt-2 text-[11px] font-medium text-violet-800">心智值</p>
-      <p className="mt-0.5 text-[10px] text-violet-600/70">无上限</p>
+      <p className="mt-2 text-[11px] font-medium text-ink-800">心智值</p>
+      <p className="mt-0.5 text-[10px] text-ink-600/70">无上限</p>
     </div>
   );
   if (!href) return content;
@@ -108,7 +108,7 @@ function QuickAction({
   return (
     <Link
       href={href}
-      className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/[0.04] transition active:scale-[0.99]"
+      className="rounded-2xl bg-paper p-4 shadow-sm ring-1 ring-black/[0.04] transition active:scale-[0.99]"
     >
       <div className={`flex h-11 w-11 items-center justify-center rounded-full ${colorClass}`}>{icon}</div>
       <p className="mt-3 text-sm font-semibold text-[#111]">{title}</p>
@@ -224,10 +224,10 @@ export default function LifeAgentManageHomePage() {
   if (state.loading && !data) {
     return (
       <div className="mx-auto max-w-5xl space-y-4 max-lg:-mx-4 max-lg:bg-[#f7f8fa] max-lg:px-3 max-lg:pb-24">
-        <div className="h-52 animate-pulse rounded-[28px] bg-white shadow-sm ring-1 ring-black/[0.04]" />
+        <div className="h-52 animate-pulse rounded-[28px] bg-paper shadow-sm ring-1 ring-black/[0.04]" />
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {[1, 2, 3, 4].map((item) => (
-            <div key={item} className="h-28 animate-pulse rounded-2xl bg-white shadow-sm ring-1 ring-black/[0.04]" />
+            <div key={item} className="h-28 animate-pulse rounded-2xl bg-paper shadow-sm ring-1 ring-black/[0.04]" />
           ))}
         </div>
       </div>
@@ -248,7 +248,7 @@ export default function LifeAgentManageHomePage() {
           </button>
           <Link
             href="/dashboard/life-agents"
-            className="rounded-full border border-slate-200 bg-white px-6 py-2.5 text-sm font-medium text-slate-700"
+            className="rounded-full border border-slate-200 bg-paper px-6 py-2.5 text-sm font-medium text-slate-700"
           >
             返回列表
           </Link>
@@ -259,7 +259,7 @@ export default function LifeAgentManageHomePage() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-4 max-lg:-mx-4 max-lg:bg-[#f7f8fa] max-lg:px-3 max-lg:pb-24">
-      <section className="overflow-hidden rounded-[28px] bg-white shadow-sm ring-1 ring-black/[0.04]">
+      <section className="overflow-hidden rounded-[28px] bg-paper shadow-sm ring-1 ring-black/[0.04]">
         <div className="bg-gradient-to-r from-amber-50 via-white to-sky-50 px-4 pb-4 pt-3 sm:px-6">
           <Link href="/dashboard/life-agents" className="text-sm font-medium text-slate-500 transition hover:text-[#111]">
             ← 全部 Agent
@@ -297,7 +297,7 @@ export default function LifeAgentManageHomePage() {
             <div className="flex shrink-0 items-center gap-2">
               <Link
                 href={`/life-agents/${id}`}
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-slate-700 shadow-sm ring-1 ring-black/[0.05] active:scale-[0.98]"
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-paper/90 text-slate-700 shadow-sm ring-1 ring-black/[0.05] active:scale-[0.98]"
                 aria-label="查看展示页"
                 title="展示页"
               >
@@ -345,7 +345,7 @@ export default function LifeAgentManageHomePage() {
         </div>
       </section>
 
-      <section className="rounded-[28px] bg-white px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
+      <section className="rounded-[28px] bg-paper px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-xl font-black tracking-tight text-[#111]">快速操作</h2>
@@ -387,7 +387,7 @@ export default function LifeAgentManageHomePage() {
             href={`/dashboard/life-agents/${id}/sessions`}
             title="聊天记录"
             desc="按会话搜索，了解用户最近在问什么"
-            colorClass="bg-fuchsia-100 text-fuchsia-700"
+            colorClass="bg-paper-100 text-oxblood"
             icon={<svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>}
           />
           <QuickAction
@@ -421,7 +421,7 @@ export default function LifeAgentManageHomePage() {
         </div>
       </section>
 
-      <section className="rounded-[28px] bg-white px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
+      <section className="rounded-[28px] bg-paper px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-xl font-black tracking-tight text-[#111]">实时更新</h2>
@@ -438,14 +438,14 @@ export default function LifeAgentManageHomePage() {
             value={liveContent}
             onChange={(e) => setLiveContent(e.target.value)}
             placeholder="分享最新信息，比如：杭州余杭区最近落户政策放宽了 / 西湖区房价Q2微涨 / 秋招字节阿里都在扩招..."
-            className="w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-[#111] placeholder:text-slate-400 focus:border-sky-300 focus:outline-none focus:ring-2 focus:ring-sky-100"
+            className="w-full resize-none rounded-xl border border-slate-200 bg-paper px-3 py-2.5 text-sm text-[#111] placeholder:text-slate-400 focus:border-sky-300 focus:outline-none focus:ring-2 focus:ring-sky-100"
             rows={3}
           />
           <div className="mt-3 flex flex-wrap items-center gap-3">
             <select
               value={liveCategory}
               onChange={(e) => setLiveCategory(e.target.value)}
-              className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-700 focus:outline-none"
+              className="rounded-lg border border-slate-200 bg-paper px-3 py-1.5 text-xs text-slate-700 focus:outline-none"
             >
               {LIVE_CATEGORIES.map((c) => (
                 <option key={c.value} value={c.value}>{c.label}</option>
@@ -456,7 +456,7 @@ export default function LifeAgentManageHomePage() {
               value={liveLocation}
               onChange={(e) => setLiveLocation(e.target.value)}
               placeholder="位置标签，如：杭州西湖区（可选）"
-              className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-700 placeholder:text-slate-400 focus:outline-none"
+              className="rounded-lg border border-slate-200 bg-paper px-3 py-1.5 text-xs text-slate-700 placeholder:text-slate-400 focus:outline-none"
             />
             <button
               type="button"
@@ -496,7 +496,7 @@ export default function LifeAgentManageHomePage() {
         )}
       </section>
 
-      <section className="rounded-[28px] bg-white px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
+      <section className="rounded-[28px] bg-paper px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
         <h2 className="text-xl font-black tracking-tight text-[#111]">最近动态</h2>
         <div className="mt-4 grid gap-4 lg:grid-cols-3">
           {/* 原「最近购买」卡片（含金额，审核期暂隐藏）
@@ -589,7 +589,7 @@ export default function LifeAgentManageHomePage() {
       </section>
 
       {(data.feedback?.alerts ?? []).length > 0 && (
-        <section className="rounded-[28px] bg-white px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
+        <section className="rounded-[28px] bg-paper px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
           <h2 className="text-xl font-black tracking-tight text-[#111]">需要你关注</h2>
           <p className="mt-1 text-xs text-slate-400">来自用户的真实反馈，按紧急程度排列</p>
           <ul className="mt-3 space-y-2">
@@ -689,17 +689,17 @@ export default function LifeAgentManageHomePage() {
         <ul className="mt-3 space-y-2 text-sm leading-6 text-amber-950">
           {suggestions.length > 0 ? (
             suggestions.map((item) => (
-              <li key={item} className="rounded-2xl bg-white/70 px-4 py-3 shadow-sm">
+              <li key={item} className="rounded-2xl bg-paper/70 px-4 py-3 shadow-sm">
                 {item}
               </li>
             ))
           ) : (
-            <li className="rounded-2xl bg-white/70 px-4 py-3 shadow-sm">状态很好，继续保持更新和稳定回复即可。</li>
+            <li className="rounded-2xl bg-paper/70 px-4 py-3 shadow-sm">状态很好，继续保持更新和稳定回复即可。</li>
           )}
         </ul>
       </section>
 
-      <section className="rounded-[28px] bg-white px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
+      <section className="rounded-[28px] bg-paper px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
         <h2 className="text-xl font-black tracking-tight text-[#111]">Agent 当前状态</h2>
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <div className="rounded-2xl bg-[#fafbfc] p-4 ring-1 ring-black/[0.04]">
@@ -741,7 +741,7 @@ export default function LifeAgentManageHomePage() {
         </div>
       </section>
 
-      <section className="rounded-[28px] bg-white px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
+      <section className="rounded-[28px] bg-paper px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
         <details>
           <summary className="cursor-pointer list-none text-lg font-semibold text-red-700">
             <span className="inline-flex items-center gap-2">
@@ -757,7 +757,7 @@ export default function LifeAgentManageHomePage() {
               type="button"
               onClick={deleteAgent}
               disabled={deleting}
-              className="mt-4 min-h-[48px] rounded-xl border border-red-300 bg-white px-5 py-3 text-sm font-medium text-red-600 transition-colors hover:bg-red-100 active:bg-red-200 disabled:opacity-50"
+              className="mt-4 min-h-[48px] rounded-xl border border-red-300 bg-paper px-5 py-3 text-sm font-medium text-red-600 transition-colors hover:bg-red-100 active:bg-red-200 disabled:opacity-50"
             >
               {deleting ? "删除中..." : "删除人生 Agent"}
             </button>

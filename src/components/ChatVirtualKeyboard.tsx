@@ -96,7 +96,7 @@ export function ChatVirtualKeyboard({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`flex min-h-[44px] items-center justify-center rounded-lg border border-slate-200/90 bg-white px-2 text-base font-medium text-slate-700 shadow-[0_1px_2px_rgba(0,0,0,0.06)] transition active:scale-[0.97] disabled:opacity-50 sm:min-h-[48px] ${
+      className={`flex min-h-[44px] items-center justify-center rounded-lg border border-slate-200/90 bg-paper px-2 text-base font-medium text-slate-700 shadow-[0_1px_2px_rgba(0,0,0,0.06)] transition active:scale-[0.97] disabled:opacity-50 sm:min-h-[48px] ${
         wide ? "flex-1 min-w-0" : "min-w-[28px] sm:min-w-[32px]"
       } ${className}`}
     >
@@ -108,7 +108,7 @@ export function ChatVirtualKeyboard({
   if (!expanded) {
     return (
       <div ref={containerRef} className="flex flex-col">
-        <div className="flex items-center gap-2 rounded-2xl border border-slate-200/80 bg-white/95 px-3 py-2.5 shadow-sm backdrop-blur sm:rounded-[22px] sm:px-4">
+        <div className="flex items-center gap-2 rounded-2xl border border-slate-200/80 bg-paper/95 px-3 py-2.5 shadow-sm backdrop-blur sm:rounded-[22px] sm:px-4">
           <button
             type="button"
             disabled={disabled}
@@ -153,7 +153,7 @@ export function ChatVirtualKeyboard({
       style={{ maxHeight: "min(420px, 45vh)" }}
     >
       {/* 输入条 */}
-      <div className="flex items-center gap-2 border-b border-slate-200/60 bg-white/90 px-3 py-2.5 sm:px-4">
+      <div className="flex items-center gap-2 border-b border-slate-200/60 bg-paper/90 px-3 py-2.5 sm:px-4">
         <button
           type="button"
           disabled={disabled}
@@ -191,7 +191,7 @@ export function ChatVirtualKeyboard({
               type="button"
               onClick={() => onSuggestionClick?.(item.value)}
               disabled={disabled}
-              className="shrink-0 rounded-full border border-slate-200 bg-white px-3.5 py-2 text-xs font-medium text-slate-600 shadow-sm transition active:scale-95 hover:border-sky-300 hover:text-sky-600 disabled:opacity-50"
+              className="shrink-0 rounded-full border border-slate-200 bg-paper px-3.5 py-2 text-xs font-medium text-slate-600 shadow-sm transition active:scale-95 hover:border-sky-300 hover:text-sky-600 disabled:opacity-50"
             >
               {item.label}
             </button>
@@ -292,7 +292,7 @@ export function ChatVirtualKeyboard({
       </div>
 
       {/* 系统栏：语言 | 麦克风 */}
-      <div className="flex items-center justify-between border-t border-slate-200/60 bg-white/80 px-4 py-2">
+      <div className="flex items-center justify-between border-t border-slate-200/60 bg-paper/80 px-4 py-2">
         <button
           type="button"
           disabled={disabled}

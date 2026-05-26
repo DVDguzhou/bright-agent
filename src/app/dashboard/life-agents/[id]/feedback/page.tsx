@@ -46,7 +46,7 @@ function feedbackAccent(t: string) {
   if (t === "helpful") return "bg-emerald-100 text-emerald-800";
   if (t === "not_specific") return "bg-amber-100 text-amber-900";
   if (t === "factual_error") return "bg-red-100 text-red-800";
-  if (t === "contradiction") return "bg-violet-100 text-violet-800";
+  if (t === "contradiction") return "bg-paper-200 text-ink-800";
   if (t === "too_confident") return "bg-orange-100 text-orange-900";
   return "bg-rose-100 text-rose-800";
 }
@@ -69,7 +69,7 @@ function FeedbackHeader({
   disableSearch?: boolean;
 }) {
   return (
-    <header className="sticky top-0 z-20 border-b border-slate-200/80 bg-white/95 px-4 pb-3 pt-[max(0.35rem,env(safe-area-inset-top))] backdrop-blur-md sm:px-0">
+    <header className="sticky top-0 z-20 border-b border-slate-200/80 bg-paper/95 px-4 pb-3 pt-[max(0.35rem,env(safe-area-inset-top))] backdrop-blur-md sm:px-0">
       <div className="flex items-center gap-3">
         <Link
           href={`/dashboard/life-agents/${id}`}
@@ -220,7 +220,7 @@ export default function LifeAgentFeedbackFeedPage() {
     return (
       <div className="mx-auto max-w-3xl space-y-4 max-lg:-mx-4 max-lg:bg-[#f7f8fa] max-lg:pb-24">
         <FeedbackHeader id={id} title="反馈诊断" subtitle="正在加载 Agent 反馈" disableSearch />
-        <div className="h-56 animate-pulse rounded-[28px] bg-white shadow-sm ring-1 ring-black/[0.04]" />
+        <div className="h-56 animate-pulse rounded-[28px] bg-paper shadow-sm ring-1 ring-black/[0.04]" />
       </div>
     );
   }
@@ -229,7 +229,7 @@ export default function LifeAgentFeedbackFeedPage() {
     return (
       <div className="mx-auto max-w-3xl space-y-4 max-lg:-mx-4 max-lg:bg-[#f7f8fa] max-lg:pb-24">
         <FeedbackHeader id={id} title="反馈诊断" subtitle="暂时无法读取这个 Agent 的反馈数据" disableSearch />
-        <div className="rounded-[28px] bg-white px-4 py-16 text-center shadow-sm ring-1 ring-black/[0.04]">
+        <div className="rounded-[28px] bg-paper px-4 py-16 text-center shadow-sm ring-1 ring-black/[0.04]">
           <p className="text-[15px] text-slate-500">{loadError ?? "无法加载"}</p>
           <Link href={`/dashboard/life-agents/${id}`} className="mt-6 inline-flex rounded-full bg-[#111] px-6 py-2.5 text-sm font-medium text-white">
             返回工作台
@@ -253,34 +253,34 @@ export default function LifeAgentFeedbackFeedPage() {
       />
 
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-6">
-        <div className="rounded-2xl bg-white px-3 py-4 text-center shadow-sm ring-1 ring-black/[0.04]">
+        <div className="rounded-2xl bg-paper px-3 py-4 text-center shadow-sm ring-1 ring-black/[0.04]">
           <p className="text-2xl font-black text-sky-700">{ratings.raters > 0 ? ratings.averageScore.toFixed(1) : "—"}</p>
           <p className="mt-1 text-xs text-slate-500">综合评分</p>
         </div>
-        <div className="rounded-2xl bg-white px-3 py-4 text-center shadow-sm ring-1 ring-black/[0.04]">
+        <div className="rounded-2xl bg-paper px-3 py-4 text-center shadow-sm ring-1 ring-black/[0.04]">
           <p className="text-2xl font-black text-emerald-700">{feedbackCounts.helpful}</p>
           <p className="mt-1 text-xs text-slate-500">有帮助</p>
         </div>
-        <div className="rounded-2xl bg-white px-3 py-4 text-center shadow-sm ring-1 ring-black/[0.04]">
+        <div className="rounded-2xl bg-paper px-3 py-4 text-center shadow-sm ring-1 ring-black/[0.04]">
           <p className="text-2xl font-black text-amber-700">{feedbackCounts.notSpecific}</p>
           <p className="mt-1 text-xs text-slate-500">不够具体</p>
         </div>
-        <div className="rounded-2xl bg-white px-3 py-4 text-center shadow-sm ring-1 ring-black/[0.04]">
+        <div className="rounded-2xl bg-paper px-3 py-4 text-center shadow-sm ring-1 ring-black/[0.04]">
           <p className="text-2xl font-black text-rose-700">{feedbackCounts.notSuitable}</p>
           <p className="mt-1 text-xs text-slate-500">不适合我</p>
         </div>
-        <div className="rounded-2xl bg-white px-3 py-4 text-center shadow-sm ring-1 ring-black/[0.04]">
+        <div className="rounded-2xl bg-paper px-3 py-4 text-center shadow-sm ring-1 ring-black/[0.04]">
           <p className="text-2xl font-black text-red-700">{feedbackCounts.factualError ?? 0}</p>
           <p className="mt-1 text-xs text-slate-500">事实错误</p>
         </div>
-        <div className="rounded-2xl bg-white px-3 py-4 text-center shadow-sm ring-1 ring-black/[0.04]">
-          <p className="text-2xl font-black text-violet-700">{feedbackCounts.contradiction ?? 0}</p>
+        <div className="rounded-2xl bg-paper px-3 py-4 text-center shadow-sm ring-1 ring-black/[0.04]">
+          <p className="text-2xl font-black text-ink-700">{feedbackCounts.contradiction ?? 0}</p>
           <p className="mt-1 text-xs text-slate-500">前后矛盾</p>
         </div>
       </section>
 
       <section className="grid gap-4 lg:grid-cols-[1.2fr_1fr]">
-        <div className="rounded-[28px] bg-white px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
+        <div className="rounded-[28px] bg-paper px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
           <h2 className="text-lg font-semibold text-[#111]">评分趋势</h2>
           {trendRows.length === 0 ? (
             <p className="mt-4 text-sm text-slate-400">还没有星级评分</p>
@@ -299,7 +299,7 @@ export default function LifeAgentFeedbackFeedPage() {
           )}
         </div>
 
-        <div className="rounded-[28px] bg-white px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
+        <div className="rounded-[28px] bg-paper px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
           <h2 className="text-lg font-semibold text-[#111]">近期关键词</h2>
           <div className="mt-4 flex flex-wrap gap-2">
             {keywords.length > 0 ? (
@@ -319,14 +319,14 @@ export default function LifeAgentFeedbackFeedPage() {
         <h2 className="text-lg font-semibold text-[#111]">改进建议</h2>
         <ul className="mt-3 space-y-2 text-sm text-amber-950">
           {suggestions.map((item) => (
-            <li key={item} className="rounded-2xl bg-white/70 px-4 py-3 shadow-sm">
+            <li key={item} className="rounded-2xl bg-paper/70 px-4 py-3 shadow-sm">
               {item}
             </li>
           ))}
         </ul>
       </section>
 
-      <section className="overflow-hidden rounded-[28px] bg-white shadow-sm ring-1 ring-black/[0.04]">
+      <section className="overflow-hidden rounded-[28px] bg-paper shadow-sm ring-1 ring-black/[0.04]">
         <div className="border-b border-slate-100 px-4 py-4 sm:px-6">
           <h2 className="text-lg font-semibold text-[#111]">全部反馈记录</h2>
         </div>

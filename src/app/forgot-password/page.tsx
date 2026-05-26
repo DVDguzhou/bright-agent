@@ -55,7 +55,7 @@ export default function ForgotPasswordPage() {
       <p className="text-slate-500 mb-6">我们将向您的邮箱发送重置链接（若该邮箱已注册）。</p>
 
       {done ? (
-        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
+        <div className="rounded-3xl border border-slate-200 bg-paper p-6 shadow-sm space-y-4">
           <p className="text-slate-700 text-sm leading-relaxed">
             若该邮箱已注册且系统已配置发信服务，您将很快收到邮件。请检查收件箱与垃圾箱，链接在一段时间后失效。
           </p>
@@ -64,7 +64,7 @@ export default function ForgotPasswordPage() {
           </Link>
         </div>
       ) : (
-        <form onSubmit={submit} className="space-y-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <form onSubmit={submit} className="space-y-5 rounded-3xl border border-slate-200 bg-paper p-6 shadow-sm">
           <label className="block text-sm font-medium text-slate-700">注册邮箱</label>
           <input
             type="email"

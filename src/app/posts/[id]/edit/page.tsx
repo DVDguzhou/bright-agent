@@ -121,7 +121,7 @@ export default function PostEditPage() {
   if (fetchLoading) {
     return (
       <div className="flex min-h-[60dvh] items-center justify-center">
-        <span className="h-6 w-6 animate-spin rounded-full border-2 border-purple-200 border-t-purple-700" />
+        <span className="h-6 w-6 animate-spin rounded-full border-2 border-hairline border-t-ink" />
       </div>
     );
   }
@@ -130,7 +130,7 @@ export default function PostEditPage() {
     return (
       <div className="mx-auto max-w-2xl px-3 pt-20 text-center sm:px-4">
         <p className="text-slate-500">{error}</p>
-        <Link href="/posts" className="mt-4 inline-block text-sm text-purple-700 underline">
+        <Link href="/posts" className="mt-4 inline-block text-sm text-ink-600 underline">
           返回动态
         </Link>
       </div>
@@ -170,7 +170,7 @@ export default function PostEditPage() {
         </button>
       </div>
 
-      <div className="rounded-[24px] bg-white p-4 shadow-sm ring-1 ring-black/[0.04]">
+      <div className="rounded-[24px] bg-paper p-4 shadow-sm ring-1 ring-black/[0.04]">
         <div className="mb-3 flex items-center gap-3">
           <UserAvatar
             avatarUrl={user?.avatarUrl}
@@ -232,7 +232,7 @@ export default function PostEditPage() {
               title={images.length >= 9 ? "最多 9 张图片" : "添加图片"}
             >
               {uploadingImage ? (
-                <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-purple-200 border-t-purple-700" />
+                <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-hairline border-t-ink" />
               ) : (
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z" />

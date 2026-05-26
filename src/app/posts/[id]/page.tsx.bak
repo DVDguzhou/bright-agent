@@ -159,7 +159,7 @@ export default function PostDetailPage() {
     return (
       <div className="mx-auto max-w-2xl px-3 pb-24 pt-20 text-center sm:px-4">
         <p className="text-slate-500">{error || "帖子不存在"}</p>
-        <Link href="/posts" className="mt-4 inline-block text-sm text-ink-600 underline">
+        <Link href="/posts" className="mt-4 inline-block text-sm text-purple-700 underline">
           返回动态
         </Link>
       </div>
@@ -196,7 +196,7 @@ export default function PostDetailPage() {
         <h1 className="text-base font-semibold text-[#111]">帖子详情</h1>
         {isAuthor ? (
           <div className="flex items-center gap-3">
-            <Link href={`/posts/${id}/edit`} className="text-sm text-slate-500 hover:text-ink-600">
+            <Link href={`/posts/${id}/edit`} className="text-sm text-slate-500 hover:text-purple-700">
               编辑
             </Link>
             <button type="button" onClick={handleDelete} className="text-sm text-slate-500 hover:text-rose-600">
@@ -209,7 +209,7 @@ export default function PostDetailPage() {
       </div>
 
       {/* Post card */}
-      <div className="rounded-[20px] bg-paper p-4 shadow-sm ring-1 ring-black/[0.04]">
+      <div className="rounded-[20px] bg-white p-4 shadow-sm ring-1 ring-black/[0.04]">
         {/* Author */}
         <div className="mb-3 flex items-center gap-2.5">
           <UserAvatar
@@ -271,13 +271,13 @@ export default function PostDetailPage() {
         {/* Comment input */}
         {user ? (
           <form onSubmit={handleSubmitComment} className="mb-4">
-            <div className="rounded-[16px] bg-paper p-3 shadow-sm ring-1 ring-black/[0.04]">
+            <div className="rounded-[16px] bg-white p-3 shadow-sm ring-1 ring-black/[0.04]">
               <textarea
                 value={commentText}
                 onChange={(e) => setCommentText(e.target.value)}
                 placeholder="写下你的评论…"
                 rows={3}
-                className="w-full resize-none rounded-lg border-0 bg-slate-50 p-3 text-sm text-[#111] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-hairline"
+                className="w-full resize-none rounded-lg border-0 bg-slate-50 p-3 text-sm text-[#111] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-200"
                 maxLength={2000}
               />
               <div className="mt-2 flex items-center justify-between">
@@ -287,7 +287,7 @@ export default function PostDetailPage() {
                   disabled={!commentText.trim() || submittingComment}
                   className={`rounded-full px-4 py-1.5 text-sm font-semibold transition active:scale-95 ${
                     commentText.trim() && !submittingComment
-                      ? "bg-gradient-to-r from-ink to-oxblood text-white shadow-lg shadow-ink/15"
+                      ? "bg-gradient-to-r from-[#BA68C8] to-[#FF80AB] text-white shadow-lg shadow-fuchsia-500/20"
                       : "bg-slate-100 text-slate-400"
                   }`}
                 >
@@ -297,11 +297,11 @@ export default function PostDetailPage() {
             </div>
           </form>
         ) : (
-          <div className="mb-4 rounded-[16px] bg-paper p-4 text-center shadow-sm ring-1 ring-black/[0.04]">
+          <div className="mb-4 rounded-[16px] bg-white p-4 text-center shadow-sm ring-1 ring-black/[0.04]">
             <p className="text-sm text-slate-500">登录后即可评论</p>
             <Link
               href="/login"
-              className="mt-2 inline-block rounded-full bg-gradient-to-r from-ink to-oxblood px-5 py-1.5 text-sm font-semibold text-white shadow-lg shadow-ink/15"
+              className="mt-2 inline-block rounded-full bg-gradient-to-r from-[#BA68C8] to-[#FF80AB] px-5 py-1.5 text-sm font-semibold text-white shadow-lg shadow-fuchsia-500/20"
             >
               去登录
             </Link>
@@ -321,15 +321,15 @@ export default function PostDetailPage() {
               key={comment.id}
               className={`rounded-[16px] p-3 shadow-sm ring-1 ${
                 comment.isAgentReply
-                  ? "bg-gradient-to-r from-paper-50/80 to-paper/60 ring-hairline/50"
-                  : "bg-paper ring-black/[0.04]"
+                  ? "bg-gradient-to-r from-purple-50/80 to-fuchsia-50/60 ring-purple-100"
+                  : "bg-white ring-black/[0.04]"
               }`}
             >
               <div className="mb-1 flex items-center gap-2">
                 {comment.isAgentReply && agentProfileId ? (
                   <Link
                     href={`/life-agents/${agentProfileId}`}
-                    className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full bg-paper-200/60 ring-1 ring-hairline/30 transition hover:ring-hairline/45"
+                    className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full bg-violet-100/60 ring-1 ring-purple-200/30 transition hover:ring-purple-300/45"
                     aria-label={`查看 ${comment.agentName || "Agent"} 的资料`}
                   >
                     <LifeAgentCoverImage
@@ -355,12 +355,12 @@ export default function PostDetailPage() {
                       agentProfileId ? (
                         <Link
                           href={`/life-agents/${agentProfileId}`}
-                          className="text-ink-700 transition hover:text-ink"
+                          className="text-purple-800 transition hover:text-purple-950"
                         >
                           {comment.agentName || "Agent"}
                         </Link>
                       ) : (
-                        <span className="text-ink-700">{comment.agentName || "Agent"}</span>
+                        <span className="text-purple-800">{comment.agentName || "Agent"}</span>
                       )
                     ) : (
                       comment.authorName
@@ -369,7 +369,7 @@ export default function PostDetailPage() {
                   <p className="text-xs text-slate-400">{timeAgo(comment.createdAt)}</p>
                 </div>
                 {comment.isAgentReply && (
-                  <span className="ml-auto rounded-full bg-paper-100 px-2 py-0.5 text-[10px] font-medium text-ink-600">
+                  <span className="ml-auto rounded-full bg-purple-100 px-2 py-0.5 text-[10px] font-medium text-purple-700">
                     Agent
                   </span>
                 )}

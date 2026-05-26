@@ -190,7 +190,7 @@ export default function DashboardPage() {
       transition={{ duration: 0.28 }}
       className="mx-auto max-w-5xl space-y-4 max-lg:-mx-4 max-lg:bg-[#f7f8fa] max-lg:px-3 max-lg:pb-24"
     >
-      <section className="overflow-hidden rounded-[28px] bg-white shadow-sm ring-1 ring-black/[0.04]">
+      <section className="overflow-hidden rounded-[28px] bg-paper shadow-sm ring-1 ring-black/[0.04]">
         <div className="bg-gradient-to-r from-amber-50 via-white to-sky-50 px-4 pb-4 pt-3 sm:px-6">
           <div className="flex items-start justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
@@ -228,7 +228,7 @@ export default function DashboardPage() {
       </section>
 
       {/* 原「我的收益」区块（含金额文案，审核期暂隐藏）
-      <section className="rounded-[28px] bg-white px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
+      <section className="rounded-[28px] bg-paper px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
         <div className="flex items-center justify-between">
           <div className="min-w-0">
             <h2 className="text-xl font-black tracking-tight text-[#111]">我的收益</h2>
@@ -242,19 +242,19 @@ export default function DashboardPage() {
         </div>
 
         <div className="mt-4 grid grid-cols-4 gap-2 rounded-[24px] bg-[#fafbfc] p-3 text-center">
-          <div className="rounded-2xl bg-white px-2 py-3 shadow-sm ring-1 ring-black/[0.03]">
+          <div className="rounded-2xl bg-paper px-2 py-3 shadow-sm ring-1 ring-black/[0.03]">
             <p className="text-lg font-black text-[#111]">{totals.purchasedProfiles}</p>
             <p className="mt-1 text-[11px] text-slate-500">已购咨询</p>
           </div>
-          <div className="rounded-2xl bg-white px-2 py-3 shadow-sm ring-1 ring-black/[0.03]">
+          <div className="rounded-2xl bg-paper px-2 py-3 shadow-sm ring-1 ring-black/[0.03]">
             <p className="text-lg font-black text-[#111]">{totals.soldPacks}</p>
             <p className="mt-1 text-[11px] text-slate-500">卖出次数</p>
           </div>
-          <div className="rounded-2xl bg-white px-2 py-3 shadow-sm ring-1 ring-black/[0.03]">
+          <div className="rounded-2xl bg-paper px-2 py-3 shadow-sm ring-1 ring-black/[0.03]">
             <p className="text-lg font-black text-[#111]">{totals.createdSessions}</p>
             <p className="mt-1 text-[11px] text-slate-500">服务会话</p>
           </div>
-          <div className="rounded-2xl bg-white px-2 py-3 shadow-sm ring-1 ring-black/[0.03]">
+          <div className="rounded-2xl bg-paper px-2 py-3 shadow-sm ring-1 ring-black/[0.03]">
             <p className="text-lg font-black text-[#111]">{formatYuan(totals.revenue)}</p>
             <p className="mt-1 text-[11px] text-slate-500">累计收入</p>
           </div>
@@ -262,7 +262,7 @@ export default function DashboardPage() {
       </section>
       */}
 
-      <section className="rounded-[28px] bg-white px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
+      <section className="rounded-[28px] bg-paper px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
         <div className="flex items-center justify-between">
           <div className="min-w-0">
             <h2 className="text-xl font-black tracking-tight text-[#111]">我的心智值</h2>
@@ -273,28 +273,28 @@ export default function DashboardPage() {
         </div>
 
         <div className="mt-4 grid grid-cols-4 gap-2 rounded-[24px] bg-[#fafbfc] p-3 text-center">
-          <div className="rounded-2xl bg-white px-2 py-3 shadow-sm ring-1 ring-black/[0.03]">
+          <div className="rounded-2xl bg-paper px-2 py-3 shadow-sm ring-1 ring-black/[0.03]">
             <p className="text-lg font-black text-[#111]">{totals.purchasedProfiles}</p>
             <p className="mt-1 text-[11px] text-slate-500">对话 Agent</p>
           </div>
-          <div className="rounded-2xl bg-white px-2 py-3 shadow-sm ring-1 ring-black/[0.03]">
+          <div className="rounded-2xl bg-paper px-2 py-3 shadow-sm ring-1 ring-black/[0.03]">
             <p className="text-lg font-black text-[#111]">{totals.soldPacks}</p>
             <p className="mt-1 text-[11px] text-slate-500">被提问</p>
           </div>
-          <div className="rounded-2xl bg-white px-2 py-3 shadow-sm ring-1 ring-black/[0.03]">
+          <div className="rounded-2xl bg-paper px-2 py-3 shadow-sm ring-1 ring-black/[0.03]">
             <p className="text-lg font-black text-[#111]">{totals.createdSessions}</p>
             <p className="mt-1 text-[11px] text-slate-500">累计对话</p>
           </div>
-          <div className="rounded-2xl bg-violet-50 px-2 py-3 text-center shadow-sm ring-1 ring-violet-200/60">
+          <div className="rounded-2xl bg-paper-50 px-2 py-3 text-center shadow-sm ring-1 ring-hairline/60">
             <div className="flex justify-center">
               <MindScoreBadge value={totals.totalMindScore} size="sm" prefix="" />
             </div>
-            <p className="mt-1.5 text-[11px] font-medium text-violet-800">心智值</p>
+            <p className="mt-1.5 text-[11px] font-medium text-ink-800">心智值</p>
           </div>
         </div>
       </section>
 
-      <section className="rounded-[28px] bg-white px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
+      <section className="rounded-[28px] bg-paper px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
         <div className="grid grid-cols-3 gap-3 text-center sm:grid-cols-5 sm:gap-2">
           {quickActions.map((item) => (
             <Link key={item.label} href={item.href} className="group block rounded-2xl px-1 py-2 active:scale-[0.99]">
@@ -321,7 +321,7 @@ export default function DashboardPage() {
           </div>
           <Link
             href={lifeAgentsCreated[0] ? `/dashboard/life-agents/${lifeAgentsCreated[0].id}` : "/life-agents/create"}
-            className="shrink-0 rounded-full bg-white px-4 py-2 text-sm font-semibold text-amber-700 shadow-sm active:scale-[0.98]"
+            className="shrink-0 rounded-full bg-paper px-4 py-2 text-sm font-semibold text-amber-700 shadow-sm active:scale-[0.98]"
           >
             去看看
           </Link>

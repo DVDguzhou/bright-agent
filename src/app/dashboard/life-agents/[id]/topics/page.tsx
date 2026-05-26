@@ -252,7 +252,7 @@ export default function LifeAgentTopicsPage() {
   };
 
   if (state.loading && state.topics.length === 0) {
-    return <div className="mx-auto h-56 max-w-5xl animate-pulse rounded-[28px] bg-white shadow-sm ring-1 ring-black/[0.04]" />;
+    return <div className="mx-auto h-56 max-w-5xl animate-pulse rounded-[28px] bg-paper shadow-sm ring-1 ring-black/[0.04]" />;
   }
 
   if (state.error && state.topics.length === 0) {
@@ -268,7 +268,7 @@ export default function LifeAgentTopicsPage() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-4 max-lg:-mx-4 max-lg:bg-[#f7f8fa] max-lg:px-3 max-lg:pb-24">
-      <header className="rounded-[28px] bg-white px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
+      <header className="rounded-[28px] bg-paper px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
         <Link href={`/dashboard/life-agents/${id}`} className="text-sm font-medium text-slate-500 transition hover:text-[#111]">
           ← 返回工作台
         </Link>
@@ -294,19 +294,19 @@ export default function LifeAgentTopicsPage() {
       </header>
 
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <div className="rounded-2xl bg-white px-3 py-4 text-center shadow-sm ring-1 ring-black/[0.04]">
+        <div className="rounded-2xl bg-paper px-3 py-4 text-center shadow-sm ring-1 ring-black/[0.04]">
           <p className="text-2xl font-black text-[#111]">{state.topics.length}</p>
           <p className="mt-1 text-xs text-slate-500">Topic 总数</p>
         </div>
-        <div className="rounded-2xl bg-white px-3 py-4 text-center shadow-sm ring-1 ring-black/[0.04]">
+        <div className="rounded-2xl bg-paper px-3 py-4 text-center shadow-sm ring-1 ring-black/[0.04]">
           <p className="text-2xl font-black text-[#111]">{state.topics.filter((topic) => topic.status === "candidate").length}</p>
           <p className="mt-1 text-xs text-slate-500">待审核</p>
         </div>
-        <div className="rounded-2xl bg-white px-3 py-4 text-center shadow-sm ring-1 ring-black/[0.04]">
+        <div className="rounded-2xl bg-paper px-3 py-4 text-center shadow-sm ring-1 ring-black/[0.04]">
           <p className="text-2xl font-black text-[#111]">{state.topics.filter((topic) => topic.status === "active").length}</p>
           <p className="mt-1 text-xs text-slate-500">已启用</p>
         </div>
-        <div className="rounded-2xl bg-white px-3 py-4 text-center shadow-sm ring-1 ring-black/[0.04]">
+        <div className="rounded-2xl bg-paper px-3 py-4 text-center shadow-sm ring-1 ring-black/[0.04]">
           <p className="text-2xl font-black text-[#111]">{state.topics.reduce((sum, topic) => sum + (topic.feedback?.total ?? 0), 0)}</p>
           <p className="mt-1 text-xs text-slate-500">关联反馈</p>
         </div>
@@ -314,7 +314,7 @@ export default function LifeAgentTopicsPage() {
 
       <section className="space-y-4">
         {filteredTopics.length === 0 ? (
-          <div className="rounded-[28px] bg-white px-6 py-16 text-center text-sm text-slate-400 shadow-sm ring-1 ring-black/[0.04]">
+          <div className="rounded-[28px] bg-paper px-6 py-16 text-center text-sm text-slate-400 shadow-sm ring-1 ring-black/[0.04]">
             {query.trim() ? (
               <>
                 <p>没有匹配的 Topic</p>
@@ -335,7 +335,7 @@ export default function LifeAgentTopicsPage() {
             const edit = edits[topic.id];
             if (!edit) return null;
             return (
-              <article key={topic.id} className="rounded-[28px] bg-white p-4 shadow-sm ring-1 ring-black/[0.04] sm:p-6">
+              <article key={topic.id} className="rounded-[28px] bg-paper p-4 shadow-sm ring-1 ring-black/[0.04] sm:p-6">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
@@ -375,7 +375,7 @@ export default function LifeAgentTopicsPage() {
                     <input
                       value={edit.topicLabel}
                       onChange={(e) => updateEdit(topic.id, { topicLabel: e.target.value })}
-                      className="mt-1 w-full rounded-2xl border-0 bg-slate-100 px-4 py-3 text-sm text-[#111] outline-none ring-1 ring-transparent focus:bg-white focus:ring-slate-200"
+                      className="mt-1 w-full rounded-2xl border-0 bg-slate-100 px-4 py-3 text-sm text-[#111] outline-none ring-1 ring-transparent focus:bg-paper focus:ring-slate-200"
                     />
                   </label>
                   <div className="grid grid-cols-2 gap-3">
@@ -391,7 +391,7 @@ export default function LifeAgentTopicsPage() {
                       <select
                         value={edit.status}
                         onChange={(e) => updateEdit(topic.id, { status: e.target.value })}
-                        className="mt-1 w-full rounded-2xl border-0 bg-slate-100 px-4 py-3 text-sm text-[#111] outline-none ring-1 ring-transparent focus:bg-white focus:ring-slate-200"
+                        className="mt-1 w-full rounded-2xl border-0 bg-slate-100 px-4 py-3 text-sm text-[#111] outline-none ring-1 ring-transparent focus:bg-paper focus:ring-slate-200"
                       >
                         <option value="candidate">candidate</option>
                         <option value="active">active</option>
@@ -410,7 +410,7 @@ export default function LifeAgentTopicsPage() {
                       <select
                         value={edit.confidence}
                         onChange={(e) => updateEdit(topic.id, { confidence: e.target.value })}
-                        className="mt-1 w-full rounded-2xl border-0 bg-slate-100 px-4 py-3 text-sm text-[#111] outline-none ring-1 ring-transparent focus:bg-white focus:ring-slate-200"
+                        className="mt-1 w-full rounded-2xl border-0 bg-slate-100 px-4 py-3 text-sm text-[#111] outline-none ring-1 ring-transparent focus:bg-paper focus:ring-slate-200"
                       >
                         <option value="low">low</option>
                         <option value="medium">medium</option>
@@ -426,7 +426,7 @@ export default function LifeAgentTopicsPage() {
                     value={edit.summary}
                     onChange={(e) => updateEdit(topic.id, { summary: e.target.value })}
                     rows={5}
-                    className="mt-1 w-full rounded-2xl border-0 bg-slate-100 px-4 py-3 text-sm leading-6 text-[#111] outline-none ring-1 ring-transparent focus:bg-white focus:ring-slate-200"
+                    className="mt-1 w-full rounded-2xl border-0 bg-slate-100 px-4 py-3 text-sm leading-6 text-[#111] outline-none ring-1 ring-transparent focus:bg-paper focus:ring-slate-200"
                   />
                 </label>
 
@@ -437,7 +437,7 @@ export default function LifeAgentTopicsPage() {
                       value={edit.aliases}
                       onChange={(e) => updateEdit(topic.id, { aliases: e.target.value })}
                       rows={4}
-                      className="mt-1 w-full rounded-2xl border-0 bg-slate-100 px-4 py-3 text-sm leading-6 text-[#111] outline-none ring-1 ring-transparent focus:bg-white focus:ring-slate-200"
+                      className="mt-1 w-full rounded-2xl border-0 bg-slate-100 px-4 py-3 text-sm leading-6 text-[#111] outline-none ring-1 ring-transparent focus:bg-paper focus:ring-slate-200"
                     />
                   </label>
                   <label className="block">
@@ -446,7 +446,7 @@ export default function LifeAgentTopicsPage() {
                       value={edit.questionPatterns}
                       onChange={(e) => updateEdit(topic.id, { questionPatterns: e.target.value })}
                       rows={4}
-                      className="mt-1 w-full rounded-2xl border-0 bg-slate-100 px-4 py-3 text-sm leading-6 text-[#111] outline-none ring-1 ring-transparent focus:bg-white focus:ring-slate-200"
+                      className="mt-1 w-full rounded-2xl border-0 bg-slate-100 px-4 py-3 text-sm leading-6 text-[#111] outline-none ring-1 ring-transparent focus:bg-paper focus:ring-slate-200"
                     />
                   </label>
                 </div>
@@ -463,7 +463,7 @@ export default function LifeAgentTopicsPage() {
                   <select
                     value={edit.mergeTargetId}
                     onChange={(e) => updateEdit(topic.id, { mergeTargetId: e.target.value })}
-                    className="rounded-full border-0 bg-slate-100 px-4 py-2.5 text-sm text-[#111] outline-none ring-1 ring-transparent focus:bg-white focus:ring-slate-200"
+                    className="rounded-full border-0 bg-slate-100 px-4 py-2.5 text-sm text-[#111] outline-none ring-1 ring-transparent focus:bg-paper focus:ring-slate-200"
                   >
                     <option value="">选择合并目标</option>
                     {mergeTargets
@@ -478,7 +478,7 @@ export default function LifeAgentTopicsPage() {
                     type="button"
                     onClick={() => void mergeTopic(topic.id)}
                     disabled={mergingId === topic.id}
-                    className="rounded-full border border-slate-200 bg-white px-5 py-2.5 text-sm font-medium text-slate-700 disabled:opacity-50"
+                    className="rounded-full border border-slate-200 bg-paper px-5 py-2.5 text-sm font-medium text-slate-700 disabled:opacity-50"
                   >
                     {mergingId === topic.id ? "归并中..." : "归并到目标"}
                   </button>

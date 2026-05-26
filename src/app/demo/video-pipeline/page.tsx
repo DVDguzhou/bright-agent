@@ -140,7 +140,7 @@ export default function VideoPipelineDemoPage() {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-3xl">
-      <h1 className="text-3xl font-bold bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text text-transparent mb-2">
+      <h1 className="text-3xl font-bold bg-gradient-to-r from-ink-400 to-oxblood-400 bg-clip-text text-transparent mb-2">
         视频流水线 Demo
       </h1>
       <p className="text-slate-500 mb-6">
@@ -192,8 +192,8 @@ export default function VideoPipelineDemoPage() {
             </div>
           )}
           {result.video && (
-            <div className="p-6 rounded-2xl glass-card border border-violet-500/20">
-              <h3 className="font-semibold text-violet-400 mb-2">Render（重算力）</h3>
+            <div className="p-6 rounded-2xl glass-card border border-hairline/20">
+              <h3 className="font-semibold text-ink-300 mb-2">Render（重算力）</h3>
               <p className="text-slate-300">Video URL: {result.video.video_url}</p>
               <p className="text-slate-500 text-sm mt-1">
                 模拟渲染耗时: {result.video.render_time_ms}ms

@@ -35,7 +35,7 @@ function formatYuanFromFen(fen: number) {
 
 function ApiKeysHeader({ onBack }: { onBack: () => void }) {
   return (
-    <header className="sticky top-0 z-20 border-b border-slate-200/80 bg-white/95 px-4 pb-3 pt-[max(0.35rem,env(safe-area-inset-top))] backdrop-blur-md sm:px-0">
+    <header className="sticky top-0 z-20 border-b border-slate-200/80 bg-paper/95 px-4 pb-3 pt-[max(0.35rem,env(safe-area-inset-top))] backdrop-blur-md sm:px-0">
       <div className="flex items-center justify-between gap-3">
         <button
           type="button"
@@ -212,7 +212,7 @@ export default function ApiKeysPage() {
 
   if (authLoading || !user) {
     return (
-      <div className="mx-auto max-w-2xl bg-white pb-6 max-lg:-mx-4 max-lg:min-h-[calc(100dvh-env(safe-area-inset-bottom)-4.25rem)] max-lg:pb-24 lg:pb-8">
+      <div className="mx-auto max-w-2xl bg-paper pb-6 max-lg:-mx-4 max-lg:min-h-[calc(100dvh-env(safe-area-inset-bottom)-4.25rem)] max-lg:pb-24 lg:pb-8">
         <ApiKeysHeader
           onBack={() => {
             if (window.history.length > 1) router.back();
@@ -239,7 +239,7 @@ export default function ApiKeysPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl bg-white pb-6 max-lg:-mx-4 max-lg:min-h-[calc(100dvh-env(safe-area-inset-bottom)-4.25rem)] max-lg:pb-24 lg:pb-8">
+    <div className="mx-auto max-w-2xl bg-paper pb-6 max-lg:-mx-4 max-lg:min-h-[calc(100dvh-env(safe-area-inset-bottom)-4.25rem)] max-lg:pb-24 lg:pb-8">
       <ApiKeysHeader
         onBack={() => {
           if (window.history.length > 1) router.back();
@@ -254,7 +254,7 @@ export default function ApiKeysPage() {
       </div>
 
       <div className="space-y-4 px-4 sm:px-0">
-      <section className="overflow-hidden rounded-[24px] bg-white shadow-sm ring-1 ring-black/[0.06]">
+      <section className="overflow-hidden rounded-[24px] bg-paper shadow-sm ring-1 ring-black/[0.06]">
         <div className="border-b border-slate-100 bg-gradient-to-r from-sky-50/80 via-white to-amber-50/50 px-5 py-4 sm:px-6">
           <h2 className="text-lg font-semibold text-slate-900">人生 Agent 调用 Key</h2>
           <p className="mt-0.5 text-xs text-slate-500">需先开启「开放 API」并上架后，第三方才可凭 Key 调用 JSON 接口。</p>
@@ -282,7 +282,7 @@ export default function ApiKeysPage() {
                     <button
                       type="button"
                       onClick={() => setOpenAgentId(expanded ? null : a.profileId)}
-                      className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition hover:bg-white/80 sm:px-5"
+                      className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition hover:bg-paper/80 sm:px-5"
                     >
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
@@ -309,7 +309,7 @@ export default function ApiKeysPage() {
                       <span className="shrink-0 text-slate-400">{expanded ? "▲" : "▼"}</span>
                     </button>
                     {expanded && (
-                      <div className="space-y-4 border-t border-slate-100 bg-white px-4 py-4 sm:px-5 sm:py-5">
+                      <div className="space-y-4 border-t border-slate-100 bg-paper px-4 py-4 sm:px-5 sm:py-5">
                         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                           <label className="flex cursor-pointer items-center gap-3">
                             <input
@@ -384,7 +384,7 @@ export default function ApiKeysPage() {
                           {newInvokeKey?.profileId === a.profileId && (
                             <div className="mb-3 rounded-xl border border-emerald-200 bg-emerald-50/90 p-3 text-sm">
                               <p className="font-medium text-emerald-900">已创建，请立即复制（仅显示一次）</p>
-                              <code className="mt-2 block break-all rounded-lg bg-white px-2 py-2 font-mono text-xs text-slate-900 ring-1 ring-emerald-100">
+                              <code className="mt-2 block break-all rounded-lg bg-paper px-2 py-2 font-mono text-xs text-slate-900 ring-1 ring-emerald-100">
                                 {newInvokeKey.key}
                               </code>
                               <button
@@ -399,7 +399,7 @@ export default function ApiKeysPage() {
                           {a.keys.length === 0 ? (
                             <p className="text-sm text-slate-500">暂无 Key。开启开放 API 后可创建。</p>
                           ) : (
-                            <ul className="divide-y divide-slate-100 rounded-xl border border-slate-100 bg-white">
+                            <ul className="divide-y divide-slate-100 rounded-xl border border-slate-100 bg-paper">
                               {a.keys.map((k) => (
                                 <li key={k.id} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2.5 text-sm">
                                   <div className="min-w-0">
@@ -431,7 +431,7 @@ export default function ApiKeysPage() {
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-[24px] bg-white shadow-sm ring-1 ring-black/[0.06]">
+      <section className="overflow-hidden rounded-[24px] bg-paper shadow-sm ring-1 ring-black/[0.06]">
         <div className="border-b border-slate-100 px-5 py-4 sm:px-6">
           <h2 className="text-lg font-semibold text-slate-900">平台 Key（方法二）</h2>
           <p className="mt-0.5 text-xs text-slate-500">
@@ -445,7 +445,7 @@ export default function ApiKeysPage() {
               value={platformName}
               onChange={(e) => setPlatformName(e.target.value)}
               placeholder="Key 名称（可选）"
-              className="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none ring-sky-500/30 focus:ring-2"
+              className="flex-1 rounded-xl border border-slate-200 bg-paper px-4 py-2.5 text-sm outline-none ring-sky-500/30 focus:ring-2"
             />
             <button
               type="submit"
@@ -458,7 +458,7 @@ export default function ApiKeysPage() {
           {newPlatformKey && (
             <div className="rounded-xl border border-emerald-200 bg-emerald-50/90 p-4 text-sm">
               <p className="font-medium text-emerald-900">请妥善保存（仅显示一次）</p>
-              <code className="mt-2 block break-all rounded-lg bg-white p-2 font-mono text-xs ring-1 ring-emerald-100">
+              <code className="mt-2 block break-all rounded-lg bg-paper p-2 font-mono text-xs ring-1 ring-emerald-100">
                 {newPlatformKey.key}
               </code>
               <button type="button" onClick={() => setNewPlatformKey(null)} className="mt-2 text-xs text-emerald-800 underline">
@@ -494,7 +494,7 @@ export default function ApiKeysPage() {
 
 function AgentPricingForm({ agent }: { agent: AgentApiRow }) {
   return (
-    <div className="rounded-xl border border-slate-100 bg-white p-4 ring-1 ring-black/[0.03]">
+    <div className="rounded-xl border border-slate-100 bg-paper p-4 ring-1 ring-black/[0.03]">
       {/* 原「对外收费策略」表单，审核期暂隐藏
       <h3 className="text-sm font-semibold text-slate-800">对外收费策略（公示单价，单位：分/次）</h3>
       <p className="mt-1 text-xs text-slate-500">

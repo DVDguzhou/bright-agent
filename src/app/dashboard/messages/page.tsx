@@ -158,7 +158,7 @@ export default function DashboardMessagesPage() {
                 >
                   <Link
                     href={profileHref}
-                    className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full bg-paper-200 ring-1 ring-ink/10 transition hover:ring-purple-300/40"
+                    className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full bg-paper-200 ring-1 ring-ink/10 transition hover:ring-hairline/40"
                     aria-label={`查看 ${item.profile.displayName} 的资料`}
                   >
                     <LifeAgentCoverImage

@@ -119,7 +119,7 @@ export default function LifeAgentsManagePage() {
   }
 
   return (
-    <div className="-mx-1 space-y-4 pb-4 max-lg:-mx-4 max-lg:min-h-[calc(100dvh-env(safe-area-inset-bottom)-4.25rem)] max-lg:bg-white max-lg:px-1 max-lg:pb-24 sm:mx-0 sm:space-y-5">
+    <div className="-mx-1 space-y-4 pb-4 max-lg:-mx-4 max-lg:min-h-[calc(100dvh-env(safe-area-inset-bottom)-4.25rem)] max-lg:bg-paper max-lg:px-1 max-lg:pb-24 sm:mx-0 sm:space-y-5">
       <header className="flex items-center justify-between gap-3 px-4 pb-1 pt-[max(0.25rem,env(safe-area-inset-top))] sm:px-4">
         <h1 className="text-[26px] font-bold leading-tight tracking-tight text-[#111]">我的人生 Agent</h1>
         {!loading && profiles.length === 0 ? (
@@ -157,7 +157,7 @@ export default function LifeAgentsManagePage() {
             windowed={false}
           />
         ) : profiles.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-slate-200 bg-white px-6 py-12 text-center">
+          <div className="rounded-2xl border border-dashed border-slate-200 bg-paper px-6 py-12 text-center">
             <p className="text-base font-semibold text-slate-900">还没有人生 Agent</p>
             <p className="mt-2 text-sm text-slate-500">创建第一个，开始分享你的经验并接受咨询。</p>
             <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
@@ -169,7 +169,7 @@ export default function LifeAgentsManagePage() {
               </Link>
               <Link
                 href="/life-agents"
-                className="inline-flex rounded-full border border-slate-200 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 active:bg-slate-50"
+                className="inline-flex rounded-full border border-slate-200 bg-paper px-6 py-2.5 text-sm font-semibold text-slate-700 active:bg-slate-50"
               >
                 逛发现页
               </Link>

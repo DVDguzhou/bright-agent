@@ -84,13 +84,13 @@ const config: Config = {
       },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
-        "gradient-mesh": "linear-gradient(to right, rgb(6 182 212 / 0.05), transparent 50%), linear-gradient(to bottom, rgb(16 185 129 / 0.05), transparent 50%)",
+        "gradient-mesh": "linear-gradient(to right, rgb(122 31 31 / 0.03), transparent 50%), linear-gradient(to bottom, rgb(26 23 20 / 0.03), transparent 50%)",
       },
       boxShadow: {
-        "glow-sm": "0 0 15px -3px rgb(6 182 212 / 0.3), 0 0 30px -5px rgb(16 185 129 / 0.2)",
-        "glow": "0 0 40px -10px rgb(6 182 212 / 0.4), 0 0 80px -20px rgb(16 185 129 / 0.3)",
-        "glow-lg": "0 0 60px -15px rgb(6 182 212 / 0.5)",
-        "inner-glow": "inset 0 0 60px -20px rgb(6 182 212 / 0.1)",
+        "glow-sm": "0 0 15px -3px rgb(122 31 31 / 0.15), 0 0 30px -5px rgb(26 23 20 / 0.08)",
+        "glow": "0 0 40px -10px rgb(122 31 31 / 0.2), 0 0 80px -20px rgb(26 23 20 / 0.1)",
+        "glow-lg": "0 0 60px -15px rgb(122 31 31 / 0.25)",
+        "inner-glow": "inset 0 0 60px -20px rgb(122 31 31 / 0.06)",
       },
       transitionDuration: {
         "400": "400ms",

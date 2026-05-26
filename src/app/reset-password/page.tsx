@@ -96,7 +96,7 @@ function ResetPasswordContent() {
       </h1>
       <p className="text-slate-500 mb-6">请输入新密码完成重置。</p>
 
-      <form onSubmit={submit} className="space-y-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+      <form onSubmit={submit} className="space-y-5 rounded-3xl border border-slate-200 bg-paper p-6 shadow-sm">
         <label className="block text-sm font-medium text-slate-700">新密码（8–72 位）</label>
         <input
           type="password"

@@ -69,7 +69,7 @@ function createUserLocationIcon() {
   });
 }
 
-/* ── Cluster pin (same shape, purple body, white badge with count) ── */
+/* ── Cluster pin (same shape, oxblood body, white badge with count) ── */
 
 function avatarStackClusterIcon(cluster: L.MarkerCluster) {
   const count = cluster.getChildCount();
@@ -81,12 +81,12 @@ function avatarStackClusterIcon(cluster: L.MarkerCluster) {
   const fs = count > 99 ? 11 : count > 9 ? 13 : 14;
   return L.divIcon({
     className: "life-agent-map-cluster",
-    html: `<div style="width:${w}px;height:${h}px;filter:drop-shadow(0 3px 8px rgba(124,58,237,.5));position:relative">`
-      + `<div style="width:${dia}px;height:${dia}px;border-radius:50%;background:#7c3aed;display:flex;align-items:center;justify-content:center">`
+    html: `<div style="width:${w}px;height:${h}px;filter:drop-shadow(0 3px 8px rgba(122,31,31,.4));position:relative">`
+      + `<div style="width:${dia}px;height:${dia}px;border-radius:50%;background:#7a1f1f;display:flex;align-items:center;justify-content:center">`
       + `<div style="width:${dia - 8}px;height:${dia - 8}px;border-radius:50%;background:rgba(255,255,255,.94);display:flex;align-items:center;justify-content:center">`
-      + `<span style="color:#7c3aed;font-size:${fs}px;font-weight:700;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;line-height:1">${label}</span>`
+      + `<span style="color:#7a1f1f;font-size:${fs}px;font-weight:700;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;line-height:1">${label}</span>`
       + `</div></div>`
-      + `<div style="width:0;height:0;border-left:${tip * 0.55}px solid transparent;border-right:${tip * 0.55}px solid transparent;border-top:${tip}px solid #7c3aed;position:absolute;bottom:0;left:50%;transform:translateX(-50%)"></div>`
+      + `<div style="width:0;height:0;border-left:${tip * 0.55}px solid transparent;border-right:${tip * 0.55}px solid transparent;border-top:${tip}px solid #7a1f1f;position:absolute;bottom:0;left:50%;transform:translateX(-50%)"></div>`
       + `</div>`,
     iconSize: [w, h],
     iconAnchor: [w / 2, h],
@@ -213,7 +213,7 @@ function MapLegend() {
   return (
     <div className="pointer-events-none absolute bottom-3 left-3 z-[400]">
       {open ? (
-        <div className="pointer-events-auto max-h-[45dvh] w-52 overflow-y-auto rounded-2xl bg-white/92 p-3 shadow-[0_12px_30px_-16px_rgba(15,23,42,.55)] ring-1 ring-white/80 backdrop-blur-md">
+        <div className="pointer-events-auto max-h-[45dvh] w-52 overflow-y-auto rounded-2xl bg-paper/92 p-3 shadow-[0_12px_30px_-16px_rgba(15,23,42,.55)] ring-1 ring-paper/80 backdrop-blur-md">
           <div className="mb-2 flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-600">分类图例</span>
             <button
@@ -237,7 +237,7 @@ function MapLegend() {
       ) : (
         <button
           type="button"
-          className="pointer-events-auto flex h-9 w-9 items-center justify-center rounded-xl bg-white/90 text-slate-500 shadow-[0_8px_20px_-10px_rgba(15,23,42,.45)] ring-1 ring-white/80 backdrop-blur-md transition hover:text-slate-700 active:scale-95"
+          className="pointer-events-auto flex h-9 w-9 items-center justify-center rounded-xl bg-paper/90 text-slate-500 shadow-[0_8px_20px_-10px_rgba(15,23,42,.45)] ring-1 ring-paper/80 backdrop-blur-md transition hover:text-slate-700 active:scale-95"
           onClick={() => setOpen(true)}
           aria-label="显示图例"
           title="分类图例"
@@ -295,7 +295,7 @@ export default function LifeAgentsMapView({
 
   return (
     <div
-      className={`relative overflow-hidden bg-gradient-to-br from-sky-100 via-violet-50 to-fuchsia-100 ${ring} [&_.leaflet-container]:!font-sans [&_.leaflet-control-scale-line]:!rounded-full [&_.leaflet-control-scale-line]:!border-0 [&_.leaflet-control-scale-line]:!bg-white/80 [&_.leaflet-control-scale-line]:!px-2 [&_.leaflet-control-scale-line]:!text-[10px] [&_.leaflet-control-scale-line]:!text-slate-500 [&_.life-agent-map-pin]:!border-0 [&_.life-agent-map-pin]:!bg-transparent [&_.life-agent-map-cluster]:!border-0 [&_.life-agent-map-cluster]:!bg-transparent [&_.life-agent-map-user-loc]:!border-0 [&_.life-agent-map-user-loc]:!bg-transparent [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!rounded-[24px] [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!bg-white/95 [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!p-3 [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!shadow-[0_24px_60px_-24px_rgba(15,23,42,.45)] [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!ring-1 [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!ring-white/80 [&_.life-agent-map-popup_.leaflet-popup-tip]:!bg-white/95 [&_.life-agent-map-popup_.leaflet-popup-tip]:!shadow-lg ${className}`}
+      className={`relative overflow-hidden bg-gradient-to-br from-sky-100 via-paper-50 to-paper-100 ${ring} [&_.leaflet-container]:!font-sans [&_.leaflet-control-scale-line]:!rounded-full [&_.leaflet-control-scale-line]:!border-0 [&_.leaflet-control-scale-line]:!bg-paper/80 [&_.leaflet-control-scale-line]:!px-2 [&_.leaflet-control-scale-line]:!text-[10px] [&_.leaflet-control-scale-line]:!text-slate-500 [&_.life-agent-map-pin]:!border-0 [&_.life-agent-map-pin]:!bg-transparent [&_.life-agent-map-cluster]:!border-0 [&_.life-agent-map-cluster]:!bg-transparent [&_.life-agent-map-user-loc]:!border-0 [&_.life-agent-map-user-loc]:!bg-transparent [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!rounded-[24px] [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!bg-paper/95 [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!p-3 [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!shadow-[0_24px_60px_-24px_rgba(15,23,42,.45)] [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!ring-1 [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!ring-paper/80 [&_.life-agent-map-popup_.leaflet-popup-tip]:!bg-paper/95 [&_.life-agent-map-popup_.leaflet-popup-tip]:!shadow-lg ${className}`}
       style={rounded ? { minHeight: "min(62dvh, 520px)" } : { minHeight: "100%" }}
     >
       <MapContainer
@@ -340,7 +340,7 @@ export default function LifeAgentsMapView({
           {showLocateButton ? (
             <button
               type="button"
-              className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/90 text-[#7c3aed] shadow-[0_12px_30px_-16px_rgba(15,23,42,.55)] ring-1 ring-white/80 backdrop-blur-md transition active:scale-95 active:bg-white"
+              className="flex h-11 w-11 items-center justify-center rounded-2xl bg-paper/90 text-ink-600 shadow-[0_12px_30px_-16px_rgba(15,23,42,.55)] ring-1 ring-paper/80 backdrop-blur-md transition active:scale-95 active:bg-paper"
               aria-label="位置与绑定 Agent"
               title="位置与绑定 Agent"
               onClick={() => onLocatePress?.()}
@@ -354,7 +354,7 @@ export default function LifeAgentsMapView({
           {onExploreArea ? (
             <button
               type="button"
-              className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/90 text-[#7c3aed] shadow-[0_12px_30px_-16px_rgba(15,23,42,.55)] ring-1 ring-white/80 backdrop-blur-md transition active:scale-95 active:bg-white"
+              className="flex h-11 w-11 items-center justify-center rounded-2xl bg-paper/90 text-ink-600 shadow-[0_12px_30px_-16px_rgba(15,23,42,.55)] ring-1 ring-paper/80 backdrop-blur-md transition active:scale-95 active:bg-paper"
               aria-label="探索此区域"
               title="探索此区域"
               onClick={() => {

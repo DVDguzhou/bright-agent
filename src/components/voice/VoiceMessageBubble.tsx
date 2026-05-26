@@ -151,7 +151,7 @@ export function VoiceMessageBubble({
       />
       <span
         className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
-          isFromUser ? "bg-white/18" : "bg-white/72"
+          isFromUser ? "bg-paper/18" : "bg-paper/72"
         }`}
         aria-hidden
       >
@@ -198,7 +198,7 @@ export function VoiceMessageBubble({
               <div
                 key={i}
                 className={`w-0.5 shrink-0 rounded-full transition-all ${
-                  isFromUser ? "bg-white/70" : "bg-violet-500/55"
+                  isFromUser ? "bg-paper/70" : "bg-paper-500/55"
                 } ${isPlaying && (i / barCount) * 100 < progress ? "opacity-100" : "opacity-40"}`}
                 style={{ height: `${10 + h * 14}px` }}
               />
@@ -222,8 +222,8 @@ export function VoiceMessageLoadingBubble({
     <div
       className={`inline-flex max-w-full items-center gap-3 rounded-[20px] px-3 py-2.5 text-left text-slate-800 ${CHAT_GLASS_PANEL_CLASSNAME} ${className}`}
     >
-      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/72" aria-hidden>
-        <span className="h-4 w-4 rounded-full border-2 border-violet-300/40 border-t-violet-500 animate-spin" />
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-paper/72" aria-hidden>
+        <span className="h-4 w-4 rounded-full border-2 border-hairline/40 border-t-ink animate-spin" />
       </span>
       <div className="min-w-0 flex-1">
         <p className="text-sm font-medium">{label}</p>
