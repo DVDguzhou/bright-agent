@@ -352,36 +352,6 @@ export default function LifeAgentDetailPage() {
           <p className="mt-2 text-sm leading-7 text-ink-500">{ci.audience}</p>
         </div>
 
-        {/* --- 认证事实 --- */}
-        {(() => {
-          const confirmed = (profile.structuredFacts ?? []).filter(
-            (f) => f.status === "confirmed" && f.confidence === "high",
-          );
-          if (confirmed.length === 0) return null;
-          const factLabels: Record<string, string> = {
-            school: "学校", education: "学历", job: "职业", city: "城市",
-            income: "收入", company: "公司", major: "专业", event_name: "经历",
-          };
-          return (
-            <div className="-mx-4 bg-paper/[0.98] px-4 py-4 backdrop-blur-sm sm:-mx-6 sm:px-6">
-              <h2 className="text-sm font-semibold text-ink">已认证信息</h2>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {confirmed.map((f) => (
-                  <span
-                    key={f.id}
-                    className="inline-flex items-center gap-1 rounded-lg bg-olive-400/10 px-2.5 py-1 text-xs font-medium text-olive-600"
-                  >
-                    <svg className="h-3.5 w-3.5 text-olive-500" fill="currentColor" viewBox="0 0 20 20" aria-hidden>
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                    {factLabels[f.factKey] ?? f.factKey}：{f.factValue}
-                  </span>
-                ))}
-              </div>
-            </div>
-          );
-        })()}
-
         {/* --- 经验覆盖 --- */}
         {(() => {
           const activeTopics = (profile.topicSummaries ?? []).filter((t) => t.status === "active");
