@@ -322,7 +322,7 @@ export default function LifeAgentManageHomePage() {
           <StatCard
             label="心智值"
             value={(data.mindScore?.total ?? data.stats.mindScore ?? 0).toLocaleString("zh-CN")}
-            sub={data.mindScore?.levelLabel ?? `Lv.${data.stats.mindScoreLevel ?? 1}`}
+            sub="无上限"
             href={`/dashboard/life-agents/${id}/co-edit`}
           />
         </div>

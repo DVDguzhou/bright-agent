@@ -1329,6 +1329,7 @@ func LifeAgentsGet(cfg *config.Config) gin.HandlerFunc {
 		db.DB.Model(&models.LifeAgentChatSession{}).Where("profile_id = ?", id).Count(&sessCount)
 		db.DB.Model(&models.LifeAgentQuestionPack{}).Where("profile_id = ?", id).Count(&qpCount)
 		ratingsSummary := buildLifeAgentRatingsSummary(id, 5)
+		mindScore := lifeagent.ComputeMindScore(loadMindScoreInput(id, &p, cfg))
 
 		cu := lifeAgentCoverURL(&p)
 		c.JSON(http.StatusOK, gin.H{
@@ -1369,7 +1370,10 @@ func LifeAgentsGet(cfg *config.Config) gin.HandlerFunc {
 				"soldQuestionPacks": qpCount,
 				"knowledgeCount":    len(entries),
 				"topicCount":        len(topics),
+				"mindScore":         mindScore.Total,
+				"mindScoreLevel":    mindScore.Level,
 			},
+			"mindScore":      mindScoreToJSON(mindScore, nil),
 			"ratings":        ratingsSummary,
 			"hasVoiceClone":  cfg.VoiceReplyConfigured(ptrStr(p.VoiceCloneID)),
 			"coverImageUrl":  ptrStr(p.CoverImageURL),

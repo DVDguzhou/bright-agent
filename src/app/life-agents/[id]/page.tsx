@@ -71,6 +71,13 @@ type DetailData = {
     soldQuestionPacks: number;
     knowledgeCount: number;
     topicCount?: number;
+    mindScore?: number;
+    mindScoreLevel?: number;
+  };
+  mindScore?: {
+    total: number;
+    level: number;
+    levelLabel: string;
   };
   ratings?: {
     averageScore: number;
@@ -274,7 +281,11 @@ export default function LifeAgentDetailPage() {
 
           <div className="mt-4 flex items-center gap-4 border-t border-purple-100/60 pt-3 text-xs text-slate-400">
             <span>{profile.stats.sessionCount} 场聊天</span>
-            <span>{profile.stats.knowledgeCount} 条知识</span>
+            {typeof (profile.mindScore?.total ?? profile.stats.mindScore) === "number" ? (
+              <span className="font-medium text-purple-700">
+                心智 {(profile.mindScore?.total ?? profile.stats.mindScore ?? 0).toLocaleString("zh-CN")}
+              </span>
+            ) : null}
           </div>
         </div>
 

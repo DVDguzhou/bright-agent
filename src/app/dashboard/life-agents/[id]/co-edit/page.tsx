@@ -928,9 +928,7 @@ export default function LifeAgentCoEditPage() {
                     <p className="text-[11px] font-medium text-purple-700/70">心智值</p>
                     <p className="mt-0.5 text-xl font-black text-purple-950">
                       {mindScore.total.toLocaleString("zh-CN")}
-                      <span className="ml-2 text-sm font-semibold text-purple-700">Lv.{mindScore.level}</span>
                     </p>
-                    <p className="text-[11px] text-slate-500">{mindScore.levelLabel}</p>
                   </div>
                   {scoreFlash != null && scoreFlash > 0 ? (
                     <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-sm font-bold text-emerald-700">
