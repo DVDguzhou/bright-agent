@@ -284,16 +284,36 @@ export default function LifeAgentCoEditPage() {
     setBanner(null);
     setChatHistory([...userHistory, { role: "assistant", content: "" }]);
 
-    const replaceAssistantMessage = (text: string) => {
+    const finalizeAssistant = (fallback: string) => {
       setChatHistory((prev) => {
-        const trimmed =
-          prev.length > 0 &&
-          prev[prev.length - 1].role === "assistant" &&
-          prev[prev.length - 1].content === ""
-            ? prev.slice(0, -1)
-            : prev;
-        return [...trimmed, { role: "assistant" as const, content: text }];
+        if (prev.length === 0) return prev;
+        const last = prev[prev.length - 1];
+        if (last.role !== "assistant") {
+          return [...prev, { role: "assistant" as const, content: fallback }];
+        }
+        if (last.content.trim()) return prev;
+        return [...prev.slice(0, -1), { role: "assistant" as const, content: fallback }];
       });
+    };
+
+    const showStreamingFailure = (reason: string, streamed: string) => {
+      const detail = reason.trim();
+      const note = detail
+        ? `（本轮修改未保存：${detail}。可换种说法重试。）`
+        : "（本轮修改未保存，请稍后再试。）";
+      setChatHistory((prev) => {
+        if (prev.length === 0) return prev;
+        const last = prev[prev.length - 1];
+        if (last.role !== "assistant") {
+          return [...prev, { role: "assistant" as const, content: streamed ? `${streamed}\n\n${note}` : note }];
+        }
+        const base = last.content.trim() || streamed;
+        return [
+          ...prev.slice(0, -1),
+          { role: "assistant" as const, content: base ? `${base}\n\n${note}` : note },
+        ];
+      });
+      setBanner(detail ? `修改失败：${detail}` : "修改失败，请稍后再试");
     };
 
     try {
@@ -310,10 +330,13 @@ export default function LifeAgentCoEditPage() {
       const ct = res.headers.get("content-type") || "";
 
       if (!res.ok) {
-        const errBody = (await res.json().catch(() => null)) as { detail?: string } | null;
-        replaceAssistantMessage(
-          typeof errBody?.detail === "string" ? errBody.detail : "修改失败，请重试"
-        );
+        const errBody = (await res.json().catch(() => null)) as { detail?: string; error?: string } | null;
+        const detail =
+          (typeof errBody?.detail === "string" && errBody.detail) ||
+          (typeof errBody?.error === "string" && errBody.error) ||
+          `HTTP ${res.status}`;
+        console.error("[co-edit] modify request failed", { status: res.status, body: errBody });
+        showStreamingFailure(detail, "");
         return;
       }
 
@@ -321,6 +344,8 @@ export default function LifeAgentCoEditPage() {
         const reader = res.body.getReader();
         const decoder = new TextDecoder();
         let buffer = "";
+        let streamedContent = "";
+        let sseError = "";
         let donePayload: {
           assistantMessage?: string;
           profile?: ManageProfile;
@@ -346,11 +371,17 @@ export default function LifeAgentCoEditPage() {
             try {
               const parsed = JSON.parse(eventData) as Record<string, unknown>;
               if (eventType === "content" && typeof parsed.content === "string") {
+                streamedContent += parsed.content;
                 setChatHistory((prev) =>
                   prev.map((row, i) =>
                     i === assistantRowIndex ? { ...row, content: row.content + parsed.content } : row
                   )
                 );
+              } else if (eventType === "error") {
+                sseError =
+                  (typeof parsed.detail === "string" && parsed.detail) ||
+                  (typeof parsed.message === "string" && parsed.message) ||
+                  "AI 暂时未响应";
               } else if (eventType === "done") {
                 donePayload = parsed as {
                   assistantMessage?: string;
@@ -359,15 +390,20 @@ export default function LifeAgentCoEditPage() {
                   nextSuggestion?: NextSuggestion | null;
                 };
               }
-            } catch {
-              // ignore malformed SSE
+            } catch (parseErr) {
+              console.warn("[co-edit] malformed SSE part", parseErr, part);
             }
           }
         }
 
         const next = donePayload;
         if (!next?.profile) {
-          replaceAssistantMessage("修改失败，请重试");
+          console.error("[co-edit] SSE finished without profile", {
+            sseError,
+            streamedContent,
+            donePayload,
+          });
+          showStreamingFailure(sseError || "AI 暂时未响应", streamedContent);
           return;
         }
         const summary = summarizeProfileChanges(previousProfile, next.profile);
@@ -402,7 +438,8 @@ export default function LifeAgentCoEditPage() {
         detail?: string;
       } | null;
       if (!next?.profile) {
-        replaceAssistantMessage(next?.detail || "修改失败，请重试");
+        console.error("[co-edit] non-SSE response missing profile", next);
+        showStreamingFailure(next?.detail || "服务器未返回最新资料", "");
         return;
       }
       const summary = summarizeProfileChanges(previousProfile, next.profile);
@@ -420,8 +457,10 @@ export default function LifeAgentCoEditPage() {
       });
       setData((prev) => (prev ? { ...prev, profile: mergeManageProfile(prev.profile, profileAfter) } : prev));
       applyMindScoreUpdate(next, setMindScore, setNextSuggestion, setScoreFlash);
-    } catch {
-      replaceAssistantMessage("请求失败，请检查网络后重试");
+    } catch (err) {
+      console.error("[co-edit] modify request threw", err);
+      finalizeAssistant("请求失败，请检查网络后重试");
+      setBanner("请求失败，请检查网络后重试");
     } finally {
       setModifyLoading(false);
     }

@@ -1769,10 +1769,21 @@ func LifeAgentsModifyViaChat(cfg *config.Config) gin.HandlerFunc {
 			state, body.ChatHistory, body.Message,
 		)
 		if err != nil {
+			log.Printf("life-agents modify: LLM error profile=%s user=%s: %v", id, user.ID, err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "LLM_ERROR", "detail": err.Error()})
 			return
 		}
-		reply := intent.Reply
+		if intent == nil {
+			intent = &lifeagent.ModifyIntent{}
+		}
+		reply := strings.TrimSpace(intent.Reply)
+		if reply == "" {
+			if intent.Changes != nil {
+				reply = "好的，我按你的意思更新了。"
+			} else {
+				reply = "好的，我先记下来了。"
+			}
+		}
 
 		c.Header("Content-Type", "text/event-stream")
 		c.Header("Cache-Control", "no-cache")
@@ -1785,6 +1796,13 @@ func LifeAgentsModifyViaChat(cfg *config.Config) gin.HandlerFunc {
 			fmt.Fprintf(c.Writer, "event: %s\ndata: %s\n\n", eventType, data)
 			c.Writer.Flush()
 		}
+
+		defer func() {
+			if r := recover(); r != nil {
+				log.Printf("life-agents modify: panic profile=%s user=%s: %v", id, user.ID, r)
+				writeModifySSE("error", gin.H{"detail": "服务器内部错误，请稍后再试"})
+			}
+		}()
 
 		lifeagent.EmitReplyChunks(reply, func(chunk string) {
 			writeModifySSE("content", gin.H{"content": chunk})
