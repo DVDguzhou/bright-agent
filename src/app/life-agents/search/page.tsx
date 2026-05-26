@@ -1,7 +1,6 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { MutableRefObject } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { VoiceInputButton } from "@/components/voice";
 import { LifeAgentDiscoverCardGrid } from "@/components/LifeAgentDiscoverCardGrid";
@@ -28,21 +27,19 @@ function speechRecognitionSupported() {
   );
 }
 
-/** 顶栏：返回 + 胶囊输入（含图搜）+「搜索」，对齐小红书搜索页 */
+/** 顶栏：返回 + 搜索输入 +「Search」 */
 function SearchTopBar({
   draft,
   onDraftChange,
   onSearch,
   onBack,
   autoFocus,
-  fileInputRef,
 }: {
   draft: string;
   onDraftChange: (v: string) => void;
   onSearch: () => void;
   onBack: () => void;
   autoFocus?: boolean;
-  fileInputRef: MutableRefObject<HTMLInputElement | null>;
 }) {
   return (
     <header className="max-lg:sticky max-lg:top-0 max-lg:z-[60] border-b border-hairline bg-paper pt-[max(0.25rem,env(safe-area-inset-top))]">
@@ -60,7 +57,7 @@ function SearchTopBar({
         {/* 单边底线输入框：杂志风搜索条 */}
         <div className="relative flex min-w-0 flex-1 items-center border-b border-ink/40 focus-within:border-ink">
           <input
-            className="min-w-0 flex-1 border-0 bg-transparent py-2 pr-9 font-serif text-[17px] italic text-ink outline-none placeholder:text-ink-300 placeholder:italic"
+            className="min-w-0 flex-1 border-0 bg-transparent py-2 font-serif text-[17px] italic text-ink outline-none placeholder:text-ink-300 placeholder:italic"
             value={draft}
             onChange={(e) => onDraftChange(e.target.value)}
             onKeyDown={(e) => {
@@ -73,22 +70,6 @@ function SearchTopBar({
             enterKeyHint="search"
             autoFocus={autoFocus}
           />
-          <input ref={fileInputRef} type="file" accept="image/*" className="hidden" tabIndex={-1} aria-hidden />
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="absolute right-0 flex h-8 w-8 items-center justify-center text-ink-300 transition hover:text-ink"
-            aria-label="图搜"
-            title="图搜（即将上线）"
-          >
-            <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.4} viewBox="0 0 24 24" aria-hidden>
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-              />
-            </svg>
-          </button>
         </div>
         <button
           type="button"
@@ -104,7 +85,6 @@ function SearchTopBar({
 
 function SearchResultsView({ query }: { query: string }) {
   const router = useRouter();
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [draft, setDraft] = useState(query);
   const [profiles, setProfiles] = useState<LifeAgentListItem[]>([]);
   const [nextCursor, setNextCursor] = useState<string>("");
@@ -214,7 +194,6 @@ function SearchResultsView({ query }: { query: string }) {
         onDraftChange={setDraft}
         onSearch={() => runSearch(draft)}
         onBack={goBack}
-        fileInputRef={fileInputRef}
       />
       <div className="min-h-0 flex-1 pb-28 pt-4 max-lg:px-4 sm:mx-auto sm:max-w-7xl sm:px-4">
         {/* 状态行：栏目 kicker 风格 */}
@@ -262,7 +241,6 @@ function SearchEntryView() {
   const [history, setHistory] = useState<string[]>([]);
   const [historyExpanded, setHistoryExpanded] = useState(false);
   const [voiceOk, setVoiceOk] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setVoiceOk(speechRecognitionSupported());
@@ -309,7 +287,6 @@ function SearchEntryView() {
         onSearch={() => runSearch(draft)}
         onBack={goBack}
         autoFocus
-        fileInputRef={fileInputRef}
       />
       <div className="mx-auto w-full flex-1 px-4 sm:max-w-lg sm:px-3 lg:px-4">
         {/* 历史记录 */}

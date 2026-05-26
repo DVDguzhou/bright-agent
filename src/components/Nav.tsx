@@ -150,7 +150,6 @@ function FloatingVoiceCoachFab({ agent }: { agent: BoundLifeAgent }) {
 
   const isRecording = recStatus === "recording";
   const isActive = isRecording || isTranscribing;
-  const helperText = draftText ? "已保存语音草稿，可继续补充" : "长按调教";
 
   useEffect(() => {
     try {
@@ -421,10 +420,10 @@ function FloatingVoiceCoachFab({ agent }: { agent: BoundLifeAgent }) {
             可在此修改文字、继续长按补充，或点「进入调教」发送。
           </p>
         </div>
-      ) : !isActive && (submitHint || recError || helperText) ? (
+      ) : !isActive && (submitHint || recError) ? (
         <div className="pointer-events-none fixed bottom-[calc(env(safe-area-inset-bottom)+5.9rem)] left-1/2 z-[60] -translate-x-1/2 lg:hidden">
           <div className="border border-hairline bg-paper-50 px-2.5 py-1 font-serif text-[10px] italic text-ink-500">
-            {submitHint || recError || helperText}
+            {submitHint || recError}
           </div>
         </div>
       ) : null}
