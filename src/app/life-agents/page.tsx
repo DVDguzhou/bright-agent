@@ -811,6 +811,7 @@ function LifeAgentsPageContent() {
                 hasMoreFromServer={!!discoverNextCursor}
                 loadingMore={discoverLoadingMore}
                 virtualized={false}
+                showMindScoreInfo
               />
             </section>
             {showPurchaseUi ? (
@@ -854,6 +855,7 @@ function LifeAgentsPageContent() {
               onLoadMore={feedTab !== "favorites" && feedTab !== "purchased" ? loadMoreDiscover : undefined}
               hasMoreFromServer={feedTab !== "favorites" && feedTab !== "purchased" && !!discoverNextCursor}
               loadingMore={discoverLoadingMore}
+              showMindScoreInfo={feedTab !== "favorites" && feedTab !== "purchased"}
             />
           )}
         </section>

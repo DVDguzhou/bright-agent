@@ -9,6 +9,7 @@ import type { LifeAgentListItem } from "@/lib/life-agent-feed-search";
 import { cleanLifeAgentIntroText } from "@/lib/life-agent-intro-clean";
 import { lifeAgentShowsPurchaseUi } from "@/lib/life-agent-commerce";
 import { useWindowedSlice } from "@/lib/use-windowed-slice";
+import { MindScoreInfoButton } from "@/components/MindScoreInfoButton";
 
 const anonymous = "佚";
 
@@ -64,11 +65,13 @@ function LifeAgentDiscoverCard({
   profile,
   globalIndex,
   profileHref,
+  showMindScoreInfo = false,
 }: {
   profile: LifeAgentListItem;
   globalIndex: number;
   profileHref: (id: string) => string;
   skipMountAnimation?: boolean;
+  showMindScoreInfo?: boolean;
 }) {
   const areaLabel = [profile.city, profile.province].filter(Boolean).join(" · ");
   const coverUrl = resolveLifeAgentCoverDisplayUrl(profile.coverUrl, profile.coverImageUrl, profile.coverPresetKey);
@@ -84,12 +87,11 @@ function LifeAgentDiscoverCard({
 
   return (
     <article className="min-h-0 [contain-intrinsic-size:auto_340px]">
-      <Link
-        href={profileHref(profile.id)}
-        className="group block focus:outline-none focus-visible:outline focus-visible:outline-1 focus-visible:outline-ink"
-      >
-        {/* 封面：4:5 编辑挑选比 */}
-        <div className="relative w-full overflow-hidden bg-paper-200" style={{ aspectRatio: "4 / 5" }}>
+      <div className="relative w-full overflow-hidden bg-paper-200" style={{ aspectRatio: "4 / 5" }}>
+        <Link
+          href={profileHref(profile.id)}
+          className="group block h-full focus:outline-none focus-visible:outline focus-visible:outline-1 focus-visible:outline-ink"
+        >
           <LifeAgentCoverImage
             src={coverUrl}
             alt=""
@@ -104,14 +106,19 @@ function LifeAgentDiscoverCard({
               未发布
             </div>
           ) : null}
-          {typeof profile.mindScore === "number" && profile.mindScore > 0 ? (
-            <div className="absolute bottom-0 left-0 bg-paper/95 px-2 py-1 text-[10px] font-medium tabular-nums text-ink-500 backdrop-blur-sm">
-              心智 {(profile.mindScore ?? 0).toLocaleString("zh-CN")}
-            </div>
-          ) : null}
-        </div>
+        </Link>
+        {typeof profile.mindScore === "number" && profile.mindScore > 0 ? (
+          <div className="absolute bottom-0 left-0 z-10 flex items-center gap-0.5 bg-paper/95 py-1 pl-2 pr-1 text-[10px] font-medium tabular-nums text-ink-500 backdrop-blur-sm">
+            <span>心智 {(profile.mindScore ?? 0).toLocaleString("zh-CN")}</span>
+            {showMindScoreInfo ? <MindScoreInfoButton /> : null}
+          </div>
+        ) : null}
+      </div>
 
-        {/* 文字区：发丝线起，editorial caption */}
+      <Link
+        href={profileHref(profile.id)}
+        className="group block focus:outline-none focus-visible:outline focus-visible:outline-1 focus-visible:outline-ink"
+      >
         <div className="border-t border-hairline pt-2.5">
           {/* 大标题：作者主头像名 */}
           <h3 className="font-serif text-[15px] font-medium leading-tight text-ink line-clamp-1 sm:text-base">
@@ -177,6 +184,8 @@ type Props = {
    * 未传时：与 windowed 联动，`windowed={false}`（管理页）默认关虚拟列表。
    */
   virtualized?: boolean;
+  /** 是否在「心智」旁显示说明入口（发现页） */
+  showMindScoreInfo?: boolean;
   /** 分页：触底加载下一页（与 hasMoreFromServer 配合） */
   onLoadMore?: () => void | Promise<void>;
   hasMoreFromServer?: boolean;
@@ -192,6 +201,7 @@ export function LifeAgentDiscoverCardGrid({
   windowResetKey,
   windowed = true,
   virtualized: virtualizedProp,
+  showMindScoreInfo = false,
   onLoadMore,
   hasMoreFromServer = false,
   loadingMore = false,
@@ -289,7 +299,7 @@ export function LifeAgentDiscoverCardGrid({
       <div className="space-y-6">
         <div className="grid grid-cols-2 gap-x-3 gap-y-7 sm:grid-cols-3 sm:gap-x-5 sm:gap-y-9 lg:grid-cols-4 xl:grid-cols-5">
           {toRender.map((profile, index) => (
-            <LifeAgentDiscoverCard key={profile.id} profile={profile} globalIndex={index} profileHref={profileHref} />
+            <LifeAgentDiscoverCard key={profile.id} profile={profile} globalIndex={index} profileHref={profileHref} showMindScoreInfo={showMindScoreInfo} />
           ))}
         </div>
         {windowed && hasMore ? (
@@ -339,6 +349,7 @@ export function LifeAgentDiscoverCardGrid({
                       profile={profile}
                       globalIndex={globalIndex}
                       profileHref={profileHref}
+                      showMindScoreInfo={showMindScoreInfo}
                       skipMountAnimation
                     />
                   );

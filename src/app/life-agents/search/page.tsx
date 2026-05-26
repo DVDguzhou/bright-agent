@@ -247,6 +247,7 @@ function SearchResultsView({ query }: { query: string }) {
             onLoadMore={loadMore}
             hasMoreFromServer={Boolean(nextCursor)}
             loadingMore={loadingMore}
+            showMindScoreInfo
           />
         )}
       </div>
