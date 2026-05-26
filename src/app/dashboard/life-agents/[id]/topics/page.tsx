@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
 import { FieldInfoButton } from "@/components/FieldInfoButton";
 
 type TopicItem = {
@@ -85,14 +85,49 @@ const TOPIC_CONFIDENCE_INFO = {
   ],
 } as const;
 
+function topicMatchesQuery(topic: TopicItem, edit: EditState[string] | undefined, keyword: string): boolean {
+  if (!keyword) return true;
+  const haystack = [
+    topic.topicLabel,
+    topic.topicKey,
+    topic.summary,
+    topic.topicGroup,
+    topic.source,
+    topic.status,
+    topic.confidence,
+    topic.mergedIntoTopicLabel,
+    ...(topic.aliases ?? []),
+    ...(topic.questionPatterns ?? []),
+    edit?.topicLabel,
+    edit?.summary,
+    edit?.aliases,
+    edit?.questionPatterns,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+  return haystack.includes(keyword);
+}
+
 export default function LifeAgentTopicsPage() {
   const params = useParams();
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const id = params.id as string;
+  const query = searchParams.get("q") ?? "";
   const [state, setState] = useState<LoadState>({ topics: [], loading: true, error: null });
   const [edits, setEdits] = useState<EditState>({});
   const [savingId, setSavingId] = useState<string | null>(null);
   const [mergingId, setMergingId] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | "active" | "candidate" | "archived">("all");
+
+  const clearSearch = () => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("q");
+    const qs = params.toString();
+    router.replace(`${pathname}${qs ? `?${qs}` : ""}`, { scroll: false });
+  };
 
   const load = useCallback(async () => {
     setState((prev) => ({ ...prev, loading: true, error: null }));
@@ -131,9 +166,11 @@ export default function LifeAgentTopicsPage() {
   }, [load]);
 
   const filteredTopics = useMemo(() => {
-    if (filter === "all") return state.topics;
-    return state.topics.filter((topic) => topic.status === filter);
-  }, [filter, state.topics]);
+    const keyword = query.trim().toLowerCase();
+    const byStatus = filter === "all" ? state.topics : state.topics.filter((topic) => topic.status === filter);
+    if (!keyword) return byStatus;
+    return byStatus.filter((topic) => topicMatchesQuery(topic, edits[topic.id], keyword));
+  }, [filter, query, state.topics, edits]);
 
   const mergeTargets = useMemo(
     () => state.topics.filter((topic) => topic.status !== "archived"),
@@ -237,7 +274,7 @@ export default function LifeAgentTopicsPage() {
         </Link>
         <h1 className="mt-3 text-[28px] font-black tracking-tight text-[#111]">Topic 管理</h1>
         <p className="mt-1 text-sm text-slate-500">审核从知识和长会话里长出来的主题，手动激活、归档、合并或修正文案。</p>
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="mt-4 flex flex-wrap items-center gap-2">
           {(["all", "active", "candidate", "archived"] as const).map((item) => (
             <button
               key={item}
@@ -250,6 +287,9 @@ export default function LifeAgentTopicsPage() {
               {item === "all" ? "全部" : item}
             </button>
           ))}
+          {query.trim() ? (
+            <span className="text-sm text-slate-500">找到 {filteredTopics.length} 个</span>
+          ) : null}
         </div>
       </header>
 
@@ -275,7 +315,20 @@ export default function LifeAgentTopicsPage() {
       <section className="space-y-4">
         {filteredTopics.length === 0 ? (
           <div className="rounded-[28px] bg-white px-6 py-16 text-center text-sm text-slate-400 shadow-sm ring-1 ring-black/[0.04]">
-            当前筛选下还没有 topic
+            {query.trim() ? (
+              <>
+                <p>没有匹配的 Topic</p>
+                <button
+                  type="button"
+                  onClick={clearSearch}
+                  className="mt-4 text-sm font-medium text-slate-600 underline"
+                >
+                  清空搜索
+                </button>
+              </>
+            ) : (
+              "当前筛选下还没有 topic"
+            )}
           </div>
         ) : (
           filteredTopics.map((topic) => {

@@ -539,6 +539,7 @@ export function Nav() {
   const isDashboardLifeAgentsListPage = pathname === "/dashboard/life-agents";
   const isDashboardLifeAgentFeedbackPage = /^\/dashboard\/life-agents\/[^/]+\/feedback\/?$/.test(pathname);
   const isDashboardLifeAgentCoEditPage = /^\/dashboard\/life-agents\/[^/]+\/co-edit\/?$/.test(pathname);
+  const isDashboardLifeAgentTopicsPage = /^\/dashboard\/life-agents\/[^/]+\/topics\/?$/.test(pathname);
   const isLicensesPage = pathname === "/licenses";
   const isMapPage = pathname === "/map";
   const isSupportChatPage = pathname === "/support/chat";
@@ -565,6 +566,19 @@ export function Nav() {
   const isPostsPage = pathname === "/posts";
   const isFeedPurchased = isDiscoverEntryPage && feedTab === "purchased";
   const isDashboardHomePage = pathname === "/dashboard";
+  const topicSearchQuery = searchParams.get("q") ?? "";
+
+  const updateTopicSearchQuery = useCallback(
+    (value: string) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (value) params.set("q", value);
+      else params.delete("q");
+      const qs = params.toString();
+      router.replace(`${pathname}${qs ? `?${qs}` : ""}`, { scroll: false });
+    },
+    [pathname, router, searchParams],
+  );
+
   const primaryOwnedLifeAgent = ownedLifeAgents?.[0] ?? null;
   const shouldShowCreateFab = !user || (ownedLifeAgents !== null && ownedLifeAgents.length === 0);
   const shouldShowLoadingFab = Boolean(user && ownedLifeAgents === null);
@@ -796,6 +810,18 @@ export function Nav() {
                 </Link>
                 ) : null}
               </div>
+              {isDashboardLifeAgentTopicsPage ? (
+                <label className="flex h-10 w-[7.25rem] shrink-0 items-center sm:w-40">
+                  <span className="sr-only">搜索 Topic</span>
+                  <input
+                    type="search"
+                    value={topicSearchQuery}
+                    onChange={(e) => updateTopicSearchQuery(e.target.value)}
+                    placeholder="搜索 Topic…"
+                    className="h-9 w-full min-w-0 rounded-full border-0 bg-paper-200/80 px-3 text-sm text-ink outline-none ring-1 ring-transparent placeholder:text-ink-300 focus:bg-paper focus:ring-hairline"
+                  />
+                </label>
+              ) : (
               <Link
                 href={isDashboardHomePage ? "/dashboard/notifications" : "/life-agents/search"}
                 className="flex h-10 w-10 shrink-0 items-center justify-center text-ink transition active:opacity-50"
@@ -822,6 +848,7 @@ export function Nav() {
                   <IconSearch className="h-5 w-5 stroke-[1.75]" />
                 )}
               </Link>
+              )}
             </div>
           )}
 
