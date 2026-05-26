@@ -492,12 +492,16 @@ function LifeAgentsPageContent() {
   }, []);
 
   const onPullRefresh = useCallback(async () => {
+    if (feedTab === "favorites") {
+      await loadFavoritesFullList();
+      return;
+    }
     if (feedTab === "purchased") {
       await loadPurchasedList({ force: true, background: purchasedFetched || purchasedUnauthorized || purchasedItems.length > 0 });
       return;
     }
     await refreshDiscover();
-  }, [feedTab, loadPurchasedList, refreshDiscover, purchasedFetched, purchasedUnauthorized, purchasedItems.length]);
+  }, [feedTab, loadFavoritesFullList, loadPurchasedList, refreshDiscover, purchasedFetched, purchasedUnauthorized, purchasedItems.length]);
 
   const { pullOffset, refreshing: pullRefreshing } = useLifeAgentsFeedGestures({
     enabled: true,
@@ -782,7 +786,7 @@ function LifeAgentsPageContent() {
         )}
       </>
 
-      {touchNavEnabled ? (
+      {touchNavEnabled && feedTab !== "favorites" ? (
         <>
           {loadErrorBanner}
           <div className="w-full overflow-hidden">
