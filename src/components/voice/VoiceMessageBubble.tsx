@@ -119,8 +119,8 @@ export function VoiceMessageBubble({
       style={{ minWidth: minWidthPx }}
       className={`inline-flex max-w-full items-center gap-3 rounded-[20px] px-3 py-2.5 text-left transition active:scale-[0.99] ${
         isFromUser
-          ? "border border-white/15 bg-gradient-to-br from-[#FF8FD8]/74 via-[#D79BFF]/70 to-[#9B8CFF]/66 text-white shadow-[0_10px_24px_-12px_rgba(168,139,235,0.4)] backdrop-blur-xl"
-          : `${CHAT_GLASS_PANEL_CLASSNAME} text-slate-800`
+          ? "border border-paper/15 bg-gradient-to-br from-[#FF8FD8]/74 via-[#D79BFF]/70 to-[#9B8CFF]/66 text-paper shadow-[0_10px_24px_-12px_rgba(168,139,235,0.4)] backdrop-blur-xl"
+          : `${CHAT_GLASS_PANEL_CLASSNAME} text-ink-700`
       } ${className}`}
       aria-label={
         audioState === "loading"
@@ -179,17 +179,17 @@ export function VoiceMessageBubble({
       {audioState === "loading" ? (
         <>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium text-slate-800">语音加载中...</p>
-            <p className="mt-0.5 text-xs text-slate-500">马上就能播放，先看看文字版也可以。</p>
+            <p className="text-sm font-medium text-ink-700">语音加载中...</p>
+            <p className="mt-0.5 text-xs text-ink-400">马上就能播放，先看看文字版也可以。</p>
           </div>
-          <span className="shrink-0 text-xs font-medium tabular-nums text-slate-500/85">
+          <span className="shrink-0 text-xs font-medium tabular-nums text-ink-400/85">
             {formatDuration(durationSeconds)}
           </span>
         </>
       ) : audioState === "error" ? (
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-slate-800">语音暂时加载失败</p>
-          <p className="mt-0.5 text-xs text-slate-500">点一下重试，或先阅读下面的文字回复。</p>
+          <p className="text-sm font-medium text-ink-700">语音暂时加载失败</p>
+          <p className="mt-0.5 text-xs text-ink-400">点一下重试，或先阅读下面的文字回复。</p>
         </div>
       ) : (
         <>
@@ -220,14 +220,14 @@ export function VoiceMessageLoadingBubble({
 }: VoiceLoadingBubbleProps) {
   return (
     <div
-      className={`inline-flex max-w-full items-center gap-3 rounded-[20px] px-3 py-2.5 text-left text-slate-800 ${CHAT_GLASS_PANEL_CLASSNAME} ${className}`}
+      className={`inline-flex max-w-full items-center gap-3 rounded-[20px] px-3 py-2.5 text-left text-ink-700 ${CHAT_GLASS_PANEL_CLASSNAME} ${className}`}
     >
       <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-paper/72" aria-hidden>
         <span className="h-4 w-4 rounded-full border-2 border-hairline/40 border-t-ink animate-spin" />
       </span>
       <div className="min-w-0 flex-1">
         <p className="text-sm font-medium">{label}</p>
-        <p className="mt-0.5 text-xs text-slate-500">{description}</p>
+        <p className="mt-0.5 text-xs text-ink-400">{description}</p>
       </div>
     </div>
   );

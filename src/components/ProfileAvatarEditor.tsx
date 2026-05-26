@@ -146,20 +146,20 @@ export function ProfileAvatarEditor({
         type="button"
         disabled={uploading}
         onClick={() => inputRef.current?.click()}
-        className={`group relative ${boxClass} shrink-0 overflow-hidden rounded-full ring-1 ring-black/5 disabled:opacity-60`}
+        className={`group relative ${boxClass} shrink-0 overflow-hidden rounded-full ring-1 ring-hairline/40 disabled:opacity-60`}
         aria-label="更换头像"
         title="更换头像（同步更新人生 Agent 封面）"
       >
         <LifeAgentCoverImage src={displaySrc} alt="" fill compact className="object-cover" sizes="64px" />
-        <span className="absolute bottom-0 right-0 flex h-5 w-5 items-center justify-center rounded-full bg-paper shadow ring-1 ring-black/10 sm:hidden">
-          <svg className="h-3 w-3 text-slate-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden>
+        <span className="absolute bottom-0 right-0 flex h-5 w-5 items-center justify-center rounded-full bg-paper shadow ring-1 ring-hairline/60 sm:hidden">
+          <svg className="h-3 w-3 text-ink-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden>
             <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
           </svg>
         </span>
         <span className="absolute inset-0 hidden items-center justify-center bg-black/0 transition group-hover:bg-black/25 sm:flex">
           <span className="rounded-full bg-paper/90 p-1.5 opacity-0 shadow-sm transition group-hover:opacity-100 group-active:opacity-100">
             {uploading ? (
-              <span className={`block ${iconClass} animate-spin rounded-full border-2 border-slate-300 border-t-slate-700`} />
+              <span className={`block ${iconClass} animate-spin rounded-full border-2 border-hairline border-t-ink-600`} />
             ) : (
               <svg className={iconClass} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden>
                 <path
@@ -180,16 +180,16 @@ export function ProfileAvatarEditor({
         className="hidden"
         onChange={onPickFile}
       />
-      <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-500">
+      <div className="flex flex-wrap items-center gap-2 text-[11px] text-ink-400">
         <span>点头像更换</span>
         {avatarUrl ? (
-          <button type="button" className="text-slate-400 underline hover:text-slate-700" onClick={resetAvatar} disabled={uploading}>
+          <button type="button" className="text-ink-300 underline hover:text-ink-600" onClick={resetAvatar} disabled={uploading}>
             恢复默认
           </button>
         ) : null}
       </div>
-      {error ? <p className="text-xs text-rose-600">{error}</p> : null}
-      <p className="max-w-[14rem] text-[10px] leading-4 text-slate-400">头像会同步为你名下人生 Agent 的封面</p>
+      {error ? <p className="text-xs text-oxblood-600">{error}</p> : null}
+      <p className="max-w-[14rem] text-[10px] leading-4 text-ink-300">头像会同步为你名下人生 Agent 的封面</p>
     </div>
   );
 }

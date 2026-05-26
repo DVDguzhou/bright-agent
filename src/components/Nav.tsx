@@ -89,7 +89,7 @@ function mergeVoiceDraft(existing: string, nextSegment: string) {
 function VoiceWaveBar({ delay, active }: { delay: number; active: boolean }) {
   return (
     <motion.div
-      className="w-[3px] rounded-full bg-white/90"
+      className="w-[3px] rounded-full bg-paper/90"
       animate={
         active
           ? { height: [8, 28, 14, 32, 10], opacity: [0.6, 1, 0.8, 1, 0.6] }
@@ -271,7 +271,7 @@ function FloatingVoiceCoachFab({ agent }: { agent: BoundLifeAgent }) {
               <motion.p
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="text-center text-[13px] font-medium leading-6 text-white/50"
+                className="text-center text-[13px] font-medium leading-6 text-paper/50"
               >
                 {agent.displayName}
               </motion.p>
@@ -279,9 +279,9 @@ function FloatingVoiceCoachFab({ agent }: { agent: BoundLifeAgent }) {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
-                className="mt-4 min-h-[4rem] rounded-2xl border border-white/[0.06] bg-white/[0.04] px-5 py-4 backdrop-blur-sm"
+                className="mt-4 min-h-[4rem] rounded-2xl border border-paper/[0.06] bg-paper/[0.04] px-5 py-4 backdrop-blur-sm"
               >
-                <p className="text-center text-base leading-7 text-white/90">
+                <p className="text-center text-base leading-7 text-paper/90">
                   {liveText}
                 </p>
               </motion.div>
@@ -320,7 +320,7 @@ function FloatingVoiceCoachFab({ agent }: { agent: BoundLifeAgent }) {
                 animate={{ scale: [1, 1.08, 1] }}
                 transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
               >
-                <svg className="h-10 w-10 text-white drop-shadow-lg" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24" aria-hidden>
+                <svg className="h-10 w-10 text-paper drop-shadow-lg" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24" aria-hidden>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 18a5 5 0 005-5V8a5 5 0 10-10 0v5a5 5 0 005 5zm0 0v3m-3 0h6" />
                 </svg>
               </motion.div>
@@ -342,12 +342,12 @@ function FloatingVoiceCoachFab({ agent }: { agent: BoundLifeAgent }) {
                     exit={{ opacity: 0, scale: 0.9 }}
                     className="flex flex-col items-center gap-2"
                   >
-                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-red-500/20 ring-2 ring-red-400/40">
-                      <svg className="h-6 w-6 text-red-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden>
+                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-oxblood-500/20 ring-2 ring-oxblood-400/40">
+                      <svg className="h-6 w-6 text-oxblood-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                       </svg>
                     </div>
-                    <p className="text-sm font-medium text-red-300">松开取消</p>
+                    <p className="text-sm font-medium text-oxblood-200">松开取消</p>
                   </motion.div>
                 ) : (
                   <motion.div
@@ -357,8 +357,8 @@ function FloatingVoiceCoachFab({ agent }: { agent: BoundLifeAgent }) {
                     exit={{ opacity: 0, scale: 0.9 }}
                     className="flex flex-col items-center gap-3"
                   >
-                    <p className="text-sm font-medium tracking-wide text-white/70">松开 · 结束录入</p>
-                    <p className="text-xs text-white/30">上滑取消</p>
+                    <p className="text-sm font-medium tracking-wide text-paper/70">松开 · 结束录入</p>
+                    <p className="text-xs text-paper/30">上滑取消</p>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -667,12 +667,12 @@ export function Nav() {
       >
         <Link
           href="/dashboard"
-          className={vertical ? linkClass(pathname === "/dashboard") : "inline-flex items-center gap-2 rounded-lg px-2 py-2 text-slate-600 transition-colors hover:text-ink"}
+          className={vertical ? linkClass(pathname === "/dashboard") : "inline-flex items-center gap-2 rounded-lg px-2 py-2 text-ink-500 transition-colors hover:text-ink"}
           title="个人主页"
         >
           {!vertical && <IconDashboard className="h-5 w-5 shrink-0" />}
           <motion.span
-            className={`text-sm transition-colors ${vertical ? "text-slate-600 hover:text-ink" : "hidden xl:inline text-slate-600"}`}
+            className={`text-sm transition-colors ${vertical ? "text-ink-500 hover:text-ink" : "hidden xl:inline text-ink-500"}`}
             whileHover={{ scale: vertical ? 1 : 1.02 }}
           >
             个人主页
@@ -683,26 +683,26 @@ export function Nav() {
           className={
             vertical
               ? linkClass(pathname === "/dashboard/account")
-              : "inline-flex items-center gap-2 rounded-lg px-2 py-2 text-slate-600 transition-colors hover:text-ink"
+              : "inline-flex items-center gap-2 rounded-lg px-2 py-2 text-ink-500 transition-colors hover:text-ink"
           }
           title="账号与安全"
         >
           <motion.span
-            className={`text-sm transition-colors ${vertical ? "text-slate-600 hover:text-ink" : "hidden lg:inline text-slate-600"}`}
+            className={`text-sm transition-colors ${vertical ? "text-ink-500 hover:text-ink" : "hidden lg:inline text-ink-500"}`}
             whileHover={{ scale: vertical ? 1 : 1.02 }}
           >
             账号
           </motion.span>
         </Link>
         {!vertical && (
-          <span className="text-slate-500 text-sm hidden 2xl:inline truncate max-w-[120px]">
+          <span className="text-ink-400 text-sm hidden 2xl:inline truncate max-w-[120px]">
             {user.email}
           </span>
         )}
-        {vertical && <span className="text-slate-500 text-xs px-3 py-1 truncate">{user.email}</span>}
+        {vertical && <span className="text-ink-400 text-xs px-3 py-1 truncate">{user.email}</span>}
         <motion.button
           onClick={logout}
-          className={vertical ? `text-sm font-medium py-3 px-3 rounded-lg text-left text-rose-500 hover:bg-slate-50` : "inline-flex items-center gap-2 whitespace-nowrap rounded-lg px-2 py-2 text-sm text-slate-500 transition-colors hover:text-rose-500"}
+          className={vertical ? `text-sm font-medium py-3 px-3 rounded-lg text-left text-oxblood-500 hover:bg-paper-50` : "inline-flex items-center gap-2 whitespace-nowrap rounded-lg px-2 py-2 text-sm text-ink-400 transition-colors hover:text-oxblood-500"}
           whileHover={{ scale: vertical ? 1 : 1.02 }}
           whileTap={{ scale: 0.98 }}
           title="退出"
@@ -721,12 +721,12 @@ export function Nav() {
       >
         <Link
           href="/login"
-          className={vertical ? linkClass(pathname === "/login") : "inline-flex items-center gap-2 rounded-lg px-2 py-2 text-slate-600 transition-colors hover:text-slate-900"}
+          className={vertical ? linkClass(pathname === "/login") : "inline-flex items-center gap-2 rounded-lg px-2 py-2 text-ink-500 transition-colors hover:text-ink"}
           title="登录"
         >
           {!vertical && <IconLogin className="h-5 w-5 shrink-0" />}
           <motion.span
-            className={`text-sm transition-colors ${vertical ? "text-slate-600 hover:text-slate-900" : "hidden xl:inline text-slate-600"}`}
+            className={`text-sm transition-colors ${vertical ? "text-ink-500 hover:text-ink" : "hidden xl:inline text-ink-500"}`}
             whileHover={{ scale: vertical ? 1 : 1.02 }}
           >
             登录
@@ -896,7 +896,7 @@ export function Nav() {
             <span className="hidden truncate whitespace-nowrap bg-gradient-to-r from-ink via-ink-400 to-ink-600 bg-clip-text text-base font-bold text-transparent md:inline xl:inline 2xl:text-xl">
               BrightAgent
             </span>
-            <span className="hidden truncate whitespace-nowrap text-sm text-slate-500 transition-colors group-hover:text-oxblood 2xl:inline">
+            <span className="hidden truncate whitespace-nowrap text-sm text-ink-400 transition-colors group-hover:text-oxblood 2xl:inline">
               本地经验 · 对话咨询 · Agent as Service
             </span>
           </Link>
@@ -911,7 +911,7 @@ export function Nav() {
                     className={`relative flex items-center gap-1.5 xl:gap-2 px-2 xl:px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
                       active
                         ? "text-oxblood"
-                        : "text-slate-600 hover:text-slate-900"
+                        : "text-ink-500 hover:text-ink"
                     }`}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}

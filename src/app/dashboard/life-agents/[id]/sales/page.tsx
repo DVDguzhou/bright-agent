@@ -51,14 +51,14 @@ export default function LifeAgentSalesPage() {
   }, [filtered]);
 
   if (loading) {
-    return <div className="mx-auto h-56 max-w-4xl animate-pulse rounded-[28px] bg-paper shadow-sm ring-1 ring-black/[0.04]" />;
+    return <div className="mx-auto h-56 max-w-4xl animate-pulse rounded-[28px] bg-paper shadow-sm ring-1 ring-hairline/40" />;
   }
 
   if (!data) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-16 text-center">
-        <p className="text-[15px] text-slate-500">{error ?? "加载失败"}</p>
-        <Link href={`/dashboard/life-agents/${id}`} className="mt-6 inline-flex rounded-full bg-[#111] px-6 py-2.5 text-sm font-medium text-white">
+        <p className="text-[15px] text-ink-400">{error ?? "加载失败"}</p>
+        <Link href={`/dashboard/life-agents/${id}`} className="mt-6 inline-flex rounded-full bg-ink px-6 py-2.5 text-sm font-medium text-paper">
           返回工作台
         </Link>
       </div>
@@ -66,17 +66,17 @@ export default function LifeAgentSalesPage() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl space-y-4 max-lg:-mx-4 max-lg:bg-[#f7f8fa] max-lg:px-3 max-lg:pb-24">
-      <header className="rounded-[28px] bg-paper px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
-        <Link href={`/dashboard/life-agents/${id}`} className="text-sm font-medium text-slate-500 transition hover:text-[#111]">
+    <div className="mx-auto max-w-4xl space-y-4 max-lg:-mx-4 max-lg:bg-paper-50 max-lg:px-3 max-lg:pb-24">
+      <header className="rounded-[28px] bg-paper px-4 py-4 shadow-sm ring-1 ring-hairline/40 sm:px-6">
+        <Link href={`/dashboard/life-agents/${id}`} className="text-sm font-medium text-ink-400 transition hover:text-ink">
           ← 返回工作台
         </Link>
         {/* 原标题：销量记录 / 提问包购买情况
-        <h1 className="mt-3 text-[28px] font-black tracking-tight text-[#111]">销量记录</h1>
-        <p className="mt-1 text-sm text-slate-500">{data.profile.displayName} 的提问包购买情况</p>
+        <h1 className="mt-3 text-[28px] font-black tracking-tight text-ink">销量记录</h1>
+        <p className="mt-1 text-sm text-ink-400">{data.profile.displayName} 的提问包购买情况</p>
         */}
-        <h1 className="mt-3 text-[28px] font-black tracking-tight text-[#111]">互动记录</h1>
-        <p className="mt-1 text-sm text-slate-500">{data.profile.displayName} 的用户提问与对话互动</p>
+        <h1 className="mt-3 text-[28px] font-black tracking-tight text-ink">互动记录</h1>
+        <p className="mt-1 text-sm text-ink-400">{data.profile.displayName} 的用户提问与对话互动</p>
         <div className="mt-4 flex flex-wrap gap-2">
           {[
             { key: "7d", label: "近 7 天" },
@@ -88,7 +88,7 @@ export default function LifeAgentSalesPage() {
               type="button"
               onClick={() => setRange(item.key as RangeKey)}
               className={`rounded-full px-4 py-2 text-sm font-medium ${
-                range === item.key ? "bg-[#111] text-white" : "bg-slate-100 text-slate-600"
+                range === item.key ? "bg-ink text-paper" : "bg-paper-200 text-ink-500"
               }`}
             >
               {item.label}
@@ -101,38 +101,38 @@ export default function LifeAgentSalesPage() {
       <section className="grid grid-cols-3 gap-3">...</section>
       */}
       <section className="grid grid-cols-3 gap-3">
-        <div className="rounded-2xl bg-paper px-3 py-4 text-center shadow-sm ring-1 ring-black/[0.04]">
-          <p className="text-2xl font-black text-[#111]">{summary.buyers}</p>
-          <p className="mt-1 text-xs text-slate-500">互动用户</p>
+        <div className="rounded-2xl bg-paper px-3 py-4 text-center shadow-sm ring-1 ring-hairline/40">
+          <p className="text-2xl font-black text-ink">{summary.buyers}</p>
+          <p className="mt-1 text-xs text-ink-400">互动用户</p>
         </div>
-        <div className="rounded-2xl bg-paper px-3 py-4 text-center shadow-sm ring-1 ring-black/[0.04]">
-          <p className="text-2xl font-black text-[#111]">{summary.asked}</p>
-          <p className="mt-1 text-xs text-slate-500">被提问</p>
+        <div className="rounded-2xl bg-paper px-3 py-4 text-center shadow-sm ring-1 ring-hairline/40">
+          <p className="text-2xl font-black text-ink">{summary.asked}</p>
+          <p className="mt-1 text-xs text-ink-400">被提问</p>
         </div>
-        <div className="rounded-2xl bg-paper px-3 py-4 text-center shadow-sm ring-1 ring-black/[0.04]">
-          <p className="text-2xl font-black text-sky-700">{summary.heat}</p>
-          <p className="mt-1 text-xs text-slate-500">热度指数</p>
+        <div className="rounded-2xl bg-paper px-3 py-4 text-center shadow-sm ring-1 ring-hairline/40">
+          <p className="text-2xl font-black text-oxblood-700">{summary.heat}</p>
+          <p className="mt-1 text-xs text-ink-400">热度指数</p>
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-[28px] bg-paper shadow-sm ring-1 ring-black/[0.04]">
-        <div className="border-b border-slate-100 px-4 py-4 sm:px-6">
+      <section className="overflow-hidden rounded-[28px] bg-paper shadow-sm ring-1 ring-hairline/40">
+        <div className="border-b border-hairline/50 px-4 py-4 sm:px-6">
           {/* 原：购买记录 */}
-          <h2 className="text-lg font-semibold text-[#111]">互动明细</h2>
+          <h2 className="text-lg font-semibold text-ink">互动明细</h2>
         </div>
-        <div className="divide-y divide-slate-100">
+        <div className="divide-y divide-hairline/50">
           {filtered.length === 0 ? (
-            <div className="px-4 py-16 text-center text-sm text-slate-400">当前筛选下暂无互动记录</div>
+            <div className="px-4 py-16 text-center text-sm text-ink-300">当前筛选下暂无互动记录</div>
           ) : (
             filtered.map((item) => (
               <div key={item.id} className="flex flex-col gap-2 px-4 py-4 sm:px-6">
                 <div className="flex items-center justify-between gap-3">
-                  <p className="font-medium text-[#111]">{item.buyer.name || item.buyer.email}</p>
-                  <span className="text-xs text-slate-400">{formatDateTime(item.createdAt)}</span>
+                  <p className="font-medium text-ink">{item.buyer.name || item.buyer.email}</p>
+                  <span className="text-xs text-ink-300">{formatDateTime(item.createdAt)}</span>
                 </div>
                 <div className="flex flex-wrap gap-2 text-xs">
-                  <span className="rounded-full bg-slate-100 px-2 py-1 text-slate-600">提问 {item.questionCount} 次</span>
-                  <span className="rounded-full bg-slate-100 px-2 py-1 text-slate-600">已对话 {item.questionsUsed} 次</span>
+                  <span className="rounded-full bg-paper-200 px-2 py-1 text-ink-500">提问 {item.questionCount} 次</span>
+                  <span className="rounded-full bg-paper-200 px-2 py-1 text-ink-500">已对话 {item.questionsUsed} 次</span>
                 </div>
               </div>
             ))

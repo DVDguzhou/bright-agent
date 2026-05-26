@@ -39,15 +39,15 @@ function timeAgo(dateStr: string): string {
 // 骨架屏占位
 function PostSkeleton() {
   return (
-    <div className="rounded-[20px] bg-paper p-4 shadow-sm ring-1 ring-black/[0.04]">
+    <div className="rounded-[20px] bg-paper p-4 shadow-sm ring-1 ring-hairline/40">
       <div className="mb-2 flex items-center gap-2.5">
-        <div className="h-9 w-9 animate-pulse rounded-full bg-slate-100" />
+        <div className="h-9 w-9 animate-pulse rounded-full bg-paper-200" />
         <div className="min-w-0 flex-1">
-          <div className="h-4 w-24 animate-pulse rounded bg-slate-100" />
-          <div className="mt-1 h-3 w-16 animate-pulse rounded bg-slate-100" />
+          <div className="h-4 w-24 animate-pulse rounded bg-paper-200" />
+          <div className="mt-1 h-3 w-16 animate-pulse rounded bg-paper-200" />
         </div>
       </div>
-      <div className="h-16 animate-pulse rounded bg-slate-100" />
+      <div className="h-16 animate-pulse rounded bg-paper-200" />
     </div>
   );
 }
@@ -231,7 +231,7 @@ export default function PostsPage() {
         className="pointer-events-none flex justify-center overflow-hidden transition-[height] duration-200"
         style={{ height: pullOffset > 0 || pullRefreshing ? 48 : 0 }}
       >
-        <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
+        <div className="flex items-center gap-2 text-xs font-medium text-ink-400">
           {pullRefreshing ? (
             <>
               <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-hairline border-t-ink" />
@@ -245,7 +245,7 @@ export default function PostsPage() {
 
       {/* Header */}
       <div className="mb-3 flex items-center justify-between">
-        <h1 className="text-lg font-bold text-[#111]">动态</h1>
+        <h1 className="text-lg font-bold text-ink">动态</h1>
         <Link
           href="/posts/create"
           className="btn-primary inline-flex items-center gap-1 px-4 py-2 text-sm font-semibold"
@@ -255,7 +255,7 @@ export default function PostsPage() {
       </div>
 
       {error && (
-        <div className="mb-4 rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-600">
+        <div className="mb-4 rounded-xl bg-oxblood-50 px-4 py-3 text-sm text-oxblood-600">
           {error}
           <button
             type="button"
@@ -281,8 +281,8 @@ export default function PostsPage() {
           <div className="mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-paper-50 text-3xl">
             📝
           </div>
-          <p className="text-base font-semibold text-[#111]">还没有动态</p>
-          <p className="mt-1 text-sm text-slate-400">发布第一个帖子，让 AI Agent 们为你解答</p>
+          <p className="text-base font-semibold text-ink">还没有动态</p>
+          <p className="mt-1 text-sm text-ink-300">发布第一个帖子，让 AI Agent 们为你解答</p>
           <Link
             href="/posts/create"
             className="btn-primary mt-4 inline-flex px-6 py-2.5 text-sm font-semibold"
@@ -299,7 +299,7 @@ export default function PostsPage() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i < 6 ? i * 0.05 : 0 }}
-            className="rounded-[20px] bg-paper p-4 shadow-sm ring-1 ring-black/[0.04]"
+            className="rounded-[20px] bg-paper p-4 shadow-sm ring-1 ring-hairline/40"
           >
             {/* Author + actions */}
             <div className="mb-2 flex items-center justify-between gap-2">
@@ -311,22 +311,22 @@ export default function PostsPage() {
                   className="ring-0"
                 />
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-[#111]">{post.authorName}</p>
-                  <p className="text-xs text-slate-400">{timeAgo(post.createdAt)}</p>
+                  <p className="truncate text-sm font-semibold text-ink">{post.authorName}</p>
+                  <p className="text-xs text-ink-300">{timeAgo(post.createdAt)}</p>
                 </div>
               </div>
               {user && user.id === post.authorId && (
                 <div className="flex items-center gap-2 shrink-0">
                   <Link
                     href={`/posts/${post.id}/edit`}
-                    className="text-xs text-slate-400 hover:text-ink-500"
+                    className="text-xs text-ink-300 hover:text-ink-500"
                   >
                     编辑
                   </Link>
                   <button
                     type="button"
                     onClick={() => handleDelete(post.id)}
-                    className="text-xs text-slate-400 hover:text-rose-500"
+                    className="text-xs text-ink-300 hover:text-oxblood-500"
                   >
                     删除
                   </button>
@@ -336,7 +336,7 @@ export default function PostsPage() {
 
             {/* Content */}
             <Link href={`/posts/${post.id}`} className="block">
-              <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-[#111]">
+              <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-ink">
                 {post.content}
               </p>
 
@@ -344,7 +344,7 @@ export default function PostsPage() {
               {post.images && post.images.length > 0 && (
                 <div className={`mt-2 grid gap-2 ${post.images.length === 1 ? "grid-cols-1" : post.images.length === 2 ? "grid-cols-2" : "grid-cols-3"}`}>
                   {post.images.slice(0, 3).map((src, idx) => (
-                    <div key={idx} className="relative aspect-square overflow-hidden rounded-lg bg-slate-50">
+                    <div key={idx} className="relative aspect-square overflow-hidden rounded-lg bg-paper-50">
                       <img
                         src={src}
                         alt=""
@@ -358,12 +358,12 @@ export default function PostsPage() {
             </Link>
 
             {/* Actions */}
-            <div className="mt-3 flex items-center gap-5 border-t border-slate-50 pt-2.5">
+            <div className="mt-3 flex items-center gap-5 border-t border-hairline/30 pt-2.5">
               <button
                 type="button"
                 onClick={() => handleLike(post.id)}
                 className={`flex items-center gap-1 text-sm transition ${
-                  post.likedByMe ? "text-rose-500" : "text-slate-400 hover:text-rose-400"
+                  post.likedByMe ? "text-oxblood-500" : "text-ink-300 hover:text-oxblood-400"
                 }`}
               >
                 <svg className="h-5 w-5" fill={post.likedByMe ? "currentColor" : "none"} stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
@@ -373,7 +373,7 @@ export default function PostsPage() {
               </button>
               <Link
                 href={`/posts/${post.id}`}
-                className="flex items-center gap-1 text-sm text-slate-400 hover:text-oxblood transition"
+                className="flex items-center gap-1 text-sm text-ink-300 hover:text-oxblood transition"
               >
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.76c0 1.768 7.5 2.25 7.5 2.25s7.5-.482 7.5-2.25c0-1.768-7.5-2.25-7.5-2.25s-7.5.482-7.5 2.25zM2.25 12.76v3.93c0 1.768 7.5 2.25 7.5 2.25s7.5-.482 7.5-2.25v-3.93M12 15V3.75" />
@@ -392,7 +392,7 @@ export default function PostsPage() {
       </div>
 
       {loadingMore && (
-        <div className="py-4 text-center text-sm text-slate-400">
+        <div className="py-4 text-center text-sm text-ink-300">
           <span className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-hairline border-t-ink" />
           <span className="ml-2">加载更多…</span>
         </div>

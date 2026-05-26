@@ -220,26 +220,26 @@ export default function SignupPage() {
       animate={{ opacity: 1, y: 0 }}
       className="max-w-md mx-auto py-16"
     >
-      <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-sky-500 bg-clip-text text-transparent mb-2">
+      <h1 className="text-3xl font-bold bg-gradient-to-r from-oxblood-600 to-oxblood-500 bg-clip-text text-transparent mb-2">
         注册
       </h1>
-      <p className="text-slate-500 mb-8">验证邮箱后即可创建账号</p>
-      <form onSubmit={submit} className="space-y-5 rounded-3xl border border-slate-200 bg-paper p-6 shadow-sm">
+      <p className="text-ink-400 mb-8">验证邮箱后即可创建账号</p>
+      <form onSubmit={submit} className="space-y-5 rounded-3xl border border-hairline bg-paper p-6 shadow-sm">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.05 }}
-          className="rounded-2xl border border-slate-200 bg-slate-50/70 p-5"
+          className="rounded-2xl border border-hairline bg-paper-50/70 p-5"
         >
           <div className="flex items-start gap-4">
             <img
               src={previewAvatar}
               alt="头像预览"
-              className="h-20 w-20 shrink-0 rounded-3xl border border-white/70 object-cover shadow-sm"
+              className="h-20 w-20 shrink-0 rounded-3xl border border-paper/70 object-cover shadow-sm"
             />
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium text-slate-800">头像</p>
-              <p className="mt-1 text-xs leading-5 text-slate-500">
+              <p className="text-sm font-medium text-ink-700">头像</p>
+              <p className="mt-1 text-xs leading-5 text-ink-400">
                 可上传你的头像；如果不上传，系统会自动生成一个默认头像。
               </p>
               <div className="mt-3 flex flex-wrap gap-2">
@@ -255,7 +255,7 @@ export default function SignupPage() {
                   <button
                     type="button"
                     onClick={() => setAvatarUrl(null)}
-                    className="rounded-xl border border-slate-200 bg-paper px-4 py-2 text-sm font-medium text-slate-600 transition-colors hover:border-slate-300 hover:text-slate-900"
+                    className="rounded-xl border border-hairline bg-paper px-4 py-2 text-sm font-medium text-ink-500 transition-colors hover:border-hairline hover:text-ink"
                   >
                     使用默认头像
                   </button>
@@ -273,7 +273,7 @@ export default function SignupPage() {
         </motion.div>
 
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}>
-          <label className="block text-sm font-medium text-slate-700 mb-2">邮箱</label>
+          <label className="block text-sm font-medium text-ink-600 mb-2">邮箱</label>
           <div className="flex gap-2">
             <input
               type="email"
@@ -300,12 +300,12 @@ export default function SignupPage() {
             </button>
           </div>
           {codeSent ? (
-            <p className="mt-2 text-xs text-slate-500">验证码已发送至邮箱，10 分钟内有效</p>
+            <p className="mt-2 text-xs text-ink-400">验证码已发送至邮箱，10 分钟内有效</p>
           ) : null}
         </motion.div>
 
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.12 }}>
-          <label className="block text-sm font-medium text-slate-700 mb-2">邮箱验证码</label>
+          <label className="block text-sm font-medium text-ink-600 mb-2">邮箱验证码</label>
           <input
             type="text"
             inputMode="numeric"
@@ -320,7 +320,7 @@ export default function SignupPage() {
         </motion.div>
 
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15 }}>
-          <label className="block text-sm font-medium text-slate-700 mb-2">用户名</label>
+          <label className="block text-sm font-medium text-ink-600 mb-2">用户名</label>
           <input
             type="text"
             value={name}
@@ -335,7 +335,7 @@ export default function SignupPage() {
         </motion.div>
 
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
-          <label className="block text-sm font-medium text-slate-700 mb-2">密码（8–72 位）</label>
+          <label className="block text-sm font-medium text-ink-600 mb-2">密码（8–72 位）</label>
           <input
             type="password"
             value={password}
@@ -346,27 +346,27 @@ export default function SignupPage() {
             autoComplete="new-password"
             required
           />
-          <p className="mt-1.5 text-xs text-slate-500">建议使用不易猜测的 passphrase，无需强制大小写或符号</p>
+          <p className="mt-1.5 text-xs text-ink-400">建议使用不易猜测的 passphrase，无需强制大小写或符号</p>
         </motion.div>
 
-        <label className="flex items-start gap-2 text-sm text-slate-600">
+        <label className="flex items-start gap-2 text-sm text-ink-500">
           <input
             type="checkbox"
             checked={acceptTerms}
             onChange={(e) => setAcceptTerms(e.target.checked)}
-            className="mt-1 h-4 w-4 rounded border-slate-300"
+            className="mt-1 h-4 w-4 rounded border-hairline"
             required
           />
           <span>
             我已阅读并同意{" "}
-            <Link href="/privacy" className="text-sky-700 hover:text-sky-600 underline-offset-2 hover:underline">
+            <Link href="/privacy" className="text-oxblood-700 hover:text-oxblood-600 underline-offset-2 hover:underline">
               《隐私政策》
             </Link>
           </span>
         </label>
 
         {error && (
-          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-red-400 text-sm">
+          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-oxblood-400 text-sm">
             {error}
           </motion.p>
         )}
@@ -381,9 +381,9 @@ export default function SignupPage() {
           {loading ? "注册中..." : "注册"}
         </motion.button>
       </form>
-      <p className="mt-4 text-slate-500 text-sm">
+      <p className="mt-4 text-ink-400 text-sm">
         已有账号？{" "}
-        <Link href="/login" className="text-sky-700 hover:text-sky-600 transition-colors">
+        <Link href="/login" className="text-oxblood-700 hover:text-oxblood-600 transition-colors">
           登录
         </Link>
       </p>

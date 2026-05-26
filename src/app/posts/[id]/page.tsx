@@ -144,13 +144,13 @@ export default function PostDetailPage() {
     return (
       <div className="mx-auto max-w-2xl px-3 pb-24 pt-4 sm:px-4">
         <div className="mb-3 flex items-center gap-2">
-          <div className="h-9 w-9 animate-pulse rounded-full bg-slate-100" />
+          <div className="h-9 w-9 animate-pulse rounded-full bg-paper-200" />
           <div className="min-w-0 flex-1 space-y-2">
-            <div className="h-4 w-24 animate-pulse rounded bg-slate-100" />
-            <div className="h-3 w-16 animate-pulse rounded bg-slate-100" />
+            <div className="h-4 w-24 animate-pulse rounded bg-paper-200" />
+            <div className="h-3 w-16 animate-pulse rounded bg-paper-200" />
           </div>
         </div>
-        <div className="h-32 animate-pulse rounded-xl bg-slate-50" />
+        <div className="h-32 animate-pulse rounded-xl bg-paper-50" />
       </div>
     );
   }
@@ -158,7 +158,7 @@ export default function PostDetailPage() {
   if (error || !post) {
     return (
       <div className="mx-auto max-w-2xl px-3 pb-24 pt-20 text-center sm:px-4">
-        <p className="text-slate-500">{error || "帖子不存在"}</p>
+        <p className="text-ink-400">{error || "帖子不存在"}</p>
         <Link href="/posts" className="mt-4 inline-block text-sm text-ink-600 underline">
           返回动态
         </Link>
@@ -186,20 +186,20 @@ export default function PostDetailPage() {
             if (window.history.length > 1) router.back();
             else router.push("/posts");
           }}
-          className="flex h-9 w-9 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 active:scale-95"
+          className="flex h-9 w-9 items-center justify-center rounded-full text-ink-400 transition hover:bg-paper-200 active:scale-95"
           aria-label="返回"
         >
           <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
         </button>
-        <h1 className="text-base font-semibold text-[#111]">帖子详情</h1>
+        <h1 className="text-base font-semibold text-ink">帖子详情</h1>
         {isAuthor ? (
           <div className="flex items-center gap-3">
-            <Link href={`/posts/${id}/edit`} className="text-sm text-slate-500 hover:text-ink-600">
+            <Link href={`/posts/${id}/edit`} className="text-sm text-ink-400 hover:text-ink-600">
               编辑
             </Link>
-            <button type="button" onClick={handleDelete} className="text-sm text-slate-500 hover:text-rose-600">
+            <button type="button" onClick={handleDelete} className="text-sm text-ink-400 hover:text-oxblood-600">
               删除
             </button>
           </div>
@@ -209,7 +209,7 @@ export default function PostDetailPage() {
       </div>
 
       {/* Post card */}
-      <div className="rounded-[20px] bg-paper p-4 shadow-sm ring-1 ring-black/[0.04]">
+      <div className="rounded-[20px] bg-paper p-4 shadow-sm ring-1 ring-hairline/40">
         {/* Author */}
         <div className="mb-3 flex items-center gap-2.5">
           <UserAvatar
@@ -218,13 +218,13 @@ export default function PostDetailPage() {
             email={post.authorEmail}
           />
           <div className="min-w-0">
-            <p className="truncate text-sm font-semibold text-[#111]">{post.authorName}</p>
-            <p className="text-xs text-slate-400">{timeAgo(post.createdAt)}</p>
+            <p className="truncate text-sm font-semibold text-ink">{post.authorName}</p>
+            <p className="text-xs text-ink-300">{timeAgo(post.createdAt)}</p>
           </div>
         </div>
 
         {/* Content */}
-        <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-[#111]">
+        <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-ink">
           {post.content}
         </p>
 
@@ -232,7 +232,7 @@ export default function PostDetailPage() {
         {post.images && post.images.length > 0 && (
           <div className={`mt-3 grid gap-2 ${post.images.length === 1 ? "grid-cols-1" : post.images.length === 2 ? "grid-cols-2" : "grid-cols-3"}`}>
             {post.images.map((src, idx) => (
-              <div key={idx} className="relative aspect-square overflow-hidden rounded-lg bg-slate-50">
+              <div key={idx} className="relative aspect-square overflow-hidden rounded-lg bg-paper-50">
                 <img src={src} alt="" className="h-full w-full object-cover" loading="lazy" />
               </div>
             ))}
@@ -240,12 +240,12 @@ export default function PostDetailPage() {
         )}
 
         {/* Actions */}
-        <div className="mt-4 flex items-center gap-5 border-t border-slate-50 pt-3">
+        <div className="mt-4 flex items-center gap-5 border-t border-hairline/30 pt-3">
           <button
             type="button"
             onClick={handleLike}
             className={`flex items-center gap-1 text-sm transition ${
-              post.likedByMe ? "text-rose-500" : "text-slate-400 hover:text-rose-400"
+              post.likedByMe ? "text-oxblood-500" : "text-ink-300 hover:text-oxblood-400"
             }`}
           >
             <svg className="h-5 w-5" fill={post.likedByMe ? "currentColor" : "none"} stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
@@ -253,7 +253,7 @@ export default function PostDetailPage() {
             </svg>
             {post.likes > 0 ? post.likes : "赞"}
           </button>
-          <span className="flex items-center gap-1 text-sm text-slate-400">
+          <span className="flex items-center gap-1 text-sm text-ink-300">
             <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.76c0 1.768 7.5 2.25 7.5 2.25s7.5-.482 7.5-2.25c0-1.768-7.5-2.25-7.5-2.25s-7.5.482-7.5 2.25zM2.25 12.76v3.93c0 1.768 7.5 2.25 7.5 2.25s7.5-.482 7.5-2.25v-3.93M12 15V3.75" />
             </svg>
@@ -264,31 +264,31 @@ export default function PostDetailPage() {
 
       {/* Comments Section */}
       <div className="mt-4">
-        <h2 className="mb-3 text-base font-semibold text-[#111]">
+        <h2 className="mb-3 text-base font-semibold text-ink">
           {allComments.length > 0 ? `评论 (${allComments.length})` : "评论"}
         </h2>
 
         {/* Comment input */}
         {user ? (
           <form onSubmit={handleSubmitComment} className="mb-4">
-            <div className="rounded-[16px] bg-paper p-3 shadow-sm ring-1 ring-black/[0.04]">
+            <div className="rounded-[16px] bg-paper p-3 shadow-sm ring-1 ring-hairline/40">
               <textarea
                 value={commentText}
                 onChange={(e) => setCommentText(e.target.value)}
                 placeholder="写下你的评论…"
                 rows={3}
-                className="w-full resize-none rounded-lg border-0 bg-slate-50 p-3 text-sm text-[#111] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-hairline"
+                className="w-full resize-none rounded-lg border-0 bg-paper-50 p-3 text-sm text-ink placeholder:text-ink-300 focus:outline-none focus:ring-2 focus:ring-hairline"
                 maxLength={2000}
               />
               <div className="mt-2 flex items-center justify-between">
-                <span className="text-xs text-slate-400">{commentText.length}/2000</span>
+                <span className="text-xs text-ink-300">{commentText.length}/2000</span>
                 <button
                   type="submit"
                   disabled={!commentText.trim() || submittingComment}
                   className={`rounded-full px-4 py-1.5 text-sm font-semibold transition active:scale-95 ${
                     commentText.trim() && !submittingComment
-                      ? "bg-gradient-to-r from-ink to-oxblood text-white shadow-lg shadow-ink/15"
-                      : "bg-slate-100 text-slate-400"
+                      ? "bg-gradient-to-r from-ink to-oxblood text-paper shadow-lg shadow-ink/15"
+                      : "bg-paper-200 text-ink-300"
                   }`}
                 >
                   {submittingComment ? "发送中…" : "发送"}
@@ -297,11 +297,11 @@ export default function PostDetailPage() {
             </div>
           </form>
         ) : (
-          <div className="mb-4 rounded-[16px] bg-paper p-4 text-center shadow-sm ring-1 ring-black/[0.04]">
-            <p className="text-sm text-slate-500">登录后即可评论</p>
+          <div className="mb-4 rounded-[16px] bg-paper p-4 text-center shadow-sm ring-1 ring-hairline/40">
+            <p className="text-sm text-ink-400">登录后即可评论</p>
             <Link
               href="/login"
-              className="mt-2 inline-block rounded-full bg-gradient-to-r from-ink to-oxblood px-5 py-1.5 text-sm font-semibold text-white shadow-lg shadow-ink/15"
+              className="mt-2 inline-block rounded-full bg-gradient-to-r from-ink to-oxblood px-5 py-1.5 text-sm font-semibold text-paper shadow-lg shadow-ink/15"
             >
               去登录
             </Link>
@@ -322,7 +322,7 @@ export default function PostDetailPage() {
               className={`rounded-[16px] p-3 shadow-sm ring-1 ${
                 comment.isAgentReply
                   ? "bg-gradient-to-r from-paper-50/80 to-paper/60 ring-hairline/50"
-                  : "bg-paper ring-black/[0.04]"
+                  : "bg-paper ring-hairline/40"
               }`}
             >
               <div className="mb-1 flex items-center gap-2">
@@ -350,7 +350,7 @@ export default function PostDetailPage() {
                   />
                 )}
                 <div className="min-w-0">
-                  <p className="text-sm font-medium text-[#111]">
+                  <p className="text-sm font-medium text-ink">
                     {comment.isAgentReply ? (
                       agentProfileId ? (
                         <Link
@@ -366,7 +366,7 @@ export default function PostDetailPage() {
                       comment.authorName
                     )}
                   </p>
-                  <p className="text-xs text-slate-400">{timeAgo(comment.createdAt)}</p>
+                  <p className="text-xs text-ink-300">{timeAgo(comment.createdAt)}</p>
                 </div>
                 {comment.isAgentReply && (
                   <span className="ml-auto rounded-full bg-paper-100 px-2 py-0.5 text-[10px] font-medium text-ink-600">
@@ -374,7 +374,7 @@ export default function PostDetailPage() {
                   </span>
                 )}
               </div>
-              <p className="whitespace-pre-wrap text-sm leading-relaxed text-[#111]">
+              <p className="whitespace-pre-wrap text-sm leading-relaxed text-ink">
                 {comment.content}
               </p>
             </div>
@@ -382,7 +382,7 @@ export default function PostDetailPage() {
           })}
 
           {allComments.length === 0 && (
-            <div className="py-8 text-center text-sm text-slate-400">
+            <div className="py-8 text-center text-sm text-ink-300">
               还没有评论，快来抢沙发吧～
             </div>
           )}

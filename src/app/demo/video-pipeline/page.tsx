@@ -129,8 +129,8 @@ export default function VideoPipelineDemoPage() {
   if (!user) {
     return (
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-md">
-        <h1 className="text-2xl font-bold text-slate-100 mb-4">视频流水线 Demo</h1>
-        <p className="text-slate-500 mb-4">请先登录（需持有视频流水线各 Agent 的 License，种子数据已预置）</p>
+        <h1 className="text-2xl font-bold text-paper-100 mb-4">视频流水线 Demo</h1>
+        <p className="text-ink-400 mb-4">请先登录（需持有视频流水线各 Agent 的 License，种子数据已预置）</p>
         <Link href="/login" className="btn-primary inline-block">
           登录
         </Link>
@@ -143,16 +143,16 @@ export default function VideoPipelineDemoPage() {
       <h1 className="text-3xl font-bold bg-gradient-to-r from-ink-400 to-oxblood-400 bg-clip-text text-transparent mb-2">
         视频流水线 Demo
       </h1>
-      <p className="text-slate-500 mb-6">
+      <p className="text-ink-400 mb-6">
         Script → Asset → Render（模拟 3s 重算力）→ Compliance。详见 docs/SCENARIO_VIDEO_PIPELINE.md
       </p>
 
       <div className="p-6 rounded-2xl glass-card mb-6">
-        <label className="block text-sm font-medium text-slate-400 mb-2">创作 Brief</label>
+        <label className="block text-sm font-medium text-ink-300 mb-2">创作 Brief</label>
         <input
           value={brief}
           onChange={(e) => setBrief(e.target.value)}
-          className="input-glow w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10"
+          className="input-glow w-full px-4 py-3 rounded-xl bg-paper/5 border border-paper/10"
           placeholder="产品宣传片 30 秒"
         />
         <button
@@ -165,7 +165,7 @@ export default function VideoPipelineDemoPage() {
       </div>
 
       {error && (
-        <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 mb-6">{error}</div>
+        <div className="p-4 rounded-xl bg-oxblood-500/10 border border-oxblood-500/20 text-oxblood-400 mb-6">{error}</div>
       )}
 
       {result && (
@@ -176,17 +176,17 @@ export default function VideoPipelineDemoPage() {
         >
           {typeof result.script !== "undefined" && (
             <div className="p-6 rounded-2xl glass-card">
-              <h3 className="font-semibold text-slate-300 mb-2">Script</h3>
-              <pre className="whitespace-pre-wrap text-slate-400 text-sm font-mono">
+              <h3 className="font-semibold text-ink-200 mb-2">Script</h3>
+              <pre className="whitespace-pre-wrap text-ink-300 text-sm font-mono">
                 {JSON.stringify(result.script, null, 2)}
               </pre>
             </div>
           )}
           {result.assets && (
             <div className="p-6 rounded-2xl glass-card">
-              <h3 className="font-semibold text-slate-300 mb-2">Assets</h3>
-              <p className="text-slate-400 text-sm">{result.assets.length} 个素材</p>
-              <pre className="whitespace-pre-wrap text-slate-400 text-xs font-mono mt-2">
+              <h3 className="font-semibold text-ink-200 mb-2">Assets</h3>
+              <p className="text-ink-300 text-sm">{result.assets.length} 个素材</p>
+              <pre className="whitespace-pre-wrap text-ink-300 text-xs font-mono mt-2">
                 {JSON.stringify(result.assets, null, 2)}
               </pre>
             </div>
@@ -194,20 +194,20 @@ export default function VideoPipelineDemoPage() {
           {result.video && (
             <div className="p-6 rounded-2xl glass-card border border-hairline/20">
               <h3 className="font-semibold text-ink-300 mb-2">Render（重算力）</h3>
-              <p className="text-slate-300">Video URL: {result.video.video_url}</p>
-              <p className="text-slate-500 text-sm mt-1">
+              <p className="text-ink-200">Video URL: {result.video.video_url}</p>
+              <p className="text-ink-400 text-sm mt-1">
                 模拟渲染耗时: {result.video.render_time_ms}ms
               </p>
             </div>
           )}
           {result.compliance && (
             <div className="p-6 rounded-2xl glass-card">
-              <h3 className="font-semibold text-slate-300 mb-2">Compliance</h3>
-              <p className="text-emerald-400 mb-2">
+              <h3 className="font-semibold text-ink-200 mb-2">Compliance</h3>
+              <p className="text-olive-400 mb-2">
                 {result.compliance.passed ? "✅ 通过" : "❌ 未通过"}
               </p>
               {result.compliance.report && (
-                <pre className="whitespace-pre-wrap text-slate-400 text-sm">{result.compliance.report}</pre>
+                <pre className="whitespace-pre-wrap text-ink-300 text-sm">{result.compliance.report}</pre>
               )}
             </div>
           )}

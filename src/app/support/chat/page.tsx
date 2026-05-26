@@ -21,7 +21,7 @@ const SUPPORT_TOPICS = [
 const pageShellClass =
   "relative left-1/2 flex min-h-[calc(100dvh-env(safe-area-inset-bottom)-4.25rem)] w-screen max-w-none -translate-x-1/2 flex-col pb-24 lg:min-h-[calc(100dvh-6rem)] lg:pb-8";
 const contentClass = "mx-auto w-full max-w-2xl";
-const cardClass = "rounded-2xl bg-[#f4efe6] shadow-sm ring-1 ring-black/[0.08]";
+const cardClass = "rounded-2xl bg-paper shadow-sm ring-1 ring-hairline/60";
 
 export default function SupportChatPage() {
   const router = useRouter();
@@ -52,7 +52,7 @@ export default function SupportChatPage() {
         className={`${pageShellClass} flex items-center justify-center px-4`}
         style={{ backgroundColor: SUPPORT_PAGE_BG }}
       >
-        <p className="text-sm text-slate-500">正在打开客服对话…</p>
+        <p className="text-sm text-ink-400">正在打开客服对话…</p>
       </div>
     );
   }
@@ -62,7 +62,7 @@ export default function SupportChatPage() {
       <header className={`${contentClass} flex items-center gap-3 px-4 pb-4 pt-[max(0.25rem,env(safe-area-inset-top))]`}>
         <Link
           href="/map"
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#f4efe6] text-[#111] shadow-sm ring-1 ring-black/[0.08] transition active:bg-[#eee7db]"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-paper text-ink shadow-sm ring-1 ring-hairline/60 transition active:bg-paper-200"
           aria-label="返回地图"
           title="返回"
         >
@@ -70,32 +70,32 @@ export default function SupportChatPage() {
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
         </Link>
-        <h1 className="flex-1 text-[26px] font-bold leading-tight tracking-tight text-[#111]">联系客服</h1>
+        <h1 className="flex-1 text-[26px] font-bold leading-tight tracking-tight text-ink">联系客服</h1>
       </header>
 
       <div className={`${contentClass} flex flex-1 flex-col gap-4 px-4`}>
         <section className={`${cardClass} px-5 py-5`}>
-          <p className="text-[15px] font-semibold text-[#111]">邮件联系 BrightAgent</p>
-          <p className="mt-2 text-sm leading-relaxed text-slate-600">
+          <p className="text-[15px] font-semibold text-ink">邮件联系 BrightAgent</p>
+          <p className="mt-2 text-sm leading-relaxed text-ink-500">
             {OFFICIAL_CONTACT.description}。请发邮件说明你的账号、订单或认证问题，我们会尽快回复。
             {OFFICIAL_CONTACT.replyHint ? (
-              <span className="mt-1 block text-slate-500">{OFFICIAL_CONTACT.replyHint}</span>
+              <span className="mt-1 block text-ink-400">{OFFICIAL_CONTACT.replyHint}</span>
             ) : null}
           </p>
-          <p className="mt-4 break-all text-base font-semibold tracking-tight text-[#111]">
+          <p className="mt-4 break-all text-base font-semibold tracking-tight text-ink">
             {OFFICIAL_CONTACT.email}
           </p>
           <div className="mt-5 flex flex-col gap-2.5">
             <a
               href={officialMailtoUrl()}
-              className="inline-flex w-full items-center justify-center rounded-full bg-[#111] px-6 py-3.5 text-sm font-semibold text-white active:opacity-90"
+              className="inline-flex w-full items-center justify-center rounded-full bg-ink px-6 py-3.5 text-sm font-semibold text-paper active:opacity-90"
             >
               发送邮件至 {OFFICIAL_CONTACT.email}
             </a>
             <button
               type="button"
               onClick={() => void copyEmail()}
-              className="inline-flex w-full items-center justify-center rounded-full border border-black/[0.08] bg-[#f4efe6] px-6 py-3 text-sm font-semibold text-[#111] active:bg-[#eee7db]"
+              className="inline-flex w-full items-center justify-center rounded-full border border-hairline/60 bg-paper px-6 py-3 text-sm font-semibold text-ink active:bg-paper-200"
             >
               {copied ? "已复制邮箱" : "复制邮箱地址"}
             </button>
@@ -103,8 +103,8 @@ export default function SupportChatPage() {
         </section>
 
         <section className={`${cardClass} px-4 py-4`}>
-          <h2 className="text-sm font-semibold text-[#111]">写信时请尽量包含</h2>
-          <ul className="mt-3 space-y-2 text-sm leading-relaxed text-slate-600">
+          <h2 className="text-sm font-semibold text-ink">写信时请尽量包含</h2>
+          <ul className="mt-3 space-y-2 text-sm leading-relaxed text-ink-500">
             <li>· 注册邮箱或手机号</li>
             <li>· 问题类型与出现时间</li>
             <li>· 相关 Agent 名称或订单信息（如有）</li>
@@ -112,20 +112,20 @@ export default function SupportChatPage() {
         </section>
 
         <section className="space-y-2">
-          <h2 className="px-1 text-sm font-semibold text-slate-500">常见问题类型</h2>
+          <h2 className="px-1 text-sm font-semibold text-ink-400">常见问题类型</h2>
           {SUPPORT_TOPICS.map((item) => (
             <div
               key={item.title}
-              className="rounded-xl bg-[#f4efe6] px-4 py-3 ring-1 ring-black/[0.06]"
+              className="rounded-xl bg-paper px-4 py-3 ring-1 ring-hairline/50"
             >
-              <p className="text-[15px] font-medium text-[#111]">{item.title}</p>
-              <p className="mt-1 text-sm text-slate-500">{item.desc}</p>
+              <p className="text-[15px] font-medium text-ink">{item.title}</p>
+              <p className="mt-1 text-sm text-ink-400">{item.desc}</p>
             </div>
           ))}
         </section>
 
-        <p className="px-1 pb-2 text-center text-xs text-slate-400">
-          <Link href="/privacy" className="text-sky-700 hover:text-sky-600">
+        <p className="px-1 pb-2 text-center text-xs text-ink-300">
+          <Link href="/privacy" className="text-oxblood-700 hover:text-oxblood-600">
             隐私政策
           </Link>
         </p>

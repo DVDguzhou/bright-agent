@@ -64,9 +64,9 @@ const STEPS: {
     title: "导出选项（建议与下图一致）",
     body: (
       <>
-        对话文本格式建议选择 <strong className="font-medium text-slate-800">WeClone CSV</strong>；可按需勾选图片、语音、视频、表情包；建议开启{" "}
-        <strong className="font-medium text-slate-800">语音转文字</strong>；发送者名称可选「备注优先」等。确认后点击{" "}
-        <strong className="font-medium text-slate-800">创建导出任务</strong>。
+        对话文本格式建议选择 <strong className="font-medium text-ink-700">WeClone CSV</strong>；可按需勾选图片、语音、视频、表情包；建议开启{" "}
+        <strong className="font-medium text-ink-700">语音转文字</strong>；发送者名称可选「备注优先」等。确认后点击{" "}
+        <strong className="font-medium text-ink-700">创建导出任务</strong>。
       </>
     ),
     imageSrc: "/weflow-import-guide/steps/step-06.png",
@@ -82,7 +82,7 @@ const STEPS: {
     title: "进入 texts 文件夹",
     body: (
       <>
-        在导出目录中找到并打开 <strong className="font-medium text-slate-800">texts</strong>{" "}
+        在导出目录中找到并打开 <strong className="font-medium text-ink-700">texts</strong>{" "}
         文件夹（与图片、语音等文件夹并列）。
       </>
     ),
@@ -93,8 +93,8 @@ const STEPS: {
     title: "把 CSV 传到手机并上传本页",
     body: (
       <>
-        在 <code className="rounded bg-slate-100 px-1 py-0.5 text-xs text-slate-800">texts</code> 内找到本次导出生成的{" "}
-        <strong className="font-medium text-slate-800">.csv</strong> 文件，通过微信文件助手、网盘、数据线等方式保存到手机，再在本页点击下方「选择文件」上传该 CSV。
+        在 <code className="rounded bg-paper-200 px-1 py-0.5 text-xs text-ink-700">texts</code> 内找到本次导出生成的{" "}
+        <strong className="font-medium text-ink-700">.csv</strong> 文件，通过微信文件助手、网盘、数据线等方式保存到手机，再在本页点击下方「选择文件」上传该 CSV。
       </>
     ),
     imageSrc: "/weflow-import-guide/steps/step-09.png",
@@ -104,18 +104,18 @@ const STEPS: {
 
 export function WeflowImportGuide() {
   return (
-    <div className="mt-3 space-y-5 text-slate-600">
+    <div className="mt-3 space-y-5 text-ink-500">
       {STEPS.map((step, i) => (
         <div key={i} className="border-b border-hairline/80 pb-4 last:border-0 last:pb-0">
           <div className="mb-1.5 flex items-baseline gap-2">
             <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-paper-200 text-xs font-semibold text-ink-800">
               {i + 1}
             </span>
-            <h4 className="text-sm font-semibold text-slate-800">{step.title}</h4>
+            <h4 className="text-sm font-semibold text-ink-700">{step.title}</h4>
           </div>
-          <div className="ml-8 text-sm leading-relaxed [&_strong]:text-slate-800">{step.body}</div>
+          <div className="ml-8 text-sm leading-relaxed [&_strong]:text-ink-700">{step.body}</div>
           {step.imageSrc ? (
-            <div className="ml-8 mt-2 overflow-hidden rounded-lg border border-slate-200/80 bg-slate-50 shadow-sm">
+            <div className="ml-8 mt-2 overflow-hidden rounded-lg border border-hairline/80 bg-paper-50 shadow-sm">
               {/* eslint-disable-next-line @next/next/no-img-element -- static tutorial screenshots */}
               <img
                 src={step.imageSrc}
@@ -127,7 +127,7 @@ export function WeflowImportGuide() {
           ) : null}
         </div>
       ))}
-      <p className="ml-8 text-xs text-slate-500">
+      <p className="ml-8 text-xs text-ink-400">
         隐私提示：导出前可在 WeFlow 内控制范围；上传前可删 CSV 中的敏感内容。文件仅用于本次分析与更新你的 Agent。
       </p>
     </div>

@@ -84,12 +84,12 @@ function feedbackLabel(t: string) {
 }
 
 function feedbackBadgeClass(t: string) {
-  if (t === "helpful") return "bg-emerald-50 text-emerald-800 ring-1 ring-emerald-100";
-  if (t === "not_specific") return "bg-amber-50 text-amber-900 ring-1 ring-amber-100";
-  if (t === "factual_error") return "bg-red-50 text-red-800 ring-1 ring-red-100";
+  if (t === "helpful") return "bg-olive-400/10 text-olive-600 ring-1 ring-olive-400/40";
+  if (t === "not_specific") return "bg-paper-200 text-ink ring-1 ring-hairline";
+  if (t === "factual_error") return "bg-oxblood-50 text-oxblood-700 ring-1 ring-oxblood-100";
   if (t === "contradiction") return "bg-paper-50 text-ink-800 ring-1 ring-hairline/50";
-  if (t === "too_confident") return "bg-orange-50 text-orange-900 ring-1 ring-orange-100";
-  return "bg-rose-50 text-rose-800 ring-1 ring-rose-100";
+  if (t === "too_confident") return "bg-paper-200 text-ink ring-1 ring-hairline";
+  return "bg-oxblood-50 text-oxblood-700 ring-1 ring-oxblood-100";
 }
 
 function normalizeSummary(raw: any): SummaryData {
@@ -177,7 +177,7 @@ export default function DashboardNotificationsPage() {
               if (window.history.length > 1) router.back();
               else router.push("/dashboard");
             }}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[#111] transition active:bg-slate-200"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-paper-200 text-ink transition active:bg-paper-300"
             aria-label="返回"
             title="返回"
           >
@@ -185,11 +185,11 @@ export default function DashboardNotificationsPage() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <h1 className="min-w-0 flex-1 text-[26px] font-bold leading-tight tracking-tight text-[#111]">提醒</h1>
+          <h1 className="min-w-0 flex-1 text-[26px] font-bold leading-tight tracking-tight text-ink">提醒</h1>
           <span className="h-10 w-10 shrink-0" aria-hidden />
         </header>
         <div className="flex min-h-[50vh] items-center justify-center px-4">
-          <p className="text-sm text-slate-500">{loading ? "加载中…" : "请先登录后查看提醒。"}</p>
+          <p className="text-sm text-ink-400">{loading ? "加载中…" : "请先登录后查看提醒。"}</p>
         </div>
       </div>
     );
@@ -204,7 +204,7 @@ export default function DashboardNotificationsPage() {
             if (window.history.length > 1) router.back();
             else router.push("/dashboard");
           }}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[#111] transition active:bg-slate-200"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-paper-200 text-ink transition active:bg-paper-300"
           aria-label="返回"
           title="返回"
         >
@@ -212,52 +212,52 @@ export default function DashboardNotificationsPage() {
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
         </button>
-        <h1 className="min-w-0 flex-1 text-[26px] font-bold leading-tight tracking-tight text-[#111]">提醒</h1>
+        <h1 className="min-w-0 flex-1 text-[26px] font-bold leading-tight tracking-tight text-ink">提醒</h1>
         <span className="h-10 w-10 shrink-0" aria-hidden />
       </header>
 
       <div className="px-4 pb-3 sm:px-0">
         <label className="sr-only">搜索提醒</label>
         <input
-          className="w-full rounded-full border-0 bg-slate-100 px-4 py-2.5 text-[15px] text-[#111] outline-none ring-1 ring-transparent transition placeholder:text-slate-400 focus:bg-slate-50 focus:ring-slate-200"
+          className="w-full rounded-full border-0 bg-paper-200 px-4 py-2.5 text-[15px] text-ink outline-none ring-1 ring-transparent transition placeholder:text-ink-300 focus:bg-paper-50 focus:ring-hairline"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="搜索 Agent 或反馈类型"
         />
       </div>
 
-      <div className="border-t border-slate-100">
+      <div className="border-t border-hairline/50">
         {dataLoading ? (
-          <ul className="divide-y divide-slate-100 px-4 sm:px-0" aria-busy>
+          <ul className="divide-y divide-hairline/50 px-4 sm:px-0" aria-busy>
             {[1, 2, 3, 4, 5, 6].map((i) => (
               <li key={i} className="flex items-center gap-3 py-3.5">
-                <div className="h-12 w-12 shrink-0 animate-pulse rounded-full bg-slate-200" />
+                <div className="h-12 w-12 shrink-0 animate-pulse rounded-full bg-paper-300" />
                 <div className="min-w-0 flex-1 space-y-2">
-                  <div className="h-4 w-32 animate-pulse rounded bg-slate-200" />
-                  <div className="h-3 w-full max-w-[12rem] animate-pulse rounded bg-slate-100" />
+                  <div className="h-4 w-32 animate-pulse rounded bg-paper-300" />
+                  <div className="h-3 w-full max-w-[12rem] animate-pulse rounded bg-paper-200" />
                 </div>
-                <div className="h-3 w-10 shrink-0 animate-pulse rounded bg-slate-100" />
+                <div className="h-3 w-10 shrink-0 animate-pulse rounded bg-paper-200" />
               </li>
             ))}
           </ul>
         ) : rows.length === 0 ? (
           <div className="px-4 py-16 text-center sm:px-0">
-            <p className="text-[15px] text-slate-400">暂时还没有提醒</p>
-            <p className="mt-2 text-sm text-slate-400">当你创建的 Agent 收到新反馈或评分时，会出现在这里。</p>
+            <p className="text-[15px] text-ink-300">暂时还没有提醒</p>
+            <p className="mt-2 text-sm text-ink-300">当你创建的 Agent 收到新反馈或评分时，会出现在这里。</p>
           </div>
         ) : filteredRows.length === 0 ? (
           <div className="px-4 py-16 text-center sm:px-0">
-            <p className="text-[15px] text-slate-400">没有匹配的提醒</p>
+            <p className="text-[15px] text-ink-300">没有匹配的提醒</p>
             <button
               type="button"
               onClick={() => setQuery("")}
-              className="mt-4 text-sm font-medium text-slate-600 underline"
+              className="mt-4 text-sm font-medium text-ink-500 underline"
             >
               清空搜索
             </button>
           </div>
         ) : (
-          <ul className="divide-y divide-slate-100">
+          <ul className="divide-y divide-hairline/50">
             {filteredRows.map((item, index) => {
               const avatarSrc = getDisplayAvatar({ name: item.profileName });
               const href = `/dashboard/life-agents/${item.profileId}/feedback`;
@@ -270,9 +270,9 @@ export default function DashboardNotificationsPage() {
                 >
                   <Link
                     href={href}
-                    className="flex items-center gap-3 px-4 py-3.5 transition active:bg-slate-50 sm:px-0"
+                    className="flex items-center gap-3 px-4 py-3.5 transition active:bg-paper-50 sm:px-0"
                   >
-                    <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full bg-slate-100 ring-1 ring-black/[0.06]">
+                    <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full bg-paper-200 ring-1 ring-hairline/50">
                       <Image
                         src={avatarSrc}
                         alt=""
@@ -284,21 +284,21 @@ export default function DashboardNotificationsPage() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-                        <span className="truncate text-[16px] font-semibold text-[#111]">{item.profileName}</span>
+                        <span className="truncate text-[16px] font-semibold text-ink">{item.profileName}</span>
                         {item.kind === "feedback" ? (
                           <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${feedbackBadgeClass(item.feedbackType)}`}>
                             {feedbackLabel(item.feedbackType)}
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-sky-50 px-2 py-0.5 text-[10px] font-medium text-sky-800 ring-1 ring-sky-100">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-oxblood-50 px-2 py-0.5 text-[10px] font-medium text-oxblood-700 ring-1 ring-oxblood-100">
                             <RatingStars score={item.score} size="sm" />
                             {item.score}/5
                           </span>
                         )}
                       </div>
-                      <p className="mt-0.5 line-clamp-1 text-[13px] leading-snug text-slate-400">{item.preview}</p>
+                      <p className="mt-0.5 line-clamp-1 text-[13px] leading-snug text-ink-300">{item.preview}</p>
                     </div>
-                    <time className="shrink-0 pt-0.5 text-xs tabular-nums text-slate-400" dateTime={item.time}>
+                    <time className="shrink-0 pt-0.5 text-xs tabular-nums text-ink-300" dateTime={item.time}>
                       {formatSessionTime(item.time)}
                     </time>
                   </Link>

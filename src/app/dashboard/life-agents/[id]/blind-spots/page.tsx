@@ -44,7 +44,7 @@ export default function BlindSpotsPage() {
   if (loading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
-        <p className="text-sm text-slate-400">加载中…</p>
+        <p className="text-sm text-ink-300">加载中…</p>
       </div>
     );
   }
@@ -52,7 +52,7 @@ export default function BlindSpotsPage() {
   if (error || !data) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
-        <p className="text-sm text-red-500">{error ?? "加载失败"}</p>
+        <p className="text-sm text-oxblood-500">{error ?? "加载失败"}</p>
       </div>
     );
   }
@@ -60,43 +60,43 @@ export default function BlindSpotsPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
       <div className="mb-6">
-        <Link href={`/dashboard/life-agents/${id}`} className="text-sm text-sky-600 hover:underline">
+        <Link href={`/dashboard/life-agents/${id}`} className="text-sm text-oxblood-600 hover:underline">
           ← 返回管理台
         </Link>
-        <h1 className="mt-2 text-2xl font-black tracking-tight text-[#111]">盲区问题</h1>
-        <p className="mt-1 text-sm text-slate-500">
+        <h1 className="mt-2 text-2xl font-black tracking-tight text-ink">盲区问题</h1>
+        <p className="mt-1 text-sm text-ink-400">
           以下问题用户问了但你的 Agent 缺少相关经验，补充后可以显著提升回答质量。
         </p>
       </div>
 
       {spots.length === 0 ? (
-        <div className="rounded-2xl bg-emerald-50 px-6 py-12 text-center">
-          <p className="text-lg font-semibold text-emerald-800">暂无盲区问题</p>
-          <p className="mt-1 text-sm text-emerald-600">说明你的 Agent 经验覆盖比较全面，继续保持！</p>
+        <div className="rounded-2xl bg-olive-400/10 px-6 py-12 text-center">
+          <p className="text-lg font-semibold text-olive-600">暂无盲区问题</p>
+          <p className="mt-1 text-sm text-olive-600">说明你的 Agent 经验覆盖比较全面，继续保持！</p>
         </div>
       ) : (
         <div className="space-y-3">
           {spots.map((spot) => (
-            <div key={spot.id} className="rounded-2xl bg-paper px-5 py-4 shadow-sm ring-1 ring-black/[0.06]">
-              <p className="text-[15px] font-medium text-[#111] leading-relaxed">&ldquo;{spot.userQuestion}&rdquo;</p>
+            <div key={spot.id} className="rounded-2xl bg-paper px-5 py-4 shadow-sm ring-1 ring-hairline/50">
+              <p className="text-[15px] font-medium text-ink leading-relaxed">&ldquo;{spot.userQuestion}&rdquo;</p>
               <div className="mt-2 flex items-center gap-3">
-                <span className="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800">
+                <span className="inline-flex items-center rounded-full bg-paper-300 px-2.5 py-0.5 text-xs font-medium text-oxblood-700">
                   置信度低
                 </span>
-                <span className="text-xs text-slate-400">
+                <span className="text-xs text-ink-300">
                   {new Date(spot.createdAt).toLocaleDateString("zh-CN")}
                 </span>
               </div>
               <div className="mt-3 flex items-center gap-2">
                 <Link
                   href={`/dashboard/life-agents/${id}/co-edit`}
-                  className="rounded-lg bg-sky-50 px-3 py-1.5 text-xs font-medium text-sky-700 hover:bg-sky-100 transition-colors"
+                  className="rounded-lg bg-oxblood-50 px-3 py-1.5 text-xs font-medium text-oxblood-700 hover:bg-oxblood-100 transition-colors"
                 >
                   去补充经验
                 </Link>
                 <button
                   onClick={() => resolveSpot(spot.id)}
-                  className="rounded-lg bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-500 hover:bg-slate-100 transition-colors"
+                  className="rounded-lg bg-paper-50 px-3 py-1.5 text-xs font-medium text-ink-400 hover:bg-paper-200 transition-colors"
                 >
                   已解决
                 </button>

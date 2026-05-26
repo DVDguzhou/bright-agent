@@ -43,12 +43,12 @@ function feedbackLabel(t: string) {
 }
 
 function feedbackAccent(t: string) {
-  if (t === "helpful") return "bg-emerald-100 text-emerald-800";
-  if (t === "not_specific") return "bg-amber-100 text-amber-900";
-  if (t === "factual_error") return "bg-red-100 text-red-800";
+  if (t === "helpful") return "bg-olive-400/20 text-olive-600";
+  if (t === "not_specific") return "bg-paper-300 text-ink";
+  if (t === "factual_error") return "bg-oxblood-100 text-oxblood-700";
   if (t === "contradiction") return "bg-paper-200 text-ink-800";
-  if (t === "too_confident") return "bg-orange-100 text-orange-900";
-  return "bg-rose-100 text-rose-800";
+  if (t === "too_confident") return "bg-paper-300 text-ink";
+  return "bg-oxblood-100 text-oxblood-700";
 }
 
 function FeedbackHeader({
@@ -69,11 +69,11 @@ function FeedbackHeader({
   disableSearch?: boolean;
 }) {
   return (
-    <header className="sticky top-0 z-20 border-b border-slate-200/80 bg-paper/95 px-4 pb-3 pt-[max(0.35rem,env(safe-area-inset-top))] backdrop-blur-md sm:px-0">
+    <header className="sticky top-0 z-20 border-b border-hairline/80 bg-paper/95 px-4 pb-3 pt-[max(0.35rem,env(safe-area-inset-top))] backdrop-blur-md sm:px-0">
       <div className="flex items-center gap-3">
         <Link
           href={`/dashboard/life-agents/${id}`}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[#111] transition active:bg-slate-200"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-paper-200 text-ink transition active:bg-paper-300"
           aria-label="返回工作台"
           title="返回"
         >
@@ -82,10 +82,10 @@ function FeedbackHeader({
           </svg>
         </Link>
         <div className="min-w-0 flex-1">
-          <h1 className="text-[26px] font-bold leading-tight tracking-tight text-[#111]">{title}</h1>
-          <p className="mt-0.5 truncate text-sm text-slate-500">{subtitle}</p>
+          <h1 className="text-[26px] font-bold leading-tight tracking-tight text-ink">{title}</h1>
+          <p className="mt-0.5 truncate text-sm text-ink-400">{subtitle}</p>
         </div>
-        <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full ring-1 ring-black/[0.06]">
+        <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full ring-1 ring-hairline/50">
           {coverSrc ? (
             <LifeAgentCoverImage
               src={coverSrc}
@@ -95,13 +95,13 @@ function FeedbackHeader({
               sizes="40px"
             />
           ) : (
-            <div className="flex h-full w-full items-center justify-center bg-slate-100 text-xs font-semibold text-slate-400">A</div>
+            <div className="flex h-full w-full items-center justify-center bg-paper-200 text-xs font-semibold text-ink-300">A</div>
           )}
         </div>
       </div>
       <div className="mt-4">
         <input
-          className="w-full rounded-full border-0 bg-slate-100 px-4 py-2.5 text-[15px] text-[#111] outline-none ring-1 ring-transparent transition placeholder:text-slate-400 focus:bg-slate-50 focus:ring-slate-200 disabled:cursor-not-allowed disabled:opacity-70"
+          className="w-full rounded-full border-0 bg-paper-200 px-4 py-2.5 text-[15px] text-ink outline-none ring-1 ring-transparent transition placeholder:text-ink-300 focus:bg-paper-50 focus:ring-hairline disabled:cursor-not-allowed disabled:opacity-70"
           value={query ?? ""}
           onChange={(e) => onQueryChange?.(e.target.value)}
           placeholder="搜索评价类型、摘要或评语"
@@ -218,20 +218,20 @@ export default function LifeAgentFeedbackFeedPage() {
 
   if (loading && !payload) {
     return (
-      <div className="mx-auto max-w-3xl space-y-4 max-lg:-mx-4 max-lg:bg-[#f7f8fa] max-lg:pb-24">
+      <div className="mx-auto max-w-3xl space-y-4 max-lg:-mx-4 max-lg:bg-paper-50 max-lg:pb-24">
         <FeedbackHeader id={id} title="反馈诊断" subtitle="正在加载 Agent 反馈" disableSearch />
-        <div className="h-56 animate-pulse rounded-[28px] bg-paper shadow-sm ring-1 ring-black/[0.04]" />
+        <div className="h-56 animate-pulse rounded-[28px] bg-paper shadow-sm ring-1 ring-hairline/40" />
       </div>
     );
   }
 
   if (loadError || !profile) {
     return (
-      <div className="mx-auto max-w-3xl space-y-4 max-lg:-mx-4 max-lg:bg-[#f7f8fa] max-lg:pb-24">
+      <div className="mx-auto max-w-3xl space-y-4 max-lg:-mx-4 max-lg:bg-paper-50 max-lg:pb-24">
         <FeedbackHeader id={id} title="反馈诊断" subtitle="暂时无法读取这个 Agent 的反馈数据" disableSearch />
-        <div className="rounded-[28px] bg-paper px-4 py-16 text-center shadow-sm ring-1 ring-black/[0.04]">
-          <p className="text-[15px] text-slate-500">{loadError ?? "无法加载"}</p>
-          <Link href={`/dashboard/life-agents/${id}`} className="mt-6 inline-flex rounded-full bg-[#111] px-6 py-2.5 text-sm font-medium text-white">
+        <div className="rounded-[28px] bg-paper px-4 py-16 text-center shadow-sm ring-1 ring-hairline/40">
+          <p className="text-[15px] text-ink-400">{loadError ?? "无法加载"}</p>
+          <Link href={`/dashboard/life-agents/${id}`} className="mt-6 inline-flex rounded-full bg-ink px-6 py-2.5 text-sm font-medium text-paper">
             返回工作台
           </Link>
         </div>
@@ -242,7 +242,7 @@ export default function LifeAgentFeedbackFeedPage() {
   const trendRows = ratings.recent.slice(0, 7).reverse();
 
   return (
-    <div className="mx-auto max-w-3xl space-y-4 max-lg:-mx-4 max-lg:bg-[#f7f8fa] max-lg:px-3 max-lg:pb-24">
+    <div className="mx-auto max-w-3xl space-y-4 max-lg:-mx-4 max-lg:bg-paper-50 max-lg:px-3 max-lg:pb-24">
       <FeedbackHeader
         id={id}
         title="反馈诊断"
@@ -253,71 +253,71 @@ export default function LifeAgentFeedbackFeedPage() {
       />
 
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-6">
-        <div className="rounded-2xl bg-paper px-3 py-4 text-center shadow-sm ring-1 ring-black/[0.04]">
-          <p className="text-2xl font-black text-sky-700">{ratings.raters > 0 ? ratings.averageScore.toFixed(1) : "—"}</p>
-          <p className="mt-1 text-xs text-slate-500">综合评分</p>
+        <div className="rounded-2xl bg-paper px-3 py-4 text-center shadow-sm ring-1 ring-hairline/40">
+          <p className="text-2xl font-black text-oxblood-700">{ratings.raters > 0 ? ratings.averageScore.toFixed(1) : "—"}</p>
+          <p className="mt-1 text-xs text-ink-400">综合评分</p>
         </div>
-        <div className="rounded-2xl bg-paper px-3 py-4 text-center shadow-sm ring-1 ring-black/[0.04]">
-          <p className="text-2xl font-black text-emerald-700">{feedbackCounts.helpful}</p>
-          <p className="mt-1 text-xs text-slate-500">有帮助</p>
+        <div className="rounded-2xl bg-paper px-3 py-4 text-center shadow-sm ring-1 ring-hairline/40">
+          <p className="text-2xl font-black text-olive-600">{feedbackCounts.helpful}</p>
+          <p className="mt-1 text-xs text-ink-400">有帮助</p>
         </div>
-        <div className="rounded-2xl bg-paper px-3 py-4 text-center shadow-sm ring-1 ring-black/[0.04]">
-          <p className="text-2xl font-black text-amber-700">{feedbackCounts.notSpecific}</p>
-          <p className="mt-1 text-xs text-slate-500">不够具体</p>
+        <div className="rounded-2xl bg-paper px-3 py-4 text-center shadow-sm ring-1 ring-hairline/40">
+          <p className="text-2xl font-black text-oxblood-600">{feedbackCounts.notSpecific}</p>
+          <p className="mt-1 text-xs text-ink-400">不够具体</p>
         </div>
-        <div className="rounded-2xl bg-paper px-3 py-4 text-center shadow-sm ring-1 ring-black/[0.04]">
-          <p className="text-2xl font-black text-rose-700">{feedbackCounts.notSuitable}</p>
-          <p className="mt-1 text-xs text-slate-500">不适合我</p>
+        <div className="rounded-2xl bg-paper px-3 py-4 text-center shadow-sm ring-1 ring-hairline/40">
+          <p className="text-2xl font-black text-oxblood-700">{feedbackCounts.notSuitable}</p>
+          <p className="mt-1 text-xs text-ink-400">不适合我</p>
         </div>
-        <div className="rounded-2xl bg-paper px-3 py-4 text-center shadow-sm ring-1 ring-black/[0.04]">
-          <p className="text-2xl font-black text-red-700">{feedbackCounts.factualError ?? 0}</p>
-          <p className="mt-1 text-xs text-slate-500">事实错误</p>
+        <div className="rounded-2xl bg-paper px-3 py-4 text-center shadow-sm ring-1 ring-hairline/40">
+          <p className="text-2xl font-black text-oxblood-700">{feedbackCounts.factualError ?? 0}</p>
+          <p className="mt-1 text-xs text-ink-400">事实错误</p>
         </div>
-        <div className="rounded-2xl bg-paper px-3 py-4 text-center shadow-sm ring-1 ring-black/[0.04]">
+        <div className="rounded-2xl bg-paper px-3 py-4 text-center shadow-sm ring-1 ring-hairline/40">
           <p className="text-2xl font-black text-ink-700">{feedbackCounts.contradiction ?? 0}</p>
-          <p className="mt-1 text-xs text-slate-500">前后矛盾</p>
+          <p className="mt-1 text-xs text-ink-400">前后矛盾</p>
         </div>
       </section>
 
       <section className="grid gap-4 lg:grid-cols-[1.2fr_1fr]">
-        <div className="rounded-[28px] bg-paper px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
-          <h2 className="text-lg font-semibold text-[#111]">评分趋势</h2>
+        <div className="rounded-[28px] bg-paper px-4 py-4 shadow-sm ring-1 ring-hairline/40 sm:px-6">
+          <h2 className="text-lg font-semibold text-ink">评分趋势</h2>
           {trendRows.length === 0 ? (
-            <p className="mt-4 text-sm text-slate-400">还没有星级评分</p>
+            <p className="mt-4 text-sm text-ink-300">还没有星级评分</p>
           ) : (
             <div className="mt-4 space-y-3">
               {trendRows.map((item, index) => (
                 <div key={`${item.updatedAt}-${index}`} className="flex items-center gap-3">
-                  <div className="w-14 text-xs text-slate-400">{formatShortTime(item.updatedAt)}</div>
-                  <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100">
-                    <div className="h-full rounded-full bg-gradient-to-r from-sky-500 to-cyan-400" style={{ width: `${(item.score / 5) * 100}%` }} />
+                  <div className="w-14 text-xs text-ink-300">{formatShortTime(item.updatedAt)}</div>
+                  <div className="h-2 flex-1 overflow-hidden rounded-full bg-paper-200">
+                    <div className="h-full rounded-full bg-gradient-to-r from-oxblood-500 to-oxblood-400" style={{ width: `${(item.score / 5) * 100}%` }} />
                   </div>
-                  <div className="w-10 text-right text-sm font-semibold text-[#111]">{item.score}/5</div>
+                  <div className="w-10 text-right text-sm font-semibold text-ink">{item.score}/5</div>
                 </div>
               ))}
             </div>
           )}
         </div>
 
-        <div className="rounded-[28px] bg-paper px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
-          <h2 className="text-lg font-semibold text-[#111]">近期关键词</h2>
+        <div className="rounded-[28px] bg-paper px-4 py-4 shadow-sm ring-1 ring-hairline/40 sm:px-6">
+          <h2 className="text-lg font-semibold text-ink">近期关键词</h2>
           <div className="mt-4 flex flex-wrap gap-2">
             {keywords.length > 0 ? (
               keywords.map((word) => (
-                <span key={word} className="rounded-full bg-slate-100 px-3 py-1.5 text-xs text-slate-700">
+                <span key={word} className="rounded-full bg-paper-200 px-3 py-1.5 text-xs text-ink-600">
                   {word}
                 </span>
               ))
             ) : (
-              <p className="text-sm text-slate-400">还没有足够的文本反馈可提炼关键词</p>
+              <p className="text-sm text-ink-300">还没有足够的文本反馈可提炼关键词</p>
             )}
           </div>
         </div>
       </section>
 
-      <section className="rounded-[28px] bg-gradient-to-r from-yellow-300 via-amber-200 to-yellow-300 px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
-        <h2 className="text-lg font-semibold text-[#111]">改进建议</h2>
-        <ul className="mt-3 space-y-2 text-sm text-amber-950">
+      <section className="rounded-[28px] bg-gradient-to-r from-oxblood-200 via-oxblood-100 to-oxblood-200 px-4 py-4 shadow-sm ring-1 ring-hairline/40 sm:px-6">
+        <h2 className="text-lg font-semibold text-ink">改进建议</h2>
+        <ul className="mt-3 space-y-2 text-sm text-ink">
           {suggestions.map((item) => (
             <li key={item} className="rounded-2xl bg-paper/70 px-4 py-3 shadow-sm">
               {item}
@@ -326,21 +326,21 @@ export default function LifeAgentFeedbackFeedPage() {
         </ul>
       </section>
 
-      <section className="overflow-hidden rounded-[28px] bg-paper shadow-sm ring-1 ring-black/[0.04]">
-        <div className="border-b border-slate-100 px-4 py-4 sm:px-6">
-          <h2 className="text-lg font-semibold text-[#111]">全部反馈记录</h2>
+      <section className="overflow-hidden rounded-[28px] bg-paper shadow-sm ring-1 ring-hairline/40">
+        <div className="border-b border-hairline/50 px-4 py-4 sm:px-6">
+          <h2 className="text-lg font-semibold text-ink">全部反馈记录</h2>
         </div>
-        <div className="divide-y divide-slate-100">
+        <div className="divide-y divide-hairline/50">
           {rows.length === 0 ? (
-            <div className="px-4 py-16 text-center text-[15px] text-slate-400">该 Agent 暂无反馈记录</div>
+            <div className="px-4 py-16 text-center text-[15px] text-ink-300">该 Agent 暂无反馈记录</div>
           ) : filteredRows.length === 0 ? (
-            <div className="px-4 py-16 text-center text-[15px] text-slate-400">没有匹配的记录</div>
+            <div className="px-4 py-16 text-center text-[15px] text-ink-300">没有匹配的记录</div>
           ) : (
             filteredRows.map((row) => (
               <div key={row.key} className="flex items-center gap-3 px-4 py-3.5 sm:px-6">
                 {row.kind === "feedback" ? (
                   <>
-                    <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-sm font-bold ring-1 ring-black/[0.06] ${feedbackAccent(row.feedbackType)}`}>
+                    <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-sm font-bold ring-1 ring-hairline/50 ${feedbackAccent(row.feedbackType)}`}>
                       {row.feedbackType === "helpful"
                         ? "赞"
                         : row.feedbackType === "not_specific"
@@ -355,10 +355,10 @@ export default function LifeAgentFeedbackFeedPage() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex min-w-0 flex-wrap items-center gap-2">
-                        <span className="truncate text-[16px] font-semibold text-[#111]">{feedbackLabel(row.feedbackType)}</span>
-                        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500">轻反馈</span>
+                        <span className="truncate text-[16px] font-semibold text-ink">{feedbackLabel(row.feedbackType)}</span>
+                        <span className="rounded-full bg-paper-200 px-2 py-0.5 text-[10px] font-medium text-ink-400">轻反馈</span>
                       </div>
-                      <p className="mt-0.5 line-clamp-2 text-[13px] leading-snug text-slate-400">
+                      <p className="mt-0.5 line-clamp-2 text-[13px] leading-snug text-ink-300">
                         {row.comment?.trim()
                           ? row.comment
                           : row.assistantExcerpt?.trim()
@@ -368,23 +368,23 @@ export default function LifeAgentFeedbackFeedPage() {
                             : "无摘要"}
                       </p>
                     </div>
-                    <time className="shrink-0 self-start pt-0.5 text-xs tabular-nums text-slate-400" dateTime={row.createdAt}>
+                    <time className="shrink-0 self-start pt-0.5 text-xs tabular-nums text-ink-300" dateTime={row.createdAt}>
                       {formatShortTime(row.createdAt)}
                     </time>
                   </>
                 ) : (
                   <>
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-sky-100 text-sky-800 ring-1 ring-sky-200/80">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-oxblood-100 text-oxblood-700 ring-1 ring-oxblood-200/80">
                       <span className="text-sm font-black tabular-nums">{row.score}</span>
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex min-w-0 flex-wrap items-center gap-2">
-                        <span className="truncate text-[16px] font-semibold text-[#111]">星级评价</span>
+                        <span className="truncate text-[16px] font-semibold text-ink">星级评价</span>
                         <RatingStars score={row.score} size="sm" />
                       </div>
-                      <p className="mt-0.5 line-clamp-2 text-[13px] leading-snug text-slate-400">{row.comment?.trim() || "无文字评语"}</p>
+                      <p className="mt-0.5 line-clamp-2 text-[13px] leading-snug text-ink-300">{row.comment?.trim() || "无文字评语"}</p>
                     </div>
-                    <time className="shrink-0 self-start pt-0.5 text-xs tabular-nums text-slate-400" dateTime={row.updatedAt}>
+                    <time className="shrink-0 self-start pt-0.5 text-xs tabular-nums text-ink-300" dateTime={row.updatedAt}>
                       {formatShortTime(row.updatedAt)}
                     </time>
                   </>

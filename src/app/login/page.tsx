@@ -13,7 +13,7 @@ type EmailLoginMode = "code" | "password";
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="max-w-md mx-auto py-16 text-center text-slate-400">加载中...</div>}>
+    <Suspense fallback={<div className="max-w-md mx-auto py-16 text-center text-ink-300">加载中...</div>}>
       <LoginContent />
     </Suspense>
   );
@@ -284,10 +284,10 @@ function LoginContent() {
       animate={{ opacity: 1, y: 0 }}
       className="max-w-md mx-auto py-16"
     >
-      <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-sky-500 bg-clip-text text-transparent mb-2">
+      <h1 className="text-3xl font-bold bg-gradient-to-r from-oxblood-600 to-oxblood-500 bg-clip-text text-transparent mb-2">
         登录
       </h1>
-      <p className="text-slate-500 mb-6">欢迎回来</p>
+      <p className="text-ink-400 mb-6">欢迎回来</p>
 
       {showTabBar && (
         <div className="flex gap-2 mb-6">
@@ -300,7 +300,7 @@ function LoginContent() {
                 setError("");
               }}
               className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${
-                tab === t.key ? "bg-sky-100 text-sky-700" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                tab === t.key ? "bg-oxblood-100 text-oxblood-700" : "bg-paper-200 text-ink-500 hover:bg-paper-300"
               }`}
             >
               {t.label}
@@ -310,7 +310,7 @@ function LoginContent() {
       )}
 
       {(urlError || error) && (
-        <p className="mb-4 text-red-400 text-sm">
+        <p className="mb-4 text-oxblood-400 text-sm">
           {urlError === "invalid_code" && "授权失败，请重试"}
           {LOGIN_SHOW_WECHAT && urlError === "wechat_not_configured" && "微信登录未配置"}
           {LOGIN_SHOW_WECHAT && urlError === "invalid_state" && "登录状态已失效，请重新点击微信登录"}
@@ -334,11 +334,11 @@ function LoginContent() {
       )}
 
       {tab === "email" && emailLoginMode === "code" && (
-        <form onSubmit={submitEmailOtp} className="space-y-5 rounded-3xl border border-slate-200 bg-paper p-6 shadow-sm">
-          <p className="text-sm text-slate-600">
+        <form onSubmit={submitEmailOtp} className="space-y-5 rounded-3xl border border-hairline bg-paper p-6 shadow-sm">
+          <p className="text-sm text-ink-500">
             {LOGIN_SHOW_PHONE ? "验证码将发送至邮箱，与手机号登录相同流程。" : "验证码将发送至你的注册邮箱。"}
           </p>
-          <label className="block text-sm font-medium text-slate-700">邮箱</label>
+          <label className="block text-sm font-medium text-ink-600">邮箱</label>
           <input
             type="email"
             value={email}
@@ -362,7 +362,7 @@ function LoginContent() {
               type="button"
               onClick={sendEmailCode}
               disabled={loading || emailOtpCountdown > 0}
-              className="px-4 py-2 rounded-lg bg-slate-100 text-slate-700 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+              className="px-4 py-2 rounded-lg bg-paper-200 text-ink-600 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
             >
               {emailOtpCountdown > 0 ? `${emailOtpCountdown}s` : emailOtpSent ? "重新发送" : "获取验证码"}
             </button>
@@ -374,10 +374,10 @@ function LoginContent() {
           >
             {loading ? "验证中..." : "登录"}
           </button>
-          <p className="text-center text-sm text-slate-500">
+          <p className="text-center text-sm text-ink-400">
             <button
               type="button"
-              className="text-sky-700 hover:text-sky-600"
+              className="text-oxblood-700 hover:text-oxblood-600"
               onClick={() => {
                 setEmailLoginMode("password");
                 setError("");
@@ -390,8 +390,8 @@ function LoginContent() {
       )}
 
       {tab === "email" && emailLoginMode === "password" && (
-        <form onSubmit={submitEmail} className="space-y-5 rounded-3xl border border-slate-200 bg-paper p-6 shadow-sm">
-          <label className="block text-sm font-medium text-slate-700">邮箱</label>
+        <form onSubmit={submitEmail} className="space-y-5 rounded-3xl border border-hairline bg-paper p-6 shadow-sm">
+          <label className="block text-sm font-medium text-ink-600">邮箱</label>
           <input
             type="email"
             value={email}
@@ -400,7 +400,7 @@ function LoginContent() {
             placeholder="you@example.com"
             required
           />
-          <label className="block text-sm font-medium text-slate-700">密码</label>
+          <label className="block text-sm font-medium text-ink-600">密码</label>
           <input
             type="password"
             value={password}
@@ -410,7 +410,7 @@ function LoginContent() {
             required
           />
           <div className="flex justify-end text-sm">
-            <Link href="/forgot-password" className="text-sky-700 hover:text-sky-600 transition-colors">
+            <Link href="/forgot-password" className="text-oxblood-700 hover:text-oxblood-600 transition-colors">
               忘记密码？
             </Link>
           </div>
@@ -421,10 +421,10 @@ function LoginContent() {
           >
             {loading ? "登录中..." : "登录"}
           </button>
-          <p className="text-center text-sm text-slate-500">
+          <p className="text-center text-sm text-ink-400">
             <button
               type="button"
-              className="text-sky-700 hover:text-sky-600"
+              className="text-oxblood-700 hover:text-oxblood-600"
               onClick={() => {
                 setEmailLoginMode("code");
                 setError("");
@@ -437,13 +437,13 @@ function LoginContent() {
       )}
 
       {LOGIN_SHOW_WECHAT && tab === "wechat" && (
-        <div className="rounded-3xl border border-slate-200 bg-paper p-6 shadow-sm">
-          <p className="text-slate-600 text-sm mb-6">点击下方按钮跳转至微信授权页面</p>
+        <div className="rounded-3xl border border-hairline bg-paper p-6 shadow-sm">
+          <p className="text-ink-500 text-sm mb-6">点击下方按钮跳转至微信授权页面</p>
           <button
             type="button"
             onClick={handleWeChatLogin}
             disabled={loading}
-            className="w-full py-3 rounded-xl bg-[#07c160] text-white font-medium hover:bg-[#06ad56] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full py-3 rounded-xl bg-[#07c160] text-paper font-medium hover:bg-[#06ad56] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
               <path d="M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 0 1 .213.665l-.39 1.48c-.019.07-.048.141-.048.213 0 .163.13.295.29.295a.326.326 0 0 0 .167-.054l1.903-1.114a.864.864 0 0 1 .717-.098 10.16 10.16 0 0 0 2.837.403c.276 0 .543-.027.811-.05-.857-2.578-.857-1.98.857-5.245C11.31 3.666 10.318 2.188 8.691 2.188zm.405 2.376c.584 0 1.06.475 1.06 1.06.001.584-.475 1.06-1.06 1.06-.584 0-1.06-.475-1.06-1.06 0-.585.476-1.06 1.06-1.06zm4.065 0c.584 0 1.06.475 1.06 1.06.001.584-.475 1.06-1.06 1.06-.584 0-1.06-.475-1.06-1.06 0-.585.476-1.06 1.06-1.06zm4.318 2.898c-.072-1.08-.543-2.1-1.352-2.907-1.02-1.02-2.43-1.582-3.91-1.582-2.42 0-4.392 1.97-4.392 4.392 0 .96.31 1.89.89 2.69l.12.163-.051 1.02.923-.49a1.5 1.5 0 0 1 .8-.24c.66 0 1.29.21 1.81.59.82-.55 1.42-1.33 1.73-2.2.39-.02.77-.08 1.14-.13.18-.02.36-.05.54-.08.02-.16.01-.32-.01-.48z" />
@@ -454,8 +454,8 @@ function LoginContent() {
       )}
 
       {LOGIN_SHOW_PHONE && tab === "phone" && (
-        <form onSubmit={submitPhone} className="space-y-5 rounded-3xl border border-slate-200 bg-paper p-6 shadow-sm">
-          <label className="block text-sm font-medium text-slate-700">手机号</label>
+        <form onSubmit={submitPhone} className="space-y-5 rounded-3xl border border-hairline bg-paper p-6 shadow-sm">
+          <label className="block text-sm font-medium text-ink-600">手机号</label>
           <input
             type="tel"
             value={phone}
@@ -477,7 +477,7 @@ function LoginContent() {
               type="button"
               onClick={sendCode}
               disabled={loading || countdown > 0}
-              className="px-4 py-2 rounded-lg bg-slate-100 text-slate-700 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+              className="px-4 py-2 rounded-lg bg-paper-200 text-ink-600 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
             >
               {countdown > 0 ? `${countdown}s` : codeSent ? "重新发送" : "获取验证码"}
             </button>
@@ -492,14 +492,14 @@ function LoginContent() {
         </form>
       )}
 
-      <p className="mt-6 text-slate-500 text-sm">
+      <p className="mt-6 text-ink-400 text-sm">
         没有账号？{" "}
-        <Link href="/signup" className="text-sky-700 hover:text-sky-600 transition-colors">
+        <Link href="/signup" className="text-oxblood-700 hover:text-oxblood-600 transition-colors">
           注册
         </Link>
       </p>
-      <p className="mt-4 text-center text-slate-500 text-xs">
-        <Link href="/privacy" className="text-sky-700 hover:text-sky-600 underline-offset-2 hover:underline">
+      <p className="mt-4 text-center text-ink-400 text-xs">
+        <Link href="/privacy" className="text-oxblood-700 hover:text-oxblood-600 underline-offset-2 hover:underline">
           隐私政策
         </Link>
       </p>

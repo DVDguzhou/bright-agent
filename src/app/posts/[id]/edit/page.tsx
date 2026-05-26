@@ -129,7 +129,7 @@ export default function PostEditPage() {
   if (error) {
     return (
       <div className="mx-auto max-w-2xl px-3 pt-20 text-center sm:px-4">
-        <p className="text-slate-500">{error}</p>
+        <p className="text-ink-400">{error}</p>
         <Link href="/posts" className="mt-4 inline-block text-sm text-ink-600 underline">
           返回动态
         </Link>
@@ -152,14 +152,14 @@ export default function PostEditPage() {
         <button
           type="button"
           onClick={() => router.back()}
-          className="flex h-9 w-9 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 active:scale-95"
+          className="flex h-9 w-9 items-center justify-center rounded-full text-ink-400 transition hover:bg-paper-200 active:scale-95"
           aria-label="返回"
         >
           <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
         </button>
-        <h1 className="text-base font-semibold text-[#111]">编辑帖子</h1>
+        <h1 className="text-base font-semibold text-ink">编辑帖子</h1>
         <button
           type="button"
           onClick={handleSubmit}
@@ -170,7 +170,7 @@ export default function PostEditPage() {
         </button>
       </div>
 
-      <div className="rounded-[24px] bg-paper p-4 shadow-sm ring-1 ring-black/[0.04]">
+      <div className="rounded-[24px] bg-paper p-4 shadow-sm ring-1 ring-hairline/40">
         <div className="mb-3 flex items-center gap-3">
           <UserAvatar
             avatarUrl={user?.avatarUrl}
@@ -179,8 +179,8 @@ export default function PostEditPage() {
             className="h-10 w-10"
           />
           <div className="min-w-0">
-            <p className="truncate text-sm font-semibold text-[#111]">{user?.name || "用户"}</p>
-            <p className="text-xs text-slate-400">公开发布</p>
+            <p className="truncate text-sm font-semibold text-ink">{user?.name || "用户"}</p>
+            <p className="text-xs text-ink-300">公开发布</p>
           </div>
         </div>
 
@@ -193,7 +193,7 @@ export default function PostEditPage() {
           }}
           placeholder="分享你的问题、经验或想法…"
           rows={8}
-          className="min-h-[180px] w-full resize-none rounded-xl border-0 bg-transparent px-0 text-[15px] leading-relaxed text-[#111] placeholder:text-slate-400 focus:outline-none focus:ring-0"
+          className="min-h-[180px] w-full resize-none rounded-xl border-0 bg-transparent px-0 text-[15px] leading-relaxed text-ink placeholder:text-ink-300 focus:outline-none focus:ring-0"
           autoFocus
         />
 
@@ -201,12 +201,12 @@ export default function PostEditPage() {
         {images.length > 0 && (
           <div className={`mt-2 grid gap-2 ${images.length === 1 ? "grid-cols-1" : images.length === 2 ? "grid-cols-2" : "grid-cols-3"}`}>
             {images.map((src, idx) => (
-              <div key={idx} className="relative aspect-square overflow-hidden rounded-lg bg-slate-50">
+              <div key={idx} className="relative aspect-square overflow-hidden rounded-lg bg-paper-50">
                 <img src={src} alt="" className="h-full w-full object-cover" />
                 <button
                   type="button"
                   onClick={() => setImages((prev) => prev.filter((_, i) => i !== idx))}
-                  className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-black/50 text-white text-xs hover:bg-black/70"
+                  className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-ink/60 text-paper text-xs hover:bg-black/70"
                 >
                   ×
                 </button>
@@ -215,7 +215,7 @@ export default function PostEditPage() {
           </div>
         )}
 
-        <div className="mt-2 flex items-center justify-between border-t border-slate-100 pt-3">
+        <div className="mt-2 flex items-center justify-between border-t border-hairline/50 pt-3">
           <div className="flex items-center gap-2">
             <input
               ref={fileInputRef}
@@ -228,7 +228,7 @@ export default function PostEditPage() {
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={uploadingImage || images.length >= 9}
-              className={`flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-50 hover:text-slate-600 ${uploadingImage ? "opacity-50" : ""}`}
+              className={`flex h-8 w-8 items-center justify-center rounded-lg text-ink-300 transition hover:bg-paper-50 hover:text-ink-500 ${uploadingImage ? "opacity-50" : ""}`}
               title={images.length >= 9 ? "最多 9 张图片" : "添加图片"}
             >
               {uploadingImage ? (
@@ -240,7 +240,7 @@ export default function PostEditPage() {
               )}
             </button>
           </div>
-          <span className={`text-xs ${trimmed.length > MAX_CONTENT_LENGTH * 0.9 ? "text-amber-500" : "text-slate-400"}`}>
+          <span className={`text-xs ${trimmed.length > MAX_CONTENT_LENGTH * 0.9 ? "text-ink-700" : "text-ink-300"}`}>
             {trimmed.length}/{MAX_CONTENT_LENGTH}
           </span>
         </div>

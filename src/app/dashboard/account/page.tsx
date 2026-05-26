@@ -131,7 +131,7 @@ export default function AccountPage() {
   };
 
   if (authLoading || !user) {
-    return <div className="max-w-md mx-auto py-16 text-center text-slate-400">加载中...</div>;
+    return <div className="max-w-md mx-auto py-16 text-center text-ink-300">加载中...</div>;
   }
 
   const placeholder = user.email?.endsWith("@placeholder.local");
@@ -142,17 +142,17 @@ export default function AccountPage() {
       animate={{ opacity: 1, y: 0 }}
       className="max-w-md mx-auto py-10 px-4"
     >
-      <h1 className="text-2xl font-bold text-slate-900 mb-1">账号与安全</h1>
-      <p className="text-slate-500 text-sm mb-8">登录邮箱：{user.email}</p>
+      <h1 className="text-2xl font-bold text-ink mb-1">账号与安全</h1>
+      <p className="text-ink-400 text-sm mb-8">登录邮箱：{user.email}</p>
 
       {placeholder ? (
-        <div className="rounded-2xl border border-amber-200 bg-amber-50/80 p-5 text-sm text-amber-900">
+        <div className="rounded-2xl border border-oxblood-200 bg-paper-200/80 p-5 text-sm text-ink">
           当前账号通过微信或手机号注册，无独立邮箱密码。如需邮箱登录，请使用「注册」绑定新邮箱账号。
         </div>
       ) : (
-        <form onSubmit={submit} className="space-y-4 rounded-2xl border border-slate-200 bg-paper p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-slate-800">修改密码</h2>
-          <label className="block text-sm font-medium text-slate-700">当前密码</label>
+        <form onSubmit={submit} className="space-y-4 rounded-2xl border border-hairline bg-paper p-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-ink-700">修改密码</h2>
+          <label className="block text-sm font-medium text-ink-600">当前密码</label>
           <input
             type="password"
             value={oldPassword}
@@ -160,7 +160,7 @@ export default function AccountPage() {
             className="input-shell"
             required
           />
-          <label className="block text-sm font-medium text-slate-700">新密码（8–72 位）</label>
+          <label className="block text-sm font-medium text-ink-600">新密码（8–72 位）</label>
           <input
             type="password"
             value={newPassword}
@@ -170,7 +170,7 @@ export default function AccountPage() {
             maxLength={72}
             required
           />
-          <label className="block text-sm font-medium text-slate-700">确认新密码</label>
+          <label className="block text-sm font-medium text-ink-600">确认新密码</label>
           <input
             type="password"
             value={newPassword2}
@@ -180,8 +180,8 @@ export default function AccountPage() {
             maxLength={72}
             required
           />
-          {error && <p className="text-red-500 text-sm">{error}</p>}
-          {ok && <p className="text-emerald-600 text-sm">密码已更新。</p>}
+          {error && <p className="text-oxblood-500 text-sm">{error}</p>}
+          {ok && <p className="text-olive-600 text-sm">密码已更新。</p>}
           <button
             type="submit"
             disabled={submitting}
@@ -192,14 +192,14 @@ export default function AccountPage() {
         </form>
       )}
 
-      <div className="mt-8 rounded-2xl border border-red-200 bg-red-50/60 p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-red-900">注销账号</h2>
-        <p className="mt-2 text-sm text-red-800/90 leading-relaxed">
+      <div className="mt-8 rounded-2xl border border-oxblood-200 bg-oxblood-50/60 p-6 shadow-sm">
+        <h2 className="text-lg font-semibold text-oxblood-700">注销账号</h2>
+        <p className="mt-2 text-sm text-oxblood-700/90 leading-relaxed">
           永久删除账号及关联的个人资料、对话记录、已购提问包等数据，且无法恢复。若你创建了人生 Agent，也会一并删除。
         </p>
         {!placeholder && (
           <>
-            <label className="mt-4 block text-sm font-medium text-red-900">当前密码</label>
+            <label className="mt-4 block text-sm font-medium text-oxblood-700">当前密码</label>
             <input
               type="password"
               value={deletePassword}
@@ -209,7 +209,7 @@ export default function AccountPage() {
             />
           </>
         )}
-        <label className="mt-4 block text-sm font-medium text-red-900">
+        <label className="mt-4 block text-sm font-medium text-oxblood-700">
           输入 <span className="font-mono">DELETE</span> 确认注销
         </label>
         <input
@@ -220,25 +220,25 @@ export default function AccountPage() {
           placeholder="DELETE"
           autoComplete="off"
         />
-        {deleteError && <p className="mt-2 text-red-600 text-sm">{deleteError}</p>}
+        {deleteError && <p className="mt-2 text-oxblood-600 text-sm">{deleteError}</p>}
         <button
           type="button"
           onClick={deleteAccount}
           disabled={deleting}
-          className="mt-4 w-full rounded-xl border border-red-300 bg-paper py-2.5 text-sm font-semibold text-red-700 transition hover:bg-red-50 disabled:opacity-50"
+          className="mt-4 w-full rounded-xl border border-oxblood-200 bg-paper py-2.5 text-sm font-semibold text-oxblood-700 transition hover:bg-oxblood-50 disabled:opacity-50"
         >
           {deleting ? "注销中…" : "永久注销账号"}
         </button>
       </div>
 
-      <div className="mt-8 space-y-2 text-sm text-slate-500">
+      <div className="mt-8 space-y-2 text-sm text-ink-400">
         <p>
-          <Link href="/privacy" className="text-sky-700 hover:text-sky-600">
+          <Link href="/privacy" className="text-oxblood-700 hover:text-oxblood-600">
             隐私政策
           </Link>
         </p>
         <p>
-          <Link href="/dashboard" className="text-sky-700 hover:text-sky-600">
+          <Link href="/dashboard" className="text-oxblood-700 hover:text-oxblood-600">
             返回工作台
           </Link>
         </p>

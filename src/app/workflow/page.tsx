@@ -211,8 +211,8 @@ export default function WorkflowPage() {
   if (!user) {
     return (
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-md">
-        <h1 className="text-2xl font-bold text-slate-100 mb-4">竞品调研工作流</h1>
-        <p className="text-slate-500 mb-4">请先登录（需持有 Web Analyzer 与 Report Builder 的 License）</p>
+        <h1 className="text-2xl font-bold text-paper-100 mb-4">竞品调研工作流</h1>
+        <p className="text-ink-400 mb-4">请先登录（需持有 Web Analyzer 与 Report Builder 的 License）</p>
         <Link href="/login" className="btn-primary inline-block">登录</Link>
       </motion.div>
     );
@@ -224,30 +224,30 @@ export default function WorkflowPage() {
       animate={{ opacity: 1 }}
       className="max-w-3xl"
     >
-      <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent mb-2">
+      <h1 className="text-3xl font-bold bg-gradient-to-r from-oxblood-400 to-olive-400 bg-clip-text text-transparent mb-2">
         竞品调研工作流
       </h1>
-      <p className="text-slate-500 mb-6">
+      <p className="text-ink-400 mb-6">
         Web Analyzer × N → Report Builder：分析多个 URL，自动生成综合报告
       </p>
 
       <div className="p-6 rounded-2xl glass-card mb-6">
         <div className="flex items-center gap-3 mb-4">
-          <label className="flex items-center gap-2 cursor-pointer text-slate-300">
+          <label className="flex items-center gap-2 cursor-pointer text-ink-200">
             <input
               type="checkbox"
               checked={useOrchestrator}
               onChange={(e) => setUseOrchestrator(e.target.checked)}
-              className="rounded border-white/20 bg-white/5"
+              className="rounded border-paper/20 bg-paper/5"
             />
             使用小红的编排 Agent（一键完成 Web Analyzer + Report Builder）
           </label>
         </div>
-        <label className="block text-sm font-medium text-slate-400 mb-2">URL 列表（每行一个或逗号分隔）</label>
+        <label className="block text-sm font-medium text-ink-300 mb-2">URL 列表（每行一个或逗号分隔）</label>
         <textarea
           value={urls}
           onChange={(e) => setUrls(e.target.value)}
-          className="input-glow w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 min-h-[120px] font-mono text-sm"
+          className="input-glow w-full px-4 py-3 rounded-xl bg-paper/5 border border-paper/10 min-h-[120px] font-mono text-sm"
           placeholder="https://example.com&#10;https://github.com"
         />
         <button
@@ -260,7 +260,7 @@ export default function WorkflowPage() {
       </div>
 
       {error && (
-        <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 mb-6">
+        <div className="p-4 rounded-xl bg-oxblood-500/10 border border-oxblood-500/20 text-oxblood-400 mb-6">
           {error}
         </div>
       )}
@@ -271,8 +271,8 @@ export default function WorkflowPage() {
           animate={{ opacity: 1, y: 0 }}
           className="p-6 rounded-2xl glass-card"
         >
-          <h3 className="font-semibold text-slate-300 mb-4">综合报告</h3>
-          <pre className="whitespace-pre-wrap text-slate-300 text-sm font-sans">{report}</pre>
+          <h3 className="font-semibold text-ink-200 mb-4">综合报告</h3>
+          <pre className="whitespace-pre-wrap text-ink-200 text-sm font-sans">{report}</pre>
         </motion.div>
       )}
     </motion.div>

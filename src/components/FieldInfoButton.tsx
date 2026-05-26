@@ -45,7 +45,7 @@ export function FieldInfoButton({ title, body, ariaLabel, className = "" }: Fiel
               role="dialog"
               aria-modal="true"
               aria-labelledby={titleId}
-              className="w-full max-w-sm rounded-2xl bg-paper px-5 py-4 shadow-xl ring-1 ring-black/5"
+              className="w-full max-w-sm rounded-2xl bg-paper px-5 py-4 shadow-xl ring-1 ring-hairline/40"
               onClick={(e) => e.stopPropagation()}
             >
               <h3 id={titleId} className="font-serif text-base font-medium text-ink">
@@ -59,7 +59,7 @@ export function FieldInfoButton({ title, body, ariaLabel, className = "" }: Fiel
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="mt-4 w-full rounded-full bg-ink py-2.5 text-sm font-medium text-white active:opacity-90"
+                className="mt-4 w-full rounded-full bg-ink py-2.5 text-sm font-medium text-paper active:opacity-90"
               >
                 知道了
               </button>
@@ -78,7 +78,7 @@ export function FieldInfoButton({ title, body, ariaLabel, className = "" }: Fiel
           e.stopPropagation();
           setOpen(true);
         }}
-        className={`inline-flex shrink-0 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-200/70 hover:text-slate-600 ${className}`}
+        className={`inline-flex shrink-0 items-center justify-center rounded-full text-ink-300 transition hover:bg-paper-300/70 hover:text-ink-500 ${className}`}
         aria-label={ariaLabel}
         title={ariaLabel}
       >

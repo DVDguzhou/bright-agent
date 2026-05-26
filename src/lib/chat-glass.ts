@@ -10,10 +10,10 @@ const CHAT_BUBBLE_BASE =
   "max-w-[82%] rounded-[20px] px-3.5 py-2.5 text-[15px] leading-relaxed shadow-sm sm:max-w-[72%]";
 
 const CHAT_ASSISTANT_BUBBLE =
-  "rounded-bl-md border border-gray-200/70 bg-paper text-gray-800";
+  "rounded-bl-md border border-hairline/70 bg-paper text-ink-700";
 
 const CHAT_USER_BUBBLE =
-  "rounded-br-md border border-gray-200/70 bg-paper text-gray-800";
+  "rounded-br-md border border-hairline/70 bg-paper text-ink-700";
 
 export function getChatBubbleClassName(role: ChatBubbleRole) {
   return `${CHAT_BUBBLE_BASE} ${

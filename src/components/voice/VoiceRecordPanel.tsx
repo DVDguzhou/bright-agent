@@ -62,28 +62,28 @@ export function VoiceRecordPanel({
   const shell =
     accent === "pastel"
       ? `rounded-[22px] p-6 ${CHAT_GLASS_PANEL_CLASSNAME}`
-      : "rounded-2xl border border-slate-200 bg-paper p-6 shadow-sm";
+      : "rounded-2xl border border-hairline bg-paper p-6 shadow-sm";
   const micIdle =
     accent === "pastel"
-      ? "border border-hairline/30 bg-gradient-to-br from-ink/82 via-ink-600/78 to-oxblood/74 text-white shadow-lg shadow-ink/20 backdrop-blur-xl hover:opacity-95"
-      : "bg-sky-500 text-white hover:bg-sky-600";
+      ? "border border-hairline/30 bg-gradient-to-br from-ink/82 via-ink-600/78 to-oxblood/74 text-paper shadow-lg shadow-ink/20 backdrop-blur-xl hover:opacity-95"
+      : "bg-oxblood-500 text-paper hover:bg-oxblood-600";
   const successBox =
     accent === "pastel"
       ? "border border-hairline/40 bg-gradient-to-r from-paper-50/[0.95] to-paper/[0.85] backdrop-blur-[2px]"
-      : "bg-emerald-50";
-  const successIcon = accent === "pastel" ? "text-oxblood" : "text-emerald-600";
-  const successText = accent === "pastel" ? "text-ink-800" : "text-emerald-800";
-  const titleClass = accent === "pastel" ? "text-lg font-semibold text-ink" : "text-lg font-semibold text-slate-900";
+      : "bg-olive-400/10";
+  const successIcon = accent === "pastel" ? "text-oxblood" : "text-olive-600";
+  const successText = accent === "pastel" ? "text-ink-800" : "text-olive-600";
+  const titleClass = accent === "pastel" ? "text-lg font-semibold text-ink" : "text-lg font-semibold text-ink";
 
   return (
     <div className={shell}>
       <h3 className={titleClass}>采集你的音色</h3>
-      <p className="mt-2 text-sm text-slate-600">
+      <p className="mt-2 text-sm text-ink-500">
         请朗读下面这段话，系统会采集你的声音特征，生成 Agent 的专属音色。建议在安静环境下录制，时长 {minDurationSeconds}–{maxDurationSeconds} 秒。
       </p>
 
       {envIssue ? (
-        <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+        <div className="mt-4 rounded-xl border border-oxblood-200 bg-paper-200 px-4 py-3 text-sm text-ink">
           <p className="font-medium">无法在此页面使用麦克风</p>
           <p className="mt-1 leading-relaxed">{envIssue}</p>
         </div>
@@ -93,17 +93,17 @@ export function VoiceRecordPanel({
         className={
           accent === "pastel"
             ? "mt-5 rounded-xl border border-hairline/30 bg-paper/60 p-4 shadow-[0_8px_24px_-12px_rgba(26,23,20,0.1)] ring-1 ring-hairline/20 backdrop-blur-xl"
-            : "mt-5 rounded-xl bg-slate-50 p-4"
+            : "mt-5 rounded-xl bg-paper-50 p-4"
         }
       >
-        <p className="text-[15px] leading-7 text-slate-700">{SAMPLE_TEXT}</p>
+        <p className="text-[15px] leading-7 text-ink-600">{SAMPLE_TEXT}</p>
       </div>
 
       <div
         className={
           accent === "pastel"
-            ? "mt-4 rounded-xl border border-hairline/30 bg-paper/60 px-4 py-3 text-sm text-slate-600 shadow-[0_8px_24px_-12px_rgba(26,23,20,0.1)] ring-1 ring-hairline/20 backdrop-blur-xl"
-            : "mt-4 rounded-xl border border-slate-200 bg-slate-50/80 px-4 py-3 text-sm text-slate-600"
+            ? "mt-4 rounded-xl border border-hairline/30 bg-paper/60 px-4 py-3 text-sm text-ink-500 shadow-[0_8px_24px_-12px_rgba(26,23,20,0.1)] ring-1 ring-hairline/20 backdrop-blur-xl"
+            : "mt-4 rounded-xl border border-hairline bg-paper-50/80 px-4 py-3 text-sm text-ink-500"
         }
       >
         <p>建议使用 Chrome 或 Edge，并确保当前页面通过 HTTPS 或 localhost 打开。</p>
@@ -117,8 +117,8 @@ export function VoiceRecordPanel({
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-paper/70 text-ink-600 shadow-sm">
               <span className="h-5 w-5 rounded-full border-2 border-current/25 border-t-current animate-spin" />
             </div>
-            <p className="mt-3 text-sm font-medium text-slate-800">正在处理语音...</p>
-            <p className="mt-1 text-xs leading-5 text-slate-500">马上帮你整理录音结果，通常只要几秒。</p>
+            <p className="mt-3 text-sm font-medium text-ink-700">正在处理语音...</p>
+            <p className="mt-1 text-xs leading-5 text-ink-400">马上帮你整理录音结果，通常只要几秒。</p>
           </div>
         ) : null}
         {!hasRecorded ? (
@@ -129,7 +129,7 @@ export function VoiceRecordPanel({
               disabled={status === "processing" || micBlocked}
               className={`flex h-20 w-20 items-center justify-center rounded-full transition-all ${
                 isRecording
-                  ? "bg-rose-500 text-white shadow-lg shadow-rose-500/30 animate-pulse"
+                  ? "bg-oxblood-500 text-paper shadow-lg shadow-oxblood-500/30 animate-pulse"
                   : micIdle
               }`}
             >
@@ -143,10 +143,10 @@ export function VoiceRecordPanel({
                 </svg>
               )}
             </button>
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-ink-400">
               {isRecording ? (
                 <>
-                  <span className="font-medium text-rose-600">{duration}s</span>
+                  <span className="font-medium text-oxblood-600">{duration}s</span>
                   {duration < minDurationSeconds && (
                     <span> · 至少 {minDurationSeconds} 秒</span>
                   )}
@@ -159,7 +159,7 @@ export function VoiceRecordPanel({
               )}
             </p>
             {duration > maxDurationSeconds && !blob && (
-              <p className="text-xs text-amber-600">录制已超时，请重新录制</p>
+              <p className="text-xs text-oxblood-500">录制已超时，请重新录制</p>
             )}
           </>
         ) : (
@@ -187,14 +187,14 @@ export function VoiceRecordPanel({
         )}
 
         {error && (
-          <p className="text-sm text-rose-600">{error}</p>
+          <p className="text-sm text-oxblood-600">{error}</p>
         )}
 
         {onSkip && (
           <button
             type="button"
             onClick={onSkip}
-            className="mt-2 text-sm text-slate-500 hover:text-slate-700 underline"
+            className="mt-2 text-sm text-ink-400 hover:text-ink-600 underline"
           >
             暂不设置音色，稍后可在设置中补充
           </button>

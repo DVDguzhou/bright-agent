@@ -61,7 +61,7 @@ function PostCommentPreviewRow({ comment }: { comment: PostCommentPreviewItem })
           />
         </div>
       )}
-      <p className="min-w-0 flex-1 text-[13px] leading-snug text-[#111]">
+      <p className="min-w-0 flex-1 text-[13px] leading-snug text-ink">
         {comment.isAgentReply && agentProfileId ? (
           <Link href={`/life-agents/${agentProfileId}`} className="font-semibold text-ink-700">
             {displayName}
@@ -69,7 +69,7 @@ function PostCommentPreviewRow({ comment }: { comment: PostCommentPreviewItem })
         ) : (
           <span className="font-semibold">{displayName}</span>
         )}
-        <span className="text-slate-600">：{truncateComment(comment.content)}</span>
+        <span className="text-ink-500">：{truncateComment(comment.content)}</span>
       </p>
     </div>
   );
@@ -87,14 +87,14 @@ export function PostCommentPreviewList({
   if (comments.length === 0) return null;
 
   return (
-    <div className="mt-2.5 space-y-2 rounded-xl bg-slate-50/90 px-3 py-2.5">
+    <div className="mt-2.5 space-y-2 rounded-xl bg-paper-50/90 px-3 py-2.5">
       {comments.map((comment) => (
         <PostCommentPreviewRow key={comment.id} comment={comment} />
       ))}
       {totalCount > comments.length ? (
         <Link
           href={`/posts/${postId}`}
-          className="block pt-0.5 text-xs font-medium text-slate-400 transition hover:text-ink-500"
+          className="block pt-0.5 text-xs font-medium text-ink-300 transition hover:text-ink-500"
         >
           查看全部 {totalCount} 条评论
         </Link>

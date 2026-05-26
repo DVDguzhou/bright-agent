@@ -10,7 +10,7 @@ import { passwordSchema } from "@/lib/validators";
 
 export default function ResetPasswordPage() {
   return (
-    <Suspense fallback={<div className="max-w-md mx-auto py-16 text-center text-slate-400">加载中...</div>}>
+    <Suspense fallback={<div className="max-w-md mx-auto py-16 text-center text-ink-300">加载中...</div>}>
       <ResetPasswordContent />
     </Suspense>
   );
@@ -91,13 +91,13 @@ function ResetPasswordContent() {
       animate={{ opacity: 1, y: 0 }}
       className="max-w-md mx-auto py-16"
     >
-      <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-sky-500 bg-clip-text text-transparent mb-2">
+      <h1 className="text-3xl font-bold bg-gradient-to-r from-oxblood-600 to-oxblood-500 bg-clip-text text-transparent mb-2">
         设置新密码
       </h1>
-      <p className="text-slate-500 mb-6">请输入新密码完成重置。</p>
+      <p className="text-ink-400 mb-6">请输入新密码完成重置。</p>
 
-      <form onSubmit={submit} className="space-y-5 rounded-3xl border border-slate-200 bg-paper p-6 shadow-sm">
-        <label className="block text-sm font-medium text-slate-700">新密码（8–72 位）</label>
+      <form onSubmit={submit} className="space-y-5 rounded-3xl border border-hairline bg-paper p-6 shadow-sm">
+        <label className="block text-sm font-medium text-ink-600">新密码（8–72 位）</label>
         <input
           type="password"
           value={password}
@@ -107,7 +107,7 @@ function ResetPasswordContent() {
           maxLength={72}
           required
         />
-        <label className="block text-sm font-medium text-slate-700">确认新密码</label>
+        <label className="block text-sm font-medium text-ink-600">确认新密码</label>
         <input
           type="password"
           value={password2}
@@ -117,8 +117,8 @@ function ResetPasswordContent() {
           maxLength={72}
           required
         />
-        {error && <p className="text-red-400 text-sm">{error}</p>}
-        {!tokenFromUrl && <p className="text-amber-600 text-sm">缺少重置令牌，请从邮件中的链接打开本页。</p>}
+        {error && <p className="text-oxblood-400 text-sm">{error}</p>}
+        {!tokenFromUrl && <p className="text-oxblood-500 text-sm">缺少重置令牌，请从邮件中的链接打开本页。</p>}
         <button
           type="submit"
           disabled={loading || !tokenFromUrl}
@@ -128,8 +128,8 @@ function ResetPasswordContent() {
         </button>
       </form>
 
-      <p className="mt-6 text-slate-500 text-sm">
-        <Link href="/login" className="text-sky-700 hover:text-sky-600 transition-colors">
+      <p className="mt-6 text-ink-400 text-sm">
+        <Link href="/login" className="text-oxblood-700 hover:text-oxblood-600 transition-colors">
           返回登录
         </Link>
       </p>

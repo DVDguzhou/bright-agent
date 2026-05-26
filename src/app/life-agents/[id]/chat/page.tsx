@@ -596,12 +596,12 @@ export default function LifeAgentChatPage() {
               transition={{ type: "spring", stiffness: 380, damping: 36 }}
               className="fixed left-0 top-0 z-[101] flex h-[100dvh] w-[min(100vw,20rem)] flex-col border-r border-hairline/25 bg-paper/[0.97] shadow-[4px_0_32px_-8px_rgba(26,23,20,0.08)] backdrop-blur-lg sm:w-[22rem] sm:max-w-[88vw]"
             >
-              <div className="flex items-center justify-between border-b border-hairline/50/70 px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
+              <div className="flex items-center justify-between border-b border-hairline/70 px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
                 <span className="text-sm font-semibold text-ink">更多</span>
                 <button
                   type="button"
                   onClick={closeMenu}
-                  className="rounded-full p-2 text-slate-500 hover:bg-paper-50/90 hover:text-ink"
+                  className="rounded-full p-2 text-ink-400 hover:bg-paper-50/90 hover:text-ink"
                   aria-label="关闭"
                 >
                   <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
@@ -613,16 +613,16 @@ export default function LifeAgentChatPage() {
                 <Link
                   href={`/life-agents/${id}`}
                   onClick={closeMenu}
-                  className="text-sm text-slate-500 hover:text-ink-700"
+                  className="text-sm text-ink-400 hover:text-ink-700"
                 >
                   ← 返回详情页
                 </Link>
-                <h1 className="mt-3 text-xl font-semibold text-slate-900">{profile.displayName}</h1>
-                <p className="mt-1 text-sm text-slate-600">{profile.headline}</p>
+                <h1 className="mt-3 text-xl font-semibold text-ink">{profile.displayName}</h1>
+                <p className="mt-1 text-sm text-ink-500">{profile.headline}</p>
 
                 {profile.hasVoiceClone && (
                   <div className="mt-4 rounded-2xl border border-hairline/30 bg-paper-50/40 px-3 py-3 backdrop-blur-sm">
-                    <p className="text-xs font-medium text-slate-600">回复形式</p>
+                    <p className="text-xs font-medium text-ink-500">回复形式</p>
                     <div className="mt-2 flex justify-start">
                       <VoiceReplyToggle
                         useVoiceReply={useVoiceReply}
@@ -636,21 +636,21 @@ export default function LifeAgentChatPage() {
 
                 {!LIFE_AGENT_UNLIMITED_CHAT && (
                 <div className="mt-4 rounded-2xl border border-hairline/30 bg-gradient-to-br from-paper-50/[0.9] to-paper/[0.65] p-4 backdrop-blur-sm">
-                  <p className="text-sm text-slate-500">剩余提问次数</p>
+                  <p className="text-sm text-ink-400">剩余提问次数</p>
                   <p className="mt-1 text-2xl font-semibold text-ink-700">{profile.viewerState.remainingQuestions}</p>
                 </div>
                 )}
 
                 {profile.viewerState.isLoggedIn && (
-                  <div className="mt-4 rounded-2xl border border-hairline/40 bg-paper/[0.98] p-4 text-sm text-slate-600 shadow-[0_4px_20px_rgba(26,23,20,0.05)] backdrop-blur-sm">
+                  <div className="mt-4 rounded-2xl border border-hairline/40 bg-paper/[0.98] p-4 text-sm text-ink-500 shadow-[0_4px_20px_rgba(26,23,20,0.05)] backdrop-blur-sm">
                     <div className="flex items-center justify-between gap-3">
                       <div>
                         <p className="font-medium text-ink">我的聊天记录</p>
-                        <p className="mt-1 text-xs text-slate-500">仅你自己可见，Agent 创建者看不到聊天正文。</p>
+                        <p className="mt-1 text-xs text-ink-400">仅你自己可见，Agent 创建者看不到聊天正文。</p>
                       </div>
                       <button
                         type="button"
-                        className="shrink-0 rounded-full bg-gradient-to-r from-ink to-oxblood px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:opacity-95"
+                        className="shrink-0 rounded-full bg-gradient-to-r from-ink to-oxblood px-3 py-1.5 text-xs font-medium text-paper shadow-sm hover:opacity-95"
                         onClick={() => {
                           setError("");
                           resetToWelcome(profile.welcomeMessage);
@@ -663,9 +663,9 @@ export default function LifeAgentChatPage() {
                     </div>
                     <div className="mt-3 space-y-2">
                       {sessionsLoading ? (
-                        <p className="text-xs text-slate-500">正在加载聊天记录...</p>
+                        <p className="text-xs text-ink-400">正在加载聊天记录...</p>
                       ) : sessions.length === 0 ? (
-                        <p className="text-xs text-slate-500">还没有历史会话，发出第一条消息后会自动保存。</p>
+                        <p className="text-xs text-ink-400">还没有历史会话，发出第一条消息后会自动保存。</p>
                       ) : (
                         sessions.map((session) => (
                           <button
@@ -682,10 +682,10 @@ export default function LifeAgentChatPage() {
                             }`}
                           >
                             <div className="flex items-center justify-between gap-3">
-                              <p className="text-sm font-medium text-slate-800">{trimSessionTitle(session.title)}</p>
-                              <span className="text-[11px] text-slate-400">{session.messageCount} 条</span>
+                              <p className="text-sm font-medium text-ink-700">{trimSessionTitle(session.title)}</p>
+                              <span className="text-[11px] text-ink-300">{session.messageCount} 条</span>
                             </div>
-                            <p className="mt-1 text-[11px] text-slate-500">
+                            <p className="mt-1 text-[11px] text-ink-400">
                               {new Date(session.updatedAt).toLocaleString("zh-CN")}
                             </p>
                           </button>
@@ -696,12 +696,12 @@ export default function LifeAgentChatPage() {
                 )}
 
                 {profile.viewerState.isLoggedIn && (
-                  <div className="mt-4 rounded-2xl border border-hairline/40 bg-paper/[0.98] p-4 text-sm text-slate-600 shadow-[0_4px_20px_rgba(26,23,20,0.05)] backdrop-blur-sm">
+                  <div className="mt-4 rounded-2xl border border-hairline/40 bg-paper/[0.98] p-4 text-sm text-ink-500 shadow-[0_4px_20px_rgba(26,23,20,0.05)] backdrop-blur-sm">
                     <p className="font-medium text-ink">Agent 评分</p>
-                    <p className="mt-1 text-xs text-slate-500">
+                    <p className="mt-1 text-xs text-ink-400">
                       每满 10 次提问会解锁一次评分。你的新评分会覆盖旧评分，但始终只算 1 位用户。
                     </p>
-                    <p className="mt-3 text-sm text-slate-700">
+                    <p className="mt-3 text-sm text-ink-600">
                       已提问 {ratingState?.usedQuestions ?? 0} 次
                       {typeof ratingState?.currentScore === "number" && ` · 当前评分 ${ratingState.currentScore}/5`}
                     </p>
@@ -718,8 +718,8 @@ export default function LifeAgentChatPage() {
                               onClick={() => setRatingScore(score)}
                               className={`rounded-full px-3 py-1 text-sm transition ${
                                 ratingScore === score
-                                  ? "bg-gradient-to-r from-[#BA68C8] to-[#FF80AB] text-white shadow-sm"
-                                  : "bg-paper-50/80 text-slate-600 hover:bg-paper-100/60"
+                                  ? "bg-gradient-to-r from-[#BA68C8] to-[#FF80AB] text-paper shadow-sm"
+                                  : "bg-paper-50/80 text-ink-500 hover:bg-paper-100/60"
                               }`}
                             >
                               {score} 分
@@ -776,7 +776,7 @@ export default function LifeAgentChatPage() {
                         </button>
                       </div>
                     ) : (
-                      <p className="mt-3 text-xs text-slate-500">
+                      <p className="mt-3 text-xs text-ink-400">
                         {typeof ratingState?.currentScore === "number"
                           ? `下一次可更新评分：满 ${ratingState?.nextMilestone ?? 10} 次提问`
                           : `满 ${ratingState?.nextMilestone ?? 10} 次提问后可评分`}
@@ -785,7 +785,7 @@ export default function LifeAgentChatPage() {
                   </div>
                 )}
 
-                <div className="mt-4 rounded-2xl border border-hairline/50/50 bg-paper-50/35 p-4 text-sm text-slate-600 backdrop-blur-sm">
+                <div className="mt-4 rounded-2xl border border-hairline/50 bg-paper-50/35 p-4 text-sm text-ink-500 backdrop-blur-sm">
                   <p className="font-medium text-ink/85">怎么聊更好？</p>
                   <ul className="mt-2 space-y-1">
                     <li>• 说清楚你的<strong>具体处境</strong>（如：二本大三、想转行、时间紧）</li>
@@ -815,7 +815,7 @@ export default function LifeAgentChatPage() {
       </AnimatePresence>
 
       <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-none border-0 border-hairline/30 bg-paper/[0.98] shadow-[0_6px_32px_-12px_rgba(26,23,20,0.08)] backdrop-blur-sm sm:rounded-3xl sm:border lg:rounded-3xl max-lg:flex-1">
-        <header className="z-20 flex shrink-0 items-center gap-2 border-b border-hairline/50/70 bg-paper/[0.95] px-1 py-2 pt-[env(safe-area-inset-top)] backdrop-blur-md sm:px-3">
+        <header className="z-20 flex shrink-0 items-center gap-2 border-b border-hairline/70 bg-paper/[0.95] px-1 py-2 pt-[env(safe-area-inset-top)] backdrop-blur-md sm:px-3">
           <button
             type="button"
             onClick={() => {
@@ -846,14 +846,14 @@ export default function LifeAgentChatPage() {
                   sizes="36px"
                 />
               ) : (
-                <span className="flex h-full w-full items-center justify-center text-xs font-bold text-slate-500">
+                <span className="flex h-full w-full items-center justify-center text-xs font-bold text-ink-400">
                   {profile.displayName.slice(0, 1)}
                 </span>
               )}
             </div>
             <div className="min-w-0 text-left">
-              <p className="truncate text-[15px] font-semibold text-[#111]">{profile.displayName}</p>
-              <p className="truncate text-xs text-slate-500">{profile.headline || "在线咨询"}</p>
+              <p className="truncate text-[15px] font-semibold text-ink">{profile.displayName}</p>
+              <p className="truncate text-xs text-ink-400">{profile.headline || "在线咨询"}</p>
             </div>
           </Link>
           <button
@@ -878,7 +878,7 @@ export default function LifeAgentChatPage() {
         >
           <div className="mx-auto max-w-3xl space-y-4">
             {sessionLoading ? (
-              <div className="flex min-h-[40vh] items-center justify-center text-sm text-slate-500">
+              <div className="flex min-h-[40vh] items-center justify-center text-sm text-ink-400">
                 正在加载历史会话...
               </div>
             ) : (
@@ -907,7 +907,7 @@ export default function LifeAgentChatPage() {
                             sizes="32px"
                           />
                         ) : (
-                          <span className="flex h-full w-full items-center justify-center text-[10px] font-bold text-slate-500">
+                          <span className="flex h-full w-full items-center justify-center text-[10px] font-bold text-ink-400">
                             {profile.displayName.slice(0, 1)}
                           </span>
                         )}
@@ -922,7 +922,7 @@ export default function LifeAgentChatPage() {
                             isFromUser={false}
                           />
                           {message.content && (
-                            <p className="mt-2 border-t border-black/10 pt-2 text-[13px] leading-6 text-slate-600">
+                            <p className="mt-2 border-t border-hairline/60 pt-2 text-[13px] leading-6 text-ink-500">
                               {message.content}
                             </p>
                           )}
@@ -974,11 +974,11 @@ export default function LifeAgentChatPage() {
                               className={`rounded-full border px-2.5 py-1 transition-all duration-200 ${
                                 isSelected
                                   ? item.id === "helpful"
-                                    ? "border-green-300 bg-green-100 text-green-700 shadow-sm ring-1 ring-green-200"
-                                    : "border-amber-200 bg-amber-50 text-amber-700 shadow-sm ring-1 ring-amber-200"
+                                    ? "border-olive-400 bg-olive-400/20 text-olive-600 shadow-sm ring-1 ring-olive-400/60"
+                                    : "border-oxblood-200 bg-paper-200 text-oxblood-600 shadow-sm ring-1 ring-oxblood-200"
                                   : hasSelection
-                                    ? "border-gray-100 bg-gray-50/50 text-gray-400"
-                                    : "border-hairline/50/60 bg-paper-50/80 text-ink-700/70 hover:bg-paper-100/50"
+                                    ? "border-hairline/50 bg-paper-50/50 text-ink-300"
+                                    : "border-hairline/60 bg-paper-50/80 text-ink-700/70 hover:bg-paper-100/50"
                               } disabled:opacity-60`}
                             >
                               {isSelected && <span className="mr-0.5">{item.id === "helpful" ? "✓" : item.icon || "✓"}</span>}
@@ -1001,7 +1001,7 @@ export default function LifeAgentChatPage() {
                                 }))
                               }
                               rows={2}
-                              className="flex-1 resize-none rounded-xl border border-hairline/50/60 bg-paper/80 px-3 py-2 text-xs text-gray-700 placeholder:text-gray-400 focus:border-hairline focus:outline-none focus:ring-1 focus:ring-hairline"
+                              className="flex-1 resize-none rounded-xl border border-hairline/60 bg-paper/80 px-3 py-2 text-xs text-ink-600 placeholder:text-ink-300 focus:border-hairline focus:outline-none focus:ring-1 focus:ring-hairline"
                             />
                             <button
                               type="button"
@@ -1016,14 +1016,14 @@ export default function LifeAgentChatPage() {
                                   feedbackComment[message.messageId!]?.trim()
                                 )
                               }
-                              className="shrink-0 rounded-xl bg-paper-500 px-3 py-2 text-xs font-medium text-white transition hover:bg-oxblood disabled:opacity-40"
+                              className="shrink-0 rounded-xl bg-paper-500 px-3 py-2 text-xs font-medium text-paper transition hover:bg-oxblood disabled:opacity-40"
                             >
                               提交
                             </button>
                           </div>
                         )}
                       {commentSubmitted[message.messageId!] && (
-                        <p className="text-xs text-green-600">感谢你的反馈！</p>
+                        <p className="text-xs text-olive-600">感谢你的反馈！</p>
                       )}
                     </div>
                   ) : null}
@@ -1035,7 +1035,7 @@ export default function LifeAgentChatPage() {
         </div>
 
         {error && (
-          <div className="shrink-0 mx-3 rounded-2xl border border-orange-100/80 bg-orange-50/90 px-4 py-2 text-sm text-orange-800/90 sm:mx-6">
+          <div className="shrink-0 mx-3 rounded-2xl border border-hairline/80 bg-paper-200/90 px-4 py-2 text-sm text-oxblood-700/90 sm:mx-6">
             {error}
           </div>
         )}

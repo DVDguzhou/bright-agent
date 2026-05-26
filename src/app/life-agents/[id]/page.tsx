@@ -190,7 +190,7 @@ export default function LifeAgentDetailPage() {
     return (
       <div className="mx-auto max-w-lg space-y-4 px-4 pt-12 text-center">
         <p className="text-lg font-medium text-ink">未找到该 Agent</p>
-        <p className="text-slate-500">链接可能已失效，请从列表重新进入。</p>
+        <p className="text-ink-400">链接可能已失效，请从列表重新进入。</p>
         <Link href="/life-agents" className="btn-primary mt-4 inline-flex">
           返回列表
         </Link>
@@ -231,12 +231,12 @@ export default function LifeAgentDetailPage() {
               onClick={() => {
                 void toggleFavoriteAgentId(profile.id).then(setStarred);
               }}
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-black/30 text-white backdrop-blur-sm transition hover:bg-black/50"
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-ink/40 text-paper backdrop-blur-sm transition hover:bg-ink/60"
               aria-label={starred ? "取消收藏" : "收藏"}
               title={starred ? "取消收藏" : "收藏"}
             >
               {starred ? (
-                <svg className="h-5 w-5 text-amber-300" fill="currentColor" viewBox="0 0 24 24" aria-hidden>
+                <svg className="h-5 w-5 text-ink-600" fill="currentColor" viewBox="0 0 24 24" aria-hidden>
                   <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
                 </svg>
               ) : (
@@ -264,10 +264,10 @@ export default function LifeAgentDetailPage() {
 
         {/* --- 名称 --- */}
         <div className="-mx-4 bg-paper/[0.98] px-4 pb-4 pt-5 backdrop-blur-sm sm:-mx-6 sm:px-6">
-          <h1 className="text-lg font-bold leading-snug text-slate-900 sm:text-xl">
+          <h1 className="text-lg font-bold leading-snug text-ink sm:text-xl">
             {profile.displayName}
           </h1>
-          <p className="mt-1.5 text-sm leading-relaxed text-slate-500">{ci.headline}</p>
+          <p className="mt-1.5 text-sm leading-relaxed text-ink-400">{ci.headline}</p>
 
           {allTags.length > 0 && (
             <div className="mt-3 flex flex-wrap gap-1.5">
@@ -279,7 +279,7 @@ export default function LifeAgentDetailPage() {
             </div>
           )}
 
-          <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-hairline/50/60 pt-3 text-xs text-slate-400">
+          <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-hairline/60 pt-3 text-xs text-ink-300">
             <span>{profile.stats.sessionCount} 场聊天</span>
             {typeof (profile.mindScore?.total ?? profile.stats.mindScore) === "number" ? (
               <MindScoreBadge value={profile.mindScore?.total ?? profile.stats.mindScore ?? 0} size="sm" />
@@ -290,22 +290,22 @@ export default function LifeAgentDetailPage() {
         {/* --- 创作者卡片 --- */}
         <div className="-mx-4 bg-paper/[0.98] px-4 py-4 backdrop-blur-sm sm:-mx-6 sm:px-6">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-ink to-oxblood text-base font-bold text-white shadow-sm">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-ink to-oxblood text-base font-bold text-paper shadow-sm">
               {(profile.displayName ?? "?").slice(0, 1)}
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5">
-                <span className="truncate text-sm font-semibold text-slate-900">
+                <span className="truncate text-sm font-semibold text-ink">
                   {profile.creator.name || profile.displayName}
                 </span>
                 <VerificationBadge status={profile.verificationStatus ?? "none"} size="sm" />
               </div>
-              <p className="mt-0.5 line-clamp-1 text-xs text-slate-400">{ci.shortBio}</p>
+              <p className="mt-0.5 line-clamp-1 text-xs text-ink-300">{ci.shortBio}</p>
             </div>
           </div>
 
           {(ci.school || ci.education || ci.job || ci.income || areaText) && (
-            <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
+            <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-ink-400">
               {ci.school ? <span>🏫 {ci.school}</span> : null}
               {ci.education ? <span>📜 {ci.education}</span> : null}
               {ci.job ? <span>💼 {ci.job}</span> : null}
@@ -317,15 +317,15 @@ export default function LifeAgentDetailPage() {
 
         {/* --- 音色注册提醒 --- */}
         {voiceEnrollBanner === "warn" && profile.viewerState.isOwner && (
-          <div className="-mx-4 bg-amber-50 px-4 py-3 text-sm text-amber-800 sm:-mx-6 sm:px-6">
+          <div className="-mx-4 bg-paper-200 px-4 py-3 text-sm text-oxblood-700 sm:-mx-6 sm:px-6">
             <p>
               音色样本已上传，但<strong>云端注册未完成</strong>。请到后台重新录制。
             </p>
             <div className="mt-2 flex gap-2">
-              <Link href={`/dashboard/life-agents/${profile.id}`} className="rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white">
+              <Link href={`/dashboard/life-agents/${profile.id}`} className="rounded-lg bg-oxblood-600 px-3 py-1.5 text-xs font-semibold text-paper">
                 去后台
               </Link>
-              <button type="button" onClick={dismissVoiceBanner} className="text-xs text-amber-700 underline">
+              <button type="button" onClick={dismissVoiceBanner} className="text-xs text-oxblood-600 underline">
                 知道了
               </button>
             </div>
@@ -335,7 +335,7 @@ export default function LifeAgentDetailPage() {
         {/* --- 适合人群 --- */}
         <div className="-mx-4 bg-paper/[0.98] px-4 py-4 backdrop-blur-sm sm:-mx-6 sm:px-6">
           <h2 className="text-sm font-semibold text-ink">适合咨询的人群</h2>
-          <p className="mt-2 text-sm leading-7 text-slate-600">{ci.audience}</p>
+          <p className="mt-2 text-sm leading-7 text-ink-500">{ci.audience}</p>
         </div>
 
         {/* --- 认证事实 --- */}
@@ -355,9 +355,9 @@ export default function LifeAgentDetailPage() {
                 {confirmed.map((f) => (
                   <span
                     key={f.id}
-                    className="inline-flex items-center gap-1 rounded-lg bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-800"
+                    className="inline-flex items-center gap-1 rounded-lg bg-olive-400/10 px-2.5 py-1 text-xs font-medium text-olive-600"
                   >
-                    <svg className="h-3.5 w-3.5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20" aria-hidden>
+                    <svg className="h-3.5 w-3.5 text-olive-500" fill="currentColor" viewBox="0 0 20 20" aria-hidden>
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
                     {factLabels[f.factKey] ?? f.factKey}：{f.factValue}
@@ -405,13 +405,13 @@ export default function LifeAgentDetailPage() {
             <h2 className="text-sm font-semibold text-ink">最近动态</h2>
             <div className="mt-3 space-y-2">
               {liveUpdates.slice(0, 5).map((u) => (
-                <div key={u.id} className="rounded-xl border border-amber-100/50 bg-amber-50/50 px-3 py-2.5 backdrop-blur-sm">
-                  <div className="flex items-center gap-2 text-[11px] text-amber-700/70">
+                <div key={u.id} className="rounded-xl border border-hairline/50 bg-paper-200/50 px-3 py-2.5 backdrop-blur-sm">
+                  <div className="flex items-center gap-2 text-[11px] text-oxblood-600/70">
                     <span className="font-medium">{{ general: "综合", market: "行情", job: "求职", study: "升学", housing: "房产", life: "生活", policy: "当地政策", cost: "物价", community: "社区", transport: "交通", weather: "气候", resource: "本地资源" }[u.category] ?? u.category}</span>
                     {u.location && <span>📍 {u.location}</span>}
                     <span>{u.freshDays === 0 ? "今天" : `${u.freshDays}天前`}</span>
                   </div>
-                  <p className="mt-1.5 text-sm leading-relaxed text-slate-700">{u.content}</p>
+                  <p className="mt-1.5 text-sm leading-relaxed text-ink-600">{u.content}</p>
                 </div>
               ))}
             </div>
@@ -424,11 +424,11 @@ export default function LifeAgentDetailPage() {
             <h2 className="text-sm font-semibold text-ink">你可以问这些问题</h2>
             <div className="mt-3 space-y-2">
               {ci.sampleQuestions.map((q, i) => (
-                <div key={i} className="flex items-start gap-2 rounded-xl border border-hairline/50/50 bg-paper-50/50 px-3 py-2.5 backdrop-blur-sm">
+                <div key={i} className="flex items-start gap-2 rounded-xl border border-hairline/50 bg-paper-50/50 px-3 py-2.5 backdrop-blur-sm">
                   <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-paper-100/90 text-[10px] font-bold text-ink-600">
                     {i + 1}
                   </span>
-                  <span className="text-sm leading-relaxed text-slate-700">{q}</span>
+                  <span className="text-sm leading-relaxed text-ink-600">{q}</span>
                 </div>
               ))}
             </div>
@@ -438,7 +438,7 @@ export default function LifeAgentDetailPage() {
         {/* --- 欢迎语 --- */}
         <div className="-mx-4 bg-paper/[0.98] px-4 py-4 backdrop-blur-sm sm:-mx-6 sm:px-6">
           <h2 className="text-sm font-semibold text-ink">开场欢迎语</h2>
-          <div className="mt-2 rounded-xl border border-hairline/50/50 bg-gradient-to-br from-paper-50/80 to-paper/50 px-3.5 py-3 text-sm leading-6 text-slate-700 backdrop-blur-sm">
+          <div className="mt-2 rounded-xl border border-hairline/50 bg-gradient-to-br from-paper-50/80 to-paper/50 px-3.5 py-3 text-sm leading-6 text-ink-600 backdrop-blur-sm">
             {ci.welcomeMessage}
           </div>
         </div>
@@ -447,14 +447,14 @@ export default function LifeAgentDetailPage() {
         <div className="-mx-4 bg-paper/[0.98] px-4 py-4 backdrop-blur-sm sm:-mx-6 sm:px-6">
           <h2 className="text-sm font-semibold text-ink">用户评价</h2>
           <div className="mt-3 flex items-center gap-3">
-            <span className="text-3xl font-bold text-slate-900">
+            <span className="text-3xl font-bold text-ink">
               {profile.ratings && profile.ratings.raters > 0
                 ? profile.ratings.averageScore.toFixed(1)
                 : "—"}
             </span>
             <div>
               <RatingStars score={averageScore} size="md" />
-              <p className="mt-0.5 text-xs text-slate-400">
+              <p className="mt-0.5 text-xs text-ink-300">
                 {profile.ratings && profile.ratings.raters > 0
                   ? `${profile.ratings.raters} 人评价`
                   : "暂无评价"}
@@ -462,14 +462,14 @@ export default function LifeAgentDetailPage() {
             </div>
           </div>
           {profile.ratings?.recent && profile.ratings.recent.length > 0 && (
-            <div className="mt-4 space-y-3 border-t border-hairline/50/60 pt-3">
+            <div className="mt-4 space-y-3 border-t border-hairline/60 pt-3">
               {profile.ratings.recent.slice(0, 5).map((r) => (
                 <div key={r.id} className="text-sm">
                   <div className="flex items-center gap-2">
                     <RatingStars score={r.score} size="sm" />
-                    <span className="text-xs text-slate-400">{new Date(r.updatedAt).toLocaleDateString()}</span>
+                    <span className="text-xs text-ink-300">{new Date(r.updatedAt).toLocaleDateString()}</span>
                   </div>
-                  {r.comment && <p className="mt-1 text-slate-600">{r.comment}</p>}
+                  {r.comment && <p className="mt-1 text-ink-500">{r.comment}</p>}
                 </div>
               ))}
             </div>

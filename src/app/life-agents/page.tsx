@@ -167,7 +167,7 @@ function LifeAgentsPageLoadingState({ title = "页面加载中..." }: { title?: 
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-sm font-semibold text-ink">{title}</p>
-            <p className="mt-1 text-xs text-slate-500">正在准备页面结构与首屏内容</p>
+            <p className="mt-1 text-xs text-ink-400">正在准备页面结构与首屏内容</p>
           </div>
           <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-hairline border-t-ink" aria-hidden />
         </div>
@@ -180,11 +180,11 @@ function LifeAgentsPageLoadingState({ title = "页面加载中..." }: { title?: 
           >
             <div className="aspect-square w-full shrink-0 animate-pulse bg-gradient-to-br from-paper-100/80 to-paper-100/50" />
             <div className="flex flex-1 flex-col gap-2 p-2.5">
-              <div className="min-h-[2.75rem] animate-pulse rounded-md bg-slate-100" />
-              <div className="h-3 w-2/3 animate-pulse rounded bg-slate-100" />
-              <div className="h-4 animate-pulse rounded bg-slate-50" />
-              <div className="h-6 animate-pulse rounded bg-slate-50" />
-              <div className="min-h-[1.375rem] animate-pulse rounded bg-slate-100" />
+              <div className="min-h-[2.75rem] animate-pulse rounded-md bg-paper-200" />
+              <div className="h-3 w-2/3 animate-pulse rounded bg-paper-200" />
+              <div className="h-4 animate-pulse rounded bg-paper-50" />
+              <div className="h-6 animate-pulse rounded bg-paper-50" />
+              <div className="min-h-[1.375rem] animate-pulse rounded bg-paper-200" />
             </div>
           </div>
         ))}
@@ -662,12 +662,12 @@ function LifeAgentsPageContent() {
     feedTab === "favorites" ? "favorites" : feedTab === "purchased" ? "purchased" : "discover";
 
   const loadErrorBanner = loadError ? (
-    <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-amber-800">
+    <div className="mb-6 rounded-2xl border border-oxblood-200 bg-paper-200 px-4 py-3 text-oxblood-700">
       {loadError}
       <button
         type="button"
         onClick={() => window.location.reload()}
-        className="ml-3 text-sm font-medium text-amber-700 underline hover:no-underline"
+        className="ml-3 text-sm font-medium text-oxblood-600 underline hover:no-underline"
       >
         刷新页面
       </button>
@@ -720,9 +720,9 @@ function LifeAgentsPageContent() {
           >
             <div className="aspect-square w-full shrink-0 animate-pulse bg-gradient-to-br from-paper-100/80 to-paper-100/50" />
             <div className="flex flex-1 flex-col gap-2 p-2.5">
-              <div className="min-h-[2.75rem] animate-pulse rounded-md bg-slate-100" />
-              <div className="h-3 w-2/3 animate-pulse rounded bg-slate-100" />
-              <div className="h-4 animate-pulse rounded bg-slate-50" />
+              <div className="min-h-[2.75rem] animate-pulse rounded-md bg-paper-200" />
+              <div className="h-3 w-2/3 animate-pulse rounded bg-paper-200" />
+              <div className="h-4 animate-pulse rounded bg-paper-50" />
             </div>
           </div>
         ))}
@@ -730,7 +730,7 @@ function LifeAgentsPageContent() {
     ) : purchasedUnauthorized ? (
       <div className="rounded-[22px] border border-dashed border-hairline/40 bg-paper/[0.97] px-6 py-12 text-center shadow-[0_6px_28px_rgba(26,23,20,0.05)] backdrop-blur-sm">
         <p className="text-base font-semibold text-ink">请先登录</p>
-        <p className="mt-2 text-sm text-slate-500">登录后可查看你已购买提问额度的 Agent。</p>
+        <p className="mt-2 text-sm text-ink-400">登录后可查看你已购买提问额度的 Agent。</p>
         <Link href="/login" className="btn-primary mt-5 inline-flex">
           去登录
         </Link>
@@ -738,7 +738,7 @@ function LifeAgentsPageContent() {
     ) : purchasedItems.length === 0 ? (
       <div className="rounded-[22px] border border-dashed border-hairline/40 bg-paper/[0.97] px-6 py-12 text-center shadow-[0_6px_28px_rgba(26,23,20,0.05)] backdrop-blur-sm">
         <p className="text-base font-semibold text-ink">暂无已购额度</p>
-        <p className="mt-2 text-sm text-slate-500">购买提问包后，对应 Agent 会出现在这里。</p>
+        <p className="mt-2 text-sm text-ink-400">购买提问包后，对应 Agent 会出现在这里。</p>
         <Link href="/life-agents" className="mt-5 inline-block text-sm font-semibold text-ink-600 underline decoration-hairline/70 underline-offset-2 hover:text-ink">
           去发现页逛逛
         </Link>
@@ -764,7 +764,7 @@ function LifeAgentsPageContent() {
             aria-live="polite"
           >
             <div
-              className="flex items-center gap-2 rounded-full border border-hairline/50 bg-paper/95 px-3 py-1.5 text-xs font-medium text-slate-600 shadow-lg backdrop-blur-md"
+              className="flex items-center gap-2 rounded-full border border-hairline/50 bg-paper/95 px-3 py-1.5 text-xs font-medium text-ink-500 shadow-lg backdrop-blur-md"
               style={{
                 transform: `translateY(${Math.min(12, pullOffset * 0.12)}px)`,
                 opacity: pullRefreshing ? 1 : Math.min(1, pullOffset / 72 + 0.2),
@@ -902,27 +902,27 @@ function PurchasedAgentsWindowedGrid({ rows }: { rows: PurchasedAgentRow[] }) {
                       </div>
                     )}
                     {showPrice ? (
-                    <div className="absolute left-2 top-2 rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
+                    <div className="absolute left-2 top-2 rounded-full bg-olive-600 px-2 py-0.5 text-[10px] font-bold text-paper shadow-sm">
                       剩余 {row.remainingQuestions} 次
                     </div>
                     ) : null}
                     <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/45 via-black/15 to-transparent p-2.5 pt-12">
-                      <span className="line-clamp-2 text-[13px] font-semibold leading-snug text-white drop-shadow-md">
+                      <span className="line-clamp-2 text-[13px] font-semibold leading-snug text-paper drop-shadow-md">
                         {headlineShown}
                       </span>
                     </div>
                   </div>
                   <div className="flex min-h-0 flex-1 flex-col px-2.5 pb-2.5 pt-2 sm:p-3">
-                    <h3 className="line-clamp-2 min-h-[2.75rem] text-[13px] font-semibold leading-snug text-slate-900 sm:text-sm">
+                    <h3 className="line-clamp-2 min-h-[2.75rem] text-[13px] font-semibold leading-snug text-ink sm:text-sm">
                       {row.displayName}
                     </h3>
-                    <p className="mt-1 text-[11px] text-slate-400">点击进入对话</p>
+                    <p className="mt-1 text-[11px] text-ink-300">点击进入对话</p>
                     {showPrice ? (
-                    <div className="mt-auto flex items-center justify-between border-t border-hairline/50/60 pt-2 text-[11px] text-slate-500">
+                    <div className="mt-auto flex items-center justify-between border-t border-hairline/60 pt-2 text-[11px] text-ink-400">
                       <span>按次咨询</span>
                       <span className="font-bold text-ink-600">
                         ¥{(row.pricePerQuestion / 100).toFixed(0)}
-                        <span className="text-[10px] font-medium text-slate-400">/问</span>
+                        <span className="text-[10px] font-medium text-ink-300">/问</span>
                       </span>
                     </div>
                     ) : null}
@@ -935,7 +935,7 @@ function PurchasedAgentsWindowedGrid({ rows }: { rows: PurchasedAgentRow[] }) {
       </div>
       {hasMore ? (
         <div ref={sentinelRef} className="flex min-h-[52px] items-center justify-center py-2" aria-hidden>
-          <span className="text-xs text-slate-400">向下滑动加载更多…</span>
+          <span className="text-xs text-ink-300">向下滑动加载更多…</span>
         </div>
       ) : null}
     </div>

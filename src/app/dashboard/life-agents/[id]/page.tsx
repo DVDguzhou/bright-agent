@@ -78,10 +78,10 @@ function StatCard({
   href?: string;
 }) {
   const content = (
-    <div className="rounded-2xl bg-[#fafbfc] px-3 py-3 text-center ring-1 ring-black/[0.04]">
-      <p className="text-2xl font-black leading-none text-[#111]">{value}</p>
-      <p className="mt-2 text-[11px] font-medium text-slate-700">{label}</p>
-      <p className="mt-0.5 text-[10px] text-slate-400">{sub}</p>
+    <div className="rounded-2xl bg-paper-50 px-3 py-3 text-center ring-1 ring-hairline/40">
+      <p className="text-2xl font-black leading-none text-ink">{value}</p>
+      <p className="mt-2 text-[11px] font-medium text-ink-600">{label}</p>
+      <p className="mt-0.5 text-[10px] text-ink-300">{sub}</p>
     </div>
   );
   if (!href) return content;
@@ -108,11 +108,11 @@ function QuickAction({
   return (
     <Link
       href={href}
-      className="rounded-2xl bg-paper p-4 shadow-sm ring-1 ring-black/[0.04] transition active:scale-[0.99]"
+      className="rounded-2xl bg-paper p-4 shadow-sm ring-1 ring-hairline/40 transition active:scale-[0.99]"
     >
       <div className={`flex h-11 w-11 items-center justify-center rounded-full ${colorClass}`}>{icon}</div>
-      <p className="mt-3 text-sm font-semibold text-[#111]">{title}</p>
-      <p className="mt-1 text-xs leading-5 text-slate-500">{desc}</p>
+      <p className="mt-3 text-sm font-semibold text-ink">{title}</p>
+      <p className="mt-1 text-xs leading-5 text-ink-400">{desc}</p>
     </Link>
   );
 }
@@ -223,11 +223,11 @@ export default function LifeAgentManageHomePage() {
 
   if (state.loading && !data) {
     return (
-      <div className="mx-auto max-w-5xl space-y-4 max-lg:-mx-4 max-lg:bg-[#f7f8fa] max-lg:px-3 max-lg:pb-24">
-        <div className="h-52 animate-pulse rounded-[28px] bg-paper shadow-sm ring-1 ring-black/[0.04]" />
+      <div className="mx-auto max-w-5xl space-y-4 max-lg:-mx-4 max-lg:bg-paper-50 max-lg:px-3 max-lg:pb-24">
+        <div className="h-52 animate-pulse rounded-[28px] bg-paper shadow-sm ring-1 ring-hairline/40" />
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {[1, 2, 3, 4].map((item) => (
-            <div key={item} className="h-28 animate-pulse rounded-2xl bg-paper shadow-sm ring-1 ring-black/[0.04]" />
+            <div key={item} className="h-28 animate-pulse rounded-2xl bg-paper shadow-sm ring-1 ring-hairline/40" />
           ))}
         </div>
       </div>
@@ -237,18 +237,18 @@ export default function LifeAgentManageHomePage() {
   if (!data || !profile) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-16 text-center max-lg:-mx-4 max-lg:pb-24">
-        <p className="text-[15px] text-slate-500">{state.error ?? "加载失败"}</p>
+        <p className="text-[15px] text-ink-400">{state.error ?? "加载失败"}</p>
         <div className="mt-6 flex items-center justify-center gap-3">
           <button
             type="button"
             onClick={() => void load()}
-            className="rounded-full bg-[#111] px-6 py-2.5 text-sm font-medium text-white active:opacity-90"
+            className="rounded-full bg-ink px-6 py-2.5 text-sm font-medium text-paper active:opacity-90"
           >
             重新加载
           </button>
           <Link
             href="/dashboard/life-agents"
-            className="rounded-full border border-slate-200 bg-paper px-6 py-2.5 text-sm font-medium text-slate-700"
+            className="rounded-full border border-hairline bg-paper px-6 py-2.5 text-sm font-medium text-ink-600"
           >
             返回列表
           </Link>
@@ -258,15 +258,15 @@ export default function LifeAgentManageHomePage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl space-y-4 max-lg:-mx-4 max-lg:bg-[#f7f8fa] max-lg:px-3 max-lg:pb-24">
-      <section className="overflow-hidden rounded-[28px] bg-paper shadow-sm ring-1 ring-black/[0.04]">
-        <div className="bg-gradient-to-r from-amber-50 via-white to-sky-50 px-4 pb-4 pt-3 sm:px-6">
-          <Link href="/dashboard/life-agents" className="text-sm font-medium text-slate-500 transition hover:text-[#111]">
+    <div className="mx-auto max-w-5xl space-y-4 max-lg:-mx-4 max-lg:bg-paper-50 max-lg:px-3 max-lg:pb-24">
+      <section className="overflow-hidden rounded-[28px] bg-paper shadow-sm ring-1 ring-hairline/40">
+        <div className="bg-gradient-to-r from-paper-200 via-paper to-oxblood-50 px-4 pb-4 pt-3 sm:px-6">
+          <Link href="/dashboard/life-agents" className="text-sm font-medium text-ink-400 transition hover:text-ink">
             ← 全部 Agent
           </Link>
           <div className="mt-3 flex items-start justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
-              <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl ring-1 ring-black/5">
+              <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl ring-1 ring-hairline/40">
                 <LifeAgentCoverImage
                   src={coverSrc}
                   alt=""
@@ -276,28 +276,28 @@ export default function LifeAgentManageHomePage() {
                 />
               </div>
               <div className="min-w-0">
-                <h1 className="break-words text-[26px] font-black leading-tight tracking-tight text-[#111] sm:text-[28px]">
+                <h1 className="break-words text-[26px] font-black leading-tight tracking-tight text-ink sm:text-[28px]">
                   {profile.displayName}
                 </h1>
-                <p className="mt-1 line-clamp-2 text-sm text-slate-500">
+                <p className="mt-1 line-clamp-2 text-sm text-ink-400">
                   {cleanLifeAgentIntroText(profile.headline, profile.displayName)}
                 </p>
                 <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
                   <span
                     className={`rounded-full px-2 py-1 font-medium ${
-                      profile.published ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-900"
+                      profile.published ? "bg-olive-400/20 text-olive-600" : "bg-paper-300 text-ink"
                     }`}
                   >
                     {profile.published ? "已发布" : "未发布"}
                   </span>
-                  <span className="rounded-full bg-slate-100 px-2 py-1 text-slate-500">资料完成度 {completion}%</span>
+                  <span className="rounded-full bg-paper-200 px-2 py-1 text-ink-400">资料完成度 {completion}%</span>
                 </div>
               </div>
             </div>
             <div className="flex shrink-0 items-center gap-2">
               <Link
                 href={`/life-agents/${id}`}
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-paper/90 text-slate-700 shadow-sm ring-1 ring-black/[0.05] active:scale-[0.98]"
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-paper/90 text-ink-600 shadow-sm ring-1 ring-hairline/40 active:scale-[0.98]"
                 aria-label="查看展示页"
                 title="展示页"
               >
@@ -313,7 +313,7 @@ export default function LifeAgentManageHomePage() {
               </Link>
               <Link
                 href={`/dashboard/life-agents/${id}/edit`}
-                className="rounded-full bg-[#111] px-4 py-2 text-sm font-semibold text-white active:scale-[0.98]"
+                className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-paper active:scale-[0.98]"
               >
                 编辑资料
               </Link>
@@ -322,7 +322,7 @@ export default function LifeAgentManageHomePage() {
         </div>
 
         {/* 原统计条（含金额/售出，审核期暂隐藏）
-        <div className="grid grid-cols-2 border-t border-slate-100 sm:grid-cols-4">
+        <div className="grid grid-cols-2 border-t border-hairline/50 sm:grid-cols-4">
           <StatCard label="累计收入" value={`¥${(data.stats.totalRevenue / 100).toFixed(2)}`} sub="元" />
           <StatCard label="售出次数包" value={data.stats.soldPacks} sub="次" href={`/dashboard/life-agents/${id}/sales`} />
           <StatCard label="聊天会话" value={data.stats.sessionCount} sub="场" href={`/dashboard/life-agents/${id}/sessions`} />
@@ -334,7 +334,7 @@ export default function LifeAgentManageHomePage() {
           />
         </div>
         */}
-        <div className="grid grid-cols-2 border-t border-slate-100 sm:grid-cols-4">
+        <div className="grid grid-cols-2 border-t border-hairline/50 sm:grid-cols-4">
           <StatCard label="被提问" value={data.stats.soldPacks} sub="次" href={`/dashboard/life-agents/${id}/sales`} />
           <StatCard label="互动用户" value={data.questionPacks.length} sub="人" href={`/dashboard/life-agents/${id}/sales`} />
           <StatCard label="累计对话" value={data.stats.sessionCount} sub="场" href={`/dashboard/life-agents/${id}/sessions`} />
@@ -345,11 +345,11 @@ export default function LifeAgentManageHomePage() {
         </div>
       </section>
 
-      <section className="rounded-[28px] bg-paper px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
+      <section className="rounded-[28px] bg-paper px-4 py-4 shadow-sm ring-1 ring-hairline/40 sm:px-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-black tracking-tight text-[#111]">快速操作</h2>
-            <p className="mt-1 text-sm text-slate-500">把高频动作从巨型 tab 拆开，改资料时更不容易迷路。</p>
+            <h2 className="text-xl font-black tracking-tight text-ink">快速操作</h2>
+            <p className="mt-1 text-sm text-ink-400">把高频动作从巨型 tab 拆开，改资料时更不容易迷路。</p>
           </div>
         </div>
         <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-3">
@@ -357,14 +357,14 @@ export default function LifeAgentManageHomePage() {
             href={`/dashboard/life-agents/${id}/co-edit`}
             title="对话调教"
             desc="像聊天一样修改欢迎语、风格和知识内容"
-            colorClass="bg-sky-100 text-sky-700"
+            colorClass="bg-oxblood-100 text-oxblood-700"
             icon={<svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5l-2 2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5" /></svg>}
           />
           <QuickAction
             href={`/dashboard/life-agents/${id}/edit`}
             title="编辑资料"
             desc="分组修改封面、人设、示范回答与地区信息"
-            colorClass="bg-amber-100 text-amber-700"
+            colorClass="bg-paper-300 text-oxblood-600"
             icon={<svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>}
           />
           {/* 原「销量记录」入口（含购买语义，审核期暂隐藏）
@@ -372,7 +372,7 @@ export default function LifeAgentManageHomePage() {
             href={`/dashboard/life-agents/${id}/sales`}
             title="销量记录"
             desc="查看近 7 天、30 天和全部购买记录"
-            colorClass="bg-emerald-100 text-emerald-700"
+            colorClass="bg-olive-400/20 text-olive-600"
             icon={<svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 1.119-3 2.5S10.343 13 12 13s3 1.119 3 2.5S13.657 18 12 18m0-10V6m0 12v-2m7-4a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
           />
           */}
@@ -380,7 +380,7 @@ export default function LifeAgentManageHomePage() {
             href={`/dashboard/life-agents/${id}/sales`}
             title="互动记录"
             desc="查看近 7 天、30 天和全部用户提问互动"
-            colorClass="bg-emerald-100 text-emerald-700"
+            colorClass="bg-olive-400/20 text-olive-600"
             icon={<svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>}
           />
           <QuickAction
@@ -394,58 +394,58 @@ export default function LifeAgentManageHomePage() {
             href={`/dashboard/life-agents/${id}/feedback`}
             title="反馈诊断"
             desc="看评分、轻反馈类型和近期差评关键词"
-            colorClass="bg-rose-100 text-rose-700"
+            colorClass="bg-oxblood-100 text-oxblood-700"
             icon={<svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l2.036 6.258a1 1 0 00.95.69h6.58c.969 0 1.371 1.24.588 1.81l-5.323 3.867a1 1 0 00-.364 1.118l2.034 6.258c.3.921-.755 1.688-1.54 1.118l-5.322-3.867a1 1 0 00-1.176 0l-5.323 3.867c-.784.57-1.838-.197-1.539-1.118l2.034-6.258a1 1 0 00-.364-1.118L.895 11.685c-.783-.57-.38-1.81.588-1.81h6.58a1 1 0 00.95-.69l2.036-6.258z" /></svg>}
           />
           <QuickAction
             href={`/dashboard/life-agents/${id}/topics`}
             title="Topic 管理"
             desc="审核 candidate，合并重复主题，并人工修正文案"
-            colorClass="bg-teal-100 text-teal-700"
+            colorClass="bg-olive-400/20 text-olive-600"
             icon={<svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h7m-7 4h10M5 4h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z" /></svg>}
           />
           <QuickAction
             href={`/dashboard/life-agents/${id}/blind-spots`}
             title={`盲区问题${(data.stats?.blindSpotCount ?? 0) > 0 ? ` (${data.stats.blindSpotCount})` : ""}`}
             desc="用户问了但 Agent 答不好的问题，补充后提升回答质量"
-            colorClass="bg-amber-100 text-amber-700"
+            colorClass="bg-paper-300 text-oxblood-600"
             icon={<svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M12 3a9 9 0 100 18 9 9 0 000-18z" /></svg>}
           />
           <QuickAction
             href="/dashboard/api-keys"
             title="开放 API"
             desc="管理调用 Key 与调用数据，让别人直接调用你的 Agent"
-            colorClass="bg-indigo-100 text-indigo-700"
+            colorClass="bg-oxblood-100 text-oxblood-700"
             icon={<svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a5 5 0 11-9.9 1H3m0 0l3-3m-3 3l3 3m6 6a5 5 0 109.9-1H21m0 0l-3 3m3-3l-3-3" /></svg>}
           />
         </div>
       </section>
 
-      <section className="rounded-[28px] bg-paper px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
+      <section className="rounded-[28px] bg-paper px-4 py-4 shadow-sm ring-1 ring-hairline/40 sm:px-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-black tracking-tight text-[#111]">实时更新</h2>
-            <p className="mt-1 text-sm text-slate-500">像发朋友圈一样分享最新信息，Agent 回答时会优先引用。</p>
+            <h2 className="text-xl font-black tracking-tight text-ink">实时更新</h2>
+            <p className="mt-1 text-sm text-ink-400">像发朋友圈一样分享最新信息，Agent 回答时会优先引用。</p>
           </div>
-          <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-medium text-emerald-700">
+          <span className="rounded-full bg-olive-400/20 px-2.5 py-1 text-xs font-medium text-olive-600">
             {liveUpdates.length} 条有效
           </span>
         </div>
 
-        <div className="mt-4 rounded-2xl bg-[#fafbfc] p-4 ring-1 ring-black/[0.04]">
+        <div className="mt-4 rounded-2xl bg-paper-50 p-4 ring-1 ring-hairline/40">
           <textarea
             ref={liveTextareaRef}
             value={liveContent}
             onChange={(e) => setLiveContent(e.target.value)}
             placeholder="分享最新信息，比如：杭州余杭区最近落户政策放宽了 / 西湖区房价Q2微涨 / 秋招字节阿里都在扩招..."
-            className="w-full resize-none rounded-xl border border-slate-200 bg-paper px-3 py-2.5 text-sm text-[#111] placeholder:text-slate-400 focus:border-sky-300 focus:outline-none focus:ring-2 focus:ring-sky-100"
+            className="w-full resize-none rounded-xl border border-hairline bg-paper px-3 py-2.5 text-sm text-ink placeholder:text-ink-300 focus:border-oxblood-200 focus:outline-none focus:ring-2 focus:ring-oxblood-100"
             rows={3}
           />
           <div className="mt-3 flex flex-wrap items-center gap-3">
             <select
               value={liveCategory}
               onChange={(e) => setLiveCategory(e.target.value)}
-              className="rounded-lg border border-slate-200 bg-paper px-3 py-1.5 text-xs text-slate-700 focus:outline-none"
+              className="rounded-lg border border-hairline bg-paper px-3 py-1.5 text-xs text-ink-600 focus:outline-none"
             >
               {LIVE_CATEGORIES.map((c) => (
                 <option key={c.value} value={c.value}>{c.label}</option>
@@ -456,13 +456,13 @@ export default function LifeAgentManageHomePage() {
               value={liveLocation}
               onChange={(e) => setLiveLocation(e.target.value)}
               placeholder="位置标签，如：杭州西湖区（可选）"
-              className="rounded-lg border border-slate-200 bg-paper px-3 py-1.5 text-xs text-slate-700 placeholder:text-slate-400 focus:outline-none"
+              className="rounded-lg border border-hairline bg-paper px-3 py-1.5 text-xs text-ink-600 placeholder:text-ink-300 focus:outline-none"
             />
             <button
               type="button"
               onClick={postLiveUpdate}
               disabled={livePosting || !liveContent.trim()}
-              className="ml-auto rounded-full bg-[#111] px-5 py-1.5 text-sm font-semibold text-white active:scale-[0.98] disabled:opacity-40"
+              className="ml-auto rounded-full bg-ink px-5 py-1.5 text-sm font-semibold text-paper active:scale-[0.98] disabled:opacity-40"
             >
               {livePosting ? "发布中..." : "发布"}
             </button>
@@ -472,20 +472,20 @@ export default function LifeAgentManageHomePage() {
         {liveUpdates.length > 0 && (
           <ul className="mt-4 space-y-3">
             {liveUpdates.map((u) => (
-              <li key={u.id} className="flex items-start gap-3 rounded-2xl bg-[#fafbfc] p-4 ring-1 ring-black/[0.04]">
+              <li key={u.id} className="flex items-start gap-3 rounded-2xl bg-paper-50 p-4 ring-1 ring-hairline/40">
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 text-xs text-slate-500">
-                    <span className="rounded-full bg-sky-100 px-2 py-0.5 font-medium text-sky-700">{LIVE_CATEGORIES.find((c) => c.value === u.category)?.label ?? u.category}</span>
+                  <div className="flex items-center gap-2 text-xs text-ink-400">
+                    <span className="rounded-full bg-oxblood-100 px-2 py-0.5 font-medium text-oxblood-700">{LIVE_CATEGORIES.find((c) => c.value === u.category)?.label ?? u.category}</span>
                     {u.location && <span>📍 {u.location}</span>}
                     <span>{u.freshDays === 0 ? "今天" : `${u.freshDays}天前`}</span>
-                    {u.pinned && <span className="font-medium text-amber-600">📌 置顶</span>}
+                    {u.pinned && <span className="font-medium text-oxblood-500">📌 置顶</span>}
                   </div>
-                  <p className="mt-2 text-sm leading-relaxed text-[#111]">{u.content}</p>
+                  <p className="mt-2 text-sm leading-relaxed text-ink">{u.content}</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => void deleteLiveUpdate(u.id)}
-                  className="shrink-0 rounded-lg p-1 text-slate-400 hover:bg-red-50 hover:text-red-500"
+                  className="shrink-0 rounded-lg p-1 text-ink-300 hover:bg-oxblood-50 hover:text-oxblood-500"
                   title="删除"
                 >
                   <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
@@ -496,76 +496,76 @@ export default function LifeAgentManageHomePage() {
         )}
       </section>
 
-      <section className="rounded-[28px] bg-paper px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
-        <h2 className="text-xl font-black tracking-tight text-[#111]">最近动态</h2>
+      <section className="rounded-[28px] bg-paper px-4 py-4 shadow-sm ring-1 ring-hairline/40 sm:px-6">
+        <h2 className="text-xl font-black tracking-tight text-ink">最近动态</h2>
         <div className="mt-4 grid gap-4 lg:grid-cols-3">
           {/* 原「最近购买」卡片（含金额，审核期暂隐藏）
-          <div className="rounded-2xl bg-[#fafbfc] p-4 ring-1 ring-black/[0.04]">
+          <div className="rounded-2xl bg-paper-50 p-4 ring-1 ring-hairline/40">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-slate-800">最近购买</h3>
-              <Link href={`/dashboard/life-agents/${id}/sales`} className="text-xs font-medium text-sky-600">查看全部</Link>
+              <h3 className="text-sm font-semibold text-ink-700">最近购买</h3>
+              <Link href={`/dashboard/life-agents/${id}/sales`} className="text-xs font-medium text-oxblood-600">查看全部</Link>
             </div>
             <ul className="mt-3 space-y-3">
               {data.questionPacks.slice(0, 3).map((item) => (
                 <li key={item.id} className="text-sm">
-                  <p className="font-medium text-[#111]">{item.buyer.name || item.buyer.email}</p>
-                  <p className="mt-0.5 text-slate-500">
+                  <p className="font-medium text-ink">{item.buyer.name || item.buyer.email}</p>
+                  <p className="mt-0.5 text-ink-400">
                     买了 {item.questionCount} 次，已用 {item.questionsUsed} 次 · ¥{(item.amountPaid / 100).toFixed(2)}
                   </p>
-                  <p className="mt-1 text-xs text-slate-400">{formatShortTime(item.createdAt)}</p>
+                  <p className="mt-1 text-xs text-ink-300">{formatShortTime(item.createdAt)}</p>
                 </li>
               ))}
-              {data.questionPacks.length === 0 && <p className="text-sm text-slate-400">暂时还没有购买记录</p>}
+              {data.questionPacks.length === 0 && <p className="text-sm text-ink-300">暂时还没有购买记录</p>}
             </ul>
           </div>
           */}
-          <div className="rounded-2xl bg-[#fafbfc] p-4 ring-1 ring-black/[0.04]">
+          <div className="rounded-2xl bg-paper-50 p-4 ring-1 ring-hairline/40">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-slate-800">最近互动</h3>
-              <Link href={`/dashboard/life-agents/${id}/sales`} className="text-xs font-medium text-sky-600">查看全部</Link>
+              <h3 className="text-sm font-semibold text-ink-700">最近互动</h3>
+              <Link href={`/dashboard/life-agents/${id}/sales`} className="text-xs font-medium text-oxblood-600">查看全部</Link>
             </div>
             <ul className="mt-3 space-y-3">
               {data.questionPacks.slice(0, 3).map((item) => (
                 <li key={item.id} className="text-sm">
-                  <p className="font-medium text-[#111]">{item.buyer.name || item.buyer.email}</p>
-                  <p className="mt-0.5 text-slate-500">
+                  <p className="font-medium text-ink">{item.buyer.name || item.buyer.email}</p>
+                  <p className="mt-0.5 text-ink-400">
                     提问 {item.questionCount} 次，已对话 {item.questionsUsed} 次
                   </p>
-                  <p className="mt-1 text-xs text-slate-400">{formatShortTime(item.createdAt)}</p>
+                  <p className="mt-1 text-xs text-ink-300">{formatShortTime(item.createdAt)}</p>
                 </li>
               ))}
-              {data.questionPacks.length === 0 && <p className="text-sm text-slate-400">暂时还没有互动记录</p>}
+              {data.questionPacks.length === 0 && <p className="text-sm text-ink-300">暂时还没有互动记录</p>}
             </ul>
           </div>
 
-          <div className="rounded-2xl bg-[#fafbfc] p-4 ring-1 ring-black/[0.04]">
+          <div className="rounded-2xl bg-paper-50 p-4 ring-1 ring-hairline/40">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-slate-800">最近聊天</h3>
-              <Link href={`/dashboard/life-agents/${id}/sessions`} className="text-xs font-medium text-sky-600">查看全部</Link>
+              <h3 className="text-sm font-semibold text-ink-700">最近聊天</h3>
+              <Link href={`/dashboard/life-agents/${id}/sessions`} className="text-xs font-medium text-oxblood-600">查看全部</Link>
             </div>
             <ul className="mt-3 space-y-3">
               {data.chatSessions.slice(0, 3).map((item) => (
                 <li key={item.id} className="text-sm">
-                  <p className="font-medium text-[#111]">{item.buyer.name || item.buyer.email}</p>
-                  <p className="mt-0.5 line-clamp-2 text-slate-500">{item.title || "隐私保护会话"}</p>
-                  <p className="mt-1 text-xs text-slate-400">
+                  <p className="font-medium text-ink">{item.buyer.name || item.buyer.email}</p>
+                  <p className="mt-0.5 line-clamp-2 text-ink-400">{item.title || "隐私保护会话"}</p>
+                  <p className="mt-1 text-xs text-ink-300">
                     {item.messageCount} 条消息 · 最近更新 {formatShortTime(item.updatedAt)}
                   </p>
                 </li>
               ))}
-              {data.chatSessions.length === 0 && <p className="text-sm text-slate-400">暂时还没有聊天记录</p>}
+              {data.chatSessions.length === 0 && <p className="text-sm text-ink-300">暂时还没有聊天记录</p>}
             </ul>
           </div>
 
-          <div className="rounded-2xl bg-[#fafbfc] p-4 ring-1 ring-black/[0.04]">
+          <div className="rounded-2xl bg-paper-50 p-4 ring-1 ring-hairline/40">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-slate-800">最近反馈</h3>
-              <Link href={`/dashboard/life-agents/${id}/feedback`} className="text-xs font-medium text-sky-600">查看全部</Link>
+              <h3 className="text-sm font-semibold text-ink-700">最近反馈</h3>
+              <Link href={`/dashboard/life-agents/${id}/feedback`} className="text-xs font-medium text-oxblood-600">查看全部</Link>
             </div>
             <ul className="mt-3 space-y-3">
               {(data.feedback?.recent ?? []).slice(0, 3).map((item) => (
                 <li key={item.id} className="text-sm">
-                  <p className="font-medium text-[#111]">
+                  <p className="font-medium text-ink">
                     {item.feedbackType === "helpful"
                       ? "有帮助"
                       : item.feedbackType === "not_specific"
@@ -578,43 +578,43 @@ export default function LifeAgentManageHomePage() {
                               ? "过度自信"
                               : "不适合我"}
                   </p>
-                  <p className="mt-0.5 line-clamp-2 text-slate-500">{item.comment?.trim() || item.assistantExcerpt || "无补充说明"}</p>
-                  <p className="mt-1 text-xs text-slate-400">{formatShortTime(item.createdAt)}</p>
+                  <p className="mt-0.5 line-clamp-2 text-ink-400">{item.comment?.trim() || item.assistantExcerpt || "无补充说明"}</p>
+                  <p className="mt-1 text-xs text-ink-300">{formatShortTime(item.createdAt)}</p>
                 </li>
               ))}
-              {(data.feedback?.recent ?? []).length === 0 && <p className="text-sm text-slate-400">暂时还没有用户反馈</p>}
+              {(data.feedback?.recent ?? []).length === 0 && <p className="text-sm text-ink-300">暂时还没有用户反馈</p>}
             </ul>
           </div>
         </div>
       </section>
 
       {(data.feedback?.alerts ?? []).length > 0 && (
-        <section className="rounded-[28px] bg-paper px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
-          <h2 className="text-xl font-black tracking-tight text-[#111]">需要你关注</h2>
-          <p className="mt-1 text-xs text-slate-400">来自用户的真实反馈，按紧急程度排列</p>
+        <section className="rounded-[28px] bg-paper px-4 py-4 shadow-sm ring-1 ring-hairline/40 sm:px-6">
+          <h2 className="text-xl font-black tracking-tight text-ink">需要你关注</h2>
+          <p className="mt-1 text-xs text-ink-300">来自用户的真实反馈，按紧急程度排列</p>
           <ul className="mt-3 space-y-2">
             {(data.feedback?.alerts ?? []).map((alert: FeedbackAlert) => (
               <li
                 key={alert.id}
                 className={`flex items-start gap-3 rounded-2xl px-4 py-3 text-sm leading-6 shadow-sm ${
                   alert.color === "red"
-                    ? "bg-red-50 ring-1 ring-red-200"
+                    ? "bg-oxblood-50 ring-1 ring-oxblood-200"
                     : alert.color === "orange"
-                      ? "bg-orange-50 ring-1 ring-orange-200"
+                      ? "bg-paper-200 ring-1 ring-oxblood-200"
                       : alert.color === "yellow"
-                        ? "bg-yellow-50 ring-1 ring-yellow-200"
-                        : "bg-blue-50 ring-1 ring-blue-200"
+                        ? "bg-paper-200 ring-1 ring-oxblood-200"
+                        : "bg-oxblood-50 ring-1 ring-oxblood-200"
                 }`}
               >
                 <span
                   className={`mt-0.5 inline-block h-2.5 w-2.5 flex-shrink-0 rounded-full ${
                     alert.color === "red"
-                      ? "bg-red-500"
+                      ? "bg-oxblood-500"
                       : alert.color === "orange"
-                        ? "bg-orange-500"
+                        ? "bg-oxblood-500"
                         : alert.color === "yellow"
-                          ? "bg-yellow-500"
-                          : "bg-blue-500"
+                          ? "bg-oxblood-500"
+                          : "bg-oxblood-500"
                   }`}
                 />
                 <div className="min-w-0 flex-1">
@@ -622,12 +622,12 @@ export default function LifeAgentManageHomePage() {
                     <span
                       className={`text-xs font-semibold ${
                         alert.color === "red"
-                          ? "text-red-700"
+                          ? "text-oxblood-700"
                           : alert.color === "orange"
-                            ? "text-orange-700"
+                            ? "text-oxblood-600"
                             : alert.color === "yellow"
-                              ? "text-yellow-700"
-                              : "text-blue-700"
+                              ? "text-oxblood-600"
+                              : "text-oxblood-700"
                       }`}
                     >
                       {alert.title}
@@ -635,12 +635,12 @@ export default function LifeAgentManageHomePage() {
                     <span
                       className={`rounded-full px-1.5 py-0.5 text-[10px] font-medium ${
                         alert.color === "red"
-                          ? "bg-red-100 text-red-600"
+                          ? "bg-oxblood-100 text-oxblood-600"
                           : alert.color === "orange"
-                            ? "bg-orange-100 text-orange-600"
+                            ? "bg-paper-300 text-oxblood-500"
                             : alert.color === "yellow"
-                              ? "bg-yellow-100 text-yellow-600"
-                              : "bg-blue-100 text-blue-600"
+                              ? "bg-paper-300 text-oxblood-500"
+                              : "bg-oxblood-100 text-oxblood-600"
                       }`}
                     >
                       {alert.priority === "urgent"
@@ -652,18 +652,18 @@ export default function LifeAgentManageHomePage() {
                             : "参考"}
                     </span>
                   </div>
-                  <p className="mt-0.5 text-slate-600">{alert.detail}</p>
+                  <p className="mt-0.5 text-ink-500">{alert.detail}</p>
                   {alert.topicId && (
                     <Link
                       href={`/dashboard/life-agents/${id}/topics`}
                       className={`mt-1 inline-block text-xs font-medium underline ${
                         alert.color === "red"
-                          ? "text-red-600"
+                          ? "text-oxblood-600"
                           : alert.color === "orange"
-                            ? "text-orange-600"
+                            ? "text-oxblood-500"
                             : alert.color === "yellow"
-                              ? "text-yellow-600"
-                              : "text-blue-600"
+                              ? "text-oxblood-500"
+                              : "text-oxblood-600"
                       }`}
                     >
                       {alert.action} →
@@ -672,7 +672,7 @@ export default function LifeAgentManageHomePage() {
                   {alert.source === "blind_spot" && (
                     <Link
                       href={`/dashboard/life-agents/${id}/blind-spots`}
-                      className="mt-1 inline-block text-xs font-medium text-orange-600 underline"
+                      className="mt-1 inline-block text-xs font-medium text-oxblood-500 underline"
                     >
                       {alert.action} →
                     </Link>
@@ -684,9 +684,9 @@ export default function LifeAgentManageHomePage() {
         </section>
       )}
 
-      <section className="rounded-[28px] bg-gradient-to-r from-yellow-300 via-amber-200 to-yellow-300 px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
-        <h2 className="text-xl font-black tracking-tight text-[#111]">优化建议</h2>
-        <ul className="mt-3 space-y-2 text-sm leading-6 text-amber-950">
+      <section className="rounded-[28px] bg-gradient-to-r from-oxblood-200 via-oxblood-100 to-oxblood-200 px-4 py-4 shadow-sm ring-1 ring-hairline/40 sm:px-6">
+        <h2 className="text-xl font-black tracking-tight text-ink">优化建议</h2>
+        <ul className="mt-3 space-y-2 text-sm leading-6 text-ink">
           {suggestions.length > 0 ? (
             suggestions.map((item) => (
               <li key={item} className="rounded-2xl bg-paper/70 px-4 py-3 shadow-sm">
@@ -699,65 +699,65 @@ export default function LifeAgentManageHomePage() {
         </ul>
       </section>
 
-      <section className="rounded-[28px] bg-paper px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
-        <h2 className="text-xl font-black tracking-tight text-[#111]">Agent 当前状态</h2>
+      <section className="rounded-[28px] bg-paper px-4 py-4 shadow-sm ring-1 ring-hairline/40 sm:px-6">
+        <h2 className="text-xl font-black tracking-tight text-ink">Agent 当前状态</h2>
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <div className="rounded-2xl bg-[#fafbfc] p-4 ring-1 ring-black/[0.04]">
-            <p className="text-xs font-medium text-slate-500">欢迎语</p>
-            <p className="mt-2 line-clamp-3 text-sm text-[#111]">{profile.welcomeMessage || "未设置"}</p>
+          <div className="rounded-2xl bg-paper-50 p-4 ring-1 ring-hairline/40">
+            <p className="text-xs font-medium text-ink-400">欢迎语</p>
+            <p className="mt-2 line-clamp-3 text-sm text-ink">{profile.welcomeMessage || "未设置"}</p>
           </div>
-          <div className="rounded-2xl bg-[#fafbfc] p-4 ring-1 ring-black/[0.04]">
-            <p className="text-xs font-medium text-slate-500">擅长标签</p>
-            <p className="mt-2 text-sm text-[#111]">{(profile.expertiseTags ?? []).join("、") || "未设置"}</p>
+          <div className="rounded-2xl bg-paper-50 p-4 ring-1 ring-hairline/40">
+            <p className="text-xs font-medium text-ink-400">擅长标签</p>
+            <p className="mt-2 text-sm text-ink">{(profile.expertiseTags ?? []).join("、") || "未设置"}</p>
           </div>
-          <div className="rounded-2xl bg-[#fafbfc] p-4 ring-1 ring-black/[0.04]">
-            <p className="text-xs font-medium text-slate-500">人设与语气</p>
-            <p className="mt-2 text-sm text-[#111]">
+          <div className="rounded-2xl bg-paper-50 p-4 ring-1 ring-hairline/40">
+            <p className="text-xs font-medium text-ink-400">人设与语气</p>
+            <p className="mt-2 text-sm text-ink">
               {[profile.personaArchetype, profile.toneStyle, profile.responseStyle].filter(Boolean).join(" · ") || "未设置"}
             </p>
           </div>
-          <div className="rounded-2xl bg-[#fafbfc] p-4 ring-1 ring-black/[0.04]">
-            <p className="text-xs font-medium text-slate-500">知识条目</p>
-            <p className="mt-2 text-sm text-[#111]">{profile.knowledgeEntries.length} 条</p>
+          <div className="rounded-2xl bg-paper-50 p-4 ring-1 ring-hairline/40">
+            <p className="text-xs font-medium text-ink-400">知识条目</p>
+            <p className="mt-2 text-sm text-ink">{profile.knowledgeEntries.length} 条</p>
           </div>
-          <div className="rounded-2xl bg-[#fafbfc] p-4 ring-1 ring-black/[0.04]">
-            <p className="text-xs font-medium text-slate-500">结构化事实</p>
-            <p className="mt-2 text-sm text-[#111]">{profile.structuredFacts?.length ?? 0} 条</p>
+          <div className="rounded-2xl bg-paper-50 p-4 ring-1 ring-hairline/40">
+            <p className="text-xs font-medium text-ink-400">结构化事实</p>
+            <p className="mt-2 text-sm text-ink">{profile.structuredFacts?.length ?? 0} 条</p>
           </div>
-          <div className="rounded-2xl bg-[#fafbfc] p-4 ring-1 ring-black/[0.04]">
-            <p className="text-xs font-medium text-slate-500">Topic 摘要</p>
-            <p className="mt-2 text-sm text-[#111]">{profile.topicSummaries?.length ?? data.stats.topicCount ?? 0} 条</p>
+          <div className="rounded-2xl bg-paper-50 p-4 ring-1 ring-hairline/40">
+            <p className="text-xs font-medium text-ink-400">Topic 摘要</p>
+            <p className="mt-2 text-sm text-ink">{profile.topicSummaries?.length ?? data.stats.topicCount ?? 0} 条</p>
           </div>
-          <div className="rounded-2xl bg-[#fafbfc] p-4 ring-1 ring-black/[0.04]">
-            <p className="text-xs font-medium text-slate-500">开放 API</p>
-            <p className="mt-2 text-sm text-[#111]">
+          <div className="rounded-2xl bg-paper-50 p-4 ring-1 ring-hairline/40">
+            <p className="text-xs font-medium text-ink-400">开放 API</p>
+            <p className="mt-2 text-sm text-ink">
               {profile.apiInvokeEnabled ? `已开启 · ${profile.apiTotalCalls ?? 0} 次调用` : "未开启"}
             </p>
           </div>
-          <div className="rounded-2xl bg-[#fafbfc] p-4 ring-1 ring-black/[0.04]">
-            <p className="text-xs font-medium text-slate-500">最后更新</p>
-            <p className="mt-2 text-sm text-[#111]">{data.chatSessions[0] ? formatDateTime(data.chatSessions[0].updatedAt) : "暂无记录"}</p>
+          <div className="rounded-2xl bg-paper-50 p-4 ring-1 ring-hairline/40">
+            <p className="text-xs font-medium text-ink-400">最后更新</p>
+            <p className="mt-2 text-sm text-ink">{data.chatSessions[0] ? formatDateTime(data.chatSessions[0].updatedAt) : "暂无记录"}</p>
           </div>
         </div>
       </section>
 
-      <section className="rounded-[28px] bg-paper px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
+      <section className="rounded-[28px] bg-paper px-4 py-4 shadow-sm ring-1 ring-hairline/40 sm:px-6">
         <details>
-          <summary className="cursor-pointer list-none text-lg font-semibold text-red-700">
+          <summary className="cursor-pointer list-none text-lg font-semibold text-oxblood-700">
             <span className="inline-flex items-center gap-2">
               <span>危险操作</span>
-              <span className="text-xs font-medium text-red-500">删除后无法恢复</span>
+              <span className="text-xs font-medium text-oxblood-500">删除后无法恢复</span>
             </span>
           </summary>
-          <div className="mt-4 rounded-2xl border border-red-200 bg-red-50/70 p-4">
-            <p className="text-sm leading-6 text-red-600">
+          <div className="mt-4 rounded-2xl border border-oxblood-200 bg-oxblood-50/70 p-4">
+            <p className="text-sm leading-6 text-oxblood-600">
               删除人生 Agent 后，相关知识、聊天记录、反馈和销量记录都将无法恢复。请确认你不再需要它时再执行。
             </p>
             <button
               type="button"
               onClick={deleteAgent}
               disabled={deleting}
-              className="mt-4 min-h-[48px] rounded-xl border border-red-300 bg-paper px-5 py-3 text-sm font-medium text-red-600 transition-colors hover:bg-red-100 active:bg-red-200 disabled:opacity-50"
+              className="mt-4 min-h-[48px] rounded-xl border border-oxblood-200 bg-paper px-5 py-3 text-sm font-medium text-oxblood-600 transition-colors hover:bg-oxblood-100 active:bg-oxblood-200 disabled:opacity-50"
             >
               {deleting ? "删除中..." : "删除人生 Agent"}
             </button>

@@ -49,23 +49,23 @@ export default function ForgotPasswordPage() {
       animate={{ opacity: 1, y: 0 }}
       className="max-w-md mx-auto py-16"
     >
-      <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-sky-500 bg-clip-text text-transparent mb-2">
+      <h1 className="text-3xl font-bold bg-gradient-to-r from-oxblood-600 to-oxblood-500 bg-clip-text text-transparent mb-2">
         找回密码
       </h1>
-      <p className="text-slate-500 mb-6">我们将向您的邮箱发送重置链接（若该邮箱已注册）。</p>
+      <p className="text-ink-400 mb-6">我们将向您的邮箱发送重置链接（若该邮箱已注册）。</p>
 
       {done ? (
-        <div className="rounded-3xl border border-slate-200 bg-paper p-6 shadow-sm space-y-4">
-          <p className="text-slate-700 text-sm leading-relaxed">
+        <div className="rounded-3xl border border-hairline bg-paper p-6 shadow-sm space-y-4">
+          <p className="text-ink-600 text-sm leading-relaxed">
             若该邮箱已注册且系统已配置发信服务，您将很快收到邮件。请检查收件箱与垃圾箱，链接在一段时间后失效。
           </p>
-          <Link href="/login" className="inline-block text-sky-700 hover:text-sky-600 text-sm font-medium">
+          <Link href="/login" className="inline-block text-oxblood-700 hover:text-oxblood-600 text-sm font-medium">
             返回登录
           </Link>
         </div>
       ) : (
-        <form onSubmit={submit} className="space-y-5 rounded-3xl border border-slate-200 bg-paper p-6 shadow-sm">
-          <label className="block text-sm font-medium text-slate-700">注册邮箱</label>
+        <form onSubmit={submit} className="space-y-5 rounded-3xl border border-hairline bg-paper p-6 shadow-sm">
+          <label className="block text-sm font-medium text-ink-600">注册邮箱</label>
           <input
             type="email"
             value={email}
@@ -74,7 +74,7 @@ export default function ForgotPasswordPage() {
             placeholder="you@example.com"
             required
           />
-          {error && <p className="text-red-400 text-sm">{error}</p>}
+          {error && <p className="text-oxblood-400 text-sm">{error}</p>}
           <button
             type="submit"
             disabled={loading}
@@ -85,8 +85,8 @@ export default function ForgotPasswordPage() {
         </form>
       )}
 
-      <p className="mt-6 text-slate-500 text-sm">
-        <Link href="/login" className="text-sky-700 hover:text-sky-600 transition-colors">
+      <p className="mt-6 text-ink-400 text-sm">
+        <Link href="/login" className="text-oxblood-700 hover:text-oxblood-600 transition-colors">
           返回登录
         </Link>
       </p>

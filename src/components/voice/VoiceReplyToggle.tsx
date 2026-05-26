@@ -29,7 +29,7 @@ export function VoiceReplyToggle({
         className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm transition ${
           !useVoiceReply
             ? "bg-paper/72 text-ink-700 shadow-sm ring-1 ring-hairline/30"
-            : "text-slate-600 hover:bg-paper/45"
+            : "text-ink-500 hover:bg-paper/45"
         } disabled:opacity-50`}
       >
         <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -45,7 +45,7 @@ export function VoiceReplyToggle({
         className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm transition ${
           useVoiceReply
             ? "bg-paper/72 text-ink-700 shadow-sm ring-1 ring-hairline/30"
-            : "text-slate-600 hover:bg-paper/45"
+            : "text-ink-500 hover:bg-paper/45"
         } disabled:opacity-50 disabled:cursor-not-allowed`}
       >
         <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">

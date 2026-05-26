@@ -80,29 +80,29 @@ export default function DashboardFeedbackPage() {
                 : t;
   const feedbackColor = (t: string) =>
     t === "helpful"
-      ? "bg-emerald-50 text-emerald-800 ring-1 ring-emerald-100"
+      ? "bg-olive-400/10 text-olive-600 ring-1 ring-olive-400/40"
       : t === "not_specific"
-        ? "bg-amber-50 text-amber-900 ring-1 ring-amber-100"
+        ? "bg-paper-200 text-ink ring-1 ring-hairline"
         : t === "factual_error"
-          ? "bg-red-50 text-red-800 ring-1 ring-red-100"
+          ? "bg-oxblood-50 text-oxblood-700 ring-1 ring-oxblood-100"
           : t === "contradiction"
             ? "bg-paper-50 text-ink-800 ring-1 ring-hairline/50"
             : t === "too_confident"
-              ? "bg-orange-50 text-orange-900 ring-1 ring-orange-100"
-        : "bg-rose-50 text-rose-800 ring-1 ring-rose-100";
+              ? "bg-paper-200 text-ink ring-1 ring-hairline"
+        : "bg-oxblood-50 text-oxblood-700 ring-1 ring-oxblood-100";
 
   const shellClass =
-    "mx-auto max-w-5xl space-y-4 max-lg:-mx-4 max-lg:bg-[#f7f8fa] max-lg:px-3 max-lg:pb-24";
+    "mx-auto max-w-5xl space-y-4 max-lg:-mx-4 max-lg:bg-paper-50 max-lg:px-3 max-lg:pb-24";
 
   if (loading) {
     return (
       <div className={shellClass}>
-        <div className="rounded-[28px] bg-paper px-4 py-5 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
-          <div className="h-8 w-40 animate-pulse rounded-lg bg-slate-200" />
-          <div className="mt-3 h-4 w-full max-w-md animate-pulse rounded bg-slate-100" />
+        <div className="rounded-[28px] bg-paper px-4 py-5 shadow-sm ring-1 ring-hairline/40 sm:px-6">
+          <div className="h-8 w-40 animate-pulse rounded-lg bg-paper-300" />
+          <div className="mt-3 h-4 w-full max-w-md animate-pulse rounded bg-paper-200" />
         </div>
-        <div className="h-48 animate-pulse rounded-[28px] bg-paper shadow-sm ring-1 ring-black/[0.04]" />
-        <div className="h-64 animate-pulse rounded-[28px] bg-paper shadow-sm ring-1 ring-black/[0.04]" />
+        <div className="h-48 animate-pulse rounded-[28px] bg-paper shadow-sm ring-1 ring-hairline/40" />
+        <div className="h-64 animate-pulse rounded-[28px] bg-paper shadow-sm ring-1 ring-hairline/40" />
       </div>
     );
   }
@@ -113,12 +113,12 @@ export default function DashboardFeedbackPage() {
   const total = counts.helpful + counts.notSpecific + counts.notSuitable + (counts.factualError ?? 0) + (counts.contradiction ?? 0) + (counts.tooConfident ?? 0);
 
   const statTiles = [
-    { label: "有帮助", value: counts.helpful, valueClass: "text-emerald-700" },
-    { label: "不够具体", value: counts.notSpecific, valueClass: "text-amber-700" },
-    { label: "不适合我", value: counts.notSuitable, valueClass: "text-rose-700" },
-    { label: "事实错误", value: counts.factualError ?? 0, valueClass: "text-red-700" },
+    { label: "有帮助", value: counts.helpful, valueClass: "text-olive-600" },
+    { label: "不够具体", value: counts.notSpecific, valueClass: "text-oxblood-600" },
+    { label: "不适合我", value: counts.notSuitable, valueClass: "text-oxblood-700" },
+    { label: "事实错误", value: counts.factualError ?? 0, valueClass: "text-oxblood-700" },
     { label: "前后矛盾", value: counts.contradiction ?? 0, valueClass: "text-ink-700" },
-    { label: "过度自信", value: counts.tooConfident ?? 0, valueClass: "text-orange-700" },
+    { label: "过度自信", value: counts.tooConfident ?? 0, valueClass: "text-oxblood-600" },
   ];
 
   return (
@@ -129,49 +129,49 @@ export default function DashboardFeedbackPage() {
       className={shellClass}
     >
       <header className="px-1 pt-[max(0.25rem,env(safe-area-inset-top))] sm:px-0">
-        <h1 className="text-[26px] font-bold leading-tight tracking-tight text-[#111]">用户反馈</h1>
-        <p className="mt-2 max-w-xl text-[15px] leading-relaxed text-slate-500">
+        <h1 className="text-[26px] font-bold leading-tight tracking-tight text-ink">用户反馈</h1>
+        <p className="mt-2 max-w-xl text-[15px] leading-relaxed text-ink-400">
           用户对回复的一键评价与星级，帮你判断哪里答得好、哪里要改。
         </p>
       </header>
 
-      <section className="rounded-[28px] bg-paper px-4 py-4 shadow-sm ring-1 ring-black/[0.04] sm:px-6">
-        <h2 className="text-sm font-semibold text-slate-500">反馈概览</h2>
+      <section className="rounded-[28px] bg-paper px-4 py-4 shadow-sm ring-1 ring-hairline/40 sm:px-6">
+        <h2 className="text-sm font-semibold text-ink-400">反馈概览</h2>
         <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
           {statTiles.map((t) => (
             <div
               key={t.label}
-              className="rounded-2xl bg-[#fafbfc] px-3 py-3 text-center ring-1 ring-black/[0.04] sm:py-3.5"
+              className="rounded-2xl bg-paper-50 px-3 py-3 text-center ring-1 ring-hairline/40 sm:py-3.5"
             >
               <p className={`text-2xl font-black tabular-nums leading-none ${t.valueClass}`}>{t.value}</p>
-              <p className="mt-2 text-[11px] font-medium text-slate-600">{t.label}</p>
+              <p className="mt-2 text-[11px] font-medium text-ink-500">{t.label}</p>
             </div>
           ))}
-          <div className="col-span-2 rounded-2xl bg-gradient-to-br from-sky-50 to-indigo-50 px-4 py-3 ring-1 ring-sky-100/80 sm:col-span-1">
-            <p className="text-[11px] font-medium text-slate-600">综合评分</p>
+          <div className="col-span-2 rounded-2xl bg-gradient-to-br from-oxblood-50 to-oxblood-50 px-4 py-3 ring-1 ring-oxblood-100/80 sm:col-span-1">
+            <p className="text-[11px] font-medium text-ink-500">综合评分</p>
             <div className="mt-2 flex flex-wrap items-center justify-center gap-2 sm:justify-start">
               <RatingStars score={ratings.averageScore} size="md" />
-              <span className="text-2xl font-black tabular-nums text-sky-800">
+              <span className="text-2xl font-black tabular-nums text-oxblood-700">
                 {ratings.raters > 0 ? ratings.averageScore.toFixed(1) : "—"}
               </span>
             </div>
-            <p className="mt-2 text-center text-[10px] text-slate-500 sm:text-left">
+            <p className="mt-2 text-center text-[10px] text-ink-400 sm:text-left">
               {ratings.raters > 0 ? `${ratings.raters} 人已评` : "暂无人评分"}
             </p>
           </div>
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-[28px] bg-paper shadow-sm ring-1 ring-black/[0.04]">
-        <div className="border-b border-slate-100 px-4 py-4 sm:px-6">
-          <h2 className="text-xl font-black tracking-tight text-[#111]">最近反馈</h2>
-          <p className="mt-1 text-sm text-slate-500">最近 50 条 · 来自用户对单条回复的评价</p>
+      <section className="overflow-hidden rounded-[28px] bg-paper shadow-sm ring-1 ring-hairline/40">
+        <div className="border-b border-hairline/50 px-4 py-4 sm:px-6">
+          <h2 className="text-xl font-black tracking-tight text-ink">最近反馈</h2>
+          <p className="mt-1 text-sm text-ink-400">最近 50 条 · 来自用户对单条回复的评价</p>
         </div>
         <div className="px-3 py-3 sm:px-5 sm:py-4">
           {total === 0 ? (
-            <p className="py-14 text-center text-[15px] text-slate-400">暂无反馈，有用户评价后会出现在这里</p>
+            <p className="py-14 text-center text-[15px] text-ink-300">暂无反馈，有用户评价后会出现在这里</p>
           ) : recent.length === 0 ? (
-            <p className="py-14 text-center text-[15px] text-slate-400">暂无最近反馈</p>
+            <p className="py-14 text-center text-[15px] text-ink-300">暂无最近反馈</p>
           ) : (
             <ul className="space-y-2">
               {recent.map((fb, i) => (
@@ -180,12 +180,12 @@ export default function DashboardFeedbackPage() {
                   initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i < 12 ? i * 0.02 : 0 }}
-                  className="rounded-2xl bg-[#fafbfc] p-3.5 ring-1 ring-black/[0.05] sm:p-4"
+                  className="rounded-2xl bg-paper-50 p-3.5 ring-1 ring-hairline/40 sm:p-4"
                 >
                   <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                     <Link
                       href={`/dashboard/life-agents/${fb.profileId}`}
-                      className="text-[15px] font-semibold text-[#111] underline-offset-2 hover:text-sky-700 hover:underline"
+                      className="text-[15px] font-semibold text-ink underline-offset-2 hover:text-oxblood-700 hover:underline"
                     >
                       {fb.profileName}
                     </Link>
@@ -194,16 +194,16 @@ export default function DashboardFeedbackPage() {
                     >
                       {feedbackLabel(fb.feedbackType)}
                     </span>
-                    <span className="ml-auto text-xs tabular-nums text-slate-400">{fb.createdAt}</span>
+                    <span className="ml-auto text-xs tabular-nums text-ink-300">{fb.createdAt}</span>
                   </div>
                   {fb.assistantExcerpt && (
-                    <p className="mt-2.5 text-[13px] leading-relaxed text-slate-600">
-                      <span className="font-medium text-slate-400">回复摘要 · </span>
+                    <p className="mt-2.5 text-[13px] leading-relaxed text-ink-500">
+                      <span className="font-medium text-ink-300">回复摘要 · </span>
                       {fb.assistantExcerpt.length > 120 ? `${fb.assistantExcerpt.slice(0, 120)}…` : fb.assistantExcerpt}
                     </p>
                   )}
                   {fb.comment && (
-                    <p className="mt-2 rounded-xl bg-paper/80 px-3 py-2 text-[13px] leading-relaxed text-slate-700 ring-1 ring-black/[0.04]">
+                    <p className="mt-2 rounded-xl bg-paper/80 px-3 py-2 text-[13px] leading-relaxed text-ink-600 ring-1 ring-hairline/40">
                       {fb.comment}
                     </p>
                   )}
@@ -214,16 +214,16 @@ export default function DashboardFeedbackPage() {
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-[28px] bg-paper shadow-sm ring-1 ring-black/[0.04]">
-        <div className="border-b border-slate-100 px-4 py-4 sm:px-6">
-          <h2 className="text-xl font-black tracking-tight text-[#111]">最近评分</h2>
-          <p className="mt-1 text-sm text-slate-500">
+      <section className="overflow-hidden rounded-[28px] bg-paper shadow-sm ring-1 ring-hairline/40">
+        <div className="border-b border-hairline/50 px-4 py-4 sm:px-6">
+          <h2 className="text-xl font-black tracking-tight text-ink">最近评分</h2>
+          <p className="mt-1 text-sm text-ink-400">
             每满 10 次提问可更新一次；重复评分覆盖旧分，人数不重复累计
           </p>
         </div>
         <div className="px-3 py-3 sm:px-5 sm:py-4">
           {ratings.recent.length === 0 ? (
-            <p className="py-14 text-center text-[15px] text-slate-400">暂无评分</p>
+            <p className="py-14 text-center text-[15px] text-ink-300">暂无评分</p>
           ) : (
             <ul className="space-y-2">
               {ratings.recent.map((item, i) => (
@@ -232,23 +232,23 @@ export default function DashboardFeedbackPage() {
                   initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i < 12 ? i * 0.02 : 0 }}
-                  className="rounded-2xl bg-[#fafbfc] p-3.5 ring-1 ring-black/[0.05] sm:p-4"
+                  className="rounded-2xl bg-paper-50 p-3.5 ring-1 ring-hairline/40 sm:p-4"
                 >
                   <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                     <Link
                       href={`/dashboard/life-agents/${item.profileId}`}
-                      className="text-[15px] font-semibold text-[#111] underline-offset-2 hover:text-sky-700 hover:underline"
+                      className="text-[15px] font-semibold text-ink underline-offset-2 hover:text-oxblood-700 hover:underline"
                     >
                       {item.profileName}
                     </Link>
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-paper px-2 py-0.5 text-[11px] font-semibold text-sky-800 ring-1 ring-sky-100">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-paper px-2 py-0.5 text-[11px] font-semibold text-oxblood-700 ring-1 ring-oxblood-100">
                       <RatingStars score={item.score} size="sm" />
                       {item.score}/5
                     </span>
-                    <span className="ml-auto text-xs tabular-nums text-slate-400">{item.updatedAt}</span>
+                    <span className="ml-auto text-xs tabular-nums text-ink-300">{item.updatedAt}</span>
                   </div>
                   {item.comment && (
-                    <p className="mt-2.5 text-[13px] leading-relaxed text-slate-700">{item.comment}</p>
+                    <p className="mt-2.5 text-[13px] leading-relaxed text-ink-600">{item.comment}</p>
                   )}
                 </motion.li>
               ))}

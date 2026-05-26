@@ -215,10 +215,10 @@ function MapLegend() {
       {open ? (
         <div className="pointer-events-auto max-h-[45dvh] w-52 overflow-y-auto rounded-2xl bg-paper/92 p-3 shadow-[0_12px_30px_-16px_rgba(15,23,42,.55)] ring-1 ring-paper/80 backdrop-blur-md">
           <div className="mb-2 flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-600">分类图例</span>
+            <span className="text-xs font-semibold text-ink-500">分类图例</span>
             <button
               type="button"
-              className="rounded-lg p-0.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+              className="rounded-lg p-0.5 text-ink-300 transition hover:bg-paper-200 hover:text-ink-500"
               onClick={() => setOpen(false)}
               aria-label="收起图例"
             >
@@ -229,7 +229,7 @@ function MapLegend() {
             {LEGEND_ITEMS.map((it) => (
               <div key={it.label} className="flex items-center gap-1">
                 <span className="inline-block h-2.5 w-2.5 flex-shrink-0 rounded-full" style={{ background: it.color }} />
-                <span className="truncate text-[10px] leading-tight text-slate-600">{it.label}</span>
+                <span className="truncate text-[10px] leading-tight text-ink-500">{it.label}</span>
               </div>
             ))}
           </div>
@@ -237,7 +237,7 @@ function MapLegend() {
       ) : (
         <button
           type="button"
-          className="pointer-events-auto flex h-9 w-9 items-center justify-center rounded-xl bg-paper/90 text-slate-500 shadow-[0_8px_20px_-10px_rgba(15,23,42,.45)] ring-1 ring-paper/80 backdrop-blur-md transition hover:text-slate-700 active:scale-95"
+          className="pointer-events-auto flex h-9 w-9 items-center justify-center rounded-xl bg-paper/90 text-ink-400 shadow-[0_8px_20px_-10px_rgba(15,23,42,.45)] ring-1 ring-paper/80 backdrop-blur-md transition hover:text-ink-600 active:scale-95"
           onClick={() => setOpen(true)}
           aria-label="显示图例"
           title="分类图例"
@@ -290,12 +290,12 @@ export default function LifeAgentsMapView({
 
   const points = useMemo(() => markers.map((m) => m.position), [markers]);
 
-  const ring = rounded ? "rounded-[28px] ring-1 ring-white/70 shadow-[0_24px_70px_-36px_rgba(15,23,42,.55)]" : "";
+  const ring = rounded ? "rounded-[28px] ring-1 ring-paper/70 shadow-[0_24px_70px_-36px_rgba(15,23,42,.55)]" : "";
   const roundMap = rounded ? "rounded-[28px]" : "";
 
   return (
     <div
-      className={`relative overflow-hidden bg-gradient-to-br from-sky-100 via-paper-50 to-paper-100 ${ring} [&_.leaflet-container]:!font-sans [&_.leaflet-control-scale-line]:!rounded-full [&_.leaflet-control-scale-line]:!border-0 [&_.leaflet-control-scale-line]:!bg-paper/80 [&_.leaflet-control-scale-line]:!px-2 [&_.leaflet-control-scale-line]:!text-[10px] [&_.leaflet-control-scale-line]:!text-slate-500 [&_.life-agent-map-pin]:!border-0 [&_.life-agent-map-pin]:!bg-transparent [&_.life-agent-map-cluster]:!border-0 [&_.life-agent-map-cluster]:!bg-transparent [&_.life-agent-map-user-loc]:!border-0 [&_.life-agent-map-user-loc]:!bg-transparent [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!rounded-[24px] [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!bg-paper/95 [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!p-3 [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!shadow-[0_24px_60px_-24px_rgba(15,23,42,.45)] [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!ring-1 [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!ring-paper/80 [&_.life-agent-map-popup_.leaflet-popup-tip]:!bg-paper/95 [&_.life-agent-map-popup_.leaflet-popup-tip]:!shadow-lg ${className}`}
+      className={`relative overflow-hidden bg-gradient-to-br from-oxblood-100 via-paper-50 to-paper-100 ${ring} [&_.leaflet-container]:!font-sans [&_.leaflet-control-scale-line]:!rounded-full [&_.leaflet-control-scale-line]:!border-0 [&_.leaflet-control-scale-line]:!bg-paper/80 [&_.leaflet-control-scale-line]:!px-2 [&_.leaflet-control-scale-line]:!text-[10px] [&_.leaflet-control-scale-line]:!text-ink-400 [&_.life-agent-map-pin]:!border-0 [&_.life-agent-map-pin]:!bg-transparent [&_.life-agent-map-cluster]:!border-0 [&_.life-agent-map-cluster]:!bg-transparent [&_.life-agent-map-user-loc]:!border-0 [&_.life-agent-map-user-loc]:!bg-transparent [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!rounded-[24px] [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!bg-paper/95 [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!p-3 [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!shadow-[0_24px_60px_-24px_rgba(15,23,42,.45)] [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!ring-1 [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!ring-paper/80 [&_.life-agent-map-popup_.leaflet-popup-tip]:!bg-paper/95 [&_.life-agent-map-popup_.leaflet-popup-tip]:!shadow-lg ${className}`}
       style={rounded ? { minHeight: "min(62dvh, 520px)" } : { minHeight: "100%" }}
     >
       <MapContainer

@@ -5,7 +5,7 @@ export default function Loading() {
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-sm font-semibold text-ink">页面初始化中...</p>
-            <p className="mt-1 text-xs text-slate-500">正在准备页面结构与首屏内容</p>
+            <p className="mt-1 text-xs text-ink-400">正在准备页面结构与首屏内容</p>
           </div>
           <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-hairline border-t-ink" aria-hidden />
         </div>
@@ -18,11 +18,11 @@ export default function Loading() {
           >
             <div className="aspect-square w-full shrink-0 animate-pulse bg-gradient-to-br from-paper-100/80 to-paper-100/50" />
             <div className="flex flex-1 flex-col gap-2 p-2.5">
-              <div className="min-h-[2.75rem] animate-pulse rounded-md bg-slate-100" />
-              <div className="h-3 w-2/3 animate-pulse rounded bg-slate-100" />
-              <div className="h-4 animate-pulse rounded bg-slate-50" />
-              <div className="h-6 animate-pulse rounded bg-slate-50" />
-              <div className="min-h-[1.375rem] animate-pulse rounded bg-slate-100" />
+              <div className="min-h-[2.75rem] animate-pulse rounded-md bg-paper-200" />
+              <div className="h-3 w-2/3 animate-pulse rounded bg-paper-200" />
+              <div className="h-4 animate-pulse rounded bg-paper-50" />
+              <div className="h-6 animate-pulse rounded bg-paper-50" />
+              <div className="min-h-[1.375rem] animate-pulse rounded bg-paper-200" />
             </div>
           </div>
         ))}

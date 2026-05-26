@@ -25,7 +25,7 @@ type LifeAgentPurchased = {
 
 function tabClass(active: boolean) {
   return `relative inline-block px-3 py-1.5 text-[15px] transition-colors ${
-    active ? "font-semibold text-[#111]" : "font-normal text-slate-500"
+    active ? "font-semibold text-ink" : "font-normal text-ink-400"
   }`;
 }
 
@@ -46,8 +46,8 @@ function PurchasedGrid({ items }: { items: LifeAgentPurchased[] }) {
             className="min-h-0"
           >
             <Link href={`/life-agents/${row.id}/chat`} className="group flex h-full min-h-0">
-              <div className="flex h-full min-h-[260px] w-full flex-col overflow-hidden rounded-2xl bg-paper shadow-sm ring-1 ring-slate-200/70 transition duration-200 group-hover:shadow-md group-hover:ring-emerald-200/70 sm:min-h-[280px]">
-                <div className="relative aspect-square w-full shrink-0 overflow-hidden bg-slate-100">
+              <div className="flex h-full min-h-[260px] w-full flex-col overflow-hidden rounded-2xl bg-paper shadow-sm ring-1 ring-hairline/70 transition duration-200 group-hover:shadow-md group-hover:ring-olive-400/70 sm:min-h-[280px]">
+                <div className="relative aspect-square w-full shrink-0 overflow-hidden bg-paper-200">
                   <LifeAgentCoverImage
                     src={coverUrl}
                     alt=""
@@ -62,27 +62,27 @@ function PurchasedGrid({ items }: { items: LifeAgentPurchased[] }) {
                     </div>
                   )}
                   {showPrice ? (
-                  <div className="absolute left-2 top-2 rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
+                  <div className="absolute left-2 top-2 rounded-full bg-olive-600 px-2 py-0.5 text-[10px] font-bold text-paper shadow-sm">
                     剩余 {row.remainingQuestions} 次
                   </div>
                   ) : null}
                   <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/45 via-black/15 to-transparent p-2.5 pt-12">
-                    <span className="line-clamp-2 text-[13px] font-semibold leading-snug text-white drop-shadow-md">
+                    <span className="line-clamp-2 text-[13px] font-semibold leading-snug text-paper drop-shadow-md">
                       {headlineShown}
                     </span>
                   </div>
                 </div>
                 <div className="flex min-h-0 flex-1 flex-col px-2.5 pb-2.5 pt-2 sm:p-3">
-                  <h3 className="line-clamp-2 min-h-[2.75rem] text-[13px] font-semibold leading-snug text-slate-900 sm:text-sm">
+                  <h3 className="line-clamp-2 min-h-[2.75rem] text-[13px] font-semibold leading-snug text-ink sm:text-sm">
                     {row.displayName}
                   </h3>
-                  <p className="mt-1 text-[11px] text-slate-400">点击进入对话</p>
+                  <p className="mt-1 text-[11px] text-ink-300">点击进入对话</p>
                   {showPrice ? (
-                  <div className="mt-auto flex items-center justify-between border-t border-slate-100 pt-2 text-[11px] text-slate-500">
+                  <div className="mt-auto flex items-center justify-between border-t border-hairline/50 pt-2 text-[11px] text-ink-400">
                     <span>按次咨询</span>
-                    <span className="font-bold text-emerald-600">
+                    <span className="font-bold text-olive-600">
                       ¥{(row.pricePerQuestion / 100).toFixed(0)}
-                      <span className="text-[10px] font-medium text-slate-400">/问</span>
+                      <span className="text-[10px] font-medium text-ink-300">/问</span>
                     </span>
                   </div>
                   ) : null}
@@ -142,7 +142,7 @@ function LicensesPageContent() {
   if (!showPurchaseUi) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center px-4">
-        <p className="text-sm text-slate-500">正在跳转…</p>
+        <p className="text-sm text-ink-400">正在跳转…</p>
       </div>
     );
   }
@@ -150,7 +150,7 @@ function LicensesPageContent() {
   if (authLoading) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center px-4">
-        <p className="text-sm text-slate-500">加载中…</p>
+        <p className="text-sm text-ink-400">加载中…</p>
       </div>
     );
   }
@@ -158,10 +158,10 @@ function LicensesPageContent() {
   if (!user) {
     return (
       <div className="mx-auto max-w-lg px-4 py-16 text-center max-lg:-mx-4">
-        <p className="text-[15px] text-slate-500">登录后查看你已购买的 Agent 与认证状态</p>
+        <p className="text-[15px] text-ink-400">登录后查看你已购买的 Agent 与认证状态</p>
         <Link
           href="/login"
-          className="mt-6 inline-flex rounded-full bg-[#111] px-6 py-2.5 text-sm font-semibold text-white active:opacity-90"
+          className="mt-6 inline-flex rounded-full bg-ink px-6 py-2.5 text-sm font-semibold text-paper active:opacity-90"
         >
           登录
         </Link>
@@ -178,7 +178,7 @@ function LicensesPageContent() {
             if (window.history.length > 1) router.back();
             else router.push("/dashboard");
           }}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[#111] transition active:bg-slate-200"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-paper-200 text-ink transition active:bg-paper-300"
           aria-label="返回"
           title="返回"
         >
@@ -186,11 +186,11 @@ function LicensesPageContent() {
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
         </button>
-        <h1 className="min-w-0 flex-1 text-[26px] font-bold leading-tight tracking-tight text-[#111]">已购咨询</h1>
+        <h1 className="min-w-0 flex-1 text-[26px] font-bold leading-tight tracking-tight text-ink">已购咨询</h1>
         <div className="flex shrink-0 items-center gap-2">
           <Link
             href="/support/chat"
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-[#111] transition active:bg-slate-200"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-paper-200 text-ink transition active:bg-paper-300"
             aria-label="联系客服"
             title="联系客服"
           >
@@ -206,34 +206,34 @@ function LicensesPageContent() {
         </div>
       </header>
 
-      <div className="flex flex-wrap items-center justify-center gap-1 border-b border-slate-100 px-2 pb-0 sm:px-4">
+      <div className="flex flex-wrap items-center justify-center gap-1 border-b border-hairline/50 px-2 pb-0 sm:px-4">
         <Link href="/licenses?tab=verified" scroll={false} className={tabClass(tab === "verified")}>
           已认证
           {tab === "verified" ? (
-            <span className="absolute bottom-0 left-2 right-2 h-0.5 rounded-full bg-[#ff2442]" aria-hidden />
+            <span className="absolute bottom-0 left-2 right-2 h-0.5 rounded-full bg-oxblood-500" aria-hidden />
           ) : null}
         </Link>
         <Link href="/licenses?tab=unverified" scroll={false} className={tabClass(tab === "unverified")}>
           未认证
           {tab === "unverified" ? (
-            <span className="absolute bottom-0 left-2 right-2 h-0.5 rounded-full bg-[#ff2442]" aria-hidden />
+            <span className="absolute bottom-0 left-2 right-2 h-0.5 rounded-full bg-oxblood-500" aria-hidden />
           ) : null}
         </Link>
-        <span className="ml-auto shrink-0 rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] text-slate-600 sm:text-xs">
+        <span className="ml-auto shrink-0 rounded-full bg-paper-200 px-2.5 py-0.5 text-[11px] text-ink-500 sm:text-xs">
           {loading ? "加载中…" : `${list.length} 个`}
         </span>
       </div>
 
       <section className="px-1 sm:px-0">
         {tab === "verified" ? (
-          <div className="mb-3 rounded-xl border border-emerald-100 bg-emerald-50/80 px-4 py-3 text-sm text-emerald-950 sm:mx-1">
+          <div className="mb-3 rounded-xl border border-olive-400/40 bg-olive-400/80 px-4 py-3 text-sm text-ink sm:mx-1">
             <p className="font-medium">已通过平台认证的创作者</p>
-            <p className="mt-1 text-xs text-emerald-900/90">认证标识来自创作者资料审核，可在卡片右上角查看。</p>
+            <p className="mt-1 text-xs text-olive-600/90">认证标识来自创作者资料审核，可在卡片右上角查看。</p>
           </div>
         ) : (
-          <div className="mb-3 rounded-xl border border-amber-100 bg-amber-50/80 px-4 py-3 text-sm text-amber-950 sm:mx-1">
+          <div className="mb-3 rounded-xl border border-hairline bg-paper-200/80 px-4 py-3 text-sm text-ink sm:mx-1">
             <p className="font-medium">尚未获得认证或未过审</p>
-            <p className="mt-1 text-xs text-amber-900/90">含「审核中」与未申请，不影响你已购买的提问次数。</p>
+            <p className="mt-1 text-xs text-ink/90">含「审核中」与未申请，不影响你已购买的提问次数。</p>
           </div>
         )}
 
@@ -242,33 +242,33 @@ function LicensesPageContent() {
             {[1, 2, 3, 4, 5, 6].map((item) => (
               <div
                 key={item}
-                className="flex min-h-0 flex-col overflow-hidden rounded-2xl bg-paper shadow-sm ring-1 ring-slate-200/60"
+                className="flex min-h-0 flex-col overflow-hidden rounded-2xl bg-paper shadow-sm ring-1 ring-hairline/60"
               >
-                <div className="aspect-square w-full shrink-0 animate-pulse bg-gradient-to-br from-slate-100 to-slate-200/90" />
+                <div className="aspect-square w-full shrink-0 animate-pulse bg-gradient-to-br from-paper-200 to-paper-300/90" />
                 <div className="flex flex-1 flex-col gap-2 p-2.5">
-                  <div className="min-h-[2.75rem] animate-pulse rounded-md bg-slate-100" />
-                  <div className="h-3 w-2/3 animate-pulse rounded bg-slate-100" />
+                  <div className="min-h-[2.75rem] animate-pulse rounded-md bg-paper-200" />
+                  <div className="h-3 w-2/3 animate-pulse rounded bg-paper-200" />
                 </div>
               </div>
             ))}
           </div>
         ) : lifeAgentPacks.length === 0 ? (
-          <div className="mx-1 rounded-2xl border border-dashed border-slate-200 bg-paper px-6 py-12 text-center">
-            <p className="text-base font-semibold text-slate-900">暂无已购额度</p>
-            <p className="mt-2 text-sm text-slate-500">购买提问包后，对应 Agent 会出现在地图上。</p>
+          <div className="mx-1 rounded-2xl border border-dashed border-hairline bg-paper px-6 py-12 text-center">
+            <p className="text-base font-semibold text-ink">暂无已购额度</p>
+            <p className="mt-2 text-sm text-ink-400">购买提问包后，对应 Agent 会出现在地图上。</p>
             <Link
               href="/life-agents"
-              className="mt-5 inline-flex rounded-full bg-[#111] px-6 py-2.5 text-sm font-semibold text-white active:opacity-90"
+              className="mt-5 inline-flex rounded-full bg-ink px-6 py-2.5 text-sm font-semibold text-paper active:opacity-90"
             >
               去发现页逛逛
             </Link>
           </div>
         ) : list.length === 0 ? (
-          <div className="mx-1 rounded-2xl border border-dashed border-slate-200 bg-paper px-6 py-12 text-center">
-            <p className="text-base font-semibold text-slate-900">
+          <div className="mx-1 rounded-2xl border border-dashed border-hairline bg-paper px-6 py-12 text-center">
+            <p className="text-base font-semibold text-ink">
               {tab === "verified" ? "暂无已认证的已购 Agent" : "暂无未认证的已购 Agent"}
             </p>
-            <p className="mt-2 text-sm text-slate-500">
+            <p className="mt-2 text-sm text-ink-400">
               {tab === "verified"
                 ? "你购买的 Agent 目前都未显示为已认证，可切换到「未认证」查看。"
                 : "你购买的 Agent 均已认证，可切换到「已认证」查看。"}
@@ -276,7 +276,7 @@ function LicensesPageContent() {
             <Link
               href={tab === "verified" ? "/licenses?tab=unverified" : "/licenses?tab=verified"}
               scroll={false}
-              className="mt-5 inline-block text-sm font-semibold text-sky-600 hover:underline"
+              className="mt-5 inline-block text-sm font-semibold text-oxblood-600 hover:underline"
             >
               {tab === "verified" ? "去看未认证" : "去看已认证"}
             </Link>
@@ -294,7 +294,7 @@ export default function LicensesPage() {
     <Suspense
       fallback={
         <div className="flex min-h-[40vh] items-center justify-center px-4">
-          <p className="text-sm text-slate-500">加载中…</p>
+          <p className="text-sm text-ink-400">加载中…</p>
         </div>
       }
     >

@@ -135,8 +135,8 @@ export function VoiceInputButton({
 
   if (!isSupported) {
     return (
-      <div className={`inline-flex items-center gap-2 rounded-full px-3 py-2 text-xs text-slate-500 ${CHAT_GLASS_PANEL_CLASSNAME}`}>
-        <span className="h-2 w-2 rounded-full bg-slate-300" aria-hidden />
+      <div className={`inline-flex items-center gap-2 rounded-full px-3 py-2 text-xs text-ink-400 ${CHAT_GLASS_PANEL_CLASSNAME}`}>
+        <span className="h-2 w-2 rounded-full bg-paper-300" aria-hidden />
         {micIssue ?? "当前设备暂不支持语音"}
       </div>
     );
@@ -166,8 +166,8 @@ export function VoiceInputButton({
           sizeClasses[size]
         } ${
           isPressActive
-            ? "border-rose-400 bg-rose-500 text-white shadow-lg shadow-rose-500/30 scale-110"
-            : "border-paper/38 bg-paper/55 text-slate-600 shadow-[0_10px_26px_-14px_rgba(26,23,20,0.12)] ring-1 ring-paper/18 backdrop-blur-xl hover:bg-paper/66 hover:border-paper/50"
+            ? "border-oxblood-400 bg-oxblood-500 text-paper shadow-lg shadow-oxblood-500/30 scale-110"
+            : "border-paper/38 bg-paper/55 text-ink-500 shadow-[0_10px_26px_-14px_rgba(26,23,20,0.12)] ring-1 ring-paper/18 backdrop-blur-xl hover:bg-paper/66 hover:border-paper/50"
         } disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
       >
         {isPreparing ? (
@@ -179,7 +179,7 @@ export function VoiceInputButton({
         )}
       </button>
       {error && (
-        <div className="absolute -top-8 left-1/2 z-30 max-w-[min(16rem,calc(100vw-2rem))] -translate-x-1/2 rounded-lg bg-rose-600 px-3 py-1.5 text-xs text-white shadow-lg">
+        <div className="absolute -top-8 left-1/2 z-30 max-w-[min(16rem,calc(100vw-2rem))] -translate-x-1/2 rounded-lg bg-oxblood-600 px-3 py-1.5 text-xs text-paper shadow-lg">
           {error}
         </div>
       )}

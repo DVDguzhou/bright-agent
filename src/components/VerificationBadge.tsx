@@ -8,7 +8,7 @@ export function VerificationBadge({ status, size = "md" }: { status: string; siz
     const dim = size === "sm" ? "h-4 w-4 min-w-4 text-[9px]" : "h-5 w-5 min-w-5 text-xs";
     return (
       <span
-        className={`inline-flex items-center justify-center rounded-full bg-amber-400 font-bold leading-none text-white ${dim}`}
+        className={`inline-flex items-center justify-center rounded-full bg-oxblood-400 font-bold leading-none text-paper ${dim}`}
         title="已认证"
         aria-label="已认证"
       >
@@ -19,7 +19,7 @@ export function VerificationBadge({ status, size = "md" }: { status: string; siz
   if (status === "pending") {
     return (
       <span
-        className="inline-flex items-center rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs text-amber-700"
+        className="inline-flex items-center rounded-full border border-oxblood-200 bg-paper-200 px-2 py-0.5 text-xs text-oxblood-600"
         title="认证申请中"
       >
         认证中

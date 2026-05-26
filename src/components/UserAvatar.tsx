@@ -23,7 +23,7 @@ export function UserAvatar({
 
   return (
     <div
-      className={`relative ${box} shrink-0 overflow-hidden rounded-full bg-gradient-to-br from-[#FFF176] to-[#FF80AB] ring-2 ring-white ${className}`.trim()}
+      className={`relative ${box} shrink-0 overflow-hidden rounded-full bg-gradient-to-br from-[#FFF176] to-[#FF80AB] ring-2 ring-paper ${className}`.trim()}
     >
       <LifeAgentCoverImage
         src={src}
