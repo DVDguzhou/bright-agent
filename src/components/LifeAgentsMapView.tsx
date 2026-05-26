@@ -21,7 +21,8 @@ export type MapAgentMarker = MapCoordAgentInput & {
 function avatarColor(name: string): string {
   let h = 0;
   for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) | 0;
-  const palette = ["#0091ff","#6366f1","#8b5cf6","#ec4899","#f43f5e","#f97316","#eab308","#22c55e","#14b8a6","#06b6d4"];
+  // 杂志色板：酒红 / 墨黑 / 橄榄 / 深蓝灰（无紫色、无粉色）。
+  const palette = ["#7a1f1f", "#1a1714", "#4a5a2f", "#3a342e", "#641a1a", "#5d7140"];
   return palette[Math.abs(h) % palette.length];
 }
 
@@ -99,18 +100,20 @@ function buildPopupHtml(agent: MapAgentMarker): string {
   const name = escHtml(agent.displayName);
   const school = agent.school ? escHtml(agent.school) : "";
   const headline = agent.headline ? escHtml(agent.headline).slice(0, 60) : "";
-  return `<div style="min-width:210px;max-width:260px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:2px">
-  <div style="display:flex;align-items:center;gap:11px;margin-bottom:10px">
-    <div style="width:42px;height:42px;border-radius:16px;background:linear-gradient(145deg,rgba(255,255,255,.32),rgba(255,255,255,0) 34%),${bg};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;flex-shrink:0;box-shadow:0 10px 20px rgba(15,23,42,.14)">${ch}</div>
-    <div style="min-width:0">
-      <div style="font-weight:800;font-size:15px;color:#111827;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${name}</div>
-      ${school ? `<div style="font-size:12px;color:#64748b;line-height:1.3;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${school}</div>` : ""}
+  const serif = `'Source Han Serif SC','Noto Serif SC','Songti SC','STSong',Georgia,serif`;
+  const sans = `-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif`;
+  return `<div style="min-width:220px;max-width:260px;font-family:${sans};padding:2px;color:#1a1714">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;padding-bottom:9px;border-bottom:1px solid #d8cfbf">
+    <div style="width:40px;height:40px;border-radius:2px;background:${bg};color:#f4efe6;display:flex;align-items:center;justify-content:center;font-family:${serif};font-weight:600;font-size:18px;flex-shrink:0;letter-spacing:.02em">${ch}</div>
+    <div style="min-width:0;flex:1">
+      <div style="font-family:${serif};font-weight:700;font-size:15px;color:#1a1714;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${name}</div>
+      ${school ? `<div style="font-size:10px;color:#8d8478;line-height:1.3;margin-top:3px;letter-spacing:.14em;text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${school}</div>` : ""}
     </div>
   </div>
-  ${headline ? `<div style="font-size:12px;color:#475569;line-height:1.55;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:11px">${headline}</div>` : ""}
-  <a href="/life-agents/${agent.id}" style="display:inline-flex;align-items:center;justify-content:center;gap:5px;width:100%;border-radius:999px;background:linear-gradient(135deg,#7c3aed,#ec4899);padding:9px 12px;font-size:12px;font-weight:800;color:#fff;text-decoration:none;box-shadow:0 10px 20px rgba(124,58,237,.22)">
-    查看主页
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+  ${headline ? `<div style="font-size:12.5px;color:#4d463f;line-height:1.6;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:12px;font-style:italic">${headline}</div>` : ""}
+  <a href="/life-agents/${agent.id}" style="display:flex;align-items:center;justify-content:space-between;gap:6px;width:100%;box-sizing:border-box;border-radius:0;background:#1a1714;padding:9px 12px;font-size:11px;font-weight:600;color:#f4efe6;text-decoration:none;letter-spacing:.18em;text-transform:uppercase;font-family:${sans}">
+    <span>查看主页</span>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
   </a>
 </div>`;
 }
@@ -295,7 +298,7 @@ export default function LifeAgentsMapView({
 
   return (
     <div
-      className={`relative overflow-hidden bg-gradient-to-br from-oxblood-100 via-paper-50 to-paper-100 ${ring} [&_.leaflet-container]:!font-sans [&_.leaflet-control-scale-line]:!rounded-full [&_.leaflet-control-scale-line]:!border-0 [&_.leaflet-control-scale-line]:!bg-paper/80 [&_.leaflet-control-scale-line]:!px-2 [&_.leaflet-control-scale-line]:!text-[10px] [&_.leaflet-control-scale-line]:!text-ink-400 [&_.life-agent-map-pin]:!border-0 [&_.life-agent-map-pin]:!bg-transparent [&_.life-agent-map-cluster]:!border-0 [&_.life-agent-map-cluster]:!bg-transparent [&_.life-agent-map-user-loc]:!border-0 [&_.life-agent-map-user-loc]:!bg-transparent [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!rounded-[24px] [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!bg-paper/95 [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!p-3 [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!shadow-[0_24px_60px_-24px_rgba(15,23,42,.45)] [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!ring-1 [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!ring-paper/80 [&_.life-agent-map-popup_.leaflet-popup-tip]:!bg-paper/95 [&_.life-agent-map-popup_.leaflet-popup-tip]:!shadow-lg ${className}`}
+      className={`relative overflow-hidden bg-gradient-to-br from-oxblood-100 via-paper-50 to-paper-100 ${ring} [&_.leaflet-container]:!font-sans [&_.leaflet-control-scale-line]:!rounded-full [&_.leaflet-control-scale-line]:!border-0 [&_.leaflet-control-scale-line]:!bg-paper/80 [&_.leaflet-control-scale-line]:!px-2 [&_.leaflet-control-scale-line]:!text-[10px] [&_.leaflet-control-scale-line]:!text-ink-400 [&_.life-agent-map-pin]:!border-0 [&_.life-agent-map-pin]:!bg-transparent [&_.life-agent-map-cluster]:!border-0 [&_.life-agent-map-cluster]:!bg-transparent [&_.life-agent-map-user-loc]:!border-0 [&_.life-agent-map-user-loc]:!bg-transparent [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!rounded-[6px] [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!bg-paper/[0.97] [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!p-3 [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!shadow-[0_18px_50px_-20px_rgba(26,23,20,.45)] [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!ring-1 [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!ring-hairline [&_.life-agent-map-popup_.leaflet-popup-tip]:!bg-paper/[0.97] [&_.life-agent-map-popup_.leaflet-popup-tip]:!shadow-none ${className}`}
       style={rounded ? { minHeight: "min(62dvh, 520px)" } : { minHeight: "100%" }}
     >
       <MapContainer
@@ -305,7 +308,7 @@ export default function LifeAgentsMapView({
         maxZoom={18}
         zoomControl={false}
         className={`z-0 w-full ${mapHeightClass} ${roundMap}`}
-        style={{ background: "linear-gradient(135deg,#dbeafe,#f5d0fe)" }}
+        style={{ background: "linear-gradient(135deg,#f4efe6,#ebe3d4)" }}
         scrollWheelZoom
         attributionControl={false}
       >
@@ -331,7 +334,7 @@ export default function LifeAgentsMapView({
         ) : null}
       </MapContainer>
 
-      <div className="pointer-events-none absolute inset-0 z-[350] bg-[radial-gradient(circle_at_18%_14%,rgba(255,255,255,.55),transparent_28%),radial-gradient(circle_at_82%_22%,rgba(216,180,254,.28),transparent_30%),linear-gradient(to_bottom,rgba(255,255,255,.18),transparent_28%,rgba(15,23,42,.05))]" />
+      <div className="pointer-events-none absolute inset-0 z-[350] bg-[radial-gradient(circle_at_18%_14%,rgba(244,239,230,.55),transparent_28%),radial-gradient(circle_at_82%_22%,rgba(122,31,31,.10),transparent_32%),linear-gradient(to_bottom,rgba(244,239,230,.18),transparent_28%,rgba(26,23,20,.05))]" />
 
       <MapLegend />
 
