@@ -1763,27 +1763,6 @@ func LifeAgentsModifyViaChat(cfg *config.Config) gin.HandlerFunc {
 			return
 		}
 		state := buildModifyStateString(&p, entries)
-		intent, err := lifeagent.InterpretModificationIntent(
-			c.Request.Context(),
-			cfg.OpenAIApiKey, cfg.OpenAIModel, cfg.OpenAIBaseURL,
-			state, body.ChatHistory, body.Message,
-		)
-		if err != nil {
-			log.Printf("life-agents modify: LLM error profile=%s user=%s: %v", id, user.ID, err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "LLM_ERROR", "detail": err.Error()})
-			return
-		}
-		if intent == nil {
-			intent = &lifeagent.ModifyIntent{}
-		}
-		reply := strings.TrimSpace(intent.Reply)
-		if reply == "" {
-			if intent.Changes != nil {
-				reply = "好的，我按你的意思更新了。"
-			} else {
-				reply = "好的，我先记下来了。"
-			}
-		}
 
 		c.Header("Content-Type", "text/event-stream")
 		c.Header("Cache-Control", "no-cache")
@@ -1796,6 +1775,10 @@ func LifeAgentsModifyViaChat(cfg *config.Config) gin.HandlerFunc {
 			fmt.Fprintf(c.Writer, "event: %s\ndata: %s\n\n", eventType, data)
 			c.Writer.Flush()
 		}
+		writeKeepAlive := func() {
+			fmt.Fprint(c.Writer, ": keepalive\n\n")
+			c.Writer.Flush()
+		}
 
 		defer func() {
 			if r := recover(); r != nil {
@@ -1803,6 +1786,55 @@ func LifeAgentsModifyViaChat(cfg *config.Config) gin.HandlerFunc {
 				writeModifySSE("error", gin.H{"detail": "服务器内部错误，请稍后再试"})
 			}
 		}()
+
+		writeKeepAlive()
+
+		type llmResult struct {
+			intent *lifeagent.ModifyIntent
+			err    error
+		}
+		llmCh := make(chan llmResult, 1)
+		llmCtx, cancelLLM := context.WithTimeout(context.Background(), 90*time.Second)
+		defer cancelLLM()
+		go func() {
+			intent, err := lifeagent.InterpretModificationIntent(
+				llmCtx,
+				cfg.OpenAIApiKey, cfg.OpenAIModel, cfg.OpenAIBaseURL,
+				state, body.ChatHistory, body.Message,
+			)
+			llmCh <- llmResult{intent: intent, err: err}
+		}()
+
+		ticker := time.NewTicker(10 * time.Second)
+		var result llmResult
+	waitLLM:
+		for {
+			select {
+			case <-ticker.C:
+				writeKeepAlive()
+			case result = <-llmCh:
+				ticker.Stop()
+				break waitLLM
+			}
+		}
+
+		if result.err != nil {
+			log.Printf("life-agents modify: LLM error profile=%s user=%s: %v", id, user.ID, result.err)
+			writeModifySSE("error", gin.H{"detail": "AI 暂时未响应：" + result.err.Error()})
+			return
+		}
+		intent := result.intent
+		if intent == nil {
+			intent = &lifeagent.ModifyIntent{}
+		}
+		reply := strings.TrimSpace(intent.Reply)
+		if reply == "" {
+			if intent.Changes != nil {
+				reply = "好的，我按你的意思更新了。"
+			} else {
+				reply = "好的，我先记下来了。"
+			}
+		}
 
 		lifeagent.EmitReplyChunks(reply, func(chunk string) {
 			writeModifySSE("content", gin.H{"content": chunk})
