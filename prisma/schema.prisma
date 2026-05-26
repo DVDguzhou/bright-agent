@@ -307,6 +307,26 @@ model LifeAgentCoEditState {
   @@map("life_agent_co_edit_states")
 }
 
+/// 一次"对话调教"消息的生命周期记录：sync write + async understand
+model LifeAgentCoEditEvent {
+  id               String    @id @default(uuid())
+  profileId        String    @map("profile_id")
+  userId           String    @map("user_id")
+  rawMessage       String    @map("raw_message") @db.Text
+  status           String    @default("pending") @db.VarChar(16)
+  assistantMessage String?   @map("assistant_message") @db.Text
+  changesSummary   String?   @map("changes_summary") @db.Text
+  errorDetail      String?   @map("error_detail") @db.Text
+  createdAt        DateTime  @default(now()) @map("created_at")
+  processedAt      DateTime? @map("processed_at")
+
+  @@index([profileId])
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("life_agent_co_edit_events")
+}
+
 model LifeAgentInvokeKey {
   id        String   @id @default(uuid())
   profileId String   @map("profile_id")

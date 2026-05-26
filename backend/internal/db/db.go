@@ -152,6 +152,7 @@ func Init(dsn string) error {
 		&models.LifeAgentChatSession{},
 		&models.LifeAgentChatMessage{},
 		&models.LifeAgentCoEditState{},
+		&models.LifeAgentCoEditEvent{},
 		&models.LifeAgentQuestionPack{},
 		&models.WechatPayOrder{},
 		&models.LifeAgentFeedback{},

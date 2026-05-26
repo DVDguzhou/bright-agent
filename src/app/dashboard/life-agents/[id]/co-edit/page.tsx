@@ -31,7 +31,15 @@ import {
   resolveLifeAgentCoverUrl,
 } from "@/lib/life-agent-covers";
 
-type ChatRow = { role: "user" | "assistant"; content: string };
+type CoEditEventStatus = "pending" | "processed" | "failed";
+type ChatRow = {
+  role: "user" | "assistant";
+  content: string;
+  // 仅 assistant 行使用：关联到一条后台调教事件，用于轮询拿到 LLM 理解结果。
+  eventId?: string;
+  status?: CoEditEventStatus;
+  changesSummary?: string;
+};
 type LastChange = {
   before: ManageProfile;
   after: ManageProfile;
@@ -280,47 +288,20 @@ export default function LifeAgentCoEditPage() {
     }
   }, [data, id, modifyLoading, profileSaving]);
 
+  // 同步写入：把原话发到后端立刻拿到 eventId，前端先放一个 "已记录，正在理解中…" 占位。
+  // LLM 理解结果通过下面的轮询 effect 回填到对应气泡里。
   const runModify = useCallback(async (msg: string) => {
     if (!data) return;
-    const previousProfile = data.profile;
-    const userHistory = [...chatHistoryRef.current, { role: "user" as const, content: msg }];
-    const assistantRowIndex = userHistory.length;
-    setModifyLoading(true);
+    const userHistory: ChatRow[] = [
+      ...chatHistoryRef.current,
+      { role: "user", content: msg },
+    ];
+    setChatHistory([
+      ...userHistory,
+      { role: "assistant", content: "已记录，正在理解中…", status: "pending" },
+    ]);
     setBanner(null);
-    setChatHistory([...userHistory, { role: "assistant", content: "" }]);
-
-    const finalizeAssistant = (fallback: string) => {
-      setChatHistory((prev) => {
-        if (prev.length === 0) return prev;
-        const last = prev[prev.length - 1];
-        if (last.role !== "assistant") {
-          return [...prev, { role: "assistant" as const, content: fallback }];
-        }
-        if (last.content.trim()) return prev;
-        return [...prev.slice(0, -1), { role: "assistant" as const, content: fallback }];
-      });
-    };
-
-    const showStreamingFailure = (reason: string, streamed: string) => {
-      const detail = reason.trim();
-      const note = detail
-        ? `（本轮修改未保存：${detail}。可换种说法重试。）`
-        : "（本轮修改未保存，请稍后再试。）";
-      setChatHistory((prev) => {
-        if (prev.length === 0) return prev;
-        const last = prev[prev.length - 1];
-        if (last.role !== "assistant") {
-          return [...prev, { role: "assistant" as const, content: streamed ? `${streamed}\n\n${note}` : note }];
-        }
-        const base = last.content.trim() || streamed;
-        return [
-          ...prev.slice(0, -1),
-          { role: "assistant" as const, content: base ? `${base}\n\n${note}` : note },
-        ];
-      });
-      setBanner(detail ? `修改失败：${detail}` : "修改失败，请稍后再试");
-    };
-
+    setModifyLoading(true);
     try {
       const res = await fetch(`/api/life-agents/${id}/modify-via-chat`, {
         method: "POST",
@@ -331,145 +312,193 @@ export default function LifeAgentCoEditPage() {
           chatHistory: userHistory.map((item) => ({ role: item.role, content: item.content })),
         }),
       });
-
-      const ct = res.headers.get("content-type") || "";
-
       if (!res.ok) {
         const errBody = (await res.json().catch(() => null)) as { detail?: string; error?: string } | null;
         const detail =
           (typeof errBody?.detail === "string" && errBody.detail) ||
           (typeof errBody?.error === "string" && errBody.error) ||
           `HTTP ${res.status}`;
-        console.error("[co-edit] modify request failed", { status: res.status, body: errBody });
-        showStreamingFailure(detail, "");
-        return;
-      }
-
-      if (ct.includes("text/event-stream") && res.body) {
-        const reader = res.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = "";
-        let streamedContent = "";
-        let sseError = "";
-        let donePayload: {
-          assistantMessage?: string;
-          profile?: ManageProfile;
-          mindScore?: MindScoreBreakdown;
-          nextSuggestion?: NextSuggestion | null;
-        } | null = null;
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          buffer += decoder.decode(value, { stream: true });
-          const parts = buffer.split("\n\n");
-          buffer = parts.pop() || "";
-
-          for (const part of parts) {
-            let eventType = "";
-            let eventData = "";
-            for (const line of part.split("\n")) {
-              if (line.startsWith("event: ")) eventType = line.slice(7).trim();
-              else if (line.startsWith("data: ")) eventData = line.slice(6);
-            }
-            if (!eventData) continue;
-            try {
-              const parsed = JSON.parse(eventData) as Record<string, unknown>;
-              if (eventType === "content" && typeof parsed.content === "string") {
-                streamedContent += parsed.content;
-                setChatHistory((prev) =>
-                  prev.map((row, i) =>
-                    i === assistantRowIndex ? { ...row, content: row.content + parsed.content } : row
-                  )
-                );
-              } else if (eventType === "error") {
-                sseError =
-                  (typeof parsed.detail === "string" && parsed.detail) ||
-                  (typeof parsed.message === "string" && parsed.message) ||
-                  "AI 暂时未响应";
-              } else if (eventType === "done") {
-                donePayload = parsed as {
-                  assistantMessage?: string;
-                  profile?: ManageProfile;
-                  mindScore?: MindScoreBreakdown;
-                  nextSuggestion?: NextSuggestion | null;
-                };
-              }
-            } catch (parseErr) {
-              console.warn("[co-edit] malformed SSE part", parseErr, part);
-            }
-          }
-        }
-
-        const next = donePayload;
-        if (!next?.profile) {
-          console.error("[co-edit] SSE finished without profile", {
-            sseError,
-            streamedContent,
-            donePayload,
-          });
-          showStreamingFailure(sseError || "AI 暂时未响应", streamedContent);
-          return;
-        }
-        const summary = summarizeProfileChanges(previousProfile, next.profile);
-        setLastChange({
-          before: previousProfile,
-          after: next.profile,
-          summary,
-          message: msg,
-          appliedAt: new Date().toISOString(),
+        console.error("[co-edit] enqueue failed", { status: res.status, body: errBody });
+        setChatHistory((prev) => {
+          const last = prev[prev.length - 1];
+          if (!last || last.role !== "assistant") return prev;
+          return [
+            ...prev.slice(0, -1),
+            { ...last, content: `保存失败：${detail}`, status: "failed" },
+          ];
         });
-        const profileAfter = next.profile;
-        setData((prev) => (prev ? { ...prev, profile: mergeManageProfile(prev.profile, profileAfter) } : prev));
-        applyMindScoreUpdate(next, setMindScore, setNextSuggestion, setScoreFlash);
-        setChatHistory((prev) =>
-          prev.map((row, i) =>
-            i === assistantRowIndex
-              ? {
-                  ...row,
-                  content: next.assistantMessage || row.content || "我已经按你的要求完成修改。",
-                }
-              : row
-          )
-        );
+        setBanner(`保存失败：${detail}`);
         return;
       }
-
-      const next = (await res.json().catch(() => null)) as {
-        assistantMessage?: string;
-        profile?: ManageProfile;
-        mindScore?: MindScoreBreakdown;
-        nextSuggestion?: NextSuggestion | null;
-        detail?: string;
-      } | null;
-      if (!next?.profile) {
-        console.error("[co-edit] non-SSE response missing profile", next);
-        showStreamingFailure(next?.detail || "服务器未返回最新资料", "");
+      const payload = (await res.json().catch(() => null)) as { eventId?: string } | null;
+      if (!payload?.eventId) {
+        console.error("[co-edit] enqueue response missing eventId", payload);
+        setChatHistory((prev) => {
+          const last = prev[prev.length - 1];
+          if (!last || last.role !== "assistant") return prev;
+          return [
+            ...prev.slice(0, -1),
+            { ...last, content: "保存失败：服务器未返回事件 ID", status: "failed" },
+          ];
+        });
+        setBanner("保存失败：服务器未返回事件 ID");
         return;
       }
-      const summary = summarizeProfileChanges(previousProfile, next.profile);
-      setChatHistory((prev) => [
-        ...prev.slice(0, -1),
-        { role: "assistant", content: next.assistantMessage || "我已经按你的要求完成修改。" },
-      ]);
-      const profileAfter = next.profile;
-      setLastChange({
-        before: previousProfile,
-        after: profileAfter,
-        summary,
-        message: msg,
-        appliedAt: new Date().toISOString(),
+      const newEventId = payload.eventId;
+      setChatHistory((prev) => {
+        const last = prev[prev.length - 1];
+        if (!last || last.role !== "assistant") return prev;
+        return [
+          ...prev.slice(0, -1),
+          { ...last, eventId: newEventId, status: "pending" },
+        ];
       });
-      setData((prev) => (prev ? { ...prev, profile: mergeManageProfile(prev.profile, profileAfter) } : prev));
-      applyMindScoreUpdate(next, setMindScore, setNextSuggestion, setScoreFlash);
     } catch (err) {
-      console.error("[co-edit] modify request threw", err);
-      finalizeAssistant("请求失败，请检查网络后重试");
-      setBanner("请求失败，请检查网络后重试");
+      console.error("[co-edit] enqueue threw", err);
+      setChatHistory((prev) => {
+        const last = prev[prev.length - 1];
+        if (!last || last.role !== "assistant") return prev;
+        return [
+          ...prev.slice(0, -1),
+          { ...last, content: "网络错误，请稍后再试", status: "failed" },
+        ];
+      });
+      setBanner("网络错误，请稍后再试");
     } finally {
       setModifyLoading(false);
     }
   }, [data, id]);
+
+  // 是否还有 pending 的 assistant 气泡：作为是否启动轮询的开关。
+  const hasPendingEvent = useMemo(
+    () =>
+      chatHistory.some(
+        (row) => row.role === "assistant" && row.status === "pending" && Boolean(row.eventId),
+      ),
+    [chatHistory],
+  );
+
+  // 轮询事件接口：把后台理解出的结果回填到对应气泡，并刷新 manage 资料。
+  useEffect(() => {
+    if (!coEditReady || !data || !hasPendingEvent) return;
+    let cancelled = false;
+    let attempts = 0;
+    let timer: number | null = null;
+
+    const stillHasPending = () =>
+      chatHistoryRef.current.some(
+        (row) => row.role === "assistant" && row.status === "pending" && Boolean(row.eventId),
+      );
+
+    const tick = async () => {
+      if (cancelled) return;
+      attempts += 1;
+      try {
+        const res = await fetch(`/api/life-agents/${id}/co-edit-events?limit=50`, {
+          credentials: "include",
+        });
+        if (!res.ok) throw new Error(`events HTTP ${res.status}`);
+        const payload = (await res.json()) as {
+          events?: Array<{
+            id: string;
+            status: CoEditEventStatus;
+            assistantMessage?: string;
+            changesSummary?: string;
+            errorDetail?: string;
+            rawMessage?: string;
+          }>;
+        };
+        const eventMap = new Map<string, NonNullable<typeof payload.events>[number]>();
+        for (const ev of payload.events ?? []) {
+          if (ev?.id) eventMap.set(ev.id, ev);
+        }
+
+        let anyProcessed = false;
+        let lastProcessedMessage = "";
+        setChatHistory((prev) => {
+          let mutated = false;
+          const next = prev.map((row) => {
+            if (
+              row.role !== "assistant" ||
+              row.status !== "pending" ||
+              !row.eventId
+            ) {
+              return row;
+            }
+            const ev = eventMap.get(row.eventId);
+            if (!ev) return row;
+            if (ev.status === "processed") {
+              mutated = true;
+              anyProcessed = true;
+              if (ev.rawMessage) lastProcessedMessage = ev.rawMessage;
+              const base = ev.assistantMessage?.trim() || "好的，我已经理解了。";
+              const summary = ev.changesSummary?.trim();
+              const content = summary ? `${base}\n\n（已自动应用：${summary}）` : base;
+              const updated: ChatRow = {
+                ...row,
+                content,
+                status: "processed",
+                changesSummary: summary,
+              };
+              return updated;
+            }
+            if (ev.status === "failed") {
+              mutated = true;
+              const detail = ev.errorDetail?.trim() || "AI 暂时未响应";
+              const updated: ChatRow = {
+                ...row,
+                content: `（理解未完成：${detail}）\n原话已保存为记忆，稍后可在 Topic 管理里查看。`,
+                status: "failed",
+              };
+              return updated;
+            }
+            return row;
+          });
+          return mutated ? next : prev;
+        });
+
+        if (anyProcessed) {
+          // 至少有一个 event 完成：拉一次最新 manage 资料，更新 profile / mindScore / nextSuggestion 与 lastChange。
+          const previousProfile = data.profile;
+          const refresh = await fetchManageData(id);
+          if (!cancelled && refresh.data) {
+            const after = refresh.data.profile;
+            const diffSummary = summarizeProfileChanges(previousProfile, after);
+            if (diffSummary.length > 0) {
+              setLastChange({
+                before: previousProfile,
+                after,
+                summary: diffSummary,
+                message: lastProcessedMessage || chatHistoryRef.current.find((r) => r.role === "user")?.content || "",
+                appliedAt: new Date().toISOString(),
+              });
+            }
+            setData(refresh.data);
+            applyMindScoreUpdate(
+              {
+                mindScore: refresh.data.mindScore ?? undefined,
+                nextSuggestion: refresh.data.nextSuggestion ?? null,
+              },
+              setMindScore,
+              setNextSuggestion,
+              setScoreFlash,
+            );
+          }
+        }
+      } catch (err) {
+        console.warn("[co-edit] poll error", err);
+      }
+      if (cancelled || !stillHasPending()) return;
+      const delay = attempts > 20 ? 6000 : attempts > 10 ? 4000 : 2000;
+      timer = window.setTimeout(tick, delay);
+    };
+
+    timer = window.setTimeout(tick, 1200);
+    return () => {
+      cancelled = true;
+      if (timer !== null) window.clearTimeout(timer);
+    };
+  }, [coEditReady, data, hasPendingEvent, id]);
 
   const submitModify = async (e?: FormEvent<HTMLFormElement>, voiceText?: string) => {
     e?.preventDefault();
@@ -959,10 +988,19 @@ export default function LifeAgentCoEditPage() {
                   />
                 ) : null}
                 <div className={getChatBubbleClassName(item.role)}>
-                  {item.role === "assistant" && !item.content.trim() && (modifyLoading || importLoading) ? (
+                  {item.role === "assistant" && item.status === "pending" ? (
+                    <div className="flex items-center gap-2">
+                      <AgentTypingIndicator />
+                      <span className="text-xs text-ink-500">{item.content || "正在理解中…"}</span>
+                    </div>
+                  ) : item.role === "assistant" && !item.content.trim() && (modifyLoading || importLoading) ? (
                     <AgentTypingIndicator />
                   ) : (
-                    <p className="whitespace-pre-wrap">{item.content}</p>
+                    <p
+                      className={`whitespace-pre-wrap ${item.status === "failed" ? "text-ink-500" : ""}`}
+                    >
+                      {item.content}
+                    </p>
                   )}
                 </div>
                 {item.role === "user" ? (

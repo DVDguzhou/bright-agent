@@ -1176,6 +1176,7 @@ func LifeAgentsFeedbackAll(cfg *config.Config) gin.HandlerFunc {
 				"counts":      gin.H{"helpful": 0, "notSpecific": 0, "notSuitable": 0, "factualError": 0, "contradiction": 0, "tooConfident": 0},
 				"ratings":     gin.H{"averageScore": 0, "raters": 0, "recent": []gin.H{}},
 				"recent":      []gin.H{},
+				"coEdit":      []gin.H{},
 				"unreadCount": 0,
 			})
 			return
@@ -1197,6 +1198,9 @@ func LifeAgentsFeedbackAll(cfg *config.Config) gin.HandlerFunc {
 		db.DB.Where("profile_id IN ?", ids).Order("created_at DESC").Limit(50).Find(&recent)
 		var recentRatings []models.LifeAgentRating
 		db.DB.Where("profile_id IN ?", ids).Order("updated_at DESC").Limit(20).Find(&recentRatings)
+		var recentCoEdit []models.LifeAgentCoEditEvent
+		db.DB.Where("profile_id IN ? AND status IN ?", ids, []string{"processed", "failed"}).
+			Order("processed_at DESC").Limit(30).Find(&recentCoEdit)
 		var list []gin.H
 		for _, f := range recent {
 			list = append(list, gin.H{
@@ -1208,6 +1212,30 @@ func LifeAgentsFeedbackAll(cfg *config.Config) gin.HandlerFunc {
 				"comment":          f.Comment,
 				"createdAt":        f.CreatedAt.Format("2006-01-02 15:04"),
 			})
+		}
+		var coEditList []gin.H
+		for _, e := range recentCoEdit {
+			row := gin.H{
+				"id":          e.ID,
+				"profileId":   e.ProfileID,
+				"profileName": profileMap[e.ProfileID],
+				"status":      e.Status,
+				"rawMessage":  e.RawMessage,
+				"createdAt":   e.CreatedAt.Format("2006-01-02 15:04"),
+			}
+			if e.AssistantMessage != nil {
+				row["assistantMessage"] = *e.AssistantMessage
+			}
+			if e.ChangesSummary != nil {
+				row["changesSummary"] = *e.ChangesSummary
+			}
+			if e.ErrorDetail != nil {
+				row["errorDetail"] = *e.ErrorDetail
+			}
+			if e.ProcessedAt != nil {
+				row["processedAt"] = e.ProcessedAt.Format("2006-01-02 15:04")
+			}
+			coEditList = append(coEditList, row)
 		}
 		var average float64
 		var raters int64
@@ -1239,6 +1267,7 @@ func LifeAgentsFeedbackAll(cfg *config.Config) gin.HandlerFunc {
 				"recent":       ratingList,
 			},
 			"recent":      list,
+			"coEdit":      coEditList,
 			"unreadCount": countUnreadAgentNotifications(ids, owner.NotificationsReadAt),
 		})
 	}
@@ -1265,16 +1294,22 @@ func countUnreadAgentNotifications(profileIDs []string, readAt *time.Time) int64
 	if len(profileIDs) == 0 {
 		return 0
 	}
-	var feedbackCount, ratingCount int64
+	var feedbackCount, ratingCount, coEditCount int64
 	fbQuery := db.DB.Model(&models.LifeAgentFeedback{}).Where("profile_id IN ?", profileIDs)
 	rtQuery := db.DB.Model(&models.LifeAgentRating{}).Where("profile_id IN ?", profileIDs)
+	// 已处理的调教事件（理解完成/失败）也算未读通知，告诉用户"你的 Agent 已经理解了 X 条新记忆"
+	ceQuery := db.DB.Model(&models.LifeAgentCoEditEvent{}).
+		Where("profile_id IN ?", profileIDs).
+		Where("status IN ?", []string{"processed", "failed"})
 	if readAt != nil {
 		fbQuery = fbQuery.Where("created_at > ?", *readAt)
 		rtQuery = rtQuery.Where("updated_at > ?", *readAt)
+		ceQuery = ceQuery.Where("processed_at > ?", *readAt)
 	}
 	fbQuery.Count(&feedbackCount)
 	rtQuery.Count(&ratingCount)
-	return feedbackCount + ratingCount
+	ceQuery.Count(&coEditCount)
+	return feedbackCount + ratingCount + coEditCount
 }
 
 // LifeAgentsPurchased 返回当前用户购买过额度的人生 Agent（作为咨询者）
@@ -1734,6 +1769,13 @@ func LifeAgentsUpdate(cfg *config.Config) gin.HandlerFunc {
 	}
 }
 
+// LifeAgentsModifyViaChat —— 对话调教接口（写入同步、理解异步）。
+//
+// 流程：
+//  1. 立即把用户原话写入 LifeAgentCoEditEvent(status=pending)，避免上游 LLM 慢/失败导致丢失。
+//  2. 立刻返回 { eventId, status: "pending" }，前端展示"已记录，正在理解中…"。
+//  3. 后台 goroutine 调 LLM 解析意图并应用到 profile / knowledge，
+//     处理完成后把事件更新为 processed / failed，前端通过轮询 events 接口拿到结果。
 func LifeAgentsModifyViaChat(cfg *config.Config) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		user := middleware.MustGetUser(c)
@@ -1751,9 +1793,6 @@ func LifeAgentsModifyViaChat(cfg *config.Config) gin.HandlerFunc {
 			c.JSON(http.StatusForbidden, gin.H{"error": "FORBIDDEN"})
 			return
 		}
-		var entries []models.LifeAgentKnowledgeEntry
-		db.DB.Where("profile_id = ?", id).Order("sort_order").Find(&entries)
-		beforeScore := lifeagent.ComputeMindScore(loadMindScoreInput(id, &p, cfg)).Total
 		var body struct {
 			Message     string                       `json:"message" binding:"required"`
 			ChatHistory []lifeagent.ChatMessageForAI `json:"chatHistory"`
@@ -1762,182 +1801,262 @@ func LifeAgentsModifyViaChat(cfg *config.Config) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "VALIDATION_ERROR", "detail": err.Error()})
 			return
 		}
-		state := buildModifyStateString(&p, entries)
 
-		c.Header("Content-Type", "text/event-stream")
-		c.Header("Cache-Control", "no-cache")
-		c.Header("Connection", "keep-alive")
-		c.Header("X-Accel-Buffering", "no")
-		c.Status(http.StatusOK)
-
-		writeModifySSE := func(eventType string, payload interface{}) {
-			data, _ := json.Marshal(payload)
-			fmt.Fprintf(c.Writer, "event: %s\ndata: %s\n\n", eventType, data)
-			c.Writer.Flush()
+		// ① 同步写入：先把用户原话落库为 pending 事件，保证不会因 LLM 失败而丢失。
+		event := models.LifeAgentCoEditEvent{
+			ID:         models.GenID(),
+			ProfileID:  id,
+			UserID:     user.ID,
+			RawMessage: body.Message,
+			Status:     "pending",
+			CreatedAt:  time.Now().UTC(),
 		}
-		writeKeepAlive := func() {
-			fmt.Fprint(c.Writer, ": keepalive\n\n")
-			c.Writer.Flush()
-		}
-
-		defer func() {
-			if r := recover(); r != nil {
-				log.Printf("life-agents modify: panic profile=%s user=%s: %v", id, user.ID, r)
-				writeModifySSE("error", gin.H{"detail": "服务器内部错误，请稍后再试"})
-			}
-		}()
-
-		writeKeepAlive()
-
-		type llmResult struct {
-			intent *lifeagent.ModifyIntent
-			err    error
-		}
-		llmCh := make(chan llmResult, 1)
-		llmCtx, cancelLLM := context.WithTimeout(context.Background(), 150*time.Second)
-		defer cancelLLM()
-		go func() {
-			intent, err := lifeagent.InterpretModificationIntent(
-				llmCtx,
-				cfg.OpenAIApiKey, cfg.OpenAIModel, cfg.OpenAIBaseURL,
-				state, body.ChatHistory, body.Message,
-			)
-			llmCh <- llmResult{intent: intent, err: err}
-		}()
-
-		ticker := time.NewTicker(10 * time.Second)
-		var result llmResult
-	waitLLM:
-		for {
-			select {
-			case <-ticker.C:
-				writeKeepAlive()
-			case result = <-llmCh:
-				ticker.Stop()
-				break waitLLM
-			}
-		}
-
-		if result.err != nil {
-			log.Printf("life-agents modify: LLM error profile=%s user=%s: %v", id, user.ID, result.err)
-			writeModifySSE("error", gin.H{"detail": "AI 暂时未响应：" + result.err.Error()})
+		if err := db.DB.Create(&event).Error; err != nil {
+			log.Printf("life-agents modify: persist event failed profile=%s user=%s: %v", id, user.ID, err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "INTERNAL_ERROR", "detail": err.Error()})
 			return
 		}
-		intent := result.intent
-		if intent == nil {
-			intent = &lifeagent.ModifyIntent{}
-		}
-		reply := strings.TrimSpace(intent.Reply)
-		if reply == "" {
-			if intent.Changes != nil {
-				reply = "好的，我按你的意思更新了。"
-			} else {
-				reply = "好的，我先记下来了。"
-			}
-		}
 
-		lifeagent.EmitReplyChunks(reply, func(chunk string) {
-			writeModifySSE("content", gin.H{"content": chunk})
+		// ② 后台理解：完全脱离客户端的 request ctx，自带超时；不阻塞 HTTP 响应。
+		chatHistory := append([]lifeagent.ChatMessageForAI(nil), body.ChatHistory...)
+		go processCoEditEvent(cfg, event.ID, id, user.ID, body.Message, chatHistory)
+
+		// ③ 立刻回包，前端切到"已记录，正在理解中…"占位。
+		c.JSON(http.StatusAccepted, gin.H{
+			"eventId":   event.ID,
+			"status":    "pending",
+			"message":   "已记录，正在理解中…",
+			"createdAt": event.CreatedAt.Format(time.RFC3339),
 		})
+	}
+}
 
+// processCoEditEvent 异步执行：调 LLM 解析 → 应用变更 → 更新事件状态。
+// 不管成功失败，都会写一条结果到 life_agent_co_edit_events 行里。
+func processCoEditEvent(cfg *config.Config, eventID, profileID, userID, userMessage string, chatHistory []lifeagent.ChatMessageForAI) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("life-agents modify: panic in async processor event=%s profile=%s: %v", eventID, profileID, r)
+			finalizeCoEditEventFailed(eventID, fmt.Sprintf("内部错误：%v", r))
+		}
+	}()
+
+	var p models.LifeAgentProfile
+	if err := db.DB.Where("id = ?", profileID).First(&p).Error; err != nil {
+		finalizeCoEditEventFailed(eventID, "找不到该 Agent")
+		return
+	}
+	var entries []models.LifeAgentKnowledgeEntry
+	db.DB.Where("profile_id = ?", profileID).Order("sort_order").Find(&entries)
+	state := buildModifyStateString(&p, entries)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 150*time.Second)
+	defer cancel()
+	intent, err := lifeagent.InterpretModificationIntent(
+		ctx,
+		cfg.OpenAIApiKey, cfg.OpenAIModel, cfg.OpenAIBaseURL,
+		state, chatHistory, userMessage,
+	)
+	if err != nil {
+		log.Printf("life-agents modify: LLM error event=%s profile=%s user=%s: %v", eventID, profileID, userID, err)
+		finalizeCoEditEventFailed(eventID, fmt.Sprintf("AI 暂时未响应：%v", err))
+		return
+	}
+	if intent == nil {
+		intent = &lifeagent.ModifyIntent{}
+	}
+
+	summary := applyModifyIntentChanges(&p, &entries, profileID, intent.Changes)
+
+	refreshLifeAgentStructuredFacts(profileID)
+	refreshLifeAgentTopicSummaries(profileID)
+
+	reply := strings.TrimSpace(intent.Reply)
+	if reply == "" {
 		if intent.Changes != nil {
-			ch := intent.Changes
-			upd := db.DB.Model(&p)
-			if len(ch.ExpertiseTags) > 0 {
-				tags := ch.ExpertiseTags
-				if len(tags) > 8 {
-					tags = tags[:8]
-				}
-				upd.Update("expertise_tags", models.JSONArray(tags))
-			}
-			if len(ch.SampleQuestions) > 0 {
-				qs := ch.SampleQuestions
-				if len(qs) > 6 {
-					qs = qs[:6]
-				}
-				upd.Update("sample_questions", models.JSONArray(qs))
-			}
-			if ch.WelcomeMessage != "" {
-				upd.Update("welcome_message", ch.WelcomeMessage)
-			}
-			if ch.PersonaArchetype != "" {
-				upd.Update("persona_archetype", ch.PersonaArchetype)
-			}
-			if ch.ToneStyle != "" {
-				upd.Update("tone_style", ch.ToneStyle)
-			}
-			if ch.ResponseStyle != "" {
-				upd.Update("response_style", ch.ResponseStyle)
-			}
-			if len(ch.ForbiddenPhrases) > 0 {
-				fp := ch.ForbiddenPhrases
-				if len(fp) > 8 {
-					fp = fp[:8]
-				}
-				upd.Update("forbidden_phrases", models.JSONArray(fp))
-			}
-			if len(ch.ExampleReplies) > 0 {
-				er := ch.ExampleReplies
-				if len(er) > 5 {
-					er = er[:5]
-				}
-				upd.Update("example_replies", models.JSONArray(er))
-			}
-			for i, add := range ch.KnowledgeAdd {
-				if add.Content == "" {
-					continue
-				}
-				tags := add.Tags
-				if len(tags) == 0 {
-					tags = []string{add.Category}
-				}
-				cat, title := add.Category, add.Title
-				if cat == "" {
-					cat = "经验"
-				}
-				if title == "" {
-					title = add.Content
-					if len(title) > 50 {
-						title = title[:50] + "..."
-					}
-				}
-				k := models.LifeAgentKnowledgeEntry{
-					ID:        models.GenID(),
-					ProfileID: id,
-					Category:  cat,
-					Title:     title,
-					Content:   add.Content,
-					Tags:      models.JSONArray(tags),
-					SortOrder: len(entries) + i,
-				}
-				db.DB.Create(&k)
-				entries = append(entries, k)
-			}
-			db.DB.Where("id = ?", id).First(&p)
-			db.DB.Where("profile_id = ?", id).Order("sort_order").Find(&entries)
+			reply = "好的，我按你的意思更新了。"
+		} else {
+			reply = "好的，我先记下来了。"
 		}
-		refreshLifeAgentStructuredFacts(id)
-		refreshLifeAgentTopicSummaries(id)
-		db.DB.Where("id = ?", id).First(&p)
-		db.DB.Where("profile_id = ?", id).Order("sort_order").Find(&entries)
-		profileResp := buildManageProfileResp(&p, entries)
-		afterScore := lifeagent.ComputeMindScore(loadMindScoreInput(id, &p, cfg))
-		delta := afterScore.Total - beforeScore
-		turnCount := 1
-		for _, m := range body.ChatHistory {
-			if m.Role == "user" {
-				turnCount++
+	}
+
+	now := time.Now().UTC()
+	updates := map[string]interface{}{
+		"status":            "processed",
+		"assistant_message": reply,
+		"processed_at":      now,
+	}
+	if summary != "" {
+		updates["changes_summary"] = summary
+	}
+	if err := db.DB.Model(&models.LifeAgentCoEditEvent{}).Where("id = ?", eventID).Updates(updates).Error; err != nil {
+		log.Printf("life-agents modify: failed to mark event processed event=%s: %v", eventID, err)
+	}
+}
+
+func finalizeCoEditEventFailed(eventID, detail string) {
+	now := time.Now().UTC()
+	if err := db.DB.Model(&models.LifeAgentCoEditEvent{}).Where("id = ?", eventID).Updates(map[string]interface{}{
+		"status":       "failed",
+		"error_detail": detail,
+		"processed_at": now,
+	}).Error; err != nil {
+		log.Printf("life-agents modify: failed to mark event failed event=%s: %v", eventID, err)
+	}
+}
+
+// applyModifyIntentChanges 把 LLM 解析出的 Changes 应用到 profile / knowledge_entries 上，
+// 返回一段简短的中文摘要（"新增 2 条知识 · 更新欢迎语"），用于通知中心展示。
+func applyModifyIntentChanges(p *models.LifeAgentProfile, entries *[]models.LifeAgentKnowledgeEntry, profileID string, ch *lifeagent.ModifyIntentChanges) string {
+	if ch == nil {
+		return ""
+	}
+	parts := []string{}
+	upd := db.DB.Model(p)
+	if len(ch.ExpertiseTags) > 0 {
+		tags := ch.ExpertiseTags
+		if len(tags) > 8 {
+			tags = tags[:8]
+		}
+		upd.Update("expertise_tags", models.JSONArray(tags))
+		parts = append(parts, "更新擅长标签")
+	}
+	if len(ch.SampleQuestions) > 0 {
+		qs := ch.SampleQuestions
+		if len(qs) > 6 {
+			qs = qs[:6]
+		}
+		upd.Update("sample_questions", models.JSONArray(qs))
+		parts = append(parts, "更新示例问题")
+	}
+	if ch.WelcomeMessage != "" {
+		upd.Update("welcome_message", ch.WelcomeMessage)
+		parts = append(parts, "更新欢迎语")
+	}
+	if ch.PersonaArchetype != "" {
+		upd.Update("persona_archetype", ch.PersonaArchetype)
+		parts = append(parts, "更新角色定位")
+	}
+	if ch.ToneStyle != "" {
+		upd.Update("tone_style", ch.ToneStyle)
+		parts = append(parts, "更新语气")
+	}
+	if ch.ResponseStyle != "" {
+		upd.Update("response_style", ch.ResponseStyle)
+		parts = append(parts, "更新回答习惯")
+	}
+	if len(ch.ForbiddenPhrases) > 0 {
+		fp := ch.ForbiddenPhrases
+		if len(fp) > 8 {
+			fp = fp[:8]
+		}
+		upd.Update("forbidden_phrases", models.JSONArray(fp))
+		parts = append(parts, "更新禁用语")
+	}
+	if len(ch.ExampleReplies) > 0 {
+		er := ch.ExampleReplies
+		if len(er) > 5 {
+			er = er[:5]
+		}
+		upd.Update("example_replies", models.JSONArray(er))
+		parts = append(parts, "更新示范回答")
+	}
+	addedCount := 0
+	for i, add := range ch.KnowledgeAdd {
+		if add.Content == "" {
+			continue
+		}
+		tags := add.Tags
+		if len(tags) == 0 {
+			tags = []string{add.Category}
+		}
+		cat, title := add.Category, add.Title
+		if cat == "" {
+			cat = "经验"
+		}
+		if title == "" {
+			title = add.Content
+			if len(title) > 50 {
+				title = title[:50] + "..."
 			}
 		}
-		toneChanged := intent.Changes != nil && intent.Changes.ToneStyle != ""
-		exampleChanged := intent.Changes != nil && len(intent.Changes.ExampleReplies) > 0
-		nextSuggestion := lifeagent.GenerateNextSuggestion(buildNextSuggestionContext(id, &p, cfg, body.Message, turnCount, toneChanged, exampleChanged))
-		writeModifySSE("done", gin.H{
-			"assistantMessage": reply,
-			"profile":          profileResp,
-			"mindScore":        mindScoreToJSON(afterScore, &delta),
-			"nextSuggestion":   nextSuggestion,
-		})
+		k := models.LifeAgentKnowledgeEntry{
+			ID:        models.GenID(),
+			ProfileID: profileID,
+			Category:  cat,
+			Title:     title,
+			Content:   add.Content,
+			Tags:      models.JSONArray(tags),
+			SortOrder: len(*entries) + i,
+		}
+		if err := db.DB.Create(&k).Error; err == nil {
+			*entries = append(*entries, k)
+			addedCount++
+		}
+	}
+	if addedCount > 0 {
+		parts = append(parts, fmt.Sprintf("新增 %d 条知识", addedCount))
+	}
+	return strings.Join(parts, " · ")
+}
+
+// LifeAgentsCoEditEvents —— 轮询接口：返回某 Agent 最近的调教事件（含 pending 状态）。
+// 前端依赖这个接口完成"理解结果回执"：发送消息后每 2s 轮询一次，看到 pending→processed/failed
+// 就把对应聊天气泡换成 AI 的回复，并刷新 manage 资料。
+func LifeAgentsCoEditEvents(cfg *config.Config) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		user := middleware.MustGetUser(c)
+		if user == nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "UNAUTHORIZED"})
+			return
+		}
+		id := c.Param("id")
+		var p models.LifeAgentProfile
+		if err := db.DB.Where("id = ?", id).First(&p).Error; err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "NOT_FOUND"})
+			return
+		}
+		if p.UserID != user.ID {
+			c.JSON(http.StatusForbidden, gin.H{"error": "FORBIDDEN"})
+			return
+		}
+		limit := 50
+		if n := c.Query("limit"); n != "" {
+			if parsed, err := strconv.Atoi(n); err == nil && parsed > 0 && parsed <= 200 {
+				limit = parsed
+			}
+		}
+		q := db.DB.Where("profile_id = ?", id)
+		if sinceStr := c.Query("since"); sinceStr != "" {
+			if t, err := time.Parse(time.RFC3339, sinceStr); err == nil {
+				q = q.Where("created_at >= ?", t)
+			}
+		}
+		var events []models.LifeAgentCoEditEvent
+		q.Order("created_at ASC").Limit(limit).Find(&events)
+		out := make([]gin.H, 0, len(events))
+		for _, e := range events {
+			row := gin.H{
+				"id":         e.ID,
+				"rawMessage": e.RawMessage,
+				"status":     e.Status,
+				"createdAt":  e.CreatedAt.Format(time.RFC3339),
+			}
+			if e.AssistantMessage != nil {
+				row["assistantMessage"] = *e.AssistantMessage
+			}
+			if e.ChangesSummary != nil {
+				row["changesSummary"] = *e.ChangesSummary
+			}
+			if e.ErrorDetail != nil {
+				row["errorDetail"] = *e.ErrorDetail
+			}
+			if e.ProcessedAt != nil {
+				row["processedAt"] = e.ProcessedAt.Format(time.RFC3339)
+			}
+			out = append(out, row)
+		}
+		c.JSON(http.StatusOK, gin.H{"events": out})
 	}
 }
 

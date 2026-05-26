@@ -29,10 +29,24 @@ type RatingItem = {
   updatedAt: string;
 };
 
+type CoEditItem = {
+  id: string;
+  profileId: string;
+  profileName: string;
+  status: "processed" | "failed";
+  rawMessage: string;
+  assistantMessage?: string | null;
+  changesSummary?: string | null;
+  errorDetail?: string | null;
+  createdAt: string;
+  processedAt?: string | null;
+};
+
 type SummaryData = {
   counts: { helpful: number; notSpecific: number; notSuitable: number; factualError?: number; contradiction?: number; tooConfident?: number };
   ratings: { averageScore: number; raters: number; recent: RatingItem[] };
   recent: FeedbackItem[];
+  coEdit: CoEditItem[];
 };
 
 type NotificationRow =
@@ -52,6 +66,17 @@ type NotificationRow =
       profileId: string;
       profileName: string;
       score: number;
+      preview: string;
+      time: string;
+      sortMs: number;
+    }
+  | {
+      key: string;
+      kind: "co_edit";
+      profileId: string;
+      profileName: string;
+      status: "processed" | "failed";
+      title: string;
       preview: string;
       time: string;
       sortMs: number;
@@ -108,6 +133,7 @@ function normalizeSummary(raw: any): SummaryData {
       recent: Array.isArray(raw?.ratings?.recent) ? raw.ratings.recent : [],
     },
     recent: Array.isArray(raw?.recent) ? raw.recent : [],
+    coEdit: Array.isArray(raw?.coEdit) ? raw.coEdit : [],
   };
 }
 
@@ -155,14 +181,41 @@ export default function DashboardNotificationsPage() {
       time: item.updatedAt,
       sortMs: Date.parse(item.updatedAt) || 0,
     }));
-    return [...feedbackRows, ...ratingRows].sort((a, b) => b.sortMs - a.sortMs);
+    const coEditRows: NotificationRow[] = data.coEdit.map((item) => {
+      const when = item.processedAt || item.createdAt;
+      const title =
+        item.status === "processed"
+          ? item.changesSummary?.trim()
+            ? `已理解并应用：${item.changesSummary}`
+            : "已记下你的话"
+          : `理解失败：${item.errorDetail?.trim() || "AI 暂时未响应"}`;
+      return {
+        key: `co_edit-${item.id}`,
+        kind: "co_edit",
+        profileId: item.profileId,
+        profileName: item.profileName,
+        status: item.status,
+        title,
+        preview: item.rawMessage?.trim() || item.assistantMessage?.trim() || "对话调教记录",
+        time: when,
+        sortMs: Date.parse(when) || 0,
+      };
+    });
+    return [...feedbackRows, ...ratingRows, ...coEditRows].sort((a, b) => b.sortMs - a.sortMs);
   }, [data]);
 
   const filteredRows = useMemo(() => {
     const keyword = query.trim().toLowerCase();
     if (!keyword) return rows;
     return rows.filter((item) => {
-      const label = item.kind === "feedback" ? feedbackLabel(item.feedbackType) : "收到新评分";
+      const label =
+        item.kind === "feedback"
+          ? feedbackLabel(item.feedbackType)
+          : item.kind === "rating"
+            ? "收到新评分"
+            : item.kind === "co_edit"
+              ? item.title
+              : "";
       return [item.profileName, item.preview, label].join(" ").toLowerCase().includes(keyword);
     });
   }, [query, rows]);
@@ -260,7 +313,10 @@ export default function DashboardNotificationsPage() {
           <ul className="divide-y divide-hairline/50">
             {filteredRows.map((item, index) => {
               const avatarSrc = getDisplayAvatar({ name: item.profileName });
-              const href = `/dashboard/life-agents/${item.profileId}/feedback`;
+              const href =
+                item.kind === "co_edit"
+                  ? `/dashboard/life-agents/${item.profileId}/co-edit`
+                  : `/dashboard/life-agents/${item.profileId}/feedback`;
               return (
                 <motion.li
                   key={item.key}
@@ -289,14 +345,31 @@ export default function DashboardNotificationsPage() {
                           <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${feedbackBadgeClass(item.feedbackType)}`}>
                             {feedbackLabel(item.feedbackType)}
                           </span>
-                        ) : (
+                        ) : item.kind === "rating" ? (
                           <span className="inline-flex items-center gap-1 rounded-full bg-oxblood-50 px-2 py-0.5 text-[10px] font-medium text-oxblood-700 ring-1 ring-oxblood-100">
                             <RatingStars score={item.score} size="sm" />
                             {item.score}/5
                           </span>
+                        ) : (
+                          <span
+                            className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                              item.status === "processed"
+                                ? "bg-olive-400/10 text-olive-600 ring-1 ring-olive-400/40"
+                                : "bg-paper-200 text-ink ring-1 ring-hairline"
+                            }`}
+                          >
+                            {item.status === "processed" ? "已理解新调教" : "调教待重试"}
+                          </span>
                         )}
                       </div>
-                      <p className="mt-0.5 line-clamp-1 text-[13px] leading-snug text-ink-300">{item.preview}</p>
+                      {item.kind === "co_edit" ? (
+                        <>
+                          <p className="mt-0.5 line-clamp-1 text-[13px] leading-snug text-ink-500">{item.title}</p>
+                          <p className="mt-0.5 line-clamp-1 text-[12px] leading-snug text-ink-300">原话：{item.preview}</p>
+                        </>
+                      ) : (
+                        <p className="mt-0.5 line-clamp-1 text-[13px] leading-snug text-ink-300">{item.preview}</p>
+                      )}
                     </div>
                     <time className="shrink-0 pt-0.5 text-xs tabular-nums text-ink-300" dateTime={item.time}>
                       {formatSessionTime(item.time)}
