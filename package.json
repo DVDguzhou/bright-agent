@@ -25,6 +25,7 @@
     "mobile:android": "npx cap open android",
     "mobile:android:release": "powershell -ExecutionPolicy Bypass -File scripts/mobile/build-android-release.ps1",
     "mobile:android:release:aab": "powershell -ExecutionPolicy Bypass -File scripts/mobile/build-android-release.ps1 -Format aab",
+    "mobile:android:stage-apk": "powershell -ExecutionPolicy Bypass -File scripts/mobile/copy-android-apk.ps1",
     "mobile:ios": "npx cap open ios",
     "mobile": "npx cap sync && echo 请用 npm run mobile:android 或 mobile:ios 打开 IDE 打包"
   },
@@ -46,6 +47,7 @@
     "leaflet.heat": "^0.2.0",
     "leaflet.markercluster": "^1.5.3",
     "next": "14.2.18",
+    "qrcode": "^1.5.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-leaflet": "^4.2.1",
@@ -58,6 +60,7 @@
     "@types/bcryptjs": "^2.4.6",
     "@types/leaflet": "^1.9.21",
     "@types/node": "^20",
+    "@types/qrcode": "^1.5.6",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "autoprefixer": "^10.4.27",

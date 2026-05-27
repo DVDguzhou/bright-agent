@@ -186,6 +186,45 @@ npm run mobile:ios
 
 ---
 
+## 八、方案 B：二维码分发 APK（不走上架）
+
+适合 Android 内测、线下推广，无需应用商店审核。
+
+### 8.1 打包并放到网站
+
+```powershell
+# 1. 打 Release APK
+npm run mobile:android:release
+
+# 2. 复制到 public/downloads（本地或部署前执行）
+npm run mobile:android:stage-apk
+```
+
+生产环境需把 `public/downloads/brightagent.apk` 同步到服务器（或 Nginx 静态目录）。
+
+### 8.2 分享链接
+
+| 用途 | URL |
+|------|-----|
+| 落地页（含二维码 + 安装说明） | `https://brightagent.cn/download` |
+| APK 直链（海报二维码推荐） | `https://brightagent.cn/downloads/brightagent.apk` |
+
+可选环境变量（`.env` / 生产环境）：
+
+```bash
+NEXT_PUBLIC_APP_URL=https://brightagent.cn
+# 若 APK 不在默认路径，可单独指定：
+# NEXT_PUBLIC_ANDROID_APK_URL=https://brightagent.cn/downloads/brightagent.apk
+```
+
+### 8.3 用户安装
+
+Android 用户扫码或打开链接 → 下载 APK → 允许「安装未知应用」→ 安装完成。
+
+**iPhone 不支持 APK**，请继续使用浏览器访问网站或「添加到主屏幕」。
+
+---
+
 ## 七、项目结构
 
 ```

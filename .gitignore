@@ -26,6 +26,10 @@ backend/uploads/
 public/uploads/life-agent-covers/*
 !public/uploads/life-agent-covers/.gitkeep
 
+# Android APK for QR download (keep folder via .gitkeep)
+public/downloads/*.apk
+!public/downloads/.gitkeep
+
 # Misc
 .DS_Store
 *.pem
