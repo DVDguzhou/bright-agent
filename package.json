@@ -3,8 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "postinstall": "patch-package",
-    "prepare": "node scripts/git/install-git-hooks.mjs",
+    "postinstall": "patch-package && node scripts/git/install-git-hooks.mjs",
     "dev": "next dev",
     "dev:web": "next dev",
     "dev:api": "node scripts/dev/dev-api.mjs",

@@ -6,13 +6,14 @@ ARG NODE_BASE_IMAGE=node:20-alpine
 FROM ${NODE_BASE_IMAGE} AS deps
 WORKDIR /app
 COPY package.json package-lock.json* ./
-RUN npm ci
+RUN npm ci --ignore-scripts
 
 FROM ${NODE_BASE_IMAGE} AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
+RUN npm run postinstall
 # API_BACKEND_URL 在 docker-compose 中通过 build-arg 传入，或运行时通过 env 注入
 ARG API_BACKEND_URL
 ENV API_BACKEND_URL=${API_BACKEND_URL}
