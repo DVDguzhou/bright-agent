@@ -40,7 +40,9 @@ export default async function AndroidDownloadPage() {
       <section className="mb-8 rounded-2xl border border-olive-400/40 bg-paper/90 p-5 shadow-sm sm:p-6">
         <p className="text-sm font-medium text-ink-400">Android 安装包</p>
         <p className="mt-1 text-lg font-semibold text-ink">{ANDROID_APP_DISPLAY_NAME}</p>
-        <p className="mt-1 text-sm text-ink-500">版本 {ANDROID_APP_VERSION}</p>
+        <p className="mt-1 text-sm text-ink-500">
+          版本 {ANDROID_APP_VERSION} · 包名 com.agent.marketplace
+        </p>
         <a
           href={apkUrl}
           className="btn-primary mt-5 flex w-full items-center justify-center px-5 py-4 text-base font-semibold"
@@ -71,11 +73,7 @@ export default async function AndroidDownloadPage() {
         </section>
 
         <section className="space-y-8">
-          <AndroidApkDownloadPanel
-            apkUrl={apkUrl}
-            appName={ANDROID_APP_DISPLAY_NAME}
-            version={ANDROID_APP_VERSION}
-          />
+          <AndroidApkDownloadPanel apkUrl={apkUrl} />
 
           <section>
             <h2 className="text-lg font-semibold text-ink">安装步骤</h2>
