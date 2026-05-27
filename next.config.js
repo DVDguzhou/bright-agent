@@ -29,6 +29,10 @@ const nextConfig = {
         source: "/downloads/:path*.apk",
         headers: [
           { key: "Content-Type", value: "application/vnd.android.package-archive" },
+          {
+            key: "Content-Disposition",
+            value: 'attachment; filename="brightagent.apk"',
+          },
           { key: "Cache-Control", value: "public, max-age=3600" },
         ],
       },

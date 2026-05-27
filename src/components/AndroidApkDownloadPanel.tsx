@@ -42,10 +42,9 @@ export function AndroidApkDownloadPanel({ apkUrl, appName, version }: Props) {
         <div className="mt-5 flex flex-col gap-3 sm:flex-row">
           <a
             href={apkUrl}
-            download
             className="btn-primary inline-flex items-center justify-center px-5 py-3 text-sm font-semibold"
           >
-            {isAndroid ? "下载 APK" : "下载 APK（Android 手机）"}
+            {isAndroid ? "再次下载 APK" : "下载 APK（Android 手机）"}
           </a>
           <button
             type="button"
