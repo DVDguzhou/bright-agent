@@ -37,7 +37,7 @@ export function AndroidApkDownloadPanel({ apkUrl }: Props) {
       <div className="rounded-2xl border border-amber-200/80 bg-amber-50/70 p-4 text-sm leading-relaxed text-amber-950">
         <p className="font-medium">说明</p>
         <ul className="mt-2 list-disc space-y-1 pl-5">
-          <li>本安装包仅适用于 Android；iPhone 请直接用浏览器访问网站并「添加到主屏幕」。</li>
+          <li>本安装包仅适用于 Android；iPhone 请点上方「打开 App Store」或搜索「brightagent」。</li>
           <li>首次安装可能需要在系统设置中允许「安装未知应用」。</li>
           <li>包名：com.agent.marketplace</li>
         </ul>

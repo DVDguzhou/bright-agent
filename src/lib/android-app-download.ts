@@ -2,6 +2,7 @@
 
 export const ANDROID_APP_DISPLAY_NAME = "BrightAgent";
 export const ANDROID_APP_VERSION = "1.0";
+export const IOS_APP_STORE_SEARCH_TERM = "brightagent";
 
 function normalizeSiteBase(): string {
   const base =
@@ -21,6 +22,13 @@ export function getAndroidApkDownloadUrl(): string {
 /** 扫码落地页（手机请扫此页，不要扫 .apk 直链） */
 export function getAndroidDownloadPageUrl(): string {
   return `${normalizeSiteBase()}/download`;
+}
+
+/** iOS App Store：优先用 NEXT_PUBLIC_IOS_APP_STORE_URL，否则打开商店搜索 */
+export function getIosAppStoreUrl(): string {
+  const direct = process.env.NEXT_PUBLIC_IOS_APP_STORE_URL?.trim();
+  if (direct) return direct;
+  return `https://apps.apple.com/search?term=${encodeURIComponent(IOS_APP_STORE_SEARCH_TERM)}`;
 }
 
 export const ANDROID_APK_INSTALL_STEPS = [

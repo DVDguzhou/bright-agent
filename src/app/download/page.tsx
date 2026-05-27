@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import QRCode from "qrcode";
 import { AndroidApkDownloadPanel } from "@/components/AndroidApkDownloadPanel";
 import {
@@ -8,6 +7,8 @@ import {
   ANDROID_APP_VERSION,
   getAndroidApkDownloadUrl,
   getAndroidDownloadPageUrl,
+  getIosAppStoreUrl,
+  IOS_APP_STORE_SEARCH_TERM,
 } from "@/lib/android-app-download";
 
 export const metadata: Metadata = {
@@ -18,6 +19,7 @@ export const metadata: Metadata = {
 export default async function AndroidDownloadPage() {
   const apkUrl = getAndroidApkDownloadUrl();
   const pageUrl = getAndroidDownloadPageUrl();
+  const iosAppStoreUrl = getIosAppStoreUrl();
   const qrDataUrl = await QRCode.toDataURL(pageUrl, {
     width: 280,
     margin: 2,
@@ -29,10 +31,10 @@ export default async function AndroidDownloadPage() {
       <header className="mb-8 border-b border-hairline/80 pb-8">
         <p className="text-sm font-medium text-ink-400">BrightAgent</p>
         <h1 className="mt-2 text-3xl font-bold tracking-tight text-ink sm:text-4xl">
-          下载 Android 版
+          下载 App
         </h1>
         <p className="mt-4 text-[15px] leading-relaxed text-ink-600">
-          在 Android 手机上下载并安装 BrightAgent，无需应用商店。
+          Android 可下载 APK 安装；iPhone 请前往 App Store 搜索并安装。
         </p>
       </header>
 
@@ -51,6 +53,21 @@ export default async function AndroidDownloadPage() {
         </a>
         <p className="mt-4 text-sm leading-relaxed text-ink-500">
           若在微信内打开无反应，请点右上角「⋯」→「在浏览器中打开」，再点下载。
+        </p>
+      </section>
+
+      <section className="mb-8 rounded-2xl border border-hairline bg-paper/90 p-5 shadow-sm sm:p-6">
+        <p className="text-sm font-medium text-ink-400">iPhone / iPad</p>
+        <p className="mt-1 text-lg font-semibold text-ink">{ANDROID_APP_DISPLAY_NAME}</p>
+        <p className="mt-1 text-sm text-ink-500">在 App Store 搜索「{IOS_APP_STORE_SEARCH_TERM}」</p>
+        <a
+          href={iosAppStoreUrl}
+          className="mt-5 flex w-full items-center justify-center rounded-xl border border-hairline bg-paper px-5 py-4 text-base font-semibold text-ink transition hover:border-olive-400/70"
+        >
+          打开 App Store
+        </a>
+        <p className="mt-4 text-sm leading-relaxed text-ink-500">
+          在 iPhone 上点击后会跳转到 App Store 并搜索 BrightAgent。
         </p>
       </section>
 
@@ -85,21 +102,6 @@ export default async function AndroidDownloadPage() {
           </section>
         </section>
       </div>
-
-      <footer className="mt-12 rounded-2xl border border-hairline bg-paper/80 p-6 text-sm text-ink-500">
-        <p>
-          推广链接请用：<span className="break-all text-ink-600">{pageUrl}</span>
-        </p>
-        <p className="mt-2">
-          不要让人用手机浏览器直接打开 <span className="break-all text-ink-600">.apk</span>{" "}
-          直链，部分浏览器会显示空白页。
-        </p>
-        <p className="mt-4">
-          <Link href="/life-agents" className="text-oxblood-700 hover:text-oxblood-600">
-            返回发现页
-          </Link>
-        </p>
-      </footer>
     </article>
   );
 }
