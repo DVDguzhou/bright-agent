@@ -192,15 +192,20 @@ npm run mobile:ios
 
 ### 8.1 打包并放到网站
 
-```powershell
-# 1. 打 Release APK
-npm run mobile:android:release
+**在本地 Windows 开发机打包**（推荐；需 Android Studio / JDK 17+）：
 
-# 2. 复制到 public/downloads（本地或部署前执行）
+```powershell
+npm run mobile:android:release
 npm run mobile:android:stage-apk
 ```
 
-生产环境需把 `public/downloads/brightagent.apk` 同步到服务器（或 Nginx 静态目录）。
+再把 `public/downloads/brightagent.apk` 上传到服务器（生产 ECS 通常未装 Android SDK，不建议在服务器上 `assembleRelease`）：
+
+```powershell
+scp public/downloads/brightagent.apk root@你的服务器:~/regr/public/downloads/
+```
+
+若必须在 Linux 构建机上打包，需已安装 JDK 17+、Android SDK，且把 `android/brightagent-release.keystore` 与 `android/keystore.properties` 放到该机器（勿提交 Git）。
 
 ### 8.2 分享链接
 
