@@ -49,9 +49,19 @@ type LastChange = {
 };
 
 const CO_EDIT_PENDING_VOICE_STORAGE_PREFIX = "life-agent-co-edit-pending-voice:";
+const RETRACTED_USER_MESSAGE = "你撤回了一条消息";
 
 function storageKey(id: string) {
   return `life-agent-co-edit:${id}`;
+}
+
+/** 合并服务器与本地聊天记录：本地更长时保留本地，避免 PUT 未完成时被旧快照覆盖。 */
+function pickCoEditChatHistory(serverH: ChatRow[], localH: ChatRow[]): ChatRow[] {
+  if (serverH.length === 0) return localH;
+  if (localH.length === 0) return serverH;
+  if (localH.length > serverH.length) return localH;
+  if (serverH.length > localH.length) return serverH;
+  return serverH;
 }
 
 function pendingVoicePromptKey(id: string) {
@@ -119,8 +129,10 @@ export default function LifeAgentCoEditPage() {
   const [mindScore, setMindScore] = useState<MindScoreBreakdown | null>(null);
   const [nextSuggestion, setNextSuggestion] = useState<NextSuggestion | null>(null);
   const [scoreFlash, setScoreFlash] = useState<number | null>(null);
+  const [showRetractMenu, setShowRetractMenu] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const chatHistoryRef = useRef<ChatRow[]>([]);
+  const chatHistoryHydratedForRef = useRef<string | null>(null);
   const pendingVoicePromptRef = useRef<string | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
@@ -134,6 +146,7 @@ export default function LifeAgentCoEditPage() {
     setCoEditReady(false);
     setChatHistory([]);
     setLastChange(null);
+    chatHistoryHydratedForRef.current = null;
     pendingVoicePromptRef.current = null;
     try {
       const pending = sessionStorage.getItem(pendingVoicePromptKey(id));
@@ -174,6 +187,10 @@ export default function LifeAgentCoEditPage() {
 
   useEffect(() => {
     if (!data || data.profile.id !== id) return;
+    // 只在进入本 Agent 时拉一次聊天记录；若依赖整个 data，撤回/轮询更新 profile 时会
+    // 用服务器旧快照覆盖本地，表现为「刚发的消息没了」。
+    if (chatHistoryHydratedForRef.current === id) return;
+    chatHistoryHydratedForRef.current = id;
     let cancelled = false;
     void (async () => {
       try {
@@ -194,13 +211,15 @@ export default function LifeAgentCoEditPage() {
 
         const serverH = Array.isArray(payload?.chatHistory) ? (payload!.chatHistory as ChatRow[]) : [];
         const localH = Array.isArray(localParsed?.chatHistory) ? localParsed!.chatHistory! : [];
+        const merged = pickCoEditChatHistory(serverH, localH);
 
-        if (serverH.length > 0) {
-          setChatHistory(serverH);
-          setLastChange((payload?.lastChange as LastChange | null | undefined) ?? null);
-        } else if (localH.length > 0) {
-          setChatHistory(localH);
-          setLastChange(localParsed?.lastChange ?? null);
+        if (merged.length > 0) {
+          setChatHistory(merged);
+          const lastChangePayload =
+            localH.length > serverH.length
+              ? (localParsed?.lastChange ?? null)
+              : ((payload?.lastChange as LastChange | null | undefined) ?? localParsed?.lastChange ?? null);
+          setLastChange(lastChangePayload);
         } else {
           setChatHistory([]);
           setLastChange(null);
@@ -516,6 +535,47 @@ export default function LifeAgentCoEditPage() {
     setBanner(`已收到语音指令，正在调教：${pending}`);
     void runModify(pending);
   }, [coEditReady, data, modifyLoading, runModify]);
+
+  const canRetractUserMessage = useCallback((item: ChatRow, index: number, rows: ChatRow[]) => {
+    if (item.role !== "user") return false;
+    if (item.content.includes(RETRACTED_USER_MESSAGE)) return false;
+    if (importLoading) return false;
+    const next = rows[index + 1];
+    if (next?.role === "assistant" && next.status === "pending") return false;
+    return true;
+  }, [importLoading]);
+
+  const retractUserMessage = useCallback((index: number) => {
+    const rows = chatHistoryRef.current;
+    const row = rows[index];
+    if (!row || !canRetractUserMessage(row, index, rows)) return;
+    const originalContent = row.content;
+    setChatHistory((prev) => {
+      const next = [...prev];
+      next[index] = { ...next[index], content: RETRACTED_USER_MESSAGE };
+      if (next[index + 1]?.role === "assistant") {
+        next.splice(index + 1, 1);
+      }
+      return next;
+    });
+    setLastChange((lc) => (lc?.message === originalContent ? null : lc));
+    setShowRetractMenu(null);
+    setBanner(null);
+  }, [canRetractUserMessage]);
+
+  /** 把「下一步建议」作为 Agent 提问发到对话里，而不是填进输入框。 */
+  const postNextSuggestionQuestion = useCallback(() => {
+    if (!nextSuggestion || modifyLoading || importLoading) return;
+    const question = nextSuggestion.prompt.trim() || nextSuggestion.title.trim();
+    if (!question) return;
+    setChatHistory((prev) => [...prev, { role: "assistant", content: question }]);
+    setNextSuggestion(null);
+    setBanner(null);
+    window.setTimeout(() => {
+      endRef.current?.scrollIntoView({ behavior: "smooth" });
+      inputRef.current?.focus();
+    }, 80);
+  }, [nextSuggestion, modifyLoading, importLoading]);
 
   const undoLastChange = async () => {
     if (!lastChange) return;
@@ -987,7 +1047,18 @@ export default function LifeAgentCoEditPage() {
                     className="h-8 w-8 shrink-0 rounded-full object-cover ring-2 ring-paper shadow-sm"
                   />
                 ) : null}
-                <div className={getChatBubbleClassName(item.role)}>
+                <div
+                  className={getChatBubbleClassName(item.role)}
+                  onContextMenu={
+                    item.role === "user"
+                      ? (e) => {
+                          if (!canRetractUserMessage(item, index, chatHistory)) return;
+                          e.preventDefault();
+                          setShowRetractMenu(index);
+                        }
+                      : undefined
+                  }
+                >
                   {item.role === "assistant" && item.status === "pending" ? (
                     <div className="flex items-center gap-2">
                       <AgentTypingIndicator />
@@ -1037,11 +1108,8 @@ export default function LifeAgentCoEditPage() {
                     <p className="mt-1 text-xs leading-5 text-ink-500">{nextSuggestion.reason}</p>
                     <button
                       type="button"
-                      onClick={() => {
-                        setModifyInput(nextSuggestion.prompt);
-                        window.setTimeout(() => inputRef.current?.focus(), 0);
-                      }}
-                      disabled={modifyLoading}
+                      onClick={() => postNextSuggestionQuestion()}
+                      disabled={modifyLoading || importLoading}
                       className="mt-2 rounded-full bg-oxblood px-4 py-1.5 text-xs font-semibold text-paper disabled:opacity-50"
                     >
                       继续调教
@@ -1119,6 +1187,39 @@ export default function LifeAgentCoEditPage() {
           loading={importLoading}
           agentId={id}
         />
+      ) : null}
+
+      {showRetractMenu != null ? (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-ink/60 sm:items-center"
+          onClick={() => setShowRetractMenu(null)}
+        >
+          <div
+            className="w-full max-w-sm rounded-t-2xl bg-paper p-4 shadow-xl sm:rounded-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-4 text-center text-sm font-semibold text-ink">撤回消息</div>
+            <p className="mb-4 text-center text-xs text-ink-400">
+              仅隐藏本条对话；若已改 Agent 资料，请用上方「撤回上次修改」恢复。
+            </p>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setShowRetractMenu(null)}
+                className="flex-1 rounded-xl bg-paper-200 px-4 py-3 text-sm font-medium text-ink-600 transition hover:bg-paper-300"
+              >
+                取消
+              </button>
+              <button
+                type="button"
+                onClick={() => retractUserMessage(showRetractMenu)}
+                className="flex-1 rounded-xl bg-oxblood-500 px-4 py-3 text-sm font-medium text-paper transition hover:bg-oxblood-600"
+              >
+                撤回
+              </button>
+            </div>
+          </div>
+        </div>
       ) : null}
     </div>
   );
