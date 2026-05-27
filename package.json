@@ -23,6 +23,8 @@
     "db:studio": "prisma studio",
     "mobile:sync": "npx cap sync",
     "mobile:android": "npx cap open android",
+    "mobile:android:release": "powershell -ExecutionPolicy Bypass -File scripts/mobile/build-android-release.ps1",
+    "mobile:android:release:aab": "powershell -ExecutionPolicy Bypass -File scripts/mobile/build-android-release.ps1 -Format aab",
     "mobile:ios": "npx cap open ios",
     "mobile": "npx cap sync && echo 请用 npm run mobile:android 或 mobile:ios 打开 IDE 打包"
   },
