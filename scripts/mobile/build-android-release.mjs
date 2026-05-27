@@ -36,34 +36,54 @@ if (!existsSync(keystoreFile)) {
   fail("Missing android/brightagent-release.keystore");
 }
 
+function getJavaMajorVersion(javaHome) {
+  const javaBin = path.join(javaHome, "bin", isWin ? "java.exe" : "java");
+  if (!existsSync(javaBin)) return 0;
+  const result = spawnSync(javaBin, ["-version"], { encoding: "utf8" });
+  const text = `${result.stderr || ""}${result.stdout || ""}`;
+  const match = text.match(/version "(\d+)/);
+  if (!match) return 0;
+  const major = Number(match[1]);
+  return major === 1 ? 8 : major;
+}
+
+function applyJavaHome(javaHome) {
+  process.env.JAVA_HOME = javaHome;
+  const bin = path.join(javaHome, "bin");
+  const sep = isWin ? ";" : ":";
+  process.env.PATH = `${bin}${sep}${process.env.PATH}`;
+  console.log(`JAVA_HOME=${process.env.JAVA_HOME}`);
+}
+
 function configureJavaHome() {
-  if (process.env.JAVA_HOME) {
-    console.log(`JAVA_HOME=${process.env.JAVA_HOME}`);
-    return;
-  }
+  const candidates = [];
 
   if (isWin) {
-    const androidStudioJbr = "C:\\Program Files\\Android\\Android Studio\\jbr";
-    if (existsSync(androidStudioJbr)) {
-      process.env.JAVA_HOME = androidStudioJbr;
-      process.env.PATH = `${path.join(androidStudioJbr, "bin")};${process.env.PATH}`;
-      console.log(`JAVA_HOME=${process.env.JAVA_HOME}`);
-    }
-    return;
+    candidates.push("C:\\Program Files\\Android\\Android Studio\\jbr");
+  } else {
+    candidates.push(
+      "/usr/lib/jvm/java-21-openjdk-amd64",
+      "/usr/lib/jvm/java-17-openjdk-amd64",
+      "/usr/lib/jvm/java-17-openjdk",
+    );
   }
 
-  const linuxCandidates = [
-    "/usr/lib/jvm/java-21-openjdk-amd64",
-    "/usr/lib/jvm/java-17-openjdk-amd64",
-    "/usr/lib/jvm/java-17-openjdk",
-  ];
-  for (const candidate of linuxCandidates) {
-    if (existsSync(candidate)) {
-      process.env.JAVA_HOME = candidate;
-      process.env.PATH = `${path.join(candidate, "bin")}:${process.env.PATH}`;
-      console.log(`JAVA_HOME=${process.env.JAVA_HOME}`);
+  if (process.env.JAVA_HOME && existsSync(process.env.JAVA_HOME)) {
+    candidates.unshift(process.env.JAVA_HOME);
+  }
+
+  for (const candidate of candidates) {
+    if (!existsSync(candidate)) continue;
+    const major = getJavaMajorVersion(candidate);
+    if (major >= 17) {
+      applyJavaHome(candidate);
       return;
     }
+  }
+
+  if (process.env.JAVA_HOME) {
+    console.log(`JAVA_HOME=${process.env.JAVA_HOME}`);
+    console.warn("Warning: Java 17+ is required for Android Gradle Plugin.");
   }
 }
 
@@ -93,7 +113,11 @@ const gradle = isWin
 const gradleTask = format === "aab" ? "bundleRelease" : "assembleRelease";
 
 console.log(`Building release ${format.toUpperCase()}...`);
-run(gradle, [gradleTask, "--no-daemon"], { cwd: androidDir, shell: false });
+if (isWin) {
+  run("cmd", ["/c", gradle, gradleTask, "--no-daemon"], { cwd: androidDir, shell: false });
+} else {
+  run(gradle, [gradleTask, "--no-daemon"], { cwd: androidDir, shell: false });
+}
 
 const output =
   format === "aab"

@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "postinstall": "patch-package",
+    "prepare": "node scripts/git/install-git-hooks.mjs",
     "dev": "next dev",
     "dev:web": "next dev",
     "dev:api": "node scripts/dev/dev-api.mjs",
@@ -26,6 +27,7 @@
     "mobile:android:release": "node scripts/mobile/build-android-release.mjs",
     "mobile:android:release:aab": "node scripts/mobile/build-android-release.mjs --aab",
     "mobile:android:stage-apk": "node scripts/mobile/copy-android-apk.mjs",
+    "git:install-hooks": "node scripts/git/install-git-hooks.mjs",
     "mobile:ios": "npx cap open ios",
     "mobile": "npx cap sync && echo 请用 npm run mobile:android 或 mobile:ios 打开 IDE 打包"
   },

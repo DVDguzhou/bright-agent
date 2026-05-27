@@ -35,6 +35,12 @@ public/downloads/*.apk
 *.pem
 .env
 .env*.local
+.env.production
+
+# Android signing secrets (also in android/.gitignore)
+android/keystore.properties
+android/*.keystore
+android/*.jks
 
 # Debug
 npm-debug.log*
