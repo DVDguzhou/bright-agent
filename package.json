@@ -48,6 +48,7 @@
     "leaflet.heat": "^0.2.0",
     "leaflet.markercluster": "^1.5.3",
     "next": "14.2.18",
+    "posthog-js": "^1.376.3",
     "qrcode": "^1.5.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

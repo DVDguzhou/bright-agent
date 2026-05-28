@@ -5,6 +5,7 @@ import { Nav } from "@/components/Nav";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ChunkLoadRecovery } from "@/components/ChunkLoadRecovery";
 import { RegisterSW } from "@/components/RegisterSW";
+import { PostHogProvider } from "@/components/PostHogProvider";
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
@@ -36,14 +37,16 @@ export default function RootLayout({
   return (
     <html lang="zh-CN">
       <body className="min-h-screen bg-paper text-ink font-sans antialiased overflow-x-hidden overscroll-x-none">
-        <AuthProvider>
-          <ChunkLoadRecovery />
-          <Suspense fallback={null}>
-            <Nav />
-          </Suspense>
-          <main className="container mx-auto px-4 py-3 sm:py-8 max-w-7xl relative z-10 pb-20 lg:pb-8 overflow-x-hidden">{children}</main>
-          <RegisterSW />
-        </AuthProvider>
+        <PostHogProvider>
+          <AuthProvider>
+            <ChunkLoadRecovery />
+            <Suspense fallback={null}>
+              <Nav />
+            </Suspense>
+            <main className="container mx-auto px-4 py-3 sm:py-8 max-w-7xl relative z-10 pb-20 lg:pb-8 overflow-x-hidden">{children}</main>
+            <RegisterSW />
+          </AuthProvider>
+        </PostHogProvider>
       </body>
     </html>
   );
