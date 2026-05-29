@@ -173,6 +173,18 @@ func Init(dsn string) error {
 	return ensureLifeAgentAPICallerUser(DB)
 }
 
+// Connect opens MySQL without AutoMigrate (for one-off CLI tools).
+func Connect(dsn string) error {
+	var err error
+	DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
+		Logger: logger.New(log.New(os.Stdout, "\r\n", log.LstdFlags), logger.Config{
+			SlowThreshold: time.Second,
+			LogLevel:      logger.Warn,
+		}),
+	})
+	return err
+}
+
 func ensureLifeAgentAPICallerUser(db *gorm.DB) error {
 	var n int64
 	db.Model(&models.User{}).Where("id = ?", models.LifeAgentAPICallerUserID).Count(&n)

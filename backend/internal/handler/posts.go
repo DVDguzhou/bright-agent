@@ -759,81 +759,80 @@ func triggerAgentReplyToComment(postID, profileID, userID, userComment string) {
 
 // triggerAgentReplies 根据帖子内容与 Agent ExpertiseTags 的匹配度选取相关 Agent 生成自动回复
 func triggerAgentReplies(postID string, content string) {
-	// 异步执行，避免阻塞主流程
 	go func() {
-		var cfg *config.Config
-		if config := config.Load(); config != nil {
-			cfg = config
-		}
-		var profiles []models.LifeAgentProfile
-		if err := db.DB.Where("published = ?", true).Find(&profiles).Error; err != nil {
-			return
-		}
-		if len(profiles) == 0 {
-			return
-		}
-
-		// 关键词匹配：帖子内容 vs Agent ExpertiseTags
-		lowerContent := strings.ToLower(content)
-		type scored struct {
-			profile models.LifeAgentProfile
-			score   int
-		}
-		var scoredList []scored
-		for _, p := range profiles {
-			score := 0
-			for _, tag := range p.ExpertiseTags {
-				if strings.Contains(lowerContent, strings.ToLower(tag)) {
-					score++
-				}
-			}
-			if score > 0 {
-				scoredList = append(scoredList, scored{p, score})
-			}
-		}
-
-		// 按匹配度降序
-		sort.Slice(scoredList, func(i, j int) bool {
-			return scoredList[i].score > scoredList[j].score
-		})
-
-		// 随机取 3-11 个匹配的
-		maxReplies := 3 + rand.Intn(9) // 3-11
-		var selected []models.LifeAgentProfile
-		for i := 0; i < len(scoredList) && i < maxReplies; i++ {
-			selected = append(selected, scoredList[i].profile)
-		}
-
-		// Fallback：无匹配时随机选 3-11 个
-		if len(selected) == 0 {
-			if err := db.DB.Where("published = ?", true).Order("RAND()").Limit(maxReplies).Find(&selected).Error; err != nil {
-				return
-			}
-			if len(selected) == 0 {
-				return
-			}
-		}
-
-		for _, p := range selected {
-			replyText := generateAgentReply(cfg, p, content)
-			if replyText == "" {
-				// LLM调用失败，跳过该回复
-				continue
-			}
-			ar := models.PostAgentReply{
-				ID:          models.GenID(),
-				PostID:      postID,
-				ProfileID:   p.ID,
-				Content:     replyText,
-				DisplayName: p.DisplayName,
-				CreatedAt:   time.Now().Add(time.Duration(5+len(replyText)%30) * time.Second), // stagger 避免同时出现
-			}
-			_ = db.DB.Create(&ar).Error
-
-			// 更新帖子评论计数（Agent 回复也计入）
-			db.DB.Model(&models.Post{}).Where("id = ?", postID).UpdateColumn("comments_count", gorm.Expr("comments_count + 1"))
-		}
+		_, _ = TriggerAgentRepliesSync(postID, content)
 	}()
+}
+
+// TriggerAgentRepliesSync 同步生成 Agent 自动回复，返回成功写入的回复数。
+func TriggerAgentRepliesSync(postID string, content string) (int, error) {
+	cfg := config.Load()
+	var profiles []models.LifeAgentProfile
+	if err := db.DB.Where("published = ?", true).Find(&profiles).Error; err != nil {
+		return 0, err
+	}
+	if len(profiles) == 0 {
+		return 0, nil
+	}
+
+	lowerContent := strings.ToLower(content)
+	type scored struct {
+		profile models.LifeAgentProfile
+		score   int
+	}
+	var scoredList []scored
+	for _, p := range profiles {
+		score := 0
+		for _, tag := range p.ExpertiseTags {
+			if strings.Contains(lowerContent, strings.ToLower(tag)) {
+				score++
+			}
+		}
+		if score > 0 {
+			scoredList = append(scoredList, scored{p, score})
+		}
+	}
+
+	sort.Slice(scoredList, func(i, j int) bool {
+		return scoredList[i].score > scoredList[j].score
+	})
+
+	maxReplies := 3 + rand.Intn(9)
+	var selected []models.LifeAgentProfile
+	for i := 0; i < len(scoredList) && i < maxReplies; i++ {
+		selected = append(selected, scoredList[i].profile)
+	}
+
+	if len(selected) == 0 {
+		if err := db.DB.Where("published = ?", true).Order("RAND()").Limit(maxReplies).Find(&selected).Error; err != nil {
+			return 0, err
+		}
+		if len(selected) == 0 {
+			return 0, nil
+		}
+	}
+
+	created := 0
+	for _, p := range selected {
+		replyText := generateAgentReply(cfg, p, content)
+		if replyText == "" {
+			continue
+		}
+		ar := models.PostAgentReply{
+			ID:          models.GenID(),
+			PostID:      postID,
+			ProfileID:   p.ID,
+			Content:     replyText,
+			DisplayName: p.DisplayName,
+			CreatedAt:   time.Now().Add(time.Duration(5+len(replyText)%30) * time.Second),
+		}
+		if err := db.DB.Create(&ar).Error; err != nil {
+			return created, err
+		}
+		db.DB.Model(&models.Post{}).Where("id = ?", postID).UpdateColumn("comments_count", gorm.Expr("comments_count + 1"))
+		created++
+	}
+	return created, nil
 }
 
 func generateAgentReply(cfg *config.Config, profile models.LifeAgentProfile, postContent string) string {
