@@ -15,3 +15,8 @@ export function resolveCdnUrl(url: string | null | undefined): string {
   }
   return cdn ? `${cdn}/${s}` : `/${s}`;
 }
+
+/** public/ 静态资源（图标、manifest 等）的 CDN 地址 */
+export function cdnAsset(path: string): string {
+  return resolveCdnUrl(path);
+}
