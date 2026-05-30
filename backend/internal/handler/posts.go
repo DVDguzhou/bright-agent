@@ -731,7 +731,7 @@ func triggerAgentReplyToComment(postID, profileID, userID, userComment string) {
 	}
 
 	// 生成回复
-	replyText := generateAgentReply(cfg, profile, userComment)
+	replyText := generateAgentReply(cfg, profile, userComment, loadPostAgentReplyTexts(postID))
 	if replyText == "" {
 		return
 	}
@@ -805,8 +805,9 @@ func TriggerAgentRepliesSync(postID string, content string) (int, error) {
 	}
 
 	created := 0
+	var existingReplies []string
 	for _, p := range selected {
-		replyText := generateAgentReply(cfg, p, content)
+		replyText := generateAgentReply(cfg, p, content, existingReplies)
 		if replyText == "" {
 			continue
 		}
@@ -821,13 +822,26 @@ func TriggerAgentRepliesSync(postID string, content string) (int, error) {
 		if err := db.DB.Create(&ar).Error; err != nil {
 			return created, err
 		}
+		existingReplies = append(existingReplies, replyText)
 		db.DB.Model(&models.Post{}).Where("id = ?", postID).UpdateColumn("comments_count", gorm.Expr("comments_count + 1"))
 		created++
 	}
 	return created, nil
 }
 
-func generateAgentReply(cfg *config.Config, profile models.LifeAgentProfile, postContent string) string {
+func loadPostAgentReplyTexts(postID string) []string {
+	var replies []models.PostAgentReply
+	db.DB.Where("post_id = ?", postID).Order("created_at ASC").Find(&replies)
+	out := make([]string, 0, len(replies))
+	for _, r := range replies {
+		if text := strings.TrimSpace(r.Content); text != "" {
+			out = append(out, text)
+		}
+	}
+	return out
+}
+
+func generateAgentReply(cfg *config.Config, profile models.LifeAgentProfile, postContent string, existingReplies []string) string {
 	log.Printf("[AgentReply] Generating reply for agent %s, post: %s", profile.DisplayName, postContent)
 
 	if cfg == nil || cfg.OpenAIApiKey == "" {
@@ -854,6 +868,7 @@ func generateAgentReply(cfg *config.Config, profile models.LifeAgentProfile, pos
 		ExampleReplies:   profile.ExampleReplies,
 		NotSuitableFor:   safeStringPtr(profile.NotSuitableFor),
 	}
+	profileForAI = lifeagent.EnrichProfileForAI(profile.ID, profileForAI)
 
 	// 加载知识库信息
 	var entries []models.LifeAgentKnowledgeEntry
@@ -891,8 +906,15 @@ func generateAgentReply(cfg *config.Config, profile models.LifeAgentProfile, pos
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
 
-	// 在帖子内容前添加长度限制提示
-	enhancedPostContent := postContent + "\n\n(请用不超过100字回复，保持句子完整)"
+	message := lifeagent.BuildPostReplyMessage(postContent, existingReplies)
+	opts := &lifeagent.ChatOptions{
+		WorkingState: &lifeagent.WorkingState{
+			Strategy: lifeagent.Strategy{
+				PromptLengthHint: "这是社区帖子下的公开短评，70-100字，像刷朋友圈随口回一句带经历的评论。",
+				FormatRules:      lifeagent.PostReplyFormatRules(existingReplies),
+			},
+		},
+	}
 
 	content, _, err := lifeagent.BuildReplyWithLLM(
 		ctx,
@@ -905,8 +927,8 @@ func generateAgentReply(cfg *config.Config, profile models.LifeAgentProfile, pos
 		topicsForAI,
 		entriesForAI,
 		[]lifeagent.ChatMessageForAI{}, // 无历史对话
-		enhancedPostContent,
-		nil, // ChatOptions - 动态回复不需要特殊选项
+		message,
+		opts,
 	)
 
 	if err != nil || content == "" || content == "大模型出错了哦" {

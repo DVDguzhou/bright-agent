@@ -622,6 +622,21 @@ func decodeLifeAgentListCursor(s string) (time.Time, string, error) {
 }
 
 // lifeAgentListResponseItems 将一批已排序的 profile 转为广场列表 JSON（含聚合统计）。
+func sampleQuestionInputFromProfile(p *models.LifeAgentProfile) lifeagent.SampleQuestionInput {
+	return lifeagent.SampleQuestionInput{
+		DisplayName:   p.DisplayName,
+		Headline:      p.Headline,
+		ShortBio:      p.ShortBio,
+		ExpertiseTags: []string(p.ExpertiseTags),
+		Job:           ptrStr(p.Job),
+		School:        ptrStr(p.School),
+	}
+}
+
+func sampleQuestionsForDisplay(p *models.LifeAgentProfile) []string {
+	return lifeagent.DisplaySampleQuestions([]string(p.SampleQuestions), sampleQuestionInputFromProfile(p))
+}
+
 func lifeAgentListResponseItems(profiles []models.LifeAgentProfile, cfg *config.Config) []gin.H {
 	if len(profiles) == 0 {
 		return []gin.H{}
@@ -696,7 +711,7 @@ func lifeAgentListResponseItems(profiles []models.LifeAgentProfile, cfg *config.
 			"welcomeMessage":     p.WelcomeMessage,
 			"pricePerQuestion":   p.PricePerQuestion,
 			"expertiseTags":      p.ExpertiseTags,
-			"sampleQuestions":    p.SampleQuestions,
+			"sampleQuestions":    sampleQuestionsForDisplay(&p),
 			"education":          ptrStr(p.Education),
 			"income":             ptrStr(p.Income),
 			"job":                ptrStr(p.Job),
@@ -1490,7 +1505,7 @@ func LifeAgentsGet(cfg *config.Config) gin.HandlerFunc {
 			"welcomeMessage":     p.WelcomeMessage,
 			"pricePerQuestion":   p.PricePerQuestion,
 			"expertiseTags":      p.ExpertiseTags,
-			"sampleQuestions":    p.SampleQuestions,
+			"sampleQuestions":    sampleQuestionsForDisplay(&p),
 			"education":          ptrStr(p.Education),
 			"income":             ptrStr(p.Income),
 			"job":                ptrStr(p.Job),
@@ -1809,7 +1824,7 @@ func LifeAgentsUpdate(cfg *config.Config) gin.HandlerFunc {
 			"welcomeMessage":                p.WelcomeMessage,
 			"pricePerQuestion":              p.PricePerQuestion,
 			"expertiseTags":                 p.ExpertiseTags,
-			"sampleQuestions":               p.SampleQuestions,
+			"sampleQuestions":               sampleQuestionsForDisplay(&p),
 			"education":                     ptrStr(p.Education),
 			"income":                        ptrStr(p.Income),
 			"job":                           ptrStr(p.Job),
@@ -2360,7 +2375,7 @@ func buildManageProfileResp(p *models.LifeAgentProfile, entries []models.LifeAge
 		"welcomeMessage":   p.WelcomeMessage,
 		"pricePerQuestion": p.PricePerQuestion,
 		"expertiseTags":    p.ExpertiseTags,
-		"sampleQuestions":  p.SampleQuestions,
+		"sampleQuestions":  sampleQuestionsForDisplay(p),
 		"education":        ptrStr(p.Education),
 		"income":           ptrStr(p.Income),
 		"job":              ptrStr(p.Job),
@@ -2515,7 +2530,7 @@ func LifeAgentsManage(cfg *config.Config) gin.HandlerFunc {
 				"welcomeMessage":                p.WelcomeMessage,
 				"pricePerQuestion":              p.PricePerQuestion,
 				"expertiseTags":                 p.ExpertiseTags,
-				"sampleQuestions":               p.SampleQuestions,
+				"sampleQuestions":               sampleQuestionsForDisplay(&p),
 				"education":                     ptrStr(p.Education),
 				"income":                        ptrStr(p.Income),
 				"job":                           ptrStr(p.Job),

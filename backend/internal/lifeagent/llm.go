@@ -848,7 +848,12 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 	}
 
 	// ─── 策略层：把感知 + 画像 翻译成确定性的 PromptLengthHint + FormatRules ───
-	strategy := DeriveStrategy(ws, profile)
+	var strategy Strategy
+	if strings.TrimSpace(ws.Strategy.PromptLengthHint) != "" || len(ws.Strategy.FormatRules) > 0 {
+		strategy = ws.Strategy
+	} else {
+		strategy = DeriveStrategy(ws, profile)
+	}
 	// 把 ws 回写 opts，确保 buildDraftKnowledgeContext 能读到 Perception / Episodes
 	opts.WorkingState = ws
 
