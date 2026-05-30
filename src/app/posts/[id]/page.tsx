@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { LifeAgentCoverImage } from "@/components/LifeAgentCoverImage";
 import { UserAvatar } from "@/components/UserAvatar";
 import { DEFAULT_COVER_URL, normalizeLifeAgentCoverImgSrc } from "@/lib/life-agent-covers";
+import { resolveCdnUrl } from "@/lib/cdn";
 
 interface CommentItem {
   id: string;
@@ -233,7 +234,7 @@ export default function PostDetailPage() {
           <div className={`mt-3 grid gap-2 ${post.images.length === 1 ? "grid-cols-1" : post.images.length === 2 ? "grid-cols-2" : "grid-cols-3"}`}>
             {post.images.map((src, idx) => (
               <div key={idx} className="relative aspect-square overflow-hidden rounded-lg bg-paper-50">
-                <img src={src} alt="" className="h-full w-full object-cover" loading="lazy" />
+                <img src={resolveCdnUrl(src)} alt="" className="h-full w-full object-cover" loading="lazy" />
               </div>
             ))}
           </div>

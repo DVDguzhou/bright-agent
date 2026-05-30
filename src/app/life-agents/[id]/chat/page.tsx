@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
+import { FormEvent, MouseEvent, TouchEvent, useCallback, useEffect, useRef, useState } from "react";
 import { cleanLifeAgentIntroMultiline, cleanLifeAgentIntroText } from "@/lib/life-agent-intro-clean";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -121,7 +121,11 @@ export default function LifeAgentChatPage() {
     viewportRef.current?.scrollTo({ top: viewportRef.current.scrollHeight, behavior: "smooth" });
   };
 
-  const dismissKeyboard = () => {
+  const dismissKeyboard = (e?: MouseEvent<HTMLElement> | TouchEvent<HTMLElement>) => {
+    if (e) {
+      const target = e.target as HTMLElement;
+      if (target.closest("input, textarea, button, a, select, [contenteditable='true']")) return;
+    }
     const el = document.activeElement as HTMLElement | null;
     if (el?.matches?.("input, textarea")) el.blur();
   };
@@ -873,7 +877,7 @@ export default function LifeAgentChatPage() {
         <div
           ref={viewportRef}
           className={`min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-3 sm:px-6 sm:py-5 ${CHAT_SCROLL_SURFACE_CLASSNAME}`}
-          onClick={dismissKeyboard}
+          onClick={(e) => dismissKeyboard(e)}
           role="presentation"
         >
           <div className="mx-auto max-w-3xl space-y-4">
@@ -990,7 +994,11 @@ export default function LifeAgentChatPage() {
                       {selectedFeedback[message.messageId!] &&
                         selectedFeedback[message.messageId!] !== "helpful" &&
                         !commentSubmitted[message.messageId!] && (
-                          <div className="flex items-start gap-2">
+                          <div
+                            className="flex items-start gap-2"
+                            onClick={(e) => e.stopPropagation()}
+                            onTouchStart={(e) => e.stopPropagation()}
+                          >
                             <textarea
                               placeholder="说说哪里不对？你的反馈会帮助创建者改进..."
                               value={feedbackComment[message.messageId!] || ""}

@@ -1,3 +1,5 @@
+import { resolveCdnUrl } from "@/lib/cdn";
+
 function hashSeed(input: string): number {
   let hash = 0;
   for (let i = 0; i < input.length; i += 1) {
@@ -63,6 +65,6 @@ export function getDisplayAvatar(params: {
   name?: string | null;
   email?: string | null;
 }): string {
-  if (params.avatarUrl && params.avatarUrl.trim()) return params.avatarUrl;
+  if (params.avatarUrl && params.avatarUrl.trim()) return resolveCdnUrl(params.avatarUrl);
   return buildDefaultAvatarDataUrl(params.name, params.email);
 }

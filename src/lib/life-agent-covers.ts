@@ -1,3 +1,5 @@
+import { resolveCdnUrl } from "@/lib/cdn";
+
 /** 与 backend lifeAgentDefaultCoverURL 一致：接口仍可能返回 PNG 路径；前端优先用自包含 SVG，避免 CDN/代理对 PNG 的 Range 响应异常（如 206 + Content-Length 错位） */
 export const DEFAULT_COVER_PNG_URL = "/life-agent-cover-presets/default-cover.png";
 
@@ -44,10 +46,10 @@ export function nextLifeAgentCoverFallbackSrc(current: string): string {
  */
 export function normalizeLifeAgentCoverImgSrc(src: string | null | undefined): string {
   const s = (src ?? "").trim();
-  if (!s) return DEFAULT_COVER_URL;
+  if (!s) return resolveCdnUrl(DEFAULT_COVER_URL);
   if (s.startsWith("data:image/")) return s;
-  if (isLifeAgentDefaultCoverUrl(s)) return DEFAULT_COVER_URL;
-  return s;
+  if (isLifeAgentDefaultCoverUrl(s)) return resolveCdnUrl(DEFAULT_COVER_URL);
+  return resolveCdnUrl(s);
 }
 
 /**
@@ -66,9 +68,9 @@ export function resolveLifeAgentCoverUrl(coverImageUrl?: string | null, coverPre
   if (img) return normalizeLifeAgentCoverImgSrc(img);
   const preset = (coverPresetKey ?? "").trim();
   if (preset && SHIPPED_LIFE_AGENT_PRESET_PNG_KEYS.has(preset)) {
-    return `/life-agent-cover-presets/${preset}.png`;
+    return resolveCdnUrl(`/life-agent-cover-presets/${preset}.png`);
   }
-  return DEFAULT_COVER_URL;
+  return resolveCdnUrl(DEFAULT_COVER_URL);
 }
 
 /**

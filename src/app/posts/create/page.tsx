@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { UserAvatar } from "@/components/UserAvatar";
+import { resolveCdnUrl } from "@/lib/cdn";
 
 const MAX_CONTENT_LENGTH = 2000;
 
@@ -173,7 +174,7 @@ export default function PostsCreatePage() {
           <div className={`mt-2 grid gap-2 ${images.length === 1 ? "grid-cols-1" : images.length === 2 ? "grid-cols-2" : "grid-cols-3"}`}>
             {images.map((src, idx) => (
               <div key={idx} className="relative aspect-square overflow-hidden rounded-lg bg-paper-50">
-                <img src={src} alt="" className="h-full w-full object-cover" />
+                <img src={resolveCdnUrl(src)} alt="" className="h-full w-full object-cover" />
                 <button
                   type="button"
                   onClick={() => setImages((prev) => prev.filter((_, i) => i !== idx))}

@@ -1,6 +1,11 @@
 /** @type {import('next').NextConfig} */
+const cdnOrigin = (process.env.NEXT_PUBLIC_CDN_URL ?? "").replace(/\/+$/, "");
+
 const nextConfig = {
   output: "standalone", // Docker 部署需要
+  // JS/CSS/图片等构建产物走 CDN；须等 CDN 域名「正常运行」且 HTTPS 就绪后再配置 NEXT_PUBLIC_CDN_URL 并构建
+  ...(cdnOrigin ? { assetPrefix: cdnOrigin } : {}),
+  // 用户上传图片 URL 解析见 src/lib/cdn.ts
   // 前后端分离：/api 请求代理到 Go 后端
   async rewrites() {
     const apiTarget = process.env.API_BACKEND_URL || "http://localhost:8080";

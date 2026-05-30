@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { UserAvatar } from "@/components/UserAvatar";
 import { PostCommentPreviewList, type PostCommentPreviewItem } from "@/components/PostCommentPreviewList";
+import { resolveCdnUrl } from "@/lib/cdn";
 
 interface ApiPost {
   id: string;
@@ -346,7 +347,7 @@ export default function PostsPage() {
                   {post.images.slice(0, 3).map((src, idx) => (
                     <div key={idx} className="relative aspect-square overflow-hidden rounded-lg bg-paper-50">
                       <img
-                        src={src}
+                        src={resolveCdnUrl(src)}
                         alt=""
                         className="h-full w-full object-cover"
                         loading="lazy"

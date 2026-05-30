@@ -26,7 +26,12 @@ function getCookieHeader() {
 function absUrl(path) {
   if (!path) return "";
   if (path.startsWith("http://") || path.startsWith("https://")) return path;
-  return `${config.API_BASE}${path.startsWith("/") ? path : `/${path}`}`;
+  const isUpload =
+    path.startsWith("/api/upload/life-agent-cover/") ||
+    path.startsWith("/uploads/life-agent-covers/") ||
+    path.startsWith("/life-agent-cover-presets/");
+  const base = isUpload && config.CDN_BASE ? config.CDN_BASE : config.API_BASE;
+  return `${base}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
 function request(options) {
