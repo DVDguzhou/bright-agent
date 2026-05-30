@@ -240,7 +240,7 @@ export default function SignupPage() {
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium text-ink-700">头像</p>
               <p className="mt-1 text-xs leading-5 text-ink-400">
-                可上传你的头像；如果不上传，系统会自动生成一个默认头像。
+                可上传你的头像；如果不上传，将使用默认头像。
               </p>
               <div className="mt-3 flex flex-wrap gap-2">
                 <button

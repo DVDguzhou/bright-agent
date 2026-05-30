@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { LifeAgentCoverImage } from "@/components/LifeAgentCoverImage";
 import { getDisplayAvatar } from "@/lib/avatar";
 import { compressImageFileToJpeg } from "@/lib/compress-image";
 
@@ -150,7 +149,7 @@ export function ProfileAvatarEditor({
         aria-label="更换头像"
         title="更换头像（同步更新人生 Agent 封面）"
       >
-        <LifeAgentCoverImage src={displaySrc} alt="" fill compact className="object-cover" sizes="64px" />
+        <img src={displaySrc} alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" decoding="async" />
         <span className="absolute bottom-0 right-0 flex h-5 w-5 items-center justify-center rounded-full bg-paper shadow ring-1 ring-hairline/60 sm:hidden">
           <svg className="h-3 w-3 text-ink-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden>
             <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />

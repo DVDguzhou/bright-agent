@@ -68,7 +68,7 @@ func main() {
 
 	cfg := config.Load()
 	if cfg == nil || cfg.OpenAIApiKey == "" {
-		log.Println("warning: OPENAI_API_KEY not set; agent replies will use simple templates only")
+		log.Println("warning: OPENAI_API_KEY not set; agent replies will be skipped")
 	}
 
 	var posts []postRow

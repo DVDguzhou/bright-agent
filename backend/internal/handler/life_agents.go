@@ -147,6 +147,66 @@ func lifeAgentCoverURL(p *models.LifeAgentProfile) string {
 	return lifeAgentDefaultCoverURL
 }
 
+// userDisplayAvatarURL 用户展示头像：与名下 Agent 封面绑定，始终返回 Agent 封面。
+func userDisplayAvatarURL(userID string, _ *string) string {
+	var p models.LifeAgentProfile
+	if err := db.DB.Where("user_id = ?", userID).Order("published DESC, updated_at DESC").First(&p).Error; err != nil {
+		return lifeAgentDefaultCoverURL
+	}
+	return lifeAgentCoverURL(&p)
+}
+
+// SyncPrimaryAgentCoverToUserAvatar 将主 Agent 封面同步到 users.avatar_url。
+func SyncPrimaryAgentCoverToUserAvatar(userID string) error {
+	var p models.LifeAgentProfile
+	err := db.DB.Where("user_id = ?", userID).Order("published DESC, updated_at DESC").First(&p).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return db.DB.Model(&models.User{}).Where("id = ?", userID).Update("avatar_url", nil).Error
+		}
+		return err
+	}
+	resolved := lifeAgentCoverURL(&p)
+	return db.DB.Model(&models.User{}).Where("id = ?", userID).Update("avatar_url", resolved).Error
+}
+
+// buildUserDisplayAvatarMap 批量解析用户展示头像（与 Agent 封面绑定）。
+func buildUserDisplayAvatarMap(userIDs []string) map[string]string {
+	out := make(map[string]string, len(userIDs))
+	if len(userIDs) == 0 {
+		return out
+	}
+	uniq := make([]string, 0, len(userIDs))
+	seen := make(map[string]bool, len(userIDs))
+	for _, id := range userIDs {
+		if id == "" || seen[id] {
+			continue
+		}
+		seen[id] = true
+		uniq = append(uniq, id)
+	}
+	if len(uniq) == 0 {
+		return out
+	}
+
+	var agents []models.LifeAgentProfile
+	db.DB.Where("user_id IN ?", uniq).Order("published DESC, updated_at DESC").Find(&agents)
+	picked := make(map[string]bool, len(uniq))
+	for _, a := range agents {
+		if picked[a.UserID] {
+			continue
+		}
+		picked[a.UserID] = true
+		out[a.UserID] = lifeAgentCoverURL(&a)
+	}
+	for _, id := range uniq {
+		if _, ok := out[id]; !ok {
+			out[id] = lifeAgentDefaultCoverURL
+		}
+	}
+	return out
+}
+
 // buildFeedbackSignals 从 DB 聚合该 Agent 的反馈信号，用于 Feedback-Aware Retrieval。
 // 按 source_refs 中的 topicID / entryID 归类反馈计数。
 func buildFeedbackSignals(profileID string) *lifeagent.FeedbackSignals {
@@ -912,6 +972,14 @@ func LifeAgentsCreate(cfg *config.Config) gin.HandlerFunc {
 		if coverImgPtr != nil {
 			coverPresetPtr = nil
 		}
+		if coverImgPtr == nil && coverPresetPtr == nil {
+			var owner models.User
+			if db.DB.Select("avatar_url").Where("id = ?", user.ID).First(&owner).Error == nil &&
+				owner.AvatarURL != nil && strings.TrimSpace(*owner.AvatarURL) != "" {
+				s := strings.TrimSpace(*owner.AvatarURL)
+				coverImgPtr = &s
+			}
+		}
 		p := models.LifeAgentProfile{
 			ID:                 profileID,
 			UserID:             user.ID,
@@ -986,6 +1054,9 @@ func LifeAgentsCreate(cfg *config.Config) gin.HandlerFunc {
 			}
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "INTERNAL_ERROR"})
 			return
+		}
+		if err := SyncPrimaryAgentCoverToUserAvatar(user.ID); err != nil {
+			log.Printf("life-agents create: sync cover to user avatar user=%s: %v", user.ID, err)
 		}
 		refreshLifeAgentStructuredFacts(profileID)
 		refreshLifeAgentTopicSummaries(profileID)
@@ -1669,6 +1740,9 @@ func LifeAgentsUpdate(cfg *config.Config) gin.HandlerFunc {
 			if err := db.DB.Model(&p).Updates(coverUpdates).Error; err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "INTERNAL_ERROR"})
 				return
+			}
+			if err := SyncPrimaryAgentCoverToUserAvatar(p.UserID); err != nil {
+				log.Printf("life-agents update: sync cover to user avatar user=%s: %v", p.UserID, err)
 			}
 		}
 		if body.KnowledgeEntries != nil {

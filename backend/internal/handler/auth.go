@@ -50,7 +50,7 @@ func Login(cfg *config.Config) gin.HandlerFunc {
 				"id":        u.ID,
 				"email":     u.Email,
 				"name":      u.Name,
-				"avatarUrl": u.AvatarURL,
+				"avatarUrl": userDisplayAvatarURL(u.ID, u.AvatarURL),
 				"roleFlags": u.RoleFlags,
 			},
 		})
@@ -141,7 +141,7 @@ func Signup(cfg *config.Config) gin.HandlerFunc {
 				"id":        u.ID,
 				"email":     u.Email,
 				"name":      u.Name,
-				"avatarUrl": u.AvatarURL,
+				"avatarUrl": userDisplayAvatarURL(u.ID, u.AvatarURL),
 				"roleFlags": u.RoleFlags,
 			},
 		})
@@ -160,7 +160,7 @@ func Me(cfg *config.Config) gin.HandlerFunc {
 			"email":     user.Email,
 			"phone":     user.Phone,
 			"name":      user.Name,
-			"avatarUrl": user.AvatarURL,
+			"avatarUrl": userDisplayAvatarURL(user.ID, user.AvatarURL),
 			"roleFlags": user.RoleFlags,
 		})
 	}
@@ -266,6 +266,9 @@ func UpdateMe(cfg *config.Config) gin.HandlerFunc {
 			if err := syncUserAvatarToLifeAgents(user.ID, syncedAvatar); err != nil {
 				log.Printf("update me: sync avatar to life agents user=%s: %v", user.ID, err)
 			}
+			if err := SyncPrimaryAgentCoverToUserAvatar(user.ID); err != nil {
+				log.Printf("update me: sync agent cover to user avatar user=%s: %v", user.ID, err)
+			}
 		}
 
 		var u models.User
@@ -278,7 +281,7 @@ func UpdateMe(cfg *config.Config) gin.HandlerFunc {
 			"email":     u.Email,
 			"phone":     u.Phone,
 			"name":      u.Name,
-			"avatarUrl": u.AvatarURL,
+			"avatarUrl": userDisplayAvatarURL(u.ID, u.AvatarURL),
 			"roleFlags": u.RoleFlags,
 		})
 	}

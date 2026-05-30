@@ -1,6 +1,5 @@
 "use client";
 
-import { LifeAgentCoverImage } from "@/components/LifeAgentCoverImage";
 import { getDisplayAvatar } from "@/lib/avatar";
 
 type UserAvatarProps = {
@@ -23,16 +22,9 @@ export function UserAvatar({
 
   return (
     <div
-      className={`relative ${box} shrink-0 overflow-hidden rounded-full bg-gradient-to-br from-[#FFF176] to-[#FF80AB] ring-2 ring-paper ${className}`.trim()}
+      className={`relative ${box} shrink-0 overflow-hidden rounded-full bg-paper-100 ring-2 ring-paper ${className}`.trim()}
     >
-      <LifeAgentCoverImage
-        src={src}
-        alt=""
-        fill
-        compact
-        className="object-cover"
-        sizes={size === "sm" ? "32px" : "36px"}
-      />
+      <img src={src} alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" decoding="async" />
     </div>
   );
 }

@@ -50,14 +50,13 @@ function PostCommentPreviewRow({ comment }: { comment: PostCommentPreviewItem })
           />
         </Link>
       ) : (
-        <div className="relative mt-0.5 h-6 w-6 shrink-0 overflow-hidden rounded-full bg-gradient-to-br from-ink-300 to-oxblood">
-          <LifeAgentCoverImage
+        <div className="relative mt-0.5 h-6 w-6 shrink-0 overflow-hidden rounded-full bg-paper-100 ring-1 ring-hairline/25">
+          <img
             src={getDisplayAvatar({ avatarUrl: comment.authorAvatarUrl, name: comment.authorName })}
             alt=""
-            fill
-            compact
-            className="object-cover"
-            sizes="24px"
+            className="h-full w-full object-cover"
+            loading="lazy"
+            decoding="async"
           />
         </div>
       )}

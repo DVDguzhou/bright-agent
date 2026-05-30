@@ -164,6 +164,10 @@ func WeChatCallback(cfg *config.Config) gin.HandlerFunc {
 			}
 			if len(updates) > 0 {
 				_ = db.DB.Model(&models.User{}).Where("id = ?", u.ID).Updates(updates).Error
+				if headImg != "" {
+					img := headImg
+					_ = syncUserAvatarToLifeAgents(u.ID, &img)
+				}
 			}
 			setSessionCookie(c, cfg, u.ID)
 			redirectToFrontend(c, cfg, "")

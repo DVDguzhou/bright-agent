@@ -112,13 +112,6 @@ func authorNameFromUser(u models.User) string {
 	return "用户"
 }
 
-func authorAvatarURLFromUser(u models.User) string {
-	if u.AvatarURL != nil {
-		return strings.TrimSpace(*u.AvatarURL)
-	}
-	return ""
-}
-
 func likedPostIDs(userID string, postIDs []string) map[string]bool {
 	liked := make(map[string]bool)
 	if userID == "" || len(postIDs) == 0 {
@@ -164,6 +157,7 @@ func buildPreviewCommentsForPosts(postIDs []string, limit int) map[string][]comm
 		commentUserIDs = append(commentUserIDs, cc.UserID)
 	}
 	commentUserMap := buildUserMap(commentUserIDs)
+	commentAvatarMap := buildUserDisplayAvatarMap(commentUserIDs)
 
 	agentProfileIDs := make([]string, 0, len(agentReplies))
 	for _, ar := range agentReplies {
@@ -177,8 +171,8 @@ func buildPreviewCommentsForPosts(postIDs []string, limit int) map[string][]comm
 		cAvatar := ""
 		if cu, ok := commentUserMap[cc.UserID]; ok {
 			cAuthor = authorNameFromUser(cu)
-			cAvatar = authorAvatarURLFromUser(cu)
 		}
+		cAvatar = commentAvatarMap[cc.UserID]
 		byPost[cc.PostID] = append(byPost[cc.PostID], commentPreviewItem{
 			createdAt: cc.CreatedAt,
 			resp: commentResponse{
@@ -300,6 +294,7 @@ func PostsList(cfg *config.Config) gin.HandlerFunc {
 			userIDs = append(userIDs, p.UserID)
 		}
 		userMap := buildUserMap(userIDs)
+		avatarMap := buildUserDisplayAvatarMap(userIDs)
 
 		// 当前用户点赞状态
 		currentUser := middleware.MustGetUser(c)
@@ -315,11 +310,10 @@ func PostsList(cfg *config.Config) gin.HandlerFunc {
 			u, ok := userMap[p.UserID]
 			authorName := "用户"
 			authorEmail := ""
-			authorAvatarUrl := ""
+			authorAvatarUrl := avatarMap[p.UserID]
 			if ok {
 				authorName = authorNameFromUser(u)
 				authorEmail = u.Email
-				authorAvatarUrl = authorAvatarURLFromUser(u)
 			}
 			resp = append(resp, postResponse{
 				ID:              p.ID,
@@ -382,22 +376,21 @@ func PostsGet(cfg *config.Config) gin.HandlerFunc {
 			commentUserIDs = append(commentUserIDs, cc.UserID)
 		}
 		commentUserMap := buildUserMap(commentUserIDs)
+		commentAvatarMap := buildUserDisplayAvatarMap(append(commentUserIDs, post.UserID))
 
 		commentResp := make([]commentResponse, 0, len(comments))
 		for _, cc := range comments {
 			cu, ok := commentUserMap[cc.UserID]
 			cAuthor := "用户"
-			cAvatar := ""
 			if ok {
 				cAuthor = authorNameFromUser(cu)
-				cAvatar = authorAvatarURLFromUser(cu)
 			}
 			commentResp = append(commentResp, commentResponse{
 				ID:              cc.ID,
 				Content:         cc.Content,
 				AuthorName:      cAuthor,
 				AuthorID:        cc.UserID,
-				AuthorAvatarUrl: cAvatar,
+				AuthorAvatarUrl: commentAvatarMap[cc.UserID],
 				CreatedAt:       cc.CreatedAt.Format(time.RFC3339),
 				IsAgentReply:    false,
 			})
@@ -435,7 +428,7 @@ func PostsGet(cfg *config.Config) gin.HandlerFunc {
 			AuthorName:      authorName,
 			AuthorEmail:     author.Email,
 			AuthorID:        post.UserID,
-			AuthorAvatarUrl: authorAvatarURLFromUser(author),
+			AuthorAvatarUrl: commentAvatarMap[post.UserID],
 			CreatedAt:       post.CreatedAt.Format(time.RFC3339),
 			UpdatedAt:       post.UpdatedAt.Format(time.RFC3339),
 			Likes:           post.Likes,
@@ -656,22 +649,21 @@ func PostsCommentsList(cfg *config.Config) gin.HandlerFunc {
 			userIDs = append(userIDs, cc.UserID)
 		}
 		userMap := buildUserMap(userIDs)
+		avatarMap := buildUserDisplayAvatarMap(userIDs)
 
 		resp := make([]commentResponse, 0, len(comments))
 		for _, cc := range comments {
 			cu, ok := userMap[cc.UserID]
 			cAuthor := "用户"
-			cAvatar := ""
 			if ok {
 				cAuthor = authorNameFromUser(cu)
-				cAvatar = authorAvatarURLFromUser(cu)
 			}
 			resp = append(resp, commentResponse{
 				ID:              cc.ID,
 				Content:         cc.Content,
 				AuthorName:      cAuthor,
 				AuthorID:        cc.UserID,
-				AuthorAvatarUrl: cAvatar,
+				AuthorAvatarUrl: avatarMap[cc.UserID],
 				CreatedAt:       cc.CreatedAt.Format(time.RFC3339),
 			})
 		}
@@ -838,10 +830,9 @@ func TriggerAgentRepliesSync(postID string, content string) (int, error) {
 func generateAgentReply(cfg *config.Config, profile models.LifeAgentProfile, postContent string) string {
 	log.Printf("[AgentReply] Generating reply for agent %s, post: %s", profile.DisplayName, postContent)
 
-	// 如果没有配置LLM，使用简单模板
 	if cfg == nil || cfg.OpenAIApiKey == "" {
-		log.Printf("[AgentReply] LLM not configured (cfg=%v, apiKey=%s), using simple template", cfg != nil, cfg.OpenAIApiKey)
-		return generateSimpleReply(profile.DisplayName, postContent)
+		log.Printf("[AgentReply] LLM not configured, skipping reply for agent %s", profile.DisplayName)
+		return ""
 	}
 
 	log.Printf("[AgentReply] LLM configured, model=%s, baseURL=%s", cfg.OpenAIModel, cfg.OpenAIBaseURL)
@@ -876,9 +867,8 @@ func generateAgentReply(cfg *config.Config, profile models.LifeAgentProfile, pos
 
 	log.Printf("[AgentReply] Loaded knowledge: %d entries, %d facts, %d topics", len(entries), len(facts), len(topics))
 
-	// 如果没有相关知识，跳过该Agent
 	if len(entries) == 0 && len(facts) == 0 && len(topics) == 0 {
-		log.Printf("[AgentReply] No knowledge available for agent %s, skipping reply", profile.DisplayName)
+		log.Printf("[AgentReply] No knowledge for agent %s, skipping reply", profile.DisplayName)
 		return ""
 	}
 
@@ -921,7 +911,6 @@ func generateAgentReply(cfg *config.Config, profile models.LifeAgentProfile, pos
 
 	if err != nil || content == "" || content == "大模型出错了哦" {
 		log.Printf("[AgentReply] LLM call failed: err=%v, content=%s, skipping reply", err, content)
-		// LLM调用失败，返回空字符串，调用处会跳过该回复
 		return ""
 	}
 
@@ -935,14 +924,6 @@ func generateAgentReply(cfg *config.Config, profile models.LifeAgentProfile, pos
 	}
 
 	return content
-}
-
-func generateSimpleReply(agentName string, content string) string {
-	// 极简单的回复模板，LLM不可用时的回退
-	if len(content) > 50 {
-		return agentName + " 看到了你的分享，想和你深入聊聊这个话题。点击上方头像可以开始对话。"
-	}
-	return agentName + " 很感兴趣，想听听更多细节。"
 }
 
 func safeStringPtr(s *string) string {

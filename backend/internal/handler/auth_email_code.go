@@ -105,7 +105,7 @@ func EmailVerify(cfg *config.Config) gin.HandlerFunc {
 				"email":     u.Email,
 				"phone":     phone,
 				"name":      u.Name,
-				"avatarUrl": u.AvatarURL,
+				"avatarUrl": userDisplayAvatarURL(u.ID, u.AvatarURL),
 				"roleFlags": u.RoleFlags,
 			},
 		})
