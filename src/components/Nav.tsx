@@ -893,7 +893,7 @@ export function Nav() {
               className="h-7 w-7 shrink-0 rounded-lg object-contain sm:h-9 sm:w-9"
               unoptimized
             />
-            <span className="hidden truncate whitespace-nowrap bg-gradient-to-r from-ink via-ink-400 to-ink-600 bg-clip-text text-base font-bold text-transparent md:inline xl:inline 2xl:text-xl">
+            <span className="hidden truncate whitespace-nowrap font-serif text-base font-medium text-ink md:inline xl:inline 2xl:text-xl">
               BrightAgent
             </span>
             <span className="hidden truncate whitespace-nowrap text-sm text-ink-400 transition-colors group-hover:text-oxblood 2xl:inline">
@@ -923,8 +923,8 @@ export function Nav() {
                     {active && (
                       <motion.span
                         layoutId="nav-underline"
-                        className="absolute left-2 right-2 bottom-1 h-0.5 rounded-full bg-gradient-to-r from-[#FF80AB]/80 to-[#BA68C8]/90"
-                        transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
+                        className="absolute left-2 right-2 bottom-1 h-[1.5px] bg-ink"
+                        transition={{ type: "spring", bounce: 0.15, duration: 0.35 }}
                       />
                     )}
                   </motion.span>
@@ -1101,29 +1101,27 @@ export function Nav() {
             </div>
           ) : null}
 
-          <div className="fixed bottom-0 left-0 right-0 z-50 flex lg:hidden items-end justify-around border-t border-hairline bg-paper/95 supports-[backdrop-filter]:backdrop-blur-md pb-[env(safe-area-inset-bottom)] pt-2">
+          <div className="fixed bottom-0 left-0 right-0 z-50 flex lg:hidden items-end justify-around border-t-[1.5px] border-hairline bg-paper/96 supports-[backdrop-filter]:backdrop-blur-md pb-[env(safe-area-inset-bottom)]">
             {(() => {
               const [lifeAgentsLink, messagesLink, licenseLink] = navLinks;
-              const renderTab = (
-                link: (typeof navLinks)[number]
-              ) => {
+              const renderTab = (link: (typeof navLinks)[number]) => {
                 const Icon = link.Icon;
                 const active = link.href === "/life-agents" ? isDiscoverEntryPage : pathname === link.href;
                 return (
                   <Link
                     key={link.href}
                     href={link.href}
-                    className={`relative flex min-w-0 flex-1 flex-col items-center gap-1 px-2 py-2 transition-colors ${
-                      active ? "text-ink" : "text-ink-300"
+                    className={`relative flex min-w-0 flex-1 flex-col items-center gap-0.5 px-2 pb-2.5 pt-3 transition-colors duration-150 ${
+                      active ? "text-ink" : "text-ink-300 hover:text-ink-500"
                     }`}
                   >
                     {active ? (
-                      <span className="absolute inset-x-[22%] top-0 h-[1px] bg-ink" aria-hidden />
+                      <span className="absolute inset-x-[28%] top-0 h-[2px] bg-ink" aria-hidden />
                     ) : null}
-                    <span className="relative inline-flex">
-                      <Icon className={`h-[22px] w-[22px] shrink-0 ${active ? "stroke-[1.8]" : "stroke-[1.4]"}`} />
+                    <Icon className={`h-[22px] w-[22px] shrink-0 transition-all duration-150 ${active ? "stroke-[2]" : "stroke-[1.4]"}`} />
+                    <span className={`w-full truncate text-center font-serif text-[11px] transition-all duration-150 ${active ? "font-medium not-italic" : "italic"}`}>
+                      {link.label}
                     </span>
-                    <span className="w-full truncate text-center font-serif text-[11px]">{link.label}</span>
                   </Link>
                 );
               };
@@ -1131,7 +1129,7 @@ export function Nav() {
                 <>
                   {renderTab(lifeAgentsLink)}
                   {renderTab(messagesLink)}
-                  <div className="min-h-[52px] min-w-0 flex-1 px-2 py-2" aria-hidden />
+                  <div className="min-h-[52px] min-w-0 flex-1 px-2" aria-hidden />
                   {renderTab(licenseLink)}
                 </>
               );
@@ -1140,28 +1138,28 @@ export function Nav() {
             {user ? (
               <Link
                 href="/dashboard"
-                className={`relative flex flex-col items-center gap-1 px-3 py-2 min-w-0 flex-1 transition-colors ${
-                  pathname === "/dashboard" ? "text-ink" : "text-ink-300"
+                className={`relative flex flex-col items-center gap-0.5 px-3 pb-2.5 pt-3 min-w-0 flex-1 transition-colors duration-150 ${
+                  pathname === "/dashboard" ? "text-ink" : "text-ink-300 hover:text-ink-500"
                 }`}
               >
                 {pathname === "/dashboard" ? (
-                  <span className="absolute inset-x-[22%] top-0 h-[1px] bg-ink" aria-hidden />
+                  <span className="absolute inset-x-[28%] top-0 h-[2px] bg-ink" aria-hidden />
                 ) : null}
-                <IconDashboard className={`h-[22px] w-[22px] shrink-0 ${pathname === "/dashboard" ? "stroke-[1.8]" : "stroke-[1.4]"}`} />
-                <span className="font-serif text-[11px]">我的</span>
+                <IconDashboard className={`h-[22px] w-[22px] shrink-0 transition-all duration-150 ${pathname === "/dashboard" ? "stroke-[2]" : "stroke-[1.4]"}`} />
+                <span className={`font-serif text-[11px] transition-all duration-150 ${pathname === "/dashboard" ? "font-medium not-italic" : "italic"}`}>我的</span>
               </Link>
             ) : (
               <Link
                 href="/login"
-                className={`relative flex flex-col items-center gap-1 px-3 py-2 min-w-0 flex-1 transition-colors ${
-                  pathname === "/login" ? "text-ink" : "text-ink-300"
+                className={`relative flex flex-col items-center gap-0.5 px-3 pb-2.5 pt-3 min-w-0 flex-1 transition-colors duration-150 ${
+                  pathname === "/login" ? "text-ink" : "text-ink-300 hover:text-ink-500"
                 }`}
               >
                 {pathname === "/login" ? (
-                  <span className="absolute inset-x-[22%] top-0 h-[1px] bg-ink" aria-hidden />
+                  <span className="absolute inset-x-[28%] top-0 h-[2px] bg-ink" aria-hidden />
                 ) : null}
-                <IconLogin className={`h-[22px] w-[22px] shrink-0 ${pathname === "/login" ? "stroke-[1.8]" : "stroke-[1.4]"}`} />
-                <span className="font-serif text-[11px]">登录</span>
+                <IconLogin className={`h-[22px] w-[22px] shrink-0 transition-all duration-150 ${pathname === "/login" ? "stroke-[2]" : "stroke-[1.4]"}`} />
+                <span className={`font-serif text-[11px] transition-all duration-150 ${pathname === "/login" ? "font-medium not-italic" : "italic"}`}>登录</span>
               </Link>
             )}
           </div>

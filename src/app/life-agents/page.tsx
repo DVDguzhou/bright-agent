@@ -171,18 +171,26 @@ function LifeAgentsPageLoadingState({ title = "页面加载中..." }: { title?: 
           <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-hairline border-t-ink" aria-hidden />
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-x-3 gap-y-7 sm:grid-cols-3 sm:gap-x-5 sm:gap-y-9 lg:grid-cols-4 xl:grid-cols-5">
-        {[1, 2, 3, 4, 5, 6].map((item) => (
-          <div key={item} className="min-h-0">
-            <div className="w-full animate-pulse bg-paper-200" style={{ aspectRatio: "4 / 5" }} />
-            <div className="mt-2.5 border-t border-hairline pt-2.5 space-y-1.5">
-              <div className="h-3.5 w-3/5 animate-pulse bg-paper-200" />
-              <div className="h-3 w-full animate-pulse bg-paper-200" />
-              <div className="h-3 w-2/3 animate-pulse bg-paper-200" />
-              <div className="h-2.5 w-4/5 animate-pulse bg-paper-200" />
-            </div>
+      <div className="space-y-8">
+        <div className="grid grid-cols-[45%_55%] border-b border-hairline pb-6">
+          <div className="animate-pulse bg-paper-200" style={{ aspectRatio: "3 / 4" }} />
+          <div className="flex flex-col border border-l-0 border-hairline p-4 space-y-3">
+            <div className="h-7 w-3/4 animate-pulse bg-paper-200" />
+            <div className="h-4 w-full animate-pulse bg-paper-200" />
+            <div className="h-4 w-5/6 animate-pulse bg-paper-200" />
           </div>
-        ))}
+        </div>
+        <div className="grid grid-cols-2 gap-x-2 gap-y-9 sm:grid-cols-3 sm:gap-x-3 sm:gap-y-11 lg:grid-cols-4 xl:grid-cols-5">
+          {[1, 2, 3, 4].map((item) => (
+            <div key={item} className="min-h-0">
+              <div className="w-full animate-pulse bg-paper-200" style={{ aspectRatio: "2 / 3" }} />
+              <div className="space-y-2 pt-3">
+                <div className="h-4 w-3/4 animate-pulse bg-paper-200" />
+                <div className="h-3 w-full animate-pulse bg-paper-200" />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -707,14 +715,13 @@ function LifeAgentsPageContent() {
 
   const purchasedBody =
     purchasedLoading ? (
-      <div className="grid grid-cols-2 gap-x-3 gap-y-7 sm:grid-cols-3 sm:gap-x-5 sm:gap-y-9 lg:grid-cols-4 xl:grid-cols-5">
+      <div className="grid grid-cols-2 gap-x-2 gap-y-9 sm:grid-cols-3 sm:gap-x-3 sm:gap-y-11 lg:grid-cols-4 xl:grid-cols-5">
         {[1, 2, 3, 4, 5, 6].map((item) => (
           <div key={item} className="min-h-0">
-            <div className="w-full animate-pulse bg-paper-200" style={{ aspectRatio: "4 / 5" }} />
-            <div className="mt-2.5 border-t border-hairline pt-2.5 space-y-1.5">
-              <div className="h-3.5 w-3/5 animate-pulse bg-paper-200" />
+            <div className="w-full animate-pulse bg-paper-200" style={{ aspectRatio: "2 / 3" }} />
+            <div className="space-y-2 pt-3">
+              <div className="h-4 w-3/4 animate-pulse bg-paper-200" />
               <div className="h-3 w-full animate-pulse bg-paper-200" />
-              <div className="h-3 w-2/3 animate-pulse bg-paper-200" />
             </div>
           </div>
         ))}
@@ -786,21 +793,24 @@ function LifeAgentsPageContent() {
       </>
 
       {/* 标签栏：发现 / 收藏 / 已购 */}
-      <nav aria-label="内容分类" className="flex items-center gap-6 border-b border-hairline pb-2">
+      <nav aria-label="内容分类" className="relative flex items-center gap-5 border-b border-hairline">
         {tabItems.filter((t) => t.show).map((t) => (
           <Link
             key={t.key}
             href={t.href}
             replace
             scroll={false}
-            className={`text-[11px] font-medium uppercase tracking-[0.18em] transition-colors duration-150 ${
+            className={`relative pb-2 pt-1 transition-colors duration-150 font-serif text-[17px] ${
               activeTab === t.key
-                ? "text-ink border-b border-ink -mb-2 pb-2"
-                : "text-ink-400 hover:text-ink-600"
+                ? "font-medium text-ink"
+                : "font-normal italic text-ink-300 hover:text-ink-500"
             }`}
             aria-current={activeTab === t.key ? "page" : undefined}
           >
             {t.label}
+            {activeTab === t.key && (
+              <span className="absolute bottom-0 left-0 right-0 h-[1.5px] bg-ink" aria-hidden />
+            )}
           </Link>
         ))}
       </nav>
@@ -890,8 +900,8 @@ function PurchasedAgentsWindowedGrid({ rows }: { rows: PurchasedAgentRow[] }) {
   const showPrice = lifeAgentShowsPurchaseUi();
   const { slice, hasMore, sentinelRef } = useWindowedSlice(rows, { initial: 12, page: 12 });
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-2 gap-x-3 gap-y-7 sm:grid-cols-3 sm:gap-x-5 sm:gap-y-9 lg:grid-cols-4 xl:grid-cols-5">
+    <div className="space-y-0">
+      <div className="grid grid-cols-2 gap-x-2 gap-y-9 sm:grid-cols-3 sm:gap-x-3 sm:gap-y-11 lg:grid-cols-4 xl:grid-cols-5">
         {slice.map((row, index) => {
           const coverUrl = resolveLifeAgentCoverDisplayUrl(row.coverUrl, row.coverImageUrl, row.coverPresetKey);
           return (
@@ -903,8 +913,8 @@ function PurchasedAgentsWindowedGrid({ rows }: { rows: PurchasedAgentRow[] }) {
               className="min-h-0 [contain-intrinsic-size:auto_340px]"
             >
               <Link href={`/life-agents/${row.id}/chat`} className="group flex h-full min-h-0">
-                <div className="flex h-full min-h-[260px] w-full flex-col overflow-hidden border border-hairline bg-paper transition-colors duration-200 group-hover:border-ink-300 sm:min-h-[280px]">
-                  <div className="relative w-full shrink-0 overflow-hidden bg-paper-200" style={{ aspectRatio: "4 / 5" }}>
+                <div className="flex h-full w-full flex-col overflow-hidden transition-colors duration-200">
+                  <div className="relative w-full shrink-0 overflow-hidden bg-paper-200" style={{ aspectRatio: "2 / 3" }}>
                     <LifeAgentCoverImage
                       src={coverUrl}
                       alt={row.displayName}
@@ -920,17 +930,17 @@ function PurchasedAgentsWindowedGrid({ rows }: { rows: PurchasedAgentRow[] }) {
                       </div>
                     )}
                   </div>
-                  <div className="border-t border-hairline px-2.5 pb-2.5 pt-2 sm:p-3">
-                    <h3 className="line-clamp-1 font-serif text-[15px] font-medium leading-tight text-ink sm:text-base">
+                  <div className="pt-3">
+                    <h3 className="line-clamp-1 font-serif text-[17px] font-medium leading-tight text-ink sm:text-[19px]">
                       {row.displayName}
                     </h3>
-                    <p className="mt-0.5 line-clamp-2 min-h-[2.5em] font-serif text-[12.5px] italic leading-snug text-ink-400">
+                    <p className="mt-1 font-serif text-[12px] italic leading-snug text-ink-400 line-clamp-2 min-h-[2em]">
                       {row.headline}
                     </p>
                     {showPrice ? (
                     <div className="mt-2 flex items-baseline justify-between text-[11px] text-ink-400">
                       <span>剩余 {row.remainingQuestions} 次</span>
-                      <span className="font-serif text-[13px] font-medium tabular-nums text-oxblood-500">
+                      <span className="font-serif text-[15px] font-medium tabular-nums text-oxblood-500">
                         ¥{(row.pricePerQuestion / 100).toFixed(0)}
                         <span className="ml-0.5 text-[10px] font-normal not-italic text-ink-300">/问</span>
                       </span>
