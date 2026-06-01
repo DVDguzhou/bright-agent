@@ -257,8 +257,7 @@ export default function PostsPage() {
       </div>
 
       {/* Header */}
-      <div className="mb-3 flex items-center justify-between">
-        <h1 className="text-lg font-bold text-ink">动态</h1>
+      <div className="mb-3 flex items-center justify-end">
         <Link
           href="/posts/create"
           className="btn-primary inline-flex items-center gap-1 px-4 py-2 text-sm font-semibold"
