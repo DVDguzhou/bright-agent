@@ -27,6 +27,7 @@ interface PostDetail {
   id: string;
   content: string;
   images: string[];
+  visibility?: "public" | "private";
   authorName: string;
   authorEmail: string;
   authorId: string;
@@ -219,7 +220,17 @@ export default function PostDetailPage() {
             email={post.authorEmail}
           />
           <div className="min-w-0">
-            <p className="truncate text-sm font-semibold text-ink">{post.authorName}</p>
+            <p className="flex items-center gap-1.5 truncate text-sm font-semibold text-ink">
+              {post.authorName}
+              {post.visibility === "private" && (
+                <span className="inline-flex items-center gap-0.5 rounded-full bg-paper-100 px-1.5 py-0.5 text-[10px] font-medium text-ink-500">
+                  <svg className="h-2.5 w-2.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 0h10.5a1.5 1.5 0 011.5 1.5v6.75a1.5 1.5 0 01-1.5 1.5H6.75a1.5 1.5 0 01-1.5-1.5V12a1.5 1.5 0 011.5-1.5z" />
+                  </svg>
+                  私密
+                </span>
+              )}
+            </p>
             <p className="text-xs text-ink-300">{timeAgo(post.createdAt)}</p>
           </div>
         </div>

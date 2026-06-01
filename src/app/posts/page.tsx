@@ -13,6 +13,7 @@ interface ApiPost {
   id: string;
   content: string;
   images: string[];
+  visibility?: "public" | "private";
   authorName: string;
   authorEmail: string;
   authorId: string;
@@ -24,6 +25,8 @@ interface ApiPost {
   likedByMe: boolean;
   previewComments?: PostCommentPreviewItem[];
 }
+
+type FeedTab = "plaza" | "mine";
 
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -65,6 +68,7 @@ export default function PostsPage() {
   const [pullRefreshing, setPullRefreshing] = useState(false);
   const pullStartYRef = useRef<number | null>(null);
   const [pullOffset, setPullOffset] = useState(0);
+  const [tab, setTab] = useState<FeedTab>("plaza");
 
   // 发帖后刷新
   useEffect(() => {
@@ -77,7 +81,10 @@ export default function PostsPage() {
 
   const fetchPosts = useCallback(async (cursor?: string, isPull?: boolean) => {
     try {
-      const url = cursor ? `/api/posts?cursor=${encodeURIComponent(cursor)}&limit=20` : "/api/posts?limit=20";
+      const scopeParam = tab === "mine" ? "&scope=mine" : "";
+      const url = cursor
+        ? `/api/posts?cursor=${encodeURIComponent(cursor)}&limit=20${scopeParam}`
+        : `/api/posts?limit=20${scopeParam}`;
       const res = await fetch(url, { credentials: "include" });
       if (!res.ok) throw new Error("加载失败");
       const data = (await res.json()) as {
@@ -105,7 +112,7 @@ export default function PostsPage() {
       setLoadingMore(false);
       if (isPull) setPullRefreshing(false);
     }
-  }, []);
+  }, [tab]);
 
   const resetAndLoad = useCallback(() => {
     setLoaded(false);
@@ -114,8 +121,13 @@ export default function PostsPage() {
     void fetchPosts();
   }, [fetchPosts]);
 
+  // 首次加载 + 切换 tab 时重置并重新拉取
   useEffect(() => {
-    fetchPosts();
+    setLoaded(false);
+    setPosts([]);
+    setNextCursor(null);
+    setHasMore(false);
+    void fetchPosts();
   }, [fetchPosts]);
 
   // 滚动到底部加载更多
@@ -255,6 +267,34 @@ export default function PostsPage() {
         </Link>
       </div>
 
+      {/* 广场 / 我的 切换 */}
+      <div className="mb-4 inline-flex rounded-full bg-paper-100/70 p-1 ring-1 ring-hairline/30">
+        <button
+          type="button"
+          onClick={() => setTab("plaza")}
+          className={`rounded-full px-4 py-1.5 text-sm font-semibold transition ${
+            tab === "plaza" ? "bg-paper text-ink shadow-sm" : "text-ink-400 hover:text-ink-600"
+          }`}
+        >
+          广场
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            if (!user) {
+              router.push("/login");
+              return;
+            }
+            setTab("mine");
+          }}
+          className={`rounded-full px-4 py-1.5 text-sm font-semibold transition ${
+            tab === "mine" ? "bg-paper text-ink shadow-sm" : "text-ink-400 hover:text-ink-600"
+          }`}
+        >
+          我的
+        </button>
+      </div>
+
       {error && (
         <div className="mb-4 rounded-xl bg-oxblood-50 px-4 py-3 text-sm text-oxblood-600">
           {error}
@@ -282,8 +322,12 @@ export default function PostsPage() {
           <div className="mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-paper-50 text-3xl">
             📝
           </div>
-          <p className="text-base font-semibold text-ink">还没有动态</p>
-          <p className="mt-1 text-sm text-ink-300">发布第一个帖子，让 AI Agent 们为你解答</p>
+          <p className="text-base font-semibold text-ink">
+            {tab === "mine" ? "你还没有发布动态" : "还没有动态"}
+          </p>
+          <p className="mt-1 text-sm text-ink-300">
+            {tab === "mine" ? "发布公开或私密动态，让 AI Agent 为你解答" : "发布第一个帖子，让 AI Agent 们为你解答"}
+          </p>
           <Link
             href="/posts/create"
             className="btn-primary mt-4 inline-flex px-6 py-2.5 text-sm font-semibold"
@@ -312,7 +356,17 @@ export default function PostsPage() {
                   className="ring-0"
                 />
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-ink">{post.authorName}</p>
+                  <p className="flex items-center gap-1.5 truncate text-sm font-semibold text-ink">
+                    {post.authorName}
+                    {post.visibility === "private" && (
+                      <span className="inline-flex items-center gap-0.5 rounded-full bg-paper-100 px-1.5 py-0.5 text-[10px] font-medium text-ink-500">
+                        <svg className="h-2.5 w-2.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 0h10.5a1.5 1.5 0 011.5 1.5v6.75a1.5 1.5 0 01-1.5 1.5H6.75a1.5 1.5 0 01-1.5-1.5V12a1.5 1.5 0 011.5-1.5z" />
+                        </svg>
+                        私密
+                      </span>
+                    )}
+                  </p>
                   <p className="text-xs text-ink-300">{timeAgo(post.createdAt)}</p>
                 </div>
               </div>

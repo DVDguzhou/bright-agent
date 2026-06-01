@@ -114,13 +114,14 @@ func Setup(cfg *config.Config) *gin.Engine {
 
 		posts := api.Group("/posts")
 		{
-			posts.GET("", handler.PostsList(cfg))
+			// GET 路由使用可选 Auth：识别当前用户以支持「我的」筛选与私密动态可见性判断
+			posts.GET("", middleware.Auth(cfg), handler.PostsList(cfg))
 			posts.POST("", middleware.RequireAuth(cfg), handler.PostsCreate(cfg))
-			posts.GET("/:id", handler.PostsGet(cfg))
+			posts.GET("/:id", middleware.Auth(cfg), handler.PostsGet(cfg))
 			posts.PATCH("/:id", middleware.RequireAuth(cfg), handler.PostsUpdate(cfg))
 			posts.DELETE("/:id", middleware.RequireAuth(cfg), handler.PostsDelete(cfg))
 			posts.POST("/:id/like", middleware.RequireAuth(cfg), handler.PostsLikeToggle(cfg))
-			posts.GET("/:id/comments", handler.PostsCommentsList(cfg))
+			posts.GET("/:id/comments", middleware.Auth(cfg), handler.PostsCommentsList(cfg))
 			posts.POST("/:id/comments", middleware.RequireAuth(cfg), handler.PostsCommentCreate(cfg))
 		}
 

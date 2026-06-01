@@ -14,6 +14,7 @@ interface PostDetail {
   images: string[];
   authorId: string;
   createdAt: string;
+  visibility?: "public" | "private";
 }
 
 const MAX_CONTENT_LENGTH = 2000;
@@ -24,6 +25,7 @@ export default function PostEditPage() {
   const router = useRouter();
   const [content, setContent] = useState("");
   const [images, setImages] = useState<string[]>([]);
+  const [visibility, setVisibility] = useState<"public" | "private">("public");
   const [submitting, setSubmitting] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -81,6 +83,7 @@ export default function PostEditPage() {
       }
       setContent(data.content);
       setImages(data.images || []);
+      setVisibility(data.visibility === "private" ? "private" : "public");
     } catch {
       setError("加载帖子失败");
     } finally {
@@ -106,7 +109,7 @@ export default function PostEditPage() {
         method: "PATCH",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content: trimmed, images }),
+        body: JSON.stringify({ content: trimmed, images, visibility }),
       });
       if (!res.ok) {
         const body = (await res.json().catch(() => ({}))) as { message?: string };
@@ -181,8 +184,46 @@ export default function PostEditPage() {
           />
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-ink">{user?.name || "用户"}</p>
-            <p className="text-xs text-ink-300">公开发布</p>
+            <p className="text-xs text-ink-300">{visibility === "public" ? "公开发布 · 所有人可见" : "私密发布 · 仅自己可见"}</p>
           </div>
+        </div>
+
+        {/* 可见性切换 */}
+        <div className="mb-3 grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={() => setVisibility("public")}
+            className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 text-left transition ${
+              visibility === "public"
+                ? "border-oxblood/40 bg-oxblood-50/60 ring-1 ring-oxblood/20"
+                : "border-hairline/50 bg-paper-50/40 hover:bg-paper-50"
+            }`}
+          >
+            <svg className={`h-5 w-5 shrink-0 ${visibility === "public" ? "text-oxblood" : "text-ink-300"}`} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9 9 0 100-18 9 9 0 000 18zM3.6 9h16.8M3.6 15h16.8M12 3a15 15 0 000 18M12 3a15 15 0 010 18" />
+            </svg>
+            <span className="min-w-0">
+              <span className={`block text-sm font-semibold ${visibility === "public" ? "text-ink" : "text-ink-500"}`}>公开</span>
+              <span className="block text-[11px] text-ink-300">所有人可见</span>
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setVisibility("private")}
+            className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 text-left transition ${
+              visibility === "private"
+                ? "border-oxblood/40 bg-oxblood-50/60 ring-1 ring-oxblood/20"
+                : "border-hairline/50 bg-paper-50/40 hover:bg-paper-50"
+            }`}
+          >
+            <svg className={`h-5 w-5 shrink-0 ${visibility === "private" ? "text-oxblood" : "text-ink-300"}`} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 0h10.5a1.5 1.5 0 011.5 1.5v6.75a1.5 1.5 0 01-1.5 1.5H6.75a1.5 1.5 0 01-1.5-1.5V12a1.5 1.5 0 011.5-1.5z" />
+            </svg>
+            <span className="min-w-0">
+              <span className={`block text-sm font-semibold ${visibility === "private" ? "text-ink" : "text-ink-500"}`}>私密</span>
+              <span className="block text-[11px] text-ink-300">仅自己可见</span>
+            </span>
+          </button>
         </div>
 
         <textarea

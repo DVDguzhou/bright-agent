@@ -22,19 +22,22 @@ import (
 // ---------- Request / Response types ----------
 
 type postCreateReq struct {
-	Content string   `json:"content" binding:"required,min=1,max=2000"`
-	Images  []string `json:"images"`
+	Content    string   `json:"content" binding:"required,min=1,max=2000"`
+	Images     []string `json:"images"`
+	Visibility string   `json:"visibility"` // public / private，缺省 public
 }
 
 type postUpdateReq struct {
-	Content string   `json:"content" binding:"required,min=1,max=2000"`
-	Images  []string `json:"images"`
+	Content    string   `json:"content" binding:"required,min=1,max=2000"`
+	Images     []string `json:"images"`
+	Visibility *string  `json:"visibility"` // 可选：传入则更新可见性
 }
 
 type postResponse struct {
 	ID              string   `json:"id"`
 	Content         string   `json:"content"`
 	Images          []string `json:"images"`
+	Visibility      string   `json:"visibility"`
 	AuthorName      string   `json:"authorName"`
 	AuthorEmail     string   `json:"authorEmail"`
 	AuthorID        string   `json:"authorId"`
@@ -64,6 +67,7 @@ type postDetailResponse struct {
 	ID              string            `json:"id"`
 	Content         string            `json:"content"`
 	Images          []string          `json:"images"`
+	Visibility      string            `json:"visibility"`
 	AuthorName      string            `json:"authorName"`
 	AuthorEmail     string            `json:"authorEmail"`
 	AuthorID        string            `json:"authorId"`
@@ -241,13 +245,14 @@ func PostsCreate(cfg *config.Config) gin.HandlerFunc {
 		}
 
 		post := models.Post{
-			ID:        models.GenID(),
-			UserID:    user.ID,
-			Content:   req.Content,
-			Images:    req.Images,
-			Likes:     0,
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
+			ID:         models.GenID(),
+			UserID:     user.ID,
+			Content:    req.Content,
+			Images:     req.Images,
+			Visibility: models.NormalizePostVisibility(req.Visibility),
+			Likes:      0,
+			CreatedAt:  time.Now(),
+			UpdatedAt:  time.Now(),
 		}
 		if err := db.DB.Create(&post).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "CREATE_FAILED"})
@@ -255,6 +260,7 @@ func PostsCreate(cfg *config.Config) gin.HandlerFunc {
 		}
 
 		// 异步触发 Agent 自动回复（后台 goroutine，不阻塞响应）
+		// 私密动态同样会触发 Agent 回复，仅对其他用户不可见。
 		go triggerAgentReplies(post.ID, post.Content)
 
 		c.JSON(http.StatusOK, gin.H{"id": post.ID})
@@ -270,11 +276,24 @@ func PostsList(cfg *config.Config) gin.HandlerFunc {
 			limit = n
 		}
 		cursor := c.Query("cursor")
+		// scope=mine 仅看自己的全部动态（含私密）；否则广场只展示公开动态。
+		scope := c.Query("scope")
+		currentUser := middleware.MustGetUser(c)
 
 		var posts []models.Post
 		q := db.DB.Order("created_at DESC").Limit(limit + 1)
 		if cursor != "" {
 			q = q.Where("created_at < ?", cursor)
+		}
+		if scope == "mine" {
+			if currentUser == nil {
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "UNAUTHORIZED"})
+				return
+			}
+			q = q.Where("user_id = ?", currentUser.ID)
+		} else {
+			// 广场：仅公开动态。为兼容历史无 visibility 的数据，把空串也视为公开。
+			q = q.Where("visibility = ? OR visibility = '' OR visibility IS NULL", models.PostVisibilityPublic)
 		}
 		if err := q.Find(&posts).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "QUERY_FAILED"})
@@ -297,7 +316,6 @@ func PostsList(cfg *config.Config) gin.HandlerFunc {
 		avatarMap := buildUserDisplayAvatarMap(userIDs)
 
 		// 当前用户点赞状态
-		currentUser := middleware.MustGetUser(c)
 		likedMap := likedPostIDs("", []string{})
 		if currentUser != nil {
 			likedMap = likedPostIDs(currentUser.ID, postIDsFromPosts(posts))
@@ -319,6 +337,7 @@ func PostsList(cfg *config.Config) gin.HandlerFunc {
 				ID:              p.ID,
 				Content:         p.Content,
 				Images:          p.Images,
+				Visibility:      models.NormalizePostVisibility(p.Visibility),
 				AuthorName:      authorName,
 				AuthorEmail:     authorEmail,
 				AuthorID:        p.UserID,
@@ -350,11 +369,19 @@ func PostsGet(cfg *config.Config) gin.HandlerFunc {
 			return
 		}
 
+		currentUser := middleware.MustGetUser(c)
+		// 私密动态仅作者本人可见（其他用户视为不存在）
+		if models.NormalizePostVisibility(post.Visibility) == models.PostVisibilityPrivate {
+			if currentUser == nil || currentUser.ID != post.UserID {
+				c.JSON(http.StatusNotFound, gin.H{"error": "NOT_FOUND"})
+				return
+			}
+		}
+
 		var author models.User
 		db.DB.First(&author, "id = ?", post.UserID)
 		authorName := authorNameFromUser(author)
 
-		currentUser := middleware.MustGetUser(c)
 		likedByMe := false
 		if currentUser != nil {
 			var count int64
@@ -425,6 +452,7 @@ func PostsGet(cfg *config.Config) gin.HandlerFunc {
 			ID:              post.ID,
 			Content:         post.Content,
 			Images:          post.Images,
+			Visibility:      models.NormalizePostVisibility(post.Visibility),
 			AuthorName:      authorName,
 			AuthorEmail:     author.Email,
 			AuthorID:        post.UserID,
@@ -474,6 +502,9 @@ func PostsUpdate(cfg *config.Config) gin.HandlerFunc {
 
 		post.Content = req.Content
 		post.Images = req.Images
+		if req.Visibility != nil {
+			post.Visibility = models.NormalizePostVisibility(*req.Visibility)
+		}
 		post.UpdatedAt = time.Now()
 		if err := db.DB.Save(&post).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "UPDATE_FAILED"})
@@ -544,6 +575,11 @@ func PostsLikeToggle(cfg *config.Config) gin.HandlerFunc {
 			c.JSON(http.StatusNotFound, gin.H{"error": "NOT_FOUND"})
 			return
 		}
+		// 私密动态仅作者本人可操作
+		if models.NormalizePostVisibility(post.Visibility) == models.PostVisibilityPrivate && post.UserID != user.ID {
+			c.JSON(http.StatusNotFound, gin.H{"error": "NOT_FOUND"})
+			return
+		}
 
 		var existing models.PostLike
 		err := db.DB.Where("post_id = ? AND user_id = ?", postID, user.ID).First(&existing).Error
@@ -595,6 +631,11 @@ func PostsCommentCreate(cfg *config.Config) gin.HandlerFunc {
 			c.JSON(http.StatusNotFound, gin.H{"error": "NOT_FOUND"})
 			return
 		}
+		// 私密动态仅作者本人可评论（其他用户不可见）
+		if models.NormalizePostVisibility(post.Visibility) == models.PostVisibilityPrivate && post.UserID != user.ID {
+			c.JSON(http.StatusNotFound, gin.H{"error": "NOT_FOUND"})
+			return
+		}
 
 		var req struct {
 			Content        string  `json:"content" binding:"required,min=1,max=2000"`
@@ -639,6 +680,14 @@ func PostsCommentsList(cfg *config.Config) gin.HandlerFunc {
 		if err := db.DB.First(&post, "id = ?", postID).Error; err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "NOT_FOUND"})
 			return
+		}
+		// 私密动态评论仅作者本人可见
+		if models.NormalizePostVisibility(post.Visibility) == models.PostVisibilityPrivate {
+			cu := middleware.MustGetUser(c)
+			if cu == nil || cu.ID != post.UserID {
+				c.JSON(http.StatusNotFound, gin.H{"error": "NOT_FOUND"})
+				return
+			}
 		}
 
 		var comments []models.PostComment

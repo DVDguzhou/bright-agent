@@ -491,11 +491,26 @@ type Post struct {
 	ID            string    `gorm:"primaryKey;size:36"`
 	UserID        string    `gorm:"column:user_id;size:36;not null;index"`
 	Content       string    `gorm:"type:text;not null"`
-	Images        JSONArray `gorm:"type:json"` // 帖子配图 URL 列表
+	Images        JSONArray `gorm:"type:json"`                                        // 帖子配图 URL 列表
+	Visibility    string    `gorm:"column:visibility;size:16;not null;default:public;index"` // public 公开 / private 私密（仅本人可见，Agent 仍会回复）
 	Likes         int       `gorm:"default:0"`
 	CommentsCount int       `gorm:"column:comments_count;default:0"`
 	CreatedAt     time.Time `gorm:"column:created_at"`
 	UpdatedAt     time.Time `gorm:"column:updated_at"`
+}
+
+// 帖子可见性取值
+const (
+	PostVisibilityPublic  = "public"
+	PostVisibilityPrivate = "private"
+)
+
+// NormalizePostVisibility 将任意输入规整为合法可见性，默认 public
+func NormalizePostVisibility(v string) string {
+	if v == PostVisibilityPrivate {
+		return PostVisibilityPrivate
+	}
+	return PostVisibilityPublic
 }
 
 func (Post) TableName() string { return "posts" }
