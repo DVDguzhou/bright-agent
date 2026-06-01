@@ -3,7 +3,6 @@ package handler
 import (
 	"context"
 	"log"
-	"math/rand"
 	"net/http"
 	"sort"
 	"strconv"
@@ -260,7 +259,6 @@ func PostsCreate(cfg *config.Config) gin.HandlerFunc {
 		}
 
 		// 异步触发 Agent 自动回复（后台 goroutine，不阻塞响应）
-		// 私密动态同样会触发 Agent 回复，仅对其他用户不可见。
 		go triggerAgentReplies(post.ID, post.Content)
 
 		c.JSON(http.StatusOK, gin.H{"id": post.ID})
@@ -780,7 +778,12 @@ func triggerAgentReplyToComment(postID, profileID, userID, userComment string) {
 	}
 
 	// 生成回复
-	replyText := generateAgentReply(cfg, profile, userComment, loadPostAgentReplyTexts(postID))
+	commentCtx := lifeagent.PostReplyContext{
+		PostContent:     userComment,
+		ExistingReplies: loadPostAgentReplyTexts(postID),
+		Tier:            lifeagent.ClassifyPostReplyTier(userComment),
+	}
+	replyText := generateAgentReply(cfg, profile, commentCtx)
 	if replyText == "" {
 		return
 	}
@@ -816,47 +819,25 @@ func TriggerAgentRepliesSync(postID string, content string) (int, error) {
 		return 0, nil
 	}
 
-	lowerContent := strings.ToLower(content)
-	type scored struct {
-		profile models.LifeAgentProfile
-		score   int
-	}
-	var scoredList []scored
-	for _, p := range profiles {
-		score := 0
-		for _, tag := range p.ExpertiseTags {
-			if strings.Contains(lowerContent, strings.ToLower(tag)) {
-				score++
-			}
-		}
-		if score > 0 {
-			scoredList = append(scoredList, scored{p, score})
-		}
+	if lifeagent.ClassifyPostReplyTier(content) == lifeagent.PostReplyTierBrief {
+		log.Printf("[AgentReply] Post %s too short to reply, skipping", postID)
+		return 0, nil
 	}
 
-	sort.Slice(scoredList, func(i, j int) bool {
-		return scoredList[i].score > scoredList[j].score
-	})
-
-	maxReplies := 3 + rand.Intn(9)
-	var selected []models.LifeAgentProfile
-	for i := 0; i < len(scoredList) && i < maxReplies; i++ {
-		selected = append(selected, scoredList[i].profile)
+	replyCtx := lifeagent.PostReplyContext{
+		PostContent: content,
+		Tier:        lifeagent.PostReplyTierNormal,
 	}
 
+	selected := selectAgentsForPostReply(profiles, content, lifeagent.PostReplyTierNormal)
 	if len(selected) == 0 {
-		if err := db.DB.Where("published = ?", true).Order("RAND()").Limit(maxReplies).Find(&selected).Error; err != nil {
-			return 0, err
-		}
-		if len(selected) == 0 {
-			return 0, nil
-		}
+		log.Printf("[AgentReply] Post %s no agents to reply", postID)
+		return 0, nil
 	}
 
 	created := 0
-	var existingReplies []string
 	for _, p := range selected {
-		replyText := generateAgentReply(cfg, p, content, existingReplies)
+		replyText := generateAgentReply(cfg, p, replyCtx)
 		if replyText == "" {
 			continue
 		}
@@ -871,11 +852,83 @@ func TriggerAgentRepliesSync(postID string, content string) (int, error) {
 		if err := db.DB.Create(&ar).Error; err != nil {
 			return created, err
 		}
-		existingReplies = append(existingReplies, replyText)
+		replyCtx.ExistingReplies = append(replyCtx.ExistingReplies, replyText)
 		db.DB.Model(&models.Post{}).Where("id = ?", postID).UpdateColumn("comments_count", gorm.Expr("comments_count + 1"))
 		created++
 	}
 	return created, nil
+}
+
+func selectAgentsForPostReply(profiles []models.LifeAgentProfile, content string, tier lifeagent.PostReplyTier) []models.LifeAgentProfile {
+	type scored struct {
+		profile models.LifeAgentProfile
+		score   int
+	}
+	var scoredList []scored
+	for _, p := range profiles {
+		pForAI := lifeagent.ProfileForAI{
+			ExpertiseTags: p.ExpertiseTags,
+			Headline:      p.Headline,
+			ShortBio:      p.ShortBio,
+			Audience:      p.Audience,
+		}
+		score := lifeagent.ScoreAgentPostRelevance(content, pForAI)
+		if score >= lifeagent.PostReplyMinAgentScore {
+			scoredList = append(scoredList, scored{p, score})
+		}
+	}
+	sort.Slice(scoredList, func(i, j int) bool {
+		return scoredList[i].score > scoredList[j].score
+	})
+
+	maxReplies := lifeagent.PostReplyMaxAgents
+	if tier == lifeagent.PostReplyTierBrief {
+		maxReplies = lifeagent.PostReplyBriefMaxAgents
+	}
+	if len(scoredList) > 0 {
+		if len(scoredList) < maxReplies {
+			maxReplies = len(scoredList)
+		}
+		out := make([]models.LifeAgentProfile, 0, maxReplies)
+		for i := 0; i < maxReplies; i++ {
+			out = append(out, scoredList[i].profile)
+		}
+		return out
+	}
+
+	// 常规帖无相关 Agent 则不回复
+	if tier != lifeagent.PostReplyTierBrief {
+		return nil
+	}
+
+	// 短帖：选有知识库的前 N 个 Agent 做轻量接话
+	var withKnowledge []models.LifeAgentProfile
+	for _, p := range profiles {
+		if agentHasKnowledge(p.ID) {
+			withKnowledge = append(withKnowledge, p)
+		}
+	}
+	if len(withKnowledge) == 0 {
+		return nil
+	}
+	if len(withKnowledge) <= maxReplies {
+		return withKnowledge
+	}
+	return withKnowledge[:maxReplies]
+}
+
+func agentHasKnowledge(profileID string) bool {
+	var n int64
+	db.DB.Model(&models.LifeAgentKnowledgeEntry{}).Where("profile_id = ?", profileID).Limit(1).Count(&n)
+	if n > 0 {
+		return true
+	}
+	db.DB.Model(&models.LifeAgentStructuredFact{}).Where("profile_id = ?", profileID).Limit(1).Count(&n)
+	if n > 0 {
+		return true
+	}
+	db.DB.Model(&models.LifeAgentTopicSummary{}).Where("profile_id = ?", profileID).Limit(1).Count(&n)
+	return n > 0
 }
 
 func loadPostAgentReplyTexts(postID string) []string {
@@ -890,8 +943,8 @@ func loadPostAgentReplyTexts(postID string) []string {
 	return out
 }
 
-func generateAgentReply(cfg *config.Config, profile models.LifeAgentProfile, postContent string, existingReplies []string) string {
-	log.Printf("[AgentReply] Generating reply for agent %s, post: %s", profile.DisplayName, postContent)
+func generateAgentReply(cfg *config.Config, profile models.LifeAgentProfile, replyCtx lifeagent.PostReplyContext) string {
+	log.Printf("[AgentReply] Generating reply for agent %s, post: %s", profile.DisplayName, replyCtx.PostContent)
 
 	if cfg == nil || cfg.OpenAIApiKey == "" {
 		log.Printf("[AgentReply] LLM not configured, skipping reply for agent %s", profile.DisplayName)
@@ -955,12 +1008,12 @@ func generateAgentReply(cfg *config.Config, profile models.LifeAgentProfile, pos
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
 
-	message := lifeagent.BuildPostReplyMessage(postContent, existingReplies)
+	message := lifeagent.BuildPostReplyMessage(replyCtx)
 	opts := &lifeagent.ChatOptions{
 		WorkingState: &lifeagent.WorkingState{
 			Strategy: lifeagent.Strategy{
-				PromptLengthHint: "这是社区帖子下的公开短评，70-100字，像刷朋友圈随口回一句带经历的评论。",
-				FormatRules:      lifeagent.PostReplyFormatRules(existingReplies),
+				PromptLengthHint: lifeagent.PostReplyLengthHint(replyCtx.Tier),
+				FormatRules:      lifeagent.PostReplyFormatRules(replyCtx),
 			},
 		},
 	}
@@ -987,13 +1040,13 @@ func generateAgentReply(cfg *config.Config, profile models.LifeAgentProfile, pos
 
 	log.Printf("[AgentReply] LLM generated reply: %s", content)
 
-	// 确保不超过100字
-	runes := []rune(content)
-	if len(runes) > 100 {
-		content = string(runes[:100])
-		log.Printf("[AgentReply] Truncated to 100 chars: %s", content)
+	if lifeagent.IsPostReplySkipped(content) {
+		log.Printf("[AgentReply] Agent %s skipped reply", profile.DisplayName)
+		return ""
 	}
-
+	// 用句子边界截断，不硬截，保证输出是完整的句子
+	content = lifeagent.TrimPostReply(replyCtx, content)
+	log.Printf("[AgentReply] Final reply: %s", content)
 	return content
 }
 
