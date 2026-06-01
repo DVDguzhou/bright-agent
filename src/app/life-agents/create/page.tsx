@@ -29,6 +29,7 @@ import {
   CHAT_SCROLL_SURFACE_CLASSNAME,
   getChatBubbleClassName,
 } from "@/lib/chat-glass";
+import { useIsDesktop, useKeyboardViewport } from "@/hooks/use-keyboard-viewport";
 
 type KnowledgeEntry = {
   category: string;
@@ -409,6 +410,8 @@ export default function CreateLifeAgentPage() {
   const [draftReady, setDraftReady] = useState(false);
   const saveDraftTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const latestDraftSnapshotRef = useRef<LifeAgentCreateDraftV1 | null>(null);
+  const isDesktop = useIsDesktop();
+  const { containerStyle: mobileContainerStyle } = useKeyboardViewport(!isDesktop);
 
   useLayoutEffect(() => {
     if (!user?.id) {
@@ -1408,10 +1411,11 @@ export default function CreateLifeAgentPage() {
       className={
         "flex min-w-0 flex-col overflow-hidden " +
         /* 窄屏：占满视口并禁止整页滚动，避免 sticky 顶栏盖住「基础资料」等首行（main 的 padding + min-h-dvh 常会多出一点可滚动高度） */
-        `max-lg:fixed max-lg:inset-0 max-lg:z-30 max-lg:m-0 max-lg:w-full max-lg:min-h-0 ${CHAT_PAGE_BACKGROUND_CLASSNAME} ` +
+        `max-lg:fixed max-lg:inset-x-0 max-lg:top-0 max-lg:z-30 max-lg:m-0 max-lg:w-full max-lg:min-h-0 max-lg:overflow-hidden ${CHAT_PAGE_BACKGROUND_CLASSNAME} ` +
         /* 宽屏：薰衣草顶到底部留白 */
         "lg:relative lg:z-auto lg:-mt-8 lg:-mb-8 lg:min-h-[calc(100dvh-4rem)] max-lg:min-h-0"
       }
+      style={isDesktop ? undefined : mobileContainerStyle}
     >
       {/* 顶替全局顶栏：窄屏随全屏容器固定；宽屏 sticky 防止长表单滚动时丢失上下文 */}
       <header className="z-40 shrink-0 border-b border-hairline/30 bg-paper/[0.91] px-3 pb-2 pt-[max(0.5rem,env(safe-area-inset-top))] shadow-[0_4px_28px_-10px_rgba(26,23,20,0.07)] backdrop-blur-xl max-lg:relative sm:px-6 sm:pb-3 sm:pt-[max(0.75rem,env(safe-area-inset-top))] lg:sticky lg:top-0">

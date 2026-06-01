@@ -18,6 +18,7 @@ import {
   getChatBubbleClassName,
 } from "@/lib/chat-glass";
 import { useEdgeSwipeBack } from "@/hooks/use-edge-swipe-back";
+import { useIsDesktop, useKeyboardViewport } from "@/hooks/use-keyboard-viewport";
 import { useMobileTouchNavEnabled } from "@/hooks/use-life-agents-feed-gestures";
 import { LIFE_AGENT_UNLIMITED_CHAT, lifeAgentShowsPurchaseUi } from "@/lib/life-agent-commerce";
 
@@ -112,7 +113,8 @@ export default function LifeAgentChatPage() {
   const [commentSubmitted, setCommentSubmitted] = useState<Record<string, boolean>>({});
   const [useVoiceReply, setUseVoiceReply] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [viewportBox, setViewportBox] = useState<{ height: number; offsetTop: number } | null>(null);
+  const isDesktop = useIsDesktop();
+  const { viewportBox, containerStyle: mobileContainerStyle } = useKeyboardViewport(!isDesktop);
   const chatEndRef = useRef<HTMLDivElement | null>(null);
   const sendingRef = useRef(false);
 
@@ -253,17 +255,7 @@ export default function LifeAgentChatPage() {
     };
   }, [menuOpen]);
 
-  // 是否桌面（lg 断点 ≥1024px）。响应式跟踪，控制是否使用 visualViewport 内联高度。
-  const [isDesktop, setIsDesktop] = useState(false);
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const mql = window.matchMedia("(min-width: 1024px)");
-    const apply = () => setIsDesktop(mql.matches);
-    apply();
-    mql.addEventListener("change", apply);
-    return () => mql.removeEventListener("change", apply);
-  }, []);
-
+  // 移动端锁定 body 滚动，避免键盘弹起时整页被顶上去
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (!isDesktop) {
@@ -272,31 +264,6 @@ export default function LifeAgentChatPage() {
       return () => { document.body.style.overflow = prev; };
     }
   }, [isDesktop]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const vv = window.visualViewport;
-    const update = () => {
-      if (!vv) {
-        setViewportBox({ height: window.innerHeight, offsetTop: 0 });
-        return;
-      }
-      setViewportBox({
-        height: Math.max(0, vv.height),
-        offsetTop: Math.max(0, vv.offsetTop),
-      });
-    };
-    update();
-    if (!vv) return;
-    vv.addEventListener("resize", update);
-    vv.addEventListener("scroll", update);
-    window.addEventListener("resize", update);
-    return () => {
-      vv.removeEventListener("resize", update);
-      vv.removeEventListener("scroll", update);
-      window.removeEventListener("resize", update);
-    };
-  }, []);
 
   const agentCoverUrl = profile
     ? resolveLifeAgentCoverDisplayUrl(profile.coverUrl, profile.coverImageUrl, profile.coverPresetKey)
@@ -566,12 +533,8 @@ export default function LifeAgentChatPage() {
         // 桌面端不使用 visualViewport 内联高度：根容器在文档流中、上方还有 navbar，
         // 强行 height=window.innerHeight 会把输入框挤到视口外（用户报告 PC 看不到输入框）。
         // 桌面端交给 Tailwind 的 lg:min-h-[calc(100dvh-5rem)] 控制。
-        // 移动端必须保留，用以处理 iOS 虚拟键盘弹起时的 visualViewport 变化。
-        isDesktop
-          ? undefined
-          : viewportBox
-            ? { height: `${viewportBox.height}px`, top: `${viewportBox.offsetTop}px` }
-            : { height: "100dvh" }
+        // 移动端必须保留，用以处理 iOS/Android 虚拟键盘弹起时的视口变化。
+        isDesktop ? undefined : mobileContainerStyle
       }
     >
       <AnimatePresence>

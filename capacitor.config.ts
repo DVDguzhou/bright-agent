@@ -1,4 +1,5 @@
 import type { CapacitorConfig } from '@capacitor/cli';
+import { KeyboardResize } from '@capacitor/keyboard';
 import { config as loadEnv } from 'dotenv';
 
 loadEnv();
@@ -28,7 +29,8 @@ const config: CapacitorConfig = {
   }),
   plugins: {
     Keyboard: {
-      resize: 'body',
+      // native：WebView 随键盘缩放，与 fixed 聊天布局配合；body 模式在部分机型上不触发 visualViewport
+      resize: KeyboardResize.Native,
       resizeOnFullScreen: true,
     },
   },

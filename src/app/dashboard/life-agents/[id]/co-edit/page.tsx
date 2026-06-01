@@ -30,6 +30,7 @@ import {
   nextLifeAgentCoverFallbackSrc,
   resolveLifeAgentCoverUrl,
 } from "@/lib/life-agent-covers";
+import { useIsDesktop, useKeyboardViewport } from "@/hooks/use-keyboard-viewport";
 
 type CoEditEventStatus = "pending" | "processed" | "failed";
 type ChatRow = {
@@ -137,6 +138,8 @@ export default function LifeAgentCoEditPage() {
   const endRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const isDesktop = useIsDesktop();
+  const { containerStyle: mobileContainerStyle } = useKeyboardViewport(!isDesktop);
 
   useEffect(() => {
     chatHistoryRef.current = chatHistory;
@@ -744,9 +747,10 @@ export default function LifeAgentCoEditPage() {
     <div
       className={
         "flex min-w-0 flex-col overflow-hidden " +
-        `max-lg:fixed max-lg:inset-0 max-lg:z-30 max-lg:m-0 max-lg:w-full max-lg:min-h-0 ${CHAT_PAGE_BACKGROUND_CLASSNAME} ` +
+        `max-lg:fixed max-lg:inset-x-0 max-lg:top-0 max-lg:z-30 max-lg:m-0 max-lg:w-full max-lg:min-h-0 max-lg:overflow-hidden ${CHAT_PAGE_BACKGROUND_CLASSNAME} ` +
         "lg:relative lg:z-auto lg:-mx-4 lg:-mt-8 lg:-mb-8 lg:min-h-[calc(100dvh-4rem)] max-lg:min-h-0"
       }
+      style={isDesktop ? undefined : mobileContainerStyle}
     >
       <header className="z-40 shrink-0 border-b border-hairline/30 bg-paper/[0.91] px-4 pb-1 pt-[max(0.25rem,env(safe-area-inset-top))] shadow-[0_4px_28px_-10px_rgba(26,23,20,0.07)] backdrop-blur-xl sm:px-4 lg:sticky lg:top-0">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-2">
