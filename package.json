@@ -27,6 +27,7 @@
     "mobile:android:release:aab": "node scripts/mobile/build-android-release.mjs --aab",
     "mobile:android:stage-apk": "node scripts/mobile/copy-android-apk.mjs",
     "git:install-hooks": "node scripts/git/install-git-hooks.mjs",
+    "impeccable:install-skills": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/install-impeccable-skills.ps1",
     "mobile:ios": "npx cap open ios",
     "mobile": "npx cap sync && echo 请用 npm run mobile:android 或 mobile:ios 打开 IDE 打包"
   },

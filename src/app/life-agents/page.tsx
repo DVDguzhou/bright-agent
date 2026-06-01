@@ -16,7 +16,6 @@ import { getFavoriteAgentIds } from "@/lib/life-agent-favorites";
 import { LifeAgentDiscoverCardGrid } from "@/components/LifeAgentDiscoverCardGrid";
 import { rankLifeAgentsBySearchQuery, type LifeAgentListItem } from "@/lib/life-agent-feed-search";
 import { fetchFavoriteLifeAgents, fetchLifeAgentsPage } from "@/lib/life-agents-list-api";
-import { cleanLifeAgentIntroText } from "@/lib/life-agent-intro-clean";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLifeAgentsFeedGestures, useMobileTouchNavEnabled } from "@/hooks/use-life-agents-feed-gestures";
 import { lifeAgentShowsPurchaseUi } from "@/lib/life-agent-commerce";
@@ -163,28 +162,24 @@ function preloadLifeAgentCover(src: string): Promise<void> {
 function LifeAgentsPageLoadingState({ title = "页面加载中..." }: { title?: string }) {
   return (
     <div className="-mx-1 space-y-4 pb-4 sm:mx-0 sm:space-y-5" aria-live="polite">
-      <div className="rounded-[24px] border border-hairline/40 bg-paper/95 px-4 py-3 shadow-[0_8px_24px_-12px_rgba(26,23,20,0.1)] backdrop-blur-sm">
+      <div className="border border-hairline bg-paper-50 px-4 py-3">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <p className="text-sm font-semibold text-ink">{title}</p>
+            <p className="text-sm font-medium text-ink">{title}</p>
             <p className="mt-1 text-xs text-ink-400">正在准备页面结构与首屏内容</p>
           </div>
           <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-hairline border-t-ink" aria-hidden />
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4 xl:grid-cols-5">
+      <div className="grid grid-cols-2 gap-x-3 gap-y-7 sm:grid-cols-3 sm:gap-x-5 sm:gap-y-9 lg:grid-cols-4 xl:grid-cols-5">
         {[1, 2, 3, 4, 5, 6].map((item) => (
-          <div
-            key={item}
-            className="flex min-h-0 flex-col overflow-hidden rounded-[22px] border border-hairline/30 bg-paper/[0.96] shadow-[0_4px_22px_rgba(26,23,20,0.05)]"
-          >
-            <div className="aspect-square w-full shrink-0 animate-pulse bg-gradient-to-br from-paper-100/80 to-paper-100/50" />
-            <div className="flex flex-1 flex-col gap-2 p-2.5">
-              <div className="min-h-[2.75rem] animate-pulse rounded-md bg-paper-200" />
-              <div className="h-3 w-2/3 animate-pulse rounded bg-paper-200" />
-              <div className="h-4 animate-pulse rounded bg-paper-50" />
-              <div className="h-6 animate-pulse rounded bg-paper-50" />
-              <div className="min-h-[1.375rem] animate-pulse rounded bg-paper-200" />
+          <div key={item} className="min-h-0">
+            <div className="w-full animate-pulse bg-paper-200" style={{ aspectRatio: "4 / 5" }} />
+            <div className="mt-2.5 border-t border-hairline pt-2.5 space-y-1.5">
+              <div className="h-3.5 w-3/5 animate-pulse bg-paper-200" />
+              <div className="h-3 w-full animate-pulse bg-paper-200" />
+              <div className="h-3 w-2/3 animate-pulse bg-paper-200" />
+              <div className="h-2.5 w-4/5 animate-pulse bg-paper-200" />
             </div>
           </div>
         ))}
@@ -451,7 +446,7 @@ function LifeAgentsPageContent() {
       setFavoritesSource([]);
       setLoadError(
         err instanceof Error && err.name === "AbortError"
-          ? "请求超时，请检查后端是否启动或稍后重试"
+          ? "网络似乎开了点小差，请稍后重试"
           : "加载失败，请刷新页面重试",
       );
     } finally {
@@ -481,7 +476,7 @@ function LifeAgentsPageContent() {
         setDiscoverNextCursor(null);
         setLoadError(
           err.name === "AbortError"
-            ? "请求超时，请检查后端是否启动或稍后重试"
+            ? "网络似乎开了点小差，请稍后重试"
             : "加载失败，请刷新页面重试",
         );
       })
@@ -548,7 +543,7 @@ function LifeAgentsPageContent() {
         setDiscoverNextCursor(null);
         setLoadError(
           err.name === "AbortError"
-            ? "请求超时，请检查后端是否启动或稍后重试"
+            ? "网络似乎开了点小差，请稍后重试"
             : "加载失败，请刷新页面重试",
         );
       })
@@ -675,9 +670,9 @@ function LifeAgentsPageContent() {
   ) : null;
 
   const favoritesIntro = (
-    <div className="mb-3 rounded-[20px] border border-hairline/[0.35] bg-gradient-to-r from-paper-50/[0.85] to-paper-50/[0.75] px-4 py-3 text-sm text-ink shadow-[0_4px_22px_rgba(26,23,20,0.05)] backdrop-blur-sm">
-      <p className="font-medium">我的收藏</p>
-      <p className="mt-1 text-xs text-ink-600/75">
+    <div className="mb-3 border border-hairline bg-paper-50 px-4 py-3 text-sm text-ink">
+      <p className="font-medium text-ink">我的收藏</p>
+      <p className="mt-1 text-xs text-ink-500">
         {authUser
           ? "在 Agent 详情页封面右上角点星形即可收藏，已登录时收藏会保存到你的账号。"
           : "在 Agent 详情页封面右上角点星形即可收藏；登录后收藏会同步到账号，未登录时仅保存在本机浏览器。"}
@@ -686,16 +681,16 @@ function LifeAgentsPageContent() {
   );
 
   const purchasedIntro = (
-    <div className="mb-3 rounded-[20px] border border-hairline/40 bg-gradient-to-r from-paper-50/[0.9] to-paper/[0.7] px-4 py-3 text-sm text-ink shadow-[0_4px_22px_rgba(26,23,20,0.05)] backdrop-blur-sm">
-      <p className="font-medium">已购买咨询额度</p>
-      <p className="mt-1 text-xs text-ink-600/75">以下为仍有剩余提问次数的 Agent，点击卡片可进入对话。</p>
+    <div className="mb-3 border border-hairline bg-paper-50 px-4 py-3 text-sm text-ink">
+      <p className="font-medium text-ink">已购买咨询额度</p>
+      <p className="mt-1 text-xs text-ink-500">以下为仍有剩余提问次数的 Agent，点击进入对话。</p>
     </div>
   );
 
   const favoritesHeading = (
     <div className="mb-3 flex flex-wrap items-center justify-between gap-3 px-1">
       <h2 className="text-base font-semibold text-ink sm:text-lg">我的收藏</h2>
-      <span className="shrink-0 rounded-full bg-paper-200/90 px-2.5 py-0.5 text-[11px] text-ink-700 sm:text-xs">
+      <span className="shrink-0 text-[11px] text-ink-400">
         {favoritesLoading ? UI.loading : `${displayProfilesFavorites.length}/${favoritesSource.length}${UI.countSuffix}`}
       </span>
     </div>
@@ -704,7 +699,7 @@ function LifeAgentsPageContent() {
   const purchasedHeading = (
     <div className="mb-3 flex flex-wrap items-center justify-between gap-3 px-1">
       <h2 className="text-base font-semibold text-ink sm:text-lg">已购买</h2>
-      <span className="shrink-0 rounded-full bg-paper-200/90 px-2.5 py-0.5 text-[11px] text-ink-700 sm:text-xs">
+      <span className="shrink-0 text-[11px] text-ink-400">
         {purchasedLoading ? UI.loading : `${purchasedItems.length}${UI.countSuffix}`}
       </span>
     </div>
@@ -712,35 +707,32 @@ function LifeAgentsPageContent() {
 
   const purchasedBody =
     purchasedLoading ? (
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4 xl:grid-cols-5">
+      <div className="grid grid-cols-2 gap-x-3 gap-y-7 sm:grid-cols-3 sm:gap-x-5 sm:gap-y-9 lg:grid-cols-4 xl:grid-cols-5">
         {[1, 2, 3, 4, 5, 6].map((item) => (
-          <div
-            key={item}
-            className="flex min-h-0 flex-col overflow-hidden rounded-[22px] border border-hairline/30 bg-paper/[0.96] shadow-[0_4px_22px_rgba(26,23,20,0.05)]"
-          >
-            <div className="aspect-square w-full shrink-0 animate-pulse bg-gradient-to-br from-paper-100/80 to-paper-100/50" />
-            <div className="flex flex-1 flex-col gap-2 p-2.5">
-              <div className="min-h-[2.75rem] animate-pulse rounded-md bg-paper-200" />
-              <div className="h-3 w-2/3 animate-pulse rounded bg-paper-200" />
-              <div className="h-4 animate-pulse rounded bg-paper-50" />
+          <div key={item} className="min-h-0">
+            <div className="w-full animate-pulse bg-paper-200" style={{ aspectRatio: "4 / 5" }} />
+            <div className="mt-2.5 border-t border-hairline pt-2.5 space-y-1.5">
+              <div className="h-3.5 w-3/5 animate-pulse bg-paper-200" />
+              <div className="h-3 w-full animate-pulse bg-paper-200" />
+              <div className="h-3 w-2/3 animate-pulse bg-paper-200" />
             </div>
           </div>
         ))}
       </div>
     ) : purchasedUnauthorized ? (
-      <div className="rounded-[22px] border border-dashed border-hairline/40 bg-paper/[0.97] px-6 py-12 text-center shadow-[0_6px_28px_rgba(26,23,20,0.05)] backdrop-blur-sm">
-        <p className="text-base font-semibold text-ink">请先登录</p>
-        <p className="mt-2 text-sm text-ink-400">登录后可查看你已购买提问额度的 Agent。</p>
-        <Link href="/login" className="btn-primary mt-5 inline-flex">
+      <div className="border border-hairline px-6 py-16 text-center">
+        <p className="font-serif text-xl font-medium text-ink">请先登录</p>
+        <p className="mt-2 font-serif text-sm italic text-ink-400">登录后可查看你已购买提问额度的 Agent。</p>
+        <Link href="/login" className="btn-primary mt-6 inline-flex">
           去登录
         </Link>
       </div>
     ) : purchasedItems.length === 0 ? (
-      <div className="rounded-[22px] border border-dashed border-hairline/40 bg-paper/[0.97] px-6 py-12 text-center shadow-[0_6px_28px_rgba(26,23,20,0.05)] backdrop-blur-sm">
-        <p className="text-base font-semibold text-ink">暂无已购额度</p>
-        <p className="mt-2 text-sm text-ink-400">购买提问包后，对应 Agent 会出现在这里。</p>
-        <Link href="/life-agents" className="mt-5 inline-block text-sm font-semibold text-ink-600 underline decoration-hairline/70 underline-offset-2 hover:text-ink">
-          去发现页逛逛
+      <div className="border-t border-b border-hairline px-6 py-16 text-center">
+        <p className="font-serif text-xl font-medium text-ink">暂无已购额度</p>
+        <p className="mt-2 font-serif text-sm italic text-ink-400">购买提问包后，对应 Agent 会出现在这里。</p>
+        <Link href="/life-agents" className="mt-5 inline-block text-sm font-semibold text-ink underline decoration-hairline underline-offset-2 hover:text-oxblood">
+          去发现页看看
         </Link>
       </div>
     ) : (
@@ -753,6 +745,13 @@ function LifeAgentsPageContent() {
   if (!initialPageReady) {
     return <LifeAgentsPageLoadingState />;
   }
+
+  const activeTab = normalizeFeedTab(feedTab);
+  const tabItems: { key: FeedTabKey; label: string; href: string; show: boolean }[] = [
+    { key: "discover", label: "发现", href: "/life-agents", show: true },
+    { key: "favorites", label: "收藏", href: "/life-agents?tab=favorites", show: true },
+    { key: "purchased", label: "已购", href: "/life-agents?tab=purchased", show: !!showPurchaseUi },
+  ];
 
   return (
     <div className="-mx-1 space-y-4 pb-4 sm:mx-0 sm:space-y-5">
@@ -786,6 +785,26 @@ function LifeAgentsPageContent() {
         )}
       </>
 
+      {/* 标签栏：发现 / 收藏 / 已购 */}
+      <nav aria-label="内容分类" className="flex items-center gap-6 border-b border-hairline pb-2">
+        {tabItems.filter((t) => t.show).map((t) => (
+          <Link
+            key={t.key}
+            href={t.href}
+            replace
+            scroll={false}
+            className={`text-[11px] font-medium uppercase tracking-[0.18em] transition-colors duration-150 ${
+              activeTab === t.key
+                ? "text-ink border-b border-ink -mb-2 pb-2"
+                : "text-ink-400 hover:text-ink-600"
+            }`}
+            aria-current={activeTab === t.key ? "page" : undefined}
+          >
+            {t.label}
+          </Link>
+        ))}
+      </nav>
+
       {touchNavEnabled && feedTab !== "favorites" ? (
         <>
           {loadErrorBanner}
@@ -808,7 +827,7 @@ function LifeAgentsPageContent() {
                 loading={discoverLoading}
                 emptyTitle={loadError ? "加载失败" : UI.emptyTitle}
                 emptySubtitle={
-                  loadError ? "请确认 Go 后端已启动（默认端口 8080），或刷新页面重试" : UI.emptySubtitle
+                  loadError ? "加载遇到了问题，请稍后刷新重试" : UI.emptySubtitle
                 }
                 windowResetKey="discover"
                 onLoadMore={loadMoreDiscover}
@@ -849,7 +868,7 @@ function LifeAgentsPageContent() {
               emptyTitle={loadError ? "加载失败" : feedTab === "favorites" ? "暂无收藏" : UI.emptyTitle}
               emptySubtitle={
                 loadError
-                  ? "请确认 Go 后端已启动（默认端口 8080），或刷新页面重试"
+                  ? "加载遇到了问题，请稍后刷新重试"
                   : feedTab === "favorites"
                     ? "去「发现」逛逛，在喜欢的 Agent 详情页点亮收藏。"
                     : UI.emptySubtitle
@@ -871,58 +890,49 @@ function PurchasedAgentsWindowedGrid({ rows }: { rows: PurchasedAgentRow[] }) {
   const showPrice = lifeAgentShowsPurchaseUi();
   const { slice, hasMore, sentinelRef } = useWindowedSlice(rows, { initial: 12, page: 12 });
   return (
-    <div className="space-y-3">
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4 xl:grid-cols-5">
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 gap-x-3 gap-y-7 sm:grid-cols-3 sm:gap-x-5 sm:gap-y-9 lg:grid-cols-4 xl:grid-cols-5">
         {slice.map((row, index) => {
           const coverUrl = resolveLifeAgentCoverDisplayUrl(row.coverUrl, row.coverImageUrl, row.coverPresetKey);
-          const headlineShown = cleanLifeAgentIntroText(row.headline, row.displayName);
           return (
             <motion.article
               key={row.id}
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index < 8 ? index * 0.04 : 0 }}
-              className="min-h-0 [contain-intrinsic-size:auto_300px]"
+              transition={{ delay: index < 8 ? index * 0.04 : 0, ease: [0.16, 1, 0.3, 1] }}
+              className="min-h-0 [contain-intrinsic-size:auto_340px]"
             >
               <Link href={`/life-agents/${row.id}/chat`} className="group flex h-full min-h-0">
-                <div className="flex h-full min-h-[260px] w-full flex-col overflow-hidden rounded-[22px] border border-hairline/40 bg-paper/[0.98] shadow-[0_5px_28px_-8px_rgba(26,23,20,0.07)] backdrop-blur-sm transition duration-200 group-hover:border-hairline/35 group-hover:shadow-[0_10px_36px_-10px_rgba(168,139,235,0.14)] sm:min-h-[280px]">
-                  <div className="relative aspect-square w-full shrink-0 overflow-hidden bg-paper-200/40">
+                <div className="flex h-full min-h-[260px] w-full flex-col overflow-hidden border border-hairline bg-paper transition-colors duration-200 group-hover:border-ink-300 sm:min-h-[280px]">
+                  <div className="relative w-full shrink-0 overflow-hidden bg-paper-200" style={{ aspectRatio: "4 / 5" }}>
                     <LifeAgentCoverImage
                       src={coverUrl}
-                      alt=""
+                      alt={row.displayName}
                       fill
-                      className="object-cover"
+                      className="object-cover transition-opacity duration-200 group-hover:opacity-90"
                       sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 220px"
                       priority={index < 6}
                       loading={index < 6 ? undefined : "lazy"}
                     />
                     {(row.verificationStatus === "verified" || row.verificationStatus === "pending") && (
-                      <div className="absolute right-2 top-2 rounded-full bg-paper/90 px-1.5 py-0.5 shadow-sm backdrop-blur-sm">
+                      <div className="absolute right-1.5 top-1.5 z-10">
                         <VerificationBadge status={row.verificationStatus ?? "none"} size="sm" />
                       </div>
                     )}
-                    {showPrice ? (
-                    <div className="absolute left-2 top-2 rounded-full bg-olive-600 px-2 py-0.5 text-[10px] font-bold text-paper shadow-sm">
-                      剩余 {row.remainingQuestions} 次
-                    </div>
-                    ) : null}
-                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/45 via-black/15 to-transparent p-2.5 pt-12">
-                      <span className="line-clamp-2 text-[13px] font-semibold leading-snug text-paper drop-shadow-md">
-                        {headlineShown}
-                      </span>
-                    </div>
                   </div>
-                  <div className="flex min-h-0 flex-1 flex-col px-2.5 pb-2.5 pt-2 sm:p-3">
-                    <h3 className="line-clamp-2 min-h-[2.75rem] text-[13px] font-semibold leading-snug text-ink sm:text-sm">
+                  <div className="border-t border-hairline px-2.5 pb-2.5 pt-2 sm:p-3">
+                    <h3 className="line-clamp-1 font-serif text-[15px] font-medium leading-tight text-ink sm:text-base">
                       {row.displayName}
                     </h3>
-                    <p className="mt-1 text-[11px] text-ink-300">点击进入对话</p>
+                    <p className="mt-0.5 line-clamp-2 min-h-[2.5em] font-serif text-[12.5px] italic leading-snug text-ink-400">
+                      {row.headline}
+                    </p>
                     {showPrice ? (
-                    <div className="mt-auto flex items-center justify-between border-t border-hairline/60 pt-2 text-[11px] text-ink-400">
-                      <span>按次咨询</span>
-                      <span className="font-bold text-ink-600">
+                    <div className="mt-2 flex items-baseline justify-between text-[11px] text-ink-400">
+                      <span>剩余 {row.remainingQuestions} 次</span>
+                      <span className="font-serif text-[13px] font-medium tabular-nums text-oxblood-500">
                         ¥{(row.pricePerQuestion / 100).toFixed(0)}
-                        <span className="text-[10px] font-medium text-ink-300">/问</span>
+                        <span className="ml-0.5 text-[10px] font-normal not-italic text-ink-300">/问</span>
                       </span>
                     </div>
                     ) : null}
@@ -935,7 +945,7 @@ function PurchasedAgentsWindowedGrid({ rows }: { rows: PurchasedAgentRow[] }) {
       </div>
       {hasMore ? (
         <div ref={sentinelRef} className="flex min-h-[52px] items-center justify-center py-2" aria-hidden>
-          <span className="text-xs text-ink-300">向下滑动加载更多…</span>
+          <span className="font-serif text-xs italic text-ink-300">继续阅读</span>
         </div>
       ) : null}
     </div>

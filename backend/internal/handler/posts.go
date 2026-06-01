@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"log"
+	"math/rand"
 	"net/http"
 	"sort"
 	"strconv"
@@ -17,6 +18,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
+
+var globalRand = rand.New(rand.NewSource(0))
 
 // ---------- Request / Response types ----------
 
@@ -819,17 +822,13 @@ func TriggerAgentRepliesSync(postID string, content string) (int, error) {
 		return 0, nil
 	}
 
-	if lifeagent.ClassifyPostReplyTier(content) == lifeagent.PostReplyTierBrief {
-		log.Printf("[AgentReply] Post %s too short to reply, skipping", postID)
-		return 0, nil
-	}
-
+	tier := lifeagent.ClassifyPostReplyTier(content)
 	replyCtx := lifeagent.PostReplyContext{
 		PostContent: content,
-		Tier:        lifeagent.PostReplyTierNormal,
+		Tier:        tier,
 	}
 
-	selected := selectAgentsForPostReply(profiles, content, lifeagent.PostReplyTierNormal)
+	selected := selectAgentsForPostReply(profiles, content, tier)
 	if len(selected) == 0 {
 		log.Printf("[AgentReply] Post %s no agents to reply", postID)
 		return 0, nil
@@ -901,35 +900,20 @@ func selectAgentsForPostReply(profiles []models.LifeAgentProfile, content string
 		return nil
 	}
 
-	// 短帖：选有知识库的前 N 个 Agent 做轻量接话
-	var withKnowledge []models.LifeAgentProfile
-	for _, p := range profiles {
-		if agentHasKnowledge(p.ID) {
-			withKnowledge = append(withKnowledge, p)
-		}
+	// 短帖调侃场景：随机选几个 Agent，不要求相关性
+	if len(profiles) <= maxReplies {
+		return profiles
 	}
-	if len(withKnowledge) == 0 {
-		return nil
+	// Fisher-Yates 随机取前 maxReplies 个
+	out := make([]models.LifeAgentProfile, len(profiles))
+	copy(out, profiles)
+	for i := len(out) - 1; i > 0; i-- {
+		j := globalRand.Intn(i + 1)
+		out[i], out[j] = out[j], out[i]
 	}
-	if len(withKnowledge) <= maxReplies {
-		return withKnowledge
-	}
-	return withKnowledge[:maxReplies]
+	return out[:maxReplies]
 }
 
-func agentHasKnowledge(profileID string) bool {
-	var n int64
-	db.DB.Model(&models.LifeAgentKnowledgeEntry{}).Where("profile_id = ?", profileID).Limit(1).Count(&n)
-	if n > 0 {
-		return true
-	}
-	db.DB.Model(&models.LifeAgentStructuredFact{}).Where("profile_id = ?", profileID).Limit(1).Count(&n)
-	if n > 0 {
-		return true
-	}
-	db.DB.Model(&models.LifeAgentTopicSummary{}).Where("profile_id = ?", profileID).Limit(1).Count(&n)
-	return n > 0
-}
 
 func loadPostAgentReplyTexts(postID string) []string {
 	var replies []models.PostAgentReply

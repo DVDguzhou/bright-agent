@@ -92,7 +92,7 @@ function LifeAgentDiscoverCard({
         >
           <LifeAgentCoverImage
             src={coverUrl}
-            alt=""
+            alt={profile.displayName}
             fill
             className="object-cover transition-opacity duration-200 group-hover:opacity-90"
             sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 220px"
