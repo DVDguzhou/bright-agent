@@ -738,51 +738,6 @@ func lifeAgentListResponseItems(profiles []models.LifeAgentProfile, cfg *config.
 	return resp
 }
 
-func LifeAgentsMapPins() gin.HandlerFunc {
-	type mapPin struct {
-		ID             string           `json:"id"             gorm:"column:id"`
-		DisplayName    string           `json:"displayName"    gorm:"column:display_name"`
-		Headline       string           `json:"headline"       gorm:"column:headline"`
-		School         string           `json:"school"         gorm:"column:school"`
-		City           string           `json:"city"           gorm:"column:city"`
-		Province       string           `json:"province"       gorm:"column:province"`
-		County         string           `json:"county"         gorm:"column:county"`
-		Regions        models.JSONArray `json:"regions"        gorm:"column:regions"`
-		CoverImageURL  *string          `json:"coverImageUrl,omitempty"  gorm:"column:cover_image_url"`
-		CoverPresetKey *string          `json:"coverPresetKey,omitempty" gorm:"column:cover_preset_key"`
-	}
-	type pinResp struct {
-		mapPin
-		HasRecentUpdate bool `json:"hasRecentUpdate"`
-	}
-	return func(c *gin.Context) {
-		var pins []mapPin
-		if err := db.DB.Table("life_agent_profiles").
-			Select("id, display_name, headline, school, city, province, county, regions, cover_image_url, cover_preset_key").
-			Where("published = ?", true).
-			Find(&pins).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "INTERNAL_ERROR"})
-			return
-		}
-		// 查询 7 天内有实时更新的 profile
-		recentCutoff := time.Now().Add(-7 * 24 * time.Hour)
-		var recentIDs []string
-		db.DB.Model(&models.LifeAgentLiveUpdate{}).
-			Select("DISTINCT profile_id").
-			Where("created_at > ? AND (expires_at IS NULL OR expires_at > ?)", recentCutoff, time.Now()).
-			Pluck("profile_id", &recentIDs)
-		recentSet := make(map[string]bool, len(recentIDs))
-		for _, rid := range recentIDs {
-			recentSet[rid] = true
-		}
-		resp := make([]pinResp, len(pins))
-		for i, p := range pins {
-			resp[i] = pinResp{mapPin: p, HasRecentUpdate: recentSet[p.ID]}
-		}
-		c.JSON(http.StatusOK, resp)
-	}
-}
-
 func LifeAgentsList(cfg *config.Config) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		limitStr := strings.TrimSpace(c.Query("limit"))
