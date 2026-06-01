@@ -18,7 +18,7 @@ import {
   getChatBubbleClassName,
 } from "@/lib/chat-glass";
 import { useEdgeSwipeBack } from "@/hooks/use-edge-swipe-back";
-import { useIsDesktop, useKeyboardViewport } from "@/hooks/use-keyboard-viewport";
+import { useIsDesktop, useKeyboardViewport, chatInputFooterPaddingClass } from "@/hooks/use-keyboard-viewport";
 import { useMobileTouchNavEnabled } from "@/hooks/use-life-agents-feed-gestures";
 import { LIFE_AGENT_UNLIMITED_CHAT, lifeAgentShowsPurchaseUi } from "@/lib/life-agent-commerce";
 
@@ -114,7 +114,7 @@ export default function LifeAgentChatPage() {
   const [useVoiceReply, setUseVoiceReply] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
   const isDesktop = useIsDesktop();
-  const { viewportBox, containerStyle: mobileContainerStyle } = useKeyboardViewport(!isDesktop);
+  const { viewportBox, containerStyle: mobileContainerStyle, keyboardVisible } = useKeyboardViewport(!isDesktop);
   const chatEndRef = useRef<HTMLDivElement | null>(null);
   const sendingRef = useRef(false);
 
@@ -1011,7 +1011,7 @@ export default function LifeAgentChatPage() {
           </div>
         )}
 
-        <div className="shrink-0 border-t border-hairline/25 bg-paper/[0.94] px-3 pb-[env(safe-area-inset-bottom)] pt-2 shadow-[0_-4px_28px_-8px_rgba(26,23,20,0.06)] backdrop-blur-lg sm:px-4">
+        <div className={`shrink-0 border-t border-hairline/25 bg-paper/[0.94] px-3 pt-2 shadow-[0_-4px_28px_-8px_rgba(26,23,20,0.06)] backdrop-blur-lg sm:px-4 ${chatInputFooterPaddingClass(keyboardVisible)}`}>
           <div className="mx-auto max-w-3xl">
             <LifeAgentMessageComposer
               value={input}

@@ -29,7 +29,7 @@ import {
   CHAT_SCROLL_SURFACE_CLASSNAME,
   getChatBubbleClassName,
 } from "@/lib/chat-glass";
-import { useIsDesktop, useKeyboardViewport } from "@/hooks/use-keyboard-viewport";
+import { useIsDesktop, useKeyboardViewport, chatInputFooterPaddingClass } from "@/hooks/use-keyboard-viewport";
 
 type KnowledgeEntry = {
   category: string;
@@ -411,7 +411,7 @@ export default function CreateLifeAgentPage() {
   const saveDraftTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const latestDraftSnapshotRef = useRef<LifeAgentCreateDraftV1 | null>(null);
   const isDesktop = useIsDesktop();
-  const { containerStyle: mobileContainerStyle } = useKeyboardViewport(!isDesktop);
+  const { containerStyle: mobileContainerStyle, keyboardVisible } = useKeyboardViewport(!isDesktop);
 
   useLayoutEffect(() => {
     if (!user?.id) {
@@ -1608,7 +1608,7 @@ export default function CreateLifeAgentPage() {
 
           {/* 输入栏（与 Agent 聊天页同款） */}
           {chatDone && !sampleQuestionsDone ? (
-            <div className="shrink-0 border-t border-hairline/25 bg-paper/[0.94] px-3 pb-[env(safe-area-inset-bottom)] pt-2 shadow-[0_-4px_28px_-8px_rgba(26,23,20,0.06)] backdrop-blur-lg sm:px-4 relative">
+            <div className={`shrink-0 border-t border-hairline/25 bg-paper/[0.94] px-3 pt-2 shadow-[0_-4px_28px_-8px_rgba(26,23,20,0.06)] backdrop-blur-lg sm:px-4 relative ${chatInputFooterPaddingClass(keyboardVisible)}`}>
               {draftReady && (
                 <div className="absolute -top-12 right-4 z-10">
                   <button
@@ -1645,7 +1645,7 @@ export default function CreateLifeAgentPage() {
               </div>
             </div>
           ) : !chatDone && (
-            <div className="shrink-0 border-t border-hairline/25 bg-paper/[0.94] px-3 pb-[env(safe-area-inset-bottom)] pt-2 shadow-[0_-4px_28px_-8px_rgba(26,23,20,0.06)] backdrop-blur-lg sm:px-4 relative">
+            <div className={`shrink-0 border-t border-hairline/25 bg-paper/[0.94] px-3 pt-2 shadow-[0_-4px_28px_-8px_rgba(26,23,20,0.06)] backdrop-blur-lg sm:px-4 relative ${chatInputFooterPaddingClass(keyboardVisible)}`}>
               {draftReady && (
                 <div className="absolute -top-12 right-4 z-10">
                   <button
@@ -2001,7 +2001,7 @@ export default function CreateLifeAgentPage() {
 
           {/* 输入栏（与 Agent 聊天页同款） */}
           {!experienceDone && selectedTopic && (
-            <div className="shrink-0 border-t border-hairline/25 bg-paper/[0.94] px-3 pb-[env(safe-area-inset-bottom)] pt-2 shadow-[0_-4px_28px_-8px_rgba(26,23,20,0.06)] backdrop-blur-lg sm:px-4 relative">
+            <div className={`shrink-0 border-t border-hairline/25 bg-paper/[0.94] px-3 pt-2 shadow-[0_-4px_28px_-8px_rgba(26,23,20,0.06)] backdrop-blur-lg sm:px-4 relative ${chatInputFooterPaddingClass(keyboardVisible)}`}>
               {draftReady && (
                 <div className="absolute -top-12 right-4 z-10">
                   <button

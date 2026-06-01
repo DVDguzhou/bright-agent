@@ -30,7 +30,7 @@ import {
   nextLifeAgentCoverFallbackSrc,
   resolveLifeAgentCoverUrl,
 } from "@/lib/life-agent-covers";
-import { useIsDesktop, useKeyboardViewport } from "@/hooks/use-keyboard-viewport";
+import { useIsDesktop, useKeyboardViewport, chatInputFooterPaddingClass } from "@/hooks/use-keyboard-viewport";
 
 type CoEditEventStatus = "pending" | "processed" | "failed";
 type ChatRow = {
@@ -139,7 +139,7 @@ export default function LifeAgentCoEditPage() {
   const formRef = useRef<HTMLFormElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const isDesktop = useIsDesktop();
-  const { containerStyle: mobileContainerStyle } = useKeyboardViewport(!isDesktop);
+  const { containerStyle: mobileContainerStyle, keyboardVisible } = useKeyboardViewport(!isDesktop);
 
   useEffect(() => {
     chatHistoryRef.current = chatHistory;
@@ -1089,7 +1089,7 @@ export default function LifeAgentCoEditPage() {
           </div>
         </div>
 
-        <div className="shrink-0 border-t border-hairline/25 bg-paper/[0.94] px-3 pb-[env(safe-area-inset-bottom)] pt-2 shadow-[0_-4px_28px_-8px_rgba(26,23,20,0.06)] backdrop-blur-lg sm:px-4">
+        <div className={`shrink-0 border-t border-hairline/25 bg-paper/[0.94] px-3 pt-2 shadow-[0_-4px_28px_-8px_rgba(26,23,20,0.06)] backdrop-blur-lg sm:px-4 ${chatInputFooterPaddingClass(keyboardVisible)}`}>
           <div className="mx-auto max-w-3xl">
             {mindScore ? (
               <div className="mb-2 rounded-2xl border border-hairline/30 bg-gradient-to-r from-paper-50/95 to-paper/80 px-3 py-3">
