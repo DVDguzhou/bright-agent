@@ -19,6 +19,7 @@ import { fetchFavoriteLifeAgents, fetchLifeAgentsPage } from "@/lib/life-agents-
 import { useAuth } from "@/contexts/AuthContext";
 import { useLifeAgentsFeedGestures, useMobileTouchNavEnabled } from "@/hooks/use-life-agents-feed-gestures";
 import { lifeAgentShowsPurchaseUi } from "@/lib/life-agent-commerce";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type PurchasedAgentRow = {
   id: string;
@@ -171,23 +172,14 @@ function LifeAgentsPageLoadingState({ title = "页面加载中..." }: { title?: 
           <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-hairline border-t-ink" aria-hidden />
         </div>
       </div>
-      <div className="space-y-8">
-        <div className="grid grid-cols-[45%_55%] border-b border-hairline pb-6">
-          <div className="animate-pulse bg-paper-200" style={{ aspectRatio: "3 / 4" }} />
-          <div className="flex flex-col border border-l-0 border-hairline p-4 space-y-3">
-            <div className="h-7 w-3/4 animate-pulse bg-paper-200" />
-            <div className="h-4 w-full animate-pulse bg-paper-200" />
-            <div className="h-4 w-5/6 animate-pulse bg-paper-200" />
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-x-2 gap-y-9 sm:grid-cols-3 sm:gap-x-3 sm:gap-y-11 lg:grid-cols-4 xl:grid-cols-5">
+      <div className="space-y-2">
+        <div className="w-full animate-pulse bg-paper-300" style={{ aspectRatio: "3/4" }} />
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {[1, 2, 3, 4].map((item) => (
-            <div key={item} className="min-h-0">
-              <div className="w-full animate-pulse bg-paper-200" style={{ aspectRatio: "2 / 3" }} />
-              <div className="space-y-2 pt-3">
-                <div className="h-4 w-3/4 animate-pulse bg-paper-200" />
-                <div className="h-3 w-full animate-pulse bg-paper-200" />
-              </div>
+            <div key={item} className="space-y-1.5">
+              <div className="w-full animate-pulse bg-paper-300" style={{ aspectRatio: "3/4" }} />
+              <div className="h-3 w-3/4 animate-pulse bg-paper-200" />
+              <div className="h-3 w-1/2 animate-pulse bg-paper-200" />
             </div>
           ))}
         </div>
@@ -715,14 +707,12 @@ function LifeAgentsPageContent() {
 
   const purchasedBody =
     purchasedLoading ? (
-      <div className="grid grid-cols-2 gap-x-2 gap-y-9 sm:grid-cols-3 sm:gap-x-3 sm:gap-y-11 lg:grid-cols-4 xl:grid-cols-5">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {[1, 2, 3, 4, 5, 6].map((item) => (
-          <div key={item} className="min-h-0">
-            <div className="w-full animate-pulse bg-paper-200" style={{ aspectRatio: "2 / 3" }} />
-            <div className="space-y-2 pt-3">
-              <div className="h-4 w-3/4 animate-pulse bg-paper-200" />
-              <div className="h-3 w-full animate-pulse bg-paper-200" />
-            </div>
+          <div key={item} className="min-h-0 space-y-1.5">
+            <div className="w-full animate-pulse bg-paper-300" style={{ aspectRatio: "3 / 4" }} />
+            <div className="h-3 w-3/4 animate-pulse bg-paper-200" />
+            <div className="h-3 w-1/2 animate-pulse bg-paper-200" />
           </div>
         ))}
       </div>
@@ -792,28 +782,22 @@ function LifeAgentsPageContent() {
         )}
       </>
 
-      {/* 标签栏：发现 / 收藏 / 已购 */}
-      <nav aria-label="内容分类" className="relative flex items-center gap-5 border-b border-hairline">
-        {tabItems.filter((t) => t.show).map((t) => (
-          <Link
-            key={t.key}
-            href={t.href}
-            replace
-            scroll={false}
-            className={`relative pb-2 pt-1 transition-colors duration-150 font-serif text-[17px] ${
-              activeTab === t.key
-                ? "font-medium text-ink"
-                : "font-normal italic text-ink-300 hover:text-ink-500"
-            }`}
-            aria-current={activeTab === t.key ? "page" : undefined}
-          >
-            {t.label}
-            {activeTab === t.key && (
-              <span className="absolute bottom-0 left-0 right-0 h-[1.5px] bg-ink" aria-hidden />
-            )}
-          </Link>
-        ))}
-      </nav>
+      {/* 标签栏：发现 / 收藏 / 已购 — Radix Tabs（ARIA + 动效） */}
+      <Tabs
+        value={activeTab}
+        onValueChange={(v) => {
+          const item = tabItems.find((t) => t.key === v);
+          if (item) router.replace(item.href, { scroll: false });
+        }}
+      >
+        <TabsList className="gap-5 px-0">
+          {tabItems.filter((t) => t.show).map((t) => (
+            <TabsTrigger key={t.key} value={t.key}>
+              {t.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
 
       {touchNavEnabled && feedTab !== "favorites" ? (
         <>
@@ -900,8 +884,8 @@ function PurchasedAgentsWindowedGrid({ rows }: { rows: PurchasedAgentRow[] }) {
   const showPrice = lifeAgentShowsPurchaseUi();
   const { slice, hasMore, sentinelRef } = useWindowedSlice(rows, { initial: 12, page: 12 });
   return (
-    <div className="space-y-0">
-      <div className="grid grid-cols-2 gap-x-2 gap-y-9 sm:grid-cols-3 sm:gap-x-3 sm:gap-y-11 lg:grid-cols-4 xl:grid-cols-5">
+    <div>
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {slice.map((row, index) => {
           const coverUrl = resolveLifeAgentCoverDisplayUrl(row.coverUrl, row.coverImageUrl, row.coverPresetKey);
           return (
@@ -913,36 +897,41 @@ function PurchasedAgentsWindowedGrid({ rows }: { rows: PurchasedAgentRow[] }) {
               className="min-h-0 [contain-intrinsic-size:auto_340px]"
             >
               <Link href={`/life-agents/${row.id}/chat`} className="group flex h-full min-h-0">
-                <div className="flex h-full w-full flex-col overflow-hidden transition-colors duration-200">
-                  <div className="relative w-full shrink-0 overflow-hidden bg-paper-200" style={{ aspectRatio: "2 / 3" }}>
+                <div className="w-full">
+                  {/* Cover — same full-bleed style as discover card */}
+                  <div className="relative w-full overflow-hidden bg-paper-300 group" style={{ aspectRatio: "3 / 4" }}>
                     <LifeAgentCoverImage
                       src={coverUrl}
                       alt={row.displayName}
                       fill
-                      className="object-cover transition-opacity duration-200 group-hover:opacity-90"
-                      sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 220px"
+                      className="object-cover transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform group-hover:scale-[1.06]"
+                      sizes="(max-width: 640px) 48vw, (max-width: 1024px) 32vw, 22vw"
                       priority={index < 6}
                       loading={index < 6 ? undefined : "lazy"}
                     />
+                    {/* Name overlay */}
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent pt-16 pb-3 px-3">
+                      <h3 className="font-serif text-[16px] sm:text-[18px] font-medium leading-tight text-paper line-clamp-1 drop-shadow-sm">
+                        {row.displayName}
+                      </h3>
+                    </div>
                     {(row.verificationStatus === "verified" || row.verificationStatus === "pending") && (
-                      <div className="absolute right-1.5 top-1.5 z-10">
+                      <div className="absolute right-2 top-2 z-10">
                         <VerificationBadge status={row.verificationStatus ?? "none"} size="sm" />
                       </div>
                     )}
                   </div>
-                  <div className="pt-3">
-                    <h3 className="line-clamp-1 font-serif text-[17px] font-medium leading-tight text-ink sm:text-[19px]">
-                      {row.displayName}
-                    </h3>
-                    <p className="mt-1 font-serif text-[12px] italic leading-snug text-ink-400 line-clamp-2 min-h-[2em]">
+                  {/* Below image */}
+                  <div className="pt-2">
+                    <p className="font-serif text-[12px] italic leading-snug text-ink-400 line-clamp-2 min-h-[2em]">
                       {row.headline}
                     </p>
                     {showPrice ? (
-                    <div className="mt-2 flex items-baseline justify-between text-[11px] text-ink-400">
+                    <div className="mt-1.5 flex items-baseline justify-between text-[11px] text-ink-400">
                       <span>剩余 {row.remainingQuestions} 次</span>
-                      <span className="font-serif text-[15px] font-medium tabular-nums text-oxblood-500">
+                      <span className="font-serif text-[14px] font-medium tabular-nums text-oxblood-500">
                         ¥{(row.pricePerQuestion / 100).toFixed(0)}
-                        <span className="ml-0.5 text-[10px] font-normal not-italic text-ink-300">/问</span>
+                        <span className="ml-0.5 text-[9px] font-normal not-italic text-ink-300">/问</span>
                       </span>
                     </div>
                     ) : null}
