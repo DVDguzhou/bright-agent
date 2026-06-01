@@ -127,6 +127,19 @@ function buildPopupHtml(agent: MapAgentMarker): string {
 
 /* ── Map helper sub-components ── */
 
+const CHINA_DEFAULT_CENTER: L.LatLngTuple = [35.0, 105.0];
+const CHINA_DEFAULT_ZOOM = 5;
+
+/** 中国大陆近似范围，用于默认视野优先聚焦国内 Agent */
+function isInChinaBounds([lat, lng]: L.LatLngTuple): boolean {
+  return lat >= 18 && lat <= 54 && lng >= 73 && lng <= 135;
+}
+
+function pickInitialFitPoints(points: L.LatLngTuple[]): L.LatLngTuple[] {
+  const chinaPoints = points.filter(isInChinaBounds);
+  return chinaPoints.length > 0 ? chinaPoints : points;
+}
+
 function MapInstanceExposer({ mapRef }: { mapRef: React.MutableRefObject<L.Map | null> }) {
   const map = useMap();
   useEffect(() => {
@@ -155,8 +168,15 @@ function MapLayoutFit({
     if (userLatLng) {
       map.setView([userLatLng.lat, userLatLng.lng], Math.max(map.getZoom(), 10));
     } else if (points.length > 0) {
-      const bounds = L.latLngBounds(points);
-      map.fitBounds(bounds, { padding: [40, 40], maxZoom: 12 });
+      const fitPoints = pickInitialFitPoints(points);
+      if (fitPoints.length === 1) {
+        map.setView(fitPoints[0], 10);
+      } else {
+        const bounds = L.latLngBounds(fitPoints);
+        map.fitBounds(bounds, { padding: [40, 40], maxZoom: 12 });
+      }
+    } else {
+      map.setView(CHINA_DEFAULT_CENTER, CHINA_DEFAULT_ZOOM);
     }
   }, [map, points, userLatLng, layoutNonce]);
   return null;
@@ -309,8 +329,8 @@ export default function LifeAgentsMapView({
       style={rounded ? { minHeight: "min(62dvh, 520px)" } : { minHeight: "100%" }}
     >
       <MapContainer
-        center={[35, 108]}
-        zoom={5}
+        center={CHINA_DEFAULT_CENTER}
+        zoom={CHINA_DEFAULT_ZOOM}
         minZoom={3}
         maxZoom={18}
         zoomControl={false}
