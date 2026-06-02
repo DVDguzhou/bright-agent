@@ -10,8 +10,8 @@ const (
 	PostReplyMaxRunes             = 120
 	PostReplyBriefMaxRunes        = 50
 	PostReplyMinAgentScore        = 1
-	PostReplyMaxAgents            = 5
-	PostReplyBriefMaxAgents       = 3
+	PostReplyMaxAgents            = 10
+	PostReplyBriefMaxAgents       = 10
 )
 
 type PostReplyTier int
@@ -137,7 +137,7 @@ func (t PostReplyTier) maxRunes() int {
 // PostReplyLengthHint 返回按 tier 分档的字数提示，直接嵌入 prompt，让 LLM 输出完整句子而非事后截断。
 func PostReplyLengthHint(tier PostReplyTier) string {
 	if tier == PostReplyTierBrief {
-		return "帖子内容很短，20-50字即可：像朋友随口接一句，或轻轻问一句具体情况；不要编造与帖子无关的长经历，句子必须完整。"
+		return "帖子内容很短或重复，20-40字，用朋友看到朋友发了奇怪东西的语气调侃一句，轻松幽默，句子必须完整。"
 	}
 	return "这是社区帖子下的短评，80-120字，像刷朋友圈随口回一句带经历的评论，句子必须完整。"
 }
@@ -153,9 +153,10 @@ func PostReplyFormatRules(ctx PostReplyContext) []string {
 	}
 	if ctx.Tier == PostReplyTierBrief {
 		rules = append(rules,
-			"20-50字，一到两句完整的话，禁止半句",
-			"帖子信息少时：只接话、共情或请对方多说一句，禁止编造具体经历细节",
-			"若完全接不上、也说不出自然的话，只输出 [SKIP]",
+			"20-40字，一句完整的话，禁止半句",
+			"帖子内容很短或重复，用轻松调侃的语气回应，像朋友看到朋友发了奇怪东西",
+			"可以猜测对方是手滑、压测、还是有什么别的意思，语气轻松不严肃",
+			"禁止正经分析帖子内容，禁止分享经历",
 		)
 	} else {
 		rules = append(rules,
@@ -181,8 +182,8 @@ func BuildPostReplyMessage(ctx PostReplyContext) string {
 	b.WriteString(strings.TrimSpace(ctx.PostContent))
 	b.WriteString("\n\n【场景】你在社区帖子下评论，分享真实感受或经历，不是客服。")
 	if ctx.Tier == PostReplyTierBrief {
-		b.WriteString("\n【长度】20-50字，一到两句完整的话。")
-		b.WriteString("\n【短帖】帖子很短时：轻松接话或请对方多说两句即可，不要编造长篇经历；接不上则只输出 [SKIP]。")
+		b.WriteString("\n【长度】20-40字，一句完整的话。")
+		b.WriteString("\n【短帖】帖子内容很短或重复，用轻松调侃的语气回应，像朋友看到朋友发了奇怪东西；可以猜测对方手滑/压测/发错了，语气轻松不严肃，禁止正经分析。")
 	} else {
 		b.WriteString("\n【长度】80-120字，一到两句完整的话，禁止半句。")
 		b.WriteString("\n【相关性】只接与帖子主题相关的话；若与你不相关、说不出有价值的内容，只输出 [SKIP]。")

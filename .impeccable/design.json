@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-06-01T00:00:00Z",
+  "title": "Design System: Life Agent Marketplace",
+  "extensions": {
+    "colorMeta": {
+      "paper":        { "role": "neutral",   "displayName": "Warm Paper",        "canonical": "#f4efe6", "tonalRamp": ["#3d3730", "#5c5044", "#7a6c5c", "#9d8f7e", "#c4b5a0", "#d8ccba", "#e8e0d2", "#f4efe6", "#faf7f1"] },
+      "paper-light":  { "role": "neutral",   "displayName": "Paper Light",       "canonical": "#faf7f1", "tonalRamp": ["#3d3730", "#5c5044", "#7a6c5c", "#9d8f7e", "#c4b5a0", "#d8ccba", "#e8e0d2", "#f4efe6", "#faf7f1"] },
+      "ink":          { "role": "primary",   "displayName": "Deep Ink",          "canonical": "#1a1714", "tonalRamp": ["#0d0b09", "#1a1714", "#272320", "#3a342e", "#4d463f", "#6b635a", "#8d8478", "#bfb6aa", "#e6e1da"] },
+      "oxblood":      { "role": "secondary", "displayName": "Oxblood",           "canonical": "#7a1f1f", "tonalRamp": ["#2d0b0b", "#4d1414", "#641a1a", "#7a1f1f", "#9b2929", "#b84040", "#d99a9a", "#f1d9d9", "#fbf3f3"] },
+      "olive":        { "role": "tertiary",  "displayName": "Archive Olive",     "canonical": "#4a5a2f", "tonalRamp": ["#1a2010", "#2a3318", "#3a4724", "#4a5a2f", "#5d7140", "#7a9455", "#a4bc83", "#ccddb0", "#e8f0d8"] },
+      "hairline":     { "role": "neutral",   "displayName": "Hairline",          "canonical": "#d8cfbf", "tonalRamp": ["#8a8070", "#a09680", "#b4aa98", "#c4b8a8", "#d8cfbf", "#e4ddd2", "#f0ece5", "#f8f6f2", "#fdfcfa"] },
+      "ink-muted":    { "role": "neutral",   "displayName": "Ink Muted",         "canonical": "#8d8478", "tonalRamp": ["#1a1714", "#3a342e", "#4d463f", "#6b635a", "#8d8478", "#a09890", "#bfb6aa", "#d8d2cb", "#f0ede8"] }
+    },
+    "typographyMeta": {
+      "display":  { "displayName": "Display",  "purpose": "Page heroes and agent names at maximum prominence. Serif only." },
+      "headline": { "displayName": "Headline", "purpose": "Section headings, agent profile titles. Serif only." },
+      "title":    { "displayName": "Title",    "purpose": "Card titles, dialog headings, primary list item text. Sans." },
+      "body":     { "displayName": "Body",     "purpose": "All running text. Max 65–75ch on desktop. Sans." },
+      "label":    { "displayName": "Label",    "purpose": "Kickers, category tags, status chips. Rare — max 2 per page." }
+    },
+    "shadows": [
+      { "name": "hover-glow",  "value": "0 0 15px -3px rgb(122 31 31 / 0.15), 0 0 30px -5px rgb(26 23 20 / 0.08)", "purpose": "Featured card hover. Oxblood-tinted ambient warmth. Not structural." },
+      { "name": "glow",        "value": "0 0 40px -10px rgb(122 31 31 / 0.2), 0 0 80px -20px rgb(26 23 20 / 0.1)",  "purpose": "Hero accent element. Very rare." },
+      { "name": "inner-glow",  "value": "inset 0 0 60px -20px rgb(122 31 31 / 0.06)",                               "purpose": "Subtle warmth in featured hero backgrounds." }
+    ],
+    "motion": [
+      { "name": "ease-out-standard", "value": "cubic-bezier(0.16, 1, 0.3, 1)",  "purpose": "Default easing for state transitions. Smooth deceleration." },
+      { "name": "duration-fast",     "value": "160ms",                           "purpose": "Button hover, border color shifts." },
+      { "name": "duration-standard", "value": "300ms",                           "purpose": "Card hovers, panel entrances." },
+      { "name": "duration-slow",     "value": "500ms",                           "purpose": "Page-level fade-ins, modal transitions." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px"  },
+      { "name": "md", "value": "768px"  },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Filled ink button. Main call to action.",
+      "html": "<button class=\"ds-btn-primary\">开始咨询</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; padding: 12px 24px; font-size: 0.875rem; font-weight: 500; letter-spacing: 0.025em; font-family: ui-sans-serif, system-ui, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #1a1714; color: #faf7f1; border: none; border-radius: 2px; cursor: pointer; transition: background-color 160ms cubic-bezier(0.16,1,0.3,1); } .ds-btn-primary:hover { background: #7a1f1f; } .ds-btn-primary:active { background: #4d1414; } .ds-btn-primary:focus-visible { outline: 2px solid #7a1f1f; outline-offset: 2px; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Outlined ink button. Supporting actions.",
+      "html": "<button class=\"ds-btn-secondary\">查看详情</button>",
+      "css": ".ds-btn-secondary { display: inline-flex; align-items: center; justify-content: center; padding: 12px 20px; font-size: 0.875rem; font-weight: 500; font-family: ui-sans-serif, system-ui, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: transparent; color: #1a1714; border: 1px solid #1a1714; border-radius: 2px; cursor: pointer; transition: background-color 160ms cubic-bezier(0.16,1,0.3,1), color 160ms cubic-bezier(0.16,1,0.3,1); } .ds-btn-secondary:hover { background: #1a1714; color: #faf7f1; } .ds-btn-secondary:focus-visible { outline: 2px solid #7a1f1f; outline-offset: 2px; }"
+    },
+    {
+      "name": "Agent Profile Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Primary marketplace unit. Cover image, name, headline, metadata.",
+      "html": "<div class=\"ds-agent-card\"><div class=\"ds-agent-card__cover\"></div><div class=\"ds-agent-card__body\"><p class=\"ds-agent-card__name\">张明</p><p class=\"ds-agent-card__headline\">15年北美留学顾问，帮你少走弯路</p><p class=\"ds-agent-card__meta\">学历 · 哥伦比亚大学 &nbsp;|&nbsp; 地区 · 纽约</p><div class=\"ds-agent-card__rating\">★★★★☆ <span>4.8（32人评分）</span></div></div></div>",
+      "css": ".ds-agent-card { position: relative; background: #faf7f1; border: 1px solid #d8cfbf; border-radius: 4px; overflow: hidden; transition: border-color 160ms ease; cursor: pointer; } .ds-agent-card:hover { border-color: #8d8478; box-shadow: 0 0 15px -3px rgb(122 31 31 / 0.15), 0 0 30px -5px rgb(26 23 20 / 0.08); } .ds-agent-card__cover { width: 100%; aspect-ratio: 3/4; background: #ebe3d4; } .ds-agent-card__body { padding: 12px 16px 16px; } .ds-agent-card__name { font-size: 1rem; font-weight: 500; color: #1a1714; margin: 0 0 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: ui-sans-serif, system-ui, 'PingFang SC', sans-serif; } .ds-agent-card__headline { font-size: 0.8125rem; color: #4d463f; line-height: 1.5; margin: 0 0 8px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-family: ui-sans-serif, system-ui, 'PingFang SC', sans-serif; } .ds-agent-card__meta { font-size: 0.6875rem; color: #8d8478; letter-spacing: 0.01em; margin: 0 0 8px; font-family: ui-sans-serif, system-ui, 'PingFang SC', sans-serif; } .ds-agent-card__rating { font-size: 0.75rem; color: #6b635a; font-family: ui-sans-serif, system-ui, 'PingFang SC', sans-serif; } .ds-agent-card__rating span { color: #8d8478; }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Underline-only field. No box, no radius.",
+      "html": "<div class=\"ds-input-wrap\"><input class=\"ds-input\" type=\"text\" placeholder=\"你想咨询什么？\" /></div>",
+      "css": ".ds-input-wrap { width: 100%; } .ds-input { width: 100%; padding: 8px 4px; font-size: 1rem; font-family: ui-sans-serif, system-ui, 'PingFang SC', 'Microsoft YaHei', sans-serif; color: #1a1714; background: transparent; border: none; border-bottom: 1px solid #d8cfbf; border-radius: 0; outline: none; transition: border-color 160ms ease; } .ds-input::placeholder { color: #8d8478; } .ds-input:focus { border-bottom-color: #1a1714; }"
+    },
+    {
+      "name": "Kicker Label",
+      "kind": "custom",
+      "description": "Section label: short horizontal rule + uppercase text. Used sparingly (max 2 per page).",
+      "html": "<div class=\"ds-kicker\">发现 Agent</div>",
+      "css": ".ds-kicker { display: flex; align-items: center; gap: 12px; font-size: 0.6875rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.2em; color: #8d8478; font-family: ui-sans-serif, system-ui, 'PingFang SC', sans-serif; } .ds-kicker::before { content: ''; display: block; width: 24px; height: 1px; background: #8d8478; flex-shrink: 0; }"
+    },
+    {
+      "name": "Verification Badge",
+      "kind": "chip",
+      "description": "Olive-green verification indicator. Status only — not decorative.",
+      "html": "<span class=\"ds-badge-verified\">已认证</span>",
+      "css": ".ds-badge-verified { display: inline-flex; align-items: center; gap: 4px; font-size: 0.6875rem; font-weight: 500; color: #4a5a2f; font-family: ui-sans-serif, system-ui, 'PingFang SC', sans-serif; } .ds-badge-verified::before { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #4a5a2f; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Living Archive",
+    "overview": "This design system is built around a single conviction: the person behind the agent is the product. Not the AI powering it, not the platform hosting it — the human whose experience, judgment, and story live inside. Every surface decision follows from that conviction. The palette is warm paper and deep ink because this is a library of real lives, not a tech product. The typography reaches for editorial weight and serif authority because real experience deserves a serious frame. The components are stripped of decoration because the content is the decoration.\n\nThe system rejects its most obvious temptations. It is not a productivity tool: no neutral grids, no utility-first chrome. It is not a social network: no follower counts, no engagement metrics, no visual language borrowed from Xiaohongshu or Instagram. It is not an AI brand: no dark mode with gradient logos, no \"intelligence\" abstraction, no interface that makes the AI more prominent than the human it represents.\n\nThe atmosphere is a private journal made public: tactile warmth, unhurried pace, typographic clarity, restraint as a form of respect.",
+    "keyCharacteristics": [
+      "Warm paper ground (#f4efe6) with deep ink text (#1a1714): editorial, not clinical",
+      "Oxblood (#7a1f1f) as a rare, authoritative accent — not a primary brand color",
+      "Serif for hierarchy and feeling; sans for function and legibility",
+      "Flat elevation: no shadows at rest; tonal layering separates surfaces",
+      "2px border-radius maximum: sharp without being harsh"
+    ],
+    "rules": [
+      { "name": "The One Oxblood Rule",    "body": "Oxblood (#7a1f1f) is an emphasis color, not a brand color. If you are about to use it as a background, a border, or as more than one element per screen, pull back. Its rarity is what gives it authority.", "section": "colors" },
+      { "name": "The Warm-Paper Rule",     "body": "The body background (#f4efe6) is not a neutral off-white. It is a committed brand surface. Do not lighten it toward white for 'cleanliness' — that erases the editorial warmth. If a surface needs to feel lighter, use #faf7f1.", "section": "colors" },
+      { "name": "The Serif-for-Feeling Rule", "body": "Serif is reserved for hierarchy and emotional weight: display headings, agent names at their most prominent, pull quotes. It does not appear in navigation, buttons, labels, or form fields.", "section": "typography" },
+      { "name": "The Label Economy Rule",  "body": "The label style (11px uppercase tracked) is a powerful accent — used on every section it becomes AI scaffolding. One or two kicker labels per page is editorial. Six is scaffolding. Count them before shipping.", "section": "typography" },
+      { "name": "The Paper Layers Rule",   "body": "Depth is expressed through tonal value, not elevation. A card above the page background is #faf7f1 on #f4efe6 — a half-tone step. Never add a drop shadow at rest to achieve the same effect.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do foreground the creator's name, photo, and specific background on every agent card — the human is the product.",
+      "Do use serif for headings and agent names at display scale.",
+      "Do keep oxblood to ≤10% of any given screen.",
+      "Do use tonal paper steps to establish depth, not shadows.",
+      "Do keep touch targets at minimum 44px height — the primary user is on mobile.",
+      "Do apply text-wrap: balance to h1–h3 and text-wrap: pretty to long body paragraphs."
+    ],
+    "donts": [
+      "Don't make the platform's AI capability the visual subject. No gradient brain logos, no neural-net imagery.",
+      "Don't borrow the social feed visual language: no like counts, no follower counts as the primary credibility signal.",
+      "Don't use neutral productivity-tool aesthetics: no gray-on-white, no dense sidebar, no SaaS card grids.",
+      "Don't add a side-stripe border (border-left > 1px) to any card, callout, or list item.",
+      "Don't use gradient text. The .gradient-text class already redirects this to serif italic — use that.",
+      "Don't add a kicker/eyebrow to every section. One or two per page is editorial; more is AI scaffolding.",
+      "Don't add shadows to resting cards — the paper-layers system handles depth.",
+      "Don't round buttons or inputs beyond 4px.",
+      "Don't use color saturation to assert credibility — specific experience details are the credibility signal."
+    ]
+  }
+}
