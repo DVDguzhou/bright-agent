@@ -652,8 +652,8 @@ export function Nav() {
   }, [mobileDrawerOpen]);
 
   const feedTabClass = (active: boolean) =>
-    `relative px-2 py-1 font-serif text-[16px] transition-colors ${
-      active ? "font-medium text-ink" : "font-normal italic text-ink-300"
+    `relative px-2 py-1 text-[15px] font-medium transition-colors ${
+      active ? "text-[var(--accent)]" : "text-ink-400 hover:text-ink"
     }`;
 
   const AuthLinks = ({ vertical = false }: { vertical?: boolean }) =>
@@ -789,7 +789,7 @@ export function Nav() {
               <div className="relative flex min-w-0 flex-1 items-center justify-center gap-2 sm:gap-4">
                 {touchFeedPager && feedTabUnderlineX !== null ? (
                   <span
-                    className="pointer-events-none absolute bottom-0 h-[1px] w-6 bg-ink transition-[left] duration-75 ease-out sm:w-7"
+                    className="pointer-events-none absolute bottom-0 h-[2px] w-6 rounded-full bg-[var(--accent)] transition-[left] duration-75 ease-out sm:w-7"
                     style={{ left: feedTabUnderlineX, transform: "translateX(-50%)" }}
                     aria-hidden
                   />
@@ -800,13 +800,13 @@ export function Nav() {
                 >
                   动态
                   {isPostsPage ? (
-                    <span className="absolute bottom-0 left-1 right-1 h-[1px] bg-ink" aria-hidden />
+                    <span className="absolute bottom-0 left-1 right-1 h-[2px] rounded-full bg-[var(--accent)]" aria-hidden />
                   ) : null}
                 </Link>
                 <Link ref={feedTabDiscRef} href="/life-agents" className={`relative ${feedTabClass(isFeedDiscover)}`} scroll={false}>
                   发现
                   {!touchFeedPager && isFeedDiscover ? (
-                    <span className="absolute bottom-0 left-1 right-1 h-[1px] bg-ink" aria-hidden />
+                    <span className="absolute bottom-0 left-1 right-1 h-[2px] rounded-full bg-[var(--accent)]" aria-hidden />
                   ) : null}
                 </Link>
                 {showFeedPurchasedTab ? (
@@ -818,7 +818,7 @@ export function Nav() {
                 >
                   已购买
                   {!touchFeedPager && isFeedPurchased ? (
-                    <span className="absolute bottom-0 left-1 right-1 h-[1px] bg-ink" aria-hidden />
+                    <span className="absolute bottom-0 left-1 right-1 h-[2px] rounded-full bg-[var(--accent)]" aria-hidden />
                   ) : null}
                 </Link>
                 ) : null}
@@ -1101,7 +1101,10 @@ export function Nav() {
             </div>
           ) : null}
 
-          <div className="fixed bottom-0 left-0 right-0 z-50 flex lg:hidden items-end justify-around border-t-[1.5px] border-hairline bg-paper/96 supports-[backdrop-filter]:backdrop-blur-md pb-[env(safe-area-inset-bottom)]">
+          <div
+            className="fixed bottom-0 left-0 right-0 z-50 flex lg:hidden items-end justify-around bg-white/97 supports-[backdrop-filter]:backdrop-blur-md pb-[env(safe-area-inset-bottom)]"
+            style={{ boxShadow: "0 -1px 10px rgba(0,0,0,0.07)" }}
+          >
             {(() => {
               const [lifeAgentsLink, messagesLink, licenseLink] = navLinks;
               const renderTab = (link: (typeof navLinks)[number]) => {
@@ -1111,15 +1114,11 @@ export function Nav() {
                   <Link
                     key={link.href}
                     href={link.href}
-                    className={`relative flex min-w-0 flex-1 flex-col items-center gap-0.5 px-2 pb-2.5 pt-3 transition-colors duration-150 ${
-                      active ? "text-ink" : "text-ink-300 hover:text-ink-500"
-                    }`}
+                    className="relative flex min-w-0 flex-1 flex-col items-center gap-0.5 px-2 pb-2.5 pt-3 transition-colors duration-150"
+                    style={{ color: active ? "var(--accent)" : "#B5AFA8" }}
                   >
-                    {active ? (
-                      <span className="absolute inset-x-[28%] top-0 h-[2px] bg-ink" aria-hidden />
-                    ) : null}
-                    <Icon className={`h-[22px] w-[22px] shrink-0 transition-all duration-150 ${active ? "stroke-[2]" : "stroke-[1.4]"}`} />
-                    <span className={`w-full truncate text-center font-serif text-[11px] transition-all duration-150 ${active ? "font-medium not-italic" : "italic"}`}>
+                    <Icon className={`h-[22px] w-[22px] shrink-0 ${active ? "stroke-[2]" : "stroke-[1.5]"}`} />
+                    <span className="w-full truncate text-center text-[11px] font-medium">
                       {link.label}
                     </span>
                   </Link>
@@ -1138,28 +1137,20 @@ export function Nav() {
             {user ? (
               <Link
                 href="/dashboard"
-                className={`relative flex flex-col items-center gap-0.5 px-3 pb-2.5 pt-3 min-w-0 flex-1 transition-colors duration-150 ${
-                  pathname === "/dashboard" ? "text-ink" : "text-ink-300 hover:text-ink-500"
-                }`}
+                className="relative flex flex-col items-center gap-0.5 px-3 pb-2.5 pt-3 min-w-0 flex-1 transition-colors duration-150"
+                style={{ color: pathname === "/dashboard" ? "var(--accent)" : "#B5AFA8" }}
               >
-                {pathname === "/dashboard" ? (
-                  <span className="absolute inset-x-[28%] top-0 h-[2px] bg-ink" aria-hidden />
-                ) : null}
-                <IconDashboard className={`h-[22px] w-[22px] shrink-0 transition-all duration-150 ${pathname === "/dashboard" ? "stroke-[2]" : "stroke-[1.4]"}`} />
-                <span className={`font-serif text-[11px] transition-all duration-150 ${pathname === "/dashboard" ? "font-medium not-italic" : "italic"}`}>我的</span>
+                <IconDashboard className={`h-[22px] w-[22px] shrink-0 ${pathname === "/dashboard" ? "stroke-[2]" : "stroke-[1.5]"}`} />
+                <span className="text-[11px] font-medium">我的</span>
               </Link>
             ) : (
               <Link
                 href="/login"
-                className={`relative flex flex-col items-center gap-0.5 px-3 pb-2.5 pt-3 min-w-0 flex-1 transition-colors duration-150 ${
-                  pathname === "/login" ? "text-ink" : "text-ink-300 hover:text-ink-500"
-                }`}
+                className="relative flex flex-col items-center gap-0.5 px-3 pb-2.5 pt-3 min-w-0 flex-1 transition-colors duration-150"
+                style={{ color: pathname === "/login" ? "var(--accent)" : "#B5AFA8" }}
               >
-                {pathname === "/login" ? (
-                  <span className="absolute inset-x-[28%] top-0 h-[2px] bg-ink" aria-hidden />
-                ) : null}
-                <IconLogin className={`h-[22px] w-[22px] shrink-0 transition-all duration-150 ${pathname === "/login" ? "stroke-[2]" : "stroke-[1.4]"}`} />
-                <span className={`font-serif text-[11px] transition-all duration-150 ${pathname === "/login" ? "font-medium not-italic" : "italic"}`}>登录</span>
+                <IconLogin className={`h-[22px] w-[22px] shrink-0 ${pathname === "/login" ? "stroke-[2]" : "stroke-[1.5]"}`} />
+                <span className="text-[11px] font-medium">登录</span>
               </Link>
             )}
           </div>

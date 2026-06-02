@@ -707,12 +707,19 @@ function LifeAgentsPageContent() {
 
   const purchasedBody =
     purchasedLoading ? (
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {[1, 2, 3, 4, 5, 6].map((item) => (
-          <div key={item} className="min-h-0 space-y-1.5">
+          <div
+            key={item}
+            className="min-h-0 overflow-hidden bg-white"
+            style={{ borderRadius: "var(--radius-card)", boxShadow: "var(--shadow-card)" }}
+          >
             <div className="w-full animate-pulse bg-paper-300" style={{ aspectRatio: "3 / 4" }} />
-            <div className="h-3 w-3/4 animate-pulse bg-paper-200" />
-            <div className="h-3 w-1/2 animate-pulse bg-paper-200" />
+            <div className="px-3 py-3 space-y-2">
+              <div className="h-3.5 w-3/4 animate-pulse bg-paper-200 rounded" />
+              <div className="h-3 w-full animate-pulse bg-paper-200 rounded" />
+              <div className="h-3 w-1/2 animate-pulse bg-paper-200 rounded" />
+            </div>
           </div>
         ))}
       </div>
@@ -885,7 +892,7 @@ function PurchasedAgentsWindowedGrid({ rows }: { rows: PurchasedAgentRow[] }) {
   const { slice, hasMore, sentinelRef } = useWindowedSlice(rows, { initial: 12, page: 12 });
   return (
     <div>
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {slice.map((row, index) => {
           const coverUrl = resolveLifeAgentCoverDisplayUrl(row.coverUrl, row.coverImageUrl, row.coverPresetKey);
           return (
@@ -896,42 +903,42 @@ function PurchasedAgentsWindowedGrid({ rows }: { rows: PurchasedAgentRow[] }) {
               transition={{ delay: index < 8 ? index * 0.04 : 0, ease: [0.16, 1, 0.3, 1] }}
               className="min-h-0 [contain-intrinsic-size:auto_340px]"
             >
-              <Link href={`/life-agents/${row.id}/chat`} className="group flex h-full min-h-0">
-                <div className="w-full">
-                  {/* Cover — same full-bleed style as discover card */}
-                  <div className="relative w-full overflow-hidden bg-paper-300 group" style={{ aspectRatio: "3 / 4" }}>
+              <Link href={`/life-agents/${row.id}/chat`} className="group block h-full min-h-0">
+                <div
+                  className="overflow-hidden bg-white transition-shadow duration-200 group-hover:shadow-lg"
+                  style={{ borderRadius: "var(--radius-card)", boxShadow: "var(--shadow-card)" }}
+                >
+                  <div className="relative w-full overflow-hidden bg-paper-300" style={{ aspectRatio: "3 / 4" }}>
                     <LifeAgentCoverImage
                       src={coverUrl}
                       alt={row.displayName}
                       fill
-                      className="object-cover transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform group-hover:scale-[1.06]"
+                      className="object-cover transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform group-hover:scale-[1.04]"
                       sizes="(max-width: 640px) 48vw, (max-width: 1024px) 32vw, 22vw"
                       priority={index < 6}
                       loading={index < 6 ? undefined : "lazy"}
                     />
-                    {/* Name overlay */}
-                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent pt-16 pb-3 px-3">
-                      <h3 className="font-serif text-[16px] sm:text-[18px] font-medium leading-tight text-paper line-clamp-1 drop-shadow-sm">
-                        {row.displayName}
-                      </h3>
-                    </div>
                     {(row.verificationStatus === "verified" || row.verificationStatus === "pending") && (
                       <div className="absolute right-2 top-2 z-10">
                         <VerificationBadge status={row.verificationStatus ?? "none"} size="sm" />
                       </div>
                     )}
                   </div>
-                  {/* Below image */}
-                  <div className="pt-2">
-                    <p className="font-serif text-[12px] italic leading-snug text-ink-400 line-clamp-2 min-h-[2em]">
+                  <div className="px-3 py-3">
+                    <h3 className="text-[14px] sm:text-[15px] font-semibold leading-snug text-[var(--ink)] line-clamp-1">
+                      {row.displayName}
+                    </h3>
+                    <p className="mt-1 text-[11px] leading-snug text-ink-400 line-clamp-2 min-h-[2.4em]">
                       {row.headline}
                     </p>
                     {showPrice ? (
-                    <div className="mt-1.5 flex items-baseline justify-between text-[11px] text-ink-400">
+                    <div className="mt-2 flex items-center justify-between gap-1 text-[11px] text-ink-400">
                       <span>剩余 {row.remainingQuestions} 次</span>
-                      <span className="font-serif text-[14px] font-medium tabular-nums text-oxblood-500">
-                        ¥{(row.pricePerQuestion / 100).toFixed(0)}
-                        <span className="ml-0.5 text-[9px] font-normal not-italic text-ink-300">/问</span>
+                      <span
+                        className="shrink-0 px-2 py-0.5 text-[11px] font-semibold tabular-nums text-white"
+                        style={{ background: "var(--accent)", borderRadius: "var(--radius-badge)" }}
+                      >
+                        ¥{(row.pricePerQuestion / 100).toFixed(0)}/问
                       </span>
                     </div>
                     ) : null}

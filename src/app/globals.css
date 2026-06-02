@@ -16,6 +16,17 @@
   --ink-3: #8d8478;
   --hairline: #d8cfbf;
   --oxblood: #7a1f1f;
+
+  /* Fintech card system tokens */
+  --surface: #ffffff;
+  --surface-alt: #f8f3ee;
+  --accent: #e86825;
+  --accent-light: #fef1e8;
+  --accent-dark: #c4531a;
+  --bg: #ede8e0;
+  --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.07);
+  --radius-card: 16px;
+  --radius-badge: 100px;
 }
 
 * {

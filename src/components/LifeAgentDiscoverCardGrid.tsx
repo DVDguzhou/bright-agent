@@ -54,7 +54,7 @@ function chunkIntoRows<T>(items: T[], cols: number): T[][] {
   return rows;
 }
 
-/** 单张卡片 — 图片全宽，文字悬浮在底部渐变上 */
+/** 单张卡片 — 圆角白卡，图片占上部，文字区在底部 */
 function LifeAgentDiscoverCard({
   profile,
   globalIndex,
@@ -74,113 +74,98 @@ function LifeAgentDiscoverCard({
   const showPrice = lifeAgentShowsPurchaseUi();
   const ratingScore =
     profile.ratings && profile.ratings.raters > 0 ? profile.ratings.averageScore.toFixed(1) : null;
-  const firstQ = (profile.sampleQuestions ?? []).find((q) => q.trim());
 
   return (
     <article className={cn("min-h-0 group/card", large && "col-span-2 sm:col-span-2")}>
       <Link
         href={profileHref(profile.id)}
-        className="block focus:outline-none focus-visible:ring-1 focus-visible:ring-ink"
+        className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2"
       >
-        {/* Cover image — full bleed, tall portrait */}
         <div
-          className={cn(
-            "relative w-full overflow-hidden bg-paper-300",
-            large ? "aspect-[3/4] sm:aspect-[16/9]" : "aspect-[3/4]",
-          )}
+          className="overflow-hidden bg-white transition-shadow duration-200 group-hover/card:shadow-lg"
+          style={{ borderRadius: "var(--radius-card)", boxShadow: "var(--shadow-card)" }}
         >
-          <LifeAgentCoverImage
-            src={coverUrl}
-            alt={profile.displayName}
-            fill
-            className="object-cover object-center transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform group-hover/card:scale-[1.06]"
-            sizes={
-              large
-                ? "(max-width: 640px) 98vw, 80vw"
-                : "(max-width: 640px) 48vw, (max-width: 1024px) 32vw, 22vw"
-            }
-            priority={globalIndex < 4}
-            loading={globalIndex < 4 ? undefined : "lazy"}
-          />
+          {/* Cover image */}
+          <div
+            className={cn(
+              "relative w-full overflow-hidden bg-paper-300",
+              large ? "aspect-[3/4] sm:aspect-[16/9]" : "aspect-[3/4]",
+            )}
+          >
+            <LifeAgentCoverImage
+              src={coverUrl}
+              alt={profile.displayName}
+              fill
+              className="object-cover object-center transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform group-hover/card:scale-[1.04]"
+              sizes={
+                large
+                  ? "(max-width: 640px) 98vw, 80vw"
+                  : "(max-width: 640px) 48vw, (max-width: 1024px) 32vw, 22vw"
+              }
+              priority={globalIndex < 4}
+              loading={globalIndex < 4 ? undefined : "lazy"}
+            />
 
-          {/* Bottom gradient → name overlay */}
-          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent pt-16 pb-3 px-3">
+            {/* MindScore — top-right orange pill */}
+            {typeof profile.mindScore === "number" && (
+              <div className="absolute right-2 top-2 z-10">
+                <MindScoreBadge value={profile.mindScore} size="xs" />
+              </div>
+            )}
+
+            {/* Unpublished badge */}
+            {typeof profile.published === "boolean" && profile.published === false && (
+              <div
+                className="absolute left-0 top-0 bg-paper px-2 py-0.5 text-[10px] font-medium text-ink-400"
+                style={{ borderRadius: "0 0 6px 0" }}
+              >
+                未发布
+              </div>
+            )}
+          </div>
+
+          {/* Text area */}
+          <div className="px-3 py-3">
             <h3 className={cn(
-              "font-serif font-medium leading-tight text-paper line-clamp-1 drop-shadow-sm",
-              large ? "text-[22px] sm:text-[28px]" : "text-[16px] sm:text-[18px]",
+              "font-sans font-semibold leading-snug text-[var(--ink)] line-clamp-1",
+              large ? "text-[17px] sm:text-[20px]" : "text-[14px] sm:text-[15px]",
             )}>
               {profile.displayName}
               {verified && (
-                <span className="ml-1.5 align-middle text-[10px] tracking-widest text-olive-300" aria-label="已认证">
+                <span
+                  className="ml-1.5 inline-flex h-4 w-4 shrink-0 translate-y-px items-center justify-center text-white align-middle text-[9px]"
+                  style={{ background: "var(--accent)", borderRadius: "100px" }}
+                  aria-label="已认证"
+                >
                   ✓
                 </span>
               )}
             </h3>
-            {large && headlineShown && (
-              <p className="mt-1 font-serif text-[13px] italic leading-snug text-paper/70 line-clamp-2">
+
+            {headlineShown && (
+              <p className="mt-1 text-[11px] leading-snug text-ink-400 line-clamp-2 min-h-[2.4em]">
                 {headlineShown}
               </p>
             )}
-          </div>
 
-          {/* MindScore — top-right */}
-          {typeof profile.mindScore === "number" && (
-            <div className="absolute right-2 top-2 z-10">
-              <MindScoreBadge value={profile.mindScore} size="xs" />
-            </div>
-          )}
-
-          {/* Unpublished badge */}
-          {typeof profile.published === "boolean" && profile.published === false && (
-            <div className="absolute left-0 top-0 bg-paper px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.18em] text-ink-400">
-              未发布
-            </div>
-          )}
-        </div>
-
-        {/* Below-image: headline + meta (for non-large cards) */}
-        {!large && (
-          <div className="pt-2">
-            <p className="font-serif text-[12px] italic leading-snug text-ink-400 line-clamp-2 min-h-[2em]">
-              {headlineShown}
-            </p>
-            <div className="mt-1.5 flex items-baseline justify-between text-[11px] text-ink-400">
+            <div className="mt-2 flex items-center justify-between gap-1 text-[11px] text-ink-400">
               <span className="truncate">
                 {areaLabel || profile.creator.name || anonymous}
-                {ratingScore && <span className="text-ink-500"> · {ratingScore}★</span>}
+                {ratingScore && (
+                  <span className="text-ink-500"> · {ratingScore}★</span>
+                )}
               </span>
               {showPrice && profile.pricePerQuestion > 0 && (
-                <span className="ml-1 shrink-0 font-serif text-[14px] font-medium tabular-nums text-oxblood-500">
-                  ¥{(profile.pricePerQuestion / 100).toFixed(0)}
-                  <span className="ml-0.5 text-[9px] font-normal not-italic text-ink-300">/问</span>
+                <span
+                  className="ml-1 shrink-0 px-2 py-0.5 text-[11px] font-semibold tabular-nums text-white"
+                  style={{ background: "var(--accent)", borderRadius: "var(--radius-badge)" }}
+                >
+                  ¥{(profile.pricePerQuestion / 100).toFixed(0)}{large ? "/问" : ""}
                 </span>
               )}
             </div>
           </div>
-        )}
-
-        {/* Large card: meta row below image */}
-        {large && (
-          <div className="mt-2 flex items-center justify-between text-[11px] text-ink-400">
-            <span className="truncate">
-              {areaLabel || profile.creator.name || anonymous}
-              {ratingScore && <span className="text-ink-500"> · {ratingScore}★</span>}
-            </span>
-            <div className="ml-2 flex shrink-0 items-center gap-3">
-              {firstQ && (
-                <span className="hidden sm:inline text-ink-300 line-clamp-1 max-w-[200px]">
-                  「{firstQ}」
-                </span>
-              )}
-              {showPrice && profile.pricePerQuestion > 0 && (
-                <span className="font-serif text-[14px] font-medium tabular-nums text-oxblood-500">
-                  ¥{(profile.pricePerQuestion / 100).toFixed(0)}
-                  <span className="ml-0.5 text-[9px] font-normal not-italic text-ink-300">/问</span>
-                </span>
-              )}
-            </div>
-          </div>
-        )}
+        </div>
       </Link>
     </article>
   );
@@ -270,15 +255,24 @@ export function LifeAgentDiscoverCardGrid({
   /* ── Loading skeleton ── */
   if (loading) {
     return (
-      <div className="space-y-2">
-        {/* Hero skeleton */}
-        <div className="animate-pulse bg-paper-300 w-full" style={{ aspectRatio: "3/4" }} />
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+      <div className="space-y-3">
+        <div
+          className="animate-pulse bg-white w-full overflow-hidden"
+          style={{ borderRadius: "var(--radius-card)", boxShadow: "var(--shadow-card)", aspectRatio: "3/4" }}
+        />
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="space-y-1.5">
+            <div
+              key={i}
+              className="overflow-hidden bg-white"
+              style={{ borderRadius: "var(--radius-card)", boxShadow: "var(--shadow-card)" }}
+            >
               <div className="animate-pulse bg-paper-300 w-full" style={{ aspectRatio: "3/4" }} />
-              <div className="h-3 w-3/4 animate-pulse bg-paper-200" />
-              <div className="h-3 w-1/2 animate-pulse bg-paper-200" />
+              <div className="px-3 py-3 space-y-2">
+                <div className="h-3.5 w-3/4 animate-pulse bg-paper-200 rounded" />
+                <div className="h-3 w-full animate-pulse bg-paper-200 rounded" />
+                <div className="h-3 w-1/2 animate-pulse bg-paper-200 rounded" />
+              </div>
             </div>
           ))}
         </div>
@@ -311,8 +305,8 @@ export function LifeAgentDiscoverCardGrid({
           />
         )}
 
-        {/* 2-col masonry-like grid */}
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+        {/* 2-col grid */}
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {rest.map((profile, index) => (
             <LifeAgentDiscoverCard
               key={profile.id}
@@ -358,7 +352,7 @@ export function LifeAgentDiscoverCardGrid({
               style={{ transform: `translateY(${virtualRow.start}px)` }}
             >
               <div
-                className="grid gap-2"
+                className="grid gap-3"
                 style={{ gridTemplateColumns: `repeat(${colCount}, minmax(0, 1fr))` }}
               >
                 {row.map((profile, colIdx) => (

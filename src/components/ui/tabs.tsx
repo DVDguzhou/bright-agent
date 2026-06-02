@@ -29,13 +29,13 @@ const TabsTrigger = React.forwardRef<
     ref={ref}
     className={cn(
       // Base
-      "relative pb-2.5 pt-1 font-serif text-[17px] transition-colors duration-150 outline-none",
+      "relative pb-2.5 pt-1 text-[15px] font-medium transition-colors duration-150 outline-none",
       // Inactive
-      "font-normal italic text-ink-300",
-      // Active — use data-state
-      "data-[state=active]:font-medium data-[state=active]:not-italic data-[state=active]:text-ink",
-      // Active underline
-      "after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[1.5px] after:bg-ink after:scale-x-0 after:transition-transform after:duration-200 after:origin-left",
+      "text-ink-400",
+      // Active
+      "data-[state=active]:text-[var(--accent)]",
+      // Active underline — orange rounded pill
+      "after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:rounded-full after:bg-[var(--accent)] after:scale-x-0 after:transition-transform after:duration-200 after:origin-left",
       "data-[state=active]:after:scale-x-100",
       className,
     )}
