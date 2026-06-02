@@ -653,7 +653,7 @@ export function Nav() {
 
   const feedTabClass = (active: boolean) =>
     `relative px-2 py-1 text-[15px] font-medium transition-colors ${
-      active ? "text-[var(--accent)]" : "text-ink-400 hover:text-ink"
+      active ? "text-white" : "text-[#555] hover:text-[#aaa]"
     }`;
 
   const AuthLinks = ({ vertical = false }: { vertical?: boolean }) =>
@@ -789,7 +789,7 @@ export function Nav() {
               <div className="relative flex min-w-0 flex-1 items-center justify-center gap-2 sm:gap-4">
                 {touchFeedPager && feedTabUnderlineX !== null ? (
                   <span
-                    className="pointer-events-none absolute bottom-0 h-[2px] w-6 rounded-full bg-[var(--accent)] transition-[left] duration-75 ease-out sm:w-7"
+                    className="pointer-events-none absolute bottom-0 h-[2px] w-6 rounded-full bg-[var(--accent)] opacity-80 transition-[left] duration-75 ease-out sm:w-7"
                     style={{ left: feedTabUnderlineX, transform: "translateX(-50%)" }}
                     aria-hidden
                   />
@@ -800,13 +800,13 @@ export function Nav() {
                 >
                   动态
                   {isPostsPage ? (
-                    <span className="absolute bottom-0 left-1 right-1 h-[2px] rounded-full bg-[var(--accent)]" aria-hidden />
+                    <span className="absolute bottom-0 left-1 right-1 h-[2px] rounded-full bg-[var(--accent)] opacity-80" aria-hidden />
                   ) : null}
                 </Link>
                 <Link ref={feedTabDiscRef} href="/life-agents" className={`relative ${feedTabClass(isFeedDiscover)}`} scroll={false}>
                   发现
                   {!touchFeedPager && isFeedDiscover ? (
-                    <span className="absolute bottom-0 left-1 right-1 h-[2px] rounded-full bg-[var(--accent)]" aria-hidden />
+                    <span className="absolute bottom-0 left-1 right-1 h-[2px] rounded-full bg-[var(--accent)] opacity-80" aria-hidden />
                   ) : null}
                 </Link>
                 {showFeedPurchasedTab ? (
@@ -818,7 +818,7 @@ export function Nav() {
                 >
                   已购买
                   {!touchFeedPager && isFeedPurchased ? (
-                    <span className="absolute bottom-0 left-1 right-1 h-[2px] rounded-full bg-[var(--accent)]" aria-hidden />
+                    <span className="absolute bottom-0 left-1 right-1 h-[2px] rounded-full bg-[var(--accent)] opacity-80" aria-hidden />
                   ) : null}
                 </Link>
                 ) : null}
@@ -910,8 +910,8 @@ export function Nav() {
                   <motion.span
                     className={`relative flex items-center gap-1.5 xl:gap-2 px-2 xl:px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
                       active
-                        ? "text-oxblood"
-                        : "text-ink-500 hover:text-ink"
+                        ? "text-white"
+                        : "text-[#666] hover:text-[#ccc]"
                     }`}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
@@ -1102,8 +1102,8 @@ export function Nav() {
           ) : null}
 
           <div
-            className="fixed bottom-0 left-0 right-0 z-50 flex lg:hidden items-end justify-around bg-white/97 supports-[backdrop-filter]:backdrop-blur-md pb-[env(safe-area-inset-bottom)]"
-            style={{ boxShadow: "0 -1px 10px rgba(0,0,0,0.07)" }}
+            className="fixed bottom-0 left-0 right-0 z-50 flex lg:hidden items-end justify-around pb-[env(safe-area-inset-bottom)]"
+            style={{ background: "#0d0d0d", borderTop: "1px solid #1e1e1e" }}
           >
             {(() => {
               const [lifeAgentsLink, messagesLink, licenseLink] = navLinks;
@@ -1115,7 +1115,7 @@ export function Nav() {
                     key={link.href}
                     href={link.href}
                     className="relative flex min-w-0 flex-1 flex-col items-center gap-0.5 px-2 pb-2.5 pt-3 transition-colors duration-150"
-                    style={{ color: active ? "var(--accent)" : "#B5AFA8" }}
+                    style={{ color: active ? "#ffffff" : "#555555" }}
                   >
                     <Icon className={`h-[22px] w-[22px] shrink-0 ${active ? "stroke-[2]" : "stroke-[1.5]"}`} />
                     <span className="w-full truncate text-center text-[11px] font-medium">
@@ -1138,7 +1138,7 @@ export function Nav() {
               <Link
                 href="/dashboard"
                 className="relative flex flex-col items-center gap-0.5 px-3 pb-2.5 pt-3 min-w-0 flex-1 transition-colors duration-150"
-                style={{ color: pathname === "/dashboard" ? "var(--accent)" : "#B5AFA8" }}
+                style={{ color: pathname === "/dashboard" ? "#ffffff" : "#555555" }}
               >
                 <IconDashboard className={`h-[22px] w-[22px] shrink-0 ${pathname === "/dashboard" ? "stroke-[2]" : "stroke-[1.5]"}`} />
                 <span className="text-[11px] font-medium">我的</span>
@@ -1147,7 +1147,7 @@ export function Nav() {
               <Link
                 href="/login"
                 className="relative flex flex-col items-center gap-0.5 px-3 pb-2.5 pt-3 min-w-0 flex-1 transition-colors duration-150"
-                style={{ color: pathname === "/login" ? "var(--accent)" : "#B5AFA8" }}
+                style={{ color: pathname === "/login" ? "#ffffff" : "#555555" }}
               >
                 <IconLogin className={`h-[22px] w-[22px] shrink-0 ${pathname === "/login" ? "stroke-[2]" : "stroke-[1.5]"}`} />
                 <span className="text-[11px] font-medium">登录</span>

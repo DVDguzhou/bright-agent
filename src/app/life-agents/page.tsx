@@ -711,8 +711,8 @@ function LifeAgentsPageContent() {
         {[1, 2, 3, 4, 5, 6].map((item) => (
           <div
             key={item}
-            className="min-h-0 overflow-hidden bg-white"
-            style={{ borderRadius: "var(--radius-card)", boxShadow: "var(--shadow-card)" }}
+            className="min-h-0 overflow-hidden bg-[var(--surface)]"
+            style={{ borderRadius: "var(--radius-card)", border: "1px solid var(--hairline)" }}
           >
             <div className="w-full animate-pulse bg-paper-300" style={{ aspectRatio: "3 / 4" }} />
             <div className="px-3 py-3 space-y-2">
@@ -905,8 +905,8 @@ function PurchasedAgentsWindowedGrid({ rows }: { rows: PurchasedAgentRow[] }) {
             >
               <Link href={`/life-agents/${row.id}/chat`} className="group block h-full min-h-0">
                 <div
-                  className="overflow-hidden bg-white transition-shadow duration-200 group-hover:shadow-lg"
-                  style={{ borderRadius: "var(--radius-card)", boxShadow: "var(--shadow-card)" }}
+                  className="overflow-hidden bg-[var(--surface)] transition-colors duration-200 group-hover:border-[#333]"
+                  style={{ borderRadius: "var(--radius-card)", border: "1px solid var(--hairline)" }}
                 >
                   <div className="relative w-full overflow-hidden bg-paper-300" style={{ aspectRatio: "3 / 4" }}>
                     <LifeAgentCoverImage
@@ -935,8 +935,8 @@ function PurchasedAgentsWindowedGrid({ rows }: { rows: PurchasedAgentRow[] }) {
                     <div className="mt-2 flex items-center justify-between gap-1 text-[11px] text-ink-400">
                       <span>剩余 {row.remainingQuestions} 次</span>
                       <span
-                        className="shrink-0 px-2 py-0.5 text-[11px] font-semibold tabular-nums text-white"
-                        style={{ background: "var(--accent)", borderRadius: "var(--radius-badge)" }}
+                        className="shrink-0 px-2 py-0.5 text-[11px] font-semibold tabular-nums"
+                        style={{ background: "var(--accent)", borderRadius: "var(--radius-badge)", color: "#0a2018" }}
                       >
                         ¥{(row.pricePerQuestion / 100).toFixed(0)}/问
                       </span>

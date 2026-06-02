@@ -46,16 +46,16 @@ export function MindScoreBadge({
     );
   }
 
-  // xs — on image overlay: orange pill chip (fintech status)
+  // xs — mint green pill chip (dark mode accent)
   return (
     <span
-      className={`inline-flex items-baseline gap-0.5 px-2 py-0.5 text-white ${className}`}
-      style={{ background: "var(--accent)", borderRadius: "var(--radius-badge)" }}
+      className={`inline-flex items-baseline gap-0.5 px-2 py-0.5 ${className}`}
+      style={{ background: "var(--accent)", borderRadius: "var(--radius-badge)", color: "#0a2018" }}
     >
       <span className="text-[12px] font-bold tabular-nums leading-none">
         {value.toLocaleString("zh-CN")}
       </span>
-      <span className="text-[9px] font-medium leading-none opacity-80">分</span>
+      <span className="text-[9px] font-medium leading-none opacity-70">分</span>
     </span>
   );
 }

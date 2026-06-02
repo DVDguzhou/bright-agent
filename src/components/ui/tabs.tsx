@@ -31,11 +31,11 @@ const TabsTrigger = React.forwardRef<
       // Base
       "relative pb-2.5 pt-1 text-[15px] font-medium transition-colors duration-150 outline-none",
       // Inactive
-      "text-ink-400",
-      // Active
-      "data-[state=active]:text-[var(--accent)]",
-      // Active underline — orange rounded pill
-      "after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:rounded-full after:bg-[var(--accent)] after:scale-x-0 after:transition-transform after:duration-200 after:origin-left",
+      "text-[#555555] hover:text-[#aaaaaa]",
+      // Active — white text
+      "data-[state=active]:text-white",
+      // Active underline — mint pill
+      "after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:rounded-full after:bg-[var(--accent)] after:opacity-80 after:scale-x-0 after:transition-transform after:duration-200 after:origin-left",
       "data-[state=active]:after:scale-x-100",
       className,
     )}

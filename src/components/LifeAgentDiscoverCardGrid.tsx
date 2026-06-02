@@ -82,8 +82,8 @@ function LifeAgentDiscoverCard({
         className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2"
       >
         <div
-          className="overflow-hidden bg-white transition-shadow duration-200 group-hover/card:shadow-lg"
-          style={{ borderRadius: "var(--radius-card)", boxShadow: "var(--shadow-card)" }}
+          className="overflow-hidden bg-[var(--surface)] transition-colors duration-200 group-hover/card:border-[#333]"
+          style={{ borderRadius: "var(--radius-card)", border: "1px solid var(--hairline)" }}
         >
           {/* Cover image */}
           <div
@@ -133,8 +133,8 @@ function LifeAgentDiscoverCard({
               {profile.displayName}
               {verified && (
                 <span
-                  className="ml-1.5 inline-flex h-4 w-4 shrink-0 translate-y-px items-center justify-center text-white align-middle text-[9px]"
-                  style={{ background: "var(--accent)", borderRadius: "100px" }}
+                  className="ml-1.5 inline-flex h-4 w-4 shrink-0 translate-y-px items-center justify-center align-middle text-[9px]"
+                  style={{ background: "var(--accent)", borderRadius: "100px", color: "#0a2018" }}
                   aria-label="已认证"
                 >
                   ✓
@@ -158,7 +158,7 @@ function LifeAgentDiscoverCard({
               {showPrice && profile.pricePerQuestion > 0 && (
                 <span
                   className="ml-1 shrink-0 px-2 py-0.5 text-[11px] font-semibold tabular-nums text-white"
-                  style={{ background: "var(--accent)", borderRadius: "var(--radius-badge)" }}
+                  style={{ background: "var(--accent)", borderRadius: "var(--radius-badge)", color: "#0a2018" }}
                 >
                   ¥{(profile.pricePerQuestion / 100).toFixed(0)}{large ? "/问" : ""}
                 </span>
@@ -257,14 +257,14 @@ export function LifeAgentDiscoverCardGrid({
     return (
       <div className="space-y-3">
         <div
-          className="animate-pulse bg-white w-full overflow-hidden"
+          className="animate-pulse bg-[var(--surface)] w-full overflow-hidden"
           style={{ borderRadius: "var(--radius-card)", boxShadow: "var(--shadow-card)", aspectRatio: "3/4" }}
         />
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {[1, 2, 3, 4].map((i) => (
             <div
               key={i}
-              className="overflow-hidden bg-white"
+              className="overflow-hidden bg-[var(--surface)]"
               style={{ borderRadius: "var(--radius-card)", boxShadow: "var(--shadow-card)" }}
             >
               <div className="animate-pulse bg-paper-300 w-full" style={{ aspectRatio: "3/4" }} />
