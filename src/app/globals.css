@@ -24,13 +24,17 @@
 
 html {
   scroll-behavior: smooth;
-  background: var(--paper);
+  background-color: #f4efe6;
+  min-height: 100%;
+  min-height: 100dvh;
 }
 
 body {
   font-family: var(--font-sans);
-  background: var(--paper);
+  background-color: #f4efe6;
   color: var(--ink);
+  min-height: 100%;
+  min-height: 100dvh;
   /* 不加任何渐变 / 装饰；让纸面颜色独自承担氛围 */
 }
 

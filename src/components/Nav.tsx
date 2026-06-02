@@ -751,10 +751,21 @@ export function Nav() {
 
   return (
     <>
+      {/* 手机：状态栏 / Home Indicator 安全区铺米色，避免露白 */}
+      <div
+        className="pointer-events-none fixed inset-x-0 top-0 z-[60] bg-paper lg:hidden"
+        style={{ height: "env(safe-area-inset-top, 0px)" }}
+        aria-hidden
+      />
+      <div
+        className="pointer-events-none fixed inset-x-0 bottom-0 z-[60] bg-paper lg:hidden"
+        style={{ height: "env(safe-area-inset-bottom, 0px)" }}
+        aria-hidden
+      />
       <motion.nav
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className={`sticky top-0 z-50 border-b border-hairline bg-paper overflow-x-hidden pt-[env(safe-area-inset-top)] lg:bg-paper/95 lg:supports-[backdrop-filter]:lg:backdrop-blur-md ${
+        className={`sticky top-0 z-50 border-b border-hairline bg-paper overflow-x-hidden pt-[env(safe-area-inset-top,0px)] lg:bg-paper/95 lg:supports-[backdrop-filter]:lg:backdrop-blur-md ${
           hideGlobalTopNav ? "hidden" : isLifeAgentChatPage ? "hidden lg:block" : ""
         }`}
       >
@@ -1101,7 +1112,7 @@ export function Nav() {
             </div>
           ) : null}
 
-          <div className="fixed bottom-0 left-0 right-0 z-50 flex lg:hidden items-end justify-around border-t border-hairline bg-paper pb-[env(safe-area-inset-bottom)] pt-2">
+          <div className="fixed bottom-0 left-0 right-0 z-50 box-border flex lg:hidden items-end justify-around border-t border-hairline bg-paper pt-2 pb-[env(safe-area-inset-bottom,0px)]">
             {(() => {
               const [lifeAgentsLink, messagesLink, licenseLink] = navLinks;
               const renderTab = (

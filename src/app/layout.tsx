@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   description: "专注本地的经验 Agent 市场：学长分享雅思、大妈分享菜市场、酒吧达人分享探店、创业者分享行业——真实经历做成可对话 Agent，按次付费咨询。",
   manifest: "/manifest.json",
   themeColor: "#f4efe6",
-  appleWebApp: { capable: true, title: "BrightAgent" },
+  appleWebApp: { capable: true, title: "BrightAgent", statusBarStyle: "black-translucent" },
   icons: {
     icon: [
       { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
@@ -35,8 +35,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-CN">
-      <body className="min-h-screen bg-paper text-ink font-sans antialiased overflow-x-hidden overscroll-x-none">
+    <html lang="zh-CN" className="h-full bg-paper">
+      <body className="min-h-full min-h-[100dvh] bg-paper text-ink font-sans antialiased overflow-x-hidden overscroll-x-none">
+        {/* 全屏底色：overscroll 回弹时也不露白 */}
+        <div className="pointer-events-none fixed inset-0 -z-10 bg-paper" aria-hidden />
         <PostHogProvider>
           <AuthProvider>
             <ChunkLoadRecovery />
