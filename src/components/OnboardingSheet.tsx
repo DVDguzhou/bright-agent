@@ -78,13 +78,6 @@ export function OnboardingSheet({ open, onDismiss }: { open: boolean; onDismiss:
               ))}
             </ul>
 
-            <button
-              type="button"
-              onClick={onDismiss}
-              className="mt-7 w-full rounded-[14px] border border-hairline/60 py-3.5 text-sm font-semibold tracking-wide text-ink transition active:scale-[0.98]"
-            >
-              开始探索
-            </button>
           </motion.div>
         </>
       )}
