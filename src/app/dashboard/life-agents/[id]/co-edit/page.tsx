@@ -788,14 +788,24 @@ export default function LifeAgentCoEditPage() {
         <div className="shrink-0 px-3 pb-2 sm:px-4">
           <div className="mx-auto max-w-3xl rounded-[22px] border border-hairline/40 bg-paper/[0.98] p-3 shadow-[0_6px_30px_-12px_rgba(26,23,20,0.07)] backdrop-blur-sm sm:p-4">
             <details>
-              <summary className="flex cursor-pointer list-none items-start justify-between gap-3 [&::-webkit-details-marker]:hidden">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-ink">当前 Agent 状态</p>
                   <p className="mt-1 text-xs text-ink-400">
                     {profile.displayName} · {(profile.expertiseTags ?? []).length} 个标签 · {(profile.knowledgeEntries ?? []).length} 条知识
                   </p>
                 </div>
-                <div className="flex shrink-0 items-center gap-2 pt-0.5">
+                <div className="flex shrink-0 items-center gap-2">
+                  {mindScore ? (
+                    <>
+                      <MindScoreBadge value={mindScore.total} size="sm" />
+                      {scoreFlash != null && scoreFlash > 0 ? (
+                        <span className="rounded-full bg-olive-400/20 px-2 py-0.5 text-xs font-bold text-olive-600">
+                          +{scoreFlash}
+                        </span>
+                      ) : null}
+                    </>
+                  ) : null}
                   {lastChange ? (
                     <span className="rounded-full bg-gradient-to-r from-paper-100 to-paper-100 px-2.5 py-1 text-[10px] font-medium text-ink-700 ring-1 ring-hairline/40">
                       刚更新
@@ -1091,35 +1101,18 @@ export default function LifeAgentCoEditPage() {
 
         <div className={`shrink-0 border-t border-hairline/25 bg-paper/[0.94] px-3 pt-2 shadow-[0_-4px_28px_-8px_rgba(26,23,20,0.06)] backdrop-blur-lg sm:px-4 ${chatInputFooterPaddingClass(keyboardVisible)}`}>
           <div className="mx-auto max-w-3xl">
-            {mindScore ? (
+            {nextSuggestion ? (
               <div className="mb-2 rounded-2xl border border-hairline/30 bg-gradient-to-r from-paper-50/95 to-paper/80 px-3 py-3">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-[11px] font-medium text-ink-600/70">心智值</p>
-                    <div className="mt-1">
-                      <MindScoreBadge value={mindScore.total} size="md" />
-                    </div>
-                  </div>
-                  {scoreFlash != null && scoreFlash > 0 ? (
-                    <span className="rounded-full bg-olive-400/20 px-2.5 py-1 text-sm font-bold text-olive-600">
-                      +{scoreFlash}
-                    </span>
-                  ) : null}
-                </div>
-                {nextSuggestion ? (
-                  <div className="mt-3 rounded-xl bg-paper/90 px-3 py-2.5 ring-1 ring-hairline/80">
-                    <p className="text-sm font-semibold text-ink">{nextSuggestion.title}</p>
-                    <p className="mt-1 text-xs leading-5 text-ink-500">{nextSuggestion.reason}</p>
-                    <button
-                      type="button"
-                      onClick={() => postNextSuggestionQuestion()}
-                      disabled={modifyLoading || importLoading}
-                      className="mt-2 rounded-full bg-oxblood px-4 py-1.5 text-xs font-semibold text-paper disabled:opacity-50"
-                    >
-                      继续调教
-                    </button>
-                  </div>
-                ) : null}
+                <p className="text-sm font-semibold text-ink">{nextSuggestion.title}</p>
+                <p className="mt-1 text-xs leading-5 text-ink-500">{nextSuggestion.reason}</p>
+                <button
+                  type="button"
+                  onClick={() => postNextSuggestionQuestion()}
+                  disabled={modifyLoading || importLoading}
+                  className="mt-2 rounded-full bg-oxblood px-4 py-1.5 text-xs font-semibold text-paper disabled:opacity-50"
+                >
+                  继续调教
+                </button>
               </div>
             ) : null}
             <LifeAgentMessageComposer
