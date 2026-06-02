@@ -3,7 +3,8 @@
 // 用法（backend 目录）:
 //
 //	go run ./cmd/dedupe-life-agents/              # dry-run
-//	go run ./cmd/dedupe-life-agents/ -apply       # 写入数据库
+//	go run ./cmd/dedupe-life-agents/ -apply       # 写入数据库（删除前自动 JSON 备份）
+//	go run ./cmd/dedupe-life-agents/ -apply -no-backup   # 不备份直接删
 //	go run ./cmd/dedupe-life-agents/ -apply -skip-dedupe   # 仅刷新示例问题
 //	go run ./cmd/dedupe-life-agents/ -apply -skip-questions # 仅去重 Agent
 package main
@@ -16,9 +17,11 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"regexp"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/agent-marketplace/backend/internal/db"
 	"github.com/agent-marketplace/backend/internal/lifeagent"
@@ -82,11 +85,62 @@ func keepScore(m profileMeta) int {
 	return score
 }
 
+type deleteCandidate struct {
+	Dup           profileMeta
+	KeeperID      string
+	KeeperName    string
+	Fingerprint   string
+	Knowledge     []models.LifeAgentKnowledgeEntry
+}
+
+type dedupeBackupFile struct {
+	ExportedAt  string              `json:"exportedAt"`
+	DeleteCount int                 `json:"deleteCount"`
+	Records     []dedupeBackupEntry `json:"records"`
+}
+
+type dedupeBackupEntry struct {
+	Reason            string                         `json:"reason"`
+	KnowledgeFingerprint string                      `json:"knowledgeFingerprint"`
+	KeeperProfileID   string                         `json:"keeperProfileId"`
+	KeeperDisplayName string                         `json:"keeperDisplayName"`
+	Profile           models.LifeAgentProfile        `json:"profile"`
+	Knowledge         []models.LifeAgentKnowledgeEntry `json:"knowledge"`
+}
+
+func writeDeleteBackup(path string, candidates []deleteCandidate) error {
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		return err
+	}
+	out := dedupeBackupFile{
+		ExportedAt:  time.Now().UTC().Format(time.RFC3339),
+		DeleteCount: len(candidates),
+		Records:     make([]dedupeBackupEntry, 0, len(candidates)),
+	}
+	for _, c := range candidates {
+		out.Records = append(out.Records, dedupeBackupEntry{
+			Reason:               "duplicate_knowledge",
+			KnowledgeFingerprint: c.Fingerprint,
+			KeeperProfileID:      c.KeeperID,
+			KeeperDisplayName:    c.KeeperName,
+			Profile:              c.Dup.Profile,
+			Knowledge:            c.Knowledge,
+		})
+	}
+	data, err := json.MarshalIndent(out, "", "  ")
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(path, data, 0o644)
+}
+
 func main() {
 	apply := flag.Bool("apply", false, "write updates to database")
 	production := flag.Bool("production", true, "use production DATABASE_URL from docker-compose.production.yml")
 	skipDedupe := flag.Bool("skip-dedupe", false, "skip duplicate agent removal")
 	skipQuestions := flag.Bool("skip-questions", false, "skip sample_questions refresh")
+	backupDir := flag.String("backup-dir", "backups/dedupe-life-agents", "JSON backup directory before delete; empty disables")
+	noBackup := flag.Bool("no-backup", false, "skip JSON backup even when -apply deletes profiles")
 	flag.Parse()
 
 	_ = godotenv.Load(".env")
@@ -158,6 +212,7 @@ func main() {
 	}
 
 	deleted := 0
+	var toDelete []deleteCandidate
 	if !*skipDedupe {
 		groups := map[string][]profileMeta{}
 		for _, m := range metas {
@@ -185,14 +240,34 @@ func main() {
 				}
 				fmt.Printf("  delete %q (%s)\n", dup.Profile.DisplayName, dup.Profile.ID[:8])
 				deleted++
-				if *apply {
-					if err := yantuseed.DeleteLifeAgentProfileCascade(db.DB, dup.Profile.ID); err != nil {
-						log.Printf("delete failed %s: %v", dup.Profile.ID, err)
-					}
-				}
+				toDelete = append(toDelete, deleteCandidate{
+					Dup:         dup,
+					KeeperID:    keeper.Profile.ID,
+					KeeperName:  keeper.Profile.DisplayName,
+					Fingerprint: fp,
+					Knowledge:   entriesByProfile[dup.Profile.ID],
+				})
 			}
 		}
 		fmt.Printf("\nDuplicate agents to remove: %d\n", deleted)
+
+		if *apply && deleted > 0 {
+			if *noBackup || strings.TrimSpace(*backupDir) == "" {
+				fmt.Println("Skipping JSON backup (-no-backup or empty -backup-dir)")
+			} else {
+				ts := time.Now().UTC().Format("20060102-150405")
+				backupPath := filepath.Join(strings.TrimSpace(*backupDir), "delete-"+ts+".json")
+				if err := writeDeleteBackup(backupPath, toDelete); err != nil {
+					log.Fatalf("backup failed (delete aborted): %v", err)
+				}
+				fmt.Printf("Backup written: %s (%d profiles)\n", backupPath, len(toDelete))
+			}
+			for _, c := range toDelete {
+				if err := yantuseed.DeleteLifeAgentProfileCascade(db.DB, c.Dup.Profile.ID); err != nil {
+					log.Printf("delete failed %s: %v", c.Dup.Profile.ID, err)
+				}
+			}
+		}
 	}
 
 	refreshed := 0
