@@ -50,7 +50,7 @@ const LIVE_CATEGORIES = [
 
 function MindScoreStatCard({ value, href }: { value: number; href?: string }) {
   const content = (
-    <div className="rounded-2xl bg-paper-50 px-3 py-3 text-center ring-1 ring-hairline/60">
+    <div className="px-3 py-3 text-center">
       <div className="flex justify-center">
         <MindScoreBadge value={value} size="lg" prefix="" />
       </div>
@@ -78,7 +78,7 @@ function StatCard({
   href?: string;
 }) {
   const content = (
-    <div className="rounded-2xl bg-paper-50 px-3 py-3 text-center ring-1 ring-hairline/40">
+    <div className="px-3 py-3 text-center">
       <p className="text-2xl font-black leading-none text-ink">{value}</p>
       <p className="mt-2 text-[11px] font-medium text-ink-600">{label}</p>
       <p className="mt-0.5 text-[10px] text-ink-300">{sub}</p>
@@ -108,11 +108,13 @@ function QuickAction({
   return (
     <Link
       href={href}
-      className="rounded-2xl bg-paper p-4 shadow-sm ring-1 ring-hairline/40 transition active:scale-[0.99]"
+      className="flex items-start gap-3 py-3 transition active:opacity-80 sm:py-4"
     >
-      <div className={`flex h-11 w-11 items-center justify-center rounded-full ${colorClass}`}>{icon}</div>
-      <p className="mt-3 text-sm font-semibold text-ink">{title}</p>
-      <p className="mt-1 text-xs leading-5 text-ink-400">{desc}</p>
+      <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${colorClass}`}>{icon}</div>
+      <div className="min-w-0">
+        <p className="text-sm font-semibold text-ink">{title}</p>
+        <p className="mt-1 text-xs leading-5 text-ink-400">{desc}</p>
+      </div>
     </Link>
   );
 }
@@ -223,11 +225,11 @@ export default function LifeAgentManageHomePage() {
 
   if (state.loading && !data) {
     return (
-      <div className="mx-auto max-w-5xl space-y-4 max-lg:-mx-4 max-lg:bg-paper-50 max-lg:px-3 max-lg:pb-24">
-        <div className="h-52 animate-pulse rounded-[28px] bg-paper shadow-sm ring-1 ring-hairline/40" />
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="mx-auto max-w-5xl max-lg:-mx-4 max-lg:px-4 max-lg:pb-24">
+        <div className="h-52 animate-pulse bg-paper-200" />
+        <div className="mt-4 grid grid-cols-2 gap-px bg-hairline/30 sm:grid-cols-4">
           {[1, 2, 3, 4].map((item) => (
-            <div key={item} className="h-28 animate-pulse rounded-2xl bg-paper shadow-sm ring-1 ring-hairline/40" />
+            <div key={item} className="h-28 animate-pulse bg-paper" />
           ))}
         </div>
       </div>
@@ -258,15 +260,15 @@ export default function LifeAgentManageHomePage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl space-y-4 max-lg:-mx-4 max-lg:bg-paper-50 max-lg:px-3 max-lg:pb-24">
-      <section className="overflow-hidden rounded-[28px] bg-paper shadow-sm ring-1 ring-hairline/40">
-        <div className="bg-gradient-to-r from-paper-200 via-paper to-oxblood-50 px-4 pb-4 pt-3 sm:px-6">
+    <div className="mx-auto max-w-5xl divide-y divide-hairline/30 max-lg:-mx-4 max-lg:px-4 max-lg:pb-24">
+      <section>
+        <div className="px-0 pb-4 pt-3 sm:px-0">
           <Link href="/dashboard/life-agents" className="text-sm font-medium text-ink-400 transition hover:text-ink">
             ← 全部 Agent
           </Link>
           <div className="mt-3 flex items-start justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
-              <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl ring-1 ring-hairline/40">
+              <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl">
                 <LifeAgentCoverImage
                   src={coverSrc}
                   alt=""
@@ -297,7 +299,7 @@ export default function LifeAgentManageHomePage() {
             <div className="flex shrink-0 items-center gap-2">
               <Link
                 href={`/life-agents/${id}`}
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-paper/90 text-ink-600 shadow-sm ring-1 ring-hairline/40 active:scale-[0.98]"
+                className="flex h-10 w-10 items-center justify-center rounded-full text-ink-600 transition active:opacity-70"
                 aria-label="查看展示页"
                 title="展示页"
               >
@@ -334,7 +336,7 @@ export default function LifeAgentManageHomePage() {
           />
         </div>
         */}
-        <div className="grid grid-cols-2 border-t border-hairline/50 sm:grid-cols-4">
+        <div className="grid grid-cols-2 border-t border-hairline/30 sm:grid-cols-4 [&>*:not(:nth-child(2n))]:max-sm:border-r [&>*:not(:nth-child(4n))]:sm:border-r [&>*]:border-hairline/30">
           <StatCard label="被提问" value={data.stats.soldPacks} sub="次" href={`/dashboard/life-agents/${id}/sales`} />
           <StatCard label="互动用户" value={data.questionPacks.length} sub="人" href={`/dashboard/life-agents/${id}/sales`} />
           <StatCard label="累计对话" value={data.stats.sessionCount} sub="场" href={`/dashboard/life-agents/${id}/sessions`} />
@@ -345,14 +347,12 @@ export default function LifeAgentManageHomePage() {
         </div>
       </section>
 
-      <section className="rounded-[28px] bg-paper px-4 py-4 shadow-sm ring-1 ring-hairline/40 sm:px-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-xl font-black tracking-tight text-ink">快速操作</h2>
-            <p className="mt-1 text-sm text-ink-400">把高频动作从巨型 tab 拆开，改资料时更不容易迷路。</p>
-          </div>
+      <section className="py-4">
+        <div>
+          <h2 className="text-xl font-black tracking-tight text-ink">快速操作</h2>
+          <p className="mt-1 text-sm text-ink-400">把高频动作从巨型 tab 拆开，改资料时更不容易迷路。</p>
         </div>
-        <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-3">
+        <div className="mt-2 divide-y divide-hairline/30 sm:grid sm:grid-cols-2 sm:gap-x-6 sm:divide-y-0 lg:grid-cols-3">
           <QuickAction
             href={`/dashboard/life-agents/${id}/co-edit`}
             title="对话调教"
@@ -421,7 +421,7 @@ export default function LifeAgentManageHomePage() {
         </div>
       </section>
 
-      <section className="rounded-[28px] bg-paper px-4 py-4 shadow-sm ring-1 ring-hairline/40 sm:px-6">
+      <section className="py-4">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-xl font-black tracking-tight text-ink">实时更新</h2>
@@ -433,7 +433,7 @@ export default function LifeAgentManageHomePage() {
           </span>
         </div>
 
-        <div className="mt-4 rounded-2xl bg-paper-50 p-4 ring-1 ring-hairline/40">
+        <div className="mt-4">
           <textarea
             ref={liveTextareaRef}
             value={liveContent}
@@ -471,9 +471,9 @@ export default function LifeAgentManageHomePage() {
         </div>
 
         {liveUpdates.length > 0 && (
-          <ul className="mt-4 space-y-3">
+          <ul className="mt-4 divide-y divide-hairline/30">
             {liveUpdates.map((u) => (
-              <li key={u.id} className="flex items-start gap-3 rounded-2xl bg-paper-50 p-4 ring-1 ring-hairline/40">
+              <li key={u.id} className="flex items-start gap-3 py-4 first:pt-0">
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 text-xs text-ink-400">
                     <span className="rounded-full bg-oxblood-100 px-2 py-0.5 font-medium text-oxblood-700">{LIVE_CATEGORIES.find((c) => c.value === u.category)?.label ?? u.category}</span>
@@ -497,30 +497,10 @@ export default function LifeAgentManageHomePage() {
         )}
       </section>
 
-      <section className="rounded-[28px] bg-paper px-4 py-4 shadow-sm ring-1 ring-hairline/40 sm:px-6">
+      <section className="py-4">
         <h2 className="text-xl font-black tracking-tight text-ink">最近动态</h2>
-        <div className="mt-4 grid gap-4 lg:grid-cols-3">
-          {/* 原「最近购买」卡片（含金额，审核期暂隐藏）
-          <div className="rounded-2xl bg-paper-50 p-4 ring-1 ring-hairline/40">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-ink-700">最近购买</h3>
-              <Link href={`/dashboard/life-agents/${id}/sales`} className="text-xs font-medium text-oxblood-600">查看全部</Link>
-            </div>
-            <ul className="mt-3 space-y-3">
-              {data.questionPacks.slice(0, 3).map((item) => (
-                <li key={item.id} className="text-sm">
-                  <p className="font-medium text-ink">{item.buyer.name || item.buyer.email}</p>
-                  <p className="mt-0.5 text-ink-400">
-                    买了 {item.questionCount} 次，已用 {item.questionsUsed} 次 · ¥{(item.amountPaid / 100).toFixed(2)}
-                  </p>
-                  <p className="mt-1 text-xs text-ink-300">{formatShortTime(item.createdAt)}</p>
-                </li>
-              ))}
-              {data.questionPacks.length === 0 && <p className="text-sm text-ink-300">暂时还没有购买记录</p>}
-            </ul>
-          </div>
-          */}
-          <div className="rounded-2xl bg-paper-50 p-4 ring-1 ring-hairline/40">
+        <div className="mt-4 divide-y divide-hairline/30 lg:grid lg:grid-cols-3 lg:gap-6 lg:divide-y-0">
+          <div className="py-4 first:pt-0 lg:py-0">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold text-ink-700">最近互动</h3>
               <Link href={`/dashboard/life-agents/${id}/sales`} className="text-xs font-medium text-oxblood-600">查看全部</Link>
@@ -539,7 +519,7 @@ export default function LifeAgentManageHomePage() {
             </ul>
           </div>
 
-          <div className="rounded-2xl bg-paper-50 p-4 ring-1 ring-hairline/40">
+          <div className="py-4 lg:border-l lg:border-hairline/30 lg:pl-6 lg:py-0">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold text-ink-700">最近聊天</h3>
               <Link href={`/dashboard/life-agents/${id}/sessions`} className="text-xs font-medium text-oxblood-600">查看全部</Link>
@@ -558,7 +538,7 @@ export default function LifeAgentManageHomePage() {
             </ul>
           </div>
 
-          <div className="rounded-2xl bg-paper-50 p-4 ring-1 ring-hairline/40">
+          <div className="py-4 lg:border-l lg:border-hairline/30 lg:pl-6 lg:py-0">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold text-ink-700">最近反馈</h3>
               <Link href={`/dashboard/life-agents/${id}/feedback`} className="text-xs font-medium text-oxblood-600">查看全部</Link>
@@ -590,22 +570,14 @@ export default function LifeAgentManageHomePage() {
       </section>
 
       {(data.feedback?.alerts ?? []).length > 0 && (
-        <section className="rounded-[28px] bg-paper px-4 py-4 shadow-sm ring-1 ring-hairline/40 sm:px-6">
+        <section className="py-4">
           <h2 className="text-xl font-black tracking-tight text-ink">需要你关注</h2>
           <p className="mt-1 text-xs text-ink-300">来自用户的真实反馈，按紧急程度排列</p>
-          <ul className="mt-3 space-y-2">
+          <ul className="mt-3 divide-y divide-hairline/30">
             {(data.feedback?.alerts ?? []).map((alert: FeedbackAlert) => (
               <li
                 key={alert.id}
-                className={`flex items-start gap-3 rounded-2xl px-4 py-3 text-sm leading-6 shadow-sm ${
-                  alert.color === "red"
-                    ? "bg-oxblood-50 ring-1 ring-oxblood-200"
-                    : alert.color === "orange"
-                      ? "bg-paper-200 ring-1 ring-oxblood-200"
-                      : alert.color === "yellow"
-                        ? "bg-paper-200 ring-1 ring-oxblood-200"
-                        : "bg-oxblood-50 ring-1 ring-oxblood-200"
-                }`}
+                className="flex items-start gap-3 py-3 text-sm leading-6 first:pt-0"
               >
                 <span
                   className={`mt-0.5 inline-block h-2.5 w-2.5 flex-shrink-0 rounded-full ${
@@ -685,64 +657,64 @@ export default function LifeAgentManageHomePage() {
         </section>
       )}
 
-      <section className="rounded-[28px] bg-gradient-to-r from-oxblood-200 via-oxblood-100 to-oxblood-200 px-4 py-4 shadow-sm ring-1 ring-hairline/40 sm:px-6">
+      <section className="py-4">
         <h2 className="text-xl font-black tracking-tight text-ink">优化建议</h2>
-        <ul className="mt-3 space-y-2 text-sm leading-6 text-ink">
+        <ul className="mt-3 divide-y divide-hairline/30 text-sm leading-6 text-ink">
           {suggestions.length > 0 ? (
             suggestions.map((item) => (
-              <li key={item} className="rounded-2xl bg-paper/70 px-4 py-3 shadow-sm">
+              <li key={item} className="py-3 first:pt-0">
                 {item}
               </li>
             ))
           ) : (
-            <li className="rounded-2xl bg-paper/70 px-4 py-3 shadow-sm">状态很好，继续保持更新和稳定回复即可。</li>
+            <li className="py-3 text-ink-400">状态很好，继续保持更新和稳定回复即可。</li>
           )}
         </ul>
       </section>
 
-      <section className="rounded-[28px] bg-paper px-4 py-4 shadow-sm ring-1 ring-hairline/40 sm:px-6">
+      <section className="py-4">
         <h2 className="text-xl font-black tracking-tight text-ink">Agent 当前状态</h2>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <div className="rounded-2xl bg-paper-50 p-4 ring-1 ring-hairline/40">
+        <div className="mt-4 divide-y divide-hairline/30 sm:grid sm:grid-cols-2 sm:gap-x-8 sm:divide-y-0 lg:grid-cols-3">
+          <div className="py-3 sm:py-2">
             <p className="text-xs font-medium text-ink-400">欢迎语</p>
             <p className="mt-2 line-clamp-3 text-sm text-ink">{profile.welcomeMessage || "未设置"}</p>
           </div>
-          <div className="rounded-2xl bg-paper-50 p-4 ring-1 ring-hairline/40">
+          <div className="py-3 sm:py-2">
             <p className="text-xs font-medium text-ink-400">擅长标签</p>
             <p className="mt-2 text-sm text-ink">{(profile.expertiseTags ?? []).join("、") || "未设置"}</p>
           </div>
-          <div className="rounded-2xl bg-paper-50 p-4 ring-1 ring-hairline/40">
+          <div className="py-3 sm:py-2">
             <p className="text-xs font-medium text-ink-400">人设与语气</p>
             <p className="mt-2 text-sm text-ink">
               {[profile.personaArchetype, profile.toneStyle, profile.responseStyle].filter(Boolean).join(" · ") || "未设置"}
             </p>
           </div>
-          <div className="rounded-2xl bg-paper-50 p-4 ring-1 ring-hairline/40">
+          <div className="py-3 sm:py-2">
             <p className="text-xs font-medium text-ink-400">知识条目</p>
             <p className="mt-2 text-sm text-ink">{profile.knowledgeEntries.length} 条</p>
           </div>
-          <div className="rounded-2xl bg-paper-50 p-4 ring-1 ring-hairline/40">
+          <div className="py-3 sm:py-2">
             <p className="text-xs font-medium text-ink-400">结构化事实</p>
             <p className="mt-2 text-sm text-ink">{profile.structuredFacts?.length ?? 0} 条</p>
           </div>
-          <div className="rounded-2xl bg-paper-50 p-4 ring-1 ring-hairline/40">
+          <div className="py-3 sm:py-2">
             <p className="text-xs font-medium text-ink-400">Topic 摘要</p>
             <p className="mt-2 text-sm text-ink">{profile.topicSummaries?.length ?? data.stats.topicCount ?? 0} 条</p>
           </div>
-          <div className="rounded-2xl bg-paper-50 p-4 ring-1 ring-hairline/40">
+          <div className="py-3 sm:py-2">
             <p className="text-xs font-medium text-ink-400">开放 API</p>
             <p className="mt-2 text-sm text-ink">
               {profile.apiInvokeEnabled ? `已开启 · ${profile.apiTotalCalls ?? 0} 次调用` : "未开启"}
             </p>
           </div>
-          <div className="rounded-2xl bg-paper-50 p-4 ring-1 ring-hairline/40">
+          <div className="py-3 sm:py-2">
             <p className="text-xs font-medium text-ink-400">最后更新</p>
             <p className="mt-2 text-sm text-ink">{data.chatSessions[0] ? formatDateTime(data.chatSessions[0].updatedAt) : "暂无记录"}</p>
           </div>
         </div>
       </section>
 
-      <section className="rounded-[28px] bg-paper px-4 py-4 shadow-sm ring-1 ring-hairline/40 sm:px-6">
+      <section className="py-4">
         <details>
           <summary className="cursor-pointer list-none text-lg font-semibold text-oxblood-700">
             <span className="inline-flex items-center gap-2">
@@ -750,7 +722,7 @@ export default function LifeAgentManageHomePage() {
               <span className="text-xs font-medium text-oxblood-500">删除后无法恢复</span>
             </span>
           </summary>
-          <div className="mt-4 rounded-2xl border border-oxblood-200 bg-oxblood-50/70 p-4">
+          <div className="mt-4 border-t border-oxblood-200 pt-4">
             <p className="text-sm leading-6 text-oxblood-600">
               删除人生 Agent 后，相关知识、聊天记录、反馈和销量记录都将无法恢复。请确认你不再需要它时再执行。
             </p>
