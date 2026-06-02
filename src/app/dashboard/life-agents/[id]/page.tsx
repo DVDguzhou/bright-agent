@@ -350,7 +350,6 @@ export default function LifeAgentManageHomePage() {
       <section className="py-4">
         <div>
           <h2 className="text-xl font-black tracking-tight text-ink">快速操作</h2>
-          <p className="mt-1 text-sm text-ink-400">把高频动作从巨型 tab 拆开，改资料时更不容易迷路。</p>
         </div>
         <div className="mt-2 divide-y divide-hairline/30 sm:grid sm:grid-cols-2 sm:gap-x-6 sm:divide-y-0 lg:grid-cols-3">
           <QuickAction
