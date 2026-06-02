@@ -65,11 +65,13 @@ function LifeAgentDiscoverCard({
   profile,
   globalIndex,
   profileHref,
+  showPulse,
 }: {
   profile: LifeAgentListItem;
   globalIndex: number;
   profileHref: (id: string) => string;
   skipMountAnimation?: boolean;
+  showPulse?: boolean;
 }) {
   const areaLabel = [profile.city, profile.province].filter(Boolean).join(" · ");
   const coverUrl = resolveLifeAgentCoverDisplayUrl(profile.coverUrl, profile.coverImageUrl, profile.coverPresetKey);
@@ -86,6 +88,17 @@ function LifeAgentDiscoverCard({
   return (
     <article className="min-h-0 [contain-intrinsic-size:auto_340px]">
       <div className="relative w-full overflow-hidden bg-paper-200" style={{ aspectRatio: "4 / 5" }}>
+        {showPulse && (
+          <div className="pointer-events-none absolute right-2.5 top-2.5 z-20 flex items-center gap-1.5">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-oxblood-500 opacity-75" />
+              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-oxblood-600" />
+            </span>
+            <span className="rounded-full bg-ink/80 px-2 py-0.5 text-[10px] font-medium text-paper backdrop-blur-sm">
+              点击开始
+            </span>
+          </div>
+        )}
         <Link
           href={profileHref(profile.id)}
           className="group block h-full focus:outline-none focus-visible:outline focus-visible:outline-1 focus-visible:outline-ink"
@@ -173,6 +186,7 @@ type Props = {
   emptyTitle: string;
   emptySubtitle: string;
   profileHref?: (id: string) => string;
+  showFirstCardPulse?: boolean;
   windowResetKey?: string | number;
   /** 为 false 时一次性渲染全部（管理页等） */
   windowed?: boolean;
@@ -199,6 +213,7 @@ export function LifeAgentDiscoverCardGrid({
   onLoadMore,
   hasMoreFromServer = false,
   loadingMore = false,
+  showFirstCardPulse = false,
 }: Props) {
   const virtualized = virtualizedProp ?? windowed !== false;
   const colCount = useGridColumnCount();
@@ -293,7 +308,7 @@ export function LifeAgentDiscoverCardGrid({
       <div className="space-y-6">
         <div className="grid grid-cols-2 gap-x-3 gap-y-7 sm:grid-cols-3 sm:gap-x-5 sm:gap-y-9 lg:grid-cols-4 xl:grid-cols-5">
           {toRender.map((profile, index) => (
-            <LifeAgentDiscoverCard key={profile.id} profile={profile} globalIndex={index} profileHref={profileHref} />
+            <LifeAgentDiscoverCard key={profile.id} profile={profile} globalIndex={index} profileHref={profileHref} showPulse={showFirstCardPulse && index === 0} />
           ))}
         </div>
         {windowed && hasMore ? (
@@ -344,6 +359,7 @@ export function LifeAgentDiscoverCardGrid({
                       globalIndex={globalIndex}
                       profileHref={profileHref}
                       skipMountAnimation
+                      showPulse={showFirstCardPulse && globalIndex === 0}
                     />
                   );
                 })}

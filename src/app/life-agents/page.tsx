@@ -20,6 +20,7 @@ import { cleanLifeAgentIntroText } from "@/lib/life-agent-intro-clean";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLifeAgentsFeedGestures, useMobileTouchNavEnabled } from "@/hooks/use-life-agents-feed-gestures";
 import { lifeAgentShowsPurchaseUi } from "@/lib/life-agent-commerce";
+import { OnboardingSheet, useOnboarding } from "@/components/OnboardingSheet";
 
 type PurchasedAgentRow = {
   id: string;
@@ -222,6 +223,7 @@ function LifeAgentsPageContent() {
   const [initialPageReady, setInitialPageReady] = useState(false);
 
   const touchNavEnabled = useMobileTouchNavEnabled();
+  const { open: onboardingOpen, pulsing: firstCardPulsing, dismiss: dismissOnboarding } = useOnboarding();
 
   const [visitedMask, setVisitedMask] = useState(() => 1 << tabIndexFromFeedTab(feedTab));
   const pagerRef = useRef<HTMLDivElement>(null);
@@ -756,6 +758,7 @@ function LifeAgentsPageContent() {
 
   return (
     <div className="-mx-1 space-y-4 pb-4 sm:mx-0 sm:space-y-5">
+      <OnboardingSheet open={onboardingOpen} onDismiss={dismissOnboarding} />
       <>
         {(pullOffset > 0 || pullRefreshing) && (
           <div
@@ -815,6 +818,7 @@ function LifeAgentsPageContent() {
                 hasMoreFromServer={!!discoverNextCursor}
                 loadingMore={discoverLoadingMore}
                 virtualized={false}
+                showFirstCardPulse={firstCardPulsing}
               />
             </section>
             {showPurchaseUi ? (
@@ -858,6 +862,7 @@ function LifeAgentsPageContent() {
               onLoadMore={feedTab !== "favorites" && feedTab !== "purchased" ? loadMoreDiscover : undefined}
               hasMoreFromServer={feedTab !== "favorites" && feedTab !== "purchased" && !!discoverNextCursor}
               loadingMore={discoverLoadingMore}
+              showFirstCardPulse={firstCardPulsing && feedTab !== "favorites" && feedTab !== "purchased"}
             />
           )}
         </section>
