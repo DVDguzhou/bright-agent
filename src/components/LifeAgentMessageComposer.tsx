@@ -1,9 +1,7 @@
 "use client";
 
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { FormEvent, useEffect, useRef } from "react";
 import { VoiceInputButton } from "@/components/voice";
-
-const QUICK_EMOJIS = ["😀", "👍", "❤️", "🙏", "😂", "🎉", "🫡", "✨"];
 
 function autoResizeTextarea(textarea: HTMLTextAreaElement | null) {
   if (!textarea) return;
@@ -26,7 +24,7 @@ export type LifeAgentMessageComposerProps = {
   onMoreClick?: () => void;
   moreOpen?: boolean;
   morePanel?: React.ReactNode;
-  /** 打开表情或聚焦输入时收起 more 面板（由父组件把 moreOpen 设为 false） */
+  /** 聚焦输入时收起 more 面板（由父组件把 moreOpen 设为 false） */
   onCloseMorePanel?: () => void;
   formClassName?: string;
 };
@@ -49,22 +47,20 @@ export function LifeAgentMessageComposer({
   formClassName = "",
 }: LifeAgentMessageComposerProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
-  const [emojiOpen, setEmojiOpen] = useState(false);
 
   const showMoreButton = Boolean(onMoreClick || morePanel !== undefined);
 
   useEffect(() => {
-    if (!emojiOpen && !moreOpen) return;
+    if (!moreOpen) return;
     const onPointer = (e: PointerEvent) => {
       const el = wrapRef.current;
       if (el && !el.contains(e.target as Node)) {
-        setEmojiOpen(false);
         onCloseMorePanel?.();
       }
     };
     document.addEventListener("pointerdown", onPointer);
     return () => document.removeEventListener("pointerdown", onPointer);
-  }, [emojiOpen, moreOpen, onCloseMorePanel]);
+  }, [moreOpen, onCloseMorePanel]);
 
   return (
     <form
@@ -73,23 +69,6 @@ export function LifeAgentMessageComposer({
       className={`bg-transparent px-0 pb-0 pt-1 sm:px-0 ${formClassName}`.trim()}
     >
       <div ref={wrapRef} className="relative mx-auto w-full max-w-3xl">
-        {emojiOpen ? (
-          <div className="absolute bottom-full left-0 right-0 z-20 mb-2 flex flex-wrap gap-1.5 rounded-2xl border border-paper/45 bg-paper/55 p-3 shadow-[0_8px_24px_-12px_rgba(26,23,20,0.1)] ring-1 ring-hairline/20 backdrop-blur-xl supports-[backdrop-filter]:bg-paper/75">
-            {QUICK_EMOJIS.map((em) => (
-              <button
-                key={em}
-                type="button"
-                className="flex h-9 w-9 items-center justify-center rounded-lg text-lg transition hover:bg-paper-50/90"
-                onClick={() => {
-                  onChange(value + em);
-                  setEmojiOpen(false);
-                }}
-              >
-                {em}
-              </button>
-            ))}
-          </div>
-        ) : null}
         {moreOpen && morePanel ? (
           <div className="absolute bottom-full left-0 right-0 z-20 mb-2">{morePanel}</div>
         ) : null}
@@ -105,7 +84,6 @@ export function LifeAgentMessageComposer({
           <textarea
             ref={textareaRef}
             onFocus={() => {
-              setEmojiOpen(false);
               onCloseMorePanel?.();
               onTextareaFocus?.();
             }}
@@ -127,30 +105,10 @@ export function LifeAgentMessageComposer({
             rows={1}
             enterKeyHint="send"
           />
-          <button
-            type="button"
-            onClick={() => {
-              setEmojiOpen((o) => {
-                if (!o) onCloseMorePanel?.();
-                return !o;
-              });
-            }}
-            disabled={disabled}
-            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-ink-400/50 transition hover:bg-paper-50/90 disabled:opacity-40"
-            aria-label="表情"
-          >
-            <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24" aria-hidden>
-              <circle cx="12" cy="12" r="9" />
-              <path strokeLinecap="round" d="M8.5 14.5s1.2 2 3.5 2 3.5-2 3.5-2M9 9h.01M15 9h.01" />
-            </svg>
-          </button>
           {showMoreButton ? (
             <button
               type="button"
-              onClick={() => {
-                setEmojiOpen(false);
-                onMoreClick?.();
-              }}
+              onClick={() => onMoreClick?.()}
               disabled={disabled}
               className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-ink-400/50 transition hover:bg-paper-50/90 disabled:opacity-40"
               aria-label="更多功能"
