@@ -412,7 +412,7 @@ export default function PostsPage() {
             </Link>
 
             {/* Actions */}
-            <div className="mt-3 flex items-center gap-5">
+            <div className="mt-3 flex items-center gap-5 pt-1">
               <button
                 type="button"
                 onClick={() => handleLike(post.id)}

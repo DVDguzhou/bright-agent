@@ -2,18 +2,10 @@
 
 import { MindScoreInfoButton } from "@/components/MindScoreInfoButton";
 
-const SIZE_CLASS = {
-  xs: "gap-0.5 rounded-md px-2 py-1 text-[10px]",
-  sm: "gap-1 rounded-lg px-2.5 py-1 text-xs",
-  md: "gap-1 rounded-lg px-3 py-1.5 text-sm",
-  lg: "gap-1.5 rounded-xl px-3 py-2 text-2xl font-black leading-none",
-} as const;
-
 type MindScoreBadgeProps = {
   value: number;
-  size?: keyof typeof SIZE_CLASS;
+  size?: "xs" | "sm" | "md" | "lg";
   className?: string;
-  /** 默认「心智」；传空字符串则只显示数字 */
   prefix?: string;
 };
 
@@ -21,16 +13,49 @@ export function MindScoreBadge({
   value,
   size = "sm",
   className = "",
-  prefix = "心智",
 }: MindScoreBadgeProps) {
-  const label = prefix ? `${prefix} ${value.toLocaleString("zh-CN")}` : value.toLocaleString("zh-CN");
+  if (size === "lg") {
+    return (
+      <span className={`inline-flex items-baseline gap-1 ${className}`}>
+        <span className="font-serif text-4xl font-medium tabular-nums text-ink leading-none">
+          {value.toLocaleString("zh-CN")}
+        </span>
+        <span className="font-serif text-sm italic text-ink-400 leading-none">分</span>
+        <MindScoreInfoButton className="text-ink-400 hover:text-ink self-center" />
+      </span>
+    );
+  }
 
+  if (size === "md") {
+    return (
+      <span className={`inline-flex items-baseline gap-0.5 ${className}`}>
+        <span className="font-serif text-xl font-medium tabular-nums text-ink">{value.toLocaleString("zh-CN")}</span>
+        <span className="text-[10px] font-medium uppercase tracking-wider text-ink-400">分</span>
+        <MindScoreInfoButton className="text-ink-400 hover:text-ink self-center" />
+      </span>
+    );
+  }
+
+  if (size === "sm") {
+    return (
+      <span className={`inline-flex items-baseline gap-0.5 ${className}`}>
+        <span className="font-serif text-sm font-medium tabular-nums text-ink">{value.toLocaleString("zh-CN")}</span>
+        <span className="text-[9px] font-medium uppercase tracking-wider text-ink-400">分</span>
+        <MindScoreInfoButton className="text-ink-400 hover:text-ink self-center" />
+      </span>
+    );
+  }
+
+  // xs — mint green pill chip (dark mode accent)
   return (
     <span
-      className={`inline-flex items-center bg-paper-200 font-medium tabular-nums text-ink-800 ring-1 ring-hairline/70 ${SIZE_CLASS[size]} ${className}`}
+      className={`inline-flex items-baseline gap-0.5 px-2 py-0.5 ${className}`}
+      style={{ background: "var(--accent)", borderRadius: "var(--radius-badge)", color: "#0a2018" }}
     >
-      <span>{label}</span>
-      <MindScoreInfoButton className="text-ink-600/80 hover:text-ink-800" />
+      <span className="text-[12px] font-bold tabular-nums leading-none">
+        {value.toLocaleString("zh-CN")}
+      </span>
+      <span className="text-[9px] font-medium leading-none opacity-70">分</span>
     </span>
   );
 }
