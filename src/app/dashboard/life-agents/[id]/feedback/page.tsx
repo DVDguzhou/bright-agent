@@ -1,11 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { LifeAgentCoverImage } from "@/components/LifeAgentCoverImage";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { RatingStars } from "@/components/RatingStars";
-import { resolveLifeAgentCoverDisplayUrl } from "@/lib/life-agent-covers";
 import {
   extractTopKeywords,
   fetchManageData,
@@ -42,73 +40,13 @@ function feedbackLabel(t: string) {
   return t;
 }
 
-function feedbackAccent(t: string) {
-  if (t === "helpful") return "bg-olive-400/20 text-olive-600";
-  if (t === "not_specific") return "bg-paper-300 text-ink";
-  if (t === "factual_error") return "bg-oxblood-100 text-oxblood-700";
-  if (t === "contradiction") return "bg-paper-200 text-ink-800";
-  if (t === "too_confident") return "bg-paper-300 text-ink";
-  return "bg-oxblood-100 text-oxblood-700";
-}
-
-function FeedbackHeader({
-  id,
-  title,
-  subtitle,
-  query,
-  onQueryChange,
-  coverSrc,
-  disableSearch = false,
-}: {
-  id: string;
-  title: string;
-  subtitle: string;
-  query?: string;
-  onQueryChange?: (value: string) => void;
-  coverSrc?: string;
-  disableSearch?: boolean;
-}) {
+function StatCell({ value, label, sub, accent }: { value: string | number; label: string; sub: string; accent?: string }) {
   return (
-    <header className="sticky top-0 z-20 border-b border-hairline/80 bg-paper/95 px-4 pb-3 pt-[max(0.35rem,env(safe-area-inset-top))] backdrop-blur-md sm:px-0">
-      <div className="flex items-center gap-3">
-        <Link
-          href={`/dashboard/life-agents/${id}`}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-paper-200 text-ink transition active:bg-paper-300"
-          aria-label="返回工作台"
-          title="返回"
-        >
-          <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24" aria-hidden>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-          </svg>
-        </Link>
-        <div className="min-w-0 flex-1">
-          <h1 className="text-[26px] font-bold leading-tight tracking-tight text-ink">{title}</h1>
-          <p className="mt-0.5 truncate text-sm text-ink-400">{subtitle}</p>
-        </div>
-        <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full ring-1 ring-hairline/50">
-          {coverSrc ? (
-            <LifeAgentCoverImage
-              src={coverSrc}
-              alt=""
-              fill
-              className="object-cover"
-              sizes="40px"
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center bg-paper-200 text-xs font-semibold text-ink-300">A</div>
-          )}
-        </div>
-      </div>
-      <div className="mt-4">
-        <input
-          className="w-full rounded-full border-0 bg-paper-200 px-4 py-2.5 text-[15px] text-ink outline-none ring-1 ring-transparent transition placeholder:text-ink-300 focus:bg-paper-50 focus:ring-hairline disabled:cursor-not-allowed disabled:opacity-70"
-          value={query ?? ""}
-          onChange={(e) => onQueryChange?.(e.target.value)}
-          placeholder="搜索评价类型、摘要或评语"
-          disabled={disableSearch}
-        />
-      </div>
-    </header>
+    <div className="px-3 py-3 text-center">
+      <p className={`text-2xl font-black leading-none ${accent ?? "text-ink"}`}>{value}</p>
+      <p className="mt-2 text-[11px] font-medium text-ink-600">{label}</p>
+      <p className="mt-0.5 text-[10px] text-ink-300">{sub}</p>
+    </div>
   );
 }
 
@@ -181,9 +119,13 @@ export default function LifeAgentFeedbackFeedPage() {
 
   const feedbackCounts = useMemo(
     () => payload?.feedback?.counts ?? { helpful: 0, notSpecific: 0, notSuitable: 0, factualError: 0, contradiction: 0, tooConfident: 0 },
-    [payload?.feedback?.counts]
+    [payload?.feedback?.counts],
   );
-  const ratings = payload?.feedback?.ratings ?? { averageScore: 0, raters: 0, recent: [] as Array<{ score: number; comment?: string | null; updatedAt: string }> };
+  const ratings = payload?.feedback?.ratings ?? {
+    averageScore: 0,
+    raters: 0,
+    recent: [] as Array<{ score: number; comment?: string | null; updatedAt: string }>,
+  };
   const keywords = useMemo(
     () =>
       extractTopKeywords(
@@ -213,186 +155,143 @@ export default function LifeAgentFeedbackFeedPage() {
   }, [feedbackCounts, ratings.averageScore, ratings.raters]);
 
   const profile = payload?.profile;
-  const coverSrc =
-    resolveLifeAgentCoverDisplayUrl(profile?.coverUrl, profile?.coverImageUrl, profile?.coverPresetKey);
+  const trendRows = ratings.recent.slice(0, 7).reverse();
 
   if (loading && !payload) {
-    return (
-      <div className="mx-auto max-w-3xl space-y-4 max-lg:-mx-4 max-lg:bg-paper-50 max-lg:pb-24">
-        <FeedbackHeader id={id} title="反馈诊断" subtitle="正在加载 Agent 反馈" disableSearch />
-        <div className="h-56 animate-pulse rounded-[28px] bg-paper shadow-sm ring-1 ring-hairline/40" />
-      </div>
-    );
+    return <div className="mx-auto h-56 max-w-4xl animate-pulse bg-paper-100/60" />;
   }
 
   if (loadError || !profile) {
     return (
-      <div className="mx-auto max-w-3xl space-y-4 max-lg:-mx-4 max-lg:bg-paper-50 max-lg:pb-24">
-        <FeedbackHeader id={id} title="反馈诊断" subtitle="暂时无法读取这个 Agent 的反馈数据" disableSearch />
-        <div className="rounded-[28px] bg-paper px-4 py-16 text-center shadow-sm ring-1 ring-hairline/40">
-          <p className="text-[15px] text-ink-400">{loadError ?? "无法加载"}</p>
-          <Link href={`/dashboard/life-agents/${id}`} className="mt-6 inline-flex rounded-full bg-ink px-6 py-2.5 text-sm font-medium text-paper">
-            返回工作台
-          </Link>
-        </div>
+      <div className="mx-auto max-w-2xl px-4 py-16 text-center">
+        <p className="text-[15px] text-ink-400">{loadError ?? "无法加载"}</p>
+        <Link href={`/dashboard/life-agents/${id}`} className="mt-6 inline-flex rounded-full bg-ink px-6 py-2.5 text-sm font-medium text-paper">
+          返回工作台
+        </Link>
       </div>
     );
   }
 
-  const trendRows = ratings.recent.slice(0, 7).reverse();
-
   return (
-    <div className="mx-auto max-w-3xl space-y-4 max-lg:-mx-4 max-lg:bg-paper-50 max-lg:px-3 max-lg:pb-24">
-      <FeedbackHeader
-        id={id}
-        title="反馈诊断"
-        subtitle={profile.displayName}
-        query={query}
-        onQueryChange={setQuery}
-        coverSrc={coverSrc}
-      />
-
-      <section className="grid grid-cols-2 gap-3 lg:grid-cols-6">
-        <div className="rounded-2xl bg-paper px-3 py-4 text-center shadow-sm ring-1 ring-hairline/40">
-          <p className="text-2xl font-black text-oxblood-700">{ratings.raters > 0 ? ratings.averageScore.toFixed(1) : "—"}</p>
-          <p className="mt-1 text-xs text-ink-400">综合评分</p>
-        </div>
-        <div className="rounded-2xl bg-paper px-3 py-4 text-center shadow-sm ring-1 ring-hairline/40">
-          <p className="text-2xl font-black text-olive-600">{feedbackCounts.helpful}</p>
-          <p className="mt-1 text-xs text-ink-400">有帮助</p>
-        </div>
-        <div className="rounded-2xl bg-paper px-3 py-4 text-center shadow-sm ring-1 ring-hairline/40">
-          <p className="text-2xl font-black text-oxblood-600">{feedbackCounts.notSpecific}</p>
-          <p className="mt-1 text-xs text-ink-400">不够具体</p>
-        </div>
-        <div className="rounded-2xl bg-paper px-3 py-4 text-center shadow-sm ring-1 ring-hairline/40">
-          <p className="text-2xl font-black text-oxblood-700">{feedbackCounts.notSuitable}</p>
-          <p className="mt-1 text-xs text-ink-400">不适合我</p>
-        </div>
-        <div className="rounded-2xl bg-paper px-3 py-4 text-center shadow-sm ring-1 ring-hairline/40">
-          <p className="text-2xl font-black text-oxblood-700">{feedbackCounts.factualError ?? 0}</p>
-          <p className="mt-1 text-xs text-ink-400">事实错误</p>
-        </div>
-        <div className="rounded-2xl bg-paper px-3 py-4 text-center shadow-sm ring-1 ring-hairline/40">
-          <p className="text-2xl font-black text-ink-700">{feedbackCounts.contradiction ?? 0}</p>
-          <p className="mt-1 text-xs text-ink-400">前后矛盾</p>
+    <div className="mx-auto max-w-4xl divide-y divide-hairline/30 max-lg:-mx-4 max-lg:px-4 max-lg:pb-24">
+      <section className="pb-4 pt-3">
+        <Link href={`/dashboard/life-agents/${id}`} className="text-sm font-medium text-ink-400 transition hover:text-ink">
+          ← 返回工作台
+        </Link>
+        <h1 className="mt-3 text-[28px] font-black tracking-tight text-ink">反馈诊断</h1>
+        <p className="mt-1 text-sm text-ink-400">{profile.displayName} 的用户评价与轻反馈</p>
+        <div className="mt-4">
+          <input
+            className="w-full rounded-full border-0 bg-paper-200 px-4 py-2.5 text-[15px] text-ink outline-none ring-1 ring-transparent transition placeholder:text-ink-300 focus:bg-paper-50 focus:ring-hairline"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="搜索评价类型、摘要或评语"
+          />
         </div>
       </section>
 
-      <section className="grid gap-4 lg:grid-cols-[1.2fr_1fr]">
-        <div className="rounded-[28px] bg-paper px-4 py-4 shadow-sm ring-1 ring-hairline/40 sm:px-6">
-          <h2 className="text-lg font-semibold text-ink">评分趋势</h2>
-          {trendRows.length === 0 ? (
-            <p className="mt-4 text-sm text-ink-300">还没有星级评分</p>
-          ) : (
-            <div className="mt-4 space-y-3">
-              {trendRows.map((item, index) => (
-                <div key={`${item.updatedAt}-${index}`} className="flex items-center gap-3">
-                  <div className="w-14 text-xs text-ink-300">{formatShortTime(item.updatedAt)}</div>
-                  <div className="h-2 flex-1 overflow-hidden rounded-full bg-paper-200">
-                    <div className="h-full rounded-full bg-gradient-to-r from-oxblood-500 to-oxblood-400" style={{ width: `${(item.score / 5) * 100}%` }} />
-                  </div>
-                  <div className="w-10 text-right text-sm font-semibold text-ink">{item.score}/5</div>
+      <section className="divide-y divide-hairline/30">
+        <div className="grid grid-cols-3 [&>*:not(:last-child)]:border-r [&>*]:border-hairline/30">
+          <StatCell
+            value={ratings.raters > 0 ? ratings.averageScore.toFixed(1) : "—"}
+            label="综合评分"
+            sub="星"
+            accent="text-oxblood-700"
+          />
+          <StatCell value={feedbackCounts.helpful} label="有帮助" sub="条" accent="text-olive-600" />
+          <StatCell value={feedbackCounts.notSpecific} label="不够具体" sub="条" accent="text-oxblood-600" />
+        </div>
+        <div className="grid grid-cols-3 [&>*:not(:last-child)]:border-r [&>*]:border-hairline/30">
+          <StatCell value={feedbackCounts.notSuitable} label="不适合我" sub="条" accent="text-oxblood-700" />
+          <StatCell value={feedbackCounts.factualError ?? 0} label="事实错误" sub="条" accent="text-oxblood-700" />
+          <StatCell value={feedbackCounts.contradiction ?? 0} label="前后矛盾" sub="条" />
+        </div>
+      </section>
+
+      <section className="py-4">
+        <h2 className="text-lg font-semibold text-ink">评分趋势</h2>
+        {trendRows.length === 0 ? (
+          <p className="mt-3 text-sm text-ink-300">还没有星级评分</p>
+        ) : (
+          <ul className="mt-4 space-y-3">
+            {trendRows.map((item, index) => (
+              <li key={`${item.updatedAt}-${index}`} className="flex items-center gap-3 text-sm">
+                <span className="w-14 shrink-0 text-xs text-ink-300">{formatShortTime(item.updatedAt)}</span>
+                <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-paper-200">
+                  <div className="h-full rounded-full bg-gradient-to-r from-oxblood-500 to-oxblood-400" style={{ width: `${(item.score / 5) * 100}%` }} />
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className="rounded-[28px] bg-paper px-4 py-4 shadow-sm ring-1 ring-hairline/40 sm:px-6">
-          <h2 className="text-lg font-semibold text-ink">近期关键词</h2>
-          <div className="mt-4 flex flex-wrap gap-2">
-            {keywords.length > 0 ? (
-              keywords.map((word) => (
-                <span key={word} className="rounded-full bg-paper-200 px-3 py-1.5 text-xs text-ink-600">
-                  {word}
-                </span>
-              ))
-            ) : (
-              <p className="text-sm text-ink-300">还没有足够的文本反馈可提炼关键词</p>
-            )}
-          </div>
-        </div>
+                <span className="w-10 shrink-0 text-right font-semibold tabular-nums text-ink">{item.score}/5</span>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
-      <section className="rounded-[28px] bg-gradient-to-r from-oxblood-200 via-oxblood-100 to-oxblood-200 px-4 py-4 shadow-sm ring-1 ring-hairline/40 sm:px-6">
+      {keywords.length > 0 ? (
+        <section className="py-3">
+          <p className="text-[11px] font-medium text-ink-600">近期关键词</p>
+          <p className="mt-2 text-sm text-ink-500">{keywords.join(" · ")}</p>
+        </section>
+      ) : null}
+
+      <section className="py-4">
         <h2 className="text-lg font-semibold text-ink">改进建议</h2>
-        <ul className="mt-3 space-y-2 text-sm text-ink">
+        <ul className="mt-3 divide-y divide-hairline/30 text-sm text-ink">
           {suggestions.map((item) => (
-            <li key={item} className="rounded-2xl bg-paper/70 px-4 py-3 shadow-sm">
+            <li key={item} className="py-3 first:pt-0">
               {item}
             </li>
           ))}
         </ul>
       </section>
 
-      <section className="overflow-hidden rounded-[28px] bg-paper shadow-sm ring-1 ring-hairline/40">
-        <div className="border-b border-hairline/50 px-4 py-4 sm:px-6">
-          <h2 className="text-lg font-semibold text-ink">全部反馈记录</h2>
-        </div>
-        <div className="divide-y divide-hairline/50">
-          {rows.length === 0 ? (
-            <div className="px-4 py-16 text-center text-[15px] text-ink-300">该 Agent 暂无反馈记录</div>
-          ) : filteredRows.length === 0 ? (
-            <div className="px-4 py-16 text-center text-[15px] text-ink-300">没有匹配的记录</div>
-          ) : (
-            filteredRows.map((row) => (
-              <div key={row.key} className="flex items-center gap-3 px-4 py-3.5 sm:px-6">
+      <section className="py-4">
+        <h2 className="text-lg font-semibold text-ink">全部反馈记录</h2>
+        <p className="mt-1 text-sm text-ink-400">{filteredRows.length} 条</p>
+        {rows.length === 0 ? (
+          <p className="mt-8 text-center text-sm text-ink-300">该 Agent 暂无反馈记录</p>
+        ) : filteredRows.length === 0 ? (
+          <p className="mt-8 text-center text-sm text-ink-300">没有匹配的记录</p>
+        ) : (
+          <ul className="mt-4 divide-y divide-hairline/30">
+            {filteredRows.map((row) => (
+              <li key={row.key} className="py-4 text-sm first:pt-0">
                 {row.kind === "feedback" ? (
                   <>
-                    <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-sm font-bold ring-1 ring-hairline/50 ${feedbackAccent(row.feedbackType)}`}>
-                      {row.feedbackType === "helpful"
-                        ? "赞"
-                        : row.feedbackType === "not_specific"
-                          ? "细"
-                          : row.feedbackType === "factual_error"
-                            ? "错"
-                            : row.feedbackType === "contradiction"
-                              ? "冲"
-                              : row.feedbackType === "too_confident"
-                                ? "满"
-                                : "退"}
+                    <div className="flex items-start justify-between gap-3">
+                      <p className="font-medium text-ink">{feedbackLabel(row.feedbackType)}</p>
+                      <time className="shrink-0 text-xs tabular-nums text-ink-300" dateTime={row.createdAt}>
+                        {formatShortTime(row.createdAt)}
+                      </time>
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex min-w-0 flex-wrap items-center gap-2">
-                        <span className="truncate text-[16px] font-semibold text-ink">{feedbackLabel(row.feedbackType)}</span>
-                        <span className="rounded-full bg-paper-200 px-2 py-0.5 text-[10px] font-medium text-ink-400">轻反馈</span>
-                      </div>
-                      <p className="mt-0.5 line-clamp-2 text-[13px] leading-snug text-ink-300">
-                        {row.comment?.trim()
-                          ? row.comment
-                          : row.assistantExcerpt?.trim()
-                            ? row.assistantExcerpt.length > 100
-                              ? `${row.assistantExcerpt.slice(0, 100)}…`
-                              : row.assistantExcerpt
-                            : "无摘要"}
-                      </p>
-                    </div>
-                    <time className="shrink-0 self-start pt-0.5 text-xs tabular-nums text-ink-300" dateTime={row.createdAt}>
-                      {formatShortTime(row.createdAt)}
-                    </time>
+                    <p className="mt-0.5 line-clamp-2 text-ink-400">
+                      {row.comment?.trim()
+                        ? row.comment
+                        : row.assistantExcerpt?.trim()
+                          ? row.assistantExcerpt.length > 100
+                            ? `${row.assistantExcerpt.slice(0, 100)}…`
+                            : row.assistantExcerpt
+                          : "无摘要"}
+                    </p>
                   </>
                 ) : (
                   <>
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-oxblood-100 text-oxblood-700 ring-1 ring-oxblood-200/80">
-                      <span className="text-sm font-black tabular-nums">{row.score}</span>
-                    </div>
-                    <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-3">
                       <div className="flex min-w-0 flex-wrap items-center gap-2">
-                        <span className="truncate text-[16px] font-semibold text-ink">星级评价</span>
+                        <p className="font-medium text-ink">星级评价</p>
                         <RatingStars score={row.score} size="sm" />
                       </div>
-                      <p className="mt-0.5 line-clamp-2 text-[13px] leading-snug text-ink-300">{row.comment?.trim() || "无文字评语"}</p>
+                      <time className="shrink-0 text-xs tabular-nums text-ink-300" dateTime={row.updatedAt}>
+                        {formatShortTime(row.updatedAt)}
+                      </time>
                     </div>
-                    <time className="shrink-0 self-start pt-0.5 text-xs tabular-nums text-ink-300" dateTime={row.updatedAt}>
-                      {formatShortTime(row.updatedAt)}
-                    </time>
+                    <p className="mt-0.5 line-clamp-2 text-ink-400">{row.comment?.trim() || "无文字评语"}</p>
                   </>
                 )}
-              </div>
-            ))
-          )}
-        </div>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
     </div>
   );

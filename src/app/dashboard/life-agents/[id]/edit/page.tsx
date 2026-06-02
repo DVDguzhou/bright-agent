@@ -33,10 +33,15 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <details open={defaultOpen} className="rounded-[28px] bg-paper px-4 py-4 shadow-sm ring-1 ring-hairline/40 sm:px-6">
-      <summary className="cursor-pointer list-none">
-        <h2 className="text-lg font-semibold text-ink">{title}</h2>
-        <p className="mt-1 text-sm text-ink-400">{hint}</p>
+    <details open={defaultOpen} className="group border-b border-hairline/30 py-5 last:border-b-0">
+      <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-semibold text-ink">{title}</h2>
+            <p className="mt-1 text-sm text-ink-400">{hint}</p>
+          </div>
+          <span className="mt-1 shrink-0 text-xs text-ink-300 transition group-open:rotate-180">▼</span>
+        </div>
       </summary>
       <div className="mt-5">{children}</div>
     </details>
@@ -281,7 +286,7 @@ export default function LifeAgentEditPage() {
   }, [persistProfile]);
 
   if (loading) {
-    return <div className="mx-auto h-64 max-w-3xl animate-pulse rounded-[28px] bg-paper shadow-sm ring-1 ring-hairline/40" />;
+    return <div className="mx-auto h-64 max-w-4xl animate-pulse bg-paper-100/60" />;
   }
 
   if (!data || !form) {
@@ -301,8 +306,8 @@ export default function LifeAgentEditPage() {
   const completion = computeCompletion(data.profile);
 
   return (
-    <div className="mx-auto max-w-4xl space-y-4 max-lg:-mx-4 max-lg:bg-paper-50 max-lg:px-3 max-lg:pb-24">
-      <header className="rounded-[28px] bg-paper px-4 py-4 shadow-sm ring-1 ring-hairline/40 sm:px-6">
+    <div className="mx-auto max-w-4xl divide-y divide-hairline/30 max-lg:-mx-4 max-lg:px-4 max-lg:pb-24">
+      <header className="pb-4 pt-3">
         <div className="flex items-start justify-between gap-3">
           <div>
             <Link href={`/dashboard/life-agents/${id}`} className="text-sm font-medium text-ink-400 transition hover:text-ink">
@@ -322,7 +327,7 @@ export default function LifeAgentEditPage() {
             {saving ? "保存中…" : "保存修改"}
           </button>
         </div>
-        <div className="mt-4 h-2 overflow-hidden rounded-full bg-paper-200">
+        <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-paper-200">
           <div className="h-full rounded-full bg-gradient-to-r from-oxblood-500 to-oxblood-400" style={{ width: `${completion}%` }} />
         </div>
         <p className="mt-2 text-xs text-ink-300">
@@ -331,7 +336,7 @@ export default function LifeAgentEditPage() {
         </p>
       </header>
 
-      <form id="life-agent-edit-form" onSubmit={saveProfile} className="space-y-4">
+      <form id="life-agent-edit-form" onSubmit={saveProfile}>
         <Section title="基础形象" hint="封面、名称、简介和语音能力" defaultOpen>
           <div className="space-y-5">
             <LifeAgentCoverPicker
@@ -339,7 +344,7 @@ export default function LifeAgentEditPage() {
               onChange={(u) => setForm((prev) => (prev ? { ...prev, coverImageUrl: u } : prev))}
               disabled={saving}
             />
-            <div className="rounded-2xl border border-hairline bg-paper-50 px-4 py-4">
+            <div className="border-t border-hairline/30 pt-5">
               <p className="font-medium text-ink-700">语音回复音色</p>
               <p className="mt-1 text-sm text-ink-500">
                 {data.profile.hasVoiceClone ? "已可用于语音合成" : "未就绪，建议录一段样本提升陪伴感。"}
@@ -588,7 +593,7 @@ export default function LifeAgentEditPage() {
               <label className="mb-2 block text-sm font-medium text-ink-600">收入</label>
               <input className="input-shell" value={form.income} onChange={(e) => setForm((prev) => (prev ? { ...prev, income: e.target.value } : prev))} />
             </div>
-            <div className="rounded-2xl border border-hairline bg-paper-50 p-4 md:col-span-2">
+            <div className="border-t border-hairline/30 pt-5 md:col-span-2">
               <p className="font-medium text-ink-600">
                 {data.profile.verificationStatus === "verified" ? "已认证" : "申请官方认证"}
               </p>
@@ -606,9 +611,9 @@ export default function LifeAgentEditPage() {
           </div>
         </Section>
 
-        {error ? <p className="rounded-2xl bg-oxblood-50 px-4 py-3 text-sm text-oxblood-600">{error}</p> : null}
+        {error ? <p className="border-t border-hairline/30 py-4 text-sm text-oxblood-600">{error}</p> : null}
 
-        <div className="flex justify-end pb-4">
+        <div className="flex justify-end border-t border-hairline/30 py-4">
           <button
             type="submit"
             disabled={saving}

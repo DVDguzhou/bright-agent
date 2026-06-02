@@ -50,16 +50,16 @@ type EditState = Record<
   }
 >;
 
-function badgeClass(status?: string) {
+function statusTextClass(status?: string) {
   switch (status) {
     case "active":
-      return "bg-olive-400/20 text-olive-600";
+      return "text-olive-600";
     case "candidate":
-      return "bg-paper-300 text-oxblood-700";
+      return "text-oxblood-700";
     case "archived":
-      return "bg-paper-300 text-ink-500";
+      return "text-ink-500";
     default:
-      return "bg-paper-200 text-ink-600";
+      return "text-ink-600";
   }
 }
 
@@ -252,7 +252,7 @@ export default function LifeAgentTopicsPage() {
   };
 
   if (state.loading && state.topics.length === 0) {
-    return <div className="mx-auto h-56 max-w-5xl animate-pulse rounded-[28px] bg-paper shadow-sm ring-1 ring-hairline/40" />;
+    return <div className="mx-auto h-56 max-w-4xl animate-pulse bg-paper-100/60" />;
   }
 
   if (state.error && state.topics.length === 0) {
@@ -267,8 +267,8 @@ export default function LifeAgentTopicsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl space-y-4 max-lg:-mx-4 max-lg:bg-paper-50 max-lg:px-3 max-lg:pb-24">
-      <header className="rounded-[28px] bg-paper px-4 py-4 shadow-sm ring-1 ring-hairline/40 sm:px-6">
+    <div className="mx-auto max-w-4xl divide-y divide-hairline/30 max-lg:-mx-4 max-lg:px-4 max-lg:pb-24">
+      <section className="pb-4 pt-3">
         <Link href={`/dashboard/life-agents/${id}`} className="text-sm font-medium text-ink-400 transition hover:text-ink">
           ← 返回工作台
         </Link>
@@ -291,30 +291,34 @@ export default function LifeAgentTopicsPage() {
             <span className="text-sm text-ink-400">找到 {filteredTopics.length} 个</span>
           ) : null}
         </div>
-      </header>
+      </section>
 
-      <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <div className="rounded-2xl bg-paper px-3 py-4 text-center shadow-sm ring-1 ring-hairline/40">
-          <p className="text-2xl font-black text-ink">{state.topics.length}</p>
-          <p className="mt-1 text-xs text-ink-400">Topic 总数</p>
+      <section className="divide-y divide-hairline/30">
+        <div className="grid grid-cols-2 [&>*:not(:last-child)]:border-r [&>*]:border-hairline/30">
+          <div className="px-3 py-3 text-center">
+            <p className="text-2xl font-black leading-none text-ink">{state.topics.length}</p>
+            <p className="mt-2 text-[11px] font-medium text-ink-600">Topic 总数</p>
+          </div>
+          <div className="px-3 py-3 text-center">
+            <p className="text-2xl font-black leading-none text-ink">{state.topics.filter((topic) => topic.status === "candidate").length}</p>
+            <p className="mt-2 text-[11px] font-medium text-ink-600">待审核</p>
+          </div>
         </div>
-        <div className="rounded-2xl bg-paper px-3 py-4 text-center shadow-sm ring-1 ring-hairline/40">
-          <p className="text-2xl font-black text-ink">{state.topics.filter((topic) => topic.status === "candidate").length}</p>
-          <p className="mt-1 text-xs text-ink-400">待审核</p>
-        </div>
-        <div className="rounded-2xl bg-paper px-3 py-4 text-center shadow-sm ring-1 ring-hairline/40">
-          <p className="text-2xl font-black text-ink">{state.topics.filter((topic) => topic.status === "active").length}</p>
-          <p className="mt-1 text-xs text-ink-400">已启用</p>
-        </div>
-        <div className="rounded-2xl bg-paper px-3 py-4 text-center shadow-sm ring-1 ring-hairline/40">
-          <p className="text-2xl font-black text-ink">{state.topics.reduce((sum, topic) => sum + (topic.feedback?.total ?? 0), 0)}</p>
-          <p className="mt-1 text-xs text-ink-400">关联反馈</p>
+        <div className="grid grid-cols-2 [&>*:not(:last-child)]:border-r [&>*]:border-hairline/30">
+          <div className="px-3 py-3 text-center">
+            <p className="text-2xl font-black leading-none text-ink">{state.topics.filter((topic) => topic.status === "active").length}</p>
+            <p className="mt-2 text-[11px] font-medium text-ink-600">已启用</p>
+          </div>
+          <div className="px-3 py-3 text-center">
+            <p className="text-2xl font-black leading-none text-ink">{state.topics.reduce((sum, topic) => sum + (topic.feedback?.total ?? 0), 0)}</p>
+            <p className="mt-2 text-[11px] font-medium text-ink-600">关联反馈</p>
+          </div>
         </div>
       </section>
 
-      <section className="space-y-4">
+      <section className="py-4">
         {filteredTopics.length === 0 ? (
-          <div className="rounded-[28px] bg-paper px-6 py-16 text-center text-sm text-ink-300 shadow-sm ring-1 ring-hairline/40">
+          <div className="py-12 text-center text-sm text-ink-300">
             {query.trim() ? (
               <>
                 <p>没有匹配的 Topic</p>
@@ -331,161 +335,153 @@ export default function LifeAgentTopicsPage() {
             )}
           </div>
         ) : (
-          filteredTopics.map((topic) => {
-            const edit = edits[topic.id];
-            if (!edit) return null;
-            return (
-              <article key={topic.id} className="rounded-[28px] bg-paper p-4 shadow-sm ring-1 ring-hairline/40 sm:p-6">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${badgeClass(topic.status)}`}>{topic.status}</span>
-                      <span className="rounded-full bg-paper-200 px-2.5 py-1 text-xs text-ink-500">{topic.topicGroup}</span>
-                      <span className="rounded-full bg-paper-200 px-2.5 py-1 text-xs text-ink-500">{topic.source || "unknown"}</span>
-                      {topic.manualEdited ? <span className="rounded-full bg-oxblood-100 px-2.5 py-1 text-xs text-oxblood-700">人工改过</span> : null}
+          <ul className="divide-y divide-hairline/30">
+            {filteredTopics.map((topic) => {
+              const edit = edits[topic.id];
+              if (!edit) return null;
+              return (
+                <li key={topic.id} className="py-6 first:pt-0">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-base font-semibold text-ink">{edit.topicLabel || topic.topicLabel}</p>
+                      <p className="mt-1 text-xs text-ink-400">
+                        <span className={`font-medium ${statusTextClass(topic.status)}`}>{topic.status}</span>
+                        {" · "}
+                        {topic.topicGroup}
+                        {" · "}
+                        {topic.source || "unknown"}
+                        {topic.manualEdited ? " · 人工改过" : ""}
+                      </p>
+                      <p className="mt-1 break-all text-xs text-ink-300">{topic.topicKey}</p>
+                      {topic.mergedIntoTopicLabel ? (
+                        <p className="mt-1 text-xs text-ink-400">已归并到：{topic.mergedIntoTopicLabel}</p>
+                      ) : null}
                     </div>
-                    <p className="mt-3 break-all text-xs text-ink-300">{topic.topicKey}</p>
-                    {topic.mergedIntoTopicLabel ? (
-                      <p className="mt-1 text-xs text-ink-400">已归并到：{topic.mergedIntoTopicLabel}</p>
-                    ) : null}
+                    <p className="shrink-0 text-xs text-ink-400">
+                      反馈 {topic.feedback?.total ?? 0} · 有帮助 {topic.feedback?.helpful ?? 0} · 事实问题{" "}
+                      {(topic.feedback?.factualError ?? 0) + (topic.feedback?.contradiction ?? 0)} · 来源{" "}
+                      {topic.sourceEntryIds?.length ?? 0}
+                    </p>
                   </div>
-                  <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
-                    <div className="rounded-xl bg-paper-50 px-3 py-2 text-center">
-                      <p className="font-semibold text-ink">{topic.feedback?.total ?? 0}</p>
-                      <p className="text-ink-400">反馈</p>
-                    </div>
-                    <div className="rounded-xl bg-paper-50 px-3 py-2 text-center">
-                      <p className="font-semibold text-ink">{topic.feedback?.helpful ?? 0}</p>
-                      <p className="text-ink-400">有帮助</p>
-                    </div>
-                    <div className="rounded-xl bg-paper-50 px-3 py-2 text-center">
-                      <p className="font-semibold text-ink">{(topic.feedback?.factualError ?? 0) + (topic.feedback?.contradiction ?? 0)}</p>
-                      <p className="text-ink-400">事实问题</p>
-                    </div>
-                    <div className="rounded-xl bg-paper-50 px-3 py-2 text-center">
-                      <p className="font-semibold text-ink">{topic.sourceEntryIds?.length ?? 0}</p>
-                      <p className="text-ink-400">来源</p>
-                    </div>
-                  </div>
-                </div>
 
-                <div className="mt-4 grid gap-3 lg:grid-cols-2">
-                  <label className="block">
-                    <span className="text-xs font-medium text-ink-400">Topic 名称</span>
-                    <input
-                      value={edit.topicLabel}
-                      onChange={(e) => updateEdit(topic.id, { topicLabel: e.target.value })}
-                      className="mt-1 w-full rounded-2xl border-0 bg-paper-200 px-4 py-3 text-sm text-ink outline-none ring-1 ring-transparent focus:bg-paper focus:ring-hairline"
+                  <div className="mt-4 grid gap-3 lg:grid-cols-2">
+                    <label className="block">
+                      <span className="text-xs font-medium text-ink-400">Topic 名称</span>
+                      <input
+                        value={edit.topicLabel}
+                        onChange={(e) => updateEdit(topic.id, { topicLabel: e.target.value })}
+                        className="input-shell mt-1"
+                      />
+                    </label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <label className="block">
+                        <span className="inline-flex items-center gap-1 text-xs font-medium text-ink-400">
+                          状态
+                          <FieldInfoButton
+                            title={TOPIC_STATUS_INFO.title}
+                            body={TOPIC_STATUS_INFO.body}
+                            ariaLabel={TOPIC_STATUS_INFO.ariaLabel}
+                          />
+                        </span>
+                        <select
+                          value={edit.status}
+                          onChange={(e) => updateEdit(topic.id, { status: e.target.value })}
+                          className="input-shell mt-1"
+                        >
+                          <option value="candidate">candidate</option>
+                          <option value="active">active</option>
+                          <option value="archived">archived</option>
+                        </select>
+                      </label>
+                      <label className="block">
+                        <span className="inline-flex items-center gap-1 text-xs font-medium text-ink-400">
+                          置信度
+                          <FieldInfoButton
+                            title={TOPIC_CONFIDENCE_INFO.title}
+                            body={TOPIC_CONFIDENCE_INFO.body}
+                            ariaLabel={TOPIC_CONFIDENCE_INFO.ariaLabel}
+                          />
+                        </span>
+                        <select
+                          value={edit.confidence}
+                          onChange={(e) => updateEdit(topic.id, { confidence: e.target.value })}
+                          className="input-shell mt-1"
+                        >
+                          <option value="low">low</option>
+                          <option value="medium">medium</option>
+                          <option value="high">high</option>
+                        </select>
+                      </label>
+                    </div>
+                  </div>
+
+                  <label className="mt-3 block">
+                    <span className="text-xs font-medium text-ink-400">Topic 摘要</span>
+                    <textarea
+                      value={edit.summary}
+                      onChange={(e) => updateEdit(topic.id, { summary: e.target.value })}
+                      rows={5}
+                      className="input-shell mt-1 min-h-28"
                     />
                   </label>
-                  <div className="grid grid-cols-2 gap-3">
+
+                  <div className="mt-3 grid gap-3 lg:grid-cols-2">
                     <label className="block">
-                      <span className="inline-flex items-center gap-1 text-xs font-medium text-ink-400">
-                        状态
-                        <FieldInfoButton
-                          title={TOPIC_STATUS_INFO.title}
-                          body={TOPIC_STATUS_INFO.body}
-                          ariaLabel={TOPIC_STATUS_INFO.ariaLabel}
-                        />
-                      </span>
-                      <select
-                        value={edit.status}
-                        onChange={(e) => updateEdit(topic.id, { status: e.target.value })}
-                        className="mt-1 w-full rounded-2xl border-0 bg-paper-200 px-4 py-3 text-sm text-ink outline-none ring-1 ring-transparent focus:bg-paper focus:ring-hairline"
-                      >
-                        <option value="candidate">candidate</option>
-                        <option value="active">active</option>
-                        <option value="archived">archived</option>
-                      </select>
+                      <span className="text-xs font-medium text-ink-400">别名</span>
+                      <textarea
+                        value={edit.aliases}
+                        onChange={(e) => updateEdit(topic.id, { aliases: e.target.value })}
+                        rows={4}
+                        className="input-shell mt-1 min-h-24"
+                      />
                     </label>
                     <label className="block">
-                      <span className="inline-flex items-center gap-1 text-xs font-medium text-ink-400">
-                        置信度
-                        <FieldInfoButton
-                          title={TOPIC_CONFIDENCE_INFO.title}
-                          body={TOPIC_CONFIDENCE_INFO.body}
-                          ariaLabel={TOPIC_CONFIDENCE_INFO.ariaLabel}
-                        />
-                      </span>
-                      <select
-                        value={edit.confidence}
-                        onChange={(e) => updateEdit(topic.id, { confidence: e.target.value })}
-                        className="mt-1 w-full rounded-2xl border-0 bg-paper-200 px-4 py-3 text-sm text-ink outline-none ring-1 ring-transparent focus:bg-paper focus:ring-hairline"
-                      >
-                        <option value="low">low</option>
-                        <option value="medium">medium</option>
-                        <option value="high">high</option>
-                      </select>
+                      <span className="text-xs font-medium text-ink-400">问题模板</span>
+                      <textarea
+                        value={edit.questionPatterns}
+                        onChange={(e) => updateEdit(topic.id, { questionPatterns: e.target.value })}
+                        rows={4}
+                        className="input-shell mt-1 min-h-24"
+                      />
                     </label>
                   </div>
-                </div>
 
-                <label className="mt-3 block">
-                  <span className="text-xs font-medium text-ink-400">Topic 摘要</span>
-                  <textarea
-                    value={edit.summary}
-                    onChange={(e) => updateEdit(topic.id, { summary: e.target.value })}
-                    rows={5}
-                    className="mt-1 w-full rounded-2xl border-0 bg-paper-200 px-4 py-3 text-sm leading-6 text-ink outline-none ring-1 ring-transparent focus:bg-paper focus:ring-hairline"
-                  />
-                </label>
-
-                <div className="mt-3 grid gap-3 lg:grid-cols-2">
-                  <label className="block">
-                    <span className="text-xs font-medium text-ink-400">别名</span>
-                    <textarea
-                      value={edit.aliases}
-                      onChange={(e) => updateEdit(topic.id, { aliases: e.target.value })}
-                      rows={4}
-                      className="mt-1 w-full rounded-2xl border-0 bg-paper-200 px-4 py-3 text-sm leading-6 text-ink outline-none ring-1 ring-transparent focus:bg-paper focus:ring-hairline"
-                    />
-                  </label>
-                  <label className="block">
-                    <span className="text-xs font-medium text-ink-400">问题模板</span>
-                    <textarea
-                      value={edit.questionPatterns}
-                      onChange={(e) => updateEdit(topic.id, { questionPatterns: e.target.value })}
-                      rows={4}
-                      className="mt-1 w-full rounded-2xl border-0 bg-paper-200 px-4 py-3 text-sm leading-6 text-ink outline-none ring-1 ring-transparent focus:bg-paper focus:ring-hairline"
-                    />
-                  </label>
-                </div>
-
-                <div className="mt-4 flex flex-wrap items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => void saveTopic(topic.id)}
-                    disabled={savingId === topic.id}
-                    className="rounded-full bg-ink px-5 py-2.5 text-sm font-medium text-paper disabled:opacity-50"
-                  >
-                    {savingId === topic.id ? "保存中..." : "保存修改"}
-                  </button>
-                  <select
-                    value={edit.mergeTargetId}
-                    onChange={(e) => updateEdit(topic.id, { mergeTargetId: e.target.value })}
-                    className="rounded-full border-0 bg-paper-200 px-4 py-2.5 text-sm text-ink outline-none ring-1 ring-transparent focus:bg-paper focus:ring-hairline"
-                  >
-                    <option value="">选择合并目标</option>
-                    {mergeTargets
-                      .filter((item) => item.id !== topic.id)
-                      .map((item) => (
-                        <option key={item.id} value={item.id}>
-                          {item.topicLabel} ({item.status})
-                        </option>
-                      ))}
-                  </select>
-                  <button
-                    type="button"
-                    onClick={() => void mergeTopic(topic.id)}
-                    disabled={mergingId === topic.id}
-                    className="rounded-full border border-hairline bg-paper px-5 py-2.5 text-sm font-medium text-ink-600 disabled:opacity-50"
-                  >
-                    {mergingId === topic.id ? "归并中..." : "归并到目标"}
-                  </button>
-                </div>
-              </article>
-            );
-          })
+                  <div className="mt-4 flex flex-wrap items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => void saveTopic(topic.id)}
+                      disabled={savingId === topic.id}
+                      className="rounded-full bg-ink px-5 py-2.5 text-sm font-medium text-paper disabled:opacity-50"
+                    >
+                      {savingId === topic.id ? "保存中..." : "保存修改"}
+                    </button>
+                    <select
+                      value={edit.mergeTargetId}
+                      onChange={(e) => updateEdit(topic.id, { mergeTargetId: e.target.value })}
+                      className="input-shell !rounded-full !py-2.5"
+                    >
+                      <option value="">选择合并目标</option>
+                      {mergeTargets
+                        .filter((item) => item.id !== topic.id)
+                        .map((item) => (
+                          <option key={item.id} value={item.id}>
+                            {item.topicLabel} ({item.status})
+                          </option>
+                        ))}
+                    </select>
+                    <button
+                      type="button"
+                      onClick={() => void mergeTopic(topic.id)}
+                      disabled={mergingId === topic.id}
+                      className="rounded-full border border-hairline px-5 py-2.5 text-sm font-medium text-ink-600 disabled:opacity-50"
+                    >
+                      {mergingId === topic.id ? "归并中..." : "归并到目标"}
+                    </button>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
         )}
       </section>
     </div>

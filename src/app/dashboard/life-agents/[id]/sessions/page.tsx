@@ -54,7 +54,7 @@ export default function LifeAgentSessionsPage() {
   );
 
   if (loading) {
-    return <div className="mx-auto h-56 max-w-4xl animate-pulse rounded-[28px] bg-paper shadow-sm ring-1 ring-hairline/40" />;
+    return <div className="mx-auto h-56 max-w-4xl animate-pulse bg-paper-100/60" />;
   }
 
   if (!data) {
@@ -69,8 +69,8 @@ export default function LifeAgentSessionsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl space-y-4 max-lg:-mx-4 max-lg:bg-paper-50 max-lg:px-3 max-lg:pb-24">
-      <header className="rounded-[28px] bg-paper px-4 py-4 shadow-sm ring-1 ring-hairline/40 sm:px-6">
+    <div className="mx-auto max-w-4xl divide-y divide-hairline/30 max-lg:-mx-4 max-lg:px-4 max-lg:pb-24">
+      <section className="pb-4 pt-3">
         <Link href={`/dashboard/life-agents/${id}`} className="text-sm font-medium text-ink-400 transition hover:text-ink">
           ← 返回工作台
         </Link>
@@ -84,61 +84,53 @@ export default function LifeAgentSessionsPage() {
             placeholder="搜索用户或会话摘要"
           />
         </div>
-      </header>
+      </section>
 
-      <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <div className="rounded-2xl bg-paper px-3 py-4 text-center shadow-sm ring-1 ring-hairline/40">
-          <p className="text-2xl font-black text-ink">{data.chatSessions.length}</p>
-          <p className="mt-1 text-xs text-ink-400">总会话数</p>
+      <section className="grid grid-cols-2 border-hairline/30 [&>*:first-child]:border-r [&>*]:border-hairline/30">
+        <div className="px-3 py-3 text-center">
+          <p className="text-2xl font-black leading-none text-ink">{data.chatSessions.length}</p>
+          <p className="mt-2 text-[11px] font-medium text-ink-600">总会话数</p>
+          <p className="mt-0.5 text-[10px] text-ink-300">场</p>
         </div>
-        <div className="rounded-2xl bg-paper px-3 py-4 text-center shadow-sm ring-1 ring-hairline/40">
-          <p className="text-2xl font-black text-ink">{totalMessages}</p>
-          <p className="mt-1 text-xs text-ink-400">总消息数</p>
-        </div>
-        <div className="col-span-2 rounded-2xl bg-paper px-4 py-4 shadow-sm ring-1 ring-hairline/40">
-          <p className="text-xs font-medium text-ink-400">最近高频主题</p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {topKeywords.length > 0 ? (
-              topKeywords.map((word) => (
-                <span key={word} className="rounded-full bg-paper-200 px-3 py-1.5 text-xs text-ink-600">
-                  {word}
-                </span>
-              ))
-            ) : (
-              <span className="text-sm text-ink-300">会话摘要还不足以提炼主题</span>
-            )}
-          </div>
+        <div className="px-3 py-3 text-center">
+          <p className="text-2xl font-black leading-none text-ink">{totalMessages}</p>
+          <p className="mt-2 text-[11px] font-medium text-ink-600">总消息数</p>
+          <p className="mt-0.5 text-[10px] text-ink-300">条</p>
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-[28px] bg-paper shadow-sm ring-1 ring-hairline/40">
-        <div className="border-b border-hairline/50 px-4 py-4 sm:px-6">
-          <h2 className="text-lg font-semibold text-ink">最近 50 个会话</h2>
-          <p className="mt-1 text-sm text-ink-400">默认仅展示脱敏摘要，不暴露完整对话内容。</p>
-        </div>
-        <div className="divide-y divide-hairline/50">
-          {filtered.length === 0 ? (
-            <div className="px-4 py-16 text-center text-sm text-ink-300">
-              {query ? "没有匹配的会话" : "暂无聊天会话"}
-            </div>
-          ) : (
-            filtered.map((item) => (
-              <div key={item.id} className="px-4 py-4 sm:px-6">
+      {topKeywords.length > 0 ? (
+        <section className="py-3">
+          <p className="text-[11px] font-medium text-ink-600">最近高频主题</p>
+          <p className="mt-2 text-sm text-ink-500">{topKeywords.join(" · ")}</p>
+        </section>
+      ) : null}
+
+      <section className="py-4">
+        <h2 className="text-lg font-semibold text-ink">最近 50 个会话</h2>
+        <p className="mt-1 text-sm text-ink-400">
+          默认仅展示脱敏摘要，不暴露完整对话内容 · {filtered.length} 条
+        </p>
+        {filtered.length === 0 ? (
+          <p className="mt-8 text-center text-sm text-ink-300">
+            {query ? "没有匹配的会话" : "暂无聊天会话"}
+          </p>
+        ) : (
+          <ul className="mt-4 divide-y divide-hairline/30">
+            {filtered.map((item) => (
+              <li key={item.id} className="py-4 text-sm first:pt-0">
                 <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="font-medium text-ink">{item.buyer.name || item.buyer.email}</p>
-                    <p className="mt-1 line-clamp-2 text-sm text-ink-400">{item.title || "隐私保护会话"}</p>
-                  </div>
+                  <p className="font-medium text-ink">{item.buyer.name || item.buyer.email}</p>
                   <span className="shrink-0 text-xs text-ink-300">{formatShortTime(item.updatedAt)}</span>
                 </div>
-                <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                  <span className="rounded-full bg-paper-200 px-2 py-1 text-ink-500">{item.messageCount} 条消息</span>
-                  <span className="rounded-full bg-paper-200 px-2 py-1 text-ink-500">创建于 {formatDateTime(item.createdAt)}</span>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
+                <p className="mt-0.5 line-clamp-2 text-ink-400">{item.title || "隐私保护会话"}</p>
+                <p className="mt-1 text-xs text-ink-300">
+                  {item.messageCount} 条消息 · 创建于 {formatDateTime(item.createdAt)}
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
     </div>
   );
