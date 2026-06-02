@@ -134,6 +134,29 @@ func TestDeriveSampleQuestions_szuBaoyan(t *testing.T) {
 	}
 }
 
+func TestDisplaySampleQuestions_prefersKnowledgeOverStored(t *testing.T) {
+	stored := []string{"关于「研途榜样」能分享什么？", "关于「保研」能分享什么？"}
+	got := DisplaySampleQuestions(stored, SampleQuestionInput{
+		ShortBio: "福州大学，保研至厦门大学，分享保研经验。",
+		School:   "福州大学",
+		Knowledge: []KnowledgeSnippet{{
+			Title: "福大飞跃手册 | 保研至厦门大学",
+			Content: `## 夏令营
+- 推荐信两份：要用目标院校模板
+- 计科绩点排名前二：科大计、浙大直博
+`,
+			Tags: []string{"保研", "福州大学"},
+		}},
+	})
+	for _, bad := range stored {
+		for _, q := range got {
+			if q == bad {
+				t.Fatalf("expected knowledge-derived not stored generic, got %v", got)
+			}
+		}
+	}
+}
+
 func TestDeriveSampleQuestions_shuAbroad(t *testing.T) {
 	stored := []string{"上大保研需要什么条件？", "考研和保研怎么选择？", "如何平衡学业和实习？"}
 	got := DisplaySampleQuestions(stored, SampleQuestionInput{

@@ -105,8 +105,9 @@ var genericSampleQuestions = map[string]bool{
 var genericExpertiseTags = map[string]bool{
 	"求职面试": true, "互联网校招": true, "秋招": true, "春招": true, "校招": true,
 	"求职": true, "面试": true, "互联网": true, "大厂": true, "offer": true,
-	"考研": true, "计算机考研": true, "备考经验": true, "出国留学": true,
-	"经验贴": true, "飞跃手册": true, "程序员": true, "副业": true,
+	"考研": true, "保研": true, "转专业": true, "升学深造": true,
+	"计算机考研": true, "备考经验": true, "出国留学": true, "留学": true,
+	"经验贴": true, "飞跃手册": true, "研途榜样": true, "程序员": true, "副业": true,
 	"赚钱": true, "变现": true, "程序员副业": true, "海外院校": true,
 }
 
@@ -123,11 +124,29 @@ func NeedsSampleQuestionRefresh(questions []string) bool {
 	}
 	genericCount := 0
 	for _, q := range questions {
-		if genericSampleQuestions[strings.TrimSpace(q)] {
+		q = strings.TrimSpace(q)
+		if genericSampleQuestions[q] || isSemiGenericSampleQuestion(q) {
 			genericCount++
 		}
 	}
 	return genericCount >= 2
+}
+
+// isSemiGenericSampleQuestion 识别「关于「保研」能分享什么？」类半通用展示问题。
+func isSemiGenericSampleQuestion(q string) bool {
+	q = strings.TrimSpace(q)
+	for _, g := range []string{
+		"研途榜样", "保研", "考研", "经验分享", "飞跃手册", "升学深造", "转专业",
+		"经验贴", "备考", "留学",
+	} {
+		if strings.Contains(q, "「"+g+"」") {
+			return true
+		}
+		if strings.HasPrefix(q, "关于"+g) && len([]rune(q)) <= len([]rune(g))+12 {
+			return true
+		}
+	}
+	return false
 }
 
 func IsGenericSampleQuestions(questions []string) bool {
@@ -148,6 +167,12 @@ func IsGenericSampleQuestions(questions []string) bool {
 
 // DisplaySampleQuestions 返回用于发现页/详情页展示的示例问题。
 func DisplaySampleQuestions(stored []string, in SampleQuestionInput) []string {
+	// 有知识库时始终优先从正文推导，避免 DB 里半通用旧问题挡住更新。
+	if len(in.Knowledge) > 0 {
+		if derived := DeriveSampleQuestions(in); len(derived) >= 2 {
+			return limitSampleQuestions(derived, 4)
+		}
+	}
 	cleaned := cleanSampleQuestions(stored)
 	if !NeedsSampleQuestionRefresh(cleaned) {
 		return limitSampleQuestions(cleaned, 4)
@@ -161,21 +186,20 @@ func DisplaySampleQuestions(stored []string, in SampleQuestionInput) []string {
 
 // DeriveSampleQuestions 根据知识库或档案内容生成个性化示例问题。
 func DeriveSampleQuestions(in SampleQuestionInput) []string {
-	if len(in.Knowledge) > 0 {
-		if kb := DeriveSampleQuestionsFromKnowledge(in.Knowledge); len(kb) >= 2 {
-			return limitSampleQuestions(kb, 4)
-		}
-	}
 	var out []string
+	if len(in.Knowledge) > 0 {
+		out = append(out, DeriveSampleQuestionsFromKnowledge(in.Knowledge)...)
+	}
 	out = append(out, questionsFromShortBio(in.ShortBio, in.School)...)
 	out = append(out, questionsFromHeadline(in.Headline)...)
 	out = append(out, questionsFromTags(in.ExpertiseTags)...)
-	out = append(out, questionsFromBio(in.ShortBio)...)
-	if job := strings.TrimSpace(in.Job); job != "" {
-		out = append(out, "做"+truncateRunes(job, 16)+"有哪些经验？")
-	}
-	if school := strings.TrimSpace(in.School); school != "" && !strings.Contains(school, "求职") {
-		out = append(out, school+"背景求职/升学有什么建议？")
+	if len(out) < 2 {
+		if job := strings.TrimSpace(in.Job); job != "" {
+			out = append(out, "做"+truncateRunes(job, 16)+"有哪些经验？")
+		}
+		if school := strings.TrimSpace(in.School); school != "" && !strings.Contains(school, "求职") {
+			out = append(out, school+"背景升学有什么具体建议？")
+		}
 	}
 	return limitSampleQuestions(uniqueSampleQuestions(out), 4)
 }

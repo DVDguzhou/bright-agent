@@ -17,6 +17,7 @@ var skipKnowledgeHeaders = map[string]bool{
 	"相关外校情况": true, "总结": true, "前言": true, "目录": true,
 	"嘉宾分享": true, "主持人": true, "附录": true, "参考资料": true,
 	"写在前面": true, "写在最后": true, "背景介绍": true,
+	"保研经验分享": true, "考研经验分享": true, "经验分享": true,
 }
 
 var (
@@ -155,9 +156,13 @@ func cleanKnowledgeHook(s string) string {
 
 func isGenericKnowledgeHook(hook string) bool {
 	for _, g := range []string{
+		"保研", "考研", "留学", "研途榜样", "飞跃手册", "升学深造", "转专业",
 		"经验分享", "经验贴", "注意事项", "个人总结", "其他", "说明", "介绍",
 	} {
-		if hook == g || strings.HasSuffix(hook, g) && len([]rune(hook)) <= len([]rune(g))+2 {
+		if hook == g {
+			return true
+		}
+		if strings.HasSuffix(hook, g) && len([]rune(hook)) <= len([]rune(g))+2 {
 			return true
 		}
 	}

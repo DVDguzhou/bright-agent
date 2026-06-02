@@ -139,6 +139,7 @@ func main() {
 	production := flag.Bool("production", true, "use production DATABASE_URL from docker-compose.production.yml")
 	skipDedupe := flag.Bool("skip-dedupe", false, "skip duplicate agent removal")
 	skipQuestions := flag.Bool("skip-questions", false, "skip sample_questions refresh")
+	forceQuestions := flag.Bool("force-questions", false, "refresh sample_questions even if not generic")
 	backupDir := flag.String("backup-dir", "backups/dedupe-life-agents", "JSON backup directory before delete; empty disables")
 	noBackup := flag.Bool("no-backup", false, "skip JSON backup even when -apply deletes profiles")
 	flag.Parse()
@@ -281,7 +282,7 @@ func main() {
 		}
 		for _, p := range profiles {
 			stored := []string(p.SampleQuestions)
-			if !lifeagent.NeedsSampleQuestionRefresh(stored) {
+			if !*forceQuestions && !lifeagent.NeedsSampleQuestionRefresh(stored) {
 				continue
 			}
 			derived := lifeagent.DeriveSampleQuestions(sampleQuestionInput(p, entriesByProfile[p.ID]))
