@@ -751,17 +751,6 @@ export function Nav() {
 
   return (
     <>
-      {/* 手机：状态栏 / Home Indicator 安全区铺米色，避免露白 */}
-      <div
-        className="pointer-events-none fixed inset-x-0 top-0 z-[60] bg-paper lg:hidden"
-        style={{ height: "env(safe-area-inset-top, 0px)" }}
-        aria-hidden
-      />
-      <div
-        className="pointer-events-none fixed inset-x-0 bottom-0 z-[60] bg-paper lg:hidden"
-        style={{ height: "env(safe-area-inset-bottom, 0px)" }}
-        aria-hidden
-      />
       <motion.nav
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}

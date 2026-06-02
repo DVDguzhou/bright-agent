@@ -7,9 +7,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
     private var didRequestTrackingAuthorization = false
+    /// 与网站 --paper (#f4efe6) 一致；contentInset 留白与下拉回弹会露出 window 底色
+    private let paperBackground = UIColor(red: 244 / 255, green: 239 / 255, blue: 230 / 255, alpha: 1)
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
+        window?.backgroundColor = paperBackground
         return true
     }
 

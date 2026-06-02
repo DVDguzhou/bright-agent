@@ -36,16 +36,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN" className="h-full bg-paper">
-      <body className="min-h-full min-h-[100dvh] bg-paper text-ink font-sans antialiased overflow-x-hidden overscroll-x-none">
-        {/* 全屏底色：overscroll 回弹时也不露白 */}
-        <div className="pointer-events-none fixed inset-0 -z-10 bg-paper" aria-hidden />
+      <body className="min-h-full min-h-[100dvh] bg-paper text-ink font-sans antialiased overflow-x-hidden">
         <PostHogProvider>
           <AuthProvider>
             <ChunkLoadRecovery />
             <Suspense fallback={null}>
               <Nav />
             </Suspense>
-            <main className="container mx-auto px-4 py-3 sm:py-8 max-w-7xl relative z-10 pb-20 lg:pb-8 overflow-x-hidden">{children}</main>
+            <main className="container mx-auto min-h-[100dvh] bg-paper px-4 py-3 sm:py-8 max-w-7xl relative z-10 pb-20 lg:min-h-0 lg:pb-8 overflow-x-hidden">{children}</main>
             <RegisterSW />
           </AuthProvider>
         </PostHogProvider>

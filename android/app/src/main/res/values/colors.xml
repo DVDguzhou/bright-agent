@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#1a1714</color>
+    <color name="colorPrimaryDark">#1a1714</color>
+    <color name="colorAccent">#7a1f1f</color>
+    <!-- 与网站 --paper (#f4efe6) 一致 -->
+    <color name="paper_background">#F4EFE6</color>
+</resources>

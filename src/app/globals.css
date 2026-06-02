@@ -27,6 +27,20 @@ html {
   background-color: #f4efe6;
   min-height: 100%;
   min-height: 100dvh;
+  min-height: -webkit-fill-available;
+}
+
+/* iOS 下拉回弹（rubber band）只认 html/body 底色，不认 fixed 层；向上下延伸固定背景 */
+html::before {
+  content: "";
+  position: fixed;
+  z-index: -9999;
+  left: 0;
+  right: 0;
+  top: -100vh;
+  bottom: -100vh;
+  background-color: #f4efe6;
+  pointer-events: none;
 }
 
 body {
@@ -35,6 +49,7 @@ body {
   color: var(--ink);
   min-height: 100%;
   min-height: 100dvh;
+  min-height: -webkit-fill-available;
   /* 不加任何渐变 / 装饰；让纸面颜色独自承担氛围 */
 }
 
