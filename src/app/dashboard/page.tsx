@@ -188,37 +188,35 @@ export default function DashboardPage() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.28 }}
-      className="mx-auto max-w-5xl space-y-4 max-lg:-mx-4 max-lg:bg-paper-50 max-lg:px-3 max-lg:pb-24"
+      className="mx-auto max-w-5xl divide-y divide-hairline/30 max-lg:-mx-4 max-lg:px-4 max-lg:pb-24"
     >
-      <section className="overflow-hidden rounded-[28px] bg-paper shadow-sm ring-1 ring-hairline/40">
-        <div className="bg-gradient-to-r from-paper-200 via-paper to-oxblood-50 px-4 pb-4 pt-3 sm:px-6">
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex min-w-0 items-center gap-3">
-              <ProfileAvatarEditor
-                avatarUrl={user.avatarUrl}
-                name={user.name}
-                email={user.email}
-                onUpdated={() => {
-                  void refetch();
-                }}
-              />
-              <div className="min-w-0">
-                <h1 className="truncate text-[28px] font-black tracking-tight text-ink">
-                  {user.name || "我的"}
-                </h1>
-                <p className="mt-1 truncate text-sm text-ink-400">{user.email}</p>
-                <p className="mt-1 text-xs font-medium text-ink-300">
-                  人生 Agent 创作者中心
-                </p>
-              </div>
+      <section className="pb-4 pt-3">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-3">
+            <ProfileAvatarEditor
+              avatarUrl={user.avatarUrl}
+              name={user.name}
+              email={user.email}
+              onUpdated={() => {
+                void refetch();
+              }}
+            />
+            <div className="min-w-0">
+              <h1 className="truncate text-[28px] font-black tracking-tight text-ink">
+                {user.name || "我的"}
+              </h1>
+              <p className="mt-1 truncate text-sm text-ink-400">{user.email}</p>
+              <p className="mt-1 text-xs font-medium text-ink-300">
+                人生 Agent 创作者中心
+              </p>
             </div>
-            <div className="h-10 w-10 shrink-0" aria-hidden />
           </div>
+          <div className="h-10 w-10 shrink-0" aria-hidden />
         </div>
 
-        <div className="grid grid-cols-4 border-t border-hairline/50">
+        <div className={`mt-4 grid border-t border-hairline/30 pt-4 ${topStats.length === 2 ? "grid-cols-2" : "grid-cols-4"} [&>*:not(:last-child)]:border-r [&>*]:border-hairline/30`}>
           {topStats.map((item) => (
-            <div key={item.label} className="px-2 py-3 text-center">
+            <div key={item.label} className="px-2 py-1 text-center">
               <p className="text-2xl font-black leading-none text-ink">{item.value}</p>
               <p className="mt-1 text-[11px] font-medium text-ink-600">{item.label}</p>
               <p className="mt-0.5 text-[10px] text-ink-300">{item.sub}</p>
@@ -262,7 +260,7 @@ export default function DashboardPage() {
       </section>
       */}
 
-      <section className="rounded-[28px] bg-paper px-4 py-4 shadow-sm ring-1 ring-hairline/40 sm:px-6">
+      <section className="py-4">
         <div className="flex items-center justify-between">
           <div className="min-w-0">
             <h2 className="text-xl font-black tracking-tight text-ink">我的心智值</h2>
@@ -272,20 +270,20 @@ export default function DashboardPage() {
           </span>
         </div>
 
-        <div className="mt-4 grid grid-cols-4 gap-2 rounded-[24px] bg-paper-50 p-3 text-center">
-          <div className="rounded-2xl bg-paper px-2 py-3 shadow-sm ring-1 ring-hairline/30">
+        <div className="mt-4 grid grid-cols-4 border-t border-hairline/30 pt-4 [&>*:not(:last-child)]:border-r [&>*]:border-hairline/30">
+          <div className="px-2 py-1 text-center">
             <p className="text-lg font-black text-ink">{totals.purchasedProfiles}</p>
             <p className="mt-1 text-[11px] text-ink-400">对话 Agent</p>
           </div>
-          <div className="rounded-2xl bg-paper px-2 py-3 shadow-sm ring-1 ring-hairline/30">
+          <div className="px-2 py-1 text-center">
             <p className="text-lg font-black text-ink">{totals.soldPacks}</p>
             <p className="mt-1 text-[11px] text-ink-400">被提问</p>
           </div>
-          <div className="rounded-2xl bg-paper px-2 py-3 shadow-sm ring-1 ring-hairline/30">
+          <div className="px-2 py-1 text-center">
             <p className="text-lg font-black text-ink">{totals.createdSessions}</p>
             <p className="mt-1 text-[11px] text-ink-400">累计对话</p>
           </div>
-          <div className="rounded-2xl bg-paper-50 px-2 py-3 text-center shadow-sm ring-1 ring-hairline/60">
+          <div className="px-2 py-1 text-center">
             <div className="flex justify-center">
               <MindScoreBadge value={totals.totalMindScore} size="sm" prefix="" />
             </div>
@@ -294,10 +292,10 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      <section className="rounded-[28px] bg-paper px-4 py-4 shadow-sm ring-1 ring-hairline/40 sm:px-6">
-        <div className="grid grid-cols-3 gap-3 text-center sm:grid-cols-5 sm:gap-2">
+      <section className="py-4">
+        <div className="grid grid-cols-3 gap-x-4 text-center sm:grid-cols-5">
           {quickActions.map((item) => (
-            <Link key={item.label} href={item.href} className="group block rounded-2xl px-1 py-2 active:scale-[0.99]">
+            <Link key={item.label} href={item.href} className="group block py-2 active:opacity-80">
               <div className="mx-auto flex w-full flex-col items-center">
                 <IconBox bgClass={item.bgClass}>{item.icon}</IconBox>
                 <p className="mt-2 text-[13px] font-semibold text-ink">{item.label}</p>
@@ -308,20 +306,20 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-[28px] bg-gradient-to-r from-oxblood-200 via-oxblood-100 to-oxblood-200 px-4 py-4 shadow-sm ring-1 ring-hairline/40 sm:px-6">
+      <section className="py-4">
         <div className="flex items-center justify-between gap-4">
           <div className="min-w-0">
             <p className="text-sm font-semibold text-ink">继续打磨你的专属顾问主页</p>
             <h2 className="mt-1 text-2xl font-black tracking-tight text-ink">
               让真实经历更有影响力
             </h2>
-            <p className="mt-2 text-sm text-ink/80">
+            <p className="mt-2 text-sm text-ink-400">
               补全欢迎语、示范回答和经验条目，更容易获得用户互动。
             </p>
           </div>
           <Link
             href={lifeAgentsCreated[0] ? `/dashboard/life-agents/${lifeAgentsCreated[0].id}` : "/life-agents/create"}
-            className="shrink-0 rounded-full bg-paper px-4 py-2 text-sm font-semibold text-oxblood-600 shadow-sm active:scale-[0.98]"
+            className="shrink-0 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-paper active:opacity-90"
           >
             去看看
           </Link>
