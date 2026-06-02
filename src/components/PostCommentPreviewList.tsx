@@ -86,7 +86,7 @@ export function PostCommentPreviewList({
   if (comments.length === 0) return null;
 
   return (
-    <div className="mt-2.5 space-y-2 rounded-xl bg-paper-50/90 px-3 py-2.5">
+    <div className="mt-2.5 space-y-2">
       {comments.map((comment) => (
         <PostCommentPreviewRow key={comment.id} comment={comment} />
       ))}

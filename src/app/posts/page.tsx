@@ -43,7 +43,7 @@ function timeAgo(dateStr: string): string {
 // 骨架屏占位
 function PostSkeleton() {
   return (
-    <div className="rounded-[20px] bg-paper p-4 shadow-sm ring-1 ring-hairline/40">
+    <div className="px-4 py-4">
       <div className="mb-2 flex items-center gap-2.5">
         <div className="h-9 w-9 animate-pulse rounded-full bg-paper-200" />
         <div className="min-w-0 flex-1">
@@ -234,7 +234,7 @@ export default function PostsPage() {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="mx-auto max-w-2xl px-3 pb-24 pt-3 sm:px-4"
+      className="-mx-1 pb-24 pt-3 sm:mx-0"
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
@@ -257,7 +257,7 @@ export default function PostsPage() {
       </div>
 
       {/* Header */}
-      <div className="mb-3 flex items-center justify-end">
+      <div className="mb-3 flex items-center justify-end px-4">
         <Link
           href="/posts/create"
           className="btn-primary inline-flex items-center gap-1 px-4 py-2 text-sm font-semibold"
@@ -267,7 +267,7 @@ export default function PostsPage() {
       </div>
 
       {/* 广场 / 我的 切换 */}
-      <div className="mb-4 inline-flex rounded-full bg-paper-100/70 p-1 ring-1 ring-hairline/30">
+      <div className="mb-4 inline-flex rounded-full bg-paper-100/70 p-1 ring-1 ring-hairline/30 mx-4">
         <button
           type="button"
           onClick={() => setTab("plaza")}
@@ -295,7 +295,7 @@ export default function PostsPage() {
       </div>
 
       {error && (
-        <div className="mb-4 rounded-xl bg-oxblood-50 px-4 py-3 text-sm text-oxblood-600">
+        <div className="mx-4 mb-4 rounded-xl bg-oxblood-50 px-4 py-3 text-sm text-oxblood-600">
           {error}
           <button
             type="button"
@@ -309,7 +309,7 @@ export default function PostsPage() {
 
       {/* Skeleton while loading */}
       {!loaded && !error && (
-        <div className="space-y-3">
+        <div className="divide-y divide-hairline/30">
           <PostSkeleton />
           <PostSkeleton />
           <PostSkeleton />
@@ -336,14 +336,14 @@ export default function PostsPage() {
         </div>
       )}
 
-      <div className="space-y-3">
+      <div className="divide-y divide-hairline/30">
         {posts.map((post, i) => (
           <motion.article
             key={post.id}
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i < 6 ? i * 0.05 : 0 }}
-            className="rounded-[20px] bg-paper p-4 shadow-sm ring-1 ring-hairline/40"
+            className="px-4 py-4"
           >
             {/* Author + actions */}
             <div className="mb-2 flex items-center justify-between gap-2">
@@ -412,7 +412,7 @@ export default function PostsPage() {
             </Link>
 
             {/* Actions */}
-            <div className="mt-3 flex items-center gap-5 border-t border-hairline/30 pt-2.5">
+            <div className="mt-3 flex items-center gap-5 pt-1">
               <button
                 type="button"
                 onClick={() => handleLike(post.id)}
