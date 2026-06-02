@@ -754,7 +754,7 @@ export function Nav() {
       <motion.nav
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className={`sticky top-0 z-50 border-b border-hairline bg-paper/95 supports-[backdrop-filter]:backdrop-blur-md overflow-x-hidden pt-[env(safe-area-inset-top)] ${
+        className={`sticky top-0 z-50 border-b border-hairline bg-paper overflow-x-hidden pt-[env(safe-area-inset-top)] lg:bg-paper/95 lg:supports-[backdrop-filter]:lg:backdrop-blur-md ${
           hideGlobalTopNav ? "hidden" : isLifeAgentChatPage ? "hidden lg:block" : ""
         }`}
       >
@@ -1101,7 +1101,7 @@ export function Nav() {
             </div>
           ) : null}
 
-          <div className="fixed bottom-0 left-0 right-0 z-50 flex lg:hidden items-end justify-around border-t border-hairline bg-paper/95 supports-[backdrop-filter]:backdrop-blur-md pb-[env(safe-area-inset-bottom)] pt-2">
+          <div className="fixed bottom-0 left-0 right-0 z-50 flex lg:hidden items-end justify-around border-t border-hairline bg-paper pb-[env(safe-area-inset-bottom)] pt-2">
             {(() => {
               const [lifeAgentsLink, messagesLink, licenseLink] = navLinks;
               const renderTab = (
