@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/agent-marketplace/backend/internal/db"
+	"github.com/agent-marketplace/backend/internal/lifeagent"
 	"github.com/agent-marketplace/backend/internal/models"
 	"github.com/agent-marketplace/backend/internal/wechathtml"
 )
@@ -148,16 +149,45 @@ func expertiseTagsFor(p Profile) models.JSONArray {
 }
 
 func sampleQuestionsFor(p Profile) models.JSONArray {
-	if len(p.SampleQuestions) > 0 {
-		return models.JSONArray(p.SampleQuestions)
+	stored := p.SampleQuestions
+	if len(stored) == 0 {
+		stored = []string{
+			"11408 和 22408 怎么选？",
+			"数学和专业课怎么安排复习节奏？",
+			"调剂时有哪些需要注意的？",
+		}
 	}
-	return models.JSONArray{
-		"11408 和 22408 怎么选？",
-		"数学和专业课怎么安排复习节奏？",
-		"调剂时有哪些需要注意的？",
+	title := strings.TrimSpace(p.ArticleTitle)
+	headline := fmt.Sprintf("%s · %s", p.DisplayName, shortSeries(title))
+	if title == "" {
+		headline = p.DisplayName + " · 考研经验分享"
 	}
+	tags := expertiseTagsFor(p)
+	knowledge := []lifeagent.KnowledgeSnippet{}
+	if body := strings.TrimSpace(p.KnowledgeBody); body != "" {
+		kTitle := title
+		if kTitle == "" {
+			kTitle = p.DisplayName + " · 经验分享"
+		}
+		ktags := p.KnowledgeTags
+		if len(ktags) == 0 {
+			ktags = []string{}
+		}
+		knowledge = []lifeagent.KnowledgeSnippet{{
+			Title:   kTitle,
+			Content: body,
+			Tags:    ktags,
+		}}
+	}
+	return models.JSONArray(lifeagent.DisplaySampleQuestions(stored, lifeagent.SampleQuestionInput{
+		DisplayName:   p.DisplayName,
+		Headline:      headline,
+		ShortBio:      strings.TrimSpace(p.ShortBio),
+		ExpertiseTags: []string(tags),
+		School:        strings.TrimSpace(p.School),
+		Knowledge:     knowledge,
+	}))
 }
-
 func strPtr(s string) *string { return &s }
 
 func strOrNil(s string) *string {

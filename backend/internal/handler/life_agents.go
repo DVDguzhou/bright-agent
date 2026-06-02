@@ -622,8 +622,8 @@ func decodeLifeAgentListCursor(s string) (time.Time, string, error) {
 }
 
 // lifeAgentListResponseItems 将一批已排序的 profile 转为广场列表 JSON（含聚合统计）。
-func sampleQuestionInputFromProfile(p *models.LifeAgentProfile) lifeagent.SampleQuestionInput {
-	return lifeagent.SampleQuestionInput{
+func sampleQuestionInputFromProfile(p *models.LifeAgentProfile, entries []models.LifeAgentKnowledgeEntry) lifeagent.SampleQuestionInput {
+	in := lifeagent.SampleQuestionInput{
 		DisplayName:   p.DisplayName,
 		Headline:      p.Headline,
 		ShortBio:      p.ShortBio,
@@ -631,10 +631,31 @@ func sampleQuestionInputFromProfile(p *models.LifeAgentProfile) lifeagent.Sample
 		Job:           ptrStr(p.Job),
 		School:        ptrStr(p.School),
 	}
+	for _, e := range entries {
+		in.Knowledge = append(in.Knowledge, lifeagent.KnowledgeSnippet{
+			Title:   e.Title,
+			Content: e.Content,
+			Tags:    []string(e.Tags),
+		})
+	}
+	return in
 }
 
-func sampleQuestionsForDisplay(p *models.LifeAgentProfile) []string {
-	return lifeagent.DisplaySampleQuestions([]string(p.SampleQuestions), sampleQuestionInputFromProfile(p))
+func sampleQuestionsForDisplay(p *models.LifeAgentProfile, entries []models.LifeAgentKnowledgeEntry) []string {
+	return lifeagent.DisplaySampleQuestions([]string(p.SampleQuestions), sampleQuestionInputFromProfile(p, entries))
+}
+
+func batchKnowledgeEntriesByProfileIDs(ids []string) map[string][]models.LifeAgentKnowledgeEntry {
+	out := make(map[string][]models.LifeAgentKnowledgeEntry, len(ids))
+	if len(ids) == 0 {
+		return out
+	}
+	var entries []models.LifeAgentKnowledgeEntry
+	db.DB.Where("profile_id IN ?", ids).Order("profile_id ASC, sort_order ASC").Find(&entries)
+	for _, e := range entries {
+		out[e.ProfileID] = append(out[e.ProfileID], e)
+	}
+	return out
 }
 
 func lifeAgentListResponseItems(profiles []models.LifeAgentProfile, cfg *config.Config) []gin.H {
@@ -697,6 +718,7 @@ func lifeAgentListResponseItems(profiles []models.LifeAgentProfile, cfg *config.
 	}
 	resp := make([]gin.H, 0, len(profiles))
 	mindScores := batchComputeMindScores(profiles, cfg)
+	kbByProfile := batchKnowledgeEntriesByProfileIDs(ids)
 	for _, p := range profiles {
 		u := userMap[p.UserID]
 		ratingsSummary := ratingMap[p.ID]
@@ -711,7 +733,7 @@ func lifeAgentListResponseItems(profiles []models.LifeAgentProfile, cfg *config.
 			"welcomeMessage":     p.WelcomeMessage,
 			"pricePerQuestion":   p.PricePerQuestion,
 			"expertiseTags":      p.ExpertiseTags,
-			"sampleQuestions":    sampleQuestionsForDisplay(&p),
+			"sampleQuestions":    sampleQuestionsForDisplay(&p, kbByProfile[p.ID]),
 			"education":          ptrStr(p.Education),
 			"income":             ptrStr(p.Income),
 			"job":                ptrStr(p.Job),
@@ -1460,7 +1482,7 @@ func LifeAgentsGet(cfg *config.Config) gin.HandlerFunc {
 			"welcomeMessage":     p.WelcomeMessage,
 			"pricePerQuestion":   p.PricePerQuestion,
 			"expertiseTags":      p.ExpertiseTags,
-			"sampleQuestions":    sampleQuestionsForDisplay(&p),
+			"sampleQuestions":    sampleQuestionsForDisplay(&p, entries),
 			"education":          ptrStr(p.Education),
 			"income":             ptrStr(p.Income),
 			"job":                ptrStr(p.Job),
@@ -1762,6 +1784,8 @@ func LifeAgentsUpdate(cfg *config.Config) gin.HandlerFunc {
 			}
 		}
 		db.DB.Where("id = ?", id).First(&p)
+		var entries []models.LifeAgentKnowledgeEntry
+		db.DB.Where("profile_id = ?", id).Order("sort_order").Find(&entries)
 		var facts []models.LifeAgentStructuredFact
 		db.DB.Where("profile_id = ?", id).Order("fact_key ASC, created_at ASC").Find(&facts)
 		var topics []models.LifeAgentTopicSummary
@@ -1779,7 +1803,7 @@ func LifeAgentsUpdate(cfg *config.Config) gin.HandlerFunc {
 			"welcomeMessage":                p.WelcomeMessage,
 			"pricePerQuestion":              p.PricePerQuestion,
 			"expertiseTags":                 p.ExpertiseTags,
-			"sampleQuestions":               sampleQuestionsForDisplay(&p),
+			"sampleQuestions":               sampleQuestionsForDisplay(&p, entries),
 			"education":                     ptrStr(p.Education),
 			"income":                        ptrStr(p.Income),
 			"job":                           ptrStr(p.Job),
@@ -2330,7 +2354,7 @@ func buildManageProfileResp(p *models.LifeAgentProfile, entries []models.LifeAge
 		"welcomeMessage":   p.WelcomeMessage,
 		"pricePerQuestion": p.PricePerQuestion,
 		"expertiseTags":    p.ExpertiseTags,
-		"sampleQuestions":  sampleQuestionsForDisplay(p),
+		"sampleQuestions":  sampleQuestionsForDisplay(p, entries),
 		"education":        ptrStr(p.Education),
 		"income":           ptrStr(p.Income),
 		"job":              ptrStr(p.Job),
@@ -2485,7 +2509,7 @@ func LifeAgentsManage(cfg *config.Config) gin.HandlerFunc {
 				"welcomeMessage":                p.WelcomeMessage,
 				"pricePerQuestion":              p.PricePerQuestion,
 				"expertiseTags":                 p.ExpertiseTags,
-				"sampleQuestions":               sampleQuestionsForDisplay(&p),
+				"sampleQuestions":               sampleQuestionsForDisplay(&p, entries),
 				"education":                     ptrStr(p.Education),
 				"income":                        ptrStr(p.Income),
 				"job":                           ptrStr(p.Job),

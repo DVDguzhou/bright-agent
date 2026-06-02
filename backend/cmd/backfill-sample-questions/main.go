@@ -70,19 +70,20 @@ func main() {
 	}
 
 	updated := 0
+	entriesByProfile := map[string][]models.LifeAgentKnowledgeEntry{}
+	var allEntries []models.LifeAgentKnowledgeEntry
+	if err := db.DB.Order("profile_id ASC, sort_order ASC").Find(&allEntries).Error; err != nil {
+		log.Fatalf("query knowledge failed: %v", err)
+	}
+	for _, e := range allEntries {
+		entriesByProfile[e.ProfileID] = append(entriesByProfile[e.ProfileID], e)
+	}
 	for _, p := range profiles {
 		stored := []string(p.SampleQuestions)
 		if !lifeagent.NeedsSampleQuestionRefresh(stored) {
 			continue
 		}
-		derived := lifeagent.DeriveSampleQuestions(lifeagent.SampleQuestionInput{
-			DisplayName:   p.DisplayName,
-			Headline:      p.Headline,
-			ShortBio:      p.ShortBio,
-			ExpertiseTags: []string(p.ExpertiseTags),
-			Job:           strVal(p.Job),
-			School:        strVal(p.School),
-		})
+		derived := lifeagent.DeriveSampleQuestions(sampleQuestionInput(p, entriesByProfile[p.ID]))
 		if len(derived) < 2 {
 			continue
 		}
@@ -107,4 +108,21 @@ func strVal(s *string) string {
 		return ""
 	}
 	return *s
+}
+
+func sampleQuestionInput(p models.LifeAgentProfile, entries []models.LifeAgentKnowledgeEntry) lifeagent.SampleQuestionInput {
+	in := lifeagent.SampleQuestionInput{
+		DisplayName:   p.DisplayName,
+		Headline:      p.Headline,
+		ShortBio:      p.ShortBio,
+		ExpertiseTags: []string(p.ExpertiseTags),
+		Job:           strVal(p.Job),
+		School:        strVal(p.School),
+	}
+	for _, e := range entries {
+		in.Knowledge = append(in.Knowledge, lifeagent.KnowledgeSnippet{
+			Title: e.Title, Content: e.Content, Tags: []string(e.Tags),
+		})
+	}
+	return in
 }
