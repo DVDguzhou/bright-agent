@@ -8,25 +8,14 @@
   --font-serif: "Source Han Serif SC", "Noto Serif SC", "Songti SC", "STSong", "SimSun", Georgia, "Times New Roman", serif;
   --font-mono: ui-monospace, "Cascadia Code", "Consolas", monospace;
 
-  /* 暗色模式 token */
-  --paper: #0d0d0d;
-  --paper-2: #1a1a1a;
-  --ink: #f0f0f0;
-  --ink-2: #a0a0a0;
-  --ink-3: #666666;
-  --hairline: #252525;
+  /* 杂志风设计 token */
+  --paper: #f4efe6;
+  --paper-2: #faf7f1;
+  --ink: #1a1714;
+  --ink-2: #4d463f;
+  --ink-3: #8d8478;
+  --hairline: #d8cfbf;
   --oxblood: #7a1f1f;
-
-  /* Card / accent system */
-  --surface: #1a1a1a;
-  --surface-alt: #222222;
-  --accent: #6eefc0;
-  --accent-light: #0f2820;
-  --accent-dark: #4dd4a8;
-  --bg: #0d0d0d;
-  --shadow-card: none;
-  --radius-card: 16px;
-  --radius-badge: 100px;
 }
 
 * {
@@ -93,51 +82,49 @@ body {
    全站现有页面无需改动即可继承新外观。 */
 @layer components {
 
-  /* "卡片"：深色表面 + 细线边框 */
+  /* "卡片"：纯纸面 + 发丝线，没有阴影、没有渐变、没有圆角魔法 */
   .glass-card {
-    @apply relative overflow-hidden;
-    background: var(--surface);
-    border: 1px solid var(--hairline);
-    border-radius: var(--radius-card);
+    @apply relative overflow-hidden bg-paper-50 border border-hairline;
+    border-radius: 4px;
     box-shadow: none;
     backdrop-filter: none;
   }
   .glass-card:hover {
-    border-color: #333333;
+    border-color: var(--ink-2);
   }
 
-  /* 主按钮：白底黑字，圆角大 — 暗色模式 CTA */
+  /* 主按钮：实心墨黑底 + 米白字，类似杂志封面的 sticker */
   .btn-primary {
-    @apply relative inline-flex items-center justify-center px-6 py-3 text-sm font-semibold tracking-wide;
-    background: #ffffff;
-    color: #0d0d0d;
-    border-radius: 14px;
-    transition: background-color 160ms ease, opacity 160ms ease;
+    @apply relative inline-flex items-center justify-center px-6 py-3 text-sm font-medium tracking-wide;
+    background: var(--ink);
+    color: var(--paper-2);
+    border-radius: 2px;
+    transition: background-color 160ms ease;
     box-shadow: none;
   }
   .btn-primary:hover {
-    background: #e8e8e8;
+    background: var(--oxblood);
     transform: none;
   }
   .btn-primary:active {
-    background: #d0d0d0;
+    background: #4d1414;
   }
 
-  /* 次按钮：透明底 + 暗色描边 */
+  /* 次按钮：透明底 + 单边发丝线 + 墨黑字 */
   .btn-secondary {
     @apply inline-flex items-center justify-center px-5 py-3 text-sm font-medium;
     color: var(--ink);
     background: transparent;
-    border: 1px solid var(--hairline);
-    border-radius: 14px;
+    border: 1px solid var(--ink);
+    border-radius: 2px;
     box-shadow: none;
     backdrop-filter: none;
     transition: background-color 160ms ease, color 160ms ease;
   }
   .btn-secondary:hover {
-    background: var(--surface-alt);
-    color: var(--ink);
-    border-color: #444444;
+    background: var(--ink);
+    color: var(--paper-2);
+    border-color: var(--ink);
   }
 
   /* 输入框：单边底线，去掉胶囊感 */
