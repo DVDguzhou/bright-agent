@@ -70,7 +70,6 @@ export function OnboardingSheet({ open, onDismiss }: { open: boolean; onDismiss:
               {[
                 { step: "01", text: "点击任意卡片，查看 Ta 的人生经历与可聊话题" },
                 { step: "02", text: "注册账号后，即可向 Ta 提问，获得一手的经验建议" },
-                { step: "03", text: "每次咨询都是一段真实对话，不是 AI 的空泛回答" },
               ].map(({ step, text }) => (
                 <li key={step} className="flex items-start gap-3">
                   <span className="mt-0.5 shrink-0 font-serif text-xs text-ink-200">{step}</span>
@@ -82,7 +81,7 @@ export function OnboardingSheet({ open, onDismiss }: { open: boolean; onDismiss:
             <button
               type="button"
               onClick={onDismiss}
-              className="mt-7 w-full rounded-[14px] bg-ink py-3.5 text-sm font-semibold tracking-wide text-paper transition active:scale-[0.98]"
+              className="mt-7 w-full rounded-[14px] border border-hairline/60 py-3.5 text-sm font-semibold tracking-wide text-ink transition active:scale-[0.98]"
             >
               开始探索
             </button>
