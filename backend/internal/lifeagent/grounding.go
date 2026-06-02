@@ -338,7 +338,7 @@ func ResolveGroundedFactReply(profile ProfileForAI, facts []StructuredFactForAI,
 		if intent.Key == "display_name" && profile.DisplayName != "" {
 			return "我是" + profile.DisplayName + "。", []map[string]string{{"sourceType": "profile", "factKey": "display_name", "title": "名字", "excerpt": profile.DisplayName}}, true
 		}
-		return "这个具体的我一时想不起来了，你要是问别的相关的我可能能帮上。", nil, true
+		return "我需要更多的信息，你可以说的再详细一点吗？或者我们换一个话题~", nil, true
 	}
 	reply := buildFactReply(intent.Key, matched)
 	refs := make([]map[string]string, 0, len(matched))
