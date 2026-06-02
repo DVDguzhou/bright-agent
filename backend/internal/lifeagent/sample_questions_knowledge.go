@@ -18,12 +18,14 @@ var skipKnowledgeHeaders = map[string]bool{
 	"嘉宾分享": true, "主持人": true, "附录": true, "参考资料": true,
 	"写在前面": true, "写在最后": true, "背景介绍": true,
 	"保研经验分享": true, "考研经验分享": true, "经验分享": true,
+	"基本信息": true, "我的基本信息": true, "一、我的基本信息": true,
 }
 
 var (
 	mdHeaderRe     = regexp.MustCompile(`(?m)^#{1,3}\s+(.+?)\s*$`)
 	sampleQBoldRe  = regexp.MustCompile(`\*\*([^*\n]{2,24})\*\*`)
-	listColonRe    = regexp.MustCompile(`(?m)^[-*]\s+(.{4,36}?)[：:]\s*.+$`)
+	listColonRe    = regexp.MustCompile(`(?m)^[-*]\s+(.{4,36}?)[：:]\s*(.+)$`)
+	headerNumberRe = regexp.MustCompile(`^[\d一二三四五六七八九十]+[、.．)\s]+`)
 )
 
 // DeriveSampleQuestionsFromKnowledge 从知识库正文提取可问的具体话题并转成示例问题。
@@ -32,45 +34,34 @@ func DeriveSampleQuestionsFromKnowledge(entries []KnowledgeSnippet) []string {
 	for _, e := range entries {
 		out = append(out, questionsFromKnowledgeEntry(e)...)
 	}
-	return uniqueSampleQuestions(out)
+	return filterStupidSampleQuestions(uniqueSampleQuestions(out))
 }
 
 func questionsFromKnowledgeEntry(e KnowledgeSnippet) []string {
 	content := strings.TrimSpace(e.Content)
 	if content == "" {
-		return nil
+		return questionsFromKnowledgeTitle(e.Title)
 	}
+	var out []string
+	out = append(out, questionsFromKnowledgeTitle(e.Title)...)
+	out = append(out, extractListQuestions(content, 4)...)
+
 	var hooks []string
-	if t := cleanKnowledgeHook(e.Title); t != "" && !skipKnowledgeHeaders[t] {
-		hooks = append(hooks, t)
-	}
-	for _, tag := range e.Tags {
-		if t := cleanKnowledgeHook(tag); t != "" && !genericExpertiseTags[t] {
-			hooks = append(hooks, t)
-		}
+	for _, h := range extractBoldPhrases(content, 4) {
+		hooks = append(hooks, h)
 	}
 	for _, h := range extractMarkdownHeaders(content) {
 		hooks = append(hooks, h)
 	}
-	for _, h := range extractBoldPhrases(content, 4) {
-		hooks = append(hooks, h)
-	}
-	for _, h := range extractListHooks(content, 4) {
-		hooks = append(hooks, h)
-	}
 
-	var out []string
 	seenHook := make(map[string]bool)
 	for _, hook := range hooks {
 		hook = cleanKnowledgeHook(hook)
-		if hook == "" || seenHook[hook] || skipKnowledgeHeaders[hook] {
-			continue
-		}
-		if isGenericKnowledgeHook(hook) {
+		if hook == "" || seenHook[hook] || shouldSkipKnowledgeHook(hook) {
 			continue
 		}
 		seenHook[hook] = true
-		if q := questionFromKnowledgeHook(hook); q != "" {
+		if q := questionFromKnowledgeHook(hook); q != "" && !isStupidSampleQuestion(q) {
 			out = append(out, q)
 		}
 		if len(out) >= 6 {
@@ -78,6 +69,68 @@ func questionsFromKnowledgeEntry(e KnowledgeSnippet) []string {
 		}
 	}
 	return out
+}
+
+func questionsFromKnowledgeTitle(title string) []string {
+	topic := topicFromKnowledgeTitle(title)
+	topic = cleanKnowledgeHook(topic)
+	if topic == "" || shouldSkipKnowledgeHook(topic) {
+		return nil
+	}
+	var out []string
+	for _, prefix := range []string{"转专业至", "保研至", "考研至", "录取至"} {
+		if !strings.HasPrefix(topic, prefix) {
+			continue
+		}
+		dest := strings.TrimSpace(strings.TrimPrefix(topic, prefix))
+		if dest == "" {
+			continue
+		}
+		dest = truncateRunes(dest, 14)
+		switch prefix {
+		case "转专业至":
+			out = append(out, "转专业到"+dest+"要补哪些先修课？")
+			out = append(out, "跨考到"+dest+"最难的一步是什么？")
+		case "保研至":
+			out = append(out, "保研到"+dest+"最关键的准备是什么？")
+		case "考研至":
+			out = append(out, "考到"+dest+"复试有什么经验？")
+		}
+		break
+	}
+	return out
+}
+
+func topicFromKnowledgeTitle(title string) string {
+	title = strings.TrimSpace(title)
+	for _, sep := range []string{"|", "｜"} {
+		if i := strings.Index(title, sep); i >= 0 {
+			after := strings.TrimSpace(title[i+len(sep):])
+			if after != "" {
+				return after
+			}
+		}
+	}
+	return title
+}
+
+func shouldSkipKnowledgeHook(hook string) bool {
+	if skipKnowledgeHeaders[hook] || isGenericKnowledgeHook(hook) {
+		return true
+	}
+	if isSchoolNameHook(hook) {
+		return true
+	}
+	if len([]rune(hook)) < 3 {
+		return true
+	}
+	return false
+}
+
+func isSchoolNameHook(hook string) bool {
+	hook = strings.TrimSpace(hook)
+	return strings.HasSuffix(hook, "大学") || strings.HasSuffix(hook, "学院") ||
+		strings.HasSuffix(hook, "University") || strings.HasSuffix(hook, "College")
 }
 
 func extractMarkdownHeaders(content string) []string {
@@ -119,24 +172,27 @@ func extractBoldPhrases(content string, max int) []string {
 	return out
 }
 
-func extractListHooks(content string, max int) []string {
+func extractListQuestions(content string, max int) []string {
 	if max <= 0 {
 		return nil
 	}
 	scan := content
-	if len(scan) > 3500 {
-		scan = scan[:3500]
+	if len(scan) > 5000 {
+		scan = scan[:5000]
 	}
 	var out []string
-	for _, m := range listColonRe.FindAllStringSubmatch(scan, max*3) {
-		if len(m) < 2 {
+	for _, m := range listColonRe.FindAllStringSubmatch(scan, max*4) {
+		if len(m) < 3 {
 			continue
 		}
-		h := cleanKnowledgeHook(m[1])
-		if h == "" || len([]rune(h)) > 18 {
+		prefix := cleanKnowledgeHook(m[1])
+		value := strings.TrimSpace(m[2])
+		if prefix == "" || shouldSkipKnowledgeHook(prefix) || len([]rune(value)) < 4 {
 			continue
 		}
-		out = append(out, h)
+		if q := questionFromListItem(prefix, value); q != "" && !isStupidSampleQuestion(q) {
+			out = append(out, q)
+		}
 		if len(out) >= max {
 			break
 		}
@@ -144,9 +200,22 @@ func extractListHooks(content string, max int) []string {
 	return out
 }
 
+func questionFromListItem(prefix, value string) string {
+	value = truncateRunes(strings.TrimSpace(value), 28)
+	if value == "" {
+		return ""
+	}
+	if containsAny(value, "985", "211", "科大", "浙大", "清华", "北大", "复旦", "厦大", "上交", "网安") ||
+		strings.Contains(value, "、") || strings.Contains(value, "，") {
+		return prefix + "可以对应哪些去向？"
+	}
+	return prefix + "具体要注意什么？"
+}
+
 func cleanKnowledgeHook(s string) string {
 	s = strings.TrimSpace(s)
 	s = strings.Trim(s, "#* _\"'[]()（）")
+	s = headerNumberRe.ReplaceAllString(s, "")
 	s = strings.TrimSpace(s)
 	if i := strings.IndexAny(s, "|｜"); i > 0 {
 		s = strings.TrimSpace(s[:i])
@@ -194,6 +263,9 @@ func questionFromKnowledgeHook(hook string) string {
 	case strings.Contains(hook, "竞赛"):
 		return hook + "在保研里有多重要？"
 	default:
-		return "关于「" + hook + "」能分享什么？"
+		if len([]rune(hook)) < 4 {
+			return ""
+		}
+		return hook + "有什么实战经验？"
 	}
 }

@@ -61,3 +61,46 @@ func TestDeriveSampleQuestionsFromKnowledge_twoAgentsDiffer(t *testing.T) {
 		t.Fatalf("different knowledge should yield different questions: %q vs %q", a[0], b[0])
 	}
 }
+
+func TestDeriveSampleQuestions_transferMajorNoStupidHooks(t *testing.T) {
+	qs := DeriveSampleQuestions(SampleQuestionInput{
+		ShortBio: "福州大学，转专业至物理，分享转专业经验。",
+		School:   "福州大学",
+		Headline: "月饼_汉堡 · 转专业至物理",
+		Knowledge: []KnowledgeSnippet{{
+			Title: "福大飞跃手册 | 转专业至物理",
+			Content: `## 基本信息
+
+学校：福州大学
+
+## 转专业流程
+
+- 绩点要求：专业前20%
+- 面试：准备高数物理基础
+`,
+			Tags: []string{"福州大学", "转专业"},
+		}},
+	})
+	if len(qs) < 2 {
+		t.Fatalf("expected >=2 questions, got %v", qs)
+	}
+	for _, bad := range []string{
+		"关于「福州大学」能分享什么？",
+		"关于「基本信息」能分享什么？",
+	} {
+		for _, q := range qs {
+			if q == bad {
+				t.Fatalf("stupid question %q in %v", bad, qs)
+			}
+		}
+	}
+	found := false
+	for _, q := range qs {
+		if containsAny(q, "物理", "先修", "绩点", "面试", "跨考") {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatalf("expected substantive questions, got %v", qs)
+	}
+}

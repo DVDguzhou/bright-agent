@@ -125,7 +125,7 @@ func NeedsSampleQuestionRefresh(questions []string) bool {
 	genericCount := 0
 	for _, q := range questions {
 		q = strings.TrimSpace(q)
-		if genericSampleQuestions[q] || isSemiGenericSampleQuestion(q) {
+		if genericSampleQuestions[q] || isSemiGenericSampleQuestion(q) || isStupidSampleQuestion(q) {
 			genericCount++
 		}
 	}
@@ -137,7 +137,7 @@ func isSemiGenericSampleQuestion(q string) bool {
 	q = strings.TrimSpace(q)
 	for _, g := range []string{
 		"研途榜样", "保研", "考研", "经验分享", "飞跃手册", "升学深造", "转专业",
-		"经验贴", "备考", "留学",
+		"经验贴", "备考", "留学", "基本信息", "录入信息",
 	} {
 		if strings.Contains(q, "「"+g+"」") {
 			return true
@@ -147,6 +147,30 @@ func isSemiGenericSampleQuestion(q string) bool {
 		}
 	}
 	return false
+}
+
+func isStupidSampleQuestion(q string) bool {
+	if isSemiGenericSampleQuestion(q) {
+		return true
+	}
+	if strings.HasPrefix(q, "关于「") && strings.HasSuffix(q, "」能分享什么？") {
+		inner := strings.TrimPrefix(q, "关于「")
+		inner = strings.TrimSuffix(inner, "」能分享什么？")
+		if skipKnowledgeHeaders[inner] || isSchoolNameHook(inner) {
+			return true
+		}
+	}
+	return false
+}
+
+func filterStupidSampleQuestions(in []string) []string {
+	out := make([]string, 0, len(in))
+	for _, q := range in {
+		if !isStupidSampleQuestion(q) {
+			out = append(out, q)
+		}
+	}
+	return out
 }
 
 func IsGenericSampleQuestions(questions []string) bool {
@@ -201,7 +225,7 @@ func DeriveSampleQuestions(in SampleQuestionInput) []string {
 			out = append(out, school+"背景升学有什么具体建议？")
 		}
 	}
-	return limitSampleQuestions(uniqueSampleQuestions(out), 4)
+	return limitSampleQuestions(filterStupidSampleQuestions(uniqueSampleQuestions(out)), 4)
 }
 
 // questionsFromShortBio 从 shortBio 提取个性化问题（福大/安大/深大/上大等批量导入格式）。
@@ -219,7 +243,7 @@ func questionsFromShortBio(bio, school string) []string {
 
 func questionsFromExplicitDest(bio, school string) []string {
 	var out []string
-	for _, prefix := range []string{"保研至", "考研至", "考博至", "申请至", "录取至", "上岸"} {
+	for _, prefix := range []string{"转专业至", "保研至", "考研至", "考博至", "申请至", "录取至", "上岸"} {
 		idx := strings.Index(bio, prefix)
 		if idx < 0 {
 			continue
@@ -236,6 +260,9 @@ func questionsFromExplicitDest(bio, school string) []string {
 		}
 		if fromSchool != "" && fromSchool != dest {
 			switch prefix {
+			case "转专业至":
+				out = append(out, "从"+truncateRunes(fromSchool, 12)+"转专业到"+truncateRunes(dest, 12)+"要补哪些课？")
+				out = append(out, "跨考到"+truncateRunes(dest, 12)+"最难的一步是什么？")
 			case "保研至":
 				out = append(out, "从"+truncateRunes(fromSchool, 12)+"保研到"+truncateRunes(dest, 12)+"要注意什么？")
 			case "考研至":
@@ -404,11 +431,16 @@ func questionsFromHeadline(headline string) []string {
 	}
 	var out []string
 	if topic := headlineTopic(headline); topic != "" {
-		for _, prefix := range []string{"保研至", "考研至", "考博至", "申请至", "录取至"} {
+		for _, prefix := range []string{"转专业至", "保研至", "考研至", "考博至", "申请至", "录取至"} {
 			if strings.Contains(topic, prefix) {
 				dest := strings.TrimSpace(strings.TrimPrefix(topic, prefix))
 				if dest != "" {
-					out = append(out, prefix+dest+"有哪些经验可以分享？")
+					switch prefix {
+					case "转专业至":
+						out = append(out, "转专业到"+dest+"要补哪些先修课？")
+					default:
+						out = append(out, prefix+dest+"有哪些经验可以分享？")
+					}
 				}
 				break
 			}
