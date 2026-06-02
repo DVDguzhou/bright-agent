@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { fetchManageData, formatDateTime, type ManageData } from "@/app/dashboard/life-agents/_lib/manage";
+import { fetchManageData, formatDateTime, formatShortTime, type ManageData } from "@/app/dashboard/life-agents/_lib/manage";
 
 type RangeKey = "7d" | "30d" | "all";
 
@@ -51,7 +51,7 @@ export default function LifeAgentSalesPage() {
   }, [filtered]);
 
   if (loading) {
-    return <div className="mx-auto h-56 max-w-4xl animate-pulse rounded-[28px] bg-paper shadow-sm ring-1 ring-hairline/40" />;
+    return <div className="mx-auto h-56 max-w-4xl animate-pulse bg-paper-100/60" />;
   }
 
   if (!data) {
@@ -66,15 +66,11 @@ export default function LifeAgentSalesPage() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl space-y-4 max-lg:-mx-4 max-lg:bg-paper-50 max-lg:px-3 max-lg:pb-24">
-      <header className="rounded-[28px] bg-paper px-4 py-4 shadow-sm ring-1 ring-hairline/40 sm:px-6">
+    <div className="mx-auto max-w-4xl divide-y divide-hairline/30 max-lg:-mx-4 max-lg:px-4 max-lg:pb-24">
+      <section className="pb-4 pt-3">
         <Link href={`/dashboard/life-agents/${id}`} className="text-sm font-medium text-ink-400 transition hover:text-ink">
           ← 返回工作台
         </Link>
-        {/* 原标题：销量记录 / 提问包购买情况
-        <h1 className="mt-3 text-[28px] font-black tracking-tight text-ink">销量记录</h1>
-        <p className="mt-1 text-sm text-ink-400">{data.profile.displayName} 的提问包购买情况</p>
-        */}
         <h1 className="mt-3 text-[28px] font-black tracking-tight text-ink">互动记录</h1>
         <p className="mt-1 text-sm text-ink-400">{data.profile.displayName} 的用户提问与对话互动</p>
         <div className="mt-4 flex flex-wrap gap-2">
@@ -95,49 +91,49 @@ export default function LifeAgentSalesPage() {
             </button>
           ))}
         </div>
-      </header>
+      </section>
 
-      {/* 原汇总：购买人数 / 卖出次数 / 收入
-      <section className="grid grid-cols-3 gap-3">...</section>
-      */}
-      <section className="grid grid-cols-3 gap-3">
-        <div className="rounded-2xl bg-paper px-3 py-4 text-center shadow-sm ring-1 ring-hairline/40">
-          <p className="text-2xl font-black text-ink">{summary.buyers}</p>
-          <p className="mt-1 text-xs text-ink-400">互动用户</p>
+      <section className="grid grid-cols-3 border-hairline/30 [&>*:not(:last-child)]:border-r [&>*]:border-hairline/30">
+        <div className="px-3 py-3 text-center">
+          <p className="text-2xl font-black leading-none text-ink">{summary.buyers}</p>
+          <p className="mt-2 text-[11px] font-medium text-ink-600">互动用户</p>
+          <p className="mt-0.5 text-[10px] text-ink-300">人</p>
         </div>
-        <div className="rounded-2xl bg-paper px-3 py-4 text-center shadow-sm ring-1 ring-hairline/40">
-          <p className="text-2xl font-black text-ink">{summary.asked}</p>
-          <p className="mt-1 text-xs text-ink-400">被提问</p>
+        <div className="px-3 py-3 text-center">
+          <p className="text-2xl font-black leading-none text-ink">{summary.asked}</p>
+          <p className="mt-2 text-[11px] font-medium text-ink-600">被提问</p>
+          <p className="mt-0.5 text-[10px] text-ink-300">次</p>
         </div>
-        <div className="rounded-2xl bg-paper px-3 py-4 text-center shadow-sm ring-1 ring-hairline/40">
-          <p className="text-2xl font-black text-oxblood-700">{summary.heat}</p>
-          <p className="mt-1 text-xs text-ink-400">热度指数</p>
+        <div className="px-3 py-3 text-center">
+          <p className="text-2xl font-black leading-none text-oxblood-700">{summary.heat}</p>
+          <p className="mt-2 text-[11px] font-medium text-ink-600">热度指数</p>
+          <p className="mt-0.5 text-[10px] text-ink-300">综合</p>
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-[28px] bg-paper shadow-sm ring-1 ring-hairline/40">
-        <div className="border-b border-hairline/50 px-4 py-4 sm:px-6">
-          {/* 原：购买记录 */}
-          <h2 className="text-lg font-semibold text-ink">互动明细</h2>
-        </div>
-        <div className="divide-y divide-hairline/50">
-          {filtered.length === 0 ? (
-            <div className="px-4 py-16 text-center text-sm text-ink-300">当前筛选下暂无互动记录</div>
-          ) : (
-            filtered.map((item) => (
-              <div key={item.id} className="flex flex-col gap-2 px-4 py-4 sm:px-6">
-                <div className="flex items-center justify-between gap-3">
+      <section className="py-4">
+        <h2 className="text-lg font-semibold text-ink">互动明细</h2>
+        <p className="mt-1 text-sm text-ink-400">
+          {range === "7d" ? "近 7 天" : range === "30d" ? "近 30 天" : "全部"} · {filtered.length} 条
+        </p>
+        {filtered.length === 0 ? (
+          <p className="mt-8 text-center text-sm text-ink-300">当前筛选下暂无互动记录</p>
+        ) : (
+          <ul className="mt-4 divide-y divide-hairline/30">
+            {filtered.map((item) => (
+              <li key={item.id} className="py-4 text-sm first:pt-0">
+                <div className="flex items-start justify-between gap-3">
                   <p className="font-medium text-ink">{item.buyer.name || item.buyer.email}</p>
-                  <span className="text-xs text-ink-300">{formatDateTime(item.createdAt)}</span>
+                  <span className="shrink-0 text-xs text-ink-300">{formatShortTime(item.createdAt)}</span>
                 </div>
-                <div className="flex flex-wrap gap-2 text-xs">
-                  <span className="rounded-full bg-paper-200 px-2 py-1 text-ink-500">提问 {item.questionCount} 次</span>
-                  <span className="rounded-full bg-paper-200 px-2 py-1 text-ink-500">已对话 {item.questionsUsed} 次</span>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
+                <p className="mt-0.5 text-ink-400">
+                  提问 {item.questionCount} 次，已对话 {item.questionsUsed} 次
+                </p>
+                <p className="mt-1 text-xs text-ink-300">{formatDateTime(item.createdAt)}</p>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
     </div>
   );
