@@ -146,6 +146,8 @@ function LoginContent() {
         setError(
           data.error === "EMAIL_SEND_FAILED"
             ? "邮件发送失败，请稍后重试或检查发信配置"
+            : data.error === "EMAIL_NOT_REGISTERED"
+            ? "该邮箱尚未注册，请先注册"
             : data.error === "VALIDATION_ERROR"
             ? "请输入有效邮箱"
             : "发送失败"

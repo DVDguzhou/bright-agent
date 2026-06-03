@@ -72,17 +72,6 @@ func SignupSendCode(cfg *config.Config) gin.HandlerFunc {
 			c.JSON(http.StatusOK, gin.H{"ok": true})
 			return
 		}
-		ip := authClientIP(c)
-		if !authRateLimit(c, "signup-send-ip", ip, 20, time.Hour) ||
-			!authRateLimit(c, "signup-send-email", email, 5, time.Hour) {
-			c.JSON(http.StatusTooManyRequests, gin.H{"error": "RATE_LIMITED"})
-			return
-		}
-		if !canSendSignupCodeNow(email) {
-			c.JSON(http.StatusTooManyRequests, gin.H{"error": "RATE_LIMITED"})
-			return
-		}
-
 		var existingUser models.User
 		if db.DB.Where("email = ?", email).First(&existingUser).Error == nil {
 			c.JSON(http.StatusOK, gin.H{"ok": true})
