@@ -38,7 +38,7 @@ func EmailSendCode(cfg *config.Config) gin.HandlerFunc {
 		}
 		var u models.User
 		if err := db.DB.Where("email = ?", email).First(&u).Error; err != nil {
-			c.JSON(http.StatusOK, gin.H{"ok": true})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "EMAIL_NOT_REGISTERED"})
 			return
 		}
 		code := sms.GenCode()
