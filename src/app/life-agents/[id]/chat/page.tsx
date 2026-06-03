@@ -560,18 +560,25 @@ export default function LifeAgentChatPage() {
           className="mx-6 w-full max-w-sm rounded-2xl bg-paper p-5 shadow-xl"
           onClick={(e) => e.stopPropagation()}
         >
-          <p className="mb-1 text-sm font-medium text-ink-800">确认提交反馈？</p>
-          <p className="mb-5 text-xs text-ink-400">
-            {pendingFeedback.comment
-              ? `「${pendingFeedback.comment}」`
-              : {
-                  helpful: "👍 有帮助",
-                  not_specific: "不够具体",
-                  factual_error: "事实错了",
-                  contradiction: "前后矛盾",
-                  too_confident: "太武断了",
-                }[pendingFeedback.feedbackType] ?? pendingFeedback.feedbackType}
+          <p className="mb-1 text-sm font-medium text-ink-800">
+            {{
+              helpful: "👍 有帮助",
+              not_specific: "不够具体",
+              factual_error: "事实错了",
+              contradiction: "前后矛盾",
+              too_confident: "太武断了",
+            }[pendingFeedback.feedbackType] ?? pendingFeedback.feedbackType}
           </p>
+          <textarea
+            autoFocus
+            rows={3}
+            placeholder={pendingFeedback.feedbackType === "helpful" ? "说说具体理由…（选填）" : "说说具体理由…（必填）"}
+            value={pendingFeedback.comment ?? ""}
+            onChange={(e) =>
+              setPendingFeedback((prev) => prev ? { ...prev, comment: e.target.value } : prev)
+            }
+            className="mt-3 mb-4 w-full resize-none rounded-xl border border-hairline/60 bg-paper-50 px-3 py-2 text-sm text-ink-700 placeholder:text-ink-300 focus:border-hairline focus:outline-none focus:ring-1 focus:ring-hairline"
+          />
           <div className="flex gap-3">
             <button
               type="button"
@@ -582,11 +589,15 @@ export default function LifeAgentChatPage() {
             </button>
             <button
               type="button"
+              disabled={
+                pendingFeedback.feedbackType !== "helpful" &&
+                !pendingFeedback.comment?.trim()
+              }
               onClick={() => {
-                void doSubmitMessageFeedback(pendingFeedback.message, pendingFeedback.feedbackType, pendingFeedback.comment);
+                void doSubmitMessageFeedback(pendingFeedback.message, pendingFeedback.feedbackType, pendingFeedback.comment?.trim());
                 setPendingFeedback(null);
               }}
-              className="flex-1 rounded-xl bg-ink-800 py-2 text-sm font-medium text-paper transition hover:bg-ink-900"
+              className="flex-1 rounded-xl bg-ink-800 py-2 text-sm font-medium text-paper transition hover:bg-ink-900 disabled:opacity-40"
             >
               确认发送
             </button>
