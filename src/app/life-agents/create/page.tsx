@@ -539,11 +539,85 @@ export default function CreateLifeAgentPage() {
     persistDraftNow();
   }, [persistDraftNow]);
 
-  const goToStep = useCallback((nextStep: number, overrides?: Partial<LifeAgentCreateDraftV1>) => {
-    setError("");
-    setStep(nextStep);
-    persistDraftNow({ step: nextStep, ...(overrides ?? {}) });
-  }, [persistDraftNow]);
+  const isSkipField = useCallback((value: string) => {
+    const skipPatterns = [/^暂无$/, /^无$/, /^没有$/, /^跳过$/, /^pass$/i];
+    return skipPatterns.some((pattern) => pattern.test(value.trim()));
+  }, []);
+
+  const isFilledField = useCallback(
+    (value: string) => {
+      const s = value.trim();
+      return s !== "" && !isSkipField(s);
+    },
+    [isSkipField],
+  );
+
+  const validateStep1ForNext = useCallback((): string | null => {
+    if (!chatDone) return "请先完成基础资料对话";
+    if (!sampleQuestionsDone) return "请先完成示例问题，或直接说「没有了」结束";
+    const displayName = form.displayName.trim();
+    if (!isFilledField(displayName)) return "请填写 Agent 名称（1 到 10 个字），此项不可跳过";
+    if (displayName.length < 1 || displayName.length > 10) return "Agent 名称长度需为 1 到 10 个字";
+    if (!isFilledField(form.welcomeMessage)) return "请填写首次欢迎语，此项不可跳过";
+    return null;
+  }, [chatDone, sampleQuestionsDone, form.displayName, form.welcomeMessage, isFilledField]);
+
+  const validateStep2ForNext = useCallback((): string | null => {
+    const tags = form.expertiseTags
+      .split(/[,，、\n]/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (tags.length < 1) return "请至少选择一个擅长领域";
+    return null;
+  }, [form.expertiseTags]);
+
+  const validateStep3ForNext = useCallback((): string | null => {
+    if (!experienceDone) return "请先完成经验补充对话";
+    const validEntries = knowledgeEntries.filter((e) => e.content.trim().length >= 1);
+    if (validEntries.length < 2) return "至少需要记录 2 条有效经验，请继续补充";
+    return null;
+  }, [experienceDone, knowledgeEntries]);
+
+  const validateStep4ForNext = useCallback((): string | null => {
+    if (!form.personaArchetype.trim() || !form.toneStyle.trim() || !form.responseStyle.trim()) {
+      return "请设置 Agent 的角色、语气和回答习惯";
+    }
+    return null;
+  }, [form.personaArchetype, form.toneStyle, form.responseStyle]);
+
+  const validateBeforeLeaveStep = useCallback(
+    (currentStep: number): string | null => {
+      switch (currentStep) {
+        case 1:
+          return validateStep1ForNext();
+        case 2:
+          return validateStep2ForNext();
+        case 3:
+          return validateStep3ForNext();
+        case 4:
+          return validateStep4ForNext();
+        default:
+          return null;
+      }
+    },
+    [validateStep1ForNext, validateStep2ForNext, validateStep3ForNext, validateStep4ForNext],
+  );
+
+  const goToStep = useCallback(
+    (nextStep: number, overrides?: Partial<LifeAgentCreateDraftV1>) => {
+      if (nextStep > step) {
+        const validationError = validateBeforeLeaveStep(step);
+        if (validationError) {
+          setError(validationError);
+          return;
+        }
+      }
+      setError("");
+      setStep(nextStep);
+      persistDraftNow({ step: nextStep, ...(overrides ?? {}) });
+    },
+    [step, persistDraftNow, validateBeforeLeaveStep],
+  );
 
   const handleCoverImageChange = useCallback((nextCoverImageUrl: string) => {
     setCoverImageUrl(nextCoverImageUrl);
@@ -954,9 +1028,8 @@ export default function CreateLifeAgentPage() {
 
       // Check if LLM detected skip intent
       if (data.done) {
+        replaceAssistantMessage("示例问题已记录完成，确认无误后可进入下一步。");
         setSampleQuestionsDone(true);
-        setSampleQuestionsLoading(false);
-        setStep((prev) => prev + 1);
         return;
       }
 
@@ -1112,7 +1185,17 @@ export default function CreateLifeAgentPage() {
     const rawAnswer = (voiceText ?? chatInput).trim();
 
     if (!rawAnswer) {
-      setError("请输入内容，或回复「跳过」以略过此项");
+      setError("请输入内容，或回复「跳过」以略过非必填项");
+      return;
+    }
+
+    const currentField = PROFILE_CHAT_FIELDS[chatFieldIndex];
+    if (currentField?.required && isSkipField(rawAnswer)) {
+      setError(
+        currentField.key === "displayName"
+          ? "Agent 名称为必填项，请填写 1 到 10 个字"
+          : "首次欢迎语为必填项，请填写后再继续",
+      );
       return;
     }
 
@@ -1130,10 +1213,11 @@ export default function CreateLifeAgentPage() {
       );
     };
 
-    const currentField = PROFILE_CHAT_FIELDS[chatFieldIndex];
     if (currentField) {
       setChatFieldValue(currentField.key, rawAnswer);
     }
+
+    const profilePayload = buildProfileSummaryPayload(currentField?.key, rawAnswer);
 
     // Move to next field
     const nextFieldIndex = chatFieldIndex + 1;
@@ -1141,7 +1225,24 @@ export default function CreateLifeAgentPage() {
       setChatFieldIndex(nextFieldIndex);
       replaceAssistantMessage(PROFILE_CHAT_FIELDS[nextFieldIndex].prompt);
     } else {
-      // All fields completed
+      if (!isFilledField(profilePayload.displayName)) {
+        replaceAssistantMessage("还缺少 Agent 名称，请重新填写（1 到 10 个字）。");
+        setError("Agent 名称为必填项，请填写后再继续");
+        setChatLoading(false);
+        return;
+      }
+      if (profilePayload.displayName.trim().length > 10) {
+        replaceAssistantMessage("Agent 名称不能超过 10 个字，请重新填写。");
+        setError("Agent 名称长度需为 1 到 10 个字");
+        setChatLoading(false);
+        return;
+      }
+      if (!isFilledField(profilePayload.welcomeMessage)) {
+        replaceAssistantMessage("还缺少首次欢迎语，请重新填写。");
+        setError("首次欢迎语为必填项，请填写后再继续");
+        setChatLoading(false);
+        return;
+      }
       replaceAssistantMessage("很好！基础资料收集完成。接下来用户可能会问你什么问题？");
       setChatDone(true);
       setChatLoading(false);
@@ -1176,8 +1277,8 @@ export default function CreateLifeAgentPage() {
     }
 
     const validEntries = knowledgeEntries.filter((e) => e.content.trim().length >= 1);
-    if (validEntries.length < 1) {
-      setError("基础资料还没整理完成，请回到上一步重新生成");
+    if (validEntries.length < 2) {
+      setError("至少需要记录 2 条有效经验，请回到第 3 步补充");
       setLoading(false);
       return;
     }
@@ -1375,12 +1476,6 @@ export default function CreateLifeAgentPage() {
     if (el?.matches?.("input, textarea")) el.blur();
   };
 
-  // 判断是否是跳过字段
-  const isSkipField = (value: string) => {
-    const skipPatterns = [/^暂无$/, /^无$/, /^没有$/, /^跳过$/, /^pass$/i];
-    return skipPatterns.some((pattern) => pattern.test(value.trim()));
-  };
-
   // 计算档案完成项数
   const profileCompletionCount = (() => {
     let count = 0;
@@ -1393,16 +1488,16 @@ export default function CreateLifeAgentPage() {
       form.welcomeMessage,
     ];
     requiredFields.forEach((field) => {
-      if (field && field.trim() !== "" && !isSkipField(field)) count++;
+      if (field && isFilledField(field)) count++;
     });
-    if (form.school && form.school.trim() !== "" && !isSkipField(form.school)) count++;
-    if (form.education && form.education.trim() !== "" && !isSkipField(form.education)) count++;
-    if (form.job && form.job.trim() !== "" && !isSkipField(form.job)) count++;
-    if (form.income && form.income.trim() !== "" && !isSkipField(form.income)) count++;
-    if (form.expertiseTags && form.expertiseTags.trim() !== "" && !isSkipField(form.expertiseTags)) count++;
-    if (form.personaArchetype && form.personaArchetype.trim() !== "" && !isSkipField(form.personaArchetype)) count++;
-    if (form.toneStyle && form.toneStyle.trim() !== "" && !isSkipField(form.toneStyle)) count++;
-    if (form.responseStyle && form.responseStyle.trim() !== "" && !isSkipField(form.responseStyle)) count++;
+    if (isFilledField(form.school)) count++;
+    if (isFilledField(form.education)) count++;
+    if (isFilledField(form.job)) count++;
+    if (isFilledField(form.income)) count++;
+    if (isFilledField(form.expertiseTags)) count++;
+    if (isFilledField(form.personaArchetype)) count++;
+    if (isFilledField(form.toneStyle)) count++;
+    if (isFilledField(form.responseStyle)) count++;
     return count;
   })();
 
@@ -1746,6 +1841,12 @@ export default function CreateLifeAgentPage() {
               </div>
             </div>
           </div>
+
+          {error ? (
+            <div className="shrink-0 mx-4 mb-2 rounded-2xl border border-hairline/80 bg-paper-200/90 px-4 py-2 text-sm text-oxblood-700/90 sm:mx-6">
+              {error}
+            </div>
+          ) : null}
 
           <div className="shrink-0 border-t border-hairline/50 bg-paper px-4 py-4 pb-24 shadow-[0_-4px_20px_-8px_rgba(0,0,0,0.06)] sm:px-6 lg:pb-6">
             <div className="mx-auto flex max-w-3xl items-center justify-between gap-4">
