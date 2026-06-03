@@ -199,6 +199,24 @@ func syncUserAvatarToLifeAgents(userID string, avatarURL *string) error {
 	return db.DB.Model(&models.LifeAgentProfile{}).Where("user_id = ?", userID).Updates(updates).Error
 }
 
+// applyAvatarBinding 用户头像与名下全部 Agent 封面绑定为同一图片。
+func applyAvatarBinding(userID string, avatarURL *string) error {
+	var userUpdate interface{}
+	var synced *string
+	if avatarURL == nil || strings.TrimSpace(*avatarURL) == "" {
+		userUpdate = nil
+		synced = nil
+	} else {
+		s := strings.TrimSpace(*avatarURL)
+		userUpdate = s
+		synced = &s
+	}
+	if err := db.DB.Model(&models.User{}).Where("id = ?", userID).Update("avatar_url", userUpdate).Error; err != nil {
+		return err
+	}
+	return syncUserAvatarToLifeAgents(userID, synced)
+}
+
 // UpdateMe 更新当前用户资料；avatarUrl 变更时同步写入其名下所有人生 Agent 的 cover_image_url。
 func UpdateMe(cfg *config.Config) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -265,9 +283,6 @@ func UpdateMe(cfg *config.Config) gin.HandlerFunc {
 		if avatarTouched {
 			if err := syncUserAvatarToLifeAgents(user.ID, syncedAvatar); err != nil {
 				log.Printf("update me: sync avatar to life agents user=%s: %v", user.ID, err)
-			}
-			if err := SyncPrimaryAgentCoverToUserAvatar(user.ID); err != nil {
-				log.Printf("update me: sync agent cover to user avatar user=%s: %v", user.ID, err)
 			}
 		}
 

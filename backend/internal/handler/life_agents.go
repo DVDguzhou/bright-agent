@@ -147,27 +147,36 @@ func lifeAgentCoverURL(p *models.LifeAgentProfile) string {
 	return lifeAgentDefaultCoverURL
 }
 
-// userDisplayAvatarURL 用户展示头像：与名下 Agent 封面绑定，始终返回 Agent 封面。
-func userDisplayAvatarURL(userID string, _ *string) string {
+func userStoredAvatarFallback(avatarURL *string) string {
+	if avatarURL != nil {
+		if s := strings.TrimSpace(*avatarURL); s != "" {
+			return s
+		}
+	}
+	return lifeAgentDefaultCoverURL
+}
+
+// userDisplayAvatarURL 用户展示头像：优先返回名下 Agent 封面；尚无 Agent 时回退 users.avatar_url（如注册时上传的头像）。
+func userDisplayAvatarURL(userID string, avatarURL *string) string {
 	var p models.LifeAgentProfile
 	if err := db.DB.Where("user_id = ?", userID).Order("published DESC, updated_at DESC").First(&p).Error; err != nil {
-		return lifeAgentDefaultCoverURL
+		return userStoredAvatarFallback(avatarURL)
 	}
 	return lifeAgentCoverURL(&p)
 }
 
-// SyncPrimaryAgentCoverToUserAvatar 将主 Agent 封面同步到 users.avatar_url。
+// SyncPrimaryAgentCoverToUserAvatar 从主 Agent 解析封面，并绑定到用户头像及全部 Agent。
 func SyncPrimaryAgentCoverToUserAvatar(userID string) error {
 	var p models.LifeAgentProfile
 	err := db.DB.Where("user_id = ?", userID).Order("published DESC, updated_at DESC").First(&p).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return db.DB.Model(&models.User{}).Where("id = ?", userID).Update("avatar_url", nil).Error
+			return nil
 		}
 		return err
 	}
 	resolved := lifeAgentCoverURL(&p)
-	return db.DB.Model(&models.User{}).Where("id = ?", userID).Update("avatar_url", resolved).Error
+	return applyAvatarBinding(userID, &resolved)
 }
 
 // buildUserDisplayAvatarMap 批量解析用户展示头像（与 Agent 封面绑定）。
@@ -199,9 +208,22 @@ func buildUserDisplayAvatarMap(userIDs []string) map[string]string {
 		picked[a.UserID] = true
 		out[a.UserID] = lifeAgentCoverURL(&a)
 	}
+	missing := make([]string, 0, len(uniq))
 	for _, id := range uniq {
 		if _, ok := out[id]; !ok {
-			out[id] = lifeAgentDefaultCoverURL
+			missing = append(missing, id)
+		}
+	}
+	if len(missing) > 0 {
+		var users []models.User
+		db.DB.Select("id", "avatar_url").Where("id IN ?", missing).Find(&users)
+		for _, u := range users {
+			out[u.ID] = userStoredAvatarFallback(u.AvatarURL)
+		}
+		for _, id := range missing {
+			if _, ok := out[id]; !ok {
+				out[id] = lifeAgentDefaultCoverURL
+			}
 		}
 	}
 	return out
@@ -1047,8 +1069,9 @@ func LifeAgentsCreate(cfg *config.Config) gin.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "INTERNAL_ERROR"})
 			return
 		}
-		if err := SyncPrimaryAgentCoverToUserAvatar(user.ID); err != nil {
-			log.Printf("life-agents create: sync cover to user avatar user=%s: %v", user.ID, err)
+		resolved := lifeAgentCoverURL(&p)
+		if err := applyAvatarBinding(user.ID, &resolved); err != nil {
+			log.Printf("life-agents create: sync avatar binding user=%s: %v", user.ID, err)
 		}
 		refreshLifeAgentStructuredFacts(profileID)
 		refreshLifeAgentTopicSummaries(profileID)
@@ -1712,6 +1735,7 @@ func LifeAgentsUpdate(cfg *config.Config) gin.HandlerFunc {
 				coverUpdates["cover_image_url"] = nil
 			} else if validateLifeAgentCoverImageURL(s) {
 				coverUpdates["cover_image_url"] = s
+				coverUpdates["cover_preset_key"] = nil
 			} else {
 				c.JSON(http.StatusBadRequest, gin.H{"error": "VALIDATION_ERROR"})
 				return
@@ -1723,6 +1747,7 @@ func LifeAgentsUpdate(cfg *config.Config) gin.HandlerFunc {
 				coverUpdates["cover_preset_key"] = nil
 			} else if _, ok := allowedLifeAgentCoverPresets[s]; ok {
 				coverUpdates["cover_preset_key"] = s
+				coverUpdates["cover_image_url"] = nil
 			} else {
 				c.JSON(http.StatusBadRequest, gin.H{"error": "VALIDATION_ERROR"})
 				return
@@ -1733,8 +1758,13 @@ func LifeAgentsUpdate(cfg *config.Config) gin.HandlerFunc {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "INTERNAL_ERROR"})
 				return
 			}
-			if err := SyncPrimaryAgentCoverToUserAvatar(p.UserID); err != nil {
-				log.Printf("life-agents update: sync cover to user avatar user=%s: %v", p.UserID, err)
+			if err := db.DB.Where("id = ?", id).First(&p).Error; err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "INTERNAL_ERROR"})
+				return
+			}
+			resolved := lifeAgentCoverURL(&p)
+			if err := applyAvatarBinding(p.UserID, &resolved); err != nil {
+				log.Printf("life-agents update: sync avatar binding user=%s: %v", p.UserID, err)
 			}
 		}
 		if body.KnowledgeEntries != nil {
