@@ -111,6 +111,9 @@ export default function LifeAgentChatPage() {
   const [selectedFeedback, setSelectedFeedback] = useState<Record<string, string>>({});
   const [feedbackComment, setFeedbackComment] = useState<Record<string, string>>({});
   const [commentSubmitted, setCommentSubmitted] = useState<Record<string, boolean>>({});
+  const [pendingFeedback, setPendingFeedback] = useState<{ message: ChatMessage; feedbackType: string; comment?: string } | null>(null);
+  const [focusedCommentId, setFocusedCommentId] = useState<string | null>(null);
+  const activeTextareaRef = useRef<HTMLTextAreaElement | null>(null);
   const [useVoiceReply, setUseVoiceReply] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
   const isDesktop = useIsDesktop();
@@ -483,7 +486,7 @@ export default function LifeAgentChatPage() {
     await sendMessageWithText(input.trim());
   };
 
-  const submitMessageFeedback = useCallback(
+  const doSubmitMessageFeedback = useCallback(
     async (message: ChatMessage, feedbackType: string, comment?: string) => {
       if (!message.messageId || !message.sessionId) return;
       setSubmittingFeedbackId(message.messageId);
@@ -517,6 +520,13 @@ export default function LifeAgentChatPage() {
     [id]
   );
 
+  const submitMessageFeedback = useCallback(
+    (message: ChatMessage, feedbackType: string, comment?: string) => {
+      setPendingFeedback({ message, feedbackType, comment });
+    },
+    []
+  );
+
   if (!profile) {
     return <div className="h-72 animate-pulse rounded-3xl bg-gradient-to-br from-paper-100/90 to-paper-100/50 shadow-[0_6px_28px_rgba(26,23,20,0.07)]" />;
   }
@@ -527,6 +537,63 @@ export default function LifeAgentChatPage() {
   const closeMenu = () => setMenuOpen(false);
 
   return (
+    <>
+    {focusedCommentId && !pendingFeedback && (
+      <div
+        className="fixed inset-0 z-[90]"
+        onMouseDown={(e) => {
+          e.preventDefault();
+          activeTextareaRef.current?.blur();
+        }}
+        onTouchStart={(e) => {
+          e.preventDefault();
+          activeTextareaRef.current?.blur();
+        }}
+      />
+    )}
+    {pendingFeedback && (
+      <div
+        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/30 backdrop-blur-sm"
+        onClick={() => setPendingFeedback(null)}
+      >
+        <div
+          className="mx-6 w-full max-w-sm rounded-2xl bg-paper p-5 shadow-xl"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <p className="mb-1 text-sm font-medium text-ink-800">确认提交反馈？</p>
+          <p className="mb-5 text-xs text-ink-400">
+            {pendingFeedback.comment
+              ? `「${pendingFeedback.comment}」`
+              : {
+                  helpful: "👍 有帮助",
+                  not_specific: "不够具体",
+                  factual_error: "事实错了",
+                  contradiction: "前后矛盾",
+                  too_confident: "太武断了",
+                }[pendingFeedback.feedbackType] ?? pendingFeedback.feedbackType}
+          </p>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => setPendingFeedback(null)}
+              className="flex-1 rounded-xl border border-hairline/60 py-2 text-sm text-ink-500 transition hover:bg-paper-100"
+            >
+              取消
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                void doSubmitMessageFeedback(pendingFeedback.message, pendingFeedback.feedbackType, pendingFeedback.comment);
+                setPendingFeedback(null);
+              }}
+              className="flex-1 rounded-xl bg-ink-800 py-2 text-sm font-medium text-paper transition hover:bg-ink-900"
+            >
+              确认发送
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
     <div
       className={`flex min-h-0 flex-col lg:-mx-4 lg:-mt-3 lg:-mb-8 lg:min-h-[calc(100dvh-5rem)] max-lg:fixed max-lg:inset-x-0 max-lg:top-0 max-lg:z-[35] max-lg:overflow-hidden ${CHAT_PAGE_BACKGROUND_CLASSNAME}`}
       style={
@@ -963,6 +1030,11 @@ export default function LifeAgentChatPage() {
                             onTouchStart={(e) => e.stopPropagation()}
                           >
                             <textarea
+                              ref={(el) => {
+                                if (focusedCommentId === message.messageId) {
+                                  activeTextareaRef.current = el;
+                                }
+                              }}
                               placeholder="说说哪里不对？你的反馈会帮助创建者改进..."
                               value={feedbackComment[message.messageId!] || ""}
                               onChange={(e) =>
@@ -971,26 +1043,22 @@ export default function LifeAgentChatPage() {
                                   [message.messageId!]: e.target.value,
                                 }))
                               }
+                              onFocus={() => setFocusedCommentId(message.messageId!)}
+                              onBlur={() => {
+                                setFocusedCommentId(null);
+                                activeTextareaRef.current = null;
+                                const comment = feedbackComment[message.messageId!]?.trim();
+                                if (comment) {
+                                  submitMessageFeedback(
+                                    message,
+                                    selectedFeedback[message.messageId!],
+                                    comment
+                                  );
+                                }
+                              }}
                               rows={2}
                               className="flex-1 resize-none rounded-xl border border-hairline/60 bg-paper/80 px-3 py-2 text-xs text-ink-600 placeholder:text-ink-300 focus:border-hairline focus:outline-none focus:ring-1 focus:ring-hairline"
                             />
-                            <button
-                              type="button"
-                              disabled={
-                                !feedbackComment[message.messageId!]?.trim() ||
-                                submittingFeedbackId === message.messageId
-                              }
-                              onClick={() =>
-                                void submitMessageFeedback(
-                                  message,
-                                  selectedFeedback[message.messageId!],
-                                  feedbackComment[message.messageId!]?.trim()
-                                )
-                              }
-                              className="shrink-0 rounded-xl bg-paper-500 px-3 py-2 text-xs font-medium text-paper transition hover:bg-oxblood disabled:opacity-40"
-                            >
-                              提交
-                            </button>
                           </div>
                         )}
                       {commentSubmitted[message.messageId!] && (
@@ -1032,5 +1100,6 @@ export default function LifeAgentChatPage() {
         </div>
       </section>
     </div>
+    </>
   );
 }
