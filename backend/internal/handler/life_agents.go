@@ -1948,7 +1948,14 @@ func processCoEditEvent(cfg *config.Config, eventID, profileID, userID, userMess
 	}
 	var entries []models.LifeAgentKnowledgeEntry
 	db.DB.Where("profile_id = ?", profileID).Order("sort_order").Find(&entries)
-	state := buildModifyStateString(&p, entries, userMessage)
+
+	var coEditEvent models.LifeAgentCoEditEvent
+	recordedAt := time.Now().UTC()
+	if err := db.DB.Where("id = ?", eventID).First(&coEditEvent).Error; err == nil {
+		recordedAt = coEditEvent.CreatedAt
+	}
+
+	state := buildModifyStateString(&p, entries, userMessage, &recordedAt)
 	trimmedHistory := trimChatHistoryForModify(chatHistory, 10)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 150*time.Second)
@@ -1966,21 +1973,41 @@ func processCoEditEvent(cfg *config.Config, eventID, profileID, userID, userMess
 	if intent == nil {
 		intent = &lifeagent.ModifyIntent{}
 	}
+	if intent.Changes != nil {
+		lifeagent.StampKnowledgeAddRecordedAt(intent.Changes, recordedAt)
+	}
 
 	summary := applyModifyIntentChanges(&p, &entries, profileID, intent.Changes)
 
 	refreshLifeAgentStructuredFacts(profileID)
 	refreshLifeAgentTopicSummaries(profileID)
 
-	reply := strings.TrimSpace(intent.Reply)
-	if reply == "" {
-		if intent.Changes != nil {
-			reply = "好的，我按你的意思更新了。"
-		} else {
-			reply = "好的，我先记下来了。"
-		}
-	}
+	reply := normalizeCoEditAssistantReply(intent.Reply, intent.Changes, summary)
+	finalizeCoEditEventProcessed(eventID, reply, summary)
+}
 
+func normalizeCoEditAssistantReply(rawReply string, changes *lifeagent.ModifyIntentChanges, summary string) string {
+	reply := strings.TrimSpace(rawReply)
+	if strings.Contains(reply, "无修改需求") {
+		reply = ""
+	}
+	hasKnowledge := changes != nil && len(changes.KnowledgeAdd) > 0
+	if reply != "" {
+		return reply
+	}
+	switch {
+	case summary != "" && hasKnowledge:
+		return "已记成一条新知识，并更新了相关设置。"
+	case hasKnowledge:
+		return "已记成一条新知识。"
+	case summary != "":
+		return "好的，我按你的意思更新了。"
+	default:
+		return "好的，这条暂未入库。"
+	}
+}
+
+func finalizeCoEditEventProcessed(eventID, reply, summary string) {
 	now := time.Now().UTC()
 	updates := map[string]interface{}{
 		"status":            "processed",
@@ -2174,8 +2201,11 @@ func LifeAgentsCoEditEvents(cfg *config.Config) gin.HandlerFunc {
 //
 // 实测能把输入 token 从 3000+ 压到 600~1000，速度提升 3~5 倍，且因为
 // "lost in the middle" 现象的减弱，表现力反而更稳。
-func buildModifyStateString(p *models.LifeAgentProfile, entries []models.LifeAgentKnowledgeEntry, userMessage string) string {
+func buildModifyStateString(p *models.LifeAgentProfile, entries []models.LifeAgentKnowledgeEntry, userMessage string, recordedAt *time.Time) string {
 	var b strings.Builder
+	if recordedAt != nil {
+		b.WriteString(fmt.Sprintf("本条调教时间: %s\n", lifeagent.FormatCoEditRecordedAt(*recordedAt)))
+	}
 	b.WriteString(fmt.Sprintf("名称: %s\n", p.DisplayName))
 	b.WriteString(fmt.Sprintf("一句话介绍: %s\n", p.Headline))
 	b.WriteString(fmt.Sprintf("目标人群: %s\n", p.Audience))
@@ -3527,7 +3557,7 @@ func LifeAgentsImportChat(cfg *config.Config) gin.HandlerFunc {
 		var entries []models.LifeAgentKnowledgeEntry
 		db.DB.Where("profile_id = ?", id).Order("sort_order").Find(&entries)
 		// 聊天记录导入场景没有单条用户消息，传空串走"仅列标题"模式即可。
-		state := buildModifyStateString(&p, entries, "")
+		state := buildModifyStateString(&p, entries, "", nil)
 
 		// Build chat summary for LLM
 		chatSummary := lifeagent.BuildChatSummaryForLLM(parseResult, targetName)

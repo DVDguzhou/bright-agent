@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 
 	openai "github.com/sashabaranov/go-openai"
 )
@@ -67,12 +68,13 @@ func InterpretModificationIntent(ctx context.Context, apiKey, model, baseURL str
 }
 
 规则：
-1. 只有当用户明确表达修改意图时，才在 changes 里填对应字段；没有要改的字段不要写。
-2. 用户说"改成"、"更新为"、"换成"时，替换整个字段；说"加上"、"添加"时，对数组做追加（knowledgeAdd 用于新增知识条目）。
-3. expertiseTags、sampleQuestions 最多 8/6 个；exampleReplies 最多 3 个；forbiddenPhrases 最多 8 个。
-4. 若用户只是询问状态或闲聊、没有修改意图，reply 正常回复，changes 设为 null。
-5. reply 控制在 30 字以内的一句话回执，不要重复用户原话。
-6. 只输出这一个 JSON 对象，不要 markdown 代码块、不要额外说明。`
+1. 【入库决策】你必须对「用户新消息」逐条判断：是否应写入 knowledgeAdd。这是调教的核心；不要默认全部入库，也不要默认全部不入库。
+2. 【应入库】个人经历、观点、技巧、故事、可帮助他人回答的具体信息；用户明确要求「记录/添加/记住」的内容；**当下状态/进行时描述**（如「正在…」「我现在…」「刚才…」），用于说明某时某刻在做什么——category 用「状态」，title 概括当时在做什么，content 写清时间与状态（可引用「本条调教时间」）。
+3. 【不入库】纯寒暄（你好/谢谢/在吗）、**仅询问 Agent 系统元信息**（有多少条知识/几个标签/当前列表）、明确跳过（暂无/无/没有/跳过）、与知识库已有条目含义完全重复的内容。
+4. 【改字段】用户说「改成/更新/换成」时替换对应 profile 字段；说「加上/添加」时对数组追加。expertiseTags、sampleQuestions 最多 8/6 个；exampleReplies 最多 3 个；forbiddenPhrases 最多 8 个。
+5. 【回复】reply 30 字内：入库了说「已记成一条新知识」；未入库简要说明原因；改了字段说「已更新 xxx」。禁止回复「无修改需求」。
+6. 若无任何变更（既无 knowledgeAdd 也无字段修改），changes 设为 null。
+7. 只输出这一个 JSON 对象，不要 markdown 代码块、不要额外说明。`
 
 	userContent := fmt.Sprintf("【当前 Agent 状态】\n%s\n\n【用户新消息】\n%s", currentState, userMessage)
 
@@ -137,5 +139,40 @@ func extractJSON(s string) string {
 		}
 	}
 	return s[start:]
+}
+
+var coEditRecordLoc = func() *time.Location {
+	loc, err := time.LoadLocation("Asia/Shanghai")
+	if err != nil {
+		return time.FixedZone("CST", 8*3600)
+	}
+	return loc
+}()
+
+// FormatCoEditRecordedAt 调教入库用的时间标注（东八区）。
+func FormatCoEditRecordedAt(t time.Time) string {
+	return t.In(coEditRecordLoc).Format("2006-01-02 15:04")
+}
+
+// StampKnowledgeAddRecordedAt 为 AI 决定入库的条目补上记录时间前缀，便于追溯「何时在做什么」。
+func StampKnowledgeAddRecordedAt(ch *ModifyIntentChanges, recordedAt time.Time) {
+	if ch == nil || len(ch.KnowledgeAdd) == 0 {
+		return
+	}
+	stamp := FormatCoEditRecordedAt(recordedAt)
+	prefix := "[" + stamp + "] "
+	for i := range ch.KnowledgeAdd {
+		add := &ch.KnowledgeAdd[i]
+		content := strings.TrimSpace(add.Content)
+		if content == "" {
+			continue
+		}
+		if !strings.HasPrefix(content, "[") || !strings.Contains(content, stamp[:10]) {
+			add.Content = prefix + content
+		}
+		if strings.TrimSpace(add.Category) == "" {
+			add.Category = "经验"
+		}
+	}
 }
 
