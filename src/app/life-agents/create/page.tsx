@@ -24,6 +24,7 @@ import {
   type LifeAgentCreateDraftV1,
 } from "@/lib/life-agent-create-draft";
 import { cleanLifeAgentIntroText } from "@/lib/life-agent-intro-clean";
+import { notifyLifeAgentOwnedChange } from "@/lib/bound-life-agents";
 import {
   CHAT_PAGE_BACKGROUND_CLASSNAME,
   CHAT_SCROLL_SURFACE_CLASSNAME,
@@ -1389,6 +1390,7 @@ export default function CreateLifeAgentPage() {
 
     const newId = data.id;
     if (user?.id) clearLifeAgentCreateDraft(user.id);
+    notifyLifeAgentOwnedChange();
     if (newId && voiceSampleBase64 && !voiceSkipped && !data.voiceCloneId) {
       try {
         sessionStorage.setItem(`la-voice-warn:${newId}`, "1");

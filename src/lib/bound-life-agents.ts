@@ -30,3 +30,11 @@ export async function fetchBoundLifeAgents(signal?: AbortSignal): Promise<BoundL
   }
   return out;
 }
+
+export const LIFE_AGENT_OWNED_CHANGE_EVENT = "life-agent-owned-change";
+
+/** 创建/删除名下 Agent 后通知全局 UI（如发现页 FAB）刷新绑定列表。 */
+export function notifyLifeAgentOwnedChange(): void {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new Event(LIFE_AGENT_OWNED_CHANGE_EVENT));
+}

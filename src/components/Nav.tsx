@@ -6,7 +6,7 @@ import Image from "next/image";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
-import { fetchBoundLifeAgents, type BoundLifeAgent } from "@/lib/bound-life-agents";
+import { fetchBoundLifeAgents, LIFE_AGENT_OWNED_CHANGE_EVENT, type BoundLifeAgent } from "@/lib/bound-life-agents";
 import { useMobileTouchNavEnabled } from "@/hooks/use-life-agents-feed-gestures";
 import { lifeAgentShowsPurchaseUi } from "@/lib/life-agent-commerce";
 import {
@@ -512,6 +512,21 @@ export function Nav() {
         setOwnedLifeAgents([]);
       });
     return () => controller.abort();
+  }, [user, pathname]);
+
+  useEffect(() => {
+    if (!user) return;
+    const refreshOwned = () => {
+      fetchBoundLifeAgents()
+        .then((agents) => {
+          setOwnedLifeAgents(agents);
+        })
+        .catch(() => {
+          setOwnedLifeAgents([]);
+        });
+    };
+    window.addEventListener(LIFE_AGENT_OWNED_CHANGE_EVENT, refreshOwned);
+    return () => window.removeEventListener(LIFE_AGENT_OWNED_CHANGE_EVENT, refreshOwned);
   }, [user]);
 
   const logout = async () => {
