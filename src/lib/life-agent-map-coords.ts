@@ -262,8 +262,8 @@ function lookup(name: string | undefined | null): [number, number] | null {
 function jitter(id: string, base: [number, number]): [number, number] {
   let h = 0;
   for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) | 0;
-  const dLat = ((Math.abs(h) % 1000) / 1000 - 0.5) * 0.14;
-  const dLng = ((Math.abs(h >> 9) % 1000) / 1000 - 0.5) * 0.14;
+  const dLat = ((Math.abs(h) % 1000) / 1000 - 0.5) * 0.04;
+  const dLng = ((Math.abs(h >> 9) % 1000) / 1000 - 0.5) * 0.06;
   return [base[0] + dLat, base[1] + dLng];
 }
 
