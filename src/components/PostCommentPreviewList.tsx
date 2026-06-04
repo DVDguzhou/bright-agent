@@ -83,7 +83,7 @@ export function PostCommentPreviewList({
   postId: string;
   totalCount: number;
 }) {
-  if (comments.length === 0) return null;
+  if (comments.length === 0 && totalCount === 0) return null;
 
   return (
     <div className="mt-2.5 space-y-2">

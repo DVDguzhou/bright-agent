@@ -18,6 +18,7 @@ interface ApiPost {
   authorEmail: string;
   authorId: string;
   authorAvatarUrl?: string;
+  authorAgentProfileId?: string;
   createdAt: string;
   updatedAt: string;
   likes: number;
@@ -121,7 +122,7 @@ export default function PostsPage() {
     void fetchPosts();
   }, [fetchPosts]);
 
-  // 首次加载 + 切换 tab 时重置并重新拉取
+  // 首次加载 + 切换 tab 时重置并重新拉取；加载完成后恢复滚动位置
   useEffect(() => {
     setLoaded(false);
     setPosts([]);
@@ -129,6 +130,26 @@ export default function PostsPage() {
     setHasMore(false);
     void fetchPosts();
   }, [fetchPosts]);
+
+  // 恢复滚动位置（仅 plaza tab，返回时使用）
+  useEffect(() => {
+    if (!loaded || tab !== "plaza") return;
+    const saved = sessionStorage.getItem("posts-scroll-y");
+    if (saved) {
+      sessionStorage.removeItem("posts-scroll-y");
+      requestAnimationFrame(() => window.scrollTo({ top: Number(saved), behavior: "instant" }));
+    }
+  }, [loaded, tab]);
+
+  // 离开页面时保存滚动位置
+  useEffect(() => {
+    const saveScroll = () => sessionStorage.setItem("posts-scroll-y", String(window.scrollY));
+    window.addEventListener("beforeunload", saveScroll);
+    return () => {
+      saveScroll();
+      window.removeEventListener("beforeunload", saveScroll);
+    };
+  }, []);
 
   // 滚动到底部加载更多
   useEffect(() => {
@@ -348,12 +369,23 @@ export default function PostsPage() {
             {/* Author + actions */}
             <div className="mb-2 flex items-center justify-between gap-2">
               <div className="flex items-center gap-2.5 min-w-0">
-                <UserAvatar
-                  avatarUrl={post.authorAvatarUrl}
-                  name={post.authorName}
-                  email={post.authorEmail}
-                  className="ring-0"
-                />
+                {post.authorAgentProfileId ? (
+                  <Link href={`/life-agents/${post.authorAgentProfileId}`} className="shrink-0">
+                    <UserAvatar
+                      avatarUrl={post.authorAvatarUrl}
+                      name={post.authorName}
+                      email={post.authorEmail}
+                      className="ring-0"
+                    />
+                  </Link>
+                ) : (
+                  <UserAvatar
+                    avatarUrl={post.authorAvatarUrl}
+                    name={post.authorName}
+                    email={post.authorEmail}
+                    className="ring-0"
+                  />
+                )}
                 <div className="min-w-0">
                   <p className="flex items-center gap-1.5 truncate text-sm font-semibold text-ink">
                     {post.authorName}

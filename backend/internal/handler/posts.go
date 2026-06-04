@@ -36,20 +36,21 @@ type postUpdateReq struct {
 }
 
 type postResponse struct {
-	ID              string   `json:"id"`
-	Content         string   `json:"content"`
-	Images          []string `json:"images"`
-	Visibility      string   `json:"visibility"`
-	AuthorName      string   `json:"authorName"`
-	AuthorEmail     string   `json:"authorEmail"`
-	AuthorID        string   `json:"authorId"`
-	AuthorAvatarUrl string   `json:"authorAvatarUrl,omitempty"`
-	CreatedAt       string   `json:"createdAt"`
-	UpdatedAt       string   `json:"updatedAt"`
-	Likes           int      `json:"likes"`
-	CommentsCount   int      `json:"commentsCount"`
-	LikedByMe       bool              `json:"likedByMe"`
-	PreviewComments []commentResponse `json:"previewComments,omitempty"`
+	ID                    string   `json:"id"`
+	Content               string   `json:"content"`
+	Images                []string `json:"images"`
+	Visibility            string   `json:"visibility"`
+	AuthorName            string   `json:"authorName"`
+	AuthorEmail           string   `json:"authorEmail"`
+	AuthorID              string   `json:"authorId"`
+	AuthorAvatarUrl       string   `json:"authorAvatarUrl,omitempty"`
+	AuthorAgentProfileID  string   `json:"authorAgentProfileId,omitempty"`
+	CreatedAt             string   `json:"createdAt"`
+	UpdatedAt             string   `json:"updatedAt"`
+	Likes                 int      `json:"likes"`
+	CommentsCount         int      `json:"commentsCount"`
+	LikedByMe             bool              `json:"likedByMe"`
+	PreviewComments       []commentResponse `json:"previewComments,omitempty"`
 }
 
 type commentResponse struct {
@@ -316,6 +317,18 @@ func PostsList(cfg *config.Config) gin.HandlerFunc {
 		userMap := buildUserMap(userIDs)
 		avatarMap := buildUserDisplayAvatarMap(userIDs)
 
+		// 批量查作者对应的 life agent profile（每人取第一个已发布的）
+		authorAgentProfileMap := make(map[string]string)
+		if len(userIDs) > 0 {
+			var agentProfiles []models.LifeAgentProfile
+			db.DB.Select("id, user_id").Where("user_id IN ? AND published = 1", userIDs).Order("created_at ASC").Find(&agentProfiles)
+			for _, ap := range agentProfiles {
+				if _, exists := authorAgentProfileMap[ap.UserID]; !exists {
+					authorAgentProfileMap[ap.UserID] = ap.ID
+				}
+			}
+		}
+
 		// 当前用户点赞状态
 		likedMap := likedPostIDs("", []string{})
 		if currentUser != nil {
@@ -335,20 +348,21 @@ func PostsList(cfg *config.Config) gin.HandlerFunc {
 				authorEmail = u.Email
 			}
 			resp = append(resp, postResponse{
-				ID:              p.ID,
-				Content:         p.Content,
-				Images:          p.Images,
-				Visibility:      models.NormalizePostVisibility(p.Visibility),
-				AuthorName:      authorName,
-				AuthorEmail:     authorEmail,
-				AuthorID:        p.UserID,
-				AuthorAvatarUrl: authorAvatarUrl,
-				CreatedAt:       p.CreatedAt.Format(time.RFC3339),
-				UpdatedAt:       p.UpdatedAt.Format(time.RFC3339),
-				Likes:           p.Likes,
-				CommentsCount:   p.CommentsCount,
-				LikedByMe:       likedMap[p.ID],
-				PreviewComments: previewMap[p.ID],
+				ID:                   p.ID,
+				Content:              p.Content,
+				Images:               p.Images,
+				Visibility:           models.NormalizePostVisibility(p.Visibility),
+				AuthorName:           authorName,
+				AuthorEmail:          authorEmail,
+				AuthorID:             p.UserID,
+				AuthorAvatarUrl:      authorAvatarUrl,
+				AuthorAgentProfileID: authorAgentProfileMap[p.UserID],
+				CreatedAt:            p.CreatedAt.Format(time.RFC3339),
+				UpdatedAt:            p.UpdatedAt.Format(time.RFC3339),
+				Likes:                p.Likes,
+				CommentsCount:        p.CommentsCount,
+				LikedByMe:            likedMap[p.ID],
+				PreviewComments:      previewMap[p.ID],
 			})
 		}
 
