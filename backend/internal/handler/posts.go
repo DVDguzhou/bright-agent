@@ -67,21 +67,22 @@ type commentResponse struct {
 }
 
 type postDetailResponse struct {
-	ID              string            `json:"id"`
-	Content         string            `json:"content"`
-	Images          []string          `json:"images"`
-	Visibility      string            `json:"visibility"`
-	AuthorName      string            `json:"authorName"`
-	AuthorEmail     string            `json:"authorEmail"`
-	AuthorID        string            `json:"authorId"`
-	AuthorAvatarUrl string            `json:"authorAvatarUrl,omitempty"`
-	CreatedAt       string            `json:"createdAt"`
-	UpdatedAt       string            `json:"updatedAt"`
-	Likes           int               `json:"likes"`
-	CommentsCount   int               `json:"commentsCount"`
-	LikedByMe       bool              `json:"likedByMe"`
-	Comments        []commentResponse `json:"comments"`
-	AgentReplies    []commentResponse `json:"agentReplies"`
+	ID                   string            `json:"id"`
+	Content              string            `json:"content"`
+	Images               []string          `json:"images"`
+	Visibility           string            `json:"visibility"`
+	AuthorName           string            `json:"authorName"`
+	AuthorEmail          string            `json:"authorEmail"`
+	AuthorID             string            `json:"authorId"`
+	AuthorAvatarUrl      string            `json:"authorAvatarUrl,omitempty"`
+	AuthorAgentProfileID string            `json:"authorAgentProfileId,omitempty"`
+	CreatedAt            string            `json:"createdAt"`
+	UpdatedAt            string            `json:"updatedAt"`
+	Likes                int               `json:"likes"`
+	CommentsCount        int               `json:"commentsCount"`
+	LikedByMe            bool              `json:"likedByMe"`
+	Comments             []commentResponse `json:"comments"`
+	AgentReplies         []commentResponse `json:"agentReplies"`
 }
 
 // ---------- Helpers ----------
@@ -397,6 +398,13 @@ func PostsGet(cfg *config.Config) gin.HandlerFunc {
 		db.DB.First(&author, "id = ?", post.UserID)
 		authorName := authorNameFromUser(author)
 
+		// 查作者的 life agent profile
+		authorAgentProfileID := ""
+		var authorAgentProfile models.LifeAgentProfile
+		if err := db.DB.Select("id").Where("user_id = ? AND published = 1", post.UserID).Order("created_at ASC").First(&authorAgentProfile).Error; err == nil {
+			authorAgentProfileID = authorAgentProfile.ID
+		}
+
 		likedByMe := false
 		if currentUser != nil {
 			var count int64
@@ -464,21 +472,22 @@ func PostsGet(cfg *config.Config) gin.HandlerFunc {
 		}
 
 		c.JSON(http.StatusOK, postDetailResponse{
-			ID:              post.ID,
-			Content:         post.Content,
-			Images:          post.Images,
-			Visibility:      models.NormalizePostVisibility(post.Visibility),
-			AuthorName:      authorName,
-			AuthorEmail:     author.Email,
-			AuthorID:        post.UserID,
-			AuthorAvatarUrl: commentAvatarMap[post.UserID],
-			CreatedAt:       post.CreatedAt.Format(time.RFC3339),
-			UpdatedAt:       post.UpdatedAt.Format(time.RFC3339),
-			Likes:           post.Likes,
-			CommentsCount:   post.CommentsCount,
-			LikedByMe:       likedByMe,
-			Comments:        commentResp,
-			AgentReplies:    agentReplyResp,
+			ID:                   post.ID,
+			Content:              post.Content,
+			Images:               post.Images,
+			Visibility:           models.NormalizePostVisibility(post.Visibility),
+			AuthorName:           authorName,
+			AuthorEmail:          author.Email,
+			AuthorID:             post.UserID,
+			AuthorAvatarUrl:      commentAvatarMap[post.UserID],
+			AuthorAgentProfileID: authorAgentProfileID,
+			CreatedAt:            post.CreatedAt.Format(time.RFC3339),
+			UpdatedAt:            post.UpdatedAt.Format(time.RFC3339),
+			Likes:                post.Likes,
+			CommentsCount:        post.CommentsCount,
+			LikedByMe:            likedByMe,
+			Comments:             commentResp,
+			AgentReplies:         agentReplyResp,
 		})
 	}
 }

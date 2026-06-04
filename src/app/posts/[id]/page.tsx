@@ -32,6 +32,7 @@ interface PostDetail {
   authorEmail: string;
   authorId: string;
   authorAvatarUrl?: string;
+  authorAgentProfileId?: string;
   createdAt: string;
   updatedAt: string;
   likes: number;
@@ -214,11 +215,21 @@ export default function PostDetailPage() {
       <div className="rounded-[20px] bg-paper p-4 shadow-sm ring-1 ring-hairline/40">
         {/* Author */}
         <div className="mb-3 flex items-center gap-2.5">
-          <UserAvatar
-            avatarUrl={post.authorAvatarUrl}
-            name={post.authorName}
-            email={post.authorEmail}
-          />
+          {post.authorAgentProfileId ? (
+            <Link href={`/life-agents/${post.authorAgentProfileId}`} className="shrink-0">
+              <UserAvatar
+                avatarUrl={post.authorAvatarUrl}
+                name={post.authorName}
+                email={post.authorEmail}
+              />
+            </Link>
+          ) : (
+            <UserAvatar
+              avatarUrl={post.authorAvatarUrl}
+              name={post.authorName}
+              email={post.authorEmail}
+            />
+          )}
           <div className="min-w-0">
             <p className="flex items-center gap-1.5 truncate text-sm font-semibold text-ink">
               {post.authorName}
