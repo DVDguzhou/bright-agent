@@ -57,7 +57,7 @@ export async function startMapGeolocationWatch(handlers: {
     }
 
     const id = await Geolocation.watchPosition(
-      { enableHighAccuracy: true, timeout: 25000, maximumAge: 20000 },
+      { enableHighAccuracy: false, timeout: 25000, maximumAge: 60000 },
       (position, err) => {
         if (err) {
           handlers.onError(formatCapacitorCallbackError(err));
@@ -95,7 +95,7 @@ export async function startMapGeolocationWatch(handlers: {
     (geoErr) => {
       handlers.onError(formatWebGeolocationError(geoErr));
     },
-    { enableHighAccuracy: true, maximumAge: 20000, timeout: 25000 }
+    { enableHighAccuracy: false, maximumAge: 60000, timeout: 25000 }
   );
 
   return {

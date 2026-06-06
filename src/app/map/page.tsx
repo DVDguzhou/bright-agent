@@ -11,14 +11,24 @@ import { useAuth } from "@/contexts/AuthContext";
 import { fetchBoundLifeAgents, type BoundLifeAgent } from "@/lib/bound-life-agents";
 import { startMapGeolocationWatch, type MapGeoWatchHandle } from "@/lib/map-geolocation-watch";
 import {
+  agentsWithinKm,
+  NEARBY_RADIUS_FUZZY_KM,
+  openAgentOnMap,
+  type AgentWithDistance,
+} from "@/lib/map-pin-distance";
+import {
   clearMapGpsPreferences,
+  clearMapUserLocation,
   readMapShareEnabled,
   readMapShareProfileId,
+  readMapUserLocation,
   writeMapShareEnabled,
   writeMapShareProfileId,
+  writeMapUserLocation,
 } from "@/lib/map-gps-storage";
 import { cleanLifeAgentIntroText } from "@/lib/life-agent-intro-clean";
 import { resolveLifeAgentCoverUrl } from "@/lib/life-agent-covers";
+import { getLifeAgentLatLng } from "@/lib/life-agent-map-coords";
 
 const LifeAgentsMapView = dynamic(() => import("@/components/LifeAgentsMapView"), {
   ssr: false,
@@ -46,8 +56,10 @@ export default function MapPage() {
   const geoWatchRef = useRef<MapGeoWatchHandle | null>(null);
   const firstGeoFitRef = useRef(false);
   const [sheetPortalReady, setSheetPortalReady] = useState(false);
-  const [exploreAgents, setExploreAgents] = useState<MapAgentMarker[]>([]);
+  const [exploreAgents, setExploreAgents] = useState<AgentWithDistance<MapAgentMarker>[]>([]);
   const [exploreOpen, setExploreOpen] = useState(false);
+  const [exploreTitle, setExploreTitle] = useState("此区域的 Agent");
+  const [locating, setLocating] = useState(false);
 
   useEffect(() => {
     setSheetPortalReady(true);
@@ -64,6 +76,11 @@ export default function MapPage() {
 
   useEffect(() => {
     setSelectedProfileId(readMapShareProfileId());
+    setShareEnabled(readMapShareEnabled());
+    const saved = readMapUserLocation();
+    if (saved && readMapShareEnabled()) {
+      setUserLatLng(saved);
+    }
   }, []);
 
   useEffect(() => {
@@ -115,10 +132,8 @@ export default function MapPage() {
     if (!user || boundAgents.length === 0) return;
     const id = readMapShareProfileId();
     if (id && !boundAgents.some((b) => b.id === id)) {
-      clearMapGpsPreferences();
+      writeMapShareProfileId(null);
       setSelectedProfileId(null);
-      setShareEnabled(false);
-      setUserLatLng(null);
     }
   }, [user, boundAgents]);
 
@@ -130,19 +145,13 @@ export default function MapPage() {
 
   useEffect(() => {
     if (authLoading) return;
-    if (!user) {
-      void stopWatch();
-      setUserLatLng(null);
-      setShareEnabled(false);
+    if (user) {
       setSelectedProfileId(readMapShareProfileId());
-      return;
     }
-    setSelectedProfileId(readMapShareProfileId());
-    setShareEnabled(readMapShareEnabled());
-  }, [user, authLoading, stopWatch]);
+  }, [user, authLoading]);
 
   useEffect(() => {
-    if (!shareEnabled || !selectedProfileId || !user) {
+    if (!shareEnabled) {
       void stopWatch();
       setUserLatLng(null);
       firstGeoFitRef.current = false;
@@ -150,6 +159,7 @@ export default function MapPage() {
     }
 
     let cancelled = false;
+    setLocating(true);
 
     void (async () => {
       try {
@@ -161,7 +171,9 @@ export default function MapPage() {
           onSuccess: (c) => {
             if (cancelled) return;
             setUserLatLng(c);
+            writeMapUserLocation(c.lat, c.lng);
             setGeoError(null);
+            setLocating(false);
             if (!firstGeoFitRef.current) {
               firstGeoFitRef.current = true;
               setMapLayoutNonce((n) => n + 1);
@@ -172,6 +184,8 @@ export default function MapPage() {
             setGeoError(msg);
             setShareEnabled(false);
             writeMapShareEnabled(false);
+            clearMapUserLocation();
+            setLocating(false);
             void stopWatch();
             setUserLatLng(null);
           },
@@ -186,6 +200,7 @@ export default function MapPage() {
         setGeoError(e instanceof Error ? e.message : "定位启动失败");
         setShareEnabled(false);
         writeMapShareEnabled(false);
+        setLocating(false);
       }
     })();
 
@@ -193,7 +208,7 @@ export default function MapPage() {
       cancelled = true;
       void stopWatch();
     };
-  }, [shareEnabled, selectedProfileId, user, stopWatch]);
+  }, [shareEnabled, stopWatch]);
 
   const rememberedAgentLabel = useMemo(() => {
     if (!selectedProfileId) return null;
@@ -211,6 +226,17 @@ export default function MapPage() {
     );
   }, [agents, search]);
 
+  const nearbyAgents = useMemo(() => {
+    if (!shareEnabled || !userLatLng) return [];
+    return agentsWithinKm(filteredAgents, userLatLng.lat, userLatLng.lng, NEARBY_RADIUS_FUZZY_KM);
+  }, [shareEnabled, userLatLng, filteredAgents]);
+
+  const nearbyLabel = useMemo(() => {
+    if (!shareEnabled || !userLatLng) return null;
+    if (nearbyAgents.length > 0) return `大致附近 ${nearbyAgents.length} 个 Agent`;
+    return `${NEARBY_RADIUS_FUZZY_KM} 公里内暂无 Agent`;
+  }, [shareEnabled, userLatLng, nearbyAgents.length]);
+
   const isLikelyWeChat = useMemo(() => {
     if (typeof navigator === "undefined") return false;
     return /MicroMessenger/i.test(navigator.userAgent);
@@ -226,10 +252,51 @@ export default function MapPage() {
   const openSheet = useCallback(() => setSheetOpen(true), []);
   const closeSheet = useCallback(() => setSheetOpen(false), []);
 
-  const handleExploreArea = useCallback((visible: MapAgentMarker[]) => {
-    setExploreAgents(visible);
+  const handleExploreArea = useCallback(
+    (visible: MapAgentMarker[]) => {
+      if (shareEnabled && userLatLng) {
+        setExploreAgents(
+          agentsWithinKm(visible, userLatLng.lat, userLatLng.lng, NEARBY_RADIUS_FUZZY_KM)
+        );
+      } else {
+        setExploreAgents(
+          visible.map((a) => {
+            const [mapLat, mapLng] = getLifeAgentLatLng(a);
+            return {
+              ...a,
+              mapLat,
+              mapLng,
+              distanceKm: 0,
+              distanceLabel: "",
+            };
+          })
+        );
+      }
+      setExploreTitle("此区域的 Agent");
+      setExploreOpen(true);
+    },
+    [shareEnabled, userLatLng]
+  );
+
+  const openNearbyList = useCallback(() => {
+    if (!nearbyAgents.length) {
+      openSheet();
+      return;
+    }
+    setExploreAgents(nearbyAgents);
+    setExploreTitle("身边的 Agent");
     setExploreOpen(true);
-  }, []);
+  }, [nearbyAgents, openSheet]);
+
+  const handleExplorePress = useCallback((): boolean => {
+    if (shareEnabled && nearbyAgents.length > 0) {
+      setExploreAgents(nearbyAgents);
+      setExploreTitle("身边的 Agent");
+      setExploreOpen(true);
+      return true;
+    }
+    return false;
+  }, [shareEnabled, nearbyAgents]);
   const closeExplore = useCallback(() => setExploreOpen(false), []);
 
   const pickAgent = (id: string) => {
@@ -239,10 +306,6 @@ export default function MapPage() {
   };
 
   const enableSharing = () => {
-    if (!selectedProfileId) {
-      setGeoError("请先选择一个你自己创建的 Agent");
-      return;
-    }
     setGeoError(null);
     setShareEnabled(true);
     writeMapShareEnabled(true);
@@ -252,6 +315,7 @@ export default function MapPage() {
     void stopWatch();
     setShareEnabled(false);
     writeMapShareEnabled(false);
+    clearMapUserLocation();
     setUserLatLng(null);
     firstGeoFitRef.current = false;
     setMapLayoutNonce((n) => n + 1);
@@ -324,8 +388,11 @@ export default function MapPage() {
             allAgents={agents}
             className="flex-1 rounded-none ring-0"
             highlightAgentId={highlightId}
-            userLatLng={userLatLng}
+            userLatLng={shareEnabled ? userLatLng : null}
+            nearbyLabel={nearbyLabel}
+            onNearbyBannerClick={openNearbyList}
             onLocatePress={openSheet}
+            onExplorePress={handleExplorePress}
             onExploreArea={handleExploreArea}
             showLocateButton
             mapHeightClass="h-[calc(100dvh-env(safe-area-inset-bottom)-7.5rem)] min-h-[320px] sm:h-[min(72vh,640px)]"
@@ -364,20 +431,78 @@ export default function MapPage() {
                     <div className="shrink-0 px-4 pb-2 pt-3">
                       <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-paper-300" />
                       <h2 id="map-gps-sheet-title" className="text-lg font-bold text-ink">
-                        位置与绑定 Agent
+                        附近 Agent
                       </h2>
                       <p className="mt-2 text-sm leading-relaxed text-ink-400">
-                        只能绑定<strong className="font-semibold text-ink-600">你自己创建</strong>
-                        的人生 Agent，不能选别人的。仅在本页显示大致位置并高亮该 Agent；同一时间只能选一个；坐标不会上传服务器。
+                        开启定位后，地图会显示你的大致位置，并按距离列出附近的 Agent，便于了解当地有谁可以咨询。位置仅在本机使用，不会上传服务器。
                       </p>
                     </div>
 
                     <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-2">
-                      {!user ? (
-                        <div className="space-y-4">
+                      <div className="space-y-3">
+                        <p className="text-sm font-semibold text-ink">查看身边的 Agent</p>
+                        {shareEnabled && nearbyLabel ? (
                           <p className="text-sm text-ink-500">
-                            登录后可从<strong className="font-semibold text-ink-700">你自己创建的</strong>
-                            人生 Agent 里选择并开启定位。未登录时仍会本机记住上次选中项，用于地图高亮（须是地图上仍展示的 Agent）。
+                            {nearbyLabel}
+                            <span className="text-ink-400">（大致范围）</span>
+                          </p>
+                        ) : null}
+                        {geoError ? (
+                          <div className="space-y-2 rounded-xl border border-oxblood-200 bg-paper-200/90 px-3 py-3 text-sm">
+                            <p className="text-oxblood-700">{geoError}</p>
+                            <button
+                              type="button"
+                              className="w-full rounded-xl bg-paper py-2.5 text-sm font-semibold text-oxblood-500 ring-1 ring-oxblood-500/40 active:bg-oxblood-50"
+                              onClick={() => {
+                                setGeoError(null);
+                                enableSharing();
+                              }}
+                            >
+                              重新尝试定位
+                            </button>
+                          </div>
+                        ) : null}
+                        {!shareEnabled ? (
+                          <button
+                            type="button"
+                            disabled={locating}
+                            className="w-full rounded-2xl bg-oxblood-500 py-3.5 text-sm font-semibold text-paper active:opacity-90 disabled:opacity-60"
+                            onClick={enableSharing}
+                          >
+                            {locating ? "定位中…" : "开启附近定位"}
+                          </button>
+                        ) : (
+                          <>
+                            {nearbyAgents.length > 0 ? (
+                              <button
+                                type="button"
+                                className="w-full rounded-2xl bg-oxblood-500 py-3.5 text-sm font-semibold text-paper active:opacity-90"
+                                onClick={() => {
+                                  openNearbyList();
+                                  closeSheet();
+                                }}
+                              >
+                                查看身边 {nearbyAgents.length} 个 Agent
+                              </button>
+                            ) : null}
+                            <button
+                              type="button"
+                              className="w-full rounded-2xl bg-paper-200 py-3.5 text-sm font-semibold text-ink-700 active:bg-paper-300"
+                              onClick={disableSharing}
+                            >
+                              关闭定位
+                            </button>
+                          </>
+                        )}
+                      </div>
+
+                      <div className="my-5 h-px bg-hairline/50" />
+
+                      <p className="text-sm font-semibold text-ink">高亮我创建的 Agent（可选）</p>
+                      {!user ? (
+                        <div className="mt-3 space-y-4">
+                          <p className="text-sm text-ink-500">
+                            登录后可选择你创建的 Agent，在地图上高亮显示。
                           </p>
                           {selectedProfileId ? (
                             <div className="rounded-2xl border border-oxblood-100 bg-oxblood-50/70 px-3 py-3 text-sm text-ink-600">
@@ -401,14 +526,14 @@ export default function MapPage() {
                                 closeSheet();
                               }}
                             >
-                              清除本机记住的 Agent
+                              清除高亮与定位
                             </button>
                           ) : null}
                         </div>
                       ) : boundAgents.length === 0 ? (
-                        <div className="space-y-4">
+                        <div className="mt-3 space-y-4">
                           <p className="text-sm text-ink-500">
-                            你还没有自己创建的人生 Agent。创建后即可在此绑定地图高亮与定位。
+                            你还没有自己创建的人生 Agent。创建后可在地图高亮显示。
                           </p>
                           <Link
                             href="/life-agents/create"
@@ -419,9 +544,9 @@ export default function MapPage() {
                           </Link>
                         </div>
                       ) : (
-                        <div className="flex flex-col gap-2 pr-1">
+                        <div className="mt-3 flex flex-col gap-2 pr-1">
                           <p className="pb-1 text-xs font-medium text-ink-500">
-                            点选下方一项即保存并高亮地图，无需再点「确定」。
+                            点选下方一项即可在地图上高亮。
                           </p>
                           {boundAgents.map((b) => {
                             const checked = selectedProfileId === b.id;
@@ -450,78 +575,38 @@ export default function MapPage() {
                               </label>
                             );
                           })}
+                          {selectedProfileId ? (
+                            <button
+                              type="button"
+                              className="mt-2 w-full rounded-2xl border border-hairline py-3 text-sm font-medium text-ink-500 active:bg-paper-50"
+                              onClick={clearBinding}
+                            >
+                              清除高亮与定位
+                            </button>
+                          ) : null}
                         </div>
                       )}
                     </div>
 
                     <div className="shrink-0 space-y-3 border-t border-hairline/50 bg-paper px-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-3">
-                      {user && boundAgents.length > 0 ? (
-                        <>
-                          <p className="text-center text-xs leading-relaxed text-ink-400">
-                            选 Agent 会马上保存并高亮地图。<strong className="font-semibold text-ink-500">「开启定位」</strong>
-                            只负责显示你的蓝点，失败也不影响已选 Agent；可随时点「完成」关闭。
-                          </p>
-                          <p className="text-center text-[11px] leading-snug text-ink-400">
-                            {isNativeApp ? (
-                              <>
-                                <span className="font-semibold text-ink-500">BrightAgent App：</span>
-                                定位走系统接口，首次会弹出授权。若一直失败，请到系统设置里为 BrightAgent 打开「位置」；若你刚更新了安装包仍不行，请确认已用最新版 App。
-                              </>
-                            ) : (
-                              <>
-                                <span className="font-semibold text-ink-500">手机浏览器：</span>
-                                尽量用 Safari / Chrome，并确认是 <strong className="text-ink-600">https</strong>
-                                ；系统「定位服务」总开关需开启。
-                                {isLikelyWeChat ? (
-                                  <span className="mt-1 block text-oxblood-700">
-                                    当前疑似在微信内：微信常限制网页定位，请点右上角「⋯」→「在浏览器中打开」。
-                                  </span>
-                                ) : null}
-                              </>
-                            )}
-                          </p>
-                          {geoError ? (
-                            <div className="space-y-2 rounded-xl border border-oxblood-200 bg-paper-200/90 px-3 py-3 text-sm">
-                              <p className="font-medium text-ink">已选中的 Agent 仍有效，仅「我的位置」蓝点未开启。</p>
-                              <p className="text-oxblood-700">{geoError}</p>
-                              <button
-                                type="button"
-                                className="w-full rounded-xl bg-paper py-2.5 text-sm font-semibold text-oxblood-500 ring-1 ring-oxblood-500/40 active:bg-oxblood-50"
-                                onClick={() => {
-                                  setGeoError(null);
-                                  enableSharing();
-                                }}
-                              >
-                                重新尝试定位
-                              </button>
-                            </div>
-                          ) : null}
-                          {!shareEnabled ? (
-                            <button
-                              type="button"
-                              className="w-full rounded-2xl bg-oxblood-500 py-3.5 text-sm font-semibold text-paper active:opacity-90"
-                              onClick={enableSharing}
-                            >
-                              开启定位（可选）
-                            </button>
-                          ) : (
-                            <button
-                              type="button"
-                              className="w-full rounded-2xl bg-paper-200 py-3.5 text-sm font-semibold text-ink-700 active:bg-paper-300"
-                              onClick={disableSharing}
-                            >
-                              关闭定位
-                            </button>
-                          )}
-                          <button
-                            type="button"
-                            className="w-full rounded-2xl border border-hairline py-3 text-sm font-medium text-ink-500 active:bg-paper-50"
-                            onClick={clearBinding}
-                          >
-                            清除选中 Agent 与定位偏好
-                          </button>
-                        </>
-                      ) : null}
+                      <p className="text-center text-[11px] leading-snug text-ink-400">
+                        {isNativeApp ? (
+                          <>
+                            <span className="font-semibold text-ink-500">BrightAgent App：</span>
+                            使用系统模糊定位，首次会弹出授权。
+                          </>
+                        ) : (
+                          <>
+                            <span className="font-semibold text-ink-500">浏览器：</span>
+                            请用 https 打开并允许位置权限；定位精度为大致范围，非精确 GPS。
+                            {isLikelyWeChat ? (
+                              <span className="mt-1 block text-oxblood-700">
+                                微信内可能限制网页定位，请「在浏览器中打开」。
+                              </span>
+                            ) : null}
+                          </>
+                        )}
+                      </p>
 
                       <button
                         type="button"
@@ -570,7 +655,7 @@ export default function MapPage() {
                       <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-paper-300" />
                       <div className="flex items-center justify-between">
                         <h2 id="explore-sheet-title" className="text-lg font-bold text-ink">
-                          此区域的 Agent
+                          {exploreTitle}
                         </h2>
                         <span className="text-sm text-ink-300">{exploreAgents.length} 个</span>
                       </div>
@@ -609,11 +694,34 @@ export default function MapPage() {
                                       {cleanLifeAgentIntroText(a.headline, a.displayName)}
                                     </p>
                                   ) : null}
-                                  {a.school ? (
+                                  {a.distanceLabel ? (
+                                    <p className="mt-0.5 text-[11px] font-medium text-oxblood-600">{a.distanceLabel}</p>
+                                  ) : a.school ? (
                                     <p className="mt-0.5 truncate text-[11px] text-ink-300">{a.school}</p>
                                   ) : null}
                                 </div>
-                                <svg className="h-4 w-4 shrink-0 text-ink-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+                                <div className="flex shrink-0 flex-col items-end gap-2">
+                                  {Number.isFinite(a.mapLat) && Number.isFinite(a.mapLng) ? (
+                                    <button
+                                      type="button"
+                                      className="text-[11px] font-semibold text-oxblood-600"
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        openAgentOnMap({
+                                          displayName: a.displayName,
+                                          mapLat: a.mapLat,
+                                          mapLng: a.mapLng,
+                                          city: a.city,
+                                          province: a.province,
+                                        });
+                                      }}
+                                    >
+                                      查看位置
+                                    </button>
+                                  ) : null}
+                                  <svg className="h-4 w-4 text-ink-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+                                </div>
                               </Link>
                             );
                           })}

@@ -287,8 +287,11 @@ type Props = {
   className?: string;
   highlightAgentId?: string | null;
   userLatLng?: { lat: number; lng: number } | null;
+  nearbyLabel?: string | null;
+  onNearbyBannerClick?: () => void;
   onLocatePress?: () => void;
   onExploreArea?: (agents: MapAgentMarker[]) => void;
+  onExplorePress?: () => boolean;
   showLocateButton?: boolean;
   mapHeightClass?: string;
   rounded?: boolean;
@@ -301,8 +304,11 @@ export default function LifeAgentsMapView({
   className = "",
   highlightAgentId = null,
   userLatLng = null,
+  nearbyLabel = null,
+  onNearbyBannerClick,
   onLocatePress,
   onExploreArea,
+  onExplorePress,
   showLocateButton = true,
   mapHeightClass = "h-[min(62dvh,520px)]",
   rounded = true,
@@ -365,6 +371,17 @@ export default function LifeAgentsMapView({
 
       <MapLegend />
 
+      {nearbyLabel && onNearbyBannerClick ? (
+        <button
+          type="button"
+          className="pointer-events-auto absolute bottom-[calc(4.5rem+env(safe-area-inset-bottom))] left-1/2 z-[420] flex max-w-[min(100%-1.5rem,24rem)] -translate-x-1/2 items-center justify-between gap-3 rounded-full bg-ink/90 px-4 py-2.5 text-left shadow-lg backdrop-blur-sm active:opacity-95"
+          onClick={onNearbyBannerClick}
+        >
+          <span className="truncate text-sm font-semibold text-paper">{nearbyLabel}</span>
+          <span className="shrink-0 text-xs text-paper/80">查看列表 ›</span>
+        </button>
+      ) : null}
+
       <div className="pointer-events-none absolute inset-0 z-[400]">
         <div className="pointer-events-auto absolute right-3 top-1/2 flex -translate-y-1/2 flex-col gap-2">
           {showLocateButton ? (
@@ -388,6 +405,8 @@ export default function LifeAgentsMapView({
               aria-label="探索此区域"
               title="探索此区域"
               onClick={() => {
+                if (onExplorePress?.()) return;
+                if (!onExploreArea) return;
                 const map = mapRef.current;
                 if (!map) return;
                 const bounds = map.getBounds();
