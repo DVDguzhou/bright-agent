@@ -1,0 +1,296 @@
+<view class="coedit-page">
+  <view class="status-bar" style="height: {{statusBarHeight}}px"></view>
+  <view class="coedit-header" style="height: {{navBarHeight}}px;">
+    <view class="header-btn" bindtap="goBack">
+      <view class="icon-back"></view>
+    </view>
+    <view class="header-center">
+      <text class="header-title font-serif">对话调教</text>
+    </view>
+    <text class="header-turn">已调教 {{turnCount}} 轮</text>
+  </view>
+
+  <view wx:if="{{loading}}" class="sub-loading">加载中…</view>
+  <view wx:elif="{{error}}" class="sub-error">
+    <text class="sub-error-text">{{error}}</text>
+    <button class="btn-primary" bindtap="retry">重新加载</button>
+  </view>
+
+  <view wx:else class="coedit-body">
+    <view class="coedit-hint-row">
+      <text class="coedit-hint">像聊天一样改资料，发送后会自动同步当前 Agent 状态。</text>
+      <text class="coedit-hint coedit-hint-muted">历史已保存到服务器，并同步本机缓存</text>
+    </view>
+
+    <view class="state-panel">
+      <view class="state-summary" bindtap="toggleStateOpen">
+        <view class="state-summary-text">
+          <text class="state-title">当前 Agent 状态</text>
+          <text class="state-sub">{{displayName}} · {{tagCount}} 个标签 · {{knowledgeCount}} 条知识</text>
+        </view>
+        <view class="state-summary-badges">
+          <mind-score-badge value="{{mindScore}}" size="sm" prefix=""></mind-score-badge>
+          <text wx:if="{{scoreFlash > 0}}" class="score-flash">+{{scoreFlash}}</text>
+          <text wx:if="{{hasLastChange}}" class="state-badge-new">刚更新</text>
+          <view class="state-chevron {{stateOpen ? 'open' : ''}}"></view>
+        </view>
+      </view>
+
+      <view wx:if="{{stateOpen}}" class="state-body">
+        <view class="state-grid">
+          <view class="state-field">
+            <text class="state-label">一句话介绍</text>
+            <textarea
+              class="state-input"
+              value="{{profileHeadline}}"
+              data-field="profileHeadline"
+              bindinput="onProfileInput"
+              maxlength="-1"
+              auto-height
+              placeholder="未设置"
+            ></textarea>
+          </view>
+          <view class="state-field">
+            <text class="state-label">欢迎语</text>
+            <textarea
+              class="state-input"
+              value="{{profileWelcome}}"
+              data-field="profileWelcome"
+              bindinput="onProfileInput"
+              maxlength="-1"
+              auto-height
+              placeholder="未设置"
+            ></textarea>
+          </view>
+          <view class="state-field state-field-full">
+            <text class="state-label">示范回答（每行一条）</text>
+            <textarea
+              class="state-input"
+              value="{{profileExamples}}"
+              data-field="profileExamples"
+              bindinput="onProfileInput"
+              maxlength="-1"
+              auto-height
+              placeholder="每行写一条示范回答"
+            ></textarea>
+          </view>
+        </view>
+
+        <view class="state-section">
+          <text class="state-label">擅长标签</text>
+          <view class="tag-chips">
+            <view
+              wx:for="{{categoryChips}}"
+              wx:key="label"
+              class="tag-chip {{item.selected ? 'selected' : ''}}"
+              style="background-color: {{item.color}}20; color: {{item.color}}; {{item.selected ? 'box-shadow: inset 0 0 0 2rpx ' + item.color : ''}}"
+              data-label="{{item.label}}"
+              bindtap="toggleCategory"
+            >{{item.label}}</view>
+          </view>
+        </view>
+
+        <view class="state-section">
+          <text class="state-label">人设与语气</text>
+          <view class="picker-row">
+            <picker mode="selector" range="{{personaOptions}}" value="{{personaIndex}}" bindchange="onPersonaChange">
+              <view class="state-picker">{{personaLabel}}</view>
+            </picker>
+            <picker mode="selector" range="{{toneOptions}}" value="{{toneIndex}}" bindchange="onToneChange">
+              <view class="state-picker">{{toneLabel}}</view>
+            </picker>
+            <picker mode="selector" range="{{responseOptions}}" value="{{responseIndex}}" bindchange="onResponseChange">
+              <view class="state-picker">{{responseLabel}}</view>
+            </picker>
+          </view>
+        </view>
+
+        <view class="state-field state-field-full">
+          <text class="state-label">不能回答的问题</text>
+          <textarea
+            class="state-input"
+            value="{{profileNotSuitable}}"
+            data-field="profileNotSuitable"
+            bindinput="onProfileInput"
+            maxlength="-1"
+            auto-height
+            placeholder="未设置"
+          ></textarea>
+        </view>
+
+        <view class="state-save-row">
+          <view
+            class="state-save-btn {{profileSaving || sending ? 'disabled' : ''}}"
+            bindtap="saveProfileFields"
+          >{{profileSaving ? '保存中…' : '保存资料修改'}}</view>
+        </view>
+
+        <view wx:if="{{hasLastChange}}" class="last-change-panel">
+          <text class="last-change-title">本次已影响字段</text>
+          <view class="last-change-tags">
+            <text wx:for="{{impactedFields}}" wx:key="*this" class="last-change-tag">{{item}}</text>
+          </view>
+          <text class="last-change-msg">最近指令：{{lastChangeMessage}}</text>
+          <view class="last-change-actions">
+            <view class="last-change-btn secondary" bindtap="keepLastChange">保留这次修改</view>
+            <view class="last-change-btn primary {{sending ? 'disabled' : ''}}" bindtap="undoLastChange">撤回上次修改</view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <scroll-view class="coedit-messages" scroll-y scroll-into-view="{{scrollTo}}" scroll-with-animation enhanced show-scrollbar="{{false}}">
+      <view wx:if="{{banner}}" class="coedit-banner">{{banner}}</view>
+
+      <view wx:if="{{showWelcome}}" class="msg-row assistant">
+        <image class="msg-avatar-img" src="{{agentCover}}" mode="aspectFill" binderror="onCoverError"></image>
+        <view class="bubble assistant-bubble glass">
+          <text user-select>{{welcomeMsg}}</text>
+        </view>
+      </view>
+
+      <view
+        wx:for="{{messages}}"
+        wx:for-item="msg"
+        wx:for-index="msgIdx"
+        wx:key="key"
+        id="msg-{{msgIdx}}"
+        class="msg-row {{msg.isUser ? 'user' : 'assistant'}}"
+      >
+        <block wx:if="{{!msg.isUser}}">
+          <image class="msg-avatar-img" src="{{agentCover}}" mode="aspectFill" binderror="onCoverError"></image>
+          <view class="bubble assistant-bubble glass {{msg.pending ? 'pending' : ''}} {{msg.failed ? 'failed' : ''}}">
+            <view wx:if="{{msg.pending}}" class="typing">
+              <view class="typing-spinner-wrap">
+                <view class="typing-spinner"></view>
+                <view class="typing-core"></view>
+              </view>
+              <text class="typing-label">{{msg.content || '正在理解中…'}}</text>
+            </view>
+            <view wx:elif="{{!msg.content && importLoading}}" class="typing">
+              <view class="typing-spinner-wrap">
+                <view class="typing-spinner"></view>
+                <view class="typing-core"></view>
+              </view>
+            </view>
+            <text wx:else user-select>{{msg.content}}</text>
+          </view>
+        </block>
+        <block wx:else>
+          <view class="user-col">
+            <view wx:if="{{msg.canRecall}}" class="recall-bar">
+              <view class="recall-btn" data-index="{{msgIdx}}" bindtap="openRetractMenu">
+                <view class="icon-recall"></view>
+              </view>
+            </view>
+            <view class="bubble user-bubble glass {{msg.retracted ? 'retracted' : ''}}">
+              <text user-select>{{msg.content}}</text>
+            </view>
+          </view>
+          <view class="msg-avatar-wrap user">
+            <image
+              wx:if="{{userAvatar}}"
+              class="msg-avatar-img user"
+              src="{{userAvatar}}"
+              mode="aspectFill"
+              binderror="onAvatarError"
+            ></image>
+            <text wx:else class="msg-avatar-fallback user">{{userInitial}}</text>
+          </view>
+        </block>
+      </view>
+      <view id="msg-bottom" style="height: 24rpx"></view>
+    </scroll-view>
+
+    <view wx:if="{{nextSuggestion}}" class="suggestion-card">
+      <view class="suggestion-head">
+        <text class="suggestion-title">{{nextSuggestion.title}}</text>
+        <view class="suggestion-close" bindtap="dismissNextSuggestion">×</view>
+      </view>
+      <text class="suggestion-reason">{{nextSuggestion.reason}}</text>
+      <view
+        class="suggestion-btn {{sending || importLoading ? 'disabled' : ''}}"
+        bindtap="useNextSuggestion"
+      >继续调教</view>
+    </view>
+
+    <view class="composer-wrap">
+      <view wx:if="{{moreOpen}}" class="more-panel">
+        <view class="more-item" bindtap="openImportModal">导入聊天记录</view>
+        <view class="more-item" bindtap="goManageHome">返回工作台</view>
+        <view class="more-item" bindtap="goEditProfile">去编辑资料</view>
+      </view>
+      <view class="composer-footer">
+        <view class="composer-row">
+          <view class="composer-pill">
+            <view class="composer-icon-btn" bindtap="toggleMore">
+              <view class="icon-more"></view>
+            </view>
+            <view
+              class="composer-icon-btn {{voiceRecording ? 'voice-active' : ''}} {{voiceTranscribing ? 'voice-busy' : ''}}"
+              catchtouchstart="onVoiceTouch"
+              catchtouchend="onVoiceTouch"
+              catchtouchcancel="onVoiceTouch"
+              catchtap="onVoiceTapHint"
+            >
+              <view class="icon-mic {{voiceRecording ? 'icon-mic-active' : ''}}"></view>
+            </view>
+            <textarea
+              class="composer-field"
+              value="{{input}}"
+              bindinput="onInput"
+              placeholder="{{sending ? 'AI 正在处理…' : '说想改什么，例如改欢迎语'}}"
+              maxlength="-1"
+              auto-height
+              show-confirm-bar="{{false}}"
+              adjust-position="{{true}}"
+              disabled="{{sending || importLoading}}"
+            ></textarea>
+          </view>
+          <view
+            class="send-btn {{sending || importLoading || !input ? 'disabled' : ''}}"
+            bindtap="sendMessage"
+          >发送</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{importProgress}}" class="import-progress-bar">{{importProgress}}</view>
+
+  <view wx:if="{{showRetractMenu}}" class="modal-mask" bindtap="closeRetractMenu">
+    <view class="modal-sheet" catchtap="noop">
+      <text class="modal-title">撤回消息</text>
+      <text class="modal-desc">仅隐藏本条对话；若已改 Agent 资料，请用上方「撤回上次修改」恢复。</text>
+      <view class="modal-actions">
+        <view class="modal-btn secondary" bindtap="closeRetractMenu">取消</view>
+        <view class="modal-btn primary" bindtap="confirmRetract">撤回</view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{importOpen}}" class="modal-mask" bindtap="closeImportModal">
+    <view class="modal-card import-modal" catchtap="noop">
+      <text class="modal-title-lg">导入聊天记录</text>
+      <text class="modal-desc">上传导出文件后，AI 会分析聊天风格与语气，并用于优化 Agent 人设与知识。</text>
+      <view class="import-file-btn" bindtap="chooseImportFile">
+        {{importFileName || '选择 HTML / CSV / TXT 文件'}}
+      </view>
+      <view wx:if="{{importParsing}}" class="import-status">正在解析文件…</view>
+      <view wx:if="{{importParseError}}" class="import-error">{{importParseError}}</view>
+      <view wx:if="{{importSenders.length > 0}}" class="import-senders">
+        <text class="state-label">选择要分析的发言人（共 {{importTotalMessages}} 条消息）</text>
+        <picker mode="selector" range="{{importSenders}}" value="{{importTargetIndex}}" bindchange="onImportTargetChange">
+          <view class="state-picker">{{importTargetName}}</view>
+        </picker>
+      </view>
+      <view class="modal-actions">
+        <view class="modal-btn secondary" bindtap="closeImportModal">取消</view>
+        <view
+          class="modal-btn primary {{!importFilePath || importSenders.length == 0 || importLoading ? 'disabled' : ''}}"
+          bindtap="confirmImport"
+        >开始导入</view>
+      </view>
+    </view>
+  </view>
+</view>

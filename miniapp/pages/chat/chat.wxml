@@ -1,25 +1,270 @@
 <view class="page">
-  <scroll-view class="messages" scroll-y scroll-into-view="{{scrollTo}}" scroll-with-animation>
-    <view
-      wx:for="{{messages}}"
-      wx:key="index"
-      id="msg-{{index}}"
-      class="msg-row {{item.role === 'user' ? 'user' : 'assistant'}}"
-    >
-      <view class="bubble {{item.error ? 'error' : ''}}">{{item.content}}</view>
+  <view class="status-bar" style="height: {{statusBarHeight}}px"></view>
+  <view class="header" style="height: {{navBarHeight}}px;">
+    <view class="header-btn" bindtap="goBack">
+      <view class="icon-back"></view>
     </view>
+    <view class="header-center" bindtap="goDetail">
+      <view class="header-avatar-wrap">
+        <image
+          wx:if="{{coverFull}}"
+          class="header-avatar"
+          src="{{coverFull}}"
+          mode="aspectFill"
+          binderror="onCoverError"
+        ></image>
+        <text wx:else class="header-avatar-fallback font-serif">{{agentInitial}}</text>
+      </view>
+      <view class="header-text">
+        <text class="header-name">{{agentName}}</text>
+        <text class="header-headline">{{headline}}</text>
+      </view>
+    </view>
+    <view class="header-btn" bindtap="toggleDrawer">
+      <view class="icon-more"></view>
+    </view>
+  </view>
+
+  <view wx:if="{{profileLoading}}" class="profile-loading">
+    <view class="loading-pulse"></view>
+  </view>
+
+  <scroll-view
+    wx:else
+    class="messages"
+    scroll-y
+    scroll-into-view="{{scrollTo}}"
+    scroll-with-animation
+    enhanced
+    show-scrollbar="{{false}}"
+  >
+    <view wx:if="{{sessionLoading}}" class="session-loading text-muted">正在加载历史会话...</view>
+
+    <block wx:else>
+      <view
+        wx:for="{{messages}}"
+        wx:for-item="msg"
+        wx:for-index="msgIdx"
+        wx:key="msgIdx"
+        id="msg-{{msgIdx}}"
+        class="msg-block"
+      >
+        <view class="msg-row {{msg.isUser ? 'user' : 'assistant'}}">
+          <view wx:if="{{!msg.isUser}}" class="msg-avatar-wrap" bindtap="goDetail">
+            <image
+              wx:if="{{coverFull}}"
+              class="msg-avatar"
+              src="{{coverFull}}"
+              mode="aspectFill"
+            ></image>
+            <text wx:else class="msg-avatar-fallback">{{agentInitial}}</text>
+          </view>
+
+          <view wx:if="{{!msg.isUser}}" class="msg-main">
+            <view class="bubble {{msg.error ? 'error' : ''}} {{msg.pending ? 'pending' : ''}}">
+              <view wx:if="{{msg.pending}}" class="typing">
+                <view class="typing-spinner-wrap">
+                  <view class="typing-spinner"></view>
+                  <view class="typing-core"></view>
+                </view>
+                <text class="typing-label">思考中...</text>
+              </view>
+              <text wx:else user-select>{{msg.content}}</text>
+            </view>
+
+            <view wx:if="{{msg.showFeedback && !msg.pending}}" class="feedback-wrap">
+              <view class="feedback-line">
+                <view
+                  class="feedback-chip feedback-helpful {{msg.feedbackType == 'helpful' ? 'selected' : ''}} {{msg.feedbackType && msg.feedbackType != 'helpful' ? 'dim' : ''}}"
+                  data-index="{{msgIdx}}"
+                  data-type="helpful"
+                  catchtap="tapFeedback"
+                >
+                  <view class="icon-thumb-up"></view>
+                  <text class="feedback-label">有帮助</text>
+                </view>
+                <view
+                  class="feedback-chip feedback-unhelpful {{msg.feedbackType == 'not_suitable' ? 'selected' : ''}} {{msg.feedbackType && msg.feedbackType != 'not_suitable' ? 'dim' : ''}}"
+                  data-index="{{msgIdx}}"
+                  data-type="not_suitable"
+                  catchtap="tapFeedback"
+                >
+                  <view class="icon-thumb-down"></view>
+                  <text class="feedback-label">没帮助</text>
+                </view>
+              </view>
+              <view class="feedback-line feedback-line-detail">
+                <view
+                  wx:for="{{feedbackOptions}}"
+                  wx:key="id"
+                  wx:for-item="opt"
+                  class="feedback-chip feedback-detail {{msg.feedbackType == opt.id ? 'selected' : ''}} {{msg.feedbackType && msg.feedbackType != opt.id ? 'dim' : ''}}"
+                  data-index="{{msgIdx}}"
+                  data-type="{{opt.id}}"
+                  catchtap="tapFeedback"
+                >
+                  <text class="feedback-label">{{opt.label}}</text>
+                </view>
+              </view>
+            </view>
+          </view>
+
+          <block wx:else>
+            <view class="bubble {{msg.error ? 'error' : ''}} {{msg.pending ? 'pending' : ''}}">
+              <text user-select>{{msg.content}}</text>
+            </view>
+            <view class="msg-avatar-wrap user">
+              <image
+                wx:if="{{userAvatar}}"
+                class="msg-avatar"
+                src="{{userAvatar}}"
+                mode="aspectFill"
+                binderror="onAvatarError"
+              ></image>
+              <text wx:else class="msg-avatar-fallback user">{{userInitial}}</text>
+            </view>
+          </block>
+        </view>
+      </view>
+    </block>
+
+    <view id="msg-bottom" style="height: 32rpx"></view>
   </scroll-view>
 
-  <view class="composer">
-    <input
-      class="composer-input"
-      placeholder="输入问题…"
-      value="{{input}}"
-      bindinput="onInput"
-      confirm-type="send"
-      bindconfirm="send"
-      disabled="{{sending}}"
-    />
-    <button class="send-btn btn-primary" size="mini" loading="{{sending}}" disabled="{{sending}}" bindtap="send">发送</button>
+  <view wx:if="{{error}}" class="error-bar">{{error}}</view>
+
+  <view class="composer-footer">
+    <view class="composer-pill">
+      <view
+        class="composer-icon-btn {{voiceRecording ? 'voice-active' : ''}} {{voiceTranscribing ? 'voice-busy' : ''}}"
+        catchtouchstart="onVoiceTouch"
+        catchtouchend="onVoiceTouch"
+        catchtouchcancel="onVoiceTouch"
+        catchtap="onVoiceTapHint"
+      >
+        <view class="icon-mic {{voiceRecording ? 'icon-mic-active' : ''}}"></view>
+      </view>
+      <input
+        class="composer-field"
+        placeholder="发消息..."
+        value="{{input}}"
+        bindinput="onInput"
+        confirm-type="send"
+        bindconfirm="send"
+        disabled="{{sending || sessionLoading || profileLoading}}"
+        adjust-position="{{true}}"
+      ></input>
+      <view class="composer-icon-btn" bindtap="onComposerMore">
+        <view class="icon-plus"></view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{drawerOpen}}" class="drawer-mask" bindtap="toggleDrawer"></view>
+  <view class="drawer {{drawerOpen ? 'open' : ''}}">
+    <view class="drawer-head">
+      <text class="drawer-title">更多</text>
+      <view class="drawer-close-btn" bindtap="toggleDrawer">
+        <view class="icon-close"></view>
+      </view>
+    </view>
+    <scroll-view scroll-y class="drawer-body">
+      <view class="drawer-link" bindtap="goDetail">← 返回详情页</view>
+      <text class="drawer-agent-name">{{agentName}}</text>
+      <text class="drawer-agent-headline text-muted">{{headline}}</text>
+
+      <view wx:if="{{showPrice && remainingQ >= 0 && !showUnlimited}}" class="drawer-card">
+        <text class="text-muted">剩余提问次数</text>
+        <text class="drawer-stat">{{remainingQ}}</text>
+      </view>
+
+      <view wx:if="{{isLoggedIn}}" class="drawer-panel">
+        <view class="drawer-panel-head">
+          <view>
+            <text class="drawer-section-title">我的聊天记录</text>
+            <text class="drawer-hint text-muted">仅你自己可见，Agent 创建者看不到聊天正文。</text>
+          </view>
+          <button class="drawer-new-btn" size="mini" bindtap="newSession">新建聊天</button>
+        </view>
+        <view wx:if="{{sessionsLoading}}" class="text-muted drawer-empty">正在加载聊天记录...</view>
+        <view wx:elif="{{sessions.length == 0}}" class="text-muted drawer-empty">还没有历史会话，发出第一条消息后会自动保存。</view>
+        <view
+          wx:for="{{sessions}}"
+          wx:key="id"
+          class="session-card {{item.isActive ? 'active' : ''}}"
+          data-id="{{item.id}}"
+          bindtap="loadSession"
+        >
+          <view class="session-card-head">
+            <text class="session-title">{{item.titleShort}}</text>
+            <text class="session-count text-muted">{{item.messageCount}} 条</text>
+          </view>
+          <text class="session-time text-muted">{{item.timeLabel}}</text>
+        </view>
+      </view>
+
+      <view wx:if="{{isLoggedIn && ratingState}}" class="drawer-panel">
+        <text class="drawer-section-title">Agent 评分</text>
+        <text class="drawer-hint text-muted">每满 10 次提问会解锁一次评分。</text>
+        <text class="rating-meta">已提问 {{ratingState.usedQuestions || 0}} 次<text wx:if="{{ratingState.currentScore}}"> · 当前评分 {{ratingState.currentScore}}/5</text></text>
+        <block wx:if="{{ratingState.eligible}}">
+          <view class="rating-scores">
+            <text
+              wx:for="{{ratingScores}}"
+              wx:key="*this"
+              class="rating-score-btn {{ratingScore == item ? 'active' : ''}}"
+              data-score="{{item}}"
+              bindtap="pickRating"
+            >{{item}} 分</text>
+          </view>
+          <textarea
+            class="rating-textarea input-shell"
+            placeholder="可以补充这个 Agent 目前最明显的问题..."
+            value="{{ratingComment}}"
+            bindinput="onRatingComment"
+          ></textarea>
+          <button class="btn-secondary rating-submit" loading="{{ratingSubmitting}}" bindtap="submitRating">提交评分</button>
+        </block>
+        <text wx:else class="drawer-hint text-muted">满 {{ratingState.nextMilestone || 10}} 次提问后可评分</text>
+      </view>
+
+      <view wx:if="{{!isLoggedIn}}" class="drawer-panel">
+        <button class="btn-primary drawer-login" bindtap="goLogin">登录后聊天</button>
+      </view>
+
+      <view class="drawer-tips">
+        <text class="drawer-section-title">怎么聊更好？</text>
+        <text class="tip">· 说清楚你的具体处境（如：二本大三、想转行、时间紧）</text>
+        <text class="tip">· 问得越具体，回答越有用</text>
+        <text class="tip">· 可以连续追问，一步步深入</text>
+      </view>
+    </scroll-view>
+  </view>
+
+  <view wx:if="{{feedbackModalVisible}}" class="feedback-modal-mask" catchtap="closeFeedbackModal">
+    <view class="feedback-modal" catchtap="noop">
+      <text class="feedback-modal-title">{{feedbackModalTitle}}</text>
+      <textarea
+        class="feedback-modal-input"
+        placeholder="{{feedbackModalRequired ? '说说具体理由…（必填）' : '说说具体理由…（选填）'}}"
+        value="{{feedbackModalComment}}"
+        bindinput="onFeedbackCommentInput"
+        maxlength="500"
+        auto-focus="{{true}}"
+        auto-height="{{false}}"
+        fixed="{{true}}"
+        show-confirm-bar="{{false}}"
+        adjust-position="{{true}}"
+      ></textarea>
+      <view class="feedback-modal-actions">
+        <button class="feedback-modal-cancel" bindtap="closeFeedbackModal">取消</button>
+        <button
+          class="feedback-modal-submit btn-primary"
+          loading="{{feedbackModalSubmitting}}"
+          disabled="{{feedbackModalSubmitting}}"
+          bindtap="confirmFeedbackModal"
+        >确认发送</button>
+      </view>
+    </view>
   </view>
 </view>

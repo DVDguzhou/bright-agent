@@ -1,0 +1,163 @@
+.page {
+  min-height: 100vh;
+  background: #f4efe6;
+  box-sizing: border-box;
+}
+
+.scroll {
+  height: 100vh;
+  padding: 24rpx 32rpx calc(48rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+}
+
+.page-title {
+  display: block;
+  font-size: 48rpx;
+  font-weight: 700;
+  color: #1a1714;
+  line-height: 1.2;
+}
+
+.account-line {
+  display: block;
+  margin-top: 12rpx;
+  margin-bottom: 40rpx;
+  font-size: 28rpx;
+  line-height: 1.5;
+  word-break: break-all;
+}
+
+.card {
+  margin-bottom: 32rpx;
+  padding: 32rpx 28rpx;
+  border-radius: 32rpx;
+  background: #f4efe6;
+  box-shadow: 0 8rpx 24rpx rgba(26, 23, 20, 0.06);
+  border: 1rpx solid rgba(216, 207, 191, 0.6);
+  box-sizing: border-box;
+}
+
+.info-card {
+  border-color: rgba(122, 31, 31, 0.25);
+  background: rgba(244, 239, 230, 0.95);
+}
+
+.info-text {
+  display: block;
+  font-size: 28rpx;
+  line-height: 1.65;
+  color: #1a1714;
+}
+
+.form-card {
+  padding: 40rpx 36rpx;
+}
+
+.card-title {
+  display: block;
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #4d463f;
+  margin-bottom: 24rpx;
+}
+
+.field-label {
+  display: block;
+  margin-top: 24rpx;
+  margin-bottom: 8rpx;
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #4d463f;
+}
+
+.field-input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.msg-error {
+  display: block;
+  margin-top: 20rpx;
+  font-size: 26rpx;
+  color: #7a1f1f;
+}
+
+.msg-ok {
+  display: block;
+  margin-top: 20rpx;
+  font-size: 26rpx;
+  color: #4a5a2f;
+}
+
+.submit-btn {
+  margin-top: 32rpx;
+  width: 100%;
+  padding: 24rpx 0;
+  font-size: 30rpx;
+}
+
+.danger-card {
+  border-color: rgba(122, 31, 31, 0.28);
+  background: rgba(122, 31, 31, 0.06);
+  padding: 40rpx 36rpx;
+}
+
+.danger-title {
+  display: block;
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #7a1f1f;
+}
+
+.danger-desc {
+  display: block;
+  margin-top: 16rpx;
+  font-size: 28rpx;
+  line-height: 1.65;
+  color: rgba(122, 31, 31, 0.92);
+}
+
+.danger-label {
+  color: #7a1f1f;
+}
+
+.danger-input {
+  background: rgba(244, 239, 230, 0.9);
+}
+
+.mono {
+  font-family: monospace;
+}
+
+.danger-btn {
+  margin-top: 32rpx;
+  width: 100%;
+  padding: 24rpx 0;
+  border-radius: 24rpx;
+  border: 1rpx solid rgba(122, 31, 31, 0.28);
+  background: #f4efe6;
+  color: #7a1f1f;
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+.danger-btn::after {
+  border: none;
+}
+
+.danger-btn[disabled] {
+  opacity: 0.5;
+}
+
+.footer-links {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  padding: 8rpx 8rpx 16rpx;
+}
+
+.footer-link {
+  font-size: 28rpx;
+  color: #7a1f1f;
+  text-decoration: underline;
+}

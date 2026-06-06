@@ -1,0 +1,54 @@
+<view class="sub-page">
+  <view wx:if="{{loading}}" class="sub-loading">加载中…</view>
+  <view wx:elif="{{error}}" class="sub-error">
+    <text class="sub-error-text">{{error}}</text>
+    <button class="btn-secondary" bindtap="goBack">返回工作台</button>
+    <button class="btn-primary" bindtap="retry">重新加载</button>
+  </view>
+  <scroll-view wx:else class="sub-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="sub-body">
+      <text class="sub-back" bindtap="goBack">← 返回工作台</text>
+      <text class="sub-title font-serif">聊天记录</text>
+      <text class="sub-desc">查看最近会话摘要，理解用户都在问什么。</text>
+      <input
+        class="sub-search"
+        value="{{query}}"
+        bindinput="onSearchInput"
+        placeholder="搜索用户或会话摘要"
+      ></input>
+      <view class="sub-section">
+        <view class="sub-stat-grid cols-2">
+          <view class="sub-stat-cell">
+            <text class="sub-stat-value font-serif">{{sessionCount}}</text>
+            <text class="sub-stat-label">总会话数</text>
+            <text class="sub-stat-sub">场</text>
+          </view>
+          <view class="sub-stat-cell">
+            <text class="sub-stat-value font-serif">{{totalMessages}}</text>
+            <text class="sub-stat-label">总消息数</text>
+            <text class="sub-stat-sub">条</text>
+          </view>
+        </view>
+      </view>
+      <view wx:if="{{keywordsText}}" class="sub-section">
+        <text class="sub-stat-label">最近高频主题</text>
+        <text class="sub-keywords">{{keywordsText}}</text>
+      </view>
+      <view class="sub-section">
+        <text class="sub-section-title font-serif">最近 50 个会话</text>
+        <text class="sub-section-sub">默认仅展示脱敏摘要，不暴露完整对话内容 · {{items.length}} 条</text>
+        <view wx:if="{{items.length == 0}}" class="sub-empty">{{query ? '没有匹配的会话' : '暂无聊天会话'}}</view>
+        <view wx:else class="sub-list">
+          <view wx:for="{{items}}" wx:key="id" class="sub-list-item">
+            <view class="sub-list-head">
+              <text class="sub-list-name">{{item.name}}</text>
+              <text class="sub-list-time">{{item.timeLabel}}</text>
+            </view>
+            <text class="sub-list-detail">{{item.title}}</text>
+            <text class="sub-list-meta">{{item.detail}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+</view>

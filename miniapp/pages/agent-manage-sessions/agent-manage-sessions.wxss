@@ -1,0 +1,8 @@
+@import "../../styles/agent-manage-subpage.wxss";
+
+.sub-list-detail {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}

@@ -84,6 +84,54 @@ function trimSessionTitle(title: string) {
   return title.length > 18 ? `${title.slice(0, 18)}...` : title;
 }
 
+const FEEDBACK_PRIMARY = [
+  { id: "helpful", label: "有帮助" },
+  { id: "not_suitable", label: "没帮助" },
+] as const;
+
+const FEEDBACK_DETAIL = [
+  { id: "not_specific", label: "不够具体" },
+  { id: "factual_error", label: "事实错了" },
+  { id: "contradiction", label: "前后矛盾" },
+  { id: "too_confident", label: "太武断了" },
+] as const;
+
+function FeedbackThumbUp({ className = "h-3.5 w-3.5" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" aria-hidden>
+      <path
+        fill="currentColor"
+        d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"
+      />
+    </svg>
+  );
+}
+
+function FeedbackThumbDown({ className = "h-3.5 w-3.5" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" aria-hidden>
+      <path
+        fill="currentColor"
+        d="M15 3H6c-.83 0-1.54.5-1.84 1.22l-3.02 7.05c-.09.23-.14.47-.14.73v2c0 1.1.9 2 2 2h6.31l-.95 4.57-.03.32c0 .41.17.79-.44 1.06L9.83 23 16.41 16.41c.37-.36.59-.86.59-1.41V5c0-1.1-.9-2-2-2zm4 0v12h4V3h-4z"
+      />
+    </svg>
+  );
+}
+
+function feedbackChipClass(isSelected: boolean, hasSelection: boolean, isHelpfulTone: boolean) {
+  if (isSelected) {
+    return isHelpfulTone
+      ? "border-olive-400 bg-olive-400/20 text-olive-600 shadow-sm ring-1 ring-olive-400/60"
+      : "border-oxblood-200 bg-paper-200 text-oxblood-600 shadow-sm ring-1 ring-oxblood-200";
+  }
+  if (hasSelection) return "border-hairline/50 bg-paper-50/50 text-ink-300";
+  return "border-hairline/60 bg-paper-50/80 text-ink-700/70 hover:bg-paper-100/50";
+}
+
+function feedbackOptionalComment(feedbackType: string) {
+  return feedbackType === "helpful" || feedbackType === "not_suitable";
+}
+
 export default function LifeAgentChatPage() {
   const params = useParams();
   const router = useRouter();
@@ -563,6 +611,7 @@ export default function LifeAgentChatPage() {
           <p className="mb-1 text-sm font-medium text-ink-800">
             {{
               helpful: "👍 有帮助",
+              not_suitable: "👎 没帮助",
               not_specific: "不够具体",
               factual_error: "事实错了",
               contradiction: "前后矛盾",
@@ -572,7 +621,7 @@ export default function LifeAgentChatPage() {
           <textarea
             autoFocus
             rows={3}
-            placeholder={pendingFeedback.feedbackType === "helpful" ? "说说具体理由…（选填）" : "说说具体理由…（必填）"}
+            placeholder={feedbackOptionalComment(pendingFeedback.feedbackType) ? "说说具体理由…（选填）" : "说说具体理由…（必填）"}
             value={pendingFeedback.comment ?? ""}
             onChange={(e) =>
               setPendingFeedback((prev) => prev ? { ...prev, comment: e.target.value } : prev)
@@ -590,7 +639,7 @@ export default function LifeAgentChatPage() {
             <button
               type="button"
               disabled={
-                pendingFeedback.feedbackType !== "helpful" &&
+                !feedbackOptionalComment(pendingFeedback.feedbackType) &&
                 !pendingFeedback.comment?.trim()
               }
               onClick={() => {
@@ -999,15 +1048,30 @@ export default function LifeAgentChatPage() {
                     ) : null}
                   </div>
                   {message.role === "assistant" && message.messageId && message.sessionId ? (
-                    <div className="ml-10 space-y-2">
+                    <div className="ml-10 max-w-full space-y-2">
                       <div className="flex flex-wrap gap-2 text-xs">
-                        {[
-                          { id: "helpful", label: "有帮助", icon: "👍" },
-                          { id: "not_specific", label: "不够具体", icon: "" },
-                          { id: "factual_error", label: "事实错了", icon: "" },
-                          { id: "contradiction", label: "前后矛盾", icon: "" },
-                          { id: "too_confident", label: "太武断了", icon: "" },
-                        ].map((item) => {
+                        {FEEDBACK_PRIMARY.map((item) => {
+                          const isSelected = selectedFeedback[message.messageId!] === item.id;
+                          const hasSelection = !!selectedFeedback[message.messageId!];
+                          const isHelpful = item.id === "helpful";
+                          return (
+                            <button
+                              key={`${message.messageId}-${item.id}`}
+                              type="button"
+                              disabled={submittingFeedbackId === message.messageId}
+                              onClick={() => void submitMessageFeedback(message, item.id)}
+                              className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 transition-all duration-200 ${feedbackChipClass(isSelected, hasSelection, isHelpful)} disabled:opacity-60`}
+                            >
+                              <span className={isSelected ? "opacity-90" : isHelpful ? "text-amber-600" : "text-ink-300"}>
+                                {isHelpful ? <FeedbackThumbUp /> : <FeedbackThumbDown />}
+                              </span>
+                              {item.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <div className="flex flex-wrap gap-2 text-xs">
+                        {FEEDBACK_DETAIL.map((item) => {
                           const isSelected = selectedFeedback[message.messageId!] === item.id;
                           const hasSelection = !!selectedFeedback[message.messageId!];
                           return (
@@ -1016,24 +1080,16 @@ export default function LifeAgentChatPage() {
                               type="button"
                               disabled={submittingFeedbackId === message.messageId}
                               onClick={() => void submitMessageFeedback(message, item.id)}
-                              className={`rounded-full border px-2.5 py-1 transition-all duration-200 ${
-                                isSelected
-                                  ? item.id === "helpful"
-                                    ? "border-olive-400 bg-olive-400/20 text-olive-600 shadow-sm ring-1 ring-olive-400/60"
-                                    : "border-oxblood-200 bg-paper-200 text-oxblood-600 shadow-sm ring-1 ring-oxblood-200"
-                                  : hasSelection
-                                    ? "border-hairline/50 bg-paper-50/50 text-ink-300"
-                                    : "border-hairline/60 bg-paper-50/80 text-ink-700/70 hover:bg-paper-100/50"
-                              } disabled:opacity-60`}
+                              className={`rounded-full border px-2.5 py-1 transition-all duration-200 ${feedbackChipClass(isSelected, hasSelection, false)} disabled:opacity-60`}
                             >
-                              {isSelected && <span className="mr-0.5">{item.id === "helpful" ? "✓" : item.icon || "✓"}</span>}
+                              {isSelected && <span className="mr-0.5">✓</span>}
                               {item.label}
                             </button>
                           );
                         })}
                       </div>
                       {selectedFeedback[message.messageId!] &&
-                        selectedFeedback[message.messageId!] !== "helpful" &&
+                        !feedbackOptionalComment(selectedFeedback[message.messageId!]) &&
                         !commentSubmitted[message.messageId!] && (
                           <div
                             className="flex items-start gap-2"

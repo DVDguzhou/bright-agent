@@ -1,0 +1,2 @@
+<text wx:if="{{status == 'verified'}}" class="badge-v badge-{{size}}">V</text>
+<text wx:elif="{{status == 'pending'}}" class="badge-pending badge-{{size}}">认证中</text>

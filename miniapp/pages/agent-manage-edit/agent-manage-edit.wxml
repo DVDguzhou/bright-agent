@@ -1,0 +1,175 @@
+<view class="sub-page">
+  <view wx:if="{{loading}}" class="sub-loading">加载中…</view>
+  <view wx:elif="{{error}}" class="sub-error">
+    <text class="sub-error-text">{{error}}</text>
+    <button class="btn-secondary" bindtap="goBack">返回工作台</button>
+    <button class="btn-primary" bindtap="retry">重新加载</button>
+  </view>
+  <scroll-view wx:else class="sub-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="sub-body">
+      <view class="edit-header">
+        <view>
+          <text class="sub-back" bindtap="goBack">← 返回工作台</text>
+          <text class="sub-title font-serif">编辑资料</text>
+          <text class="sub-desc">分组维护封面、音色、定价、人设和示范内容。资料完成度 {{completion}}%。</text>
+          <text class="save-meta">{{lastSavedLabel}} · 离开页面时会自动保存已通过校验的修改</text>
+        </view>
+        <button class="btn-primary edit-save-top" bindtap="saveProfile" disabled="{{saving}}">
+          {{saving ? '保存中…' : '保存修改'}}
+        </button>
+      </view>
+      <view class="sub-progress">
+        <view class="sub-progress-fill" style="width: {{completion}}%;"></view>
+      </view>
+      <text wx:if="{{saveError}}" class="save-error">{{saveError}}</text>
+
+      <view wx:for="{{sections}}" wx:key="key" class="sub-section edit-section">
+        <view class="sub-section-toggle" bindtap="toggleSection" data-key="{{item.key}}">
+          <view>
+            <text class="sub-section-title font-serif">{{item.title}}</text>
+            <text class="sub-section-hint">{{item.hint}}</text>
+          </view>
+          <text class="sub-chevron">{{item.open ? '▾' : '▸'}}</text>
+        </view>
+        <view wx:if="{{item.open && form}}" class="edit-fields">
+          <block wx:if="{{item.key == 'basic'}}">
+            <text class="sub-form-label">封面图</text>
+            <text class="cover-hint">默认使用统一封面，也可上传自己的图片。上传封面会同步更新你的头像。</text>
+            <view class="cover-preview-wrap">
+              <image class="cover-preview" src="{{coverPreview}}" mode="aspectFill" binderror="onCoverError"></image>
+            </view>
+            <view class="cover-actions">
+              <view class="sub-btn-sm primary {{coverUploading ? 'disabled' : ''}}" bindtap="chooseCoverImage">
+                {{coverUploading ? '上传中…' : '上传封面'}}
+              </view>
+              <view class="sub-btn-sm muted" bindtap="clearCoverImage">恢复默认</view>
+            </view>
+            <view class="voice-block">
+              <text class="sub-form-label">语音回复音色</text>
+              <text class="voice-note">{{voiceStatus}}</text>
+              <text wx:if="{{voiceSamplePending}}" class="voice-pending">已录制新样本，可以单独上传，或和整页资料一起保存。</text>
+              <text wx:if="{{voiceCloneId}}" class="voice-id">voiceCloneId：{{voiceCloneId}}</text>
+              <view wx:if="{{!voicePanelOpen}}" class="voice-actions">
+                <view class="sub-btn-sm muted" bindtap="toggleVoicePanel">录制音色样本</view>
+                <view wx:if="{{voiceSamplePending}}" class="sub-btn-sm primary {{voiceSaving ? 'disabled' : ''}}" bindtap="saveVoiceOnly">
+                  {{voiceSaving ? '上传中…' : '仅上传音色'}}
+                </view>
+              </view>
+              <view wx:else class="voice-panel">
+                <text class="voice-panel-hint">按住下方按钮录制 3–15 秒样本，松手结束</text>
+                <view
+                  class="voice-record-btn {{voiceRecording ? 'recording' : ''}}"
+                  catchtouchstart="onVoiceSampleTouch"
+                  catchtouchend="onVoiceSampleTouch"
+                  catchtouchcancel="onVoiceSampleTouch"
+                >{{voiceRecording ? '录音中…' : '按住录制'}}</view>
+                <view class="sub-btn-sm muted" bindtap="toggleVoicePanel">取消</view>
+              </view>
+            </view>
+            <text class="sub-form-label">Agent 名称</text>
+            <input class="sub-form-input" value="{{form.displayName}}" data-field="displayName" bindinput="onFieldInput" maxlength="10"></input>
+            <text class="sub-form-label">一句话介绍</text>
+            <input class="sub-form-input" value="{{form.headline}}" data-field="headline" bindinput="onFieldInput"></input>
+            <text class="sub-form-label">简短介绍</text>
+            <textarea class="sub-form-textarea" value="{{form.shortBio}}" data-field="shortBio" bindinput="onFieldInput"></textarea>
+            <text class="sub-form-label">详细介绍</text>
+            <textarea class="sub-form-textarea" value="{{form.longBio}}" data-field="longBio" bindinput="onFieldInput"></textarea>
+          </block>
+          <block wx:if="{{item.key == 'publish'}}">
+            <text class="sub-form-label">适合帮助的人群</text>
+            <textarea class="sub-form-textarea" value="{{form.audience}}" data-field="audience" bindinput="onFieldInput"></textarea>
+            <text class="sub-form-label">首次欢迎语</text>
+            <textarea class="sub-form-textarea" value="{{form.welcomeMessage}}" data-field="welcomeMessage" bindinput="onFieldInput"></textarea>
+            <label class="publish-row">
+              <switch checked="{{form.published}}" bindchange="onPublishedChange" color="#1a1714"></switch>
+              <text>已发布</text>
+            </label>
+            <text class="sub-form-label">不能/不想回答的问题</text>
+            <textarea class="sub-form-textarea" value="{{form.notSuitableFor}}" data-field="notSuitableFor" bindinput="onFieldInput"></textarea>
+          </block>
+          <block wx:if="{{item.key == 'persona'}}">
+            <text class="sub-form-label">MBTI</text>
+            <picker mode="selector" range="{{mbtiOptions}}" value="{{mbtiIndex}}" bindchange="onMbtiChange">
+              <view class="sub-form-input picker-val">{{form.mbti || '未设置'}}</view>
+            </picker>
+            <text class="sub-form-label">角色原型</text>
+            <picker mode="selector" range="{{personaOptions}}" value="{{personaIndex}}" bindchange="onPersonaChange">
+              <view class="sub-form-input picker-val">{{form.personaArchetype}}</view>
+            </picker>
+            <text class="sub-form-label">语气</text>
+            <picker mode="selector" range="{{toneOptions}}" value="{{toneIndex}}" bindchange="onToneChange">
+              <view class="sub-form-input picker-val">{{form.toneStyle}}</view>
+            </picker>
+            <text class="sub-form-label">回答习惯</text>
+            <picker mode="selector" range="{{responseOptions}}" value="{{responseIndex}}" bindchange="onResponseChange">
+              <view class="sub-form-input picker-val">{{form.responseStyle}}</view>
+            </picker>
+            <text class="sub-form-label">禁用套话（每行一个）</text>
+            <textarea class="sub-form-textarea" value="{{form.forbiddenPhrases}}" data-field="forbiddenPhrases" bindinput="onFieldInput"></textarea>
+          </block>
+          <block wx:if="{{item.key == 'content'}}">
+            <text class="sub-form-label">擅长标签</text>
+            <view class="chip-row">
+              <view
+                wx:for="{{categoryChips}}"
+                wx:key="label"
+                class="chip {{item.selected ? 'chip-on' : ''}}"
+                style="background-color: {{item.color}}20; color: {{item.color}}; {{item.selected ? 'box-shadow: inset 0 0 0 2rpx ' + item.color : ''}}"
+                bindtap="toggleCategory"
+                data-label="{{item.label}}"
+              >{{item.label}}</view>
+            </view>
+            <text class="sub-form-label">示例问题（每行一个）</text>
+            <textarea class="sub-form-textarea" value="{{form.sampleQuestions}}" data-field="sampleQuestions" bindinput="onFieldInput"></textarea>
+            <text class="sub-form-label">示范回答 1</text>
+            <textarea class="sub-form-textarea" value="{{form.exampleReply1}}" data-field="exampleReply1" bindinput="onFieldInput"></textarea>
+            <text class="sub-form-label">示范回答 2</text>
+            <textarea class="sub-form-textarea" value="{{form.exampleReply2}}" data-field="exampleReply2" bindinput="onFieldInput"></textarea>
+            <text class="sub-form-label">示范回答 3</text>
+            <textarea class="sub-form-textarea" value="{{form.exampleReply3}}" data-field="exampleReply3" bindinput="onFieldInput"></textarea>
+          </block>
+          <block wx:if="{{item.key == 'region'}}">
+            <text class="sub-form-label">地区快捷选择（最多 2 个）</text>
+            <view class="chip-row">
+              <view
+                wx:for="{{regionChips}}"
+                wx:key="label"
+                class="chip region-chip {{item.selected ? 'chip-on' : ''}} {{item.disabled ? 'chip-disabled' : ''}}"
+                bindtap="toggleRegion"
+                data-region="{{item.label}}"
+                data-disabled="{{item.disabled}}"
+              >{{item.label}}</view>
+            </view>
+            <text class="sub-form-label">学历</text>
+            <input class="sub-form-input" value="{{form.education}}" data-field="education" bindinput="onFieldInput"></input>
+            <text class="sub-form-label">学校</text>
+            <input class="sub-form-input" value="{{form.school}}" data-field="school" bindinput="onFieldInput"></input>
+            <text class="sub-form-label">职业</text>
+            <input class="sub-form-input" value="{{form.job}}" data-field="job" bindinput="onFieldInput"></input>
+            <text class="sub-form-label">收入区间</text>
+            <input class="sub-form-input" value="{{form.income}}" data-field="income" bindinput="onFieldInput"></input>
+            <text class="sub-form-label">国家</text>
+            <input class="sub-form-input" value="{{form.country}}" data-field="country" bindinput="onFieldInput"></input>
+            <text class="sub-form-label">省</text>
+            <input class="sub-form-input" value="{{form.province}}" data-field="province" bindinput="onFieldInput"></input>
+            <text class="sub-form-label">市</text>
+            <input class="sub-form-input" value="{{form.city}}" data-field="city" bindinput="onFieldInput"></input>
+            <text class="sub-form-label">区/县</text>
+            <input class="sub-form-input" value="{{form.county}}" data-field="county" bindinput="onFieldInput"></input>
+            <view class="verification-block">
+              <text class="sub-form-label">{{verificationVerified ? '已认证' : '申请官方认证'}}</text>
+              <text wx:if="{{verificationVerified}}" class="verification-ok">该 Agent 已完成官方认证。</text>
+              <text wx:else class="verification-pending">{{officialDesc}}：{{officialEmail}}</text>
+              <view wx:if="{{!verificationVerified}}" class="sub-btn-sm muted" bindtap="copyOfficialEmail">复制邮箱</view>
+            </view>
+          </block>
+        </view>
+      </view>
+      <view class="sub-save-bar">
+        <button class="btn-primary" bindtap="saveProfile" disabled="{{saving}}">
+          {{saving ? '保存中…' : '保存修改'}}
+        </button>
+      </view>
+    </view>
+  </scroll-view>
+</view>

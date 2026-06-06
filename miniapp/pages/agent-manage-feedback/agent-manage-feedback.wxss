@@ -1,0 +1,8 @@
+@import "../../styles/agent-manage-subpage.wxss";
+
+.sub-list-name-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12rpx;
+}

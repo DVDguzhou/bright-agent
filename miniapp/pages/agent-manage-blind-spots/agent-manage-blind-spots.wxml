@@ -1,0 +1,33 @@
+<view class="sub-page">
+  <view wx:if="{{loading}}" class="sub-loading">加载中…</view>
+  <view wx:elif="{{error}}" class="sub-error">
+    <text class="sub-error-text">{{error}}</text>
+    <button class="btn-secondary" bindtap="goBack">返回工作台</button>
+    <button class="btn-primary" bindtap="retry">重新加载</button>
+  </view>
+  <scroll-view wx:else class="sub-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="sub-body">
+      <text class="sub-back" bindtap="goBack">← 返回管理台</text>
+      <text class="sub-title font-serif">盲区问题</text>
+      <text class="sub-desc">以下问题用户问了但你的 Agent 缺少相关经验，补充后可以显著提升回答质量。</text>
+      <view wx:if="{{spots.length == 0}}" class="sub-card empty-card">
+        <text class="empty-title">暂无盲区问题</text>
+        <text class="empty-desc">说明你的 Agent 经验覆盖比较全面，继续保持！</text>
+      </view>
+      <view wx:else>
+        <view wx:for="{{spots}}" wx:key="id" class="sub-card">
+          <text class="spot-question">"{{item.userQuestion}}"</text>
+          <view class="spot-meta">
+            <text class="sub-tag-pill">{{item.confidenceLabel}}</text>
+            <text wx:if="{{item.routeLabel}}" class="sub-tag-pill muted">{{item.routeLabel}}</text>
+            <text class="spot-date">{{item.dateLabel}}</text>
+          </view>
+          <view class="sub-card-actions">
+            <view class="sub-btn-sm primary" bindtap="goCoedit">去补充经验</view>
+            <view class="sub-btn-sm muted" bindtap="resolveSpot" data-id="{{item.id}}">已解决</view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+</view>

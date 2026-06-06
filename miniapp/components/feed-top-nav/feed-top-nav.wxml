@@ -1,0 +1,13 @@
+<view class="status-bar" style="height: {{statusBarHeight}}px"></view>
+<view class="top-nav" style="height: {{navBarHeight}}px; padding-right: {{menuRight}}px;">
+  <view class="nav-btn" bindtap="onLeftTap">
+    <view class="{{leftMode == 'back' ? 'icon-back' : 'icon-menu'}}"></view>
+  </view>
+  <view class="feed-tabs font-serif">
+    <view class="feed-tab {{activeTab == 'posts' ? 'active' : 'inactive'}}" bindtap="onPosts">动态</view>
+    <view class="feed-tab {{activeTab == 'discover' ? 'active' : 'inactive'}}" bindtap="onDiscover">发现</view>
+  </view>
+  <view class="nav-btn" bindtap="onSearch">
+    <view class="icon-search"></view>
+  </view>
+</view>

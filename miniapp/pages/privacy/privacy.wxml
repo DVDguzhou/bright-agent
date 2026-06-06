@@ -1,12 +1,28 @@
-<view class="container">
-  <view class="card">
-    <text class="title">BrightAgent 隐私政策</text>
-    <text class="text-muted">生效日期：{{effectiveDate}}</text>
-    <text class="text-muted">网站：{{siteUrl}}</text>
-  </view>
+<view class="page">
+  <scroll-view class="scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="header">
+      <text class="brand text-muted">BrightAgent</text>
+      <text class="title font-serif">隐私政策</text>
+      <text class="meta text-muted">生效日期：{{effectiveDate}}</text>
+      <text class="intro">{{introText}}</text>
+    </view>
 
-  <view wx:for="{{sections}}" wx:key="title" class="card section">
-    <text class="section-title">{{item.title}}</text>
-    <text wx:for="{{item.paragraphs}}" wx:for-item="p" wx:key="*this" class="para">{{p}}</text>
-  </view>
+    <view wx:for="{{sections}}" wx:key="title" class="section">
+      <text class="section-title">{{item.title}}</text>
+      <text
+        wx:for="{{item.paragraphs}}"
+        wx:for-item="p"
+        wx:key="*this"
+        class="para"
+      >{{p}}</text>
+    </view>
+
+    <view class="footer-card">
+      <view class="footer-row">
+        <text class="footer-label text-muted">{{contactLabel}}</text>
+        <text class="footer-link" bindtap="copySite">{{siteUrl}}</text>
+      </view>
+      <text class="back-link" bindtap="goDiscover">{{backLinkLabel}}</text>
+    </view>
+  </scroll-view>
 </view>

@@ -1,41 +1,99 @@
-<view class="container">
-  <view wx:if="{{loading}}" class="empty">加载中…</view>
-  <block wx:elif="{{!user}}">
-    <view class="card">
-      <text class="title">未登录</text>
-      <text class="text-muted">登录后可查看已购 Agent 与剩余提问次数</text>
-      <button class="btn-primary" style="margin-top: 32rpx;" bindtap="goLogin">去登录</button>
-    </view>
-  </block>
-  <block wx:else>
-    <view class="card profile">
-      <text class="title">{{user.name || '用户'}}</text>
-      <text class="text-muted">{{user.email || user.phone || ''}}</text>
-    </view>
+<view class="page">
+  <feed-top-nav
+    leftMode="menu"
+    bind:menu="openDrawer"
+    bind:posts="goPosts"
+    bind:discover="goDiscover"
+    bind:search="goSearch"
+  ></feed-top-nav>
 
-    <view class="section-head">
-      <text>已购 Agent</text>
-    </view>
-    <view wx:if="{{purchased.length === 0}}" class="empty">暂无已购 Agent</view>
-    <view
-      wx:for="{{purchased}}"
-      wx:key="id"
-      class="card purchased"
-    >
-      <view class="purchased-main" bindtap="goDetail" data-id="{{item.id}}">
-        <image wx:if="{{item.coverFull}}" class="thumb" src="{{item.coverFull}}" mode="aspectFill" />
-        <view>
-          <text class="name">{{item.displayName}}</text>
-          <text class="text-muted">剩余 {{item.remainingQuestions || 0}} 次</text>
+  <view class="mine-body">
+    <view wx:if="{{loading}}" class="empty">加载中…</view>
+
+    <block wx:elif="{{user}}">
+      <view class="profile-section">
+        <view class="profile-main">
+          <view class="profile-avatar-wrap">
+            <image
+              wx:if="{{userAvatar}}"
+              class="profile-avatar-img"
+              src="{{userAvatar}}"
+              mode="aspectFill"
+              binderror="onAvatarError"
+            />
+            <view wx:else class="profile-avatar-fallback font-serif">{{initial}}</view>
+          </view>
+          <view class="profile-meta">
+            <text class="profile-name">{{user.name || '我的'}}</text>
+            <text class="profile-email text-muted">{{user.email || user.phone || ''}}</text>
+            <text class="profile-tag text-muted">人生 Agent 创作者中心</text>
+          </view>
+        </view>
+
+        <view class="stats-row stats-cols-{{topStats.length}}">
+          <view wx:for="{{topStats}}" wx:key="label" class="stats-cell">
+            <text class="stats-value font-serif">{{item.value}}</text>
+            <text class="stats-label">{{item.label}}</text>
+            <text class="stats-sub text-muted">{{item.sub}}</text>
+          </view>
         </view>
       </view>
-      <button class="btn-secondary mini" size="mini" bindtap="goChat" data-id="{{item.id}}">对话</button>
-    </view>
 
-    <view class="links card">
-      <view class="link-row" bindtap="goSupport">联系客服</view>
-      <view class="link-row" bindtap="goPrivacy">隐私政策</view>
-      <view class="link-row danger" bindtap="logout">退出登录</view>
-    </view>
-  </block>
+      <view class="section mind-section">
+        <view class="section-head">
+          <text class="section-title">我的心智值</text>
+          <text class="section-badge">上架中 {{createdCount}}</text>
+        </view>
+        <view class="mind-grid">
+          <view class="mind-cell">
+            <text class="mind-value font-serif">{{purchasedCount}}</text>
+            <text class="mind-label text-muted">对话 Agent</text>
+          </view>
+          <view class="mind-cell">
+            <text class="mind-value font-serif">{{soldPacks}}</text>
+            <text class="mind-label text-muted">被提问</text>
+          </view>
+          <view class="mind-cell">
+            <text class="mind-value font-serif">{{createdSessions}}</text>
+            <text class="mind-label text-muted">累计对话</text>
+          </view>
+          <view class="mind-cell">
+            <view class="mind-score-wrap">
+              <mind-score-badge value="{{totalMindScore}}" size="sm" prefix=""></mind-score-badge>
+            </view>
+            <text class="mind-label mind-label-strong">心智值</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="section actions-section">
+        <view class="actions-grid">
+          <view
+            wx:for="{{quickActions}}"
+            wx:key="id"
+            class="action-item"
+            bindtap="onQuickAction"
+            data-id="{{item.id}}"
+          >
+            <view class="action-icon {{item.iconClass}}">
+              <view class="action-glyph glyph-{{item.icon}}"></view>
+            </view>
+            <text class="action-label">{{item.label}}</text>
+            <text class="action-desc text-muted">{{item.desc}}</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="section cta-section">
+        <view class="cta-copy">
+          <text class="cta-kicker">继续打磨你的专属顾问主页</text>
+          <text class="cta-title font-serif">让真实经历更有影响力</text>
+          <text class="cta-desc text-muted">补全欢迎语、示范回答和经验条目，更容易获得用户互动。</text>
+        </view>
+        <view class="cta-btn" bindtap="goPrimaryAgent">去看看</view>
+      </view>
+    </block>
+  </view>
+
+  <mobile-drawer open="{{drawerOpen}}" bind:close="closeDrawer"></mobile-drawer>
 </view>

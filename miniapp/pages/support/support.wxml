@@ -1,24 +1,49 @@
-<view class="container">
-  <view class="card">
-    <text class="title">邮件联系 BrightAgent</text>
-    <text class="text-muted">账号、订单、认证与商务合作。工作日 24 小时内回复。</text>
-    <text class="email">{{email}}</text>
-    <view class="actions">
-      <button class="btn-primary" bindtap="copyEmail">复制邮箱</button>
-      <button class="btn-secondary" bindtap="sendMail">如何发邮件</button>
-    </view>
+<view class="page">
+  <view class="status-bar" style="height: {{statusBarHeight}}px"></view>
+
+  <view wx:if="{{redirecting}}" class="redirect-panel">
+    <view class="spinner"></view>
+    <text class="redirect-text text-muted">正在打开客服对话…</text>
   </view>
 
-  <view class="card">
-    <text class="section-title">常见问题</text>
-    <view wx:for="{{topics}}" wx:key="title" class="topic">
-      <text class="topic-title">{{item.title}}</text>
-      <text class="text-muted">{{item.desc}}</text>
+  <view wx:elif="{{!redirecting}}" class="top-bar" style="height: {{navBarHeight}}px; padding-right: {{menuRight}}px;">
+    <view class="back-btn" bindtap="goBack">
+      <view class="icon-back"></view>
     </view>
+    <text class="top-title font-serif">联系客服</text>
+    <view class="top-spacer"></view>
   </view>
 
-  <view class="card link-card" bindtap="goPrivacy">
-    <text>隐私政策</text>
-    <text class="arrow">›</text>
-  </view>
+  <scroll-view wx:if="{{!redirecting}}" class="scroll" scroll-y>
+    <view class="card main-card">
+      <text class="card-title">邮件联系 BrightAgent</text>
+      <text class="card-desc text-muted">{{descText}}</text>
+      <text wx:if="{{replyHint}}" class="card-hint text-muted">{{replyHint}}</text>
+      <text class="email">{{email}}</text>
+      <view class="actions">
+        <view class="btn-primary action-btn" bindtap="sendMailHint">{{mailBtnLabel}}</view>
+        <view class="btn-secondary action-btn" bindtap="copyEmail">{{copyLabel}}</view>
+      </view>
+    </view>
+
+    <view class="card">
+      <text class="section-title">写信时请尽量包含</text>
+      <view wx:for="{{tips}}" wx:key="*this" class="tip-row">
+        <text class="tip-dot">·</text>
+        <text class="tip-text text-muted">{{item}}</text>
+      </view>
+    </view>
+
+    <view class="topics-wrap">
+      <text class="topics-label text-muted">常见问题类型</text>
+      <view wx:for="{{topics}}" wx:key="title" class="topic-card">
+        <text class="topic-title">{{item.title}}</text>
+        <text class="topic-desc text-muted">{{item.desc}}</text>
+      </view>
+    </view>
+
+    <view class="privacy-link" bindtap="goPrivacy">隐私政策</view>
+  </scroll-view>
+
+  <app-tab-bar wx:if="{{!redirecting}}" selected="{{2}}"></app-tab-bar>
 </view>

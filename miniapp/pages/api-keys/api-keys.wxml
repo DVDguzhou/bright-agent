@@ -1,0 +1,149 @@
+<view class="page">
+  <view class="api-header">
+    <view wx:if="{{showManageBack}}" class="header-back" bindtap="goBackManage">
+      <view class="icon-back"></view>
+    </view>
+    <view class="header-center">
+      <text class="header-title font-serif">开放 API</text>
+    </view>
+    <view class="header-action" bindtap="goDiscover">
+      <view class="icon-plus"></view>
+    </view>
+  </view>
+
+  <view class="intro text-muted">
+    为每个人生 Agent 管理调用 Key 与调用数据。开放 API 供第三方集成，当前展示累计调用与会话统计。
+  </view>
+
+  <view class="docs-card">
+    <text class="box-title">API 基址</text>
+    <text class="docs-mono">{{apiBase}}</text>
+    <view class="mini-btn" bindtap="copyApiBase">复制基址</view>
+    <text class="box-title docs-gap">调用示例（SSE 流式）</text>
+    <text class="docs-mono docs-pre">{{curlExample}}</text>
+    <view class="mini-btn" bindtap="copyCurlExample">复制 curl 示例</view>
+  </view>
+
+  <view wx:if="{{loading}}" class="empty">加载中…</view>
+
+  <block wx:else>
+    <view class="card">
+      <view class="card-head">
+        <text class="card-title">人生 Agent 调用 Key</text>
+        <text class="card-sub text-muted">需先开启「开放 API」并上架后，第三方才可凭 Key 调用。</text>
+      </view>
+
+      <view wx:if="{{agents.length == 0}}" class="empty-card">
+        <text>你还没有创建人生 Agent。</text>
+        <text class="link" bindtap="goCreateAgent">去创建</text>
+      </view>
+
+      <view wx:else class="agent-list">
+        <view wx:for="{{agents}}" wx:key="profileId" class="agent-item">
+          <view class="agent-head" bindtap="toggleAgent" data-id="{{item.profileId}}">
+            <view class="agent-meta">
+              <view class="agent-name-row">
+                <text class="agent-name">{{item.displayName}}</text>
+                <text wx:if="{{!item.published}}" class="badge badge-muted">未上架</text>
+                <text wx:if="{{item.apiInvokeEnabled}}" class="badge badge-ok">已开放</text>
+                <text wx:else class="badge badge-muted">未开放</text>
+              </view>
+              <text class="agent-stats text-muted">
+                累计 API 回复 {{item.apiTotalCalls}} 次 · 会话 {{item.apiSessionCount}} 个
+              </text>
+            </view>
+            <text class="expand-icon">{{item.expanded ? '▲' : '▼'}}</text>
+          </view>
+
+          <view wx:if="{{item.expanded}}" class="agent-body">
+            <view class="switch-row">
+              <switch
+                checked="{{item.apiInvokeEnabled}}"
+                disabled="{{busyProfileId == item.profileId}}"
+                bindchange="toggleApiEnabled"
+                data-id="{{item.profileId}}"
+                color="#1a1714"
+              ></switch>
+              <text class="switch-label">允许通过专用 Key 调用该 Agent</text>
+            </view>
+
+            <view class="stats-box">
+              <text class="box-title">数据概览</text>
+              <view class="stats-grid">
+                <view class="stats-cell">
+                  <text class="stats-num font-serif">{{item.apiTotalCalls}}</text>
+                  <text class="stats-label text-muted">API 成功回复</text>
+                </view>
+                <view class="stats-cell">
+                  <text class="stats-num font-serif">{{item.apiSessionCount}}</text>
+                  <text class="stats-label text-muted">API 会话数</text>
+                </view>
+              </view>
+            </view>
+
+            <view class="keys-head">
+              <text class="box-title">调用 Key 列表</text>
+              <view
+                class="mini-btn {{item.apiInvokeEnabled ? '' : 'disabled'}}"
+                bindtap="createInvokeKey"
+                data-id="{{item.profileId}}"
+              >
+                新建 Key
+              </view>
+            </view>
+
+            <view wx:if="{{item.keys.length == 0}}" class="keys-empty text-muted">暂无 Key</view>
+            <view wx:else class="key-list">
+              <view wx:for="{{item.keys}}" wx:for-item="key" wx:key="id" class="key-row">
+                <view class="key-main">
+                  <text class="key-prefix font-mono">{{key.keyPrefix}}</text>
+                  <text class="key-sub text-muted">
+                    {{key.name}} · 调用 {{key.callCount}} 次 · {{key.createdAt}}
+                  </text>
+                </view>
+                <text
+                  class="key-revoke"
+                  bindtap="revokeInvokeKey"
+                  data-profile-id="{{item.profileId}}"
+                  data-key-id="{{key.id}}"
+                >
+                  吊销
+                </text>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="card">
+      <view class="card-head">
+        <text class="card-title">平台 Key（方法二）</text>
+        <text class="card-sub text-muted">sk_live_ 用于调用平台 Agent invoke 等接口，与人生 Agent 专用 Key 不同。</text>
+      </view>
+
+      <view class="platform-create">
+        <input
+          class="platform-input"
+          placeholder="Key 名称（可选）"
+          value="{{platformName}}"
+          bindinput="onPlatformNameInput"
+        ></input>
+        <view class="mini-btn primary {{platformBusy ? 'disabled' : ''}}" bindtap="createPlatformKey">
+          {{platformBusy ? '创建中…' : '创建平台 Key'}}
+        </view>
+      </view>
+
+      <view wx:if="{{platformKeys.length == 0}}" class="keys-empty text-muted">暂无平台 Key</view>
+      <view wx:else class="key-list">
+        <view wx:for="{{platformKeys}}" wx:key="id" class="key-row">
+          <view class="key-main">
+            <text class="key-prefix font-mono">{{item.keyPrefix}}</text>
+            <text class="key-sub text-muted">{{item.name}} · {{item.createdAt}}</text>
+          </view>
+          <text class="key-revoke" bindtap="revokePlatformKey" data-id="{{item.id}}">吊销</text>
+        </view>
+      </view>
+    </view>
+  </block>
+</view>

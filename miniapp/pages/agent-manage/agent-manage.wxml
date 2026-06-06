@@ -1,0 +1,237 @@
+<view class="page">
+  <view wx:if="{{loading}}" class="empty">加载中…</view>
+
+  <view wx:elif="{{error}}" class="empty-state">
+    <text class="empty-title font-serif">{{error}}</text>
+    <button class="btn-secondary empty-btn" bindtap="goBack">返回列表</button>
+    <button class="btn-primary empty-btn" bindtap="loadManage">重新加载</button>
+  </view>
+
+  <scroll-view wx:else class="manage-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="manage-body">
+      <view class="back-row">
+        <text class="back-link" bindtap="goBack">← 全部 Agent</text>
+      </view>
+
+      <view class="hero-row">
+        <view class="hero-main">
+          <image
+            wx:if="{{coverFull}}"
+            class="hero-cover"
+            src="{{coverFull}}"
+            mode="aspectFill"
+            binderror="onCoverError"
+          ></image>
+          <view wx:else class="hero-cover hero-cover-fallback font-serif">{{displayInitial}}</view>
+          <view class="hero-meta">
+            <text class="hero-name font-serif">{{displayName}}</text>
+            <text class="hero-headline text-muted">{{headline}}</text>
+            <view class="badge-row">
+              <text class="badge {{published ? 'badge-live' : ''}}">{{published ? '已发布' : '未发布'}}</text>
+              <text class="badge badge-muted">资料完成度 {{completion}}%</text>
+            </view>
+          </view>
+        </view>
+        <view class="hero-actions">
+          <view class="icon-btn-eye" bindtap="goPublicDetail" aria-role="button" aria-label="展示页">
+            <view class="svg-icon svg-eye"></view>
+          </view>
+          <view class="btn-edit" bindtap="onEditProfile">编辑资料</view>
+        </view>
+      </view>
+
+      <view class="stats-grid">
+        <view class="stat-cell stat-tap" bindtap="onStatTap" data-action="sales">
+          <text class="stat-value font-serif">{{soldPacks}}</text>
+          <text class="stat-label">被提问</text>
+          <text class="stat-sub text-muted">次</text>
+        </view>
+        <view class="stat-cell stat-tap" bindtap="onStatTap" data-action="sales">
+          <text class="stat-value font-serif">{{packCount}}</text>
+          <text class="stat-label">互动用户</text>
+          <text class="stat-sub text-muted">人</text>
+        </view>
+        <view class="stat-cell stat-tap" bindtap="onStatTap" data-action="sessions">
+          <text class="stat-value font-serif">{{sessionCount}}</text>
+          <text class="stat-label">累计对话</text>
+          <text class="stat-sub text-muted">场</text>
+        </view>
+        <view class="stat-cell stat-tap" bindtap="onStatTap" data-action="coedit">
+          <view class="mind-wrap">
+            <mind-score-badge value="{{mindScore}}" size="md" prefix=""></mind-score-badge>
+          </view>
+          <text class="stat-label">心智值</text>
+          <text class="stat-sub text-muted">无上限</text>
+        </view>
+      </view>
+
+      <view class="section divider-top">
+        <text class="section-title font-serif">快速操作</text>
+        <view class="action-list">
+          <view
+            wx:for="{{quickActions}}"
+            wx:key="id"
+            class="action-item"
+            bindtap="onQuickAction"
+            data-action="{{item.id}}"
+          >
+            <view class="action-icon {{item.iconClass}}">
+              <view class="svg-icon svg-{{item.icon}}"></view>
+            </view>
+            <view class="action-copy">
+              <text class="action-title">{{item.title}}</text>
+              <text class="action-desc text-muted">{{item.desc}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view class="section divider-top">
+        <view class="section-head-row">
+          <view>
+            <text class="section-title font-serif">实时更新</text>
+            <text class="section-sub text-muted">像发朋友圈一样分享最新信息，Agent 回答时会优先引用。</text>
+          </view>
+          <view class="live-count font-serif">
+            <text class="live-count-num">{{liveUpdateCount}}</text>
+            <text class="live-count-label">条有效</text>
+          </view>
+        </view>
+        <textarea
+          class="live-textarea"
+          value="{{liveContent}}"
+          bindinput="onLiveInput"
+          placeholder="分享最新信息，比如：杭州余杭区最近落户政策放宽了 / 西湖区房价Q2微涨 / 秋招字节阿里都在扩招..."
+          maxlength="-1"
+          auto-height
+        ></textarea>
+        <view class="live-toolbar">
+          <picker mode="selector" range="{{liveCategories}}" range-key="label" value="{{liveCategoryIndex}}" bindchange="onLiveCategoryChange">
+            <view class="live-picker">{{liveCategories[liveCategoryIndex].label}}</view>
+          </picker>
+          <input
+            class="live-location"
+            value="{{liveLocation}}"
+            bindinput="onLiveLocationInput"
+            placeholder="位置标签，如：杭州西湖区（可选）"
+          ></input>
+          <view class="live-post-btn {{liveCanPost && !livePosting ? '' : 'disabled'}}" bindtap="postLiveUpdate">
+            {{livePosting ? '发布中...' : '发布'}}
+          </view>
+        </view>
+        <view wx:if="{{liveUpdates.length > 0}}" class="live-list">
+          <view wx:for="{{liveUpdates}}" wx:key="id" class="live-item">
+            <view class="live-item-main">
+              <view class="live-meta">
+                <text class="live-tag">{{item.categoryLabel}}</text>
+                <text wx:if="{{item.location}}" class="live-loc">📍 {{item.location}}</text>
+                <text class="live-time">{{item.freshLabel}}</text>
+                <text wx:if="{{item.pinned}}" class="live-pin">📌 置顶</text>
+              </view>
+              <text class="live-content">{{item.content}}</text>
+            </view>
+            <view class="live-delete" bindtap="deleteLiveUpdate" data-id="{{item.id}}">
+              <view class="svg-icon svg-trash"></view>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view class="section divider-top">
+        <text class="section-title font-serif">最近动态</text>
+        <view class="recent-block">
+          <view class="recent-head">
+            <text class="recent-title">最近互动</text>
+            <text class="recent-link" bindtap="onQuickAction" data-action="sales">查看全部</text>
+          </view>
+          <view wx:if="{{recentPacks.length == 0}}" class="recent-empty text-muted">暂时还没有互动记录</view>
+          <view wx:for="{{recentPacks}}" wx:key="id" class="recent-item">
+            <text class="recent-name">{{item.name}}</text>
+            <text class="recent-detail text-muted">{{item.detail}}</text>
+            <text class="recent-time text-muted">{{item.timeLabel}}</text>
+          </view>
+        </view>
+        <view class="recent-block">
+          <view class="recent-head">
+            <text class="recent-title">最近聊天</text>
+            <text class="recent-link" bindtap="onQuickAction" data-action="sessions">查看全部</text>
+          </view>
+          <view wx:if="{{recentSessions.length == 0}}" class="recent-empty text-muted">暂时还没有聊天记录</view>
+          <view wx:for="{{recentSessions}}" wx:key="id" class="recent-item">
+            <text class="recent-name">{{item.name}}</text>
+            <text class="recent-detail text-muted">{{item.title}}</text>
+            <text class="recent-time text-muted">{{item.detail}}</text>
+          </view>
+        </view>
+        <view class="recent-block">
+          <view class="recent-head">
+            <text class="recent-title">最近反馈</text>
+            <text class="recent-link" bindtap="onQuickAction" data-action="feedback">查看全部</text>
+          </view>
+          <view wx:if="{{recentFeedback.length == 0}}" class="recent-empty text-muted">暂时还没有用户反馈</view>
+          <view wx:for="{{recentFeedback}}" wx:key="id" class="recent-item">
+            <text class="recent-name">{{item.typeLabel}}</text>
+            <text class="recent-detail text-muted">{{item.content}}</text>
+            <text class="recent-time text-muted">{{item.timeLabel}}</text>
+          </view>
+        </view>
+      </view>
+
+      <view wx:if="{{alerts.length > 0}}" class="section divider-top">
+        <text class="section-title font-serif">需要你关注</text>
+        <text class="section-sub text-muted">来自用户的真实反馈，按紧急程度排列</text>
+        <view class="alert-list">
+          <view wx:for="{{alerts}}" wx:key="id" class="alert-item {{item.toneClass}}">
+            <view class="alert-dot {{item.toneClass}}"></view>
+            <view class="alert-copy">
+              <view class="alert-head">
+                <text class="alert-title {{item.toneClass}}">{{item.title}}</text>
+                <text class="alert-priority {{item.toneClass}}">{{item.priorityLabel}}</text>
+              </view>
+              <text class="alert-detail text-muted">{{item.detail}}</text>
+              <text
+                wx:if="{{item.linkAction}}"
+                class="alert-link"
+                bindtap="onAlertLink"
+                data-action="{{item.linkAction}}"
+              >{{item.action}} →</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view class="section divider-top">
+        <text class="section-title font-serif">优化建议</text>
+        <view class="suggest-list">
+          <text wx:for="{{suggestions}}" wx:key="*this" class="suggest-item">{{item}}</text>
+        </view>
+      </view>
+
+      <view class="section divider-top">
+        <text class="section-title font-serif">Agent 当前状态</text>
+        <view class="status-grid">
+          <view wx:for="{{statusItems}}" wx:key="label" class="status-cell">
+            <text class="status-label text-muted">{{item.label}}</text>
+            <text class="status-value">{{item.value}}</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="section divider-top danger-section">
+        <view class="danger-head" bindtap="toggleDanger">
+          <text class="danger-title">危险操作</text>
+          <text class="danger-hint">删除后无法恢复</text>
+          <text class="danger-chevron">{{dangerOpen ? '▾' : '▸'}}</text>
+        </view>
+        <view wx:if="{{dangerOpen}}" class="danger-body">
+          <text class="danger-copy text-muted">
+            删除人生 Agent 后，相关知识、聊天记录、反馈和销量记录都将无法恢复。请确认你不再需要它时再执行。
+          </text>
+          <button class="danger-btn" bindtap="deleteAgent" disabled="{{deleting}}">
+            {{deleting ? '删除中...' : '删除人生 Agent'}}
+          </button>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+</view>

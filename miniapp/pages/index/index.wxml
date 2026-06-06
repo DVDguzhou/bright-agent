@@ -1,42 +1,58 @@
-<view class="container">
-  <view class="top-bar">
-    <text class="brand">BrightAgent</text>
-    <view class="top-actions">
-      <text class="link" bindtap="goSupport">客服</text>
-      <text class="link" bindtap="goMine">我的</text>
+<view class="page">
+  <!-- 顶栏：与 App 一致 — 汉堡 | 动态·发现 | 搜索 -->
+  <view class="status-bar" style="height: {{statusBarHeight}}px" />
+  <view class="top-nav" style="height: {{navBarHeight}}px; padding-right: {{menuRight}}px;">
+    <view class="nav-btn" bindtap="openDrawer">
+      <view class="icon-menu" />
+    </view>
+    <view class="feed-tabs font-serif">
+      <view class="feed-tab {{topTab === 'posts' ? 'active' : 'inactive'}}" bindtap="goPosts">动态</view>
+      <view class="feed-tab {{topTab === 'discover' ? 'active' : 'inactive'}}" bindtap="goDiscoverTab">发现</view>
+    </view>
+    <view class="nav-btn" bindtap="goSearch">
+      <view class="icon-search" />
     </view>
   </view>
 
-  <view wx:if="{{loading}}" class="empty">加载中…</view>
-  <view wx:elif="{{error}}" class="empty">{{error}}</view>
-  <view wx:elif="{{agents.length === 0}}" class="empty">暂无已发布的人生 Agent</view>
+  <view wx:if="{{feedView === 'favorites'}}" class="intro-banner">
+    <text class="intro-title">我的收藏</text>
+    <text class="intro-desc">在 Agent 详情页封面右上角点星形即可收藏。</text>
+  </view>
 
-  <view wx:else class="list">
-    <view
-      wx:for="{{agents}}"
-      wx:key="id"
-      class="card agent-card"
-      bindtap="goDetail"
-      data-id="{{item.id}}"
-    >
-      <image
-        wx:if="{{item.coverFull}}"
-        class="cover"
-        src="{{item.coverFull}}"
-        mode="aspectFill"
+  <view wx:if="{{loading && currentList.length === 0}}" class="grid">
+    <view wx:for="{{[1,2,3,4,5,6]}}" wx:key="*this" class="grid-col">
+      <view class="sk-cover skeleton" />
+      <view class="sk-divider" />
+      <view class="sk-line skeleton" />
+      <view class="sk-line skeleton" />
+      <view class="sk-line short skeleton" />
+    </view>
+  </view>
+
+  <view wx:elif="{{error && currentList.length === 0}}" class="error-banner">
+    <text>{{error}}</text>
+    <text class="error-retry" bindtap="reload">刷新页面</text>
+  </view>
+
+  <view wx:elif="{{currentList.length === 0}}" class="empty-state font-serif">
+    <text class="empty-title">{{emptyTitle}}</text>
+    <text class="empty-sub">{{emptySubtitle}}</text>
+    <button wx:if="{{favoritesNeedLogin && feedView === 'favorites'}}" class="btn-primary empty-btn" bindtap="goLogin">去登录</button>
+  </view>
+
+  <view wx:else class="grid">
+    <view wx:for="{{currentList}}" wx:key="id" class="grid-col">
+      <discover-card
+        agent="{{item}}"
+        showPulse="{{feedView === 'discover' && firstCardPulsing && index === 0}}"
+        bind:tapcard="goDetail"
       />
-      <view class="agent-body">
-        <view class="name-row">
-          <text class="name">{{item.displayName}}</text>
-          <text wx:if="{{item.verificationStatus === 'verified'}}" class="badge">认证</text>
-        </view>
-        <text class="headline">{{item.headline || item.shortBio}}</text>
-        <view class="meta">
-          <text wx:if="{{item.school}}">{{item.school}}</text>
-          <text wx:if="{{item.city}}"> · {{item.city}}</text>
-        </view>
-        <text class="price">¥{{item.pricePerQuestion / 100}}/问</text>
-      </view>
     </view>
   </view>
+
+  <view wx:if="{{loadingMore}}" class="load-more font-serif">正在加载…</view>
+  <view wx:elif="{{hasMore && currentList.length > 0 && feedView === 'discover'}}" class="load-more font-serif" bindtap="loadMore">继续阅读</view>
+
+  <mobile-drawer open="{{drawerOpen}}" bind:close="closeDrawer" />
+  <onboarding-sheet open="{{onboardingOpen}}" bind:dismiss="dismissOnboarding" />
 </view>

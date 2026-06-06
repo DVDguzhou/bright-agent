@@ -1,0 +1,58 @@
+<view class="sub-page">
+  <view wx:if="{{loading}}" class="sub-loading">加载中…</view>
+  <view wx:elif="{{error}}" class="sub-error">
+    <text class="sub-error-text">{{error}}</text>
+    <button class="btn-secondary" bindtap="goBack">返回工作台</button>
+    <button class="btn-primary" bindtap="retry">重新加载</button>
+  </view>
+  <scroll-view wx:else class="sub-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="sub-body">
+      <text class="sub-back" bindtap="goBack">← 返回工作台</text>
+      <text class="sub-title font-serif">互动记录</text>
+      <text class="sub-desc">{{displayName}} 的用户提问与对话互动</text>
+      <view class="sub-pills">
+        <view
+          wx:for="{{rangeOptions}}"
+          wx:key="key"
+          class="sub-pill {{range == item.key ? 'active' : ''}}"
+          bindtap="onRangeTap"
+          data-range="{{item.key}}"
+        >{{item.label}}</view>
+      </view>
+      <view class="sub-section">
+        <view class="sub-stat-grid">
+          <view class="sub-stat-cell">
+            <text class="sub-stat-value font-serif">{{summary.buyers}}</text>
+            <text class="sub-stat-label">互动用户</text>
+            <text class="sub-stat-sub">人</text>
+          </view>
+          <view class="sub-stat-cell">
+            <text class="sub-stat-value font-serif">{{summary.asked}}</text>
+            <text class="sub-stat-label">被提问</text>
+            <text class="sub-stat-sub">次</text>
+          </view>
+          <view class="sub-stat-cell">
+            <text class="sub-stat-value font-serif accent">{{summary.heat}}</text>
+            <text class="sub-stat-label">热度指数</text>
+            <text class="sub-stat-sub">综合</text>
+          </view>
+        </view>
+      </view>
+      <view class="sub-section">
+        <text class="sub-section-title font-serif">互动明细</text>
+        <text class="sub-section-sub">{{rangeLabel}} · {{items.length}} 条</text>
+        <view wx:if="{{items.length == 0}}" class="sub-empty">当前筛选下暂无互动记录</view>
+        <view wx:else class="sub-list">
+          <view wx:for="{{items}}" wx:key="id" class="sub-list-item">
+            <view class="sub-list-head">
+              <text class="sub-list-name">{{item.name}}</text>
+              <text class="sub-list-time">{{item.timeLabel}}</text>
+            </view>
+            <text class="sub-list-detail">{{item.detail}}</text>
+            <text class="sub-list-meta">{{item.dateLabel}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+</view>

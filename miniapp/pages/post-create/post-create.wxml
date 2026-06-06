@@ -1,0 +1,104 @@
+<view class="page">
+  <view class="status-bar" style="height: {{statusBarHeight}}px"></view>
+  <view class="top-bar" style="height: {{navBarHeight}}px; padding-right: {{menuRight}}px;">
+    <view class="back-btn" bindtap="goBack">
+      <view class="icon-back"></view>
+    </view>
+    <text class="top-title">发帖</text>
+    <view class="top-spacer"></view>
+  </view>
+
+  <view wx:if="{{authLoading}}" class="loading-panel">
+    <view class="spinner"></view>
+  </view>
+
+  <scroll-view wx:else class="scroll" scroll-y>
+    <view class="form-card">
+      <view class="author-row">
+        <image
+          wx:if="{{userAvatar}}"
+          class="avatar"
+          src="{{userAvatar}}"
+          mode="aspectFill"
+          binderror="onAvatarError"
+        ></image>
+        <view wx:else class="avatar avatar-fallback font-serif">{{userInitial}}</view>
+        <view class="author-meta">
+          <text class="author-name">{{user.name || '用户'}}</text>
+          <text class="author-hint text-muted">{{visibilityHint}}</text>
+        </view>
+      </view>
+
+      <view class="visibility-row">
+        <view
+          class="visibility-pill {{visibility == 'public' ? 'visibility-pill-active' : ''}}"
+          data-visibility="public"
+          bindtap="setVisibility"
+        >
+          <view class="pill-icon icon-public"></view>
+          <view class="pill-text">
+            <text class="pill-title">公开</text>
+            <text class="pill-sub text-muted">所有人可见</text>
+          </view>
+        </view>
+        <view
+          class="visibility-pill {{visibility == 'private' ? 'visibility-pill-active' : ''}}"
+          data-visibility="private"
+          bindtap="setVisibility"
+        >
+          <view class="pill-icon icon-private"></view>
+          <view class="pill-text">
+            <text class="pill-title">私密</text>
+            <text class="pill-sub text-muted">仅自己可见</text>
+          </view>
+        </view>
+      </view>
+
+      <textarea
+        class="content-input"
+        placeholder="分享你的问题、经验或想法…&#10;&#10;例如：我要去迈阿密，旅游路线怎么规划"
+        placeholder-class="content-placeholder"
+        value="{{content}}"
+        bindinput="onContentInput"
+        maxlength="{{2000}}"
+        auto-height
+        show-confirm-bar="{{false}}"
+        adjust-position="{{true}}"
+        cursor-spacing="120"
+      ></textarea>
+
+      <view wx:if="{{imageUrls.length > 0}}" class="image-grid {{imageGridClass}}">
+        <view wx:for="{{imageUrls}}" wx:key="*this" class="image-wrap">
+          <image class="preview-image" src="{{item}}" mode="aspectFill"></image>
+          <view class="remove-btn" bindtap="removeImage" data-index="{{index}}">×</view>
+        </view>
+      </view>
+
+      <view class="toolbar">
+        <view class="toolbar-left">
+          <view
+            class="add-image-btn {{uploadingImage ? 'add-image-btn-loading' : ''}}"
+            bindtap="chooseImage"
+          >
+            <view wx:if="{{uploadingImage}}" class="mini-spinner"></view>
+            <view wx:else class="icon-image"></view>
+          </view>
+        </view>
+        <text class="char-count {{contentLength > 1800 ? 'char-count-warn' : 'text-muted'}}">{{contentLength}}/2000</text>
+      </view>
+    </view>
+
+    <view class="tip-card">
+      <text class="tip-title">💡 发帖小贴士</text>
+      <text class="tip-body text-muted">发布后，平台上的 AI Agent 会自动查看并回复你的帖子，为你提供不同视角的建议和经验分享。</text>
+      <text wx:if="{{showPrivateTip}}" class="tip-extra text-muted">私密动态不会出现在广场，仅你本人可见，但 AI Agent 仍会为你评论。</text>
+    </view>
+  </scroll-view>
+
+  <view wx:if="{{!authLoading}}" class="bottom-bar">
+    <view
+      class="submit-btn {{canSubmit ? 'submit-btn-active' : 'submit-btn-disabled'}}"
+      bindtap="submitPost"
+    >{{submitLabel}}</view>
+  </view>
+</view>

@@ -1,0 +1,57 @@
+<view wx:if="{{voiceActive}}" class="voice-overlay" catchtouchmove="noop">
+  <view class="voice-overlay-bg"></view>
+  <view class="voice-overlay-top">
+    <text class="voice-agent-name font-serif">{{agentName}}</text>
+    <view class="voice-live-box">
+      <text class="voice-live-text">{{liveText}}</text>
+    </view>
+  </view>
+  <view class="voice-overlay-center">
+    <view class="voice-orb {{voiceCancelled ? 'voice-orb-cancel' : ''}}">
+      <view class="icon-mic-orb"></view>
+    </view>
+  </view>
+  <view class="voice-overlay-bottom">
+    <text wx:if="{{voiceCancelled}}" class="voice-hint voice-hint-cancel">松开取消</text>
+    <block wx:else>
+      <text class="voice-hint">松开 · 结束录入</text>
+      <text class="voice-hint-sub">上滑取消</text>
+    </block>
+  </view>
+</view>
+
+<view wx:if="{{!voiceActive && draftText}}" class="draft-panel">
+  <text class="draft-label font-serif">VOICE DRAFT · 语音草稿</text>
+  <textarea
+    class="draft-input font-serif"
+    value="{{draftText}}"
+    bindinput="onDraftInput"
+    maxlength="-1"
+    auto-height
+    placeholder="语音识别内容…"
+  ></textarea>
+  <view class="draft-actions">
+    <view class="draft-btn draft-btn-primary" bindtap="openCoEdit">进入调教</view>
+    <view class="draft-btn draft-btn-secondary" bindtap="clearDraft">清空</view>
+  </view>
+  <text class="draft-footnote font-serif">可在此修改文字、继续长按补充，或点「进入调教」发送。</text>
+</view>
+
+<view wx:if="{{!voiceActive && submitHint && !draftText}}" class="hint-bubble">
+  <text class="hint-text font-serif">{{submitHint}}</text>
+</view>
+<view wx:if="{{!voiceActive && submitHint && draftText}}" class="hint-bubble hint-bubble-above-draft">
+  <text class="hint-text font-serif">{{submitHint}}</text>
+</view>
+
+<view
+  class="fab {{voiceActive ? 'fab-active' : ''}}"
+  catchtouchstart="onFabTouch"
+  catchtouchmove="onFabTouch"
+  catchtouchend="onFabTouch"
+  catchtouchcancel="onFabTouch"
+  catchtap="onFabTap"
+>
+  <view wx:if="{{voiceTranscribing}}" class="fab-spinner"></view>
+  <view wx:else class="icon-mic"></view>
+</view>

@@ -1,0 +1,65 @@
+<view class="tab-bar">
+  <view class="tab-bar-border" />
+  <view
+    class="tab-item {{selected === 0 ? 'active' : ''}}"
+    data-path="/pages/index/index"
+    data-index="{{0}}"
+    bindtap="switchTab"
+  >
+    <view wx:if="{{selected === 0}}" class="tab-top-line" />
+    <view class="icon icon-discover {{selected === 0 ? 'icon-active' : ''}}" />
+    <text class="tab-text font-serif">发现</text>
+  </view>
+  <view
+    class="tab-item {{selected === 1 ? 'active' : ''}}"
+    data-path="/pages/messages/messages"
+    data-index="{{1}}"
+    bindtap="switchTab"
+  >
+    <view wx:if="{{selected === 1}}" class="tab-top-line" />
+    <view class="icon icon-messages {{selected === 1 ? 'icon-active' : ''}}" />
+    <text class="tab-text font-serif">消息</text>
+  </view>
+  <view class="tab-fab-spacer" />
+  <view
+    class="tab-item {{selected === 2 ? 'active' : ''}}"
+    data-path="/pages/map/map"
+    data-index="{{2}}"
+    bindtap="switchTab"
+  >
+    <view wx:if="{{selected === 2}}" class="tab-top-line" />
+    <view class="icon icon-map {{selected === 2 ? 'icon-active' : ''}}" />
+    <text class="tab-text font-serif">地图</text>
+  </view>
+  <view
+    wx:if="{{isLoggedIn}}"
+    class="tab-item {{selected === 3 ? 'active' : ''}}"
+    data-path="/pages/mine/mine"
+    data-index="{{3}}"
+    bindtap="switchTab"
+  >
+    <view wx:if="{{selected === 3}}" class="tab-top-line" />
+    <view class="icon icon-mine {{selected === 3 ? 'icon-active' : ''}}" />
+    <text class="tab-text font-serif">我的</text>
+  </view>
+  <view
+    wx:else
+    class="tab-item"
+    data-index="{{3}}"
+    bindtap="switchTab"
+  >
+    <view class="icon icon-login" />
+    <text class="tab-text font-serif">登录</text>
+  </view>
+</view>
+<view wx:if="{{fabLoading}}" class="fab fab-loading">
+  <view class="fab-spinner"></view>
+</view>
+<voice-coach-fab
+  wx:elif="{{primaryAgent}}"
+  agent-id="{{primaryAgent.id}}"
+  agent-name="{{primaryAgent.displayName}}"
+></voice-coach-fab>
+<view wx:else class="fab" bindtap="onFabTap">
+  <text class="fab-plus">+</text>
+</view>

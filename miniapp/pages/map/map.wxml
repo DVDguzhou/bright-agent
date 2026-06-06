@@ -1,0 +1,225 @@
+<view class="page">
+  <view class="status-bar" style="height: {{statusBarHeight}}px"></view>
+
+  <view class="search-overlay" style="top: {{searchOverlayTop}}px;">
+    <view class="search-box">
+      <view class="search-icon"></view>
+      <input
+        class="search-input"
+        placeholder-class="search-placeholder"
+        placeholder="搜索地图上的 Agent"
+        value="{{search}}"
+        bindinput="onSearchInput"
+        confirm-type="search"
+      ></input>
+    </view>
+  </view>
+
+  <view wx:if="{{loading}}" class="state-panel">
+    <view class="spinner"></view>
+  </view>
+
+  <view wx:elif="{{loadError && totalPinCount == 0}}" class="state-panel">
+    <text class="state-title">{{loadError}}</text>
+    <text class="state-retry" bindtap="loadPins">重试</text>
+  </view>
+
+  <view wx:elif="{{filteredPinCount == 0}}" class="state-panel">
+    <text class="state-title">{{totalPinCount == 0 ? '暂无 Agent 可展示' : '没有匹配的 Agent'}}</text>
+    <text class="state-sub text-muted">{{totalPinCount == 0 ? '去发现页看看是否有新入驻的创作者。' : '试试其他关键词。'}}</text>
+    <button wx:if="{{totalPinCount == 0}}" class="btn-primary state-btn" bindtap="goDiscover">去发现</button>
+  </view>
+
+  <map
+    wx:else
+    id="agentMap"
+    class="map"
+    latitude="{{center.lat}}"
+    longitude="{{center.lng}}"
+    scale="{{scale}}"
+    min-scale="3"
+    max-scale="18"
+    markers="{{markers}}"
+    polyline="{{spiderLines}}"
+    enable-zoom="{{true}}"
+    enable-scroll="{{true}}"
+    show-location="{{shareEnabled}}"
+    bindmarkertap="onMarkerTap"
+    bindregionchange="onRegionChange"
+  ></map>
+
+  <view wx:if="{{loadError && totalPinCount > 0}}" class="error-toast">{{loadError}}</view>
+
+  <view
+    wx:if="{{!loading && filteredPinCount > 0 && shareEnabled && nearbyLabel}}"
+    class="nearby-banner"
+    bindtap="openNearbyList"
+  >
+    <text class="nearby-banner-text">{{nearbyLabel}}</text>
+    <text class="nearby-banner-action">查看列表 ›</text>
+  </view>
+
+  <view wx:if="{{!loading && filteredPinCount > 0}}" class="map-fabs">
+    <view class="fab-btn" bindtap="openGpsSheet">
+      <view class="icon-locate"></view>
+    </view>
+    <view class="fab-btn" bindtap="onExploreTap">
+      <view class="icon-explore"></view>
+    </view>
+  </view>
+
+  <view wx:if="{{!loading && filteredPinCount > 0}}" class="map-legend">
+    <view wx:if="{{legendOpen}}" class="legend-panel">
+      <view class="legend-head">
+        <text class="legend-title">分类图例</text>
+        <text class="legend-close" bindtap="closeLegend">×</text>
+      </view>
+      <view class="legend-grid">
+        <view wx:for="{{legendItems}}" wx:key="label" class="legend-item">
+          <view class="legend-dot" style="background: {{item.color}}"></view>
+          <text class="legend-label">{{item.label}}</text>
+        </view>
+      </view>
+    </view>
+    <view wx:else class="legend-btn" bindtap="toggleLegend">
+      <view class="icon-legend"></view>
+    </view>
+  </view>
+
+  <canvas canvas-id="mapIconCanvas" class="map-icon-canvas"></canvas>
+
+  <view wx:if="{{selectedAgent}}" class="agent-card">
+    <view class="agent-card-main" bindtap="goDetail">
+      <image
+        wx:if="{{selectedAgent.coverFull}}"
+        class="agent-card-cover"
+        src="{{selectedAgent.coverFull}}"
+        mode="aspectFill"
+      ></image>
+      <view class="agent-card-body">
+        <view class="agent-card-name-row">
+          <view class="cat-dot" style="background: {{selectedAgent.catColor}}"></view>
+          <text class="agent-card-name font-serif">{{selectedAgent.displayName}}</text>
+        </view>
+        <text wx:if="{{selectedAgent.distanceLabel}}" class="agent-card-distance">{{selectedAgent.distanceLabel}}</text>
+        <text wx:if="{{selectedAgent.headline}}" class="agent-card-headline text-muted">{{selectedAgent.headline}}</text>
+        <text wx:if="{{selectedAgent.area}}" class="agent-card-meta text-muted">{{selectedAgent.area}}</text>
+      </view>
+    </view>
+    <view class="agent-card-actions">
+      <text class="agent-card-nav" catchtap="openAgentLocation">查看位置</text>
+      <text class="agent-card-close" bindtap="closeAgentCard">×</text>
+    </view>
+  </view>
+
+  <view wx:if="{{gpsSheetOpen}}" class="sheet-mask" bindtap="closeGpsSheet"></view>
+  <view wx:if="{{gpsSheetOpen}}" class="bottom-sheet" catchtouchmove="noop">
+    <view class="sheet-handle"></view>
+    <text class="sheet-title">附近 Agent</text>
+    <text class="sheet-desc text-muted">开启定位后，地图会显示你的位置，并按距离列出附近的 Agent，便于了解当地有谁可以咨询。位置仅在本机使用，不会上传服务器。</text>
+
+    <scroll-view class="sheet-scroll" scroll-y>
+      <view class="nearby-section">
+        <text class="sheet-section-title">查看身边的 Agent</text>
+        <text wx:if="{{shareEnabled && nearbyLabel}}" class="sheet-copy">{{nearbyLabel}}{{locationPrecise ? '（精确距离）' : '（大致范围）'}}</text>
+        <view wx:if="{{geoError}}" class="geo-error">
+          <text class="geo-error-msg">{{geoError}}</text>
+          <button class="sheet-btn sheet-btn-retry" bindtap="enableSharing">重新尝试定位</button>
+        </view>
+        <button
+          wx:if="{{!shareEnabled}}"
+          class="sheet-btn sheet-btn-primary"
+          bindtap="enableSharing"
+          disabled="{{locating}}"
+        >{{locating ? '定位中…' : '开启附近定位'}}</button>
+        <button
+          wx:if="{{shareEnabled && nearbyCount > 0}}"
+          class="sheet-btn sheet-btn-primary"
+          bindtap="openNearbyList"
+        >查看身边 {{nearbyCount}} 个 Agent</button>
+        <button wx:if="{{shareEnabled}}" class="sheet-btn sheet-btn-secondary" bindtap="disableSharing">关闭定位</button>
+      </view>
+
+      <block wx:if="{{!user}}">
+        <view class="sheet-divider"></view>
+        <text class="sheet-section-title">高亮我创建的 Agent（可选）</text>
+        <text class="sheet-copy">登录后可选择你创建的 Agent，在地图上高亮显示。</text>
+        <view wx:if="{{selectedProfileId}}" class="remember-box">
+          <text class="remember-title">本机记住的高亮</text>
+          <text class="remember-value">{{rememberedLabel}}</text>
+        </view>
+        <button class="sheet-btn sheet-btn-secondary" bindtap="goLogin">去登录</button>
+        <button wx:if="{{selectedProfileId}}" class="sheet-btn sheet-btn-secondary" bindtap="clearBinding">清除高亮与定位</button>
+      </block>
+
+      <block wx:elif="{{boundAgents.length == 0}}">
+        <view class="sheet-divider"></view>
+        <text class="sheet-section-title">高亮我创建的 Agent（可选）</text>
+        <text class="sheet-copy">你还没有自己创建的人生 Agent。创建后可在地图高亮显示。</text>
+        <button class="sheet-btn sheet-btn-secondary" bindtap="goCreate">去创建</button>
+      </block>
+
+      <block wx:else>
+        <view class="sheet-divider"></view>
+        <text class="sheet-section-title">高亮我创建的 Agent（可选）</text>
+        <text class="sheet-copy-sm">点选下方一项即可在地图上高亮。</text>
+        <view
+          wx:for="{{boundAgents}}"
+          wx:key="id"
+          class="bound-row {{selectedProfileId == item.id ? 'bound-row-active' : ''}}"
+          data-id="{{item.id}}"
+          bindtap="pickAgent"
+        >
+          <view class="radio {{selectedProfileId == item.id ? 'radio-checked' : ''}}"></view>
+          <view class="bound-meta">
+            <text class="bound-name">{{item.displayName}}</text>
+            <text wx:if="{{item.headline}}" class="bound-headline text-muted">{{item.headline}}</text>
+          </view>
+        </view>
+        <button wx:if="{{selectedProfileId}}" class="sheet-btn sheet-btn-secondary" bindtap="clearBinding">清除高亮与定位</button>
+      </block>
+    </scroll-view>
+
+    <view class="sheet-footer">
+      <button class="sheet-btn sheet-btn-done" bindtap="closeGpsSheet">完成</button>
+    </view>
+  </view>
+
+  <view wx:if="{{exploreOpen}}" class="sheet-mask" bindtap="closeExplore"></view>
+  <view wx:if="{{exploreOpen}}" class="bottom-sheet explore-sheet" catchtouchmove="noop">
+    <view class="sheet-handle"></view>
+    <view class="explore-head">
+      <text class="sheet-title">{{exploreTitle || '此区域的 Agent'}}</text>
+      <text class="explore-count text-muted">{{exploreAgents.length}} 个</text>
+    </view>
+    <scroll-view class="sheet-scroll explore-scroll" scroll-y>
+      <view wx:if="{{exploreAgents.length == 0}}" class="explore-empty">
+        <text class="text-muted">当前视野内暂无 Agent</text>
+        <text class="explore-empty-sub text-muted">试试缩小地图或移动到其他区域</text>
+      </view>
+      <view
+        wx:for="{{exploreAgents}}"
+        wx:key="id"
+        class="explore-row"
+        data-id="{{item.id}}"
+        bindtap="goExploreDetail"
+      >
+        <image wx:if="{{item.coverFull}}" class="explore-cover" src="{{item.coverFull}}" mode="aspectFill"></image>
+        <view wx:else class="explore-cover explore-cover-fallback"></view>
+        <view class="explore-body">
+          <view class="explore-name-row">
+            <view class="cat-dot" style="background: {{item.catColor}}"></view>
+            <text class="explore-name">{{item.displayName}}</text>
+          </view>
+          <text wx:if="{{item.headline}}" class="explore-headline text-muted">{{item.headline}}</text>
+          <text wx:if="{{item.distanceLabel}}" class="explore-distance text-muted">{{item.distanceLabel}}</text>
+          <text wx:elif="{{item.school}}" class="explore-school text-muted">{{item.school}}</text>
+        </view>
+        <text class="explore-arrow">›</text>
+      </view>
+    </scroll-view>
+    <view class="sheet-footer">
+      <button class="sheet-btn sheet-btn-done" bindtap="closeExplore">关闭</button>
+    </view>
+  </view>
+</view>

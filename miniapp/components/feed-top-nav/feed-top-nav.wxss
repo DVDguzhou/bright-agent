@@ -1,0 +1,83 @@
+.status-bar {
+  width: 100%;
+  background: #f4efe6;
+}
+
+.top-nav {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  box-sizing: border-box;
+  border-bottom: 1rpx solid #d8cfbf;
+  background: #f4efe6;
+}
+
+.nav-btn {
+  width: 80rpx;
+  height: 80rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.icon-menu {
+  width: 40rpx;
+  height: 28rpx;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' stroke='%231a1714' stroke-width='2' viewBox='0 0 24 24'%3E%3Cpath stroke-linecap='round' d='M4 6h16M4 12h16M4 18h16'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.icon-back {
+  width: 40rpx;
+  height: 40rpx;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' stroke='%231a1714' stroke-width='2.2' viewBox='0 0 24 24'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M15 19l-7-7 7-7'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.icon-search {
+  width: 40rpx;
+  height: 40rpx;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' stroke='%231a1714' stroke-width='2' viewBox='0 0 24 24'%3E%3Cpath stroke-linecap='round' d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.feed-tabs {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 32rpx;
+}
+
+.feed-tab {
+  position: relative;
+  font-size: 32rpx;
+  padding: 8rpx 16rpx 16rpx;
+}
+
+.feed-tab.active {
+  font-weight: 500;
+  color: #1a1714;
+}
+
+.feed-tab.active::after {
+  content: "";
+  position: absolute;
+  left: 8rpx;
+  right: 8rpx;
+  bottom: 0;
+  height: 2rpx;
+  background: #1a1714;
+}
+
+.feed-tab.inactive {
+  font-style: italic;
+  color: #8d8478;
+}

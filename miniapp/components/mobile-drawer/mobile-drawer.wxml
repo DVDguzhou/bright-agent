@@ -1,0 +1,61 @@
+<view wx:if="{{open}}" class="mask" bindtap="onClose">
+  <view class="drawer-panel" catchtap="noop">
+    <view class="drawer-head" style="padding-top: {{statusBarHeight}}px;">
+      <text class="drawer-title font-serif">菜单</text>
+      <view class="drawer-close-btn" bindtap="onClose">
+        <view class="icon-close"></view>
+      </view>
+    </view>
+
+    <scroll-view class="drawer-body" scroll-y enhanced show-scrollbar="{{false}}">
+      <view class="drawer-item" bindtap="goCreate">
+        <view class="drawer-icon icon-plus accent"></view>
+        <text class="drawer-label">创建人生 Agent</text>
+      </view>
+
+      <view class="drawer-item" bindtap="goCreated">
+        <view class="drawer-icon icon-agent"></view>
+        <text class="drawer-label">我创建的</text>
+      </view>
+
+      <view class="drawer-item" bindtap="goMessages">
+        <view class="drawer-icon icon-messages"></view>
+        <text class="drawer-label">消息</text>
+      </view>
+
+      <view class="drawer-item" bindtap="goMap">
+        <view class="drawer-icon icon-map"></view>
+        <text class="drawer-label">地图</text>
+      </view>
+
+      <view class="drawer-item" bindtap="goSupport">
+        <view class="drawer-icon icon-support"></view>
+        <text class="drawer-label">联系客服</text>
+      </view>
+
+      <block wx:if="{{isLoggedIn}}">
+        <view class="drawer-item" bindtap="goMine">
+          <view class="drawer-icon icon-home"></view>
+          <text class="drawer-label">我的</text>
+        </view>
+
+        <view class="drawer-item" bindtap="goAccount">
+          <view class="drawer-icon icon-user"></view>
+          <text class="drawer-label">账号与安全</text>
+        </view>
+
+        <view class="drawer-item logout" bindtap="logout">
+          <view class="drawer-icon icon-logout accent"></view>
+          <text class="drawer-label accent italic">退出登录</text>
+        </view>
+      </block>
+
+      <block wx:else>
+        <view class="auth-actions">
+          <button class="btn-primary auth-btn" bindtap="goLogin">登录</button>
+          <text class="auth-hint text-muted">没有账号？登录页底部可注册</text>
+        </view>
+      </block>
+    </scroll-view>
+  </view>
+</view>

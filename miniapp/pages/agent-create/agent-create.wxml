@@ -1,0 +1,402 @@
+<view class="page">
+  <view class="status-bar" style="height: {{statusBarHeight}}px"></view>
+  <view class="header" style="height: {{navBarHeight}}px;">
+    <view class="header-btn" bindtap="goBack">
+      <view class="icon-back"></view>
+    </view>
+    <view class="header-title-wrap">
+      <text class="header-title font-serif">创建人生 Agent</text>
+      <view wx:if="{{step > 0}}" class="progress-row">
+        <view
+          wx:for="{{progressSteps}}"
+          wx:key="*this"
+          class="progress-bar {{visualStep >= item ? 'on' : ''}}"
+        ></view>
+      </view>
+    </view>
+    <view class="header-btn"></view>
+  </view>
+
+  <view wx:if="{{error}}" class="error-banner">{{error}}</view>
+
+  <view class="body">
+    <view wx:if="{{initLoading}}" class="center-panel">
+      <text class="panel-desc">加载中…</text>
+    </view>
+
+    <view wx:elif="{{needLogin}}" class="center-panel">
+      <text class="panel-title font-serif">先登录，再创建</text>
+      <text class="panel-desc">登录后可把自己的真实经验整理成可咨询的人生 Agent。</text>
+      <view class="panel-actions">
+        <button class="btn-primary panel-btn" bindtap="goLogin">去登录</button>
+      </view>
+    </view>
+
+    <view wx:elif="{{limitReached}}" class="center-panel">
+      <text class="panel-title font-serif">已有一个 Agent</text>
+      <text class="panel-desc">每个账号目前只能创建 1 个 Agent。你可以继续管理已有的 Agent。</text>
+      <view class="panel-actions">
+        <button class="btn-primary panel-btn" bindtap="goMyAgents">我创建的</button>
+      </view>
+    </view>
+
+    <scroll-view wx:elif="{{step == 0}}" class="scroll-main" scroll-y>
+      <view class="template-wrap">
+        <view class="section-head">
+          <text class="section-title font-serif">选一个最接近你的场景</text>
+          <text class="section-sub">模板会帮你预填大部分资料，你只需补充自己的具体信息</text>
+        </view>
+        <view
+          wx:for="{{templates}}"
+          wx:key="id"
+          class="template-card"
+          bindtap="applyTemplate"
+          data-id="{{item.id}}"
+        >
+          <view class="template-icon">{{item.initial}}</view>
+          <view class="template-meta">
+            <text class="template-label">{{item.label}}</text>
+            <text class="template-desc">{{item.desc}}</text>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+
+    <view wx:elif="{{step == 1}}" class="chat-step">
+      <view class="chat-hint">
+        <text>{{profileProgress}}</text>
+        <text>可回复「跳过」略过</text>
+      </view>
+      <scroll-view class="chat-scroll" scroll-y scroll-with-animation scroll-into-view="{{chatScrollId}}">
+        <view
+          wx:for="{{chatHistory}}"
+          wx:for-index="idx"
+          wx:key="idx"
+          class="msg-row {{item.role == 'user' ? 'user' : 'assistant'}}"
+        >
+          <block wx:if="{{item.role == 'assistant'}}">
+            <image class="msg-avatar" src="{{defaultCover}}" mode="aspectFill"></image>
+            <view class="bubble">{{item.content}}</view>
+          </block>
+          <block wx:else>
+            <view class="msg-user-wrap">
+              <view class="msg-main">
+                <view class="bubble">{{item.content}}</view>
+                <view class="msg-avatar-wrap user">
+                  <image
+                    wx:if="{{userAvatar}}"
+                    class="msg-avatar-img"
+                    src="{{userAvatar}}"
+                    mode="aspectFill"
+                    binderror="onUserAvatarError"
+                  ></image>
+                  <view wx:else class="msg-avatar-fallback user">{{userInitial}}</view>
+                </view>
+              </view>
+              <view wx:if="{{!chatDone && !chatLoading && idx > 0}}" class="recall-bar">
+                <view
+                  class="recall-btn"
+                  catchtap="onRecallUserMessage"
+                  data-phase="profile"
+                  data-index="{{idx}}"
+                >
+                  <view class="icon-recall"></view>
+                </view>
+              </view>
+            </view>
+          </block>
+        </view>
+        <block wx:if="{{chatDone}}">
+          <view
+            wx:for="{{sampleHistory}}"
+            wx:for-index="idx"
+            wx:key="idx"
+            class="msg-row {{item.role == 'user' ? 'user' : 'assistant'}}"
+          >
+            <block wx:if="{{item.role == 'assistant'}}">
+              <image class="msg-avatar" src="{{defaultCover}}" mode="aspectFill"></image>
+              <view class="bubble">{{item.content}}</view>
+            </block>
+            <block wx:else>
+              <view class="msg-user-wrap">
+                <view class="msg-main">
+                  <view class="bubble">{{item.content}}</view>
+                  <view class="msg-avatar-wrap user">
+                  <image
+                    wx:if="{{userAvatar}}"
+                    class="msg-avatar-img"
+                    src="{{userAvatar}}"
+                    mode="aspectFill"
+                    binderror="onUserAvatarError"
+                  ></image>
+                  <view wx:else class="msg-avatar-fallback user">{{userInitial}}</view>
+                </view>
+                </view>
+                <view wx:if="{{!sampleDone && !sampleLoading && idx > 0}}" class="recall-bar">
+                  <view
+                    class="recall-btn"
+                    catchtap="onRecallUserMessage"
+                    data-phase="sample"
+                    data-index="{{idx}}"
+                  >
+                    <view class="icon-recall"></view>
+                  </view>
+                </view>
+              </view>
+            </block>
+          </view>
+        </block>
+        <view id="create-chat-bottom" style="height: 32rpx;"></view>
+      </scroll-view>
+      <view wx:if="{{!chatDone}}" class="composer-footer">
+        <view class="composer-pill">
+          <input
+            class="composer-field"
+            placeholder="输入回答…"
+            value="{{chatInput}}"
+            bindinput="onChatInput"
+            confirm-type="send"
+            bindconfirm="sendProfileAnswer"
+            adjust-position="{{true}}"
+            cursor-spacing="24"
+          ></input>
+          <view class="composer-send" bindtap="sendProfileAnswer">发送</view>
+        </view>
+      </view>
+      <view wx:elif="{{!sampleDone}}" class="composer-footer">
+        <view class="composer-pill">
+          <input
+            class="composer-field"
+            placeholder="示例问题…"
+            value="{{sampleInput}}"
+            bindinput="onSampleInput"
+            confirm-type="send"
+            bindconfirm="sendSampleAnswer"
+            adjust-position="{{true}}"
+            cursor-spacing="24"
+          ></input>
+          <view class="composer-send" bindtap="sendSampleAnswer">发送</view>
+        </view>
+      </view>
+      <view wx:if="{{chatDone && !sampleDone}}" class="step-footer">
+        <view class="footer-row">
+          <text class="footer-meta">说「没有了」可结束</text>
+          <view class="footer-btn secondary" bindtap="finishSamplePhase">跳过示例问题</view>
+        </view>
+      </view>
+      <view wx:if="{{showProfileNext}}" class="step-footer">
+        <view class="footer-row">
+          <view class="footer-btn secondary" bindtap="goBack">上一步</view>
+          <view class="footer-btn primary" bindtap="goStep2">下一步：擅长领域</view>
+        </view>
+      </view>
+    </view>
+
+    <view wx:elif="{{step == 2}}" class="chat-step">
+      <scroll-view class="scroll-main" scroll-y>
+        <view class="section-head" style="padding: 24rpx 24rpx 0;">
+          <text class="section-title font-serif">选择你的擅长领域</text>
+          <text class="section-sub">最多选择 5 个，帮助用户更快找到你</text>
+        </view>
+        <view class="category-grid">
+          <view
+            wx:for="{{categories}}"
+            wx:key="label"
+            class="category-chip {{item.selected ? 'on' : ''}}"
+            bindtap="toggleCategory"
+            data-label="{{item.label}}"
+          >
+            <view class="cat-dot" style="background: {{item.selected ? '#f4efe6' : item.color}};"></view>
+            <text>{{item.label}}</text>
+          </view>
+        </view>
+      </scroll-view>
+      <view class="step-footer">
+        <view class="footer-row">
+          <text class="footer-meta">已选 {{selectedTagCount}}/5</text>
+          <view class="footer-actions">
+            <view class="footer-btn secondary" bindtap="goBack">上一步</view>
+            <view class="footer-btn primary" bindtap="goStep3">下一步：补充经验</view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view wx:elif="{{step == 3}}" class="chat-step">
+      <view class="chat-hint">
+        <text>已记录 {{experienceRoundCount}} 轮</text>
+        <text>可回复「没有了」结束</text>
+      </view>
+      <scroll-view class="chat-scroll" scroll-y scroll-with-animation scroll-into-view="{{experienceScrollId}}">
+        <view
+          wx:for="{{experienceHistory}}"
+          wx:for-index="idx"
+          wx:key="idx"
+          class="msg-row {{item.role == 'user' ? 'user' : 'assistant'}}"
+        >
+          <block wx:if="{{item.role == 'assistant'}}">
+            <image class="msg-avatar" src="{{defaultCover}}" mode="aspectFill"></image>
+            <view class="bubble {{!item.content && experienceLoading ? 'pending' : ''}}">
+              <block wx:if="{{!item.content && experienceLoading}}">
+                <view class="typing">
+                  <view class="typing-spinner-wrap">
+                    <view class="typing-spinner"></view>
+                    <view class="typing-core"></view>
+                  </view>
+                  <text class="typing-label">思考中...</text>
+                </view>
+              </block>
+              <block wx:else>{{item.content}}</block>
+            </view>
+          </block>
+          <block wx:else>
+            <view class="msg-user-wrap">
+              <view class="msg-main">
+                <view class="bubble">{{item.content}}</view>
+                <view class="msg-avatar-wrap user">
+                  <image
+                    wx:if="{{userAvatar}}"
+                    class="msg-avatar-img"
+                    src="{{userAvatar}}"
+                    mode="aspectFill"
+                    binderror="onUserAvatarError"
+                  ></image>
+                  <view wx:else class="msg-avatar-fallback user">{{userInitial}}</view>
+                </view>
+              </view>
+              <view wx:if="{{!experienceDone && !experienceLoading && idx > 0}}" class="recall-bar">
+                <view
+                  class="recall-btn"
+                  catchtap="onRecallUserMessage"
+                  data-phase="experience"
+                  data-index="{{idx}}"
+                >
+                  <view class="icon-recall"></view>
+                </view>
+              </view>
+            </view>
+          </block>
+        </view>
+        <view wx:if="{{showTopicPicker}}" class="topic-list">
+          <view
+            wx:for="{{experienceTopics}}"
+            wx:key="key"
+            class="topic-card"
+            bindtap="pickExperienceTopic"
+            data-key="{{item.key}}"
+          >
+            <view class="topic-icon">{{item.initial}}</view>
+            <view class="template-meta">
+              <text class="topic-label">{{item.label}}</text>
+              <text class="topic-desc">{{item.description}}</text>
+            </view>
+          </view>
+        </view>
+        <view id="experience-chat-bottom" style="height: 32rpx;"></view>
+      </scroll-view>
+      <view wx:if="{{topicPicked && !experienceDone && experienceRoundCount >= 8}}" class="experience-skip-row">
+        <text class="experience-skip-link" bindtap="finishExperiencePhaseManual">已记录 {{experienceRoundCount}} 轮，跳过进入下一步</text>
+      </view>
+      <view wx:if="{{topicPicked && !experienceDone}}" class="composer-footer">
+        <view class="composer-pill">
+          <input
+            class="composer-field"
+            placeholder="分享你的真实经历…"
+            value="{{experienceInput}}"
+            bindinput="onExperienceInput"
+            confirm-type="send"
+            bindconfirm="sendExperienceAnswer"
+            adjust-position="{{true}}"
+            cursor-spacing="24"
+            disabled="{{experienceLoading}}"
+          ></input>
+          <view class="composer-send {{experienceLoading ? 'disabled' : ''}}" bindtap="sendExperienceAnswer">发送</view>
+        </view>
+      </view>
+      <view wx:if="{{showExperienceNext}}" class="step-footer">
+        <view class="footer-actions footer-actions-full">
+          <view class="footer-btn secondary footer-btn-flex" bindtap="goBack">上一步</view>
+          <view class="footer-btn secondary footer-btn-flex" bindtap="continueExperience">继续回答</view>
+          <view class="footer-btn primary footer-btn-flex" bindtap="goStep4">下一步</view>
+        </view>
+      </view>
+    </view>
+
+    <scroll-view wx:elif="{{step == 4}}" class="form-scroll" scroll-y>
+      <view class="form-section">
+        <text class="section-title">让回答更像你本人</text>
+        <text class="section-sub">决定 Agent 说话的感觉</text>
+        <view style="margin-top: 24rpx;">
+          <text class="field-label">你更像哪种角色</text>
+          <picker mode="selector" range="{{personaOptions}}" value="{{personaIndex}}" bindchange="onPersonaChange">
+            <view class="picker-value">{{form.personaArchetype}}</view>
+          </picker>
+        </view>
+        <view style="margin-top: 24rpx;">
+          <text class="field-label">语气</text>
+          <picker mode="selector" range="{{toneOptions}}" value="{{toneIndex}}" bindchange="onToneChange">
+            <view class="picker-value">{{form.toneStyle}}</view>
+          </picker>
+        </view>
+        <view style="margin-top: 24rpx;">
+          <text class="field-label">回答习惯</text>
+          <picker mode="selector" range="{{responseOptions}}" value="{{responseIndex}}" bindchange="onResponseChange">
+            <view class="picker-value">{{form.responseStyle}}</view>
+          </picker>
+        </view>
+        <view style="margin-top: 24rpx;">
+          <text class="field-label">MBTI（选填）</text>
+          <picker mode="selector" range="{{mbtiOptions}}" value="{{mbtiIndex}}" bindchange="onMbtiChange">
+            <view class="picker-value">{{mbtiLabel}}</view>
+          </picker>
+        </view>
+      </view>
+      <view class="step-footer" style="position: static; border: none; background: transparent; padding-bottom: 48rpx;">
+        <view class="footer-row">
+          <view class="footer-btn secondary" bindtap="goBack">上一步</view>
+          <view class="footer-btn primary" bindtap="goStep6">下一步：确认发布</view>
+        </view>
+      </view>
+    </scroll-view>
+
+    <scroll-view wx:elif="{{step == 6}}" class="form-scroll" scroll-y>
+      <view class="form-section">
+        <text class="section-title">封面</text>
+        <text class="section-sub">将使用你的个人头像作为 Agent 封面</text>
+        <image class="cover-preview" src="{{coverPreview}}" mode="aspectFill" style="margin-top: 20rpx;"></image>
+      </view>
+      <view class="form-section">
+        <text class="field-label">不想回答的问题（选填）</text>
+        <textarea
+          class="textarea-fixed"
+          value="{{notSuitableFor}}"
+          bindinput="onNotSuitableInput"
+          placeholder="例如：投资理财、医疗建议…"
+          maxlength="500"
+          auto-height="{{false}}"
+          show-confirm-bar="{{false}}"
+          adjust-position="{{true}}"
+        ></textarea>
+      </view>
+      <view class="form-section">
+        <text class="section-title">已记录的经验预览</text>
+        <view class="preview-list">
+          <text wx:for="{{knowledgePreview}}" wx:key="index" class="preview-item">
+            {{item.category}} · {{item.title}}
+          </text>
+        </view>
+        <text class="preview-item" style="margin-top: 16rpx;">擅长：{{form.expertiseTags}}</text>
+      </view>
+      <view style="height: 160rpx;"></view>
+    </scroll-view>
+  </view>
+
+  <view wx:if="{{step == 6}}" class="fixed-submit">
+    <button
+      class="btn-primary submit-btn"
+      loading="{{submitting}}"
+      disabled="{{submitting}}"
+      bindtap="submitCreate"
+    >{{submitBtnLabel}}</button>
+  </view>
+</view>

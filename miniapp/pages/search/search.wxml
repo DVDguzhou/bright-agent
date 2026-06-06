@@ -1,0 +1,115 @@
+<view class="page">
+  <view class="status-bar" style="height: {{statusBarHeight}}px"></view>
+
+  <view class="top-bar">
+    <view class="back-btn" bindtap="goBack">
+      <view class="icon-back"></view>
+    </view>
+    <view class="search-field">
+      <input
+        class="search-input"
+        placeholder-class="search-placeholder"
+        placeholder="检索 Agent、经验、话题"
+        value="{{draft}}"
+        focus="{{focusInput}}"
+        bindinput="onDraftInput"
+        confirm-type="search"
+        bindconfirm="runSearch"
+      ></input>
+    </view>
+    <text class="search-action" bindtap="runSearch">Search</text>
+  </view>
+
+  <block wx:if="{{mode == 'entry'}}">
+    <view class="entry-body">
+      <view class="section">
+        <view class="section-head">
+          <text class="section-kicker">Recent</text>
+          <text
+            wx:if="{{history.length > 0}}"
+            class="section-action font-serif"
+            bindtap="clearHistory"
+          >清空</text>
+        </view>
+        <view wx:if="{{history.length == 0}}" class="section-empty font-serif">
+          暂无搜索记录
+        </view>
+        <view wx:else class="section-list">
+          <view
+            wx:for="{{visibleHistory}}"
+            wx:key="*this"
+            class="history-row"
+            data-term="{{item}}"
+            bindtap="tapHistory"
+          >
+            <text class="history-text font-serif">{{item}}</text>
+            <text class="history-arrow">↗</text>
+          </view>
+          <view
+            wx:if="{{history.length > 6}}"
+            class="history-expand font-serif"
+            bindtap="toggleHistoryExpanded"
+          >
+            <text wx:if="{{historyExpanded}}">— 收起 —</text>
+            <text wx:else>— 展开全部 {{history.length}} 条 —</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="section section-picks">
+        <view class="section-head">
+          <text class="section-kicker">Editor's Picks</text>
+          <text class="section-sub font-serif">本周精选</text>
+        </view>
+        <view class="section-list">
+          <view
+            wx:for="{{editorPicks}}"
+            wx:key="text"
+            class="pick-row"
+            data-text="{{item.text}}"
+            bindtap="tapPick"
+          >
+            <text class="pick-num font-serif">{{item.num}}</text>
+            <text class="pick-text font-serif">{{item.text}}</text>
+            <text wx:if="{{item.hot}}" class="pick-hot">hot</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </block>
+
+  <block wx:else>
+    <view class="results-body">
+      <view class="results-head">
+        <text class="section-kicker {{kickerFallback ? 'kicker-fallback' : ''}}">{{kickerLabel}}</text>
+        <text class="status-line font-serif">{{statusLine}}</text>
+      </view>
+
+      <view wx:if="{{loadError}}" class="error-banner">
+        <text>{{loadError}}</text>
+        <text class="error-retry" bindtap="clearLoadError">刷新页面</text>
+      </view>
+
+      <view wx:elif="{{loading && agents.length == 0}}" class="grid">
+        <view wx:for="{{skeletonRows}}" wx:key="*this" class="grid-col">
+          <view class="sk-cover skeleton"></view>
+          <view class="sk-line skeleton"></view>
+          <view class="sk-line skeleton short"></view>
+        </view>
+      </view>
+
+      <view wx:elif="{{!loading && agents.length == 0}}" class="empty-state">
+        <text class="empty-title font-serif">没有匹配的 Agent</text>
+        <text class="empty-sub text-muted">换个关键词试试，或减少筛选条件。</text>
+      </view>
+
+      <view wx:else class="grid">
+        <view wx:for="{{agents}}" wx:key="id" class="grid-col">
+          <discover-card agent="{{item}}" bind:tapcard="goDetail"></discover-card>
+        </view>
+      </view>
+
+      <view wx:if="{{loadingMore}}" class="load-more font-serif">正在加载…</view>
+    </view>
+  </block>
+</view>

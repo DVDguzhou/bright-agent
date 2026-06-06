@@ -1,0 +1,12 @@
+.stars {
+  color: #7a1f1f;
+  letter-spacing: 2rpx;
+}
+
+.stars-sm {
+  font-size: 22rpx;
+}
+
+.stars-md {
+  font-size: 28rpx;
+}

@@ -1,3 +1,9 @@
 {
-  "navigationBarTitleText": "发现 Agent"
+  "navigationStyle": "custom",
+  "enablePullDownRefresh": true,
+  "usingComponents": {
+    "discover-card": "/components/discover-card/discover-card",
+    "onboarding-sheet": "/components/onboarding-sheet/onboarding-sheet",
+    "mobile-drawer": "/components/mobile-drawer/mobile-drawer"
+  }
 }

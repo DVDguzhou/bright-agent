@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "反馈诊断",
+  "navigationBarBackgroundColor": "#f4efe6",
+  "usingComponents": {
+    "rating-stars": "/components/rating-stars/rating-stars"
+  }
+}

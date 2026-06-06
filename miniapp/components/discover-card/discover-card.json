@@ -1,0 +1,6 @@
+{
+  "component": true,
+  "usingComponents": {
+    "mind-score-badge": "/components/mind-score-badge/mind-score-badge"
+  }
+}

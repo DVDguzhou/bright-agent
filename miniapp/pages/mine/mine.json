@@ -1,3 +1,8 @@
 {
-  "navigationBarTitleText": "我的"
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "feed-top-nav": "/components/feed-top-nav/feed-top-nav",
+    "mobile-drawer": "/components/mobile-drawer/mobile-drawer",
+    "mind-score-badge": "/components/mind-score-badge/mind-score-badge"
+  }
 }

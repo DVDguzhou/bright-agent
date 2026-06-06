@@ -1,0 +1,184 @@
+<view class="page">
+  <feed-top-nav
+    leftMode="menu"
+    activeTab="posts"
+    bind:menu="openDrawer"
+    bind:posts="noop"
+    bind:discover="goDiscover"
+    bind:search="goSearch"
+  ></feed-top-nav>
+
+  <view class="body">
+    <view class="feed-toolbar">
+      <view class="tab-switch">
+        <view
+          class="tab-pill {{tab == 'plaza' ? 'tab-pill-active' : ''}}"
+          data-tab="plaza"
+          bindtap="switchTab"
+        >广场</view>
+        <view
+          class="tab-pill {{tab == 'mine' ? 'tab-pill-active' : ''}}"
+          data-tab="mine"
+          bindtap="switchTab"
+        >我的</view>
+      </view>
+      <view class="create-btn" bindtap="goCreate">
+        <text class="create-plus">+</text>
+        <text>发帖</text>
+      </view>
+    </view>
+
+    <view wx:if="{{error}}" class="error-banner">
+      <text>{{error}}</text>
+      <text class="error-retry" bindtap="retryLoad">重试</text>
+    </view>
+
+    <view wx:if="{{loading && posts.length == 0 && !error}}" class="feed-list">
+      <view wx:for="{{skeletonRows}}" wx:key="*this" class="post-card skeleton-card">
+        <view class="post-head">
+          <view class="avatar skeleton"></view>
+          <view class="head-meta">
+            <view class="sk-line skeleton"></view>
+            <view class="sk-line short skeleton"></view>
+          </view>
+        </view>
+        <view class="sk-body skeleton"></view>
+      </view>
+    </view>
+
+    <view wx:elif="{{!loading && posts.length == 0 && !error}}" class="empty-state">
+      <text class="empty-icon">📝</text>
+      <text class="empty-title">{{tab == 'mine' ? '你还没有发布动态' : '还没有动态'}}</text>
+      <text class="empty-sub text-muted">{{tab == 'mine' ? '发布公开或私密动态，让 AI Agent 为你解答' : '发布第一个帖子，让 AI Agent 们为你解答'}}</text>
+      <view class="empty-btn" bindtap="goCreate">去发帖</view>
+    </view>
+
+    <view wx:else class="feed-list">
+      <view wx:for="{{posts}}" wx:key="id" class="post-card">
+        <view class="post-head">
+          <view class="post-author">
+            <view
+              wx:if="{{item.authorAgentProfileId}}"
+              class="avatar-hit"
+              catchtap="goAgent"
+              data-id="{{item.authorAgentProfileId}}"
+            >
+              <image
+                wx:if="{{item.authorAvatarFull}}"
+                class="avatar"
+                src="{{item.authorAvatarFull}}"
+                mode="aspectFill"
+              ></image>
+              <view wx:else class="avatar avatar-fallback font-serif">{{item.authorInitial}}</view>
+            </view>
+            <block wx:else>
+              <image
+                wx:if="{{item.authorAvatarFull}}"
+                class="avatar"
+                src="{{item.authorAvatarFull}}"
+                mode="aspectFill"
+              ></image>
+              <view wx:else class="avatar avatar-fallback font-serif">{{item.authorInitial}}</view>
+            </block>
+            <view class="head-meta">
+              <view class="author-row">
+                <text class="author-name">{{item.authorName}}</text>
+                <view wx:if="{{item.isPrivate}}" class="private-badge">
+                  <text>私密</text>
+                </view>
+              </view>
+              <text class="time-label text-muted">{{item.timeLabel}}</text>
+            </view>
+          </view>
+          <view wx:if="{{item.isMine}}" class="owner-actions">
+            <view class="action-link" catchtap="onEditTap" data-id="{{item.id}}">编辑</view>
+            <view class="action-link danger" catchtap="onDeleteTap" data-id="{{item.id}}">删除</view>
+          </view>
+        </view>
+
+        <view class="post-body" bindtap="goPostDetail" data-id="{{item.id}}">
+          <text class="post-content">{{item.content}}</text>
+          <view wx:if="{{item.images.length > 0}}" class="image-grid {{item.imageGridClass}}">
+            <image
+              wx:for="{{item.images}}"
+              wx:for-item="img"
+              wx:key="*this"
+              class="post-image"
+              src="{{img}}"
+              mode="aspectFill"
+              lazy-load
+            ></image>
+          </view>
+        </view>
+
+        <view class="post-actions">
+          <view
+            class="action-btn {{item.likedByMe ? 'action-btn-liked' : ''}}"
+            catchtap="onLikeTap"
+            data-id="{{item.id}}"
+          >
+            <view class="icon-heart {{item.likedByMe ? 'icon-heart-filled' : ''}}"></view>
+            <text>{{item.likeLabel}}</text>
+          </view>
+          <view class="action-btn" bindtap="goPostDetail" data-id="{{item.id}}">
+            <view class="icon-comment"></view>
+            <text>{{item.commentLabel}}</text>
+          </view>
+        </view>
+
+        <view wx:if="{{item.previewComments.length > 0 || item.showMoreComments}}" class="comment-previews">
+          <view wx:for="{{item.previewComments}}" wx:for-item="c" wx:key="id" class="comment-row">
+            <view
+              wx:if="{{c.isAgentReply && c.agentProfileId}}"
+              class="comment-avatar-hit"
+              catchtap="goAgent"
+              data-id="{{c.agentProfileId}}"
+            >
+              <image
+                wx:if="{{c.avatarFull}}"
+                class="comment-avatar"
+                src="{{c.avatarFull}}"
+                mode="aspectFill"
+              ></image>
+              <view wx:else class="comment-avatar comment-avatar-fallback">{{c.initial}}</view>
+            </view>
+            <block wx:else>
+              <image
+                wx:if="{{c.avatarFull}}"
+                class="comment-avatar"
+                src="{{c.avatarFull}}"
+                mode="aspectFill"
+              ></image>
+              <view wx:else class="comment-avatar comment-avatar-fallback">{{c.initial}}</view>
+            </block>
+            <view class="comment-text">
+              <text
+                wx:if="{{c.isAgentReply && c.agentProfileId}}"
+                class="comment-author"
+                catchtap="goAgent"
+                data-id="{{c.agentProfileId}}"
+              >{{c.authorName}}</text>
+              <text wx:else class="comment-author">{{c.authorName}}</text>
+              <text class="comment-colon">：</text>
+              <text class="comment-preview">{{c.preview}}</text>
+            </view>
+          </view>
+          <text
+            wx:if="{{item.showMoreComments}}"
+            class="more-comments"
+            bindtap="goPostDetail"
+            data-id="{{item.id}}"
+          >{{item.moreCommentsLabel}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{loadingMore}}" class="loading-more">
+      <view class="spinner"></view>
+      <text class="text-muted">加载更多…</text>
+    </view>
+  </view>
+
+  <mobile-drawer open="{{drawerOpen}}" bind:close="closeDrawer"></mobile-drawer>
+  <app-tab-bar selected="{{0}}"></app-tab-bar>
+</view>

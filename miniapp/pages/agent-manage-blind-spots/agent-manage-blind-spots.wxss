@@ -1,0 +1,46 @@
+@import "../../styles/agent-manage-subpage.wxss";
+
+.empty-card {
+  text-align: center;
+  padding: 64rpx 32rpx;
+  background: rgba(107, 122, 74, 0.1);
+}
+
+.empty-title {
+  display: block;
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #4a5634;
+}
+
+.empty-desc {
+  display: block;
+  margin-top: 12rpx;
+  font-size: 26rpx;
+  color: #4a5634;
+}
+
+.spot-question {
+  display: block;
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #1a1714;
+  line-height: 1.6;
+}
+
+.spot-meta {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-top: 16rpx;
+}
+
+.spot-date {
+  font-size: 22rpx;
+  color: #8d8478;
+}
+
+.sub-tag-pill.muted {
+  background: #ebe3d4;
+  color: #6b6458;
+}

@@ -1,0 +1,103 @@
+<view class="sub-page">
+  <view wx:if="{{loading}}" class="sub-loading">加载中…</view>
+  <view wx:elif="{{error}}" class="sub-error">
+    <text class="sub-error-text">{{error}}</text>
+    <button class="btn-secondary" bindtap="goBack">返回工作台</button>
+    <button class="btn-primary" bindtap="retry">重新加载</button>
+  </view>
+  <scroll-view wx:else class="sub-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="sub-body">
+      <text class="sub-back" bindtap="goBack">← 返回工作台</text>
+      <text class="sub-title font-serif">反馈诊断</text>
+      <text class="sub-desc">{{displayName}} 的用户评价与轻反馈</text>
+      <input
+        class="sub-search"
+        value="{{query}}"
+        bindinput="onSearchInput"
+        placeholder="搜索评价类型、摘要或评语"
+      ></input>
+      <view class="sub-section">
+        <view class="sub-stat-grid">
+          <view class="sub-stat-cell">
+            <text class="sub-stat-value font-serif accent">{{avgScore}}</text>
+            <text class="sub-stat-label">综合评分</text>
+            <text class="sub-stat-sub">星</text>
+          </view>
+          <view class="sub-stat-cell">
+            <text class="sub-stat-value font-serif olive">{{helpful}}</text>
+            <text class="sub-stat-label">有帮助</text>
+            <text class="sub-stat-sub">条</text>
+          </view>
+          <view class="sub-stat-cell">
+            <text class="sub-stat-value font-serif accent">{{notSpecific}}</text>
+            <text class="sub-stat-label">不够具体</text>
+            <text class="sub-stat-sub">条</text>
+          </view>
+        </view>
+        <view class="sub-stat-grid">
+          <view class="sub-stat-cell">
+            <text class="sub-stat-value font-serif accent">{{notSuitable}}</text>
+            <text class="sub-stat-label">不适合我</text>
+            <text class="sub-stat-sub">条</text>
+          </view>
+          <view class="sub-stat-cell">
+            <text class="sub-stat-value font-serif accent">{{factualError}}</text>
+            <text class="sub-stat-label">事实错误</text>
+            <text class="sub-stat-sub">条</text>
+          </view>
+          <view class="sub-stat-cell">
+            <text class="sub-stat-value font-serif">{{contradiction}}</text>
+            <text class="sub-stat-label">前后矛盾</text>
+            <text class="sub-stat-sub">条</text>
+          </view>
+        </view>
+        <view class="sub-stat-grid cols-2">
+          <view class="sub-stat-cell">
+            <text class="sub-stat-value font-serif accent">{{tooConfident}}</text>
+            <text class="sub-stat-label">过度自信</text>
+            <text class="sub-stat-sub">条</text>
+          </view>
+        </view>
+      </view>
+      <view class="sub-section">
+        <text class="sub-section-title font-serif">评分趋势</text>
+        <view wx:if="{{trendRows.length == 0}}" class="sub-empty">还没有星级评分</view>
+        <view wx:else>
+          <view wx:for="{{trendRows}}" wx:key="timeLabel" class="sub-trend-row">
+            <text class="sub-trend-time">{{item.timeLabel}}</text>
+            <view class="sub-trend-bar">
+              <view class="sub-trend-fill" style="width: {{item.widthPct}}%;"></view>
+            </view>
+            <text class="sub-trend-score">{{item.score}}/5</text>
+          </view>
+        </view>
+      </view>
+      <view wx:if="{{keywordsText}}" class="sub-section">
+        <text class="sub-stat-label">近期关键词</text>
+        <text class="sub-keywords">{{keywordsText}}</text>
+      </view>
+      <view class="sub-section">
+        <text class="sub-section-title font-serif">改进建议</text>
+        <text wx:for="{{suggestions}}" wx:key="*this" class="sub-suggest-item">{{item}}</text>
+      </view>
+      <view class="sub-section">
+        <text class="sub-section-title font-serif">全部反馈记录</text>
+        <text class="sub-section-sub">{{filteredRows.length}} 条</text>
+        <view wx:if="{{rows.length == 0}}" class="sub-empty">该 Agent 暂无反馈记录</view>
+        <view wx:elif="{{filteredRows.length == 0}}" class="sub-empty">没有匹配的记录</view>
+        <view wx:else class="sub-list">
+          <view wx:for="{{filteredRows}}" wx:key="key" class="sub-list-item">
+            <view class="sub-list-head">
+              <view class="sub-list-name-wrap">
+                <text class="sub-list-name">{{item.typeLabel}}</text>
+                <rating-stars wx:if="{{item.kind == 'rating'}}" score="{{item.score}}" size="sm"></rating-stars>
+              </view>
+              <text class="sub-list-time">{{item.timeLabel}}</text>
+            </view>
+            <text class="sub-list-detail">{{item.content}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+</view>

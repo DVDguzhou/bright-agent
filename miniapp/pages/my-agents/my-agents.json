@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "我的人生 Agent",
+  "navigationBarBackgroundColor": "#f4efe6",
+  "usingComponents": {
+    "discover-card": "/components/discover-card/discover-card"
+  }
+}

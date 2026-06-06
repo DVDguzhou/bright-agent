@@ -1,0 +1,69 @@
+.mask {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: rgba(26, 23, 20, 0.3);
+}
+
+.sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #f4efe6;
+  border-radius: 56rpx 56rpx 0 0;
+  padding: 32rpx 48rpx calc(56rpx + env(safe-area-inset-bottom));
+  box-shadow: 0 -24rpx 96rpx rgba(26, 23, 20, 0.14);
+}
+
+.handle {
+  width: 80rpx;
+  height: 8rpx;
+  background: rgba(216, 207, 191, 0.6);
+  border-radius: 999rpx;
+  margin: 0 auto 40rpx;
+}
+
+.title {
+  display: block;
+  font-size: 44rpx;
+  font-weight: 500;
+  color: #1a1714;
+  line-height: 1.35;
+}
+
+.desc {
+  display: block;
+  margin-top: 16rpx;
+  font-size: 28rpx;
+  color: #6b6359;
+  line-height: 1.6;
+}
+
+.steps {
+  margin-top: 40rpx;
+}
+
+.step {
+  display: flex;
+  gap: 24rpx;
+  margin-bottom: 28rpx;
+}
+
+.step-num {
+  color: #d8cfbf;
+  font-size: 24rpx;
+  flex-shrink: 0;
+}
+
+.step-text {
+  font-size: 28rpx;
+  color: #4d463f;
+  line-height: 1.5;
+}
+
+.dismiss-btn {
+  width: 100%;
+  margin-top: 16rpx;
+  padding: 24rpx 0;
+}

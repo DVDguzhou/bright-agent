@@ -1,0 +1,6 @@
+{
+  "component": true,
+  "usingComponents": {
+    "voice-coach-fab": "/components/voice-coach-fab/voice-coach-fab"
+  }
+}

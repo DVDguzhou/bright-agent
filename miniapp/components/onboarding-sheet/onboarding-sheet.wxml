@@ -1,0 +1,18 @@
+<view wx:if="{{open}}" class="mask" bindtap="onDismiss">
+  <view class="sheet" catchtap="noop">
+    <view class="handle" />
+    <text class="title font-serif">发现真实人生的智慧</text>
+    <text class="desc">这里的每一张卡片，都是一位愿意分享自己人生经验的真实创作者。</text>
+    <view class="steps">
+      <view class="step">
+        <text class="step-num font-serif">01</text>
+        <text class="step-text">点击任意卡片，查看 Ta 的人生经历与可聊话题</text>
+      </view>
+      <view class="step">
+        <text class="step-num font-serif">02</text>
+        <text class="step-text">注册账号后，即可向 Ta 提问，获得一手的经验建议</text>
+      </view>
+    </view>
+    <button class="btn-primary dismiss-btn" bindtap="onDismiss">开始探索</button>
+  </view>
+</view>

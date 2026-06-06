@@ -1,0 +1,72 @@
+@import "../../styles/agent-manage-subpage.wxss";
+
+.search-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 8rpx 0 16rpx;
+}
+
+.search-meta-text {
+  font-size: 24rpx;
+  color: #8d8478;
+}
+
+.search-clear {
+  font-size: 24rpx;
+  color: #7a1f1f;
+  font-weight: 600;
+}
+
+.topic-item {
+  padding: 32rpx 0;
+  border-bottom: 1rpx solid rgba(216, 207, 191, 0.35);
+}
+
+.topic-label {
+  display: block;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #1a1714;
+}
+
+.topic-meta,
+.topic-key,
+.topic-merged,
+.topic-feedback {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: #8d8478;
+  word-break: break-all;
+}
+
+.topic-pickers {
+  display: flex;
+  gap: 16rpx;
+}
+
+.topic-picker-col {
+  flex: 1;
+}
+
+.picker-val {
+  line-height: 1.4;
+}
+
+.topic-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  margin-top: 24rpx;
+}
+
+.topic-save,
+.topic-merge {
+  width: 100%;
+}
+
+.merge-picker {
+  text-align: center;
+  color: #6b6458;
+}

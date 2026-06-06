@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
 import { AGENT_CATEGORIES } from "@/lib/life-agent-category";
 import { OFFICIAL_CONTACT } from "@/lib/official-contact";
 import { VoiceRecordPanel } from "@/components/voice";
@@ -51,6 +52,7 @@ function Section({
 export default function LifeAgentEditPage() {
   const params = useParams();
   const id = params.id as string;
+  const { refetch: refetchUser } = useAuth();
   const [data, setData] = useState<ManageData | null>(null);
   const [form, setForm] = useState<FormState | null>(null);
   const [loading, setLoading] = useState(true);
@@ -169,6 +171,7 @@ export default function LifeAgentEditPage() {
           clearVoiceSamplePending: options?.clearVoiceSamplePending,
           updateLastSavedAt: true,
         });
+        void refetchUser();
         return true;
       } catch {
         pendingAutosavePayloadRef.current = null;
@@ -182,7 +185,7 @@ export default function LifeAgentEditPage() {
         }
       }
     },
-    [buildSavablePayload, commitSavedProfile, id],
+    [buildSavablePayload, commitSavedProfile, id, refetchUser],
   );
 
   useEffect(() => {
@@ -342,6 +345,7 @@ export default function LifeAgentEditPage() {
             <LifeAgentCoverPicker
               coverImageUrl={form.coverImageUrl}
               onChange={(u) => setForm((prev) => (prev ? { ...prev, coverImageUrl: u } : prev))}
+              onAvatarSynced={() => void refetchUser()}
               disabled={saving}
             />
             <div className="border-t border-hairline/30 pt-5">

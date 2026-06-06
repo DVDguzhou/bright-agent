@@ -1,0 +1,6 @@
+{
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "discover-card": "/components/discover-card/discover-card"
+  }
+}

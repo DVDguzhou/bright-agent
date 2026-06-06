@@ -2,7 +2,6 @@
 
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { VoiceInputButton } from "@/components/voice";
 import { LifeAgentDiscoverCardGrid } from "@/components/LifeAgentDiscoverCardGrid";
 import { addSearchHistory, clearSearchHistory, getSearchHistory } from "@/lib/life-agent-search-history";
 import type { LifeAgentListItem } from "@/lib/life-agent-feed-search";
@@ -18,14 +17,6 @@ const GUESS_RIGHT: { text: string; hot?: boolean }[] = [
   { text: "大厂面试准备", hot: false },
   { text: "留学申请时间线", hot: false },
 ];
-
-function speechRecognitionSupported() {
-  if (typeof window === "undefined") return false;
-  return Boolean(
-    (window as unknown as { SpeechRecognition?: unknown }).SpeechRecognition ||
-      (window as unknown as { webkitSpeechRecognition?: unknown }).webkitSpeechRecognition,
-  );
-}
 
 /** 顶栏：返回 + 搜索输入 +「Search」 */
 function SearchTopBar({
@@ -240,11 +231,6 @@ function SearchEntryView() {
   const [draft, setDraft] = useState("");
   const [history, setHistory] = useState<string[]>([]);
   const [historyExpanded, setHistoryExpanded] = useState(false);
-  const [voiceOk, setVoiceOk] = useState(false);
-
-  useEffect(() => {
-    setVoiceOk(speechRecognitionSupported());
-  }, []);
 
   useEffect(() => {
     setHistory(getSearchHistory());
@@ -280,7 +266,7 @@ function SearchEntryView() {
   }, [router]);
 
   return (
-    <div className="min-h-[100dvh] bg-paper pb-36 max-lg:-mx-4 max-lg:flex max-lg:flex-col sm:mx-0">
+    <div className="min-h-[100dvh] bg-paper pb-24 max-lg:-mx-4 max-lg:flex max-lg:flex-col sm:mx-0">
       <SearchTopBar
         draft={draft}
         onDraftChange={setDraft}
@@ -375,34 +361,6 @@ function SearchEntryView() {
             ))}
           </ol>
         </section>
-      </div>
-
-      {/* 底部语音按钮：去掉胶囊 + 玫红色，改为单边发丝线 + 墨色 */}
-      <div className="fixed inset-x-0 bottom-0 z-40 flex flex-col items-center bg-gradient-to-t from-paper via-paper/95 to-transparent pb-[max(1rem,env(safe-area-inset-bottom))] pt-10">
-        <p className="mb-3 font-serif text-xs italic text-ink-400">
-          按住提问 — 有问必答
-        </p>
-        <div className="flex min-h-[3.25rem] items-center justify-center border border-ink bg-paper px-10 py-3">
-          {voiceOk ? (
-            <VoiceInputButton
-              size="lg"
-              className="!h-12 !w-12 !border-0 !bg-transparent !text-ink !shadow-none [&_svg]:h-7 [&_svg]:w-7"
-              onTranscript={(text, isFinal) => {
-                if (isFinal && text.trim()) {
-                  setDraft(text.trim());
-                  runSearch(text.trim());
-                }
-              }}
-            />
-          ) : (
-            <div className="flex flex-col items-center gap-1 py-1 text-center">
-              <svg className="h-8 w-8 text-ink-300" fill="currentColor" viewBox="0 0 24 24" aria-hidden>
-                <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.91-3c-.49 0-.9.36-.98.85C16.52 14.2 14.47 16 12 16s-4.52-1.8-4.93-4.15c-.08-.49-.49-.85-.98-.85-.61 0-1.09.54-1 1.14.49 3 2.89 5.35 5.91 5.83V20c0 .55.45 1 1 1s1-.45 1-1v-2.18c3.02-.48 5.42-2.83 5.91-5.83.1-.6-.39-1.14-1-1.14z" />
-              </svg>
-              <span className="font-serif text-[10px] italic text-ink-300">当前环境不支持语音</span>
-            </div>
-          )}
-        </div>
       </div>
     </div>
   );

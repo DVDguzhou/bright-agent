@@ -1,0 +1,139 @@
+.card-wrap {
+  min-width: 0;
+}
+
+.cover-wrap {
+  position: relative;
+  width: 100%;
+  padding-bottom: 125%;
+  background: #ebe3d4;
+  overflow: hidden;
+}
+
+.cover {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.cover-placeholder {
+  background: #ebe3d4;
+}
+
+.pulse-badge {
+  position: absolute;
+  right: 16rpx;
+  top: 16rpx;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.pulse-dot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  background: #7a1f1f;
+}
+
+.pulse-text {
+  background: rgba(26, 23, 20, 0.8);
+  color: #f4efe6;
+  font-size: 20rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 999rpx;
+}
+
+.mind-badge {
+  position: absolute;
+  left: 8rpx;
+  bottom: 8rpx;
+  z-index: 2;
+}
+
+.body {
+  border-top: 1rpx solid #d8cfbf;
+  padding-top: 16rpx;
+}
+
+.name-row {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.name {
+  font-size: 30rpx;
+  font-weight: 500;
+  font-family: "Songti SC", "Noto Serif SC", serif;
+  color: #1a1714;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.headline {
+  display: block;
+  margin-top: 10rpx;
+  min-height: 2.6em;
+  font-size: 25rpx;
+  font-style: italic;
+  font-family: "Songti SC", "Noto Serif SC", serif;
+  color: #6b6359;
+  line-height: 1.35;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.questions {
+  margin-top: 12rpx;
+}
+
+.question {
+  display: block;
+  font-size: 22rpx;
+  color: #8d8478;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-left: 8rpx;
+}
+
+.meta-row {
+  margin-top: 16rpx;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12rpx;
+}
+
+.meta {
+  flex: 1;
+  min-width: 0;
+  font-size: 22rpx;
+  color: #8d8478;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.price {
+  flex-shrink: 0;
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #7a1f1f;
+}
+
+.price-unit {
+  font-size: 20rpx;
+  color: #8d8478;
+  font-weight: normal;
+  font-style: normal;
+}

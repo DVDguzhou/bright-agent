@@ -1,0 +1,142 @@
+<view class="page">
+  <view class="status-bar" style="height: {{statusBarHeight}}px"></view>
+  <view class="top-bar" style="height: {{navBarHeight}}px">
+    <view class="back-btn" bindtap="goBack">
+      <view class="icon-back"></view>
+    </view>
+    <text class="top-title">帖子详情</text>
+    <view wx:if="{{post && post.isMine}}" class="top-actions">
+      <text class="top-link" bindtap="onEditTap">编辑</text>
+      <text class="top-link danger" bindtap="onDeleteTap">删除</text>
+    </view>
+    <view wx:else class="top-spacer"></view>
+  </view>
+
+  <view wx:if="{{loading}}" class="loading-panel">
+    <view class="spinner"></view>
+  </view>
+
+  <view wx:elif="{{error}}" class="error-panel">
+    <text>{{error}}</text>
+    <text class="back-link" bindtap="goBack">返回动态</text>
+  </view>
+
+  <scroll-view wx:else class="scroll" scroll-y enable-flex>
+    <view class="content">
+      <view class="post-head">
+        <view class="post-author">
+          <view
+            wx:if="{{post.authorAgentProfileId}}"
+            class="avatar-hit"
+            catchtap="goAgent"
+            data-id="{{post.authorAgentProfileId}}"
+          >
+            <image
+              wx:if="{{post.authorAvatarFull}}"
+              class="avatar"
+              src="{{post.authorAvatarFull}}"
+              mode="aspectFill"
+            ></image>
+            <view wx:else class="avatar avatar-fallback font-serif">{{post.authorInitial}}</view>
+          </view>
+          <block wx:else>
+            <image
+              wx:if="{{post.authorAvatarFull}}"
+              class="avatar"
+              src="{{post.authorAvatarFull}}"
+              mode="aspectFill"
+            ></image>
+            <view wx:else class="avatar avatar-fallback font-serif">{{post.authorInitial}}</view>
+          </block>
+          <view class="head-meta">
+            <view class="author-row">
+              <text class="author-name">{{post.authorName}}</text>
+              <view wx:if="{{post.isPrivate}}" class="private-badge">私密</view>
+            </view>
+            <text class="time-label text-muted">{{post.timeLabel}}</text>
+          </view>
+        </view>
+      </view>
+
+      <text class="post-content">{{post.content}}</text>
+
+      <view wx:if="{{post.images.length > 0}}" class="image-grid {{post.imageGridClass}}">
+        <image
+          wx:for="{{post.images}}"
+          wx:key="*this"
+          class="post-image"
+          src="{{item}}"
+          mode="aspectFill"
+        ></image>
+      </view>
+
+      <view class="post-actions">
+        <view
+          class="action-btn {{post.likedByMe ? 'action-btn-liked' : ''}}"
+          bindtap="onLikeTap"
+        >
+          <view class="icon-heart {{post.likedByMe ? 'icon-heart-filled' : ''}}"></view>
+          <text>{{post.likeLabel}}</text>
+        </view>
+      </view>
+
+      <view class="comments-section">
+        <text class="comments-title">评论</text>
+        <view wx:if="{{comments.length == 0}}" class="comments-empty text-muted">暂无评论</view>
+        <view wx:for="{{comments}}" wx:key="id" class="comment-row">
+          <view
+            wx:if="{{item.isAgentReply && item.agentProfileId}}"
+            class="comment-avatar-hit"
+            catchtap="goAgent"
+            data-id="{{item.agentProfileId}}"
+          >
+            <image
+              wx:if="{{item.avatarFull}}"
+              class="comment-avatar"
+              src="{{item.avatarFull}}"
+              mode="aspectFill"
+            ></image>
+            <view wx:else class="comment-avatar comment-avatar-fallback">{{item.initial}}</view>
+          </view>
+          <block wx:else>
+            <image
+              wx:if="{{item.avatarFull}}"
+              class="comment-avatar"
+              src="{{item.avatarFull}}"
+              mode="aspectFill"
+            ></image>
+            <view wx:else class="comment-avatar comment-avatar-fallback">{{item.initial}}</view>
+          </block>
+          <view class="comment-body">
+            <view class="comment-head">
+              <text
+                wx:if="{{item.isAgentReply && item.agentProfileId}}"
+                class="comment-author"
+                catchtap="goAgent"
+                data-id="{{item.agentProfileId}}"
+              >{{item.authorName}}</text>
+              <text wx:else class="comment-author">{{item.authorName}}</text>
+              <text class="comment-time text-muted">{{item.timeLabel}}</text>
+            </view>
+            <text class="comment-content">{{item.preview}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+
+  <view wx:if="{{post && !loading}}" class="composer">
+    <input
+      class="composer-input"
+      placeholder="{{user ? '写评论…' : '登录后评论'}}"
+      value="{{commentText}}"
+      bindinput="onCommentInput"
+      confirm-type="send"
+      bindconfirm="submitComment"
+    ></input>
+    <view
+      class="composer-btn {{commentText ? 'composer-btn-active' : ''}}"
+      bindtap="submitComment"
+    >发送</view>
+  </view>
+</view>

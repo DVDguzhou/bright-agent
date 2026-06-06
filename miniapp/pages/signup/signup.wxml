@@ -1,0 +1,124 @@
+<view class="page">
+  <feed-top-nav
+    leftMode="menu"
+    bind:menu="openDrawer"
+    bind:posts="goPosts"
+    bind:discover="goDiscover"
+    bind:search="goSearch"
+  ></feed-top-nav>
+
+  <view class="signup-body">
+    <view class="signup-wrap">
+      <text class="signup-title font-serif">注册</text>
+      <text class="signup-sub text-muted">验证邮箱后即可创建账号</text>
+
+      <view class="form-card">
+        <view class="avatar-card">
+          <image class="avatar-preview" src="{{avatarPreview}}" mode="aspectFill"></image>
+          <view class="avatar-meta">
+            <text class="avatar-label">头像</text>
+            <text class="avatar-hint text-muted">可上传你的头像；如果不上传，将使用默认头像。</text>
+            <view class="avatar-actions">
+              <view
+                class="avatar-upload-btn avatar-btn {{avatarUploading ? 'disabled' : ''}}"
+                bindtap="chooseAvatar"
+              >{{avatarBtnLabel}}</view>
+              <view
+                wx:if="{{showClearAvatar}}"
+                class="btn-ghost avatar-btn"
+                bindtap="clearAvatar"
+              >使用默认头像</view>
+            </view>
+          </view>
+        </view>
+
+        <view class="field">
+          <text class="field-label">邮箱</text>
+          <view class="code-row">
+            <input
+              class="input-shell flex-input"
+              type="text"
+              placeholder="you@example.com"
+              value="{{email}}"
+              bindinput="onEmailInput"
+            ></input>
+            <view
+              class="code-send-btn {{countdown > 0 || sendCodeLoading ? 'disabled' : ''}}"
+              bindtap="sendCode"
+            >{{sendCodeBtnLabel}}</view>
+          </view>
+          <text wx:if="{{showCodeHint}}" class="field-hint text-muted">验证码已发送至邮箱，10 分钟内有效</text>
+        </view>
+
+        <view class="field">
+          <text class="field-label">邮箱验证码</text>
+          <input
+            class="input-shell code-input"
+            type="number"
+            maxlength="6"
+            placeholder="6 位数字"
+            value="{{verificationCode}}"
+            bindinput="onCodeInput"
+          ></input>
+        </view>
+
+        <view class="field">
+          <text class="field-label">用户名</text>
+          <input
+            class="input-shell"
+            type="text"
+            maxlength="32"
+            placeholder="2-32 位，用于展示"
+            value="{{name}}"
+            bindinput="onNameInput"
+          ></input>
+        </view>
+
+        <view class="field">
+          <text class="field-label">密码（8–72 位）</text>
+          <input
+            class="input-shell"
+            password
+            maxlength="72"
+            placeholder="••••••••"
+            value="{{password}}"
+            bindinput="onPasswordInput"
+          ></input>
+          <text class="field-hint text-muted">建议使用不易猜测的 passphrase，无需强制大小写或符号</text>
+        </view>
+
+        <view class="terms-row">
+          <checkbox-group bindchange="onTermsChange">
+            <label class="terms-label">
+              <checkbox value="terms" checked="{{acceptTerms}}"></checkbox>
+              <text class="terms-text">我已阅读并同意</text>
+              <text class="terms-link" catchtap="goPrivacy">《隐私政策》</text>
+            </label>
+          </checkbox-group>
+        </view>
+
+        <text wx:if="{{error}}" class="text-error">{{error}}</text>
+
+        <button
+          class="btn-primary submit-btn"
+          loading="{{loading}}"
+          disabled="{{loading}}"
+          bindtap="submit"
+        >{{submitBtnLabel}}</button>
+      </view>
+
+      <view class="login-hint">
+        <text class="text-muted">已有账号？</text>
+        <text class="login-link" bindtap="goLogin">登录</text>
+      </view>
+
+      <view class="footer-links">
+        <text class="link" bindtap="goSupport">联系客服</text>
+        <text class="link" bindtap="goPrivacy">隐私政策</text>
+      </view>
+    </view>
+  </view>
+
+  <mobile-drawer open="{{drawerOpen}}" bind:close="closeDrawer"></mobile-drawer>
+  <app-tab-bar loginActive="{{true}}"></app-tab-bar>
+</view>

@@ -1,0 +1,30 @@
+<view class="page">
+  <view class="search-wrap">
+    <input
+      class="search-input"
+      placeholder="搜索名称、标题或简介"
+      value="{{query}}"
+      bindinput="onSearchInput"
+    ></input>
+  </view>
+
+  <view wx:if="{{loading}}" class="empty">加载中…</view>
+
+  <view wx:elif="{{agents.length == 0 && !query}}" class="empty-state">
+    <text class="empty-title font-serif">还没有人生 Agent</text>
+    <text class="empty-sub text-muted">创建第一个，开始分享你的经验并接受咨询。</text>
+    <button class="btn-primary empty-btn" bindtap="goCreate">去创建</button>
+    <button class="btn-secondary empty-btn-secondary" bindtap="goDiscover">逛发现页</button>
+  </view>
+
+  <view wx:elif="{{filteredList.length == 0}}" class="empty font-serif">
+    <text>没有匹配的 Agent</text>
+    <text class="empty-hint text-muted">换个关键词试试，或清空搜索框查看全部。</text>
+  </view>
+
+  <view wx:else class="grid">
+    <view wx:for="{{filteredList}}" wx:key="id" class="grid-col">
+      <discover-card agent="{{item}}" bind:tapcard="goDetail"></discover-card>
+    </view>
+  </view>
+</view>

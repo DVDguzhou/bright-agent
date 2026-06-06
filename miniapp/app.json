@@ -1,11 +1,31 @@
 {
   "pages": [
     "pages/index/index",
-    "pages/login/login",
-    "pages/agent-detail/agent-detail",
-    "pages/chat/chat",
+    "pages/messages/messages",
+    "pages/map/map",
     "pages/mine/mine",
+    "pages/search/search",
+    "pages/posts/posts",
+    "pages/post-detail/post-detail",
+    "pages/post-create/post-create",
+    "pages/post-edit/post-edit",
+    "pages/login/login",
+    "pages/signup/signup",
+    "pages/agent-create/agent-create",
+    "pages/agent-detail/agent-detail",
+    "pages/my-agents/my-agents",
+    "pages/agent-manage/agent-manage",
+    "pages/agent-manage-sales/agent-manage-sales",
+    "pages/agent-manage-sessions/agent-manage-sessions",
+    "pages/agent-manage-feedback/agent-manage-feedback",
+    "pages/agent-manage-blind-spots/agent-manage-blind-spots",
+    "pages/agent-manage-topics/agent-manage-topics",
+    "pages/agent-manage-edit/agent-manage-edit",
+    "pages/agent-manage-coedit/agent-manage-coedit",
+    "pages/api-keys/api-keys",
+    "pages/chat/chat",
     "pages/support/support",
+    "pages/account/account",
     "pages/privacy/privacy"
   ],
   "window": {
@@ -15,6 +35,37 @@
     "backgroundColor": "#f4efe6",
     "backgroundTextStyle": "dark"
   },
+  "tabBar": {
+    "custom": true,
+    "color": "#8d8478",
+    "selectedColor": "#1a1714",
+    "backgroundColor": "#f4efe6",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "发现"
+      },
+      {
+        "pagePath": "pages/messages/messages",
+        "text": "消息"
+      },
+      {
+        "pagePath": "pages/map/map",
+        "text": "地图"
+      },
+      {
+        "pagePath": "pages/mine/mine",
+        "text": "我的"
+      }
+    ]
+  },
   "style": "v2",
-  "sitemapLocation": "sitemap.json"
+  "sitemapLocation": "sitemap.json",
+  "requiredPrivateInfos": ["getFuzzyLocation"],
+  "permission": {
+    "scope.userLocation": {
+      "desc": "用于在地图上查看你附近的 Agent 分布"
+    }
+  }
 }

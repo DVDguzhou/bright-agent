@@ -1,0 +1,27 @@
+<view class="card-wrap" bindtap="onTap">
+  <view class="cover-wrap">
+    <image wx:if="{{coverFull}}" class="cover" src="{{coverFull}}" mode="aspectFill" lazy-load binderror="onCoverError" />
+    <view wx:else class="cover cover-placeholder" />
+    <view wx:if="{{showPulse}}" class="pulse-badge">
+      <view class="pulse-dot" />
+      <text class="pulse-text">点击开始</text>
+    </view>
+    <view wx:if="{{mindScore != null}}" class="mind-badge">
+      <mind-score-badge value="{{mindScore}}" size="xs" />
+    </view>
+  </view>
+  <view class="body">
+    <view class="name-row font-serif">
+      <text class="name">{{displayName}}</text>
+      <text wx:if="{{verified}}" class="verified-mark">✓</text>
+    </view>
+    <text class="headline font-serif">{{headline}}</text>
+    <view wx:if="{{sampleQuestions.length}}" class="questions">
+      <text wx:for="{{sampleQuestions}}" wx:key="*this" class="question">· {{item}}</text>
+    </view>
+    <view class="meta-row">
+      <text class="meta">{{metaText}}</text>
+      <text wx:if="{{showPrice}}" class="price font-serif">¥{{priceYuan}}<text class="price-unit">/问</text></text>
+    </view>
+  </view>
+</view>

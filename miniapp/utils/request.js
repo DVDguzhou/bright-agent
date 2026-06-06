@@ -25,13 +25,16 @@ function getCookieHeader() {
 
 function absUrl(path) {
   if (!path) return "";
-  if (path.startsWith("http://") || path.startsWith("https://")) return path;
-  const isUpload =
-    path.startsWith("/api/upload/life-agent-cover/") ||
-    path.startsWith("/uploads/life-agent-covers/") ||
-    path.startsWith("/life-agent-cover-presets/");
-  const base = isUpload && config.CDN_BASE ? config.CDN_BASE : config.API_BASE;
-  return `${base}${path.startsWith("/") ? path : `/${path}`}`;
+  const s = String(path).trim();
+  if (
+    s.startsWith("data:") ||
+    s.startsWith("http://") ||
+    s.startsWith("https://")
+  ) {
+    return s;
+  }
+  const base = (config.CDN_BASE || config.API_BASE).replace(/\/+$/, "");
+  return `${base}${s.startsWith("/") ? s : `/${s}`}`;
 }
 
 function request(options) {
@@ -77,16 +80,58 @@ function post(url, data, header) {
   return request({ url, method: "POST", data, header });
 }
 
+function put(url, data, header) {
+  return request({ url, method: "PUT", data, header });
+}
+
+function patch(url, data, header) {
+  return request({ url, method: "PATCH", data, header });
+}
+
+function del(url, data, header) {
+  return request({ url, method: "DELETE", data, header });
+}
+
+function notifyAuthCleared() {
+  try {
+    const pages = getCurrentPages();
+    const cur = pages[pages.length - 1];
+    if (!cur) return;
+    const route = cur.route || "";
+    if (route.indexOf("pages/mine/mine") >= 0 && typeof cur.refresh === "function") {
+      cur.refresh();
+      return;
+    }
+    if (route.indexOf("pages/account/account") >= 0) {
+      return;
+    }
+    if (typeof cur.onShow === "function") {
+      cur.onShow();
+    }
+  } catch (e) {
+    /* ignore */
+  }
+}
+
 function clearSession() {
   wx.removeStorageSync(config.SESSION_STORAGE_KEY);
   const app = getApp();
-  if (app) app.globalData.user = null;
+  if (app) {
+    app.globalData.user = null;
+    if (typeof app.syncTabBar === "function") {
+      app.syncTabBar();
+    }
+  }
+  notifyAuthCleared();
 }
 
 module.exports = {
   request,
   get,
   post,
+  put,
+  patch,
+  del,
   absUrl,
   clearSession,
   getCookieHeader,

@@ -1,6 +1,6 @@
 "use client";
 
-export function AgentTypingIndicator({ label = "正在输入…" }: { label?: string }) {
+export function AgentTypingIndicator({ label = "思考中..." }: { label?: string }) {
   return (
     <div className="inline-flex items-center gap-2 text-[13px] font-medium text-ink-500" aria-live="polite" aria-label={label}>
       <span className="relative flex h-5 w-5 items-center justify-center" aria-hidden>

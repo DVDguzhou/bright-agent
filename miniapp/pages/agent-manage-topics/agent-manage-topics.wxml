@@ -1,0 +1,101 @@
+<view class="sub-page">
+  <view wx:if="{{loading}}" class="sub-loading">加载中…</view>
+  <view wx:elif="{{error}}" class="sub-error">
+    <text class="sub-error-text">{{error}}</text>
+    <button class="btn-secondary" bindtap="goBack">返回工作台</button>
+    <button class="btn-primary" bindtap="retry">重新加载</button>
+  </view>
+  <scroll-view wx:else class="sub-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="sub-body">
+      <text class="sub-back" bindtap="goBack">← 返回工作台</text>
+      <text class="sub-title font-serif">Topic 管理</text>
+      <text class="sub-desc">审核从知识和长会话里长出来的主题，手动激活、归档、合并或修正文案。</text>
+      <input
+        class="sub-search"
+        value="{{query}}"
+        bindinput="onSearchInput"
+        placeholder="搜索 Topic 名称、摘要、标签…"
+      ></input>
+      <view wx:if="{{query}}" class="search-meta">
+        <text class="search-meta-text">找到 {{filteredCount}} 个</text>
+        <text class="search-clear" bindtap="clearSearch">清空搜索</text>
+      </view>
+      <view class="sub-pills">
+        <view
+          wx:for="{{filterOptions}}"
+          wx:key="key"
+          class="sub-pill {{filter == item.key ? 'active' : ''}}"
+          bindtap="onFilterTap"
+          data-filter="{{item.key}}"
+        >{{item.label}}</view>
+      </view>
+      <view class="sub-section">
+        <view class="sub-stat-grid cols-2">
+          <view class="sub-stat-cell">
+            <text class="sub-stat-value font-serif">{{stats.total}}</text>
+            <text class="sub-stat-label">Topic 总数</text>
+          </view>
+          <view class="sub-stat-cell">
+            <text class="sub-stat-value font-serif">{{stats.candidate}}</text>
+            <text class="sub-stat-label">待审核</text>
+          </view>
+        </view>
+        <view class="sub-stat-grid cols-2">
+          <view class="sub-stat-cell">
+            <text class="sub-stat-value font-serif">{{stats.active}}</text>
+            <text class="sub-stat-label">已启用</text>
+          </view>
+          <view class="sub-stat-cell">
+            <text class="sub-stat-value font-serif">{{stats.feedback}}</text>
+            <text class="sub-stat-label">关联反馈</text>
+          </view>
+        </view>
+      </view>
+      <view class="sub-section">
+        <view wx:if="{{topics.length == 0}}" class="sub-empty">{{query ? '没有匹配的 Topic' : '当前筛选下还没有 topic'}}</view>
+        <view wx:else class="sub-list">
+          <view wx:for="{{topics}}" wx:key="id" class="topic-item">
+            <text class="topic-label">{{item.edit.topicLabel || item.topicKey}}</text>
+            <text class="topic-meta">{{item.status}} · {{item.topicGroup}} · {{item.source}}{{item.manualEdited ? ' · 人工改过' : ''}}</text>
+            <text class="topic-key">{{item.topicKey}}</text>
+            <text wx:if="{{item.mergedIntoTopicLabel}}" class="topic-merged">已归并到：{{item.mergedIntoTopicLabel}}</text>
+            <text class="topic-feedback">反馈 {{item.feedbackTotal}} · 有帮助 {{item.feedbackHelpful}} · 事实问题 {{item.feedbackFacts}} · 来源 {{item.sourceCount}}</text>
+            <text class="sub-form-label">Topic 名称</text>
+            <input class="sub-form-input" value="{{item.edit.topicLabel}}" data-id="{{item.id}}" data-field="topicLabel" bindinput="onFieldInput"></input>
+            <view class="topic-pickers">
+              <view class="topic-picker-col">
+                <text class="sub-form-label">状态</text>
+                <picker mode="selector" range="{{statusOptions}}" value="{{item.statusIndex}}" data-id="{{item.id}}" bindchange="onStatusChange">
+                  <view class="sub-form-input picker-val">{{item.edit.status}}</view>
+                </picker>
+              </view>
+              <view class="topic-picker-col">
+                <text class="sub-form-label">置信度</text>
+                <picker mode="selector" range="{{confidenceOptions}}" value="{{item.confidenceIndex}}" data-id="{{item.id}}" bindchange="onConfidenceChange">
+                  <view class="sub-form-input picker-val">{{item.edit.confidence}}</view>
+                </picker>
+              </view>
+            </view>
+            <text class="sub-form-label">Topic 摘要</text>
+            <textarea class="sub-form-textarea" value="{{item.edit.summary}}" data-id="{{item.id}}" data-field="summary" bindinput="onFieldInput"></textarea>
+            <text class="sub-form-label">别名（每行一个）</text>
+            <textarea class="sub-form-textarea" value="{{item.edit.aliases}}" data-id="{{item.id}}" data-field="aliases" bindinput="onFieldInput"></textarea>
+            <text class="sub-form-label">问题模板（每行一个）</text>
+            <textarea class="sub-form-textarea" value="{{item.edit.questionPatterns}}" data-id="{{item.id}}" data-field="questionPatterns" bindinput="onFieldInput"></textarea>
+            <view class="topic-actions">
+              <button class="btn-primary topic-save" bindtap="saveTopic" data-id="{{item.id}}" disabled="{{savingId == item.id}}">
+                {{savingId == item.id ? '保存中...' : '保存修改'}}
+              </button>
+              <picker wx:if="{{item.mergeOptions.length > 0}}" mode="selector" range="{{item.mergeOptions}}" range-key="label" value="{{item.edit.mergeTargetIndex}}" data-id="{{item.id}}" bindchange="onMergeChange">
+                <view class="sub-form-input merge-picker">{{item.edit.mergeTargetLabel || '选择合并目标'}}</view>
+              </picker>
+              <button class="btn-secondary topic-merge" bindtap="mergeTopic" data-id="{{item.id}}" disabled="{{mergingId == item.id}}">
+                {{mergingId == item.id ? '归并中...' : '归并到目标'}}
+              </button>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+</view>

@@ -1,0 +1,10 @@
+{
+  "navigationStyle": "custom",
+  "enablePullDownRefresh": true,
+  "onReachBottomDistance": 300,
+  "usingComponents": {
+    "feed-top-nav": "/components/feed-top-nav/feed-top-nav",
+    "mobile-drawer": "/components/mobile-drawer/mobile-drawer",
+    "app-tab-bar": "/components/app-tab-bar/app-tab-bar"
+  }
+}

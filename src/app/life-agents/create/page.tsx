@@ -15,8 +15,17 @@ import {
 } from "@/lib/address-hierarchy";
 import { VoiceRecordPanel } from "@/components/voice";
 import { LifeAgentMessageComposer } from "@/components/LifeAgentMessageComposer";
-import { LifeAgentCoverPicker } from "@/components/LifeAgentCoverPicker";
 import { AgentTypingIndicator } from "@/components/AgentTypingIndicator";
+import { UserAvatar } from "@/components/UserAvatar";
+import { getDisplayAvatar } from "@/lib/avatar";
+import {
+  confirmRecallMessage,
+  countUserAnswersBefore,
+  countValidKnowledgeEntries,
+  isDefaultAvatarUrl,
+  isExperienceSkipIntent,
+  isRecalledMessage,
+} from "@/lib/life-agent-create-recall";
 import {
   clearLifeAgentCreateDraft,
   loadLifeAgentCreateDraft,
@@ -51,6 +60,8 @@ type StructuredFact = {
 type ChatMessage = {
   role: "assistant" | "user";
   content: string;
+  fieldKey?: string;
+  sampleIndex?: number;
 };
 
 type ProfileChatField = {
@@ -363,6 +374,43 @@ const QUICK_START_TEMPLATES: QuickStartTemplate[] = [
   },
 ];
 
+function clearFormFromField(form: CreateAgentFormState, startIdx: number): CreateAgentFormState {
+  const next = { ...form };
+  for (let i = startIdx; i < PROFILE_CHAT_FIELDS.length; i++) {
+    const key = PROFILE_CHAT_FIELDS[i].key;
+    if (key in next) {
+      next[key as keyof CreateAgentFormState] = DEFAULT_FORM[key as keyof CreateAgentFormState] ?? "";
+    }
+  }
+  return next;
+}
+
+function RecallIconButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-paper-200/90 text-ink-400 transition hover:bg-paper-300 hover:text-ink-600"
+      aria-label="撤回"
+    >
+      <svg
+        className="h-3.5 w-3.5"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden
+      >
+        <path d="M3 10h10a5 5 0 0 1 5 5v2" />
+        <path d="M3 10l4-4" />
+        <path d="M3 10l4 4" />
+      </svg>
+    </button>
+  );
+}
+
 export default function CreateLifeAgentPage() {
   const router = useRouter();
   const profileChatEndRef = useRef<HTMLDivElement>(null);
@@ -373,7 +421,12 @@ export default function CreateLifeAgentPage() {
   const experienceInputRef = useRef<HTMLTextAreaElement>(null);
   const [profileMoreOpen, setProfileMoreOpen] = useState(false);
   const [experienceMoreOpen, setExperienceMoreOpen] = useState(false);
-  const [user, setUser] = useState<{ id: string } | null>(null);
+  const [user, setUser] = useState<{
+    id: string;
+    name?: string | null;
+    email?: string | null;
+    avatarUrl?: string | null;
+  } | null>(null);
   const [existingAgentCount, setExistingAgentCount] = useState<number | null>(null);
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -392,7 +445,6 @@ export default function CreateLifeAgentPage() {
   const [experienceLoading, setExperienceLoading] = useState(false);
   const [isContinuingExperience, setIsContinuingExperience] = useState(false);
   const [selectedTopic, setSelectedTopic] = useState<ExperienceTopic | null>(null);
-  const [showRetractMenu, setShowRetractMenu] = useState<{ type: 'chat' | 'experience' | 'sample', index: number } | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [sampleQuestionsList, setSampleQuestionsList] = useState<string[]>([]);
   const [sampleQuestionsDraft, setSampleQuestionsDraft] = useState("");
@@ -410,6 +462,7 @@ export default function CreateLifeAgentPage() {
   /** 为 true 表示已尝试从 localStorage 恢复草稿，避免与「空聊天自动插入首条」冲突 */
   const [draftReady, setDraftReady] = useState(false);
   const saveDraftTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const experienceResumeRef = useRef(false);
   const latestDraftSnapshotRef = useRef<LifeAgentCreateDraftV1 | null>(null);
   const isDesktop = useIsDesktop();
   const { containerStyle: mobileContainerStyle, keyboardVisible } = useKeyboardViewport(!isDesktop);
@@ -614,16 +667,14 @@ export default function CreateLifeAgentPage() {
         }
       }
       setError("");
+      if (nextStep === 4) {
+        experienceResumeRef.current = false;
+      }
       setStep(nextStep);
       persistDraftNow({ step: nextStep, ...(overrides ?? {}) });
     },
     [step, persistDraftNow, validateBeforeLeaveStep],
   );
-
-  const handleCoverImageChange = useCallback((nextCoverImageUrl: string) => {
-    setCoverImageUrl(nextCoverImageUrl);
-    persistDraftNow({ coverImageUrl: nextCoverImageUrl });
-  }, [persistDraftNow]);
 
   const flushSaveDraftRef = useRef(flushSaveDraft);
   flushSaveDraftRef.current = flushSaveDraft;
@@ -714,7 +765,7 @@ export default function CreateLifeAgentPage() {
 
   useEffect(() => {
     profileChatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [chatHistory]);
+  }, [chatHistory, sampleQuestionsHistory]);
 
   useEffect(() => {
     experienceChatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -991,7 +1042,10 @@ export default function CreateLifeAgentPage() {
     setSampleQuestionsLoading(true);
     setError("");
 
-    const updatedHistory = [...sampleQuestionsHistory, { role: "user" as const, content: answer }];
+    const updatedHistory = [
+      ...sampleQuestionsHistory,
+      { role: "user" as const, content: answer, sampleIndex: sampleQuestionsList.length },
+    ];
     const assistantRowIndex = updatedHistory.length;
     setSampleQuestionsHistory([...updatedHistory, { role: "assistant", content: "" }]);
 
@@ -1051,6 +1105,11 @@ export default function CreateLifeAgentPage() {
     const answer = (voiceText ?? experienceInput).trim();
     if (!answer || experienceDone || experienceLoading) return;
 
+    if (isExperienceSkipIntent(answer)) {
+      finishExperiencePhase(true);
+      return;
+    }
+
     setExperienceInput("");
     setExperienceLoading(true);
     setError("");
@@ -1067,15 +1126,18 @@ export default function CreateLifeAgentPage() {
 
     let updatedEntries = knowledgeEntries;
     if (!/^暂无$|^无$|^没有$/i.test(answer)) {
-      const extracted = answer.slice(0, 80).match(/[\u4e00-\u9fa5a-zA-Z]{2,}/g)?.slice(0, 3) ?? [];
-      const newEntry: KnowledgeEntry = {
-        category: "经验",
-        title: answer.length > 20 ? answer.slice(0, 20) + "…" : answer,
-        content: answer,
-        tags: extracted.length > 0 ? extracted : ["经验"],
-      };
-      updatedEntries = [...knowledgeEntries, newEntry];
-      setKnowledgeEntries(updatedEntries);
+      const exists = knowledgeEntries.some((entry) => entry.content === answer);
+      if (!exists) {
+        const extracted = answer.slice(0, 80).match(/[\u4e00-\u9fa5a-zA-Z]{2,}/g)?.slice(0, 3) ?? [];
+        const newEntry: KnowledgeEntry = {
+          category: "经验",
+          title: answer.length > 20 ? answer.slice(0, 20) + "…" : answer,
+          content: answer,
+          tags: extracted.length > 0 ? extracted : ["经验"],
+        };
+        updatedEntries = [...knowledgeEntries, newEntry];
+        setKnowledgeEntries(updatedEntries);
+      }
     }
 
     try {
@@ -1160,13 +1222,18 @@ export default function CreateLifeAgentPage() {
         });
       }
 
-      if (data.done && !isContinuingExperience) {
+      if (data.done && !isContinuingExperience && !experienceResumeRef.current) {
         replaceAssistantMessage(
           data.summaryMessage || "很好！你的经验已经记录下来，可以继续下一步设置 Agent 的回答风格。"
         );
         setExperienceDone(true);
       } else {
-        replaceAssistantMessage(data.nextQuestion || "还能补充一些具体经历吗？");
+        replaceAssistantMessage(
+          data.nextQuestion ||
+            (data.done
+              ? "还想补充什么吗？可以说说具体经历，或回复「没有了」结束。"
+              : "还能补充一些具体经历吗？")
+        );
       }
       if (isContinuingExperience) {
         setIsContinuingExperience(false);
@@ -1203,7 +1270,10 @@ export default function CreateLifeAgentPage() {
     setError("");
     setChatInput("");
 
-    const nextHistory = [...chatHistory, { role: "user" as const, content: rawAnswer }];
+    const nextHistory = [
+      ...chatHistory,
+      { role: "user" as const, content: rawAnswer, fieldKey: currentField?.key },
+    ];
     const assistantRowIndex = nextHistory.length;
     setChatHistory([...nextHistory, { role: "assistant", content: "" }]);
     setChatLoading(true);
@@ -1358,7 +1428,6 @@ export default function CreateLifeAgentPage() {
           confidence: item.confidence,
           status: item.status,
         })),
-      ...(coverImageUrl.trim() ? { coverImageUrl: coverImageUrl.trim() } : {}),
     };
 
     const res = await fetch("/api/life-agents", {
@@ -1411,6 +1480,250 @@ export default function CreateLifeAgentPage() {
       return `${prev}${needsBreak}${value}`;
     });
   };
+
+  const finishSamplePhase = useCallback(() => {
+    setSampleQuestionsDone(true);
+    setError("");
+  }, []);
+
+  const finishExperiencePhase = useCallback(
+    (fromSkipIntent = false) => {
+      setIsContinuingExperience(false);
+      experienceResumeRef.current = false;
+      const validCount = countValidKnowledgeEntries(knowledgeEntries);
+      if (validCount < 2) {
+        setError(
+          fromSkipIntent
+            ? "至少需要记录 2 条有效经验才能结束，请再补充一些具体经历"
+            : "至少需要记录 2 条有效经验，请继续补充",
+        );
+        return;
+      }
+      setExperienceHistory((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: "很好！你的经验已经记录下来，可以继续下一步设置 Agent 的回答风格。",
+        },
+      ]);
+      setExperienceDone(true);
+      setExperienceInput("");
+      setExperienceLoading(false);
+      setError("");
+      setTimeout(() => experienceChatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" }), 100);
+    },
+    [knowledgeEntries],
+  );
+
+  const recallProfileMessage = useCallback(
+    (msgIndex: number) => {
+      if (chatDone || chatLoading) return;
+      const history = chatHistory;
+      const msg = history[msgIndex];
+      if (!msg || msg.role !== "user" || isRecalledMessage(msg.content)) return;
+
+      let fieldIdx = -1;
+      if (msg.fieldKey) {
+        fieldIdx = PROFILE_CHAT_FIELDS.findIndex((f) => f.key === msg.fieldKey);
+      }
+      if (fieldIdx < 0) fieldIdx = countUserAnswersBefore(history, msgIndex);
+      if (fieldIdx < 0 || fieldIdx >= PROFILE_CHAT_FIELDS.length) return;
+
+      setChatHistory(history.slice(0, msgIndex));
+      setChatFieldIndex(fieldIdx);
+      setForm((prev) => clearFormFromField(prev, fieldIdx));
+      setChatInput(msg.content);
+      setError("");
+      setTimeout(() => profileChatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" }), 100);
+    },
+    [chatDone, chatLoading, chatHistory],
+  );
+
+  const recallSampleMessage = useCallback(
+    (msgIndex: number) => {
+      if (!chatDone || sampleQuestionsDone || sampleQuestionsLoading) return;
+      const history = sampleQuestionsHistory;
+      const msg = history[msgIndex];
+      if (!msg || msg.role !== "user" || isRecalledMessage(msg.content)) return;
+
+      const qIdx =
+        typeof msg.sampleIndex === "number" ? msg.sampleIndex : countUserAnswersBefore(history, msgIndex);
+
+      setSampleQuestionsHistory(history.slice(0, msgIndex));
+      setSampleQuestionsList((prev) => prev.slice(0, qIdx));
+      setSampleQuestionsInput(msg.content);
+      setError("");
+      setTimeout(() => profileChatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" }), 100);
+    },
+    [chatDone, sampleQuestionsDone, sampleQuestionsLoading, sampleQuestionsHistory],
+  );
+
+  const recallExperienceMessage = useCallback(
+    (msgIndex: number) => {
+      if (experienceDone || experienceLoading) return;
+      const history = experienceHistory;
+      const msg = history[msgIndex];
+      if (!msg || msg.role !== "user" || isRecalledMessage(msg.content)) return;
+
+      const userRound = countUserAnswersBefore(history, msgIndex);
+      const recalledText = msg.content;
+      const newHistory = history.slice(0, msgIndex);
+
+      if (userRound === 0) {
+        setExperienceHistory(newHistory);
+        setSelectedTopic(null);
+        setExperienceInput("");
+        setExperienceDone(false);
+        setError("");
+        setTimeout(() => experienceChatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" }), 100);
+        return;
+      }
+
+      const answer = recalledText.trim();
+      if (answer && !/^(暂无|无|没有)$/i.test(answer)) {
+        setKnowledgeEntries((entries) => {
+          const next = [...entries];
+          for (let i = next.length - 1; i >= 0; i--) {
+            if (next[i].content === answer) {
+              next.splice(i, 1);
+              break;
+            }
+          }
+          return next;
+        });
+      }
+      setExperienceHistory(newHistory);
+      setExperienceInput(recalledText);
+      setExperienceDone(false);
+      setError("");
+      setTimeout(() => experienceChatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" }), 100);
+    },
+    [experienceDone, experienceLoading, experienceHistory],
+  );
+
+  const handleRecallUserMessage = useCallback(
+    (phase: "profile" | "sample" | "experience", index: number) => {
+      if (index <= 0 || !confirmRecallMessage()) return;
+      if (phase === "profile") recallProfileMessage(index);
+      else if (phase === "sample") recallSampleMessage(index);
+      else recallExperienceMessage(index);
+    },
+    [recallProfileMessage, recallSampleMessage, recallExperienceMessage],
+  );
+
+  const continueExperience = useCallback(async () => {
+    experienceResumeRef.current = true;
+    setExperienceDone(false);
+    setIsContinuingExperience(true);
+    setError("");
+    setExperienceLoading(true);
+    const updatedHistory = [...experienceHistory, { role: "assistant" as const, content: "" }];
+    const assistantRowIndex = updatedHistory.length - 1;
+    setExperienceHistory(updatedHistory);
+
+    const replaceAssistantMessage = (text: string) => {
+      setExperienceHistory((prev) =>
+        prev.map((msg, index) => (index === assistantRowIndex ? { ...msg, content: text } : msg)),
+      );
+    };
+
+    try {
+      const res = await fetch("/api/life-agents/create/next-question", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "text/event-stream",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          basicInfo: { displayName: form.displayName, headline: form.headline, shortBio: form.shortBio },
+          chatHistory: experienceHistory,
+          knowledgeEntries: knowledgeEntries.map((entry) => ({
+            category: entry.category,
+            title: entry.title,
+            content: entry.content,
+          })),
+          topic: selectedTopic ?? "experience",
+        }),
+      });
+      const data = isEventStreamResponse(res)
+        ? await readEventStreamPayload<CreateQuestionResponse>(res, (chunk) => {
+            setExperienceHistory((prev) =>
+              prev.map((msg, index) =>
+                index === assistantRowIndex ? { ...msg, content: msg.content + chunk } : msg,
+              ),
+            );
+          })
+        : ((await res.json()) as CreateQuestionResponse);
+
+      if (!res.ok) {
+        setError(data.detail || "生成下一问失败，请重试");
+        replaceAssistantMessage("出了点小问题，你可以继续补充回答，或稍后再试一次。");
+        return;
+      }
+
+      if (data.extractedTone) {
+        const tone = data.extractedTone;
+        setForm((prev) => ({
+          ...prev,
+          ...(tone.personaArchetype && { personaArchetype: tone.personaArchetype }),
+          ...(tone.toneStyle && { toneStyle: tone.toneStyle }),
+          ...(tone.responseStyle && { responseStyle: tone.responseStyle }),
+        }));
+      }
+      if (data.suggestedTags?.length) {
+        setForm((prev) => {
+          const existing = prev.expertiseTags.split(/[,，、\n]/).map((item) => item.trim()).filter(Boolean);
+          const suggestedTags = data.suggestedTags ?? [];
+          const merged = Array.from(new Set([...existing, ...suggestedTags])).slice(0, 8);
+          return { ...prev, expertiseTags: merged.join(", ") };
+        });
+      }
+      if (data.knowledgeAdd?.length) {
+        setKnowledgeEntries((prev) => {
+          const existing = prev.map((entry) => entry.content);
+          const knowledgeAdd = data.knowledgeAdd ?? [];
+          const added = knowledgeAdd.filter((item: { content: string }) => item.content && !existing.includes(item.content));
+          return [
+            ...prev,
+            ...added.map((item: { category: string; title: string; content: string; tags?: string[] }) => ({
+              category: item.category || "经验",
+              title: item.title || item.content.slice(0, 20),
+              content: item.content,
+              tags: item.tags?.length ? item.tags : [item.category || "经验"],
+            })),
+          ];
+        });
+      }
+      if (data.factCandidates?.length) {
+        setStructuredFacts((prev) => {
+          const existing = new Set(prev.map((item) => `${item.factKey}:${item.factValue}`));
+          const next = [...prev];
+          for (const item of data.factCandidates as StructuredFact[]) {
+            const key = `${item.factKey}:${item.factValue}`;
+            if (!item.factKey || !item.factValue || existing.has(key)) continue;
+            existing.add(key);
+            next.push(item);
+          }
+          return next;
+        });
+      }
+
+      if (data.nextQuestion) {
+        replaceAssistantMessage(data.nextQuestion);
+      } else if (data.done) {
+        replaceAssistantMessage("还想补充什么吗？可以说说具体经历，或回复「没有了」结束。");
+      } else {
+        replaceAssistantMessage("还能补充一些具体经历吗？");
+      }
+    } catch {
+      setError("网络错误，请重试");
+      replaceAssistantMessage("出了点小问题，你可以继续补充回答，或稍后再试一次。");
+    } finally {
+      setExperienceLoading(false);
+      setIsContinuingExperience(false);
+    }
+  }, [experienceHistory, form.displayName, form.headline, form.shortBio, knowledgeEntries, selectedTopic]);
 
   if (!user) {
     return (
@@ -1472,6 +1785,9 @@ export default function CreateLifeAgentPage() {
   const scrollToLastExperienceMessage = () => {
     experienceChatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   };
+
+  const chatUserAvatarUrl =
+    user.avatarUrl && !isDefaultAvatarUrl(user.avatarUrl) ? user.avatarUrl : null;
 
   const dismissKeyboard = () => {
     const el = document.activeElement as HTMLElement | null;
@@ -1597,63 +1913,79 @@ export default function CreateLifeAgentPage() {
             <div className={`mx-auto max-w-3xl space-y-4 ${chatDone ? (sampleQuestionsDone ? "pb-24" : "pb-4") : "pb-4"}`}>
               {/* Profile chat messages */}
               {chatHistory.map((msg, i) => (
-                <div key={`profile-${i}`} className={`flex items-end gap-2 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                <div key={`profile-${i}`} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                   {msg.role === "assistant" ? (
-                    <img
-                      src="/life-agent-cover-presets/default-cover.png"
-                      alt="AI"
-                      className="h-8 w-8 shrink-0 rounded-full object-cover ring-2 ring-paper shadow-sm"
-                    />
-                  ) : null}
-                  <div
-                    className={getChatBubbleClassName(msg.role)}
-                    onContextMenu={(e) => {
-                      e.preventDefault();
-                      if (msg.role === "user" && i > 0 && !chatDone && !msg.content.includes("你撤回了一条消息")) {
-                        setShowRetractMenu({ type: 'chat', index: i });
-                      }
-                    }}
-                  >
-                    {msg.role === "assistant" && !msg.content.trim() && chatLoading ? (
-                      <AgentTypingIndicator />
-                    ) : (
-                      <p className="whitespace-pre-wrap">{msg.content}</p>
-                    )}
-                  </div>
-                  {msg.role === "user" ? (
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-paper-300 text-xs font-bold text-ink-600 shadow-sm ring-2 ring-paper">
-                      我
+                    <div className="flex items-end gap-2">
+                      <img
+                        src="/life-agent-cover-presets/default-cover.png"
+                        alt="AI"
+                        className="h-8 w-8 shrink-0 rounded-full object-cover ring-2 ring-paper shadow-sm"
+                      />
+                      <div className={getChatBubbleClassName(msg.role)}>
+                        {msg.role === "assistant" && !msg.content.trim() && chatLoading ? (
+                          <AgentTypingIndicator />
+                        ) : (
+                          <p className="whitespace-pre-wrap">{msg.content}</p>
+                        )}
+                      </div>
                     </div>
-                  ) : null}
+                  ) : (
+                    <div className="flex max-w-[85%] flex-col items-end gap-1">
+                      <div className="flex items-end gap-2">
+                        <div className={getChatBubbleClassName(msg.role)}>
+                          <p className="whitespace-pre-wrap">{msg.content}</p>
+                        </div>
+                        <UserAvatar
+                          avatarUrl={chatUserAvatarUrl}
+                          name={user.name}
+                          email={user.email}
+                          size="sm"
+                        />
+                      </div>
+                      {!chatDone && !chatLoading && i > 0 && !isRecalledMessage(msg.content) ? (
+                        <div className="pr-10">
+                          <RecallIconButton onClick={() => handleRecallUserMessage("profile", i)} />
+                        </div>
+                      ) : null}
+                    </div>
+                  )}
                 </div>
               ))}
 
               {/* Sample questions chat messages */}
               {chatDone && sampleQuestionsHistory.map((msg, i) => (
-                <div key={`sample-${i}`} className={`flex items-end gap-2 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                <div key={`sample-${i}`} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                   {msg.role === "assistant" ? (
-                    <img
-                      src="/life-agent-cover-presets/default-cover.png"
-                      alt="AI"
-                      className="h-8 w-8 shrink-0 rounded-full object-cover ring-2 ring-paper shadow-sm"
-                    />
-                  ) : null}
-                  <div
-                    className={getChatBubbleClassName(msg.role)}
-                    onContextMenu={(e) => {
-                      e.preventDefault();
-                      if (msg.role === "user" && i > 0 && !sampleQuestionsDone && !msg.content.includes("你撤回了一条消息")) {
-                        setShowRetractMenu({ type: 'sample', index: i });
-                      }
-                    }}
-                  >
-                    <p className="whitespace-pre-wrap">{msg.content}</p>
-                  </div>
-                  {msg.role === "user" ? (
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-paper-300 text-xs font-bold text-ink-600 shadow-sm ring-2 ring-paper">
-                      我
+                    <div className="flex items-end gap-2">
+                      <img
+                        src="/life-agent-cover-presets/default-cover.png"
+                        alt="AI"
+                        className="h-8 w-8 shrink-0 rounded-full object-cover ring-2 ring-paper shadow-sm"
+                      />
+                      <div className={getChatBubbleClassName(msg.role)}>
+                        <p className="whitespace-pre-wrap">{msg.content}</p>
+                      </div>
                     </div>
-                  ) : null}
+                  ) : (
+                    <div className="flex max-w-[85%] flex-col items-end gap-1">
+                      <div className="flex items-end gap-2">
+                        <div className={getChatBubbleClassName(msg.role)}>
+                          <p className="whitespace-pre-wrap">{msg.content}</p>
+                        </div>
+                        <UserAvatar
+                          avatarUrl={chatUserAvatarUrl}
+                          name={user.name}
+                          email={user.email}
+                          size="sm"
+                        />
+                      </div>
+                      {!sampleQuestionsDone && !sampleQuestionsLoading && i > 0 && !isRecalledMessage(msg.content) ? (
+                        <div className="pr-10">
+                          <RecallIconButton onClick={() => handleRecallUserMessage("sample", i)} />
+                        </div>
+                      ) : null}
+                    </div>
+                  )}
                 </div>
               ))}
 
@@ -1725,6 +2057,15 @@ export default function CreateLifeAgentPage() {
                 </div>
               )}
               <div className="mx-auto max-w-3xl">
+                <div className="mb-2 flex justify-center">
+                  <button
+                    type="button"
+                    onClick={finishSamplePhase}
+                    className="rounded-xl border border-hairline/40 bg-paper px-4 py-2 text-sm font-medium text-ink-600 shadow-sm transition hover:bg-paper-50"
+                  >
+                    跳过示例问题
+                  </button>
+                </div>
                 <LifeAgentMessageComposer
                   formRef={profileFormRef}
                   textareaRef={profileInputRef}
@@ -1885,7 +2226,7 @@ export default function CreateLifeAgentPage() {
           {/* 单行提示 */}
           <div className="shrink-0 flex items-center justify-between gap-2 px-3 py-1.5 text-xs text-ink-400/50">
             <span>记忆经验 · 已记录 {experienceHistory.filter((msg) => msg.role === "user").length} 轮</span>
-            <span>越具体，Agent 越像你</span>
+            <span>可回复「没有了」结束</span>
           </div>
 
           {/* 聊天区域 - 点击/触摸空白处收起键盘（和微信一样） */}
@@ -1897,34 +2238,42 @@ export default function CreateLifeAgentPage() {
           >
             <div className={`mx-auto max-w-3xl space-y-4 ${experienceDone ? "pb-24" : "pb-4"}`}>
               {experienceHistory.map((msg, i) => (
-                <div key={i} className={`flex items-end gap-2 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                   {msg.role === "assistant" ? (
-                    <img
-                      src="/life-agent-cover-presets/default-cover.png"
-                      alt="AI"
-                      className="h-8 w-8 shrink-0 rounded-full object-cover ring-2 ring-paper shadow-sm"
-                    />
-                  ) : null}
-                  <div
-                    className={getChatBubbleClassName(msg.role)}
-                    onContextMenu={(e) => {
-                      e.preventDefault();
-                      if (msg.role === "user" && i > 0 && !experienceDone && !msg.content.includes("你撤回了一条消息")) {
-                        setShowRetractMenu({ type: 'experience', index: i });
-                      }
-                    }}
-                  >
-                    {msg.role === "assistant" && !msg.content.trim() && experienceLoading ? (
-                      <AgentTypingIndicator />
-                    ) : (
-                      <p className="whitespace-pre-wrap">{msg.content}</p>
-                    )}
-                  </div>
-                  {msg.role === "user" ? (
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-paper-300 text-xs font-bold text-ink-600 shadow-sm ring-2 ring-paper">
-                      我
+                    <div className="flex items-end gap-2">
+                      <img
+                        src="/life-agent-cover-presets/default-cover.png"
+                        alt="AI"
+                        className="h-8 w-8 shrink-0 rounded-full object-cover ring-2 ring-paper shadow-sm"
+                      />
+                      <div className={getChatBubbleClassName(msg.role)}>
+                        {msg.role === "assistant" && !msg.content.trim() && experienceLoading ? (
+                          <AgentTypingIndicator />
+                        ) : (
+                          <p className="whitespace-pre-wrap">{msg.content}</p>
+                        )}
+                      </div>
                     </div>
-                  ) : null}
+                  ) : (
+                    <div className="flex max-w-[85%] flex-col items-end gap-1">
+                      <div className="flex items-end gap-2">
+                        <div className={getChatBubbleClassName(msg.role)}>
+                          <p className="whitespace-pre-wrap">{msg.content}</p>
+                        </div>
+                        <UserAvatar
+                          avatarUrl={chatUserAvatarUrl}
+                          name={user.name}
+                          email={user.email}
+                          size="sm"
+                        />
+                      </div>
+                      {!experienceDone && !experienceLoading && i > 0 && !isRecalledMessage(msg.content) ? (
+                        <div className="pr-10">
+                          <RecallIconButton onClick={() => handleRecallUserMessage("experience", i)} />
+                        </div>
+                      ) : null}
+                    </div>
+                  )}
                 </div>
               ))}
 
@@ -1969,118 +2318,10 @@ export default function CreateLifeAgentPage() {
                     </button>
                     <button
                       type="button"
-                      onClick={async () => {
-                        setExperienceDone(false);
-                        setIsContinuingExperience(true);
-                        setError("");
-                        setExperienceLoading(true);
-                        const updatedHistory = [...experienceHistory, { role: "assistant" as const, content: "" }];
-                        const assistantRowIndex = updatedHistory.length - 1;
-                        setExperienceHistory(updatedHistory);
-
-                        const replaceAssistantMessage = (text: string) => {
-                          setExperienceHistory((prev) =>
-                            prev.map((msg, index) => (index === assistantRowIndex ? { ...msg, content: text } : msg))
-                          );
-                        };
-
-                        try {
-                          const res = await fetch("/api/life-agents/create/next-question", {
-                            method: "POST",
-                            headers: {
-                              "Content-Type": "application/json",
-                              Accept: "text/event-stream",
-                            },
-                            credentials: "include",
-                            body: JSON.stringify({
-                              basicInfo: { displayName: form.displayName, headline: form.headline, shortBio: form.shortBio },
-                              chatHistory: experienceHistory,
-                              knowledgeEntries: knowledgeEntries.map((entry) => ({
-                                category: entry.category,
-                                title: entry.title,
-                                content: entry.content,
-                              })),
-                              topic: selectedTopic ?? "experience",
-                            }),
-                          });
-                          const data = isEventStreamResponse(res)
-                            ? await readEventStreamPayload<CreateQuestionResponse>(res, (chunk) => {
-                                setExperienceHistory((prev) =>
-                                  prev.map((msg, index) =>
-                                    index === assistantRowIndex ? { ...msg, content: msg.content + chunk } : msg
-                                  )
-                                );
-                              })
-                            : ((await res.json()) as CreateQuestionResponse);
-
-                          if (!res.ok) {
-                            setError(data.detail || "生成下一问失败，请重试");
-                            replaceAssistantMessage("出了点小问题，你可以继续补充回答，或稍后再试一次。");
-                            return;
-                          }
-
-                          if (data.extractedTone) {
-                            const tone = data.extractedTone;
-                            setForm((prev) => ({
-                              ...prev,
-                              ...(tone.personaArchetype && { personaArchetype: tone.personaArchetype }),
-                              ...(tone.toneStyle && { toneStyle: tone.toneStyle }),
-                              ...(tone.responseStyle && { responseStyle: tone.responseStyle }),
-                            }));
-                          }
-                          if (data.suggestedTags?.length) {
-                            setForm((prev) => {
-                              const existing = prev.expertiseTags.split(/[,，、\n]/).map((item) => item.trim()).filter(Boolean);
-                              const suggestedTags = data.suggestedTags ?? [];
-                              const merged = Array.from(new Set([...existing, ...suggestedTags])).slice(0, 8);
-                              return { ...prev, expertiseTags: merged.join(", ") };
-                            });
-                          }
-                          if (data.knowledgeAdd?.length) {
-                            setKnowledgeEntries((prev) => {
-                              const existing = prev.map((entry) => entry.content);
-                              const knowledgeAdd = data.knowledgeAdd ?? [];
-                              const added = knowledgeAdd.filter((item: { content: string }) => item.content && !existing.includes(item.content));
-                              return [
-                                ...prev,
-                                ...added.map((item: { category: string; title: string; content: string; tags?: string[] }) => ({
-                                  category: item.category || "经验",
-                                  title: item.title || item.content.slice(0, 20),
-                                  content: item.content,
-                                  tags: item.tags?.length ? item.tags : [item.category || "经验"],
-                                })),
-                              ];
-                            });
-                          }
-                          if (data.factCandidates?.length) {
-                            setStructuredFacts((prev) => {
-                              const existing = new Set(prev.map((item) => `${item.factKey}:${item.factValue}`));
-                              const next = [...prev];
-                              for (const item of data.factCandidates as StructuredFact[]) {
-                                const key = `${item.factKey}:${item.factValue}`;
-                                if (!item.factKey || !item.factValue || existing.has(key)) continue;
-                                existing.add(key);
-                                next.push(item);
-                              }
-                              return next;
-                            });
-                          }
-
-                          if (data.nextQuestion) {
-                            replaceAssistantMessage(data.nextQuestion);
-                          } else {
-                            replaceAssistantMessage("还能补充一些具体经历吗？");
-                          }
-                        } catch {
-                          setError("网络错误，请重试");
-                          replaceAssistantMessage("出了点小问题，你可以继续补充回答，或稍后再试一次。");
-                        } finally {
-                          setExperienceLoading(false);
-                        }
-                      }}
+                      onClick={() => void continueExperience()}
                       className="btn-secondary min-h-[44px] flex-1"
                     >
-                      继续补充
+                      继续回答
                     </button>
                     <button
                       type="button"
@@ -2123,17 +2364,14 @@ export default function CreateLifeAgentPage() {
                   </button>
                 </div>
               )}
-              {experienceHistory.filter((m) => m.role === "user").length >= 4 && (
+              {experienceHistory.filter((m) => m.role === "user").length >= 8 && (
                 <div className="mx-auto mb-2 max-w-3xl text-center">
                   <button
                     type="button"
-                    onClick={() => {
-                      setExperienceDone(true);
-                      setError("");
-                    }}
+                    onClick={() => finishExperiencePhase(false)}
                     className="text-sm text-ink-700/65 underline decoration-hairline/70 underline-offset-2 hover:text-ink"
                   >
-                    已记录 4 轮，跳过直接进入下一步
+                    已记录 {experienceHistory.filter((m) => m.role === "user").length} 轮，跳过直接进入下一步
                   </button>
                 </div>
               )}
@@ -2398,11 +2636,12 @@ export default function CreateLifeAgentPage() {
           <div className="flex-1 overflow-y-auto">
             <div className="mx-auto max-w-3xl space-y-6 px-4 py-6 sm:px-6">
           <section className="border-b border-hairline/40 pb-6">
-            <LifeAgentCoverPicker
-              accent="pastel"
-              coverImageUrl={coverImageUrl}
-              onChange={handleCoverImageChange}
-              disabled={loading}
+            <p className="text-sm font-medium text-ink">封面</p>
+            <p className="mt-1 text-xs text-ink-400">将使用你的个人头像作为 Agent 封面</p>
+            <img
+              src={getDisplayAvatar({ avatarUrl: user?.avatarUrl, name: user?.name, email: user?.email })}
+              alt=""
+              className="mx-auto mt-4 aspect-[4/5] w-full max-w-[200px] rounded-2xl object-cover border border-hairline/30 bg-paper-50"
             />
           </section>
 
@@ -2602,60 +2841,6 @@ export default function CreateLifeAgentPage() {
                 className="flex-1 rounded-xl bg-gradient-to-r from-ink to-oxblood px-4 py-2.5 text-sm font-medium text-paper shadow-lg shadow-ink/15 transition hover:from-ink-700 hover:to-oxblood-700"
               >
                 {draftDrawerExpanded ? "收起" : "查看全部"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Retract context menu (WeChat style) */}
-      {showRetractMenu && (
-        <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-ink/60 sm:items-center"
-          onClick={() => setShowRetractMenu(null)}
-        >
-          <div
-            className="w-full max-w-sm rounded-t-2xl bg-paper p-4 shadow-xl sm:rounded-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="mb-4 text-center text-sm font-semibold text-ink">撤回消息</div>
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => setShowRetractMenu(null)}
-                className="flex-1 rounded-xl bg-paper-200 px-4 py-3 text-sm font-medium text-ink-600 transition hover:bg-paper-300"
-              >
-                取消
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  const { type, index } = showRetractMenu;
-                  if (type === 'chat') {
-                    setChatHistory((prev: ChatMessage[]) => {
-                      const newHistory = [...prev];
-                      newHistory[index] = { ...newHistory[index], content: "你撤回了一条消息" };
-                      return newHistory;
-                    });
-                  } else if (type === 'experience') {
-                    setExperienceHistory((prev: ChatMessage[]) => {
-                      const newHistory = [...prev];
-                      newHistory[index] = { ...newHistory[index], content: "你撤回了一条消息" };
-                      return newHistory;
-                    });
-                  } else if (type === 'sample') {
-                    setSampleQuestionsHistory((prev: ChatMessage[]) => {
-                      const newHistory = [...prev];
-                      newHistory[index] = { ...newHistory[index], content: "你撤回了一条消息" };
-                      return newHistory;
-                    });
-                    setSampleQuestionsList((prev: string[]) => prev.slice(0, index));
-                  }
-                  setShowRetractMenu(null);
-                }}
-                className="flex-1 rounded-xl bg-oxblood-500 px-4 py-3 text-sm font-medium text-paper transition hover:bg-oxblood-600"
-              >
-                撤回
               </button>
             </div>
           </div>

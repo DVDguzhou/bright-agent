@@ -1,0 +1,82 @@
+<view class="page">
+  <view class="status-bar" style="height: {{statusBarHeight}}px"></view>
+
+  <view class="header">
+    <text class="title font-serif">消息</text>
+  </view>
+
+  <view class="search-wrap">
+    <input
+      class="search-input"
+      placeholder="搜索会话或 Agent"
+      value="{{query}}"
+      bindinput="onQueryInput"
+    ></input>
+  </view>
+
+  <view wx:if="{{authLoading || (user && dataLoading)}}" class="list">
+    <view
+      wx:for="{{skeletonRows}}"
+      wx:key="*this"
+      class="session-row skeleton-row"
+    >
+      <view class="avatar skeleton"></view>
+      <view class="session-main">
+        <view class="sk-line skeleton sk-name"></view>
+        <view class="sk-line skeleton sk-preview"></view>
+      </view>
+      <view class="sk-time skeleton"></view>
+    </view>
+  </view>
+
+  <view wx:elif="{{!user}}" class="center-state">
+    <text class="center-text text-muted">请先登录后查看消息。</text>
+  </view>
+
+  <view wx:elif="{{items.length == 0}}" class="empty-state">
+    <text class="empty-title font-serif">还没有会话</text>
+    <button class="btn-primary empty-btn" bindtap="goDiscover">去找 Agent 聊聊</button>
+  </view>
+
+  <view wx:elif="{{filtered.length == 0}}" class="empty-state empty-search">
+    <text class="empty-search-text text-muted">没有匹配的会话</text>
+    <text class="clear-link" bindtap="clearQuery">清空搜索</text>
+  </view>
+
+  <view wx:else class="list">
+    <view
+      wx:for="{{filtered}}"
+      wx:key="id"
+      class="session-row"
+    >
+      <image
+        wx:if="{{item.coverFull}}"
+        class="avatar"
+        src="{{item.coverFull}}"
+        mode="aspectFill"
+        data-id="{{item.profile.id}}"
+        data-index="{{index}}"
+        catchtap="openProfile"
+        binderror="onCoverError"
+      ></image>
+      <view
+        wx:else
+        class="avatar avatar-placeholder font-serif"
+        data-id="{{item.profile.id}}"
+        catchtap="openProfile"
+      >{{item.initial}}</view>
+      <view
+        class="session-main"
+        bindtap="openChat"
+        data-profile-id="{{item.profile.id}}"
+        data-session-id="{{item.id}}"
+      >
+        <view class="session-top">
+          <text class="session-name">{{item.profile.displayName}}</text>
+          <text class="session-time text-muted">{{item.timeLabel}}</text>
+        </view>
+        <text class="session-preview text-muted">{{item.preview}}</text>
+      </view>
+    </view>
+  </view>
+</view>

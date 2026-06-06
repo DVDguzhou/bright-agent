@@ -1,0 +1,35 @@
+.badge-v {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #9a3535;
+  color: #f4efe6;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.badge-sm {
+  width: 32rpx;
+  height: 32rpx;
+  min-width: 32rpx;
+  font-size: 18rpx;
+}
+
+.badge-md {
+  width: 40rpx;
+  height: 40rpx;
+  min-width: 40rpx;
+  font-size: 22rpx;
+}
+
+.badge-pending {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999rpx;
+  border: 1rpx solid rgba(122, 31, 31, 0.25);
+  background: #ebe3d4;
+  color: #7a1f1f;
+  font-size: 20rpx;
+  padding: 2rpx 12rpx;
+}

@@ -1,29 +1,110 @@
-<view class="container">
-  <view class="card">
-    <text class="title">登录 BrightAgent</text>
-    <text class="subtitle text-muted">使用已注册邮箱登录</text>
+<view class="page">
+  <feed-top-nav
+    leftMode="menu"
+    bind:menu="openDrawer"
+    bind:posts="goPosts"
+    bind:discover="goDiscover"
+    bind:search="goSearch"
+  ></feed-top-nav>
 
-    <view class="tabs">
-      <text class="tab {{mode === 'code' ? 'active' : ''}}" data-mode="code" bindtap="switchMode">验证码</text>
-      <text class="tab {{mode === 'password' ? 'active' : ''}}" data-mode="password" bindtap="switchMode">密码</text>
-    </view>
+  <view class="login-body">
+    <view class="login-wrap">
+      <text class="login-title font-serif">登录</text>
+      <text class="login-sub text-muted">欢迎回来</text>
 
-    <input class="input" type="text" placeholder="邮箱" value="{{email}}" bindinput="onEmailInput" />
+      <view class="form-card">
+        <block wx:if="{{mode == 'code'}}">
+          <text class="form-hint">验证码将发送至你的注册邮箱。</text>
 
-    <block wx:if="{{mode === 'code'}}">
-      <view class="code-row">
-        <input class="input flex" type="number" maxlength="6" placeholder="验证码" value="{{code}}" bindinput="onCodeInput" />
-        <button class="btn-secondary code-btn" size="mini" disabled="{{countdown > 0 || loading}}" bindtap="sendCode">
-          {{countdown > 0 ? countdown + 's' : (codeSent ? '重发' : '获取验证码')}}
-        </button>
+          <view class="field">
+            <text class="field-label">邮箱</text>
+            <input
+              class="input-shell"
+              type="text"
+              placeholder="you@example.com"
+              value="{{email}}"
+              bindinput="onEmailInput"
+            ></input>
+          </view>
+
+          <view class="field">
+            <text class="field-label">邮箱验证码</text>
+            <view class="code-row">
+              <input
+                class="input-shell flex-input"
+                type="number"
+                maxlength="6"
+                placeholder="邮箱验证码"
+                value="{{code}}"
+                bindinput="onCodeInput"
+              ></input>
+              <view
+                class="code-send-btn {{countdown > 0 || sendCodeLoading ? 'disabled' : ''}}"
+                bindtap="sendCode"
+              >
+                {{countdown > 0 ? countdown + 's' : (codeSent ? '重新发送' : '获取验证码')}}
+              </view>
+            </view>
+          </view>
+
+          <text wx:if="{{error}}" class="text-error">{{error}}</text>
+
+          <button class="btn-primary login-btn" loading="{{loading}}" disabled="{{loading}}" bindtap="submit">
+            {{loading ? '验证中...' : '登录'}}
+          </button>
+
+          <view class="mode-switch" bindtap="switchToPassword">
+            <text class="mode-switch-text">使用密码登录</text>
+          </view>
+        </block>
+
+        <block wx:else>
+          <view class="field">
+            <text class="field-label">邮箱</text>
+            <input
+              class="input-shell"
+              type="text"
+              placeholder="you@example.com"
+              value="{{email}}"
+              bindinput="onEmailInput"
+            ></input>
+          </view>
+
+          <view class="field">
+            <text class="field-label">密码</text>
+            <input
+              class="input-shell"
+              password
+              placeholder="••••••••"
+              value="{{password}}"
+              bindinput="onPasswordInput"
+            ></input>
+          </view>
+
+          <text wx:if="{{error}}" class="text-error">{{error}}</text>
+
+          <button class="btn-primary login-btn" loading="{{loading}}" disabled="{{loading}}" bindtap="submit">
+            {{loading ? '登录中...' : '登录'}}
+          </button>
+
+          <view class="mode-switch" bindtap="switchToCode">
+            <text class="mode-switch-text">使用邮箱验证码登录</text>
+          </view>
+        </block>
       </view>
-    </block>
-    <block wx:else>
-      <input class="input" password placeholder="密码" value="{{password}}" bindinput="onPasswordInput" />
-    </block>
 
-    <text wx:if="{{error}}" class="text-error">{{error}}</text>
+      <view class="signup-hint">
+        <text class="text-muted">没有账号？</text>
+        <text class="signup-link" bindtap="goSignup">注册</text>
+      </view>
 
-    <button class="btn-primary login-btn" loading="{{loading}}" disabled="{{loading}}" bindtap="submit">登录</button>
+      <view class="footer-links">
+        <text class="link" bindtap="goSupport">联系客服</text>
+        <text class="link" bindtap="goPrivacy">隐私政策</text>
+      </view>
+    </view>
   </view>
+
+  <mobile-drawer open="{{drawerOpen}}" bind:close="closeDrawer"></mobile-drawer>
+  <app-tab-bar loginActive="{{true}}"></app-tab-bar>
 </view>

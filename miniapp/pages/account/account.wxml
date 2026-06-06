@@ -1,0 +1,87 @@
+<view class="page">
+  <view wx:if="{{loading}}" class="empty">加载中…</view>
+
+  <scroll-view wx:else class="scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <text class="page-title font-serif">账号与安全</text>
+    <text class="account-line text-muted">{{accountLine}}</text>
+
+    <view wx:if="{{isPlaceholder}}" class="card info-card">
+      <text class="info-text">{{placeholderNotice}}</text>
+    </view>
+
+    <view wx:if="{{!isPlaceholder}}" class="card form-card">
+      <text class="card-title">修改密码</text>
+
+      <text class="field-label">当前密码</text>
+      <input
+        class="input-shell field-input"
+        password
+        value="{{oldPassword}}"
+        bindinput="onOldPasswordInput"
+      ></input>
+
+      <text class="field-label">新密码（8–72 位）</text>
+      <input
+        class="input-shell field-input"
+        password
+        maxlength="72"
+        value="{{newPassword}}"
+        bindinput="onNewPasswordInput"
+      ></input>
+
+      <text class="field-label">确认新密码</text>
+      <input
+        class="input-shell field-input"
+        password
+        maxlength="72"
+        value="{{newPassword2}}"
+        bindinput="onNewPassword2Input"
+      ></input>
+
+      <text wx:if="{{pwdError}}" class="msg-error">{{pwdError}}</text>
+      <text wx:if="{{pwdOk}}" class="msg-ok">密码已更新。</text>
+
+      <button
+        class="btn-primary submit-btn"
+        disabled="{{pwdSubmitting}}"
+        bindtap="submitPassword"
+      >{{saveBtnLabel}}</button>
+    </view>
+
+    <view class="card danger-card">
+      <text class="danger-title">注销账号</text>
+      <text class="danger-desc">{{dangerDesc}}</text>
+
+      <block wx:if="{{showDeletePassword}}">
+        <text class="field-label danger-label">当前密码</text>
+        <input
+          class="input-shell field-input danger-input"
+          password
+          value="{{deletePassword}}"
+          bindinput="onDeletePasswordInput"
+        ></input>
+      </block>
+
+      <text class="field-label danger-label">输入 DELETE 确认注销</text>
+      <input
+        class="input-shell field-input danger-input mono"
+        value="{{deleteConfirm}}"
+        placeholder="DELETE"
+        bindinput="onDeleteConfirmInput"
+      ></input>
+
+      <text wx:if="{{deleteError}}" class="msg-error">{{deleteError}}</text>
+
+      <button
+        class="danger-btn"
+        disabled="{{deleting}}"
+        bindtap="deleteAccount"
+      >{{deleteBtnLabel}}</button>
+    </view>
+
+    <view class="footer-links">
+      <text class="footer-link" bindtap="goPrivacy">隐私政策</text>
+      <text class="footer-link" bindtap="goMine">返回我的</text>
+    </view>
+  </scroll-view>
+</view>

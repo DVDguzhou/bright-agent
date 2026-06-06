@@ -1,32 +1,148 @@
-<view class="container">
-  <view wx:if="{{loading}}" class="empty">加载中…</view>
-  <view wx:elif="{{error}}" class="empty">{{error}}</view>
+<view class="page">
+  <feed-top-nav
+    leftMode="back"
+    bind:back="goBack"
+    bind:posts="goPosts"
+    bind:discover="goDiscover"
+    bind:search="goSearch"
+  ></feed-top-nav>
+
+  <view wx:if="{{loading}}" class="loading-wrap">
+    <view class="hero-skeleton skeleton"></view>
+    <view class="line-skeleton skeleton"></view>
+    <view class="line-skeleton short skeleton"></view>
+  </view>
+
+  <view wx:elif="{{error}}" class="empty-state font-serif">
+    <text class="empty-title">{{error}}</text>
+    <text class="empty-sub">链接可能已失效，请从列表重新进入。</text>
+    <button class="btn-primary empty-btn" bindtap="goBack">返回列表</button>
+  </view>
+
   <block wx:else>
-    <image wx:if="{{agent.coverFull}}" class="hero" src="{{agent.coverFull}}" mode="aspectFill" />
-    <view class="card">
-      <text class="name">{{agent.displayName}}</text>
-      <text class="headline">{{agent.headline}}</text>
-      <view class="tags" wx:if="{{agent.expertiseTags && agent.expertiseTags.length}}">
-        <text wx:for="{{agent.expertiseTags}}" wx:key="*this" class="tag">{{item}}</text>
+    <view class="hero-wrap">
+      <view class="hero-box">
+        <image
+          wx:if="{{coverFull}}"
+          class="hero"
+          src="{{coverFull}}"
+          mode="aspectFill"
+          binderror="onCoverError"
+        ></image>
+        <view class="hero-overlay"></view>
+        <view class="hero-actions">
+          <view class="star-btn" bindtap="toggleStar">
+            <view class="icon-star {{starred ? 'filled' : ''}}"></view>
+          </view>
+          <view wx:if="{{showHeroVerify}}" class="verify-wrap">
+            <verification-badge status="{{verificationStatus}}" size="sm"></verification-badge>
+          </view>
+        </view>
       </view>
-      <text class="bio">{{agent.shortBio || agent.longBio}}</text>
-      <view class="facts">
-        <text wx:if="{{agent.school}}">学校：{{agent.school}}</text>
-        <text wx:if="{{agent.job}}">职业：{{agent.job}}</text>
-        <text wx:if="{{agent.city}}">城市：{{agent.city}}</text>
+    </view>
+
+    <view class="content">
+      <view class="section">
+        <text class="display-name font-serif">{{displayName}}</text>
+        <text class="headline font-serif">{{intro.headline}}</text>
+        <view wx:if="{{tags.length}}" class="tags">
+          <text wx:for="{{tags}}" wx:key="*this" class="tag-chip">{{item}}</text>
+        </view>
+        <view class="stats-row">
+          <text class="text-muted">{{sessionCount}} 场聊天</text>
+          <mind-score-badge wx:if="{{hasMindScore}}" value="{{mindScore}}" size="sm"></mind-score-badge>
+        </view>
+      </view>
+
+      <view class="section">
+        <view class="creator-row">
+          <view class="creator-avatar font-serif">{{creatorInitial}}</view>
+          <view class="creator-info">
+            <view class="creator-name-row">
+              <text class="creator-name">{{creatorName}}</text>
+              <verification-badge status="{{verificationStatus}}" size="sm"></verification-badge>
+            </view>
+            <text class="creator-bio text-muted">{{intro.shortBio}}</text>
+          </view>
+        </view>
+        <view wx:if="{{facts.length}}" class="facts-grid">
+          <text wx:for="{{facts}}" wx:key="label" class="fact-item">
+            <text class="fact-label">{{item.label}}</text>　{{item.value}}
+          </text>
+        </view>
+      </view>
+
+      <view class="section">
+        <text class="section-title">适合咨询的人群</text>
+        <text class="section-body" user-select>{{intro.audience}}</text>
+      </view>
+
+      <view wx:if="{{topics.length}}" class="section">
+        <text class="section-title">擅长回答的话题</text>
+        <view class="tags topic-tags">
+          <text wx:for="{{topics}}" wx:key="id" class="tag-chip topic-chip">
+            {{item.topicLabel}}<text class="topic-group"> {{item.groupLabel}}</text>
+          </text>
+        </view>
+      </view>
+
+      <view wx:if="{{liveUpdates.length}}" class="section">
+        <text class="section-title">最近动态</text>
+        <view class="updates">
+          <view wx:for="{{liveUpdates}}" wx:key="id" class="update-item">
+            <view class="update-meta">
+              <text class="update-cat">{{item.categoryLabel}}</text>
+              <text wx:if="{{item.location}}" class="text-muted">{{item.location}}</text>
+              <text class="text-muted">{{item.freshLabel}}</text>
+            </view>
+            <text class="update-content">{{item.content}}</text>
+          </view>
+        </view>
+      </view>
+
+      <view wx:if="{{sampleQuestions.length}}" class="section">
+        <text class="section-title">你可以问这些问题</text>
+        <view class="sample-list">
+          <view wx:for="{{sampleQuestions}}" wx:key="*this" class="sample-item">
+            <text class="sample-num">{{index + 1}}.</text>
+            <text class="sample-text">{{item}}</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="section">
+        <text class="section-title">开场欢迎语</text>
+        <text class="welcome font-serif" user-select>{{intro.welcomeMessage}}</text>
+      </view>
+
+      <view class="section">
+        <text class="section-title">用户评价</text>
+        <view class="rating-head">
+          <text class="rating-score font-serif">{{ratingDisplay}}</text>
+          <view>
+            <rating-stars score="{{averageScore}}" size="md"></rating-stars>
+            <text class="text-muted rating-sub">{{ratingSubtext}}</text>
+          </view>
+        </view>
+        <view wx:if="{{recentReviews.length}}" class="reviews">
+          <view wx:for="{{recentReviews}}" wx:key="id" class="review-item">
+            <view class="review-head">
+              <rating-stars score="{{item.score}}" size="sm"></rating-stars>
+              <text class="review-date text-muted">{{item.dateLabel}}</text>
+            </view>
+            <text wx:if="{{item.comment}}" class="review-comment">{{item.comment}}</text>
+          </view>
+        </view>
       </view>
     </view>
 
-    <view wx:if="{{agent.welcomeMessage}}" class="card">
-      <text class="section-title">欢迎语</text>
-      <text>{{agent.welcomeMessage}}</text>
-    </view>
+    <view class="bottom-spacer"></view>
 
-    <view wx:if="{{agent.sampleQuestions && agent.sampleQuestions.length}}" class="card">
-      <text class="section-title">示例问题</text>
-      <text wx:for="{{agent.sampleQuestions}}" wx:key="*this" class="sample">· {{item}}</text>
+    <view class="fixed-bottom-bar">
+      <text wx:if="{{priceHint}}" class="price-hint text-muted">{{priceHint}}</text>
+      <button wx:if="{{!isLoggedIn}}" class="btn-primary cta-btn" bindtap="goLogin">登录后开始咨询</button>
+      <button wx:elif="{{remainingQ > 0}}" class="btn-primary cta-btn" bindtap="goChat">继续聊天（剩余 {{remainingQ}} 次）</button>
+      <button wx:else class="btn-primary cta-btn" bindtap="goChat">开始咨询</button>
     </view>
-
-    <button class="btn-primary chat-btn" bindtap="goChat">开始对话</button>
   </block>
 </view>
