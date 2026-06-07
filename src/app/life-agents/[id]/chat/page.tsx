@@ -121,11 +121,11 @@ function FeedbackThumbDown({ className = "h-3.5 w-3.5" }: { className?: string }
 function feedbackChipClass(isSelected: boolean, hasSelection: boolean, isHelpfulTone: boolean) {
   if (isSelected) {
     return isHelpfulTone
-      ? "border-olive-400 bg-olive-400/20 text-olive-600 shadow-sm ring-1 ring-olive-400/60"
-      : "border-oxblood-200 bg-paper-200 text-oxblood-600 shadow-sm ring-1 ring-oxblood-200";
+      ? "border-olive-400 bg-olive-400/15 text-olive-600"
+      : "border-oxblood-200 bg-paper-200 text-oxblood-600";
   }
-  if (hasSelection) return "border-hairline/50 bg-paper-50/50 text-ink-300";
-  return "border-hairline/60 bg-paper-50/80 text-ink-700/70 hover:bg-paper-100/50";
+  if (hasSelection) return "border-hairline bg-paper-50 text-ink-300";
+  return "border-hairline bg-paper-50 text-ink-600 hover:bg-paper-100";
 }
 
 function feedbackOptionalComment(feedbackType: string) {
@@ -576,7 +576,7 @@ export default function LifeAgentChatPage() {
   );
 
   if (!profile) {
-    return <div className="h-72 animate-pulse rounded-3xl bg-gradient-to-br from-paper-100/90 to-paper-100/50 shadow-[0_6px_28px_rgba(26,23,20,0.07)]" />;
+    return <div className="h-72 animate-pulse rounded border border-hairline bg-paper-100" />;
   }
 
   const ratingState = profile.viewerState.rating;
@@ -601,11 +601,11 @@ export default function LifeAgentChatPage() {
     )}
     {pendingFeedback && (
       <div
-        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/30 backdrop-blur-sm"
+        className="fixed inset-0 z-[100] flex items-center justify-center bg-ink/30"
         onClick={() => setPendingFeedback(null)}
       >
         <div
-          className="mx-6 w-full max-w-sm rounded-2xl bg-paper p-5 shadow-xl"
+          className="mx-6 w-full max-w-sm rounded border border-hairline bg-paper-50 p-5"
           onClick={(e) => e.stopPropagation()}
         >
           <p className="mb-1 text-sm font-medium text-ink-800">
@@ -626,13 +626,13 @@ export default function LifeAgentChatPage() {
             onChange={(e) =>
               setPendingFeedback((prev) => prev ? { ...prev, comment: e.target.value } : prev)
             }
-            className="mt-3 mb-4 w-full resize-none rounded-xl border border-hairline/60 bg-paper-50 px-3 py-2 text-sm text-ink-700 placeholder:text-ink-300 focus:border-hairline focus:outline-none focus:ring-1 focus:ring-hairline"
+            className="mt-3 mb-4 w-full resize-none rounded border border-hairline bg-paper px-3 py-2 text-sm text-ink-700 placeholder:text-ink-300 focus:border-ink focus:outline-none"
           />
           <div className="flex gap-3">
             <button
               type="button"
               onClick={() => setPendingFeedback(null)}
-              className="flex-1 rounded-xl border border-hairline/60 py-2 text-sm text-ink-500 transition hover:bg-paper-100"
+              className="flex-1 rounded border border-hairline py-2 text-sm text-ink-500 transition hover:bg-paper-100"
             >
               取消
             </button>
@@ -646,7 +646,7 @@ export default function LifeAgentChatPage() {
                 void doSubmitMessageFeedback(pendingFeedback.message, pendingFeedback.feedbackType, pendingFeedback.comment?.trim());
                 setPendingFeedback(null);
               }}
-              className="flex-1 rounded-xl bg-ink-800 py-2 text-sm font-medium text-paper transition hover:bg-ink-900 disabled:opacity-40"
+              className="flex-1 rounded bg-ink py-2 text-sm font-medium text-paper-50 transition-colors hover:bg-oxblood disabled:opacity-40"
             >
               确认发送
             </button>
@@ -675,7 +675,7 @@ export default function LifeAgentChatPage() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.15 }}
-              className="fixed inset-0 z-[100] bg-black/35 backdrop-blur-[2px]"
+              className="fixed inset-0 z-[100] bg-ink/35"
               onClick={closeMenu}
             />
             <motion.aside
@@ -688,7 +688,7 @@ export default function LifeAgentChatPage() {
               animate={{ x: 0 }}
               exit={{ x: "-105%" }}
               transition={{ type: "spring", stiffness: 380, damping: 36 }}
-              className="fixed left-0 top-0 z-[101] flex h-[100dvh] w-[min(100vw,20rem)] flex-col border-r border-hairline/25 bg-paper/[0.97] shadow-[4px_0_32px_-8px_rgba(26,23,20,0.08)] backdrop-blur-lg sm:w-[22rem] sm:max-w-[88vw]"
+              className="fixed left-0 top-0 z-[101] flex h-[100dvh] w-[min(100vw,20rem)] flex-col border-r border-hairline bg-paper sm:w-[22rem] sm:max-w-[88vw]"
             >
               <div className="flex items-center justify-between border-b border-hairline/70 px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
                 <span className="text-sm font-semibold text-ink">更多</span>
@@ -715,7 +715,7 @@ export default function LifeAgentChatPage() {
                 <p className="mt-1 text-sm text-ink-500">{profile.headline}</p>
 
                 {profile.hasVoiceClone && (
-                  <div className="mt-4 rounded-2xl border border-hairline/30 bg-paper-50/40 px-3 py-3 backdrop-blur-sm">
+                  <div className="mt-4 rounded border border-hairline bg-paper-50 px-3 py-3">
                     <p className="text-xs font-medium text-ink-500">回复形式</p>
                     <div className="mt-2 flex justify-start">
                       <VoiceReplyToggle
@@ -729,14 +729,14 @@ export default function LifeAgentChatPage() {
                 )}
 
                 {!LIFE_AGENT_UNLIMITED_CHAT && (
-                <div className="mt-4 rounded-2xl border border-hairline/30 bg-gradient-to-br from-paper-50/[0.9] to-paper/[0.65] p-4 backdrop-blur-sm">
+                <div className="mt-4 rounded border border-hairline bg-paper-50 p-4">
                   <p className="text-sm text-ink-400">剩余提问次数</p>
                   <p className="mt-1 text-2xl font-semibold text-ink-700">{profile.viewerState.remainingQuestions}</p>
                 </div>
                 )}
 
                 {profile.viewerState.isLoggedIn && (
-                  <div className="mt-4 rounded-2xl border border-hairline/40 bg-paper/[0.98] p-4 text-sm text-ink-500 shadow-[0_4px_20px_rgba(26,23,20,0.05)] backdrop-blur-sm">
+                  <div className="mt-4 rounded border border-hairline bg-paper-50 p-4 text-sm text-ink-500">
                     <div className="flex items-center justify-between gap-3">
                       <div>
                         <p className="font-medium text-ink">我的聊天记录</p>
@@ -744,7 +744,7 @@ export default function LifeAgentChatPage() {
                       </div>
                       <button
                         type="button"
-                        className="shrink-0 rounded-full bg-gradient-to-r from-ink to-oxblood px-3 py-1.5 text-xs font-medium text-paper shadow-sm hover:opacity-95"
+                        className="shrink-0 rounded bg-ink px-3 py-1.5 text-xs font-medium text-paper-50 transition-colors hover:bg-oxblood"
                         onClick={() => {
                           setError("");
                           resetToWelcome(profile.welcomeMessage);
@@ -769,10 +769,10 @@ export default function LifeAgentChatPage() {
                               loadSession(session.id, profile.welcomeMessage);
                               closeMenu();
                             }}
-                            className={`w-full rounded-2xl border px-3 py-3 text-left transition ${
+                            className={`w-full rounded border px-3 py-3 text-left transition-colors ${
                               session.id === sessionId
-                                ? "border-hairline/60 bg-gradient-to-br from-paper-50 to-paper/80"
-                                : "border-hairline/80 bg-paper/[0.85] hover:border-hairline/50 hover:bg-paper"
+                                ? "border-ink/40 bg-paper-200"
+                                : "border-hairline bg-paper-50 hover:border-ink-300 hover:bg-paper-100"
                             }`}
                           >
                             <div className="flex items-center justify-between gap-3">
@@ -790,7 +790,7 @@ export default function LifeAgentChatPage() {
                 )}
 
                 {profile.viewerState.isLoggedIn && (
-                  <div className="mt-4 rounded-2xl border border-hairline/40 bg-paper/[0.98] p-4 text-sm text-ink-500 shadow-[0_4px_20px_rgba(26,23,20,0.05)] backdrop-blur-sm">
+                  <div className="mt-4 rounded border border-hairline bg-paper-50 p-4 text-sm text-ink-500">
                     <p className="font-medium text-ink">Agent 评分</p>
                     <p className="mt-1 text-xs text-ink-400">
                       每满 10 次提问会解锁一次评分。你的新评分会覆盖旧评分，但始终只算 1 位用户。
@@ -810,10 +810,10 @@ export default function LifeAgentChatPage() {
                               key={score}
                               type="button"
                               onClick={() => setRatingScore(score)}
-                              className={`rounded-full px-3 py-1 text-sm transition ${
+                              className={`rounded border px-3 py-1 text-sm transition-colors ${
                                 ratingScore === score
-                                  ? "bg-gradient-to-r from-[#BA68C8] to-[#FF80AB] text-paper shadow-sm"
-                                  : "bg-paper-50/80 text-ink-500 hover:bg-paper-100/60"
+                                  ? "border-ink bg-ink text-paper-50"
+                                  : "border-hairline bg-paper-50 text-ink-500 hover:bg-paper-100"
                               }`}
                             >
                               {score} 分
@@ -879,7 +879,7 @@ export default function LifeAgentChatPage() {
                   </div>
                 )}
 
-                <div className="mt-4 rounded-2xl border border-hairline/50 bg-paper-50/35 p-4 text-sm text-ink-500 backdrop-blur-sm">
+                <div className="mt-4 rounded border border-hairline bg-paper-50 p-4 text-sm text-ink-500">
                   <p className="font-medium text-ink/85">怎么聊更好？</p>
                   <ul className="mt-2 space-y-1">
                     <li>• 说清楚你的<strong>具体处境</strong>（如：二本大三、想转行、时间紧）</li>
@@ -908,8 +908,8 @@ export default function LifeAgentChatPage() {
         )}
       </AnimatePresence>
 
-      <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-none border-0 border-hairline/30 bg-paper/[0.98] shadow-[0_6px_32px_-12px_rgba(26,23,20,0.08)] backdrop-blur-sm sm:rounded-3xl sm:border lg:rounded-3xl max-lg:flex-1">
-        <header className="z-20 flex shrink-0 items-center gap-2 border-b border-hairline/70 bg-paper/[0.95] px-1 py-2 pt-[env(safe-area-inset-top)] backdrop-blur-md sm:px-3">
+      <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-none border-0 border-hairline bg-paper sm:rounded sm:border lg:rounded max-lg:flex-1">
+        <header className="z-20 flex shrink-0 items-center gap-2 border-b border-hairline bg-paper px-1 py-2 pt-[env(safe-area-inset-top)] sm:px-3">
           <button
             type="button"
             onClick={() => {
@@ -1023,7 +1023,7 @@ export default function LifeAgentChatPage() {
                         </div>
                       ) : isVoiceLoadingForMsg ? (
                         <div className="space-y-2">
-                          <div className="flex items-center gap-2 rounded-xl bg-paper-50/80 px-2.5 py-1.5">
+                          <div className="flex items-center gap-2 rounded bg-paper-50 px-2.5 py-1.5">
                             <span className="h-3 w-3 shrink-0 rounded-full border-[1.5px] border-hairline/40 border-t-ink animate-spin" />
                             <span className="text-xs text-ink-600/80">语音生成中…</span>
                           </div>
@@ -1060,7 +1060,7 @@ export default function LifeAgentChatPage() {
                               type="button"
                               disabled={submittingFeedbackId === message.messageId}
                               onClick={() => void submitMessageFeedback(message, item.id)}
-                              className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 transition-all duration-200 ${feedbackChipClass(isSelected, hasSelection, isHelpful)} disabled:opacity-60`}
+                              className={`inline-flex items-center gap-1 rounded border px-2.5 py-1 transition-all duration-200 ${feedbackChipClass(isSelected, hasSelection, isHelpful)} disabled:opacity-60`}
                             >
                               <span className={isSelected ? "opacity-90" : isHelpful ? "text-olive-500" : "text-ink-300"}>
                                 {isHelpful ? <FeedbackThumbUp /> : <FeedbackThumbDown />}
@@ -1080,7 +1080,7 @@ export default function LifeAgentChatPage() {
                               type="button"
                               disabled={submittingFeedbackId === message.messageId}
                               onClick={() => void submitMessageFeedback(message, item.id)}
-                              className={`rounded-full border px-2.5 py-1 transition-all duration-200 ${feedbackChipClass(isSelected, hasSelection, false)} disabled:opacity-60`}
+                              className={`rounded border px-2.5 py-1 transition-all duration-200 ${feedbackChipClass(isSelected, hasSelection, false)} disabled:opacity-60`}
                             >
                               {isSelected && <span className="mr-0.5">✓</span>}
                               {item.label}
@@ -1124,7 +1124,7 @@ export default function LifeAgentChatPage() {
                                 }
                               }}
                               rows={2}
-                              className="flex-1 resize-none rounded-xl border border-hairline/60 bg-paper/80 px-3 py-2 text-xs text-ink-600 placeholder:text-ink-300 focus:border-hairline focus:outline-none focus:ring-1 focus:ring-hairline"
+                              className="flex-1 resize-none rounded border border-hairline bg-paper px-3 py-2 text-xs text-ink-600 placeholder:text-ink-300 focus:border-ink focus:outline-none"
                             />
                           </div>
                         )}
@@ -1141,12 +1141,12 @@ export default function LifeAgentChatPage() {
         </div>
 
         {error && (
-          <div className="shrink-0 mx-3 rounded-2xl border border-hairline/80 bg-paper-200/90 px-4 py-2 text-sm text-oxblood-700/90 sm:mx-6">
+          <div className="shrink-0 mx-3 rounded border border-hairline bg-paper-200 px-4 py-2 text-sm text-oxblood-700 sm:mx-6">
             {error}
           </div>
         )}
 
-        <div className={`shrink-0 border-t border-hairline/25 bg-paper/[0.94] px-3 pt-2 shadow-[0_-4px_28px_-8px_rgba(26,23,20,0.06)] backdrop-blur-lg sm:px-4 ${chatInputFooterPaddingClass(keyboardVisible)}`}>
+        <div className={`shrink-0 border-t border-hairline bg-paper px-3 pt-2 sm:px-4 ${chatInputFooterPaddingClass(keyboardVisible)}`}>
           <div className="mx-auto max-w-3xl">
             <LifeAgentMessageComposer
               value={input}
