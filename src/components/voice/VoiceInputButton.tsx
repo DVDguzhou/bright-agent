@@ -162,12 +162,12 @@ export function VoiceInputButton({
         title={isPressActive ? "松开发送" : "按住说话"}
         aria-label={isPressActive ? "松开发送语音" : "按住说话"}
         aria-pressed={isPressActive}
-        className={`inline-flex shrink-0 items-center justify-center rounded-full border transition-all ${
+        className={`inline-flex shrink-0 items-center justify-center rounded-full border transition-colors ${
           sizeClasses[size]
         } ${
           isPressActive
-            ? "border-oxblood-400 bg-oxblood-500 text-paper shadow-lg shadow-oxblood-500/30 scale-110"
-            : "border-paper/38 bg-paper/55 text-ink-500 shadow-[0_10px_26px_-14px_rgba(26,23,20,0.12)] ring-1 ring-paper/18 backdrop-blur-xl hover:bg-paper/66 hover:border-paper/50"
+            ? "border-oxblood-400 bg-oxblood-500 text-paper"
+            : "border-hairline bg-paper text-ink-500 hover:border-ink-300 hover:bg-paper-50"
         } disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
       >
         {isPreparing ? (

@@ -264,7 +264,7 @@ function FloatingVoiceCoachFab({ agent }: { agent: BoundLifeAgent }) {
             className="fixed inset-0 z-[200] flex select-none flex-col items-center justify-between lg:hidden"
             style={{ touchAction: "none", WebkitTouchCallout: "none" }}
           >
-            <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-[#1a0a2e]/85 to-[#0d001a]/95 backdrop-blur-xl" />
+            <div className="absolute inset-0 bg-gradient-to-b from-ink/90 to-oxblood-deep/95" />
 
             {/* top: real-time transcript */}
             <div className="relative z-10 mt-[max(4rem,env(safe-area-inset-top))] w-full px-8">
@@ -279,7 +279,7 @@ function FloatingVoiceCoachFab({ agent }: { agent: BoundLifeAgent }) {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
-                className="mt-4 min-h-[4rem] rounded-2xl border border-paper/[0.06] bg-paper/[0.04] px-5 py-4 backdrop-blur-sm"
+                className="mt-4 min-h-[4rem] rounded border border-hairline/30 bg-paper/5 px-5 py-4"
               >
                 <p className="text-center text-base leading-7 text-paper/90">
                   {liveText}
@@ -292,7 +292,7 @@ function FloatingVoiceCoachFab({ agent }: { agent: BoundLifeAgent }) {
               {[0, 1, 2].map((i) => (
                 <motion.div
                   key={i}
-                  className="absolute rounded-full border border-ink-200/20"
+                  className="absolute rounded-full border border-oxblood-400/20"
                   animate={{
                     width: [80 + i * 40, 120 + i * 50],
                     height: [80 + i * 40, 120 + i * 50],
@@ -311,11 +311,11 @@ function FloatingVoiceCoachFab({ agent }: { agent: BoundLifeAgent }) {
                 className="relative flex h-24 w-24 items-center justify-center rounded-full"
                 style={{
                   background: isCancelled
-                    ? "radial-gradient(circle, rgba(239,68,68,0.4) 0%, rgba(239,68,68,0.1) 60%, transparent 80%)"
-                    : "radial-gradient(circle, rgba(168,85,247,0.45) 0%, rgba(236,72,153,0.2) 50%, transparent 80%)",
+                    ? "radial-gradient(circle, rgba(122,31,31,0.35) 0%, rgba(122,31,31,0.1) 60%, transparent 80%)"
+                    : "radial-gradient(circle, rgba(122,31,31,0.5) 0%, rgba(122,31,31,0.12) 60%, transparent 80%)",
                   boxShadow: isCancelled
-                    ? "0 0 60px rgba(239,68,68,0.3), 0 0 120px rgba(239,68,68,0.1)"
-                    : "0 0 60px rgba(168,85,247,0.35), 0 0 120px rgba(236,72,153,0.15)",
+                    ? "0 0 48px rgba(122,31,31,0.2), 0 0 96px rgba(122,31,31,0.08)"
+                    : "0 0 48px rgba(122,31,31,0.25), 0 0 96px rgba(122,31,31,0.1)",
                 }}
                 animate={{ scale: [1, 1.08, 1] }}
                 transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}

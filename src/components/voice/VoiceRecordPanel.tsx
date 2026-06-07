@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
-import { CHAT_GLASS_PANEL_CLASSNAME } from "@/lib/chat-glass";
 import { getMicrophoneEnvIssue, useMediaRecorder } from "@/lib/voice";
 
 const SAMPLE_TEXT =
@@ -12,8 +11,6 @@ type VoiceRecordPanelProps = {
   onSkip?: () => void;
   minDurationSeconds?: number;
   maxDurationSeconds?: number;
-  /** 与人生 Agent 创建页薰衣草 UI 一致 */
-  accent?: "default" | "pastel";
 };
 
 export function VoiceRecordPanel({
@@ -21,7 +18,6 @@ export function VoiceRecordPanel({
   onSkip,
   minDurationSeconds = 10,
   maxDurationSeconds = 30,
-  accent = "default",
 }: VoiceRecordPanelProps) {
   const [hasRecorded, setHasRecorded] = useState(false);
   const [envIssue, setEnvIssue] = useState<string | null>(null);
@@ -59,53 +55,25 @@ export function VoiceRecordPanel({
     setHasRecorded(false);
   }, [reset]);
 
-  const shell =
-    accent === "pastel"
-      ? `rounded-[22px] p-6 ${CHAT_GLASS_PANEL_CLASSNAME}`
-      : "rounded-2xl border border-hairline bg-paper p-6 shadow-sm";
-  const micIdle =
-    accent === "pastel"
-      ? "border border-hairline/30 bg-gradient-to-br from-ink/82 via-ink-600/78 to-oxblood/74 text-paper shadow-lg shadow-ink/20 backdrop-blur-xl hover:opacity-95"
-      : "bg-oxblood-500 text-paper hover:bg-oxblood-600";
-  const successBox =
-    accent === "pastel"
-      ? "border border-hairline/40 bg-gradient-to-r from-paper-50/[0.95] to-paper/[0.85] backdrop-blur-[2px]"
-      : "bg-olive-400/10";
-  const successIcon = accent === "pastel" ? "text-oxblood" : "text-olive-600";
-  const successText = accent === "pastel" ? "text-ink-800" : "text-olive-600";
-  const titleClass = accent === "pastel" ? "text-lg font-semibold text-ink" : "text-lg font-semibold text-ink";
-
   return (
-    <div className={shell}>
-      <h3 className={titleClass}>采集你的音色</h3>
+    <div className="rounded border border-hairline bg-paper p-6">
+      <h3 className="text-lg font-semibold text-ink">采集你的音色</h3>
       <p className="mt-2 text-sm text-ink-500">
         请朗读下面这段话，系统会采集你的声音特征，生成 Agent 的专属音色。建议在安静环境下录制，时长 {minDurationSeconds}–{maxDurationSeconds} 秒。
       </p>
 
       {envIssue ? (
-        <div className="mt-4 rounded-xl border border-oxblood-200 bg-paper-200 px-4 py-3 text-sm text-ink">
+        <div className="mt-4 rounded border border-oxblood-200 bg-paper-200 px-4 py-3 text-sm text-ink">
           <p className="font-medium">无法在此页面使用麦克风</p>
           <p className="mt-1 leading-relaxed">{envIssue}</p>
         </div>
       ) : null}
 
-      <div
-        className={
-          accent === "pastel"
-            ? "mt-5 rounded-xl border border-hairline/30 bg-paper/60 p-4 shadow-[0_8px_24px_-12px_rgba(26,23,20,0.1)] ring-1 ring-hairline/20 backdrop-blur-xl"
-            : "mt-5 rounded-xl bg-paper-50 p-4"
-        }
-      >
+      <div className="mt-5 rounded border border-hairline bg-paper-50 p-4">
         <p className="text-[15px] leading-7 text-ink-600">{SAMPLE_TEXT}</p>
       </div>
 
-      <div
-        className={
-          accent === "pastel"
-            ? "mt-4 rounded-xl border border-hairline/30 bg-paper/60 px-4 py-3 text-sm text-ink-500 shadow-[0_8px_24px_-12px_rgba(26,23,20,0.1)] ring-1 ring-hairline/20 backdrop-blur-xl"
-            : "mt-4 rounded-xl border border-hairline bg-paper-50/80 px-4 py-3 text-sm text-ink-500"
-        }
-      >
+      <div className="mt-4 rounded border border-hairline bg-paper-50 px-4 py-3 text-sm text-ink-500">
         <p>建议使用 Chrome 或 Edge，并确保当前页面通过 HTTPS 或 localhost 打开。</p>
         <p className="mt-1">录音样本不会跟随草稿自动保存；如果刷新或离开页面，回来后需要重新录制。</p>
         <p className="mt-1">如果创建成功后仍没有生成音色，通常是服务端音色注册失败，可稍后在设置页补录。</p>
@@ -113,8 +81,8 @@ export function VoiceRecordPanel({
 
       <div className="mt-6 flex flex-col items-center gap-4">
         {status === "processing" ? (
-          <div className="w-full rounded-2xl border border-hairline/30 bg-paper/60 px-4 py-4 text-center shadow-[0_8px_24px_-12px_rgba(26,23,20,0.1)] ring-1 ring-hairline/20 backdrop-blur-xl">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-paper/70 text-ink-600 shadow-sm">
+          <div className="w-full rounded border border-hairline bg-paper-50 px-4 py-4 text-center">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-paper text-ink-600">
               <span className="h-5 w-5 rounded-full border-2 border-current/25 border-t-current animate-spin" />
             </div>
             <p className="mt-3 text-sm font-medium text-ink-700">正在处理语音...</p>
@@ -127,10 +95,10 @@ export function VoiceRecordPanel({
               type="button"
               onClick={isRecording ? stop : start}
               disabled={status === "processing" || micBlocked}
-              className={`flex h-20 w-20 items-center justify-center rounded-full transition-all ${
+              className={`flex h-20 w-20 items-center justify-center rounded-full transition-colors ${
                 isRecording
-                  ? "bg-oxblood-500 text-paper shadow-lg shadow-oxblood-500/30 animate-pulse"
-                  : micIdle
+                  ? "bg-oxblood-500 text-paper animate-pulse"
+                  : "bg-oxblood-500 text-paper hover:bg-oxblood-600"
               }`}
             >
               {isRecording ? (
@@ -164,11 +132,11 @@ export function VoiceRecordPanel({
           </>
         ) : (
           <>
-            <div className={`flex items-center gap-3 rounded-xl px-4 py-3 ${successBox}`}>
-              <svg className={`h-6 w-6 ${successIcon}`} fill="currentColor" viewBox="0 0 20 20">
+            <div className="flex items-center gap-3 rounded border border-hairline bg-olive-400/10 px-4 py-3">
+              <svg className="h-6 w-6 text-olive-600" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
-              <p className={`text-sm font-medium ${successText}`}>录制完成，时长 {duration} 秒</p>
+              <p className="text-sm font-medium text-olive-600">录制完成，时长 {duration} 秒</p>
             </div>
             <div className="flex gap-3">
               <button type="button" onClick={handleRetry} className="btn-secondary">
