@@ -9,6 +9,7 @@ import { RatingStars } from "@/components/RatingStars";
 import { useAuth } from "@/contexts/AuthContext";
 import { getDisplayAvatar } from "@/lib/avatar";
 import { markAgentNotificationsRead } from "@/lib/notifications-read";
+import { feedbackTypeBadgeClass } from "@/lib/feedback-display";
 
 type FeedbackItem = {
   id: string;
@@ -106,15 +107,6 @@ function feedbackLabel(t: string) {
   if (t === "contradiction") return "收到前后矛盾反馈";
   if (t === "too_confident") return "收到过度自信反馈";
   return "收到新反馈";
-}
-
-function feedbackBadgeClass(t: string) {
-  if (t === "helpful") return "bg-olive-400/10 text-olive-600 ring-1 ring-olive-400/40";
-  if (t === "not_specific") return "bg-paper-200 text-ink ring-1 ring-hairline";
-  if (t === "factual_error") return "bg-oxblood-50 text-oxblood-700 ring-1 ring-oxblood-100";
-  if (t === "contradiction") return "bg-paper-50 text-ink-800 ring-1 ring-hairline/50";
-  if (t === "too_confident") return "bg-paper-200 text-ink ring-1 ring-hairline";
-  return "bg-oxblood-50 text-oxblood-700 ring-1 ring-oxblood-100";
 }
 
 function normalizeSummary(raw: any): SummaryData {
@@ -342,7 +334,7 @@ export default function DashboardNotificationsPage() {
                       <div className="flex min-w-0 flex-wrap items-center gap-1.5">
                         <span className="truncate text-[16px] font-semibold text-ink">{item.profileName}</span>
                         {item.kind === "feedback" ? (
-                          <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${feedbackBadgeClass(item.feedbackType)}`}>
+                          <span className={feedbackTypeBadgeClass(item.feedbackType)}>
                             {feedbackLabel(item.feedbackType)}
                           </span>
                         ) : item.kind === "rating" ? (

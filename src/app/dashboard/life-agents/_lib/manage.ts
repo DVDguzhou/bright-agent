@@ -160,7 +160,6 @@ export type FeedbackAlert = {
   title: string;
   detail: string;
   priority: "urgent" | "high" | "medium" | "low";
-  color: "red" | "orange" | "yellow" | "blue";
   source: string;
   topicId?: string;
   action: string;

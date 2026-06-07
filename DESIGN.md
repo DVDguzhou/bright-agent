@@ -128,6 +128,28 @@ Drawn from the physical world of print and archival paper — warm but never sof
 
 **The Warm-Paper Rule.** The body background (#f4efe6) is not a "neutral off-white." It is a committed brand surface. Do not lighten it toward white for "cleanliness" — that erases the editorial warmth that carries the whole palette. If a surface needs to feel lighter, use #faf7f1.
 
+### Restrained Severity Scale (克制分级)
+
+When UI must express **multiple levels of urgency** — feedback alerts, diagnostic items, operational warnings — do not import a second semantic hue (no red/orange/yellow traffic-light palettes). That breaks the archive palette and fights **The One Oxblood Rule**.
+
+Instead, use a **restrained severity scale**: one hue family (oxblood) stepped by lightness for heat, ending in neutral ink for “FYI only.” Deeper red = more urgent; fading to gray = reference-only. Olive remains reserved for verification/active status — never for severity.
+
+| Tier | Label | Dot | Title text | Badge | Meaning |
+|------|-------|-----|------------|-------|---------|
+| `urgent` | 紧急 | `oxblood-600` | `oxblood-700` | solid `oxblood-600` / paper text | Act now |
+| `high` | 重要 | `oxblood-400` | `oxblood-600` | `oxblood-100` / `oxblood-700` | Needs attention |
+| `medium` | 建议 | `oxblood-200` | `ink-700` | `paper-300` / `ink-600` | Recommended fix |
+| `low` | 参考 | `ink-300` | `ink-500` | `paper-200` / `ink-400` | Informational |
+
+**Implementation:** Map backend `priority` (`urgent` / `high` / `medium` / `low`) through `severityFromPriority()` and apply the shared class maps in `src/lib/severity-style.ts` (`SEVERITY_DOT`, `SEVERITY_TEXT`, `SEVERITY_BADGE`, `SEVERITY_LINK`, `SEVERITY_LABEL`). Do not re-derive colors per page.
+
+**Anti-patterns (do not ship):**
+- Collapsing all severities to the same `text-oxblood-600` / `bg-oxblood-100` while keeping dead `color === "red" | "orange" | "yellow"` branches — looks graded, reads flat.
+- Decorative oxblood on unrelated tiles (quick-action icons, category chips) next to real severity signals — dilutes urgency.
+- Using olive or a new accent hue for “medium” severity — olive means verified/active only.
+
+**First consumer:** Agent manage dashboard — “需要你关注” alert list (`src/app/dashboard/life-agents/[id]/page.tsx`). Future feedback, blind-spot, or ops surfaces should import the same helper rather than inventing local scales.
+
 ## 3. Typography
 
 **Display Font:** Source Han Serif SC, Noto Serif SC, Songti SC, STSong — with Georgia and serif as fallbacks. Chinese-first serif stack.

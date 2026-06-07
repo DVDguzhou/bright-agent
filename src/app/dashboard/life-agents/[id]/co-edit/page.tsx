@@ -107,7 +107,7 @@ function applyMindScoreUpdate(
 }
 
 const profileFieldClassName =
-  "mt-1 w-full rounded-lg border border-hairline/50 bg-paper/90 px-2.5 py-2 text-sm text-ink-600 outline-none transition focus:border-ink-400 focus:ring-2 focus:ring-hairline/40";
+  "mt-1 w-full rounded border border-hairline/50 bg-paper/90 px-2.5 py-2 text-sm text-ink-600 outline-none transition focus:border-ink";
 
 export default function LifeAgentCoEditPage() {
   const params = useParams();
@@ -725,7 +725,7 @@ export default function LifeAgentCoEditPage() {
   }, [data, id]);
 
   if (loading) {
-    return <div className="mx-auto h-64 max-w-4xl animate-pulse rounded-[28px] bg-gradient-to-br from-paper-100/90 to-paper-100/50 shadow-[0_6px_28px_rgba(26,23,20,0.07)] ring-1 ring-hairline/20" />;
+    return <div className="mx-auto h-64 max-w-4xl animate-pulse bg-paper-100/60" />;
   }
 
   if (!data) {
@@ -769,7 +769,7 @@ export default function LifeAgentCoEditPage() {
             </svg>
           </button>
           <div className="min-w-0 flex-1">
-            <h1 className="text-[26px] font-bold leading-tight tracking-tight text-ink">对话调教</h1>
+            <h1 className="font-serif text-3xl font-medium leading-tight tracking-tight text-ink">对话调教</h1>
           </div>
           <div className="flex h-10 min-w-10 shrink-0 items-center justify-center rounded-full px-2 text-xs font-medium text-ink-700">
             已调教 {turnCount} 轮
@@ -786,7 +786,7 @@ export default function LifeAgentCoEditPage() {
         </div>
 
         <div className="shrink-0 px-3 pb-2 sm:px-4">
-          <div className="mx-auto max-w-3xl rounded-[22px] border border-hairline/40 bg-paper/[0.98] p-3 shadow-[0_6px_30px_-12px_rgba(26,23,20,0.07)] backdrop-blur-sm sm:p-4">
+          <div className="mx-auto max-w-3xl rounded border border-hairline/40 bg-paper p-3 sm:p-4">
             <details>
               <summary className="flex cursor-pointer list-none items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
                 <div className="min-w-0">
@@ -807,7 +807,7 @@ export default function LifeAgentCoEditPage() {
                     </>
                   ) : null}
                   {lastChange ? (
-                    <span className="rounded-full bg-gradient-to-r from-paper-100 to-paper-100 px-2.5 py-1 text-[10px] font-medium text-ink-700 ring-1 ring-hairline/40">
+                    <span className="rounded bg-paper-200 px-2.5 py-1 text-[10px] font-medium text-ink-700">
                       刚更新
                     </span>
                   ) : null}
@@ -825,7 +825,7 @@ export default function LifeAgentCoEditPage() {
               </summary>
 
               <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                <div className="rounded-xl border border-hairline/40 bg-paper-50/40 px-3 py-2.5 backdrop-blur-sm">
+                <div className="rounded border border-hairline/40 bg-paper-50/40 px-3 py-2.5">
                   <label className="text-[11px] text-ink-400/60" htmlFor="co-edit-headline">
                     一句话介绍
                   </label>
@@ -838,7 +838,7 @@ export default function LifeAgentCoEditPage() {
                     placeholder="未设置"
                   />
                 </div>
-                <div className="rounded-xl border border-hairline/40 bg-paper-50/40 px-3 py-2.5 backdrop-blur-sm">
+                <div className="rounded border border-hairline/40 bg-paper-50/40 px-3 py-2.5">
                   <label className="text-[11px] text-ink-400/60" htmlFor="co-edit-welcome">
                     欢迎语
                   </label>
@@ -851,7 +851,7 @@ export default function LifeAgentCoEditPage() {
                     placeholder="未设置"
                   />
                 </div>
-                <div className="rounded-xl border border-hairline/40 bg-paper-50/40 px-3 py-2.5 backdrop-blur-sm sm:col-span-2">
+                <div className="rounded border border-hairline/40 bg-paper-50/40 px-3 py-2.5 sm:col-span-2">
                   <label className="text-[11px] text-ink-400/60" htmlFor="co-edit-examples">
                     示范回答（每行一条）
                   </label>
@@ -905,7 +905,7 @@ export default function LifeAgentCoEditPage() {
                   </div>
                 </div>
                 <div className="grid gap-2 sm:grid-cols-2">
-                  <div className="rounded-xl border border-hairline/40 bg-paper-50/40 px-3 py-2.5 backdrop-blur-sm sm:col-span-2">
+                  <div className="rounded border border-hairline/40 bg-paper-50/40 px-3 py-2.5 sm:col-span-2">
                     <p className="text-[11px] text-ink-400/60">人设与语气</p>
                     <div className="mt-2 grid gap-2 sm:grid-cols-3">
                       <select
@@ -946,7 +946,7 @@ export default function LifeAgentCoEditPage() {
                       </select>
                     </div>
                   </div>
-                  <div className="rounded-xl border border-hairline/40 bg-paper-50/40 px-3 py-2.5 backdrop-blur-sm sm:col-span-2">
+                  <div className="rounded border border-hairline/40 bg-paper-50/40 px-3 py-2.5 sm:col-span-2">
                     <label className="text-[11px] text-ink-400/60" htmlFor="co-edit-not-suitable">
                       不能回答的问题
                     </label>
@@ -974,13 +974,13 @@ export default function LifeAgentCoEditPage() {
               </div>
 
               {lastChange ? (
-                <div className="mt-3 rounded-2xl border border-hairline/40 bg-gradient-to-r from-paper-50/[0.92] to-paper/[0.75] px-3 py-3 backdrop-blur-sm">
+                <div className="mt-3 rounded border border-hairline/40 bg-paper-50 px-3 py-3">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div>
                       <p className="text-sm font-medium text-ink">本次已影响字段</p>
                       <div className="mt-2 flex flex-wrap gap-2">
                         {impactedFields.map((item) => (
-                          <span key={item} className="rounded-full bg-paper/[0.95] px-2.5 py-1 text-xs font-medium text-ink-700 ring-1 ring-hairline/40">
+                          <span key={item} className="rounded bg-paper-200 px-2.5 py-1 text-xs font-medium text-ink-700">
                             {item}
                           </span>
                         ))}
@@ -1022,7 +1022,7 @@ export default function LifeAgentCoEditPage() {
         >
           <div className="mx-auto max-w-3xl space-y-4 pb-4">
             {banner ? (
-              <div className="rounded-2xl border border-hairline/30 bg-gradient-to-r from-paper-50/90 to-paper/70 px-4 py-3 text-sm text-ink-800 backdrop-blur-sm">
+              <div className="rounded border border-hairline/30 bg-paper-50 px-4 py-3 text-sm text-ink-800">
                 {banner}
               </div>
             ) : null}
@@ -1089,7 +1089,7 @@ export default function LifeAgentCoEditPage() {
                   )}
                 </div>
                 {item.role === "user" ? (
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-ink-300 to-oxblood text-xs font-bold text-ink shadow-sm ring-2 ring-paper">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-paper-200 text-xs font-semibold text-ink-600">
                     我
                   </div>
                 ) : null}
@@ -1102,7 +1102,7 @@ export default function LifeAgentCoEditPage() {
         <div className={`shrink-0 border-t border-hairline/25 bg-paper/[0.94] px-3 pt-2 shadow-[0_-4px_28px_-8px_rgba(26,23,20,0.06)] backdrop-blur-lg sm:px-4 ${chatInputFooterPaddingClass(keyboardVisible)}`}>
           <div className="mx-auto max-w-3xl">
             {nextSuggestion ? (
-              <div className="mb-2 rounded-2xl border border-hairline/30 bg-gradient-to-r from-paper-50/95 to-paper/80 px-3 py-3">
+              <div className="mb-2 rounded border border-hairline/30 bg-paper-50 px-3 py-3">
                 <p className="text-sm font-semibold text-ink">{nextSuggestion.title}</p>
                 <p className="mt-1 text-xs leading-5 text-ink-500">{nextSuggestion.reason}</p>
                 <button
@@ -1132,7 +1132,7 @@ export default function LifeAgentCoEditPage() {
               onMoreClick={() => setMoreOpen((o) => !o)}
               onCloseMorePanel={() => setMoreOpen(false)}
               morePanel={
-                <div className="rounded-2xl border border-hairline/40 bg-paper/[0.98] p-2 shadow-[0_8px_36px_-10px_rgba(26,23,20,0.08)] backdrop-blur-md">
+                <div className="rounded-2xl border border-hairline/40 bg-paper/[0.98] p-2 backdrop-blur-md">
                   <button
                     type="button"
                     className="block w-full rounded-xl px-3 py-2.5 text-left text-sm text-ink-600 hover:bg-paper-50/90"
@@ -1187,38 +1187,69 @@ export default function LifeAgentCoEditPage() {
       ) : null}
 
       {showRetractMenu != null ? (
-        <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-ink/60 sm:items-center"
-          onClick={() => setShowRetractMenu(null)}
-        >
-          <div
-            className="w-full max-w-sm rounded-t-2xl bg-paper p-4 shadow-xl sm:rounded-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="mb-4 text-center text-sm font-semibold text-ink">撤回消息</div>
-            <p className="mb-4 text-center text-xs text-ink-400">
-              仅隐藏本条对话；若已改 Agent 资料，请用上方「撤回上次修改」恢复。
-            </p>
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => setShowRetractMenu(null)}
-                className="flex-1 rounded-xl bg-paper-200 px-4 py-3 text-sm font-medium text-ink-600 transition hover:bg-paper-300"
-              >
-                取消
-              </button>
-              <button
-                type="button"
-                onClick={() => retractUserMessage(showRetractMenu)}
-                className="flex-1 rounded-xl bg-oxblood-500 px-4 py-3 text-sm font-medium text-paper transition hover:bg-oxblood-600"
-              >
-                撤回
-              </button>
-            </div>
-          </div>
-        </div>
+        <RetractConfirmDialog
+          open
+          onClose={() => setShowRetractMenu(null)}
+          onConfirm={() => {
+            retractUserMessage(showRetractMenu);
+            setShowRetractMenu(null);
+          }}
+        />
       ) : null}
     </div>
+  );
+}
+
+function RetractConfirmDialog({
+  open,
+  onClose,
+  onConfirm,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+}) {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    if (open && !dialog.open) dialog.showModal();
+    if (!open && dialog.open) dialog.close();
+  }, [open]);
+
+  return (
+    <dialog
+      ref={dialogRef}
+      className="fixed inset-0 z-50 m-0 max-h-none max-w-none border-0 bg-transparent p-3 backdrop:bg-ink/60 open:flex open:items-end open:justify-center sm:open:items-center"
+      onClose={onClose}
+      onClick={(e) => {
+        if (e.target === dialogRef.current) onClose();
+      }}
+    >
+      <div className="w-full max-w-sm rounded-t bg-paper p-4 sm:rounded">
+        <div className="mb-4 text-center text-sm font-semibold text-ink">撤回消息</div>
+        <p className="mb-4 text-center text-xs text-ink-400">
+          仅隐藏本条对话；若已改 Agent 资料，请用上方「撤回上次修改」恢复。
+        </p>
+        <div className="flex gap-3">
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-1 rounded bg-paper-200 px-4 py-3 text-sm font-medium text-ink-600 transition active:bg-paper-300"
+          >
+            取消
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            className="flex-1 rounded bg-oxblood-600 px-4 py-3 text-sm font-medium text-paper transition active:bg-oxblood-700"
+          >
+            撤回
+          </button>
+        </div>
+      </div>
+    </dialog>
   );
 }
 
@@ -1240,6 +1271,16 @@ function ImportChatModal({
   const [parsing, setParsing] = useState(false);
   const [parseError, setParseError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    if (!dialog.open) dialog.showModal();
+    return () => {
+      if (dialog.open) dialog.close();
+    };
+  }, []);
 
   const accept = ".html,.htm,.csv,.txt";
 
@@ -1278,9 +1319,16 @@ function ImportChatModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 backdrop-blur-sm p-3" onClick={onClose}>
+    <dialog
+      ref={dialogRef}
+      className="fixed inset-0 z-50 m-0 max-h-none max-w-none border-0 bg-transparent p-3 backdrop:bg-ink/50 open:flex open:items-center open:justify-center"
+      onClose={onClose}
+      onClick={(e) => {
+        if (e.target === dialogRef.current) onClose();
+      }}
+    >
       <div
-        className="mx-auto w-full max-w-md max-h-[min(92vh,720px)] overflow-y-auto overscroll-contain rounded-2xl border border-hairline/30 bg-paper p-5 shadow-2xl sm:max-w-2xl sm:p-6"
+        className="mx-auto w-full max-w-md max-h-[min(92vh,720px)] overflow-y-auto overscroll-contain rounded border border-hairline/30 bg-paper p-5 sm:max-w-2xl sm:p-6"
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="mb-1 text-lg font-semibold text-ink-700">导入聊天记录</h3>
@@ -1288,7 +1336,7 @@ function ImportChatModal({
           上传导出文件后，AI 会分析聊天风格与语气，并用于优化 Agent 人设与知识。
         </p>
 
-        <details className="mb-4 rounded-xl border border-hairline/50 bg-paper-50/50 px-3.5 py-2.5 text-sm open:bg-paper-50/80">
+        <details className="mb-4 rounded border border-hairline/50 bg-paper-50/50 px-3.5 py-2.5 text-sm open:bg-paper-50/80">
           <summary className="cursor-pointer select-none font-medium text-ink-800 outline-none [&::-webkit-details-marker]:hidden">
             <span className="inline-flex items-center gap-2">
               <svg className="h-4 w-4 shrink-0 text-ink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} aria-hidden>
@@ -1328,7 +1376,7 @@ function ImportChatModal({
           />
           <button
             type="button"
-            className="flex w-full items-center gap-2 rounded-xl border border-dashed border-hairline/60 bg-paper-50/40 px-4 py-3 text-sm text-ink-500 transition hover:border-ink-400 hover:bg-paper-50/80"
+            className="flex w-full items-center gap-2 rounded border border-dashed border-hairline/60 bg-paper-50/40 px-4 py-3 text-sm text-ink-500 transition hover:border-ink active:bg-paper-50/80"
             onClick={() => fileRef.current?.click()}
             disabled={parsing || loading}
           >
@@ -1344,7 +1392,7 @@ function ImportChatModal({
 
         {/* Parse error */}
         {parseError ? (
-          <div className="mb-4 rounded-xl bg-oxblood-50 px-3.5 py-2.5 text-sm text-oxblood-600">{parseError}</div>
+          <div className="mb-4 rounded border border-oxblood-200 bg-oxblood-50 px-3.5 py-2.5 text-sm text-oxblood-600">{parseError}</div>
         ) : null}
 
         {/* Sender selector — shown after successful parse */}
@@ -1356,7 +1404,7 @@ function ImportChatModal({
             <select
               value={targetName}
               onChange={(e) => setTargetName(e.target.value)}
-              className="w-full rounded-xl border border-hairline/50 bg-paper px-3.5 py-2.5 text-sm text-ink-700 outline-none transition focus:border-ink-400 focus:ring-2 focus:ring-hairline/50"
+              className="w-full rounded border border-hairline/50 bg-paper px-3.5 py-2.5 text-sm text-ink-700 outline-none transition focus:border-ink"
             >
               <option value="">请选择…</option>
               {senders.map((s) => (
@@ -1373,7 +1421,7 @@ function ImportChatModal({
         <div className="flex items-center justify-end gap-3">
           <button
             type="button"
-            className="rounded-xl px-4 py-2 text-sm text-ink-400 transition hover:bg-paper-200"
+            className="rounded px-4 py-2 text-sm text-ink-400 transition active:bg-paper-200"
             onClick={onClose}
             disabled={loading}
           >
@@ -1381,7 +1429,7 @@ function ImportChatModal({
           </button>
           <button
             type="button"
-            className="rounded-xl bg-gradient-to-r from-paper-500 to-paper0 px-5 py-2 text-sm font-medium text-paper shadow-md transition hover:shadow-lg disabled:opacity-50"
+            className="rounded bg-ink px-5 py-2 text-sm font-medium text-paper disabled:opacity-50"
             disabled={!file || !targetName || loading || parsing}
             onClick={() => {
               if (file && targetName) {
@@ -1393,6 +1441,6 @@ function ImportChatModal({
           </button>
         </div>
       </div>
-    </div>
+    </dialog>
   );
 }

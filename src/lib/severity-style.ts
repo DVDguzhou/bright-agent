@@ -62,3 +62,30 @@ export const SEVERITY_LABEL: Record<SeverityTier, string> = {
   medium: "建议",
   low: "参考",
 };
+
+/** 正向反馈（有帮助）— olive 表活跃/正向，非 severity 档位 */
+export const FEEDBACK_POSITIVE_BADGE = "bg-olive-400/20 text-olive-600";
+
+/** 把轻反馈类型映射到克制分级四档（helpful 不走 severity） */
+export function severityFromFeedbackType(type: string): SeverityTier | null {
+  switch (type) {
+    case "factual_error":
+      return "urgent";
+    case "contradiction":
+      return "high";
+    case "not_specific":
+    case "too_confident":
+      return "medium";
+    case "not_suitable":
+      return "low";
+    default:
+      return null;
+  }
+}
+
+/** 统计数值文字色：helpful 用 ink，其余走 severity */
+export function feedbackTypeValueClass(type: string): string {
+  if (type === "helpful") return "text-olive-600";
+  const tier = severityFromFeedbackType(type);
+  return tier ? SEVERITY_TEXT[tier] : "text-ink";
+}

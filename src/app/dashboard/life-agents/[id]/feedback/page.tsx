@@ -4,12 +4,23 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { RatingStars } from "@/components/RatingStars";
+import { feedbackTypeLabel } from "@/lib/feedback-display";
 import {
-  extractTopKeywords,
   fetchManageData,
+  extractTopKeywords,
   formatShortTime,
+  type FeedbackAlert,
   type ManageData,
 } from "@/app/dashboard/life-agents/_lib/manage";
+import {
+  SEVERITY_BADGE,
+  SEVERITY_DOT,
+  SEVERITY_LABEL,
+  SEVERITY_LINK,
+  SEVERITY_TEXT,
+  feedbackTypeValueClass,
+  severityFromPriority,
+} from "@/lib/severity-style";
 
 type FeedRow =
   | {
@@ -30,22 +41,22 @@ type FeedRow =
       sortMs: number;
     };
 
-function feedbackLabel(t: string) {
-  if (t === "helpful") return "有帮助";
-  if (t === "not_specific") return "不够具体";
-  if (t === "not_suitable") return "不适合我";
-  if (t === "factual_error") return "事实错误";
-  if (t === "contradiction") return "前后矛盾";
-  if (t === "too_confident") return "过度自信";
-  return t;
-}
-
-function StatCell({ value, label, sub, accent }: { value: string | number; label: string; sub: string; accent?: string }) {
+function StatCell({
+  value,
+  label,
+  sub,
+  valueClass,
+}: {
+  value: string | number;
+  label: string;
+  sub: string;
+  valueClass?: string;
+}) {
   return (
     <div className="px-3 py-3 text-center">
-      <p className={`text-2xl font-black leading-none ${accent ?? "text-ink"}`}>{value}</p>
+      <p className={`text-2xl font-semibold tabular-nums leading-none ${valueClass ?? "text-ink"}`}>{value}</p>
       <p className="mt-2 text-[11px] font-medium text-ink-600">{label}</p>
-      <p className="mt-0.5 text-[10px] text-ink-300">{sub}</p>
+      <p className="mt-0.5 text-[11px] text-ink-400">{sub}</p>
     </div>
   );
 }
@@ -108,7 +119,7 @@ export default function LifeAgentFeedbackFeedPage() {
     if (!keyword) return rows;
     return rows.filter((row) => {
       if (row.kind === "feedback") {
-        return [feedbackLabel(row.feedbackType), row.assistantExcerpt ?? "", row.comment ?? ""]
+        return [feedbackTypeLabel(row.feedbackType), row.assistantExcerpt ?? "", row.comment ?? ""]
           .join(" ")
           .toLowerCase()
           .includes(keyword);
@@ -118,7 +129,15 @@ export default function LifeAgentFeedbackFeedPage() {
   }, [rows, query]);
 
   const feedbackCounts = useMemo(
-    () => payload?.feedback?.counts ?? { helpful: 0, notSpecific: 0, notSuitable: 0, factualError: 0, contradiction: 0, tooConfident: 0 },
+    () =>
+      payload?.feedback?.counts ?? {
+        helpful: 0,
+        notSpecific: 0,
+        notSuitable: 0,
+        factualError: 0,
+        contradiction: 0,
+        tooConfident: 0,
+      },
     [payload?.feedback?.counts],
   );
   const ratings = payload?.feedback?.ratings ?? {
@@ -126,6 +145,7 @@ export default function LifeAgentFeedbackFeedPage() {
     raters: 0,
     recent: [] as Array<{ score: number; comment?: string | null; updatedAt: string }>,
   };
+  const alerts = payload?.feedback?.alerts ?? [];
   const keywords = useMemo(
     () =>
       extractTopKeywords(
@@ -178,14 +198,15 @@ export default function LifeAgentFeedbackFeedPage() {
         <Link href={`/dashboard/life-agents/${id}`} className="text-sm font-medium text-ink-400 transition hover:text-ink">
           ← 返回工作台
         </Link>
-        <h1 className="mt-3 text-[28px] font-black tracking-tight text-ink">反馈诊断</h1>
+        <h1 className="mt-3 font-serif text-3xl font-medium leading-tight tracking-tight text-ink">反馈诊断</h1>
         <p className="mt-1 text-sm text-ink-400">{profile.displayName} 的用户评价与轻反馈</p>
         <div className="mt-4">
           <input
-            className="w-full rounded-full border-0 bg-paper-200 px-4 py-2.5 text-[15px] text-ink outline-none ring-1 ring-transparent transition placeholder:text-ink-300 focus:bg-paper-50 focus:ring-hairline"
+            className="w-full rounded border border-hairline bg-paper px-4 py-2.5 text-sm text-ink outline-none transition placeholder:text-ink-300 focus:border-ink"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="搜索评价类型、摘要或评语"
+            aria-label="搜索反馈"
           />
         </div>
       </section>
@@ -196,20 +217,87 @@ export default function LifeAgentFeedbackFeedPage() {
             value={ratings.raters > 0 ? ratings.averageScore.toFixed(1) : "—"}
             label="综合评分"
             sub="星"
-            accent="text-oxblood-700"
+            valueClass="text-ink"
           />
-          <StatCell value={feedbackCounts.helpful} label="有帮助" sub="条" accent="text-olive-600" />
-          <StatCell value={feedbackCounts.notSpecific} label="不够具体" sub="条" accent="text-oxblood-600" />
+          <StatCell
+            value={feedbackCounts.helpful}
+            label="有帮助"
+            sub="条"
+            valueClass={feedbackTypeValueClass("helpful")}
+          />
+          <StatCell
+            value={feedbackCounts.notSpecific}
+            label="不够具体"
+            sub="条"
+            valueClass={feedbackTypeValueClass("not_specific")}
+          />
         </div>
         <div className="grid grid-cols-3 [&>*:not(:last-child)]:border-r [&>*]:border-hairline/30">
-          <StatCell value={feedbackCounts.notSuitable} label="不适合我" sub="条" accent="text-oxblood-700" />
-          <StatCell value={feedbackCounts.factualError ?? 0} label="事实错误" sub="条" accent="text-oxblood-700" />
-          <StatCell value={feedbackCounts.contradiction ?? 0} label="前后矛盾" sub="条" />
+          <StatCell
+            value={feedbackCounts.notSuitable}
+            label="不适合我"
+            sub="条"
+            valueClass={feedbackTypeValueClass("not_suitable")}
+          />
+          <StatCell
+            value={feedbackCounts.factualError ?? 0}
+            label="事实错误"
+            sub="条"
+            valueClass={feedbackTypeValueClass("factual_error")}
+          />
+          <StatCell
+            value={feedbackCounts.contradiction ?? 0}
+            label="前后矛盾"
+            sub="条"
+            valueClass={feedbackTypeValueClass("contradiction")}
+          />
         </div>
       </section>
 
+      {alerts.length > 0 ? (
+        <section className="py-4">
+          <h2 className="font-serif text-xl font-medium tracking-tight text-ink">需要你关注</h2>
+          <p className="mt-1 text-xs text-ink-300">来自用户的真实反馈，按紧急程度排列</p>
+          <ul className="mt-3 divide-y divide-hairline/30">
+            {alerts.map((alert: FeedbackAlert) => {
+              const tier = severityFromPriority(alert.priority);
+              return (
+                <li key={alert.id} className="flex items-start gap-3 py-3 text-sm leading-6 first:pt-0">
+                  <span className={`mt-0.5 inline-block h-2.5 w-2.5 flex-shrink-0 rounded-full ${SEVERITY_DOT[tier]}`} />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className={`text-xs font-semibold ${SEVERITY_TEXT[tier]}`}>{alert.title}</span>
+                      <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${SEVERITY_BADGE[tier]}`}>
+                        {SEVERITY_LABEL[tier]}
+                      </span>
+                    </div>
+                    <p className="mt-0.5 text-ink-500">{alert.detail}</p>
+                    {alert.topicId ? (
+                      <Link
+                        href={`/dashboard/life-agents/${id}/topics`}
+                        className={`mt-1 inline-block text-xs font-medium underline ${SEVERITY_LINK[tier]}`}
+                      >
+                        {alert.action} →
+                      </Link>
+                    ) : null}
+                    {alert.source === "blind_spot" ? (
+                      <Link
+                        href={`/dashboard/life-agents/${id}/blind-spots`}
+                        className="mt-1 inline-block text-xs font-medium text-ink-600 underline"
+                      >
+                        {alert.action} →
+                      </Link>
+                    ) : null}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      ) : null}
+
       <section className="py-4">
-        <h2 className="text-lg font-semibold text-ink">评分趋势</h2>
+        <h2 className="font-serif text-xl font-medium tracking-tight text-ink">评分趋势</h2>
         {trendRows.length === 0 ? (
           <p className="mt-3 text-sm text-ink-300">还没有星级评分</p>
         ) : (
@@ -218,7 +306,10 @@ export default function LifeAgentFeedbackFeedPage() {
               <li key={`${item.updatedAt}-${index}`} className="flex items-center gap-3 text-sm">
                 <span className="w-14 shrink-0 text-xs text-ink-300">{formatShortTime(item.updatedAt)}</span>
                 <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-paper-200">
-                  <div className="h-full rounded-full bg-gradient-to-r from-oxblood-500 to-oxblood-400" style={{ width: `${(item.score / 5) * 100}%` }} />
+                  <div
+                    className="h-full rounded-full bg-oxblood-400"
+                    style={{ width: `${(item.score / 5) * 100}%` }}
+                  />
                 </div>
                 <span className="w-10 shrink-0 text-right font-semibold tabular-nums text-ink">{item.score}/5</span>
               </li>
@@ -235,7 +326,7 @@ export default function LifeAgentFeedbackFeedPage() {
       ) : null}
 
       <section className="py-4">
-        <h2 className="text-lg font-semibold text-ink">改进建议</h2>
+        <h2 className="font-serif text-xl font-medium tracking-tight text-ink">改进建议</h2>
         <ul className="mt-3 divide-y divide-hairline/30 text-sm text-ink">
           {suggestions.map((item) => (
             <li key={item} className="py-3 first:pt-0">
@@ -246,7 +337,7 @@ export default function LifeAgentFeedbackFeedPage() {
       </section>
 
       <section className="py-4">
-        <h2 className="text-lg font-semibold text-ink">全部反馈记录</h2>
+        <h2 className="font-serif text-xl font-medium tracking-tight text-ink">全部反馈记录</h2>
         <p className="mt-1 text-sm text-ink-400">{filteredRows.length} 条</p>
         {rows.length === 0 ? (
           <p className="mt-8 text-center text-sm text-ink-300">该 Agent 暂无反馈记录</p>
@@ -259,7 +350,7 @@ export default function LifeAgentFeedbackFeedPage() {
                 {row.kind === "feedback" ? (
                   <>
                     <div className="flex items-start justify-between gap-3">
-                      <p className="font-medium text-ink">{feedbackLabel(row.feedbackType)}</p>
+                      <p className="font-medium text-ink">{feedbackTypeLabel(row.feedbackType)}</p>
                       <time className="shrink-0 text-xs tabular-nums text-ink-300" dateTime={row.createdAt}>
                         {formatShortTime(row.createdAt)}
                       </time>

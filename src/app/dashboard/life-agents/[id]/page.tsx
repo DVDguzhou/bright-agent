@@ -19,6 +19,7 @@ import { MindScoreBadge } from "@/components/MindScoreBadge";
 import {
   SEVERITY_BADGE,
   SEVERITY_DOT,
+  SEVERITY_LABEL,
   SEVERITY_LINK,
   SEVERITY_TEXT,
   severityFromPriority,
@@ -594,13 +595,7 @@ export default function LifeAgentManageHomePage() {
                       {alert.title}
                     </span>
                     <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${SEVERITY_BADGE[tier]}`}>
-                      {alert.priority === "urgent"
-                        ? "紧急"
-                        : alert.priority === "high"
-                          ? "重要"
-                          : alert.priority === "medium"
-                            ? "建议"
-                            : "参考"}
+                      {SEVERITY_LABEL[tier]}
                     </span>
                   </div>
                   <p className="mt-0.5 text-ink-500">{alert.detail}</p>
