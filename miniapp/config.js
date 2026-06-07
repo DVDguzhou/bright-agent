@@ -16,10 +16,4 @@ module.exports = {
   },
   /** 配置后联系客服直接进入该 Agent 对话页 */
   PLATFORM_SUPPORT_AGENT_ID: "",
-  /**
-   * 地图优先使用 wx.getLocation（精确）。须先在公众平台开通该接口并在 app.json 声明。
-   * 未开通或失败时会自动回退 wx.getFuzzyLocation。
-   * 个人主体 getLocation 很难过审，提审请保持 false，app.json 仅声明 getFuzzyLocation。
-   */
-  PREFER_PRECISE_LOCATION: false,
 };
