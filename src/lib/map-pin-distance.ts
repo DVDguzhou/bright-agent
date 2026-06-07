@@ -50,7 +50,13 @@ export function agentsWithinKm<T extends MapCoordAgentInput>(
     .sort((a, b) => a.distanceKm - b.distanceKm);
 }
 
-export function openAgentOnMap(agent: { displayName: string; mapLat: number; mapLng: number; city?: string; province?: string }) {
+export function openAgentOnMap(agent: {
+  displayName: string;
+  mapLat: number;
+  mapLng: number;
+  city?: string | null;
+  province?: string | null;
+}) {
   const name = encodeURIComponent(agent.displayName || "Agent");
   const address = encodeURIComponent([agent.city, agent.province].filter(Boolean).join(" ") || "Agent 服务区域");
   const { mapLng, mapLat } = agent;
