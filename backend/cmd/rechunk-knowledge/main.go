@@ -20,6 +20,7 @@ import (
 	"log"
 	"os"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
 
@@ -43,6 +44,8 @@ func main() {
 	idArg := flag.String("id", "", "只处理某个 profile id 的知识条目")
 	minSections := flag.Int("min-sections", 2, "至少能切出这么多条才动手（建议 3）")
 	noBackup := flag.Bool("no-backup", false, "写入前不做 JSON 备份")
+	junk := flag.Bool("junk", false, "只审计废条目（标题黑名单 + 内容过短），不切分、不写入")
+	junkMaxChars := flag.Int("junk-maxchars", 40, "内容字符数低于此视为「过短」废条目")
 	flag.Parse()
 
 	_ = godotenv.Load(".env")
@@ -54,6 +57,12 @@ func main() {
 	}
 	if err := db.Connect(dsn); err != nil {
 		log.Fatalf("db connect failed: %v", err)
+	}
+
+	// 废条目审计模式：只统计，不写入
+	if *junk {
+		runJunkAudit(*junkMaxChars, strings.TrimSpace(*idArg))
+		return
 	}
 
 	// 预筛：正文含 "## " 标题的条目（再在 Go 里精确校验切分结果）
@@ -156,6 +165,91 @@ func main() {
 		done++
 	}
 	fmt.Printf("\n✓ 完成：成功切分 %d 条。\n", done)
+}
+
+// junkTitleDenylist：明显无咨询价值的页脚/套话/资源页标题（已归一化为小写去空格）。
+var junkTitleDenylist = map[string]bool{
+	"说明": true, "联系方式": true, "参考资料": true, "参考": true, "参考文献": true,
+	"资源汇总": true, "资源": true, "课程资源": true, "其他资源": true, "资源链接": true,
+	"附录": true, "致谢": true, "结语": true, "写在最后": true, "后记": true, "免责声明": true,
+	"references": true, "reference": true, "resources": true, "course resources": true,
+	"personal resources": true, "descriptions": true, "description": true,
+	"instructor information": true, "links": true, "appendix": true,
+}
+
+func normalizeTitle(s string) string {
+	return strings.ToLower(strings.Join(strings.Fields(strings.TrimSpace(s)), ""))
+}
+
+// runJunkAudit 扫描全部知识条目，统计废条目（标题黑名单 / 内容过短）并展示构成。只读。
+func runJunkAudit(maxChars int, profileID string) {
+	type row struct {
+		ID        string
+		ProfileID string `gorm:"column:profile_id"`
+		Title     string
+		CLen      int `gorm:"column:clen"`
+	}
+	q := db.DB.Model(&models.LifeAgentKnowledgeEntry{}).
+		Select("id, profile_id, title, CHAR_LENGTH(content) AS clen")
+	if profileID != "" {
+		q = q.Where("profile_id = ?", profileID)
+	}
+	var rows []row
+	if err := q.Scan(&rows).Error; err != nil {
+		log.Fatalf("scan entries failed: %v", err)
+	}
+
+	total := len(rows)
+	var denylisted, tooShort, junkTotal int
+	titleFreq := map[string]int{}
+	for _, r := range rows {
+		isDeny := junkTitleDenylist[normalizeTitle(r.Title)]
+		isShort := r.CLen < maxChars
+		if isDeny {
+			denylisted++
+		}
+		if isShort && !isDeny {
+			tooShort++
+		}
+		if isDeny || isShort {
+			junkTotal++
+			titleFreq[strings.TrimSpace(r.Title)]++
+		}
+	}
+
+	fmt.Printf("=== 废条目审计（内容<%d 字符 视为过短）===\n", maxChars)
+	fmt.Printf("知识条目总数：%d\n", total)
+	fmt.Printf("  废条目合计：%d（占 %.1f%%）\n", junkTotal, pct(junkTotal, total))
+	fmt.Printf("    - 标题黑名单：%d\n", denylisted)
+	fmt.Printf("    - 内容过短  ：%d\n", tooShort)
+
+	if junkTotal == 0 {
+		return
+	}
+
+	type tf struct {
+		title string
+		cnt   int
+	}
+	tops := make([]tf, 0, len(titleFreq))
+	for t, c := range titleFreq {
+		tops = append(tops, tf{t, c})
+	}
+	sort.SliceStable(tops, func(i, j int) bool { return tops[i].cnt > tops[j].cnt })
+	if len(tops) > 30 {
+		tops = tops[:30]
+	}
+	fmt.Printf("\n废条目标题 TOP（最多 30）：\n")
+	for _, t := range tops {
+		fmt.Printf("  %4d × %s\n", t.cnt, truncate(t.title, 50))
+	}
+}
+
+func pct(a, b int) float64 {
+	if b == 0 {
+		return 0
+	}
+	return float64(a) * 100 / float64(b)
 }
 
 // chunkEntry 把单条知识的正文按 Markdown 小节切成多条。无法有效切分时返回 nil。
