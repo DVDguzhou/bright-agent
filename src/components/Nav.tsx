@@ -938,7 +938,7 @@ export function Nav() {
                     {active && (
                       <motion.span
                         layoutId="nav-underline"
-                        className="absolute left-2 right-2 bottom-1 h-0.5 rounded-full bg-gradient-to-r from-[#FF80AB]/80 to-[#BA68C8]/90"
+                        className="absolute left-2 right-2 bottom-1 h-0.5 rounded-full bg-oxblood"
                         transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                       />
                     )}

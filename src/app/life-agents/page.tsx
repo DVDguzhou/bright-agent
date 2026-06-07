@@ -890,7 +890,7 @@ function PurchasedAgentsWindowedGrid({ rows }: { rows: PurchasedAgentRow[] }) {
               className="min-h-0 [contain-intrinsic-size:auto_300px]"
             >
               <Link href={`/life-agents/${row.id}/chat`} className="group flex h-full min-h-0">
-                <div className="flex h-full min-h-[260px] w-full flex-col overflow-hidden rounded-[22px] border border-hairline/40 bg-paper/[0.98] shadow-[0_5px_28px_-8px_rgba(26,23,20,0.07)] backdrop-blur-sm transition duration-200 group-hover:border-hairline/35 group-hover:shadow-[0_10px_36px_-10px_rgba(168,139,235,0.14)] sm:min-h-[280px]">
+                <div className="flex h-full min-h-[260px] w-full flex-col overflow-hidden rounded-[22px] border border-hairline/40 bg-paper/[0.98] shadow-[0_5px_28px_-8px_rgba(26,23,20,0.07)] backdrop-blur-sm transition duration-200 group-hover:border-hairline/35 group-hover:shadow-glow-sm sm:min-h-[280px]">
                   <div className="relative aspect-square w-full shrink-0 overflow-hidden bg-paper-200/40">
                     <LifeAgentCoverImage
                       src={coverUrl}

@@ -117,9 +117,9 @@ export function VoiceMessageBubble({
       type="button"
       onClick={togglePlay}
       style={{ minWidth: minWidthPx }}
-      className={`inline-flex max-w-full items-center gap-3 rounded-[20px] px-3 py-2.5 text-left transition active:scale-[0.99] ${
+      className={`inline-flex max-w-full items-center gap-3 rounded px-3 py-2.5 text-left transition active:scale-[0.99] ${
         isFromUser
-          ? "border border-paper/15 bg-gradient-to-br from-[#FF8FD8]/74 via-[#D79BFF]/70 to-[#9B8CFF]/66 text-paper shadow-[0_10px_24px_-12px_rgba(168,139,235,0.4)] backdrop-blur-xl"
+          ? "bg-ink text-paper-50"
           : `${CHAT_GLASS_PANEL_CLASSNAME} text-ink-700`
       } ${className}`}
       aria-label={
