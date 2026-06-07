@@ -115,13 +115,15 @@ func main() {
 			}
 			chosen = filtered
 		}
-		// 按业务量降序（成交 > 会话 > 知识条目），让最能打的排在合集最前
+		// 综合分排序：内容厚度为主，真实成交为强信号，会话只作弱加权（避免 1 次会话的噪音盖过厚内容）。
+		// score = 知识条目 + 成交*3 + 会话*0.5
+		featScore := func(c candidate) float64 {
+			return float64(c.knowledge) + float64(c.packs)*3 + float64(c.sessions)*0.5
+		}
 		sort.SliceStable(chosen, func(i, j int) bool {
-			if chosen[i].packs != chosen[j].packs {
-				return chosen[i].packs > chosen[j].packs
-			}
-			if chosen[i].sessions != chosen[j].sessions {
-				return chosen[i].sessions > chosen[j].sessions
+			si, sj := featScore(chosen[i]), featScore(chosen[j])
+			if si != sj {
+				return si > sj
 			}
 			return chosen[i].knowledge > chosen[j].knowledge
 		})

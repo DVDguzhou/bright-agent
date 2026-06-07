@@ -46,6 +46,8 @@ func main() {
 	noBackup := flag.Bool("no-backup", false, "写入前不做 JSON 备份")
 	junk := flag.Bool("junk", false, "只审计废条目（标题黑名单 + 内容过短），不切分、不写入")
 	junkMaxChars := flag.Int("junk-maxchars", 40, "内容字符数低于此视为「过短」废条目")
+	cleanJunk := flag.Bool("clean-junk", false, "删除废条目（默认 dry-run；配合 -apply 写入，自动备份）")
+	keepMin := flag.Int("keep-min", 2, "保护下限：删后该 Agent 至少保留这么多条，否则跳过其废条目")
 	flag.Parse()
 
 	_ = godotenv.Load(".env")
@@ -62,6 +64,12 @@ func main() {
 	// 废条目审计模式：只统计，不写入
 	if *junk {
 		runJunkAudit(*junkMaxChars, strings.TrimSpace(*idArg))
+		return
+	}
+
+	// 废条目清理模式：删除（带保护下限 + 备份）
+	if *cleanJunk {
+		runCleanJunk(*junkMaxChars, *keepMin, strings.TrimSpace(*idArg), *apply, *noBackup)
 		return
 	}
 
@@ -250,6 +258,104 @@ func pct(a, b int) float64 {
 		return 0
 	}
 	return float64(a) * 100 / float64(b)
+}
+
+// runCleanJunk 删除废条目（标题黑名单 / 内容过短）。带保护：删后某 Agent 条目数不得低于 keepMin，
+// 否则跳过该 Agent 的废条目（避免把瘦档案删空）。默认 dry-run，-apply 才写入并先备份。
+func runCleanJunk(maxChars, keepMin int, profileID string, apply, noBackup bool) {
+	q := db.DB.Model(&models.LifeAgentKnowledgeEntry{})
+	if profileID != "" {
+		q = q.Where("profile_id = ?", profileID)
+	}
+	var all []models.LifeAgentKnowledgeEntry
+	if err := q.Order("profile_id, sort_order").Find(&all).Error; err != nil {
+		log.Fatalf("query entries failed: %v", err)
+	}
+
+	// 按 profile 分组，统计总数与废条目
+	totalByProfile := map[string]int{}
+	junkByProfile := map[string][]models.LifeAgentKnowledgeEntry{}
+	for _, e := range all {
+		totalByProfile[e.ProfileID]++
+		if junkTitleDenylist[normalizeTitle(e.Title)] || runeLen(e.Content) < maxChars {
+			junkByProfile[e.ProfileID] = append(junkByProfile[e.ProfileID], e)
+		}
+	}
+
+	var toDelete []models.LifeAgentKnowledgeEntry
+	skippedProfiles := 0
+	for pid, junks := range junkByProfile {
+		if totalByProfile[pid]-len(junks) < keepMin {
+			// 删完会低于保护下限：本 Agent 的废条目整体跳过
+			skippedProfiles++
+			continue
+		}
+		toDelete = append(toDelete, junks...)
+	}
+
+	fmt.Printf("=== 废条目清理（内容<%d 视为过短；删后每个 Agent 至少留 %d 条）===\n", maxChars, keepMin)
+	fmt.Printf("知识条目总数：%d\n", len(all))
+	fmt.Printf("  计划删除：%d 条\n", len(toDelete))
+	fmt.Printf("  因保护下限跳过的 Agent：%d 个\n", skippedProfiles)
+
+	if len(toDelete) == 0 {
+		return
+	}
+
+	titleFreq := map[string]int{}
+	for _, e := range toDelete {
+		titleFreq[strings.TrimSpace(e.Title)]++
+	}
+	type tf struct {
+		title string
+		cnt   int
+	}
+	tops := make([]tf, 0, len(titleFreq))
+	for t, c := range titleFreq {
+		tops = append(tops, tf{t, c})
+	}
+	sort.SliceStable(tops, func(i, j int) bool { return tops[i].cnt > tops[j].cnt })
+	if len(tops) > 30 {
+		tops = tops[:30]
+	}
+	fmt.Printf("\n待删标题 TOP（最多 30）：\n")
+	for _, t := range tops {
+		fmt.Printf("  %4d × %s\n", t.cnt, truncate(t.title, 50))
+	}
+
+	if !apply {
+		fmt.Println("\n[dry-run] 未写入。确认无误后加 -apply 执行。")
+		return
+	}
+
+	if !noBackup {
+		fname := fmt.Sprintf("cleanjunk-backup-%s.json", time.Now().Format("20060102-150405"))
+		data, _ := json.MarshalIndent(toDelete, "", "  ")
+		if err := os.WriteFile(fname, data, 0644); err != nil {
+			log.Fatalf("写备份失败（已中止，未删）: %v", err)
+		}
+		fmt.Printf("\n已备份 %d 条待删条目到 %s\n", len(toDelete), fname)
+	}
+
+	ids := make([]string, len(toDelete))
+	for i, e := range toDelete {
+		ids[i] = e.ID
+	}
+	// 分批删，避免超长 IN 列表
+	const batch = 200
+	deleted := 0
+	for i := 0; i < len(ids); i += batch {
+		end := i + batch
+		if end > len(ids) {
+			end = len(ids)
+		}
+		if err := db.DB.Delete(&models.LifeAgentKnowledgeEntry{}, "id IN ?", ids[i:end]).Error; err != nil {
+			log.Printf("删除批次失败 [%d:%d]: %v", i, end, err)
+			continue
+		}
+		deleted += end - i
+	}
+	fmt.Printf("\n✓ 完成：删除 %d 条废条目。\n", deleted)
 }
 
 // chunkEntry 把单条知识的正文按 Markdown 小节切成多条。无法有效切分时返回 nil。
