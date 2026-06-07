@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { fetchWithTimeout } from "@/lib/fetchWithTimeout";
 import { passwordSchema } from "@/lib/validators";
@@ -137,112 +136,116 @@ export default function AccountPage() {
   const placeholder = user.email?.endsWith("@placeholder.local");
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="max-w-md mx-auto py-10 px-4"
-    >
-      <h1 className="text-2xl font-bold text-ink mb-1">账号与安全</h1>
-      <p className="text-ink-400 text-sm mb-8">登录邮箱：{user.email}</p>
+    <div className="mx-auto max-w-md divide-y divide-hairline/30 px-4 py-10">
+      <section className="pb-6">
+        <h1 className="font-serif text-3xl font-medium text-ink">账号与安全</h1>
+        <p className="mt-2 text-sm text-ink-400">登录邮箱：{user.email}</p>
+      </section>
 
       {placeholder ? (
-        <div className="rounded-2xl border border-oxblood-200 bg-paper-200/80 p-5 text-sm text-ink">
-          当前账号通过微信或手机号注册，无独立邮箱密码。如需邮箱登录，请使用「注册」绑定新邮箱账号。
-        </div>
+        <section className="py-6">
+          <div className="rounded border border-oxblood-200 bg-paper-200/80 p-5 text-sm text-ink">
+            当前账号通过微信或手机号注册，无独立邮箱密码。如需邮箱登录，请使用「注册」绑定新邮箱账号。
+          </div>
+        </section>
       ) : (
-        <form onSubmit={submit} className="space-y-4 rounded-2xl border border-hairline bg-paper p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-ink-700">修改密码</h2>
-          <label className="block text-sm font-medium text-ink-600">当前密码</label>
-          <input
-            type="password"
-            value={oldPassword}
-            onChange={(e) => setOldPassword(e.target.value)}
-            className="input-shell"
-            required
-          />
-          <label className="block text-sm font-medium text-ink-600">新密码（8–72 位）</label>
-          <input
-            type="password"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            className="input-shell"
-            minLength={8}
-            maxLength={72}
-            required
-          />
-          <label className="block text-sm font-medium text-ink-600">确认新密码</label>
-          <input
-            type="password"
-            value={newPassword2}
-            onChange={(e) => setNewPassword2(e.target.value)}
-            className="input-shell"
-            minLength={8}
-            maxLength={72}
-            required
-          />
-          {error && <p className="text-oxblood-500 text-sm">{error}</p>}
-          {ok && <p className="text-olive-600 text-sm">密码已更新。</p>}
-          <button
-            type="submit"
-            disabled={submitting}
-            className="btn-primary w-full py-2.5 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {submitting ? "保存中..." : "保存新密码"}
-          </button>
-        </form>
-      )}
-
-      <div className="mt-8 rounded-2xl border border-oxblood-200 bg-oxblood-50/60 p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-oxblood-700">注销账号</h2>
-        <p className="mt-2 text-sm text-oxblood-700/90 leading-relaxed">
-          永久删除账号及关联的个人资料、对话记录、已购提问包等数据，且无法恢复。若你创建了人生 Agent，也会一并删除。
-        </p>
-        {!placeholder && (
-          <>
-            <label className="mt-4 block text-sm font-medium text-oxblood-700">当前密码</label>
+        <section className="py-6">
+          <form onSubmit={submit} className="space-y-4">
+            <h2 className="font-serif text-xl font-medium text-ink">修改密码</h2>
+            <label className="block text-sm font-medium text-ink-600">当前密码</label>
             <input
               type="password"
-              value={deletePassword}
-              onChange={(e) => setDeletePassword(e.target.value)}
-              className="input-shell mt-1"
-              autoComplete="current-password"
+              value={oldPassword}
+              onChange={(e) => setOldPassword(e.target.value)}
+              className="input-shell"
+              required
             />
-          </>
-        )}
-        <label className="mt-4 block text-sm font-medium text-oxblood-700">
-          输入 <span className="font-mono">DELETE</span> 确认注销
-        </label>
-        <input
-          type="text"
-          value={deleteConfirm}
-          onChange={(e) => setDeleteConfirm(e.target.value)}
-          className="input-shell mt-1 font-mono"
-          placeholder="DELETE"
-          autoComplete="off"
-        />
-        {deleteError && <p className="mt-2 text-oxblood-600 text-sm">{deleteError}</p>}
-        <button
-          type="button"
-          onClick={deleteAccount}
-          disabled={deleting}
-          className="mt-4 w-full rounded-xl border border-oxblood-200 bg-paper py-2.5 text-sm font-semibold text-oxblood-700 transition hover:bg-oxblood-50 disabled:opacity-50"
-        >
-          {deleting ? "注销中…" : "永久注销账号"}
-        </button>
-      </div>
+            <label className="block text-sm font-medium text-ink-600">新密码（8–72 位）</label>
+            <input
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              className="input-shell"
+              minLength={8}
+              maxLength={72}
+              required
+            />
+            <label className="block text-sm font-medium text-ink-600">确认新密码</label>
+            <input
+              type="password"
+              value={newPassword2}
+              onChange={(e) => setNewPassword2(e.target.value)}
+              className="input-shell"
+              minLength={8}
+              maxLength={72}
+              required
+            />
+            {error && <p className="text-oxblood-500 text-sm">{error}</p>}
+            {ok && <p className="text-olive-600 text-sm">密码已更新。</p>}
+            <button
+              type="submit"
+              disabled={submitting}
+              className="btn-primary w-full py-2.5 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {submitting ? "保存中..." : "保存新密码"}
+            </button>
+          </form>
+        </section>
+      )}
 
-      <div className="mt-8 space-y-2 text-sm text-ink-400">
+      <section className="py-6">
+        <div className="rounded border border-oxblood-200 bg-oxblood-50/60 p-6">
+          <h2 className="font-serif text-xl font-medium text-oxblood-700">注销账号</h2>
+          <p className="mt-2 text-sm text-oxblood-700/90 leading-relaxed">
+            永久删除账号及关联的个人资料、对话记录、已购提问包等数据，且无法恢复。若你创建了人生 Agent，也会一并删除。
+          </p>
+          {!placeholder && (
+            <>
+              <label className="mt-4 block text-sm font-medium text-oxblood-700">当前密码</label>
+              <input
+                type="password"
+                value={deletePassword}
+                onChange={(e) => setDeletePassword(e.target.value)}
+                className="input-shell mt-1"
+                autoComplete="current-password"
+              />
+            </>
+          )}
+          <label className="mt-4 block text-sm font-medium text-oxblood-700">
+            输入 <span className="font-mono">DELETE</span> 确认注销
+          </label>
+          <input
+            type="text"
+            value={deleteConfirm}
+            onChange={(e) => setDeleteConfirm(e.target.value)}
+            className="input-shell mt-1 font-mono"
+            placeholder="DELETE"
+            autoComplete="off"
+          />
+          {deleteError && <p className="mt-2 text-oxblood-600 text-sm">{deleteError}</p>}
+          <button
+            type="button"
+            onClick={deleteAccount}
+            disabled={deleting}
+            className="mt-4 w-full rounded border border-oxblood-200 bg-paper py-2.5 text-sm font-semibold text-oxblood-700 transition hover:bg-oxblood-50 disabled:opacity-50"
+          >
+            {deleting ? "注销中…" : "永久注销账号"}
+          </button>
+        </div>
+      </section>
+
+      <section className="space-y-2 py-6 text-sm text-ink-400">
         <p>
-          <Link href="/privacy" className="text-oxblood-700 hover:text-oxblood-600">
+          <Link href="/privacy" className="text-ink-600 hover:text-ink">
             隐私政策
           </Link>
         </p>
         <p>
-          <Link href="/dashboard" className="text-oxblood-700 hover:text-oxblood-600">
+          <Link href="/dashboard" className="text-ink-600 hover:text-ink">
             返回工作台
           </Link>
         </p>
-      </div>
-    </motion.div>
+      </section>
+    </div>
   );
 }

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { StatCell } from "@/components/dashboard/StatCell";
 import { fetchManageData, formatDateTime, formatShortTime, type ManageData } from "@/app/dashboard/life-agents/_lib/manage";
 
 type RangeKey = "7d" | "30d" | "all";
@@ -71,7 +72,7 @@ export default function LifeAgentSalesPage() {
         <Link href={`/dashboard/life-agents/${id}`} className="text-sm font-medium text-ink-400 transition hover:text-ink">
           ← 返回工作台
         </Link>
-        <h1 className="mt-3 text-[28px] font-black tracking-tight text-ink">互动记录</h1>
+        <h1 className="mt-3 font-serif text-3xl font-medium tracking-tight text-ink">互动记录</h1>
         <p className="mt-1 text-sm text-ink-400">{data.profile.displayName} 的用户提问与对话互动</p>
         <div className="mt-4 flex flex-wrap gap-2">
           {[
@@ -94,25 +95,13 @@ export default function LifeAgentSalesPage() {
       </section>
 
       <section className="grid grid-cols-3 border-hairline/30 [&>*:not(:last-child)]:border-r [&>*]:border-hairline/30">
-        <div className="px-3 py-3 text-center">
-          <p className="text-2xl font-black leading-none text-ink">{summary.buyers}</p>
-          <p className="mt-2 text-[11px] font-medium text-ink-600">互动用户</p>
-          <p className="mt-0.5 text-[10px] text-ink-300">人</p>
-        </div>
-        <div className="px-3 py-3 text-center">
-          <p className="text-2xl font-black leading-none text-ink">{summary.asked}</p>
-          <p className="mt-2 text-[11px] font-medium text-ink-600">被提问</p>
-          <p className="mt-0.5 text-[10px] text-ink-300">次</p>
-        </div>
-        <div className="px-3 py-3 text-center">
-          <p className="text-2xl font-black leading-none text-oxblood-700">{summary.heat}</p>
-          <p className="mt-2 text-[11px] font-medium text-ink-600">热度指数</p>
-          <p className="mt-0.5 text-[10px] text-ink-300">综合</p>
-        </div>
+        <StatCell value={summary.buyers} label="互动用户" sub="人" />
+        <StatCell value={summary.asked} label="被提问" sub="次" />
+        <StatCell value={summary.heat} label="热度指数" sub="综合" />
       </section>
 
       <section className="py-4">
-        <h2 className="text-lg font-semibold text-ink">互动明细</h2>
+        <h2 className="font-serif text-xl font-medium text-ink">互动明细</h2>
         <p className="mt-1 text-sm text-ink-400">
           {range === "7d" ? "近 7 天" : range === "30d" ? "近 30 天" : "全部"} · {filtered.length} 条
         </p>

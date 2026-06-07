@@ -38,7 +38,7 @@ function Section({
       <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h2 className="text-lg font-semibold text-ink">{title}</h2>
+            <h2 className="font-serif text-xl font-medium text-ink">{title}</h2>
             <p className="mt-1 text-sm text-ink-400">{hint}</p>
           </div>
           <span className="mt-1 shrink-0 text-xs text-ink-300 transition group-open:rotate-180">▼</span>
@@ -316,7 +316,7 @@ export default function LifeAgentEditPage() {
             <Link href={`/dashboard/life-agents/${id}`} className="text-sm font-medium text-ink-400 transition hover:text-ink">
               ← 返回工作台
             </Link>
-            <h1 className="mt-3 text-[28px] font-black tracking-tight text-ink">编辑资料</h1>
+            <h1 className="mt-3 font-serif text-3xl font-medium tracking-tight text-ink">编辑资料</h1>
             <p className="mt-1 text-sm text-ink-400">
               分组维护封面、音色、定价、人设和示范内容。资料完成度 {completion}%。
             </p>
@@ -331,7 +331,7 @@ export default function LifeAgentEditPage() {
           </button>
         </div>
         <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-paper-200">
-          <div className="h-full rounded-full bg-gradient-to-r from-oxblood-500 to-oxblood-400" style={{ width: `${completion}%` }} />
+          <div className="h-full rounded-full bg-oxblood-400" style={{ width: `${completion}%` }} />
         </div>
         <p className="mt-2 text-xs text-ink-300">
           {lastSavedAt ? `最近保存：${new Date(lastSavedAt).toLocaleString("zh-CN")}` : "尚未保存本次修改"}

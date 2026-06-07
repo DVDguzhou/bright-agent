@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { StatCell } from "@/components/dashboard/StatCell";
 import {
   extractTopKeywords,
   fetchManageData,
@@ -74,29 +75,22 @@ export default function LifeAgentSessionsPage() {
         <Link href={`/dashboard/life-agents/${id}`} className="text-sm font-medium text-ink-400 transition hover:text-ink">
           ← 返回工作台
         </Link>
-        <h1 className="mt-3 text-[28px] font-black tracking-tight text-ink">聊天记录</h1>
+        <h1 className="mt-3 font-serif text-3xl font-medium tracking-tight text-ink">聊天记录</h1>
         <p className="mt-1 text-sm text-ink-400">查看最近会话摘要，理解用户都在问什么。</p>
         <div className="mt-4">
           <input
-            className="w-full rounded-full border-0 bg-paper-200 px-4 py-2.5 text-[15px] text-ink outline-none ring-1 ring-transparent transition placeholder:text-ink-300 focus:bg-paper-50 focus:ring-hairline"
+            className="w-full rounded border border-hairline bg-paper px-4 py-2.5 text-[15px] text-ink outline-none transition placeholder:text-ink-300 focus:border-ink"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="搜索用户或会话摘要"
+            aria-label="搜索用户或会话摘要"
           />
         </div>
       </section>
 
       <section className="grid grid-cols-2 border-hairline/30 [&>*:first-child]:border-r [&>*]:border-hairline/30">
-        <div className="px-3 py-3 text-center">
-          <p className="text-2xl font-black leading-none text-ink">{data.chatSessions.length}</p>
-          <p className="mt-2 text-[11px] font-medium text-ink-600">总会话数</p>
-          <p className="mt-0.5 text-[10px] text-ink-300">场</p>
-        </div>
-        <div className="px-3 py-3 text-center">
-          <p className="text-2xl font-black leading-none text-ink">{totalMessages}</p>
-          <p className="mt-2 text-[11px] font-medium text-ink-600">总消息数</p>
-          <p className="mt-0.5 text-[10px] text-ink-300">条</p>
-        </div>
+        <StatCell value={data.chatSessions.length} label="总会话数" sub="场" />
+        <StatCell value={totalMessages} label="总消息数" sub="条" />
       </section>
 
       {topKeywords.length > 0 ? (
@@ -107,7 +101,7 @@ export default function LifeAgentSessionsPage() {
       ) : null}
 
       <section className="py-4">
-        <h2 className="text-lg font-semibold text-ink">最近 50 个会话</h2>
+        <h2 className="font-serif text-xl font-medium text-ink">最近 50 个会话</h2>
         <p className="mt-1 text-sm text-ink-400">
           默认仅展示脱敏摘要，不暴露完整对话内容 · {filtered.length} 条
         </p>

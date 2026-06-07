@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { StatCell } from "@/components/dashboard/StatCell";
 import { RatingStars } from "@/components/RatingStars";
 import { feedbackTypeLabel } from "@/lib/feedback-display";
 import {
@@ -40,26 +41,6 @@ type FeedRow =
       updatedAt: string;
       sortMs: number;
     };
-
-function StatCell({
-  value,
-  label,
-  sub,
-  valueClass,
-}: {
-  value: string | number;
-  label: string;
-  sub: string;
-  valueClass?: string;
-}) {
-  return (
-    <div className="px-3 py-3 text-center">
-      <p className={`text-2xl font-semibold tabular-nums leading-none ${valueClass ?? "text-ink"}`}>{value}</p>
-      <p className="mt-2 text-[11px] font-medium text-ink-600">{label}</p>
-      <p className="mt-0.5 text-[11px] text-ink-400">{sub}</p>
-    </div>
-  );
-}
 
 export default function LifeAgentFeedbackFeedPage() {
   const params = useParams();

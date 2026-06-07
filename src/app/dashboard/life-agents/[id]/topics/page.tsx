@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
+import { StatCell } from "@/components/dashboard/StatCell";
 import { FieldInfoButton } from "@/components/FieldInfoButton";
 
 type TopicItem = {
@@ -55,7 +56,7 @@ function statusTextClass(status?: string) {
     case "active":
       return "text-olive-600";
     case "candidate":
-      return "text-oxblood-700";
+      return "text-ink-600";
     case "archived":
       return "text-ink-500";
     default:
@@ -272,7 +273,7 @@ export default function LifeAgentTopicsPage() {
         <Link href={`/dashboard/life-agents/${id}`} className="text-sm font-medium text-ink-400 transition hover:text-ink">
           ← 返回工作台
         </Link>
-        <h1 className="mt-3 text-[28px] font-black tracking-tight text-ink">Topic 管理</h1>
+        <h1 className="mt-3 font-serif text-3xl font-medium tracking-tight text-ink">Topic 管理</h1>
         <p className="mt-1 text-sm text-ink-400">审核从知识和长会话里长出来的主题，手动激活、归档、合并或修正文案。</p>
         <div className="mt-4 flex flex-wrap items-center gap-2">
           {(["all", "active", "candidate", "archived"] as const).map((item) => (
@@ -295,24 +296,24 @@ export default function LifeAgentTopicsPage() {
 
       <section className="divide-y divide-hairline/30">
         <div className="grid grid-cols-2 [&>*:not(:last-child)]:border-r [&>*]:border-hairline/30">
-          <div className="px-3 py-3 text-center">
-            <p className="text-2xl font-black leading-none text-ink">{state.topics.length}</p>
-            <p className="mt-2 text-[11px] font-medium text-ink-600">Topic 总数</p>
-          </div>
-          <div className="px-3 py-3 text-center">
-            <p className="text-2xl font-black leading-none text-ink">{state.topics.filter((topic) => topic.status === "candidate").length}</p>
-            <p className="mt-2 text-[11px] font-medium text-ink-600">待审核</p>
-          </div>
+          <StatCell value={state.topics.length} label="Topic 总数" sub="个" />
+          <StatCell
+            value={state.topics.filter((topic) => topic.status === "candidate").length}
+            label="待审核"
+            sub="个"
+          />
         </div>
         <div className="grid grid-cols-2 [&>*:not(:last-child)]:border-r [&>*]:border-hairline/30">
-          <div className="px-3 py-3 text-center">
-            <p className="text-2xl font-black leading-none text-ink">{state.topics.filter((topic) => topic.status === "active").length}</p>
-            <p className="mt-2 text-[11px] font-medium text-ink-600">已启用</p>
-          </div>
-          <div className="px-3 py-3 text-center">
-            <p className="text-2xl font-black leading-none text-ink">{state.topics.reduce((sum, topic) => sum + (topic.feedback?.total ?? 0), 0)}</p>
-            <p className="mt-2 text-[11px] font-medium text-ink-600">关联反馈</p>
-          </div>
+          <StatCell
+            value={state.topics.filter((topic) => topic.status === "active").length}
+            label="已启用"
+            sub="个"
+          />
+          <StatCell
+            value={state.topics.reduce((sum, topic) => sum + (topic.feedback?.total ?? 0), 0)}
+            label="关联反馈"
+            sub="条"
+          />
         </div>
       </section>
 

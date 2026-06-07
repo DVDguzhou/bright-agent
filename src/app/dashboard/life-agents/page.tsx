@@ -124,7 +124,7 @@ export default function LifeAgentsManagePage() {
   return (
     <div className="-mx-1 space-y-4 pb-4 max-lg:-mx-4 max-lg:min-h-[calc(100dvh-env(safe-area-inset-bottom)-4.25rem)] max-lg:bg-paper max-lg:px-1 max-lg:pb-24 sm:mx-0 sm:space-y-5">
       <header className="flex items-center justify-between gap-3 px-4 pb-1 pt-[max(0.25rem,env(safe-area-inset-top))] sm:px-4">
-        <h1 className="text-[26px] font-bold leading-tight tracking-tight text-ink">我的人生 Agent</h1>
+        <h1 className="font-serif text-3xl font-medium leading-tight tracking-tight text-ink">我的人生 Agent</h1>
         {!loading && profiles.length === 0 ? (
           <Link
             href="/life-agents/create"
@@ -142,10 +142,11 @@ export default function LifeAgentsManagePage() {
       <div className="px-4 pb-1 sm:px-4">
         <label className="sr-only">搜索我的 Agent</label>
         <input
-          className="w-full rounded-full border-0 bg-paper-200 px-4 py-2.5 text-[15px] text-ink outline-none ring-1 ring-transparent transition placeholder:text-ink-300 focus:bg-paper-50 focus:ring-hairline"
+          className="w-full rounded border border-hairline bg-paper px-4 py-2.5 text-[15px] text-ink outline-none transition placeholder:text-ink-300 focus:border-ink"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="搜索名称、标题或简介"
+          aria-label="搜索我的 Agent"
         />
       </div>
 
@@ -160,7 +161,7 @@ export default function LifeAgentsManagePage() {
             windowed={false}
           />
         ) : profiles.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-hairline bg-paper px-6 py-12 text-center">
+          <div className="border-t border-hairline py-12 text-center">
             <p className="text-base font-semibold text-ink">还没有人生 Agent</p>
             <p className="mt-2 text-sm text-ink-400">创建第一个，开始分享你的经验并接受咨询。</p>
             <div className="mt-6 flex flex-wrap items-center justify-center gap-3">

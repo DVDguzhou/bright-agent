@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
 import { RatingStars } from "@/components/RatingStars";
 import { useAuth } from "@/contexts/AuthContext";
 import { getDisplayAvatar } from "@/lib/avatar";
@@ -230,7 +229,7 @@ export default function DashboardNotificationsPage() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <h1 className="min-w-0 flex-1 text-[26px] font-bold leading-tight tracking-tight text-ink">提醒</h1>
+          <h1 className="min-w-0 flex-1 font-serif text-3xl font-medium leading-tight tracking-tight text-ink">提醒</h1>
           <span className="h-10 w-10 shrink-0" aria-hidden />
         </header>
         <div className="flex min-h-[50vh] items-center justify-center px-4">
@@ -257,17 +256,18 @@ export default function DashboardNotificationsPage() {
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
         </button>
-        <h1 className="min-w-0 flex-1 text-[26px] font-bold leading-tight tracking-tight text-ink">提醒</h1>
+        <h1 className="min-w-0 flex-1 font-serif text-3xl font-medium leading-tight tracking-tight text-ink">提醒</h1>
         <span className="h-10 w-10 shrink-0" aria-hidden />
       </header>
 
       <div className="px-4 pb-3 sm:px-0">
         <label className="sr-only">搜索提醒</label>
         <input
-          className="w-full rounded-full border-0 bg-paper-200 px-4 py-2.5 text-[15px] text-ink outline-none ring-1 ring-transparent transition placeholder:text-ink-300 focus:bg-paper-50 focus:ring-hairline"
+          className="w-full rounded border border-hairline bg-paper px-4 py-2.5 text-[15px] text-ink outline-none transition placeholder:text-ink-300 focus:border-ink"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="搜索 Agent 或反馈类型"
+          aria-label="搜索 Agent 或反馈类型"
         />
       </div>
 
@@ -303,24 +303,19 @@ export default function DashboardNotificationsPage() {
           </div>
         ) : (
           <ul className="divide-y divide-hairline/50">
-            {filteredRows.map((item, index) => {
+            {filteredRows.map((item) => {
               const avatarSrc = getDisplayAvatar({ name: item.profileName });
               const href =
                 item.kind === "co_edit"
                   ? `/dashboard/life-agents/${item.profileId}/co-edit`
                   : `/dashboard/life-agents/${item.profileId}/feedback`;
               return (
-                <motion.li
-                  key={item.key}
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index < 10 ? index * 0.02 : 0 }}
-                >
+                <li key={item.key}>
                   <Link
                     href={href}
                     className="flex items-center gap-3 px-4 py-3.5 transition active:bg-paper-50 sm:px-0"
                   >
-                    <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full bg-paper-200 ring-1 ring-hairline/50">
+                    <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full border border-hairline bg-paper-200">
                       <Image
                         src={avatarSrc}
                         alt=""
@@ -367,7 +362,7 @@ export default function DashboardNotificationsPage() {
                       {formatSessionTime(item.time)}
                     </time>
                   </Link>
-                </motion.li>
+                </li>
               );
             })}
           </ul>
