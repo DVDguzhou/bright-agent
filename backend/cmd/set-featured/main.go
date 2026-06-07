@@ -48,12 +48,15 @@ func main() {
 	match := flag.String("match", "", "逗号分隔关键词，匹配 displayName/headline/expertiseTags/school/audience/shortBio")
 	idsArg := flag.String("ids", "", "逗号分隔的 profile id，显式指定（优先于 -match）")
 	limit := flag.Int("limit", 12, "最多精选多少个")
+	minKnowledge := flag.Int("min-knowledge", 0, "质量门槛：知识条目数下限（match 模式生效，挡住空壳号）")
+	minSessions := flag.Int("min-sessions", 0, "质量门槛：会话数下限（match 模式生效）")
 	clear := flag.Bool("clear", false, "清空该合集（或全站精选）的 featured 设置，而非设置")
+	report := flag.Bool("report", false, "只出内容深度审计报告，不做任何写入（可配合 -match 按主题统计）")
 	apply := flag.Bool("apply", false, "写入数据库（缺省为 dry-run 预览）")
 	flag.Parse()
 
-	if !*global && strings.TrimSpace(*collection) == "" {
-		log.Fatal("必须指定 -collection <key> 或 -global")
+	if !*report && !*global && strings.TrimSpace(*collection) == "" {
+		log.Fatal("必须指定 -collection <key> 或 -global（或用 -report 出报告）")
 	}
 	if *global && strings.TrimSpace(*collection) != "" {
 		log.Fatal("-global 与 -collection 不能同时使用")
@@ -74,6 +77,12 @@ func main() {
 		log.Fatalf("ensure columns failed: %v", err)
 	}
 
+	// 报告模式：只统计，不写入
+	if *report {
+		runReport(splitCSV(*match))
+		return
+	}
+
 	// 清空模式
 	if *clear {
 		clearFeatured(*global, strings.TrimSpace(*collection), *apply)
@@ -92,6 +101,20 @@ func main() {
 			log.Fatal("请提供 -ids 或 -match 关键词")
 		}
 		chosen = loadCandidatesByMatch(keywords)
+		// 质量门槛：挡住「知识1 会话1」的空壳号，避免合集被灌水
+		if *minKnowledge > 0 || *minSessions > 0 {
+			filtered := chosen[:0]
+			for _, c := range chosen {
+				if c.knowledge < int64(*minKnowledge) {
+					continue
+				}
+				if c.sessions < int64(*minSessions) {
+					continue
+				}
+				filtered = append(filtered, c)
+			}
+			chosen = filtered
+		}
 		// 按业务量降序（成交 > 会话 > 知识条目），让最能打的排在合集最前
 		sort.SliceStable(chosen, func(i, j int) bool {
 			if chosen[i].packs != chosen[j].packs {
@@ -144,6 +167,69 @@ func main() {
 		}
 	}
 	fmt.Printf("\n✓ 已写入 %d 条。\n", len(chosen))
+}
+
+// runReport 出内容深度审计：按知识库条目数分桶。无 -match 时统计全站；
+// 有 -match 时只统计命中该主题的 Agent，并列出可主打（知识≥8）/可用（3-7）名单。
+func runReport(keywords []string) {
+	var cands []candidate
+	scope := "全站"
+	if len(keywords) > 0 {
+		cands = loadCandidatesByMatch(keywords)
+		scope = fmt.Sprintf("主题[%s]", strings.Join(keywords, "/"))
+	} else {
+		var profiles []models.LifeAgentProfile
+		db.DB.Where("published = ?", true).Find(&profiles)
+		cands = make([]candidate, 0, len(profiles))
+		for _, p := range profiles {
+			cands = append(cands, withStats(p))
+		}
+	}
+
+	var strong, usable, thin int // ≥8 / 3-7 / ≤2
+	for _, c := range cands {
+		switch {
+		case c.knowledge >= 8:
+			strong++
+		case c.knowledge >= 3:
+			usable++
+		default:
+			thin++
+		}
+	}
+
+	fmt.Printf("=== 内容深度审计 · %s ===\n", scope)
+	fmt.Printf("已发布 Agent 总数：%d\n", len(cands))
+	fmt.Printf("  可主打（知识≥8）：%d\n", strong)
+	fmt.Printf("  可用  （知识3-7）：%d\n", usable)
+	fmt.Printf("  空壳  （知识≤2）：%d\n", thin)
+
+	if len(cands) == 0 {
+		return
+	}
+
+	// 列出有料的（知识≥3），按知识条目降序，方便挑主打 / 盯补厚进度
+	ranked := make([]candidate, 0, len(cands))
+	for _, c := range cands {
+		if c.knowledge >= 3 {
+			ranked = append(ranked, c)
+		}
+	}
+	sort.SliceStable(ranked, func(i, j int) bool {
+		if ranked[i].knowledge != ranked[j].knowledge {
+			return ranked[i].knowledge > ranked[j].knowledge
+		}
+		return ranked[i].packs > ranked[j].packs
+	})
+	fmt.Printf("\n有料名单（知识≥3，共 %d 个）：\n", len(ranked))
+	for _, c := range ranked {
+		tag := "可用"
+		if c.knowledge >= 8 {
+			tag = "可主打"
+		}
+		fmt.Printf("  [%s] %-18s 知识%-3d 会话%-3d 成交%-3d  (%s)\n",
+			tag, truncate(c.profile.DisplayName, 18), c.knowledge, c.sessions, c.packs, c.profile.ID)
+	}
 }
 
 func clearFeatured(global bool, collection string, apply bool) {
