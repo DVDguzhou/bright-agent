@@ -1062,7 +1062,7 @@ export default function LifeAgentChatPage() {
                               onClick={() => void submitMessageFeedback(message, item.id)}
                               className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 transition-all duration-200 ${feedbackChipClass(isSelected, hasSelection, isHelpful)} disabled:opacity-60`}
                             >
-                              <span className={isSelected ? "opacity-90" : isHelpful ? "text-amber-600" : "text-ink-300"}>
+                              <span className={isSelected ? "opacity-90" : isHelpful ? "text-olive-500" : "text-ink-300"}>
                                 {isHelpful ? <FeedbackThumbUp /> : <FeedbackThumbDown />}
                               </span>
                               {item.label}

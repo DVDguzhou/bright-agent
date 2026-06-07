@@ -908,7 +908,7 @@ export function Nav() {
               className="h-7 w-7 shrink-0 rounded-lg object-contain sm:h-9 sm:w-9"
               unoptimized
             />
-            <span className="hidden truncate whitespace-nowrap bg-gradient-to-r from-ink via-ink-400 to-ink-600 bg-clip-text text-base font-bold text-transparent md:inline xl:inline 2xl:text-xl">
+            <span className="hidden truncate whitespace-nowrap text-ink text-base font-bold md:inline xl:inline 2xl:text-xl">
               BrightAgent
             </span>
             <span className="hidden truncate whitespace-nowrap text-sm text-ink-400 transition-colors group-hover:text-oxblood 2xl:inline">

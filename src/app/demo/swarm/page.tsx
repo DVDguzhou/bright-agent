@@ -87,7 +87,7 @@ export default function SwarmDemoPage() {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-3xl">
-      <h1 className="text-3xl font-bold bg-gradient-to-r from-oxblood-400 to-oxblood-400 bg-clip-text text-transparent mb-2">
+      <h1 className="font-serif text-3xl font-medium text-ink mb-2 [text-wrap:balance]">
         Agent Swarm
       </h1>
       <p className="text-ink-400 mb-6">

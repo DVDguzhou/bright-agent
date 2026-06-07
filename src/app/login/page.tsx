@@ -286,7 +286,7 @@ function LoginContent() {
       animate={{ opacity: 1, y: 0 }}
       className="max-w-md mx-auto py-16"
     >
-      <h1 className="text-3xl font-bold bg-gradient-to-r from-oxblood-600 to-oxblood-500 bg-clip-text text-transparent mb-2">
+      <h1 className="font-serif text-3xl font-medium text-ink mb-2 [text-wrap:balance]">
         登录
       </h1>
       <p className="text-ink-400 mb-6">欢迎回来</p>
