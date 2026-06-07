@@ -183,6 +183,8 @@ type LifeAgentProfile struct {
 	CoverImageURL        *string   `gorm:"column:cover_image_url;size:512"`                 // 用户上传，站内相对路径如 /uploads/...
 	CoverPresetKey       *string   `gorm:"column:cover_preset_key;size:64"`                 // 预设键，如 01-student-panda；与 cover_image_url 二选一优先 URL
 	Published            bool      `gorm:"default:true;index"`                              // 列表筛选 published=true 时用
+	FeaturedRank         *int      `gorm:"column:featured_rank;index"`                      // 精选排序：越小越靠前；nil=不精选
+	FeaturedCollection   *string   `gorm:"column:featured_collection;size:64;index"`        // 专题/校园合集 key（如 kaoyan/liuxue/qiuzhi）；nil=不属于任何合集
 	ApiInvokeEnabled     bool      `gorm:"column:api_invoke_enabled;default:false"`
 	ApiPricePerCallCents *int      `gorm:"column:api_price_per_call_cents"` // nil 表示与单次咨询同价（price_per_question）
 	ApiTotalCalls        int       `gorm:"column:api_total_calls;default:0"`

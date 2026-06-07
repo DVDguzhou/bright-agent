@@ -65,6 +65,8 @@ export function normalizeLifeAgentListRow(row: unknown): LifeAgentListItem | nul
     mindScore: typeof r.mindScore === "number" ? r.mindScore : undefined,
     mindScoreLevel: typeof r.mindScoreLevel === "number" ? r.mindScoreLevel : undefined,
     mindScoreLevelLabel: typeof r.mindScoreLevelLabel === "string" ? r.mindScoreLevelLabel : undefined,
+    featuredRank: typeof r.featuredRank === "number" ? r.featuredRank : r.featuredRank == null ? null : undefined,
+    featuredCollection: typeof r.featuredCollection === "string" && r.featuredCollection.trim() !== "" ? r.featuredCollection : null,
   };
 }
 
@@ -113,6 +115,45 @@ export async function fetchLifeAgentsPage(
   }
   if (Array.isArray(data)) {
     return { items: parsePublishedLifeAgentsPayload(data), nextCursor: "" };
+  }
+  const items = parsePublishedLifeAgentsPayload(data);
+  const next =
+    data && typeof data === "object" && data !== null && typeof (data as { nextCursor?: unknown }).nextCursor === "string"
+      ? (data as { nextCursor: string }).nextCursor
+      : "";
+  return { items, nextCursor: next };
+}
+
+/**
+ * 拉取某个精选/校园合集（featuredCollection）的成员，按 featured_rank 置顶 + seeded 随机。
+ * 复用 /api/life-agents?collection=...，offset 游标分页。
+ */
+export async function fetchLifeAgentCollectionPage(
+  collection: string,
+  limit: number,
+  offset: number,
+  seed: number,
+  signal?: AbortSignal,
+): Promise<{ items: LifeAgentListItem[]; nextCursor: string }> {
+  const params = new URLSearchParams();
+  params.set("collection", collection);
+  params.set("limit", String(limit));
+  params.set("seed", String(seed));
+  if (offset > 0) {
+    params.set("offset", String(offset));
+    params.set("cursor", String(offset));
+  }
+  const res = await fetch(`/api/life-agents?${params.toString()}`, {
+    credentials: "include",
+    signal,
+  });
+  const data: unknown = await res.json().catch(() => null);
+  if (!res.ok) {
+    const msg =
+      data && typeof data === "object" && data !== null && "error" in data && typeof (data as { error: unknown }).error === "string"
+        ? (data as { error: string }).error
+        : "FETCH_ERROR";
+    throw new Error(msg);
   }
   const items = parsePublishedLifeAgentsPayload(data);
   const next =

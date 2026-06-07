@@ -48,6 +48,10 @@ export type LifeAgentListItem = {
   mindScore?: number;
   mindScoreLevel?: number;
   mindScoreLevelLabel?: string;
+  /** 精选排序：越小越靠前；null/undefined=不精选 */
+  featuredRank?: number | null;
+  /** 专题/校园合集 key（如 kaoyan/liuxue/qiuzhi）；空=不属于任何合集 */
+  featuredCollection?: string | null;
 };
 
 function clamp01(v: number): number {
@@ -65,6 +69,21 @@ function businessScore(p: LifeAgentListItem): number {
   return sold * 0.42 + sessions * 0.18 + knowledge * 0.12 + ratingAvg * 0.18 + ratingTrust * 0.10;
 }
 
+/** 与后端 `scoreCompleteness` 对齐：档案完整度兜底分（0..1），缓解新 Agent 冷启动。 */
+function completenessScore(p: LifeAgentListItem): number {
+  let s = 0;
+  if ((p.shortBio ?? "").trim() !== "") s += 0.25;
+  const hasCover =
+    (p.coverImageUrl ?? "").trim() !== "" ||
+    (p.coverUrl ?? "").trim() !== "" ||
+    (p.coverPresetKey ?? "").trim() !== "";
+  if (hasCover) s += 0.2;
+  if ((p.expertiseTags?.length ?? 0) > 0) s += 0.2;
+  if (p.knowledgeCount >= 3) s += 0.35;
+  else if (p.knowledgeCount > 0) s += 0.15;
+  return s > 1 ? 1 : s;
+}
+
 /**
  * 按业务分排序。搜索相关的词法匹配已下沉到后端，此处不再做关键词过滤。
  * 保留函数名以减少调用方改动；`rawQuery` 仅用于向后兼容，不再被消费。
@@ -73,7 +92,7 @@ export function rankLifeAgentsBySearchQuery(
   profiles: LifeAgentListItem[],
   _rawQuery: string,
 ): LifeAgentListItem[] {
-  const scored = profiles.map((p) => ({ p, s: businessScore(p) }));
+  const scored = profiles.map((p) => ({ p, s: businessScore(p) * 0.7 + completenessScore(p) * 0.3 }));
   scored.sort((a, b) => b.s - a.s);
   return scored.map(({ p }) => p);
 }

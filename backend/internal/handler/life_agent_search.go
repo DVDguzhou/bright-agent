@@ -339,6 +339,43 @@ func scoreBusiness(s profileStats) float64 {
 	return sold*0.42 + sessions*0.18 + knowledge*0.12 + ratingScore*0.18 + ratingTrust*0.10
 }
 
+// scoreCompleteness 反映"档案是否建得完整"，与交易指标无关。
+// 作用：让"建得好但还没卖出去"的新 Agent 不至于因 businessScore≈0 而永远沉底（缓解冷启动）。返回 0..1。
+func scoreCompleteness(p *models.LifeAgentProfile, knowledgeCount int64) float64 {
+	score := 0.0
+	if strings.TrimSpace(p.ShortBio) != "" || strings.TrimSpace(p.LongBio) != "" {
+		score += 0.25
+	}
+	if (p.CoverImageURL != nil && strings.TrimSpace(*p.CoverImageURL) != "") ||
+		(p.CoverPresetKey != nil && strings.TrimSpace(*p.CoverPresetKey) != "") {
+		score += 0.2
+	}
+	if len(p.ExpertiseTags) > 0 {
+		score += 0.2
+	}
+	if knowledgeCount >= 3 {
+		score += 0.35
+	} else if knowledgeCount > 0 {
+		score += 0.15
+	}
+	if score > 1 {
+		score = 1
+	}
+	return score
+}
+
+// featuredDiscoveryBoost 仅作用于"全站精选"（设置了 featured_rank 且不属于任何合集）的 Agent，
+// 让其在空查询（发现/浏览）场景置顶。合集成员不在此加权，避免污染主搜索结果。
+func featuredDiscoveryBoost(p *models.LifeAgentProfile) float64 {
+	if p.FeaturedRank == nil {
+		return 0
+	}
+	if p.FeaturedCollection != nil && strings.TrimSpace(*p.FeaturedCollection) != "" {
+		return 0
+	}
+	return 1000.0 - float64(*p.FeaturedRank)
+}
+
 // loadProfileStats 统一读取业务指标（一次性批量查询，避免 N+1）
 func loadProfileStats(ids []string) map[string]profileStats {
 	res := make(map[string]profileStats, len(ids))
@@ -448,12 +485,16 @@ func LifeAgentsSearch(cfg *config.Config) gin.HandlerFunc {
 					}
 				}
 			}
-			biz := scoreBusiness(stats[p.ID])
+			st := stats[p.ID]
+			biz := scoreBusiness(st)
+			completeness := scoreCompleteness(&p, st.KnowledgeCount)
 			var total float64
 			if q.hasQuery {
-				total = lex*0.9 + biz*10
+				// 有查询：相关性主导，完整度仅作轻微加权，避免空壳高排
+				total = lex*0.9 + biz*10 + completeness*1.5
 			} else {
-				total = biz
+				// 空查询（发现/浏览）：交易指标 + 完整度兜底，再叠加全站精选置顶
+				total = biz*0.7 + completeness*0.3 + featuredDiscoveryBoost(&p)
 			}
 			scored = append(scored, scoredProfile{
 				profile: p,

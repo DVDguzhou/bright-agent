@@ -259,6 +259,8 @@ model LifeAgentProfile {
   coverImageUrl    String?  @map("cover_image_url") @db.VarChar(512)
   coverPresetKey   String?  @map("cover_preset_key") @db.VarChar(64)
   published        Boolean  @default(true)
+  featuredRank       Int?    @map("featured_rank")                          // 精选排序：越小越靠前；null=不精选
+  featuredCollection String? @map("featured_collection") @db.VarChar(64)    // 专题/校园合集 key；null=不属于任何合集
   apiInvokeEnabled Boolean  @default(false) @map("api_invoke_enabled")
   apiPricePerCallCents Int? @map("api_price_per_call_cents")
   apiTotalCalls    Int      @default(0) @map("api_total_calls")
