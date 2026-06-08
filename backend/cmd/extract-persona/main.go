@@ -26,14 +26,19 @@ var headingRe = regexp.MustCompile(`(?m)^#{1,3}\s+`)
 
 func main() {
 	namesArg := flag.String("names", "", "逗号分隔的 display_name")
+	idsArg := flag.String("ids", "", "逗号分隔的 profile id（仅 -from-db）")
 	outDir := flag.String("out", "../docs/agent-interview", "输出目录")
 	fromDB := flag.Bool("from-db", false, "从数据库导出（默认从 yantuseed 种子）")
 	splitSections := flag.Bool("split", true, "按 Markdown 标题拆成多条 ## 小节")
 	flag.Parse()
 
 	names := splitNames(*namesArg)
-	if len(names) == 0 {
-		log.Fatal("必须提供 -names")
+	ids := splitNames(*idsArg)
+	if len(names) == 0 && len(ids) == 0 {
+		log.Fatal("必须提供 -names 或 -ids")
+	}
+	if len(ids) > 0 && !*fromDB {
+		log.Fatal("-ids 只能配合 -from-db 使用")
 	}
 
 	if *fromDB {
@@ -71,20 +76,35 @@ func main() {
 			}
 			body, meta = buildFromSeed(p)
 		}
-
-		sections := []section{{title: meta.articleTitle, body: body}}
-		if *splitSections {
-			if chunks := splitByHeadings(body); len(chunks) > 0 {
-				sections = chunks
-			}
+		if err := writeExtractFor(meta, body, *outDir, *splitSections); err != nil {
+			log.Fatalf("write %s: %v", meta.displayName, err)
 		}
-
-		outPath := filepath.Join(*outDir, safeFilename(name)+"-extract.md")
-		if err := writeExtract(outPath, meta, sections); err != nil {
-			log.Fatalf("write %s: %v", outPath, err)
-		}
-		fmt.Printf("✓ %s → %s（%d 小节，约 %d 字）\n", name, outPath, len(sections), runeLen(body))
 	}
+	for _, id := range ids {
+		b, m, err := loadFromDBByID(id)
+		if err != nil {
+			log.Printf("[跳过] %s: %v", id, err)
+			continue
+		}
+		if err := writeExtractFor(m, b, *outDir, *splitSections); err != nil {
+			log.Fatalf("write %s: %v", m.displayName, err)
+		}
+	}
+}
+
+func writeExtractFor(meta profileMeta, body, outDir string, splitSections bool) error {
+	sections := []section{{title: meta.articleTitle, body: body}}
+	if splitSections {
+		if chunks := splitByHeadings(body); len(chunks) > 0 {
+			sections = chunks
+		}
+	}
+	outPath := filepath.Join(outDir, safeFilename(meta.displayName)+"-extract.md")
+	if err := writeExtract(outPath, meta, sections); err != nil {
+		return err
+	}
+	fmt.Printf("✓ %s → %s（%d 小节，约 %d 字）\n", meta.displayName, outPath, len(sections), runeLen(body))
+	return nil
 }
 
 type profileMeta struct {
@@ -181,6 +201,50 @@ func loadFromDB(name string) (string, profileMeta, error) {
 	}
 	var b strings.Builder
 	for i, e := range all {
+		if i > 0 {
+			b.WriteString("\n\n---\n\n")
+		}
+		if t := strings.TrimSpace(e.Title); t != "" {
+			b.WriteString("# ")
+			b.WriteString(t)
+			b.WriteString("\n\n")
+		}
+		b.WriteString(e.Content)
+	}
+	return b.String(), meta, nil
+}
+
+func loadFromDBByID(id string) (string, profileMeta, error) {
+	var p models.LifeAgentProfile
+	if err := db.DB.Where("id = ?", id).First(&p).Error; err != nil {
+		return "", profileMeta{}, fmt.Errorf("数据库无 id=%s: %w", id, err)
+	}
+	meta := profileMeta{
+		displayName:  p.DisplayName,
+		shortBio:     p.ShortBio,
+		articleTitle: p.Headline,
+	}
+	if p.School != nil {
+		meta.school = *p.School
+	}
+	if p.OriginalAuthor != nil {
+		meta.originalAuthor = *p.OriginalAuthor
+	}
+	if p.Source != nil {
+		meta.source = *p.Source
+	}
+	if len(p.ExpertiseTags) > 0 {
+		meta.expertiseTags = strings.Join(p.ExpertiseTags, ", ")
+	}
+	if len(p.SampleQuestions) > 0 {
+		meta.sampleQuestions = strings.Join(p.SampleQuestions, " | ")
+	}
+	var entries []models.LifeAgentKnowledgeEntry
+	if err := db.DB.Where("profile_id = ?", p.ID).Order("sort_order").Find(&entries).Error; err != nil {
+		return "", profileMeta{}, err
+	}
+	var b strings.Builder
+	for i, e := range entries {
 		if i > 0 {
 			b.WriteString("\n\n---\n\n")
 		}
