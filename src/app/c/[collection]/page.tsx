@@ -32,6 +32,11 @@ const COLLECTIONS: Record<string, CollectionMeta> = {
     title: "秋招春招，问问已上岸的人",
     subtitle: "简历、面试、选 offer、转方向——和刚走过校招的人聊聊，比海投有用。",
   },
+  jingpin: {
+    eyebrow: "编辑精选",
+    title: "我们替你挑过的人",
+    subtitle: "一对一深聊整理出来的真实经历——上岸、留学、读研、工作、生活的「之后」，不是攻略腔，是过来人原话。",
+  },
 };
 
 function metaFor(key: string): CollectionMeta {

@@ -17,6 +17,9 @@
 //	# 全站精选（顶主广场）：按 ID 指定，rank 按给定顺序 1..N
 //	go run ./cmd/set-featured -global -ids 10000000-0000-0000-0000-000000000001 -apply
 //
+//	# 按昵称精确锁定（跨环境不用查 ID）：把指定 Agent 放进合集，rank 按给定顺序 1..N
+//	go run ./cmd/set-featured -collection jingpin -names "凌晨四点半,慵懒的锦鲤7" -apply
+//
 //	# 清空某合集 / 清空全站精选
 //	go run ./cmd/set-featured -collection kaoyan -clear -apply
 //	go run ./cmd/set-featured -top 30                    # 知识条目最多的 30 个 Agent（只读）
@@ -47,6 +50,7 @@ func main() {
 	global := flag.Bool("global", false, "设为全站精选（顶主广场），不归入任何合集")
 	match := flag.String("match", "", "逗号分隔关键词，匹配 displayName/headline/expertiseTags/school/audience/shortBio")
 	idsArg := flag.String("ids", "", "逗号分隔的 profile id，显式指定（优先于 -match）")
+	namesArg := flag.String("names", "", "逗号分隔的精确昵称（display_name），精确锁定指定 Agent（优先于 -match，按给定顺序排名）")
 	limit := flag.Int("limit", 12, "最多精选多少个")
 	minKnowledge := flag.Int("min-knowledge", 0, "质量门槛：知识条目数下限（match 模式生效，挡住空壳号）")
 	minSessions := flag.Int("min-sessions", 0, "质量门槛：会话数下限（match 模式生效）")
@@ -107,8 +111,12 @@ func main() {
 
 	// 选出候选
 	ids := splitCSV(*idsArg)
+	names := splitCSV(*namesArg)
 	var chosen []candidate
-	if len(ids) > 0 {
+	if len(names) > 0 {
+		chosen = loadCandidatesByNames(names)
+		// 显式 names：保持给定顺序
+	} else if len(ids) > 0 {
 		chosen = loadCandidatesByIDs(ids)
 		// 显式 ids：保持给定顺序
 	} else {
@@ -316,6 +324,26 @@ func loadCandidatesByIDs(ids []string) []candidate {
 	for _, id := range ids {
 		if p, ok := byID[id]; ok {
 			out = append(out, withStats(p))
+		}
+	}
+	return out
+}
+
+// loadCandidatesByNames 按精确昵称（display_name）锁定已发布 Agent，保持调用方给定顺序。
+// 找不到的昵称会打印告警但不中断，方便一次性传入全部精品昵称。
+func loadCandidatesByNames(names []string) []candidate {
+	var profiles []models.LifeAgentProfile
+	db.DB.Where("display_name IN ?", names).Where("published = ?", true).Find(&profiles)
+	byName := make(map[string]models.LifeAgentProfile, len(profiles))
+	for _, p := range profiles {
+		byName[p.DisplayName] = p
+	}
+	out := make([]candidate, 0, len(names))
+	for _, n := range names {
+		if p, ok := byName[n]; ok {
+			out = append(out, withStats(p))
+		} else {
+			fmt.Printf("  ⚠ 未找到已发布 Agent：%s（跳过）\n", n)
 		}
 	}
 	return out
