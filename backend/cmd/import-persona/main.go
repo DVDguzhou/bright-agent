@@ -31,6 +31,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -95,7 +96,7 @@ func main() {
 	}
 
 	if out := strings.TrimSpace(*mergeOut); out != "" {
-		if err := writeMergedMD(out, items); err != nil {
+		if err := writeMergedMD(out, label, *file, items); err != nil {
 			log.Fatalf("写出合并文件失败: %v", err)
 		}
 		fmt.Printf("\n✓ 已写出合并文件：%s（%d 条）\n", out, len(items))
@@ -297,16 +298,44 @@ func ptrStr(s *string) string {
 
 func strPtr(s string) *string { return &s }
 
-var numberedHeadingRe = regexp.MustCompile(`^##\s+\d+\.\s+(?:标题[：:]\s*)?(.+)$`)
+var (
+	narrativeExplicitRe = regexp.MustCompile(`^##\s+\d+\.\s+标题[：:]\s*(.+)$`)
+	narrativePipeRe     = regexp.MustCompile(`^##\s+\d{1,2}｜\s*(.+)$`)
+	narrativeBareNumRe  = regexp.MustCompile(`^##\s+\d{1,2}\s*$`)
+	subHeadingTitleRe   = regexp.MustCompile(`^###\s+标题[：:]\s*(.+)$`)
+)
+
+func hasNarrativeMode(lines []string) bool {
+	for _, ln := range lines {
+		s := strings.TrimSpace(ln)
+		if narrativeExplicitRe.MatchString(s) || narrativePipeRe.MatchString(s) || narrativeBareNumRe.MatchString(s) {
+			return true
+		}
+	}
+	return false
+}
+
+func titleFromSubheading(buf []string) string {
+	for _, ln := range buf {
+		if m := subHeadingTitleRe.FindStringSubmatch(strings.TrimSpace(ln)); len(m) == 2 {
+			return strings.TrimSpace(m[1])
+		}
+	}
+	return ""
+}
 
 // parsePersonaMD 解析 Markdown 人设库。支持：
 //   - ## 问题标题？
 //   - ## 1. 标题：叙事小节名
-//   - ## 1. 双非考杭电……？
+//   - ## 01｜叙事小节名
+//   - ## 01 + ### 标题：…
 //
+// 若文件含编号叙事条目，则只导入这些条目，跳过 Agent 元信息/背景等原始块。
 // 自动剔除：归属线、虚构标注、事实/虚构说明、批次小结等非正文块。
 func parsePersonaMD(text string) []qa {
+	text = stripFilePreamble(text)
 	lines := strings.Split(strings.ReplaceAll(text, "\r\n", "\n"), "\n")
+	narrativeOnly := hasNarrativeMode(lines)
 	var out []qa
 	var cur *qa
 	var buf []string
@@ -314,17 +343,20 @@ func parsePersonaMD(text string) []qa {
 		if cur == nil {
 			return
 		}
+		title := cur.title
+		if title == "" {
+			title = titleFromSubheading(buf)
+		}
 		body := cleanEntryBody(strings.Join(buf, "\n"))
 		body = strings.TrimSpace(body)
-		if body != "" && runeLen(body) >= 20 {
-			cur.content = body
-			out = append(out, *cur)
+		if title != "" && body != "" && runeLen(body) >= 20 {
+			out = append(out, qa{title: title, content: body})
 		}
 		cur = nil
 		buf = nil
 	}
 	for _, ln := range lines {
-		if t, ok := headingTitle(ln); ok {
+		if t, ok := headingTitle(ln, narrativeOnly); ok {
 			flush()
 			cur = &qa{title: t}
 			continue
@@ -337,14 +369,63 @@ func parsePersonaMD(text string) []qa {
 	return out
 }
 
-func headingTitle(line string) (string, bool) {
+func stripFilePreamble(text string) string {
+	lines := strings.Split(strings.ReplaceAll(text, "\r\n", "\n"), "\n")
+	var out []string
+	for _, ln := range lines {
+		t := strings.TrimSpace(ln)
+		if strings.HasPrefix(t, "> 供 GPT") ||
+			strings.Contains(t, "只基于下列真实材料加工") ||
+			strings.Contains(t, "勿编造") && strings.HasPrefix(t, ">") {
+			continue
+		}
+		out = append(out, ln)
+	}
+	return strings.Join(out, "\n")
+}
+
+func isRawExtractHeading(rest string) bool {
+	rest = strings.Trim(rest, "* ")
+	switch rest {
+	case "Agent 元信息", "背景", "基本背景", "申请情况", "申请流程与结果",
+		"申请流程", "申请结果", "申请心得", "准备工作", "实习机会",
+		"就读体验", "经历分享&总结", "经历分享", "联系方式",
+		"所获荣誉", "明确方向，经验分享", "留学新篇章",
+		"01 基本背景", "02 申请时间线", "03 准备工作", "04 实习机会", "05 就读体验",
+		"去哪里", "语言考试", "申请", "就业", "总结":
+		return true
+	}
+	if strings.HasPrefix(rest, "0") && strings.Contains(rest, " ") {
+		// 01 基本背景 等
+		for _, p := range []string{"基本背景", "申请", "准备", "实习", "就读", "经验", "总结"} {
+			if strings.Contains(rest, p) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func headingTitle(line string, narrativeOnly bool) (string, bool) {
 	s := strings.TrimSpace(line)
 	if !strings.HasPrefix(s, "## ") {
 		return "", false
 	}
-	rest := strings.TrimSpace(strings.TrimPrefix(s, "## "))
-	if m := numberedHeadingRe.FindStringSubmatch(s); len(m) == 2 {
+	if m := narrativeExplicitRe.FindStringSubmatch(s); len(m) == 2 {
 		return strings.TrimSpace(m[1]), true
+	}
+	if m := narrativePipeRe.FindStringSubmatch(s); len(m) == 2 {
+		return strings.TrimSpace(m[1]), true
+	}
+	if narrativeBareNumRe.MatchString(s) {
+		return "", true
+	}
+	if narrativeOnly {
+		return "", false
+	}
+	rest := strings.TrimSpace(strings.TrimPrefix(s, "## "))
+	if isRawExtractHeading(rest) {
+		return "", false
 	}
 	// 跳过批次小结等非条目标题
 	if strings.HasPrefix(rest, "当前进度") {
@@ -353,10 +434,24 @@ func headingTitle(line string) (string, bool) {
 	return rest, true
 }
 
-func writeMergedMD(path string, items []qa) error {
+func writeMergedMD(path, displayName, sourceFile string, items []qa) error {
+	name := strings.TrimSpace(displayName)
+	if name == "" || name == "(合并预览)" {
+		name = "合并知识库"
+	}
+	src := filepath.Base(strings.TrimSpace(sourceFile))
+	if src == "" || src == "." {
+		src = "extract"
+	}
 	var b strings.Builder
-	b.WriteString("# 凌晨四点半 · 合并知识库\n\n")
-	b.WriteString("> 由 docs/学长.md 自动合并：20 条叙事 + 52 条问答，已剔除批次小结与虚构标注。\n\n")
+	b.WriteString("# ")
+	b.WriteString(name)
+	b.WriteString(" · 合并知识库\n\n")
+	b.WriteString("> 由 ")
+	b.WriteString(src)
+	b.WriteString(" 合并：")
+	b.WriteString(fmt.Sprintf("%d 条叙事知识条目", len(items)))
+	b.WriteString("，已剔除批次小结与内部标注。\n\n")
 	for _, it := range items {
 		b.WriteString("## ")
 		b.WriteString(it.title)
@@ -379,7 +474,7 @@ func cleanEntryBody(raw string) string {
 		if isMetaStopLine(t) {
 			break
 		}
-		if t == "**回答：**" || t == "**正文：**" {
+		if t == "**回答：**" || t == "**正文：**" || t == "### 正文：" || strings.HasPrefix(t, "### 标题：") {
 			continue
 		}
 		if strings.HasPrefix(t, "**追问补充：**") {
@@ -413,10 +508,10 @@ func isMetaStopLine(t string) bool {
 	if t == "" {
 		return false
 	}
-	if strings.HasPrefix(t, "**归属线") {
+	if strings.HasPrefix(t, "**归属线") || strings.HasPrefix(t, "### 归属线") {
 		return true
 	}
-	if strings.HasPrefix(t, "**🔴") {
+	if strings.HasPrefix(t, "**🔴") || strings.HasPrefix(t, "### 🔴") {
 		return true
 	}
 	if strings.HasPrefix(t, "事实/虚构说明") || strings.HasPrefix(t, "事实/虚构") {
@@ -426,6 +521,22 @@ func isMetaStopLine(t string) bool {
 		return true
 	}
 	if strings.HasPrefix(t, "真实依据：") || strings.HasPrefix(t, "虚构部分：") {
+		return true
+	}
+	if strings.HasPrefix(t, "# 本批自评") || strings.HasPrefix(t, "# 最终自评") ||
+		strings.HasPrefix(t, "# 【自评】") || strings.HasPrefix(t, "# 人物行为模式") {
+		return true
+	}
+	if strings.HasPrefix(t, "下面是 **第") || strings.HasPrefix(t, "下面是**第") ||
+		strings.HasPrefix(t, "下面是 **") && strings.Contains(t, "批") {
+		return true
+	}
+	if strings.HasPrefix(t, "**本批整体虚构比例") || strings.HasPrefix(t, "**整体虚构比例") {
+		return true
+	}
+	if strings.HasPrefix(t, "* 原文真有") || strings.HasPrefix(t, "* 推演扩写") ||
+		strings.HasPrefix(t, "* 凭空编造") || strings.HasPrefix(t, "* 扩写/推演") ||
+		strings.HasPrefix(t, "* 推断/扩写") {
 		return true
 	}
 	return false

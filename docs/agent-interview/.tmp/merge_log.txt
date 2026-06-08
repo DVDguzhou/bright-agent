@@ -1,0 +1,14 @@
+﻿=== 鎱垫噿鐨勯敠椴? ===
+RESULT	鎱垫噿鐨勯敠椴?	extract_lines=3522	merged_lines=2134	merged_entries=2
+=== 鐚ご楣皒鍘荤埇灞?===
+RESULT	鐚ご楣皒鍘荤埇灞?extract_lines=2766	merged_lines=1384	merged_entries=0
+=== 鑺掓灉瀛︾敾鐢?===
+RESULT	鑺掓灉瀛︾敾鐢?extract_lines=3878	merged_lines=2329	merged_entries=1
+=== 铓傝殎鍋氶キ涓?===
+RESULT	铓傝殎鍋氶キ涓?extract_lines=2278	merged_lines=1008	merged_entries=1
+=== 瑗跨摐oo鍠濈豢鑼?===
+RESULT	瑗跨摐oo鍠濈豢鑼?extract_lines=1707	merged_lines=803	merged_entries=0
+=== 璞嗗ザ_绾㈣眴 ===
+RESULT	璞嗗ザ_绾㈣眴	extract_lines=8669	merged_lines=6183	merged_entries=99
+=== 椴搁奔ya鍦ㄨ窇姝?===
+RESULT	椴搁奔ya鍦ㄨ窇姝?extract_lines=2603	merged_lines=2442	merged_entries=55
