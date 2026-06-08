@@ -25,7 +25,7 @@ func EnsureImportUser() *models.User {
 		ID:        models.GenID(),
 		Email:     ImportUserEmail,
 		Password:  string(hash),
-		Name:      strPtr("研途榜样导入"),
+		Name:      strPtr("学长本人"),
 		RoleFlags: models.JSONMap{"is_buyer": true, "is_seller": false},
 	}
 	if err := db.DB.Create(&u).Error; err != nil {

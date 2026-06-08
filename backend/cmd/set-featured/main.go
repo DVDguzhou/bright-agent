@@ -19,7 +19,7 @@
 //
 //	# 清空某合集 / 清空全站精选
 //	go run ./cmd/set-featured -collection kaoyan -clear -apply
-//	go run ./cmd/set-featured -global -clear -apply
+//	go run ./cmd/set-featured -top 30                    # 知识条目最多的 30 个 Agent（只读）
 package main
 
 import (
@@ -52,8 +52,24 @@ func main() {
 	minSessions := flag.Int("min-sessions", 0, "质量门槛：会话数下限（match 模式生效）")
 	clear := flag.Bool("clear", false, "清空该合集（或全站精选）的 featured 设置，而非设置")
 	report := flag.Bool("report", false, "只出内容深度审计报告，不做任何写入（可配合 -match 按主题统计）")
+	topN := flag.Int("top", 0, "列出知识条目最多的 N 个已发布 Agent（只读，按 knowledge 降序）")
 	apply := flag.Bool("apply", false, "写入数据库（缺省为 dry-run 预览）")
 	flag.Parse()
+
+	if *topN > 0 {
+		_ = godotenv.Load(".env")
+		_ = godotenv.Load("../.env")
+		_ = godotenv.Load("../../.env")
+		dsn := os.Getenv("DATABASE_URL")
+		if dsn == "" {
+			dsn = "root:password@tcp(localhost:3306)/agent_marketplace?charset=utf8mb4&parseTime=True"
+		}
+		if err := db.Connect(dsn); err != nil {
+			log.Fatalf("db connect failed: %v", err)
+		}
+		runTop(*topN)
+		return
+	}
 
 	if !*report && !*global && strings.TrimSpace(*collection) == "" {
 		log.Fatal("必须指定 -collection <key> 或 -global（或用 -report 出报告）")
@@ -169,6 +185,37 @@ func main() {
 		}
 	}
 	fmt.Printf("\n✓ 已写入 %d 条。\n", len(chosen))
+}
+
+// runTop 按知识条目数降序列出前 N 个已发布 Agent。
+func runTop(n int) {
+	var profiles []models.LifeAgentProfile
+	db.DB.Where("published = ?", true).Find(&profiles)
+	cands := make([]candidate, 0, len(profiles))
+	for _, p := range profiles {
+		c := withStats(p)
+		if c.knowledge > 0 {
+			cands = append(cands, c)
+		}
+	}
+	sort.SliceStable(cands, func(i, j int) bool {
+		if cands[i].knowledge != cands[j].knowledge {
+			return cands[i].knowledge > cands[j].knowledge
+		}
+		if cands[i].packs != cands[j].packs {
+			return cands[i].packs > cands[j].packs
+		}
+		return cands[i].sessions > cands[j].sessions
+	})
+	if n > len(cands) {
+		n = len(cands)
+	}
+	fmt.Printf("=== 知识条目 TOP %d（已发布，共 %d 个有知识）===\n", n, len(cands))
+	for i := 0; i < n; i++ {
+		c := cands[i]
+		fmt.Printf("  #%-2d  %-22s  知识%-4d  会话%-3d  成交%-3d  (%s)\n",
+			i+1, truncate(c.profile.DisplayName, 22), c.knowledge, c.sessions, c.packs, c.profile.ID)
+	}
 }
 
 // runReport 出内容深度审计：按知识库条目数分桶。无 -match 时统计全站；

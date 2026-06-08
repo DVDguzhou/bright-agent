@@ -20,11 +20,13 @@
 //	go run ./cmd/import-persona -file ../docs/学长.md -merge-out ../docs/agent-interview/凌晨四点半-merged.md
 //	go run ./cmd/import-persona -file ../docs/agent-interview/凌晨四点半-merged.md -name "凌晨四点半" -apply
 //	    -school "杭州电子科技大学" -major "计算机技术" -score "总分314" \
-//	    -tags "考研,计算机考研,408,双非,杭电" -author "姚圣杰(改编)" \
-//	    -source "研途榜样(AI人设扩写)" -apply                                  # 写库
+//	    -tags "考研,计算机考研,408,双非,杭电" -author "陈杰豪" \
+//	    -source "研途榜样·AI分身" -apply
 package main
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"flag"
 	"fmt"
 	"log"
@@ -36,6 +38,7 @@ import (
 	"github.com/agent-marketplace/backend/internal/models"
 	"github.com/agent-marketplace/backend/internal/yantuseed"
 	"github.com/joho/godotenv"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type qa struct {
@@ -59,7 +62,8 @@ func main() {
 	author := flag.String("author", "", "原作者/溯源（写入 original_author）")
 	source := flag.String("source", "", "内容来源（写入 source）")
 	cover := flag.String("cover", "", "封面预设 key（如 01-student-panda）；缺省留空")
-	ownerEmail := flag.String("owner", yantuseed.ImportUserEmail, "归属用户邮箱；默认研途导入用户")
+	ownerEmail := flag.String("owner", "", "归属用户邮箱；缺省为每个 Agent 自动创建独立账号（creator 显示名=Agent 名）")
+	sharedOwner := flag.Bool("shared-owner", false, "使用共享研途导入账号 yantu-import@demo.com（creator 会显示「研途榜样导入」）")
 	mergeOut := flag.String("merge-out", "", "只合并清洗后写出到该路径（不写库）；可与 -apply 分开用")
 	apply := flag.Bool("apply", false, "写入数据库（缺省为 dry-run 预览）")
 	flag.Parse()
@@ -116,7 +120,8 @@ func main() {
 		log.Fatalf("db connect failed: %v", err)
 	}
 
-	owner := ensureOwner(*ownerEmail)
+	owner := ensurePersonaOwner(*name, strings.TrimSpace(*ownerEmail), *sharedOwner)
+	fmt.Printf("归属账号：%s（显示名：%s）\n", ownerEmailLabel(owner), ptrStr(owner.Name))
 
 	// 组装档案默认值
 	hl := strings.TrimSpace(*headline)
@@ -153,14 +158,15 @@ func main() {
 		samples = append(samples, items[i].title)
 	}
 
-	// 幂等：按 user_id + display_name 查找
+	// 幂等：按 display_name 查找（可迁移到新归属账号）
 	var profile models.LifeAgentProfile
-	found := db.DB.Where("user_id = ? AND display_name = ?", owner.ID, *name).First(&profile).Error == nil
+	found := db.DB.Where("display_name = ?", *name).First(&profile).Error == nil
 
 	if found {
 		db.DB.Where("profile_id = ?", profile.ID).Delete(&models.LifeAgentKnowledgeEntry{})
 		updates := map[string]interface{}{
-			"headline":         truncate(hl, 500),
+			"user_id":            owner.ID,
+			"headline":           truncate(hl, 500),
 			"short_bio":        truncate(sb, 480),
 			"long_bio":         lb.String(),
 			"audience":         aud,
@@ -225,9 +231,71 @@ func main() {
 		}
 	}
 	fmt.Printf("✓ 写入 %d 条知识条目。\n", len(items))
-	fmt.Printf("\n归属账号：%s（密码见首次创建时输出，默认 password123）\n", *ownerEmail)
-	fmt.Printf("Agent ID：%s\n", profile.ID)
+	fmt.Printf("\nAgent ID：%s\n", profile.ID)
+	fmt.Printf("登录邮箱：%s（密码 password123）\n", ownerEmailLabel(owner))
 }
+
+func ensurePersonaOwner(displayName, explicitEmail string, sharedOwner bool) *models.User {
+	if sharedOwner || explicitEmail == yantuseed.ImportUserEmail {
+		return yantuseed.EnsureImportUser()
+	}
+	if explicitEmail != "" {
+		var u models.User
+		if err := db.DB.Where("email = ?", explicitEmail).First(&u).Error; err != nil {
+			log.Fatalf("找不到归属用户 %s", explicitEmail)
+		}
+		return &u
+	}
+	email := personaOwnerEmail(displayName)
+	var u models.User
+	if db.DB.Where("email = ?", email).First(&u).Error == nil {
+		if u.Name == nil || strings.TrimSpace(*u.Name) != displayName {
+			db.DB.Model(&u).Update("name", displayName)
+			u.Name = strPtr(displayName)
+		}
+		return &u
+	}
+	hash, err := bcrypt.GenerateFromPassword([]byte("password123"), 12)
+	if err != nil {
+		log.Fatal("bcrypt:", err)
+	}
+	u = models.User{
+		ID:        models.GenID(),
+		Email:     email,
+		Password:  string(hash),
+		Name:      strPtr(displayName),
+		RoleFlags: models.JSONMap{"is_buyer": true, "is_seller": true},
+	}
+	if err := db.DB.Create(&u).Error; err != nil {
+		log.Fatalf("create persona owner failed: %v", err)
+	}
+	fmt.Println("created persona owner", email, "password: password123")
+	return &u
+}
+
+func personaOwnerEmail(displayName string) string {
+	if strings.TrimSpace(displayName) == "" {
+		log.Fatal("displayName empty")
+	}
+	h := md5.Sum([]byte(displayName))
+	return fmt.Sprintf("persona+%s@demo.local", hex.EncodeToString(h[:8]))
+}
+
+func ownerEmailLabel(u *models.User) string {
+	if u == nil {
+		return ""
+	}
+	return u.Email
+}
+
+func ptrStr(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
+}
+
+func strPtr(s string) *string { return &s }
 
 var numberedHeadingRe = regexp.MustCompile(`^##\s+\d+\.\s+(?:标题[：:]\s*)?(.+)$`)
 
@@ -363,16 +431,6 @@ func isMetaStopLine(t string) bool {
 	return false
 }
 
-func ensureOwner(email string) *models.User {
-	if email == yantuseed.ImportUserEmail {
-		return yantuseed.EnsureImportUser()
-	}
-	var u models.User
-	if err := db.DB.Where("email = ?", email).First(&u).Error; err != nil {
-		log.Fatalf("找不到归属用户 %s（请先注册，或用默认 -owner）", email)
-	}
-	return &u
-}
 
 func splitTags(s string) models.JSONArray {
 	out := models.JSONArray{}
