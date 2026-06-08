@@ -57,6 +57,7 @@ func main() {
 	score := flag.String("score", "", "成绩行，如 总分314")
 	welcome := flag.String("welcome", "", "欢迎语；缺省自动生成")
 	audience := flag.String("audience", "", "适合人群；缺省自动生成")
+	sample := flag.String("sample", "", "示例问题，竖线 | 分隔（如 \"问题A|问题B|问题C\"）；缺省取前3条知识标题")
 	tags := flag.String("tags", "", "专长标签，逗号分隔")
 	category := flag.String("category", "考研经验", "知识条目类别")
 	price := flag.Int("price", 990, "单次咨询价格（分）")
@@ -153,10 +154,18 @@ func main() {
 		wel = fmt.Sprintf("你好，我是%s。考研、读研、工作、生活，想问什么都可以聊。", *name)
 	}
 	tagArr := splitTags(*tags)
-	// 样例问题取前 3 条标题
+	// 样例问题：优先用 -sample（竖线分隔）；缺省取前 3 条知识标题
 	samples := models.JSONArray{}
-	for i := 0; i < len(items) && i < 3; i++ {
-		samples = append(samples, items[i].title)
+	if s := strings.TrimSpace(*sample); s != "" {
+		for _, q := range strings.Split(s, "|") {
+			if v := strings.TrimSpace(q); v != "" {
+				samples = append(samples, v)
+			}
+		}
+	} else {
+		for i := 0; i < len(items) && i < 3; i++ {
+			samples = append(samples, items[i].title)
+		}
 	}
 
 	// 幂等：按 display_name 查找（可迁移到新归属账号）
