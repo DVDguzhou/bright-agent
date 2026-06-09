@@ -1,13 +1,14 @@
 // update-persona-intro：只更新一个人生 Agent 的「门面字段」，不动知识库与其它字段。
 //
-// 解决的问题：import-persona 未传 -headline/-short/-welcome 时会套默认模板
-// （如「{昵称} · 考研上岸 & 之后的人生」），导致多个 Agent 简介又水又重复、不像真人。
+// 解决的问题：import-persona 未传 -headline/-short/-welcome 时会套默认模板，
+// 导致多个 Agent 简介又水又重复、不像真人。
 // 本工具按 display_name 定位档案，只更新你显式提供的字段（留空的字段保持不变），
 // 不重刷知识、不覆盖 school/major/author/source 等已有内容。
 //
 // 用法（在 backend 目录下运行，默认 dry-run，加 -apply 才写库）：
 //
 //	go run ./cmd/update-persona-intro -name "豆奶_红豆" \
+//	  -display "只申港中文的豆奶_红豆" \
 //	  -headline "只申港中文3个项目 · 拒绝把申请季演得很苦" \
 //	  -short "两个月结束申请季，只申三个中两个。一种不内耗、只抓自己真想去的地方的申请法。" \
 //	  -welcome "我是豆奶_红豆。要不要海投、怎么挑真想去的项目、港中文体验如何，都能聊。" \
@@ -30,6 +31,7 @@ import (
 
 func main() {
 	name := flag.String("name", "", "Agent 昵称（display_name，必填）")
+	display := flag.String("display", "", "新的 Agent 昵称（display_name；留空不改）")
 	headline := flag.String("headline", "", "一句话简介（留空不改）")
 	shortBio := flag.String("short", "", "短简介（留空不改）")
 	welcome := flag.String("welcome", "", "欢迎语（留空不改）")
@@ -43,6 +45,9 @@ func main() {
 	}
 
 	updates := map[string]any{}
+	if v := strings.TrimSpace(*display); v != "" {
+		updates["display_name"] = truncate(v, 120)
+	}
 	if v := strings.TrimSpace(*headline); v != "" {
 		updates["headline"] = truncate(v, 500)
 	}
@@ -70,7 +75,7 @@ func main() {
 	}
 
 	if len(updates) == 0 {
-		log.Fatal("没有要更新的字段；至少提供 -headline/-short/-welcome/-audience/-sample 之一")
+		log.Fatal("没有要更新的字段；至少提供 -display/-headline/-short/-welcome/-audience/-sample 之一")
 	}
 
 	_ = godotenv.Load(".env")
@@ -92,6 +97,8 @@ func main() {
 	fmt.Printf("=== 更新门面字段 · %s (%s) ===\n", profile.DisplayName, profile.ID)
 	for k, v := range updates {
 		switch k {
+		case "display_name":
+			fmt.Printf("  display:   %q → %q\n", profile.DisplayName, v)
 		case "headline":
 			fmt.Printf("  headline:  %q → %q\n", profile.Headline, v)
 		case "short_bio":

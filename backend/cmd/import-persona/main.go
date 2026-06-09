@@ -128,11 +128,11 @@ func main() {
 	// 组装档案默认值
 	hl := strings.TrimSpace(*headline)
 	if hl == "" {
-		hl = *name + " · 考研上岸 & 之后的人生"
+		hl = *name + " · 这段经历可以细问"
 	}
 	sb := strings.TrimSpace(*shortBio)
 	if sb == "" {
-		sb = fmt.Sprintf("%s：从备考上岸到读研、工作、生活的真实经历分享。", *name)
+		sb = fmt.Sprintf("%s：从原始访谈里整理出的真实经历，保留具体选择、踩坑和复盘。", *name)
 	}
 	var lb strings.Builder
 	lb.WriteString(sb)
@@ -177,18 +177,18 @@ func main() {
 		updates := map[string]interface{}{
 			"user_id":            owner.ID,
 			"headline":           truncate(hl, 500),
-			"short_bio":        truncate(sb, 480),
-			"long_bio":         lb.String(),
-			"audience":         aud,
-			"welcome_message":  wel,
+			"short_bio":          truncate(sb, 480),
+			"long_bio":           lb.String(),
+			"audience":           aud,
+			"welcome_message":    wel,
 			"price_per_question": *price,
-			"expertise_tags":   tagArr,
-			"sample_questions": samples,
-			"school":           strOrNil(*school),
-			"original_author":  strOrNil(*author),
-			"source":           strOrNil(*source),
-			"is_generated":     true,
-			"published":        true,
+			"expertise_tags":     tagArr,
+			"sample_questions":   samples,
+			"school":             strOrNil(*school),
+			"original_author":    strOrNil(*author),
+			"source":             strOrNil(*source),
+			"is_generated":       true,
+			"published":          true,
 		}
 		if c := strings.TrimSpace(*cover); c != "" {
 			updates["cover_preset_key"] = &c
@@ -573,7 +573,6 @@ func isMetaStopLine(t string) bool {
 	}
 	return false
 }
-
 
 func splitTags(s string) models.JSONArray {
 	out := models.JSONArray{}

@@ -34,8 +34,8 @@ const COLLECTIONS: Record<string, CollectionMeta> = {
   },
   jingpin: {
     eyebrow: "编辑精选",
-    title: "我们替你挑过的人",
-    subtitle: "一对一深聊整理出来的真实经历——上岸、留学、读研、工作、生活的「之后」，不是攻略腔，是过来人原话。",
+    title: "问过一轮后，留下这些人",
+    subtitle: "我们把长聊里的细节留下来：上岸以后累不累，读研值不值，工作到底怎么扛，开店是不是真自由。能问具体事，也能听他们说实话。",
   },
 };
 

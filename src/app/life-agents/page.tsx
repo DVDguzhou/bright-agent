@@ -756,11 +756,11 @@ function LifeAgentsPageContent() {
     >
       <div className="min-w-0 flex-1">
         <p className="text-[10px] font-medium uppercase tracking-[0.26em] text-oxblood-500">编辑精选</p>
-        <p className="mt-1 font-serif text-base font-medium leading-tight text-ink">我们替你挑过的人</p>
-        <p className="mt-0.5 line-clamp-1 text-xs text-ink-500">一对一深聊整理出来的真实经历，上岸、留学、读研之后的「之后」。</p>
+        <p className="mt-1 font-serif text-base font-medium leading-tight text-ink">问过一轮后，留下这些人</p>
+        <p className="mt-0.5 line-clamp-1 text-xs text-ink-500">有些话，是聊到后半段才会说出来的。</p>
       </div>
       <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-hairline/60 bg-paper/80 px-3 py-1 text-xs font-medium text-ink-600 transition group-hover:text-ink">
-        进去看看
+        看这组
         <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden>
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 6l6 6-6 6" />
         </svg>
