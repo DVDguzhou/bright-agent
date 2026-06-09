@@ -61,6 +61,12 @@ var fieldFixes = []fieldFix{
 		newVal: "我是猫头鹰x去爬山。该不该出国、怎么权衡得失、怎么过滤情绪化信息，都能找我聊。"},
 	{field: "welcome_message", byName: "Timelord",
 		newVal: "你好这里是Timelord，有什么需要帮忙的吗"},
+	{field: "welcome_message", byName: "凌晨四点半",
+		newVal: "Hello，我是凌晨四点半。可以解答考研怎么熬、408怎么准备、上岸之后读研工作体验。"},
+	{field: "welcome_message", byName: "专升本进AI数据岗的学长",
+		newVal: "我走过职高、专升本，也做过字节AI数据运营。你想聊学历一般怎么找机会、AI岗位、信息差、实习路径，可以问我。"},
+	{field: "welcome_message", byName: "从理想销售转招聘的Jeff",
+		newVal: "你好呀，我是Jeff。机械本科、人文地理研究生，做过理想汽车销售，也转到美团招聘。你想聊跨专业求职、销售转HR、猎头实习、校招路径，可以问我。"},
 }
 
 // ——— 示例问题：显式「旧→新」（保留并清洗，必须在垃圾过滤之前生效）———
@@ -81,7 +87,8 @@ var sampleReplaces = [][2]string{
 type scopedDel struct{ name, q string }
 
 var scopedDeletes = []scopedDel{
-	{`豆奶_红豆`, `申请港校`}, // 与「怎么申请港校」重复，去掉这条
+	{`豆奶_红豆`, `申请港校`},        // 与「怎么申请港校」重复，去掉这条
+	{`海星_麻薯`, `国外生活是怎么样的`}, // 该 Agent 不要这条（其余 Agent 仍保留同名问题）
 }
 
 // ——— 示例问题：垃圾模式（命中任一子串即删除）———
