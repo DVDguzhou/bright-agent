@@ -99,13 +99,9 @@ Page({
 
         const intro = buildIntro(agent);
         const viewer = agent.viewerState || {};
-        const allTags = [
-          agent.personaArchetype,
-          agent.toneStyle,
-          agent.responseStyle,
-          agent.mbti,
-          ...(agent.expertiseTags || []),
-        ]
+        // 标签只展示 MBTI + 专长话题；人设/语气/回应风格是内部行为字段，不当话题标签露出
+        // （它们常是自动生成的近义描述，如「犀利直给」「直接犀利」，并排显示重复又跑题）。
+        const allTags = [agent.mbti, ...(agent.expertiseTags || [])]
           .filter(isShortTag)
           .filter((tag, i, arr) => arr.indexOf(tag) === i);
 
