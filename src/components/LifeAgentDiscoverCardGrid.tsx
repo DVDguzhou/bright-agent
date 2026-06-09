@@ -73,7 +73,10 @@ function LifeAgentDiscoverCard({
   skipMountAnimation?: boolean;
   showPulse?: boolean;
 }) {
-  const areaLabel = [profile.city, profile.province].filter(Boolean).join(" · ");
+  const areaLabel = [profile.city, profile.province]
+    .filter(Boolean)
+    .filter((seg, i, arr) => i === 0 || arr[i - 1] !== seg) // 去掉相邻重复（直辖市市=省，如「北京 · 北京」）
+    .join(" · ");
   const coverUrl = resolveLifeAgentCoverDisplayUrl(profile.coverUrl, profile.coverImageUrl, profile.coverPresetKey);
   const headlineShown = cleanLifeAgentIntroText(profile.headline, profile.displayName);
   const sampleQuestionsShown = (profile.sampleQuestions ?? [])
