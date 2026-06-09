@@ -145,6 +145,11 @@ func isJunkTemplateQuestion(q string) bool {
 	if strings.HasPrefix(q, "关于「") && strings.HasSuffix(q, "」能分享什么？") {
 		return true
 	}
+	// 含「」【】括号的，都是模板拼出来的（关于「X」能分享什么？/有什么经验？、你的「X」经历…），
+	// 策划的好问题不用这种括号——一律丢弃。
+	if strings.ContainsAny(q, "「」【】") {
+		return true
+	}
 	// 源数据坏了的信号：模板占位符没填、markdown 链接/转义残渣。整条丢弃。
 	for _, bad := range []string{
 		"学校名称", "项目名称", "录取学校名", "录取公司名", "起一个标题",
@@ -223,9 +228,12 @@ func IsGenericSampleQuestions(questions []string) bool {
 func DisplaySampleQuestions(stored []string, in SampleQuestionInput) []string {
 	cleaned := cleanSampleQuestions(stored)
 	// 人工策划过的示例问题（非空、且不通用/不垃圾）优先展示，哪怕有知识库也不覆盖它。
-	// 这样在 sample_questions 里改好的问题能真正显示出来。
+	// 这样在 sample_questions 里改好的问题能真正显示出来。即便走这条路也过滤掉垃圾/带括号的，
+	// 防止过去刷进库里的模板问题透出。
 	if len(cleaned) > 0 && !NeedsSampleQuestionRefresh(cleaned) {
-		return limitSampleQuestions(cleaned, 4)
+		if good := filterStupidSampleQuestions(cleaned); len(good) > 0 {
+			return limitSampleQuestions(good, 4)
+		}
 	}
 	// 否则（空/通用/垃圾）：有知识库时优先从正文推导，避免旧的半通用问题挡住更新。
 	if len(in.Knowledge) > 0 {
