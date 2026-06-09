@@ -39,7 +39,11 @@ export function cleanLifeAgentIntroText(
   let s = stripParentheticalSegments(String(raw));
   const name = (displayName ?? "").trim();
   if (name.length > 0) {
-    s = s.replace(new RegExp(escapeRegExp(name), "g"), "");
+    // 保留「我是X」「这里是X」「我叫X」等自我介绍里的名字（紧跟在 是/叫 后面的不删），
+    // 只删冗余重复出现的名字，避免把欢迎语「我是鲸鱼ya在跑步。」清成「我是。」。
+    s = s.replace(new RegExp("([是叫])?" + escapeRegExp(name), "g"), (m, lead) =>
+      lead ? m : "",
+    );
   }
   return tidyIntroSeparators(s);
 }
