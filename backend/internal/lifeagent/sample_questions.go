@@ -150,6 +150,18 @@ func isJunkTemplateQuestion(q string) bool {
 	if strings.ContainsAny(q, "「」【】") {
 		return true
 	}
+	// 「关于{校名/专业}有什么建议/经验？」——对实体的呆问法（如「关于北邮有什么建议？」）删掉；
+	// 话题类（如「关于通信工程硕士申请总结有什么经验？」）保留。
+	if strings.HasPrefix(q, "关于") {
+		for _, suf := range []string{"有什么建议？", "有什么经验？"} {
+			if strings.HasSuffix(q, suf) {
+				inner := strings.TrimSuffix(strings.TrimPrefix(q, "关于"), suf)
+				if looksLikeSchool(inner) || looksLikeMajor(inner) {
+					return true
+				}
+			}
+		}
+	}
 	// 源数据坏了的信号：模板占位符没填、markdown 链接/转义残渣。整条丢弃。
 	for _, bad := range []string{
 		"学校名称", "项目名称", "录取学校名", "录取公司名", "起一个标题",
@@ -486,12 +498,8 @@ func questionsFromHeadline(headline string) []string {
 				break
 			}
 		}
-		// 实体（校名/专业）配「怎么样」，话题才用「关于X有什么经验？」——避免「关于北邮有什么经验？」这种呆问法。
-		if eq := entityQuestion(topic); eq != "" {
-			out = append(out, eq)
-		} else {
-			out = append(out, "关于"+topic+"有什么经验？")
-		}
+		// 实体（校名/专业）的「关于X有什么经验？」会被 isJunkTemplateQuestion 过滤掉，这里照常拼即可。
+		out = append(out, "关于"+topic+"有什么经验？")
 		if strings.Contains(topic, "资产") || strings.Contains(topic, "副业") || strings.Contains(topic, "赚钱") {
 			out = append(out, topic+"具体怎么做？")
 		}
@@ -588,21 +596,6 @@ func looksLikeMajor(x string) bool {
 	return false
 }
 
-// entityQuestion：实体类 X（校名/专业）配自然问法，话题/技能类返回空（让调用方用「关于X有什么建议/经验」）。
-func entityQuestion(x string) string {
-	x = strings.TrimSpace(x)
-	if x == "" {
-		return ""
-	}
-	if looksLikeSchool(x) {
-		return x + "怎么样？"
-	}
-	if looksLikeMajor(x) {
-		return x + "就业前景怎么样？"
-	}
-	return ""
-}
-
 func questionsFromTags(tags []string) []string {
 	var out []string
 	for _, tag := range tags {
@@ -612,10 +605,10 @@ func questionsFromTags(tags []string) []string {
 		}
 		if isKnownCompany(tag) {
 			out = append(out, "进"+shortenCompanyName(tag)+"有什么经验？")
-		} else if eq := entityQuestion(tag); eq != "" {
-			// 实体类标签（校名/专业）：用「怎么样/就业前景」，不用「关于X有什么建议？」
-			out = append(out, eq)
-		} else if len([]rune(tag)) <= 14 {
+			continue
+		}
+		// 实体类标签（校名/专业）拼出的「关于X有什么建议？」会被 isJunkTemplateQuestion 过滤掉。
+		if len([]rune(tag)) <= 14 {
 			out = append(out, "关于"+tag+"有什么建议？")
 		}
 		if len(out) >= 2 {
