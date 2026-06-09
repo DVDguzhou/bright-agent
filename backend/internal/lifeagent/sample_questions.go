@@ -150,6 +150,10 @@ func isJunkTemplateQuestion(q string) bool {
 	if strings.ContainsAny(q, "「」【】") {
 		return true
 	}
+	// 「关于X有什么建议？」「关于X有什么经验？」这类：语法通顺但很呆、不像真人会问，丢弃。
+	if strings.HasPrefix(q, "关于") && (strings.HasSuffix(q, "有什么建议？") || strings.HasSuffix(q, "有什么经验？")) {
+		return true
+	}
 	// 源数据坏了的信号：模板占位符没填、markdown 链接/转义残渣。整条丢弃。
 	for _, bad := range []string{
 		"学校名称", "项目名称", "录取学校名", "录取公司名", "起一个标题",
