@@ -201,15 +201,16 @@ func extractListQuestions(content string, max int) []string {
 }
 
 func questionFromListItem(prefix, value string) string {
-	value = truncateRunes(strings.TrimSpace(value), 28)
-	if value == "" {
+	if strings.TrimSpace(value) == "" {
 		return ""
 	}
-	if containsAny(value, "985", "211", "科大", "浙大", "清华", "北大", "复旦", "厦大", "上交", "网安") ||
-		strings.Contains(value, "、") || strings.Contains(value, "，") {
-		return prefix + "可以对应哪些去向？"
+	// 旧逻辑对所有列表项拼「X可以对应哪些去向？」「X具体要注意什么？」，全是垃圾模板。
+	// 改走 questionFromKnowledgeHook：能识别的主题（简历/推荐信/绩点/面试/竞赛/夏令营…）给具体问题，
+	// 识别不了的（默认会拼成「X有什么实战经验？」）判为垃圾并丢弃。
+	if q := questionFromKnowledgeHook(prefix); q != "" && !isJunkTemplateQuestion(q) {
+		return q
 	}
-	return prefix + "具体要注意什么？"
+	return ""
 }
 
 func cleanKnowledgeHook(s string) string {

@@ -133,7 +133,8 @@ func NeedsSampleQuestionRefresh(questions []string) bool {
 }
 
 // isJunkTemplateQuestion 识别自动生成器对抓不准的 hook 拼出来的低质模板问题，
-// 例如「X有什么实战经验？」「X可以对应哪些去向？」「X具体要注意什么？」「关于「标题」能分享什么？」。
+// 例如「X有什么实战经验？」「X可以对应哪些去向？」「X具体要注意什么？」「关于「标题」能分享什么？」，
+// 以及把 markdown 链接残片抓进来的「…](https…」。
 func isJunkTemplateQuestion(q string) bool {
 	q = strings.TrimSpace(q)
 	for _, suf := range []string{"有什么实战经验？", "可以对应哪些去向？", "具体要注意什么？"} {
@@ -142,6 +143,9 @@ func isJunkTemplateQuestion(q string) bool {
 		}
 	}
 	if strings.HasPrefix(q, "关于「") && strings.HasSuffix(q, "」能分享什么？") {
+		return true
+	}
+	if strings.Contains(q, "](http") || strings.Contains(q, "](https") {
 		return true
 	}
 	return false
@@ -166,6 +170,11 @@ func isSemiGenericSampleQuestion(q string) bool {
 
 func isStupidSampleQuestion(q string) bool {
 	if isSemiGenericSampleQuestion(q) {
+		return true
+	}
+	// 自动生成的低质模板（X有什么实战经验？/可以对应哪些去向？/具体要注意什么？/关于「」能分享什么？/含链接残片）
+	// 一律视为垃圾：生成器（filterStupidSampleQuestions）会丢弃它们，展示兜底也会过滤。
+	if isJunkTemplateQuestion(q) {
 		return true
 	}
 	if strings.HasPrefix(q, "关于「") && strings.HasSuffix(q, "」能分享什么？") {
@@ -222,7 +231,8 @@ func DisplaySampleQuestions(stored []string, in SampleQuestionInput) []string {
 	if len(derived) >= 2 {
 		return limitSampleQuestions(derived, 4)
 	}
-	return limitSampleQuestions(cleaned, 4)
+	// 最后兜底也要滤掉垃圾模板：宁可少显示几条，也不让「X有什么实战经验？」「](https」露出来。
+	return limitSampleQuestions(filterStupidSampleQuestions(cleaned), 4)
 }
 
 // DeriveSampleQuestions 根据知识库或档案内容生成个性化示例问题。
