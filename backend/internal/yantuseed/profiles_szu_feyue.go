@@ -3720,7 +3720,7 @@ ps: 可以详细分享你的申请经历，穿插感悟。即使是失败的经�
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		SampleQuestions:   []string{`GPA81怎么申请？`, `文书怎么写？`, `低GPA怎么补背景？`},
 		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `计软`},
 		OriginalAuthor:    `苏政欣`,
 		Source:            `深圳大学飞跃手册`,

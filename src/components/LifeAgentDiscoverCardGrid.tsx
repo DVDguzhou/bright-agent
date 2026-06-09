@@ -77,7 +77,7 @@ function LifeAgentDiscoverCard({
   const coverUrl = resolveLifeAgentCoverDisplayUrl(profile.coverUrl, profile.coverImageUrl, profile.coverPresetKey);
   const headlineShown = cleanLifeAgentIntroText(profile.headline, profile.displayName);
   const sampleQuestionsShown = (profile.sampleQuestions ?? [])
-    .map((q) => q.trim())
+    .map((q) => cleanLifeAgentIntroText(q, profile.displayName))
     .filter(Boolean)
     .slice(0, 2);
   const verified = profile.verificationStatus === "verified";
