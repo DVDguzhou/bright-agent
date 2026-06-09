@@ -2,13 +2,12 @@
 //
 // 解决两类问题：
 //  1. 脱敏把随机昵称注入了正文（如 Time芒果_花卷ord、香港大学MM芒果_花卷ab直博），
-//     以及多出来的空格（如「港中文体验 如何」）—— 用显式「旧→新」逐条修正。
+//     以及多出来的空格 —— 用「按昵称」或「按锚点子串」定位后整段改写（幂等，重复跑安全）。
 //  2. 自动生成的垃圾示例问题（后缀「有什么实战经验？」「可以对应哪些去向？」
 //     「具体要注意什么？」「能分享什么？」以及残缺的「](https…」）—— 用模式批量删除。
 //
 // 作用范围：仅「精选」Agent（featured_rank 或 featured_collection 非空），与 list-featured-copy 一致。
-// 默认 dry-run，只有加 -apply 才写库。每一处改动都会打印；显式「旧值」若一行都没匹配上会告警，
-// 方便你把没生效的条目反馈给我再修。
+// 默认 dry-run，只有加 -apply 才写库。每一处改动都会打印；显式规则若一行都没匹配上会告警。
 package main
 
 import (
@@ -23,39 +22,49 @@ import (
 	"github.com/joho/godotenv"
 )
 
-// ——— 显式字段修正（按字段精确匹配旧值，命中即替换；跨 Agent 生效）———
+// ——— 字段修正：按「昵称」或「锚点子串」定位，整段替换为 newVal（幂等）———
+// byName 优先：display_name 精确等于 byName 即命中。
+// 否则用 anchor：该字段当前值包含 anchor 即命中。
+// 锚点都挑了不含空格的稳定片段，避开终端折行产生的假空格。
 
-var headlineEdits = [][2]string{
-	{`鲸鱼ya吃火锅 · 芒果_花卷a薯条7听播客 考研`, `鲸鱼ya吃火锅`},
+type fieldFix struct {
+	field  string // "headline" | "short_bio" | "welcome_message"
+	byName string
+	anchor string
+	newVal string
 }
 
-var shortBioEdits = [][2]string{
-	{`阿龙先做直播带货和囤货，亏过钱，后来用AI做电商图文带货。他更常聊选品、退货率、流量能力，以及为什么后来转向个人IP。`,
-		`阿龙先做直播带货和囤货，亏过钱，后来用AI做电商图文带货。`},
-	{`大二下才决定出国，前几学期绩点烂掉，靠科研实习把曲线拉回来。讲清楚后期能补什么、补不了什么`,
-		`大二下才决定出国，前几学期绩点烂，但靠科研实习把曲线拉回来。`},
-	{`不死磕一条路，做过HRBP、安永金融咨询、阳狮广告，最后选了Marketing。相信「适合自己的才最好」`,
-		`不死磕一条路，做过HRBP、安永金融咨询、阳狮广告，最后选了Marketing。`},
-	{`深圳大学芒果_花卷a薯条7听播客法学，中国政法大学法学宪法学与行政 法学专业，分享考研经验与备考心得。`,
-		`分享考研经验与备考心得`},
-	{`深圳大学CompSci计软，香港大学MM芒果_花卷ab直博@CS，分享保研经验与备考心得。`,
-		`深圳大学CompSci计软，分享保研经验 与备考心得。`},
-	{`华东理工大学社会与公共管理学院行政管理，山东大学，分享保研经验。`,
-		`华东理工大学社会与公共管理学院行政管理保研山东大学`},
-}
+var fieldFixes = []fieldFix{
+	// —— 标题 ——
+	{field: "headline", byName: "鲸鱼ya吃火锅", newVal: "鲸鱼ya吃火锅"},
 
-var welcomeEdits = [][2]string{
-	{`我是红总。计算机背景，但走的是大厂运营路。你想聊计算机学生转运营、美团实习、校招准备、实习和课程怎么平衡，可以问我。`,
-		`我是红总。计算机背景，但走的是大厂运营。你想聊计算机学生转运营、美团实习、校招准备、实习和课程怎么平衡，可以问我`},
-	{`我是豆奶_红豆。要不要海投、怎么挑自己真想去的项目、港中文体验 如何，都能聊。`,
-		`我是豆奶_红豆。要不要海投、怎么挑自己真想去的项目、港中文体验如何，都能聊。`},
-	{`我是猫头鹰x去爬山。该不该出国、怎么权衡得失、怎么过滤情绪化信 息，都能找我聊。`,
-		`我是猫头鹰x去爬山。该不该出国、怎么权衡得失、怎么过滤情绪化信息，都能找我聊。`},
-	{`你好这里是Time芒果_花卷ord，有什么需要帮忙的吗`,
-		`你好这里是Timelord，有什么需要帮忙的吗`},
+	// —— 简介 ——
+	{field: "short_bio", byName: "用AI做图文带货的阿龙",
+		newVal: "阿龙先做直播带货和囤货，亏过钱，后来用AI做电商图文带货。"},
+	{field: "short_bio", anchor: "大二下才决定出国",
+		newVal: "大二下才决定出国，前几学期绩点烂，但靠科研实习把曲线拉回来。"},
+	{field: "short_bio", anchor: "不死磕一条路",
+		newVal: "不死磕一条路，做过HRBP、安永金融咨询、阳狮广告，最后选了Marketing。"},
+	{field: "short_bio", anchor: "宪法学与行政",
+		newVal: "分享考研经验与备考心得"},
+	{field: "short_bio", byName: "安静的松鼠君",
+		newVal: "深圳大学CompSci计软，分享保研经验 与备考心得。"},
+	{field: "short_bio", byName: "葡萄呀泡咖啡",
+		newVal: "华东理工大学社会与公共管理学院行政管理保研山东大学"},
+
+	// —— 欢迎语 ——
+	{field: "welcome_message", byName: "从计算机转运营的红总",
+		newVal: "我是红总。计算机背景，但走的是大厂运营。你想聊计算机学生转运营、美团实习、校招准备、实习和课程怎么平衡，可以问我"},
+	{field: "welcome_message", byName: "豆奶_红豆",
+		newVal: "我是豆奶_红豆。要不要海投、怎么挑自己真想去的项目、港中文体验如何，都能聊。"},
+	{field: "welcome_message", byName: "猫头鹰x去爬山",
+		newVal: "我是猫头鹰x去爬山。该不该出国、怎么权衡得失、怎么过滤情绪化信息，都能找我聊。"},
+	{field: "welcome_message", byName: "Timelord",
+		newVal: "你好这里是Timelord，有什么需要帮忙的吗"},
 }
 
 // ——— 示例问题：显式「旧→新」（保留并清洗，必须在垃圾过滤之前生效）———
+// 一次性规则：首轮 -apply 已生效；重复跑时旧值已不存在会安静跳过，不影响结果。
 
 var sampleReplaces = [][2]string{
 	{`学长当时的考研的目标院校是明确的还是有所变化有什么实战经验？`, `当时的考研的目标院校是明确的还是有所变化？`},
@@ -104,10 +113,7 @@ func main() {
 	var profiles []models.LifeAgentProfile
 	db.DB.Where("featured_rank IS NOT NULL OR featured_collection IS NOT NULL").Find(&profiles)
 
-	// 统计每条显式规则命中了几行，便于事后告警没生效的条目。
-	hit := map[string]int{}
-	mark := func(old string) { hit[old]++ }
-
+	fixMatched := make([]int, len(fieldFixes)) // 每条 fieldFix 命中了几个 Agent
 	changedProfiles := 0
 	totalSampleRemoved := 0
 
@@ -115,28 +121,35 @@ func main() {
 		p := &profiles[i]
 		updates := map[string]any{}
 
-		if nv, ok := applyFieldEdit(p.Headline, headlineEdits, mark); ok {
-			fmt.Printf("[标题] %s\n  - %s\n  + %s\n", p.DisplayName, p.Headline, nv)
-			updates["headline"] = nv
-		}
-		if nv, ok := applyFieldEdit(p.ShortBio, shortBioEdits, mark); ok {
-			fmt.Printf("[简介] %s\n  - %s\n  + %s\n", p.DisplayName, p.ShortBio, nv)
-			updates["short_bio"] = nv
-		}
-		if nv, ok := applyFieldEdit(p.WelcomeMessage, welcomeEdits, mark); ok {
-			fmt.Printf("[欢迎语] %s\n  - %s\n  + %s\n", p.DisplayName, p.WelcomeMessage, nv)
-			updates["welcome_message"] = nv
+		// 字段修正
+		for fi := range fieldFixes {
+			fx := fieldFixes[fi]
+			cur := fieldValue(p, fx.field)
+			if !fixMatches(p, fx, cur) {
+				continue
+			}
+			fixMatched[fi]++
+			if cur == fx.newVal {
+				continue // 已是目标值，幂等跳过
+			}
+			label := map[string]string{"headline": "标题", "short_bio": "简介", "welcome_message": "欢迎语"}[fx.field]
+			fmt.Printf("[%s] %s\n  - %s\n  + %s\n", label, p.DisplayName, cur, fx.newVal)
+			updates[fx.field] = fx.newVal
 		}
 
+		// 示例问题清洗
 		orig := []string(p.SampleQuestions)
-		cleaned, removed, replaced := cleanSamples(orig, p.DisplayName, mark)
-		if len(removed) > 0 || replaced > 0 {
+		cleaned, removed, _ := cleanSamples(orig, p.DisplayName)
+		if len(removed) > 0 {
 			fmt.Printf("[示例问题] %s  （%d→%d）\n", p.DisplayName, len(orig), len(cleaned))
 			for _, r := range removed {
 				fmt.Printf("    ✗ %s\n", r)
 			}
 			updates["sample_questions"] = models.JSONArray(cleaned)
 			totalSampleRemoved += len(removed)
+		} else if !sameStrings(orig, cleaned) {
+			// 仅顺序内改写（无删除）也要落库
+			updates["sample_questions"] = models.JSONArray(cleaned)
 		}
 
 		if len(updates) == 0 {
@@ -150,12 +163,19 @@ func main() {
 		}
 	}
 
-	// 没命中的显式规则告警（昵称/正文如有差异，这里会暴露出来）。
-	fmt.Println("\n——— 显式规则命中情况 ———")
-	warnUnmatched("标题", headlineEdits, hit)
-	warnUnmatched("简介", shortBioEdits, hit)
-	warnUnmatched("欢迎语", welcomeEdits, hit)
-	warnUnmatched("示例问题改写", sampleReplaces, hit)
+	// 字段修正命中情况：没命中说明昵称/锚点和库里对不上，需要反馈
+	fmt.Println("\n——— 字段修正命中情况 ———")
+	for fi, fx := range fieldFixes {
+		key := fx.byName
+		if key == "" {
+			key = "锚点:" + fx.anchor
+		}
+		if fixMatched[fi] == 0 {
+			fmt.Printf("  ⚠ [%s] 未匹配任何 Agent：%s\n", fx.field, key)
+		} else {
+			fmt.Printf("  ✓ [%s] 命中 %d 个：%s\n", fx.field, fixMatched[fi], key)
+		}
+	}
 
 	fmt.Printf("\n=== 汇总：%d 个 Agent 有改动，删除示例问题 %d 条 ===\n", changedProfiles, totalSampleRemoved)
 	if !*apply {
@@ -165,20 +185,31 @@ func main() {
 	}
 }
 
-// applyFieldEdit 在编辑表里找精确等于 cur 的旧值，命中则返回新值。
-func applyFieldEdit(cur string, edits [][2]string, mark func(string)) (string, bool) {
-	for _, e := range edits {
-		if cur == e[0] {
-			mark(e[0])
-			return e[1], true
-		}
+func fieldValue(p *models.LifeAgentProfile, field string) string {
+	switch field {
+	case "headline":
+		return p.Headline
+	case "short_bio":
+		return p.ShortBio
+	case "welcome_message":
+		return p.WelcomeMessage
 	}
-	return "", false
+	return ""
+}
+
+func fixMatches(p *models.LifeAgentProfile, fx fieldFix, cur string) bool {
+	if fx.byName != "" {
+		return p.DisplayName == fx.byName
+	}
+	if fx.anchor != "" {
+		return strings.Contains(cur, fx.anchor)
+	}
+	return false
 }
 
 // cleanSamples 处理一个 Agent 的示例问题：先按显式表改写，再按昵称删除，
 // 再按垃圾模式删除，最后去重（保留首次出现）。返回清洗后列表、被删项、改写次数。
-func cleanSamples(qs []string, name string, mark func(string)) (out []string, removed []string, replaced int) {
+func cleanSamples(qs []string, name string) (out []string, removed []string, replaced int) {
 	replaceMap := map[string]string{}
 	for _, r := range sampleReplaces {
 		replaceMap[r[0]] = r[1]
@@ -187,7 +218,6 @@ func cleanSamples(qs []string, name string, mark func(string)) (out []string, re
 	for _, q := range qs {
 		cur := q
 		if nv, ok := replaceMap[cur]; ok {
-			mark(cur)
 			cur = nv
 			replaced++
 		}
@@ -195,7 +225,7 @@ func cleanSamples(qs []string, name string, mark func(string)) (out []string, re
 			removed = append(removed, q)
 			continue
 		}
-		if junk, _ := isJunk(cur); junk {
+		if isJunk(cur) {
 			removed = append(removed, q)
 			continue
 		}
@@ -218,21 +248,23 @@ func isScopedDeleted(name, q string) bool {
 	return false
 }
 
-func isJunk(q string) (bool, string) {
+func isJunk(q string) bool {
 	for _, sub := range junkSubstrings {
 		if strings.Contains(q, sub) {
-			return true, sub
+			return true
 		}
 	}
-	return false, ""
+	return false
 }
 
-func warnUnmatched(label string, edits [][2]string, hit map[string]int) {
-	for _, e := range edits {
-		if hit[e[0]] == 0 {
-			fmt.Printf("  ⚠ [%s] 未匹配任何行：%q\n", label, e[0])
-		} else {
-			fmt.Printf("  ✓ [%s] 命中 %d 行：%.30s…\n", label, hit[e[0]], e[1])
+func sameStrings(a, b []string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i] != b[i] {
+			return false
 		}
 	}
+	return true
 }
