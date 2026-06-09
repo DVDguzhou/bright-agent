@@ -243,9 +243,8 @@
 .creator-bio {
   display: block;
   margin-top: 6rpx;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: break-word;
   font-size: 24rpx;
 }
 

@@ -198,7 +198,10 @@ export default function LifeAgentDetailPage() {
   }
 
   const ci = cleanedIntro!;
-  const areaText = [profile.country, profile.province, profile.city, profile.county].filter(Boolean).join(" · ");
+  const areaText = [profile.country, profile.province, profile.city, profile.county]
+    .filter(Boolean)
+    .filter((seg, i, arr) => i === 0 || arr[i - 1] !== seg) // 去掉相邻重复段（直辖市省=市，如「北京 · 北京」）
+    .join(" · ");
   const isShortTag = (s?: string | null): s is string => {
     const v = (s ?? "").trim();
     if (!v) return false;

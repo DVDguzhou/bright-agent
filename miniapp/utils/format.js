@@ -69,12 +69,21 @@ function formatFreshDays(days) {
   return `${days}天前`;
 }
 
+// dedupeAdjacent：去掉相邻重复段（直辖市省=市，如「北京 · 北京」→「北京」）。
+function dedupeAdjacent(parts) {
+  var out = [];
+  for (var i = 0; i < parts.length; i++) {
+    if (out.length === 0 || out[out.length - 1] !== parts[i]) out.push(parts[i]);
+  }
+  return out;
+}
+
 function buildAreaLabel(city, province) {
-  return [city, province].filter(Boolean).join(" · ");
+  return dedupeAdjacent([city, province].filter(Boolean)).join(" · ");
 }
 
 function buildFullArea(country, province, city, county) {
-  return [country, province, city, county].filter(Boolean).join(" · ");
+  return dedupeAdjacent([country, province, city, county].filter(Boolean)).join(" · ");
 }
 
 function ratingStars(score) {
