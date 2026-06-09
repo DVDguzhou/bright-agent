@@ -145,8 +145,14 @@ func isJunkTemplateQuestion(q string) bool {
 	if strings.HasPrefix(q, "关于「") && strings.HasSuffix(q, "」能分享什么？") {
 		return true
 	}
-	if strings.Contains(q, "](http") || strings.Contains(q, "](https") {
-		return true
+	// 源数据坏了的信号：模板占位符没填、markdown 链接/转义残渣。整条丢弃。
+	for _, bad := range []string{
+		"学校名称", "项目名称", "录取学校名", "录取公司名", "起一个标题",
+		"](", "\\[", "\\]",
+	} {
+		if strings.Contains(q, bad) {
+			return true
+		}
 	}
 	return false
 }
