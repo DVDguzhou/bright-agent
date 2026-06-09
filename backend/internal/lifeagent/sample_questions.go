@@ -571,7 +571,8 @@ func looksLikeSchool(x string) bool {
 func looksLikeMajor(x string) bool {
 	x = strings.TrimSpace(x)
 	r := []rune(x)
-	if len(r) < 2 || len(r) > 12 {
+	// 专业名一般较短（≤8 字）；超过的多是「通信工程硕士申请总结」这类话题短语，不算专业。
+	if len(r) < 2 || len(r) > 8 {
 		return false
 	}
 	for _, suf := range []string{"工程", "技术", "科学", "专业", "医学", "法学", "经济学", "管理学", "传播学", "设计学", "学院", "系"} {
