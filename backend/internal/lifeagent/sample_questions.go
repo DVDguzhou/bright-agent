@@ -125,11 +125,26 @@ func NeedsSampleQuestionRefresh(questions []string) bool {
 	genericCount := 0
 	for _, q := range questions {
 		q = strings.TrimSpace(q)
-		if genericSampleQuestions[q] || isSemiGenericSampleQuestion(q) || isStupidSampleQuestion(q) {
+		if genericSampleQuestions[q] || isSemiGenericSampleQuestion(q) || isStupidSampleQuestion(q) || isJunkTemplateQuestion(q) {
 			genericCount++
 		}
 	}
 	return genericCount >= 2
+}
+
+// isJunkTemplateQuestion 识别自动生成器对抓不准的 hook 拼出来的低质模板问题，
+// 例如「X有什么实战经验？」「X可以对应哪些去向？」「X具体要注意什么？」「关于「标题」能分享什么？」。
+func isJunkTemplateQuestion(q string) bool {
+	q = strings.TrimSpace(q)
+	for _, suf := range []string{"有什么实战经验？", "可以对应哪些去向？", "具体要注意什么？"} {
+		if strings.HasSuffix(q, suf) {
+			return true
+		}
+	}
+	if strings.HasPrefix(q, "关于「") && strings.HasSuffix(q, "」能分享什么？") {
+		return true
+	}
+	return false
 }
 
 // isSemiGenericSampleQuestion 识别「关于「保研」能分享什么？」类半通用展示问题。
@@ -191,15 +206,17 @@ func IsGenericSampleQuestions(questions []string) bool {
 
 // DisplaySampleQuestions 返回用于发现页/详情页展示的示例问题。
 func DisplaySampleQuestions(stored []string, in SampleQuestionInput) []string {
-	// 有知识库时始终优先从正文推导，避免 DB 里半通用旧问题挡住更新。
+	cleaned := cleanSampleQuestions(stored)
+	// 人工策划过的示例问题（非空、且不通用/不垃圾）优先展示，哪怕有知识库也不覆盖它。
+	// 这样在 sample_questions 里改好的问题能真正显示出来。
+	if len(cleaned) > 0 && !NeedsSampleQuestionRefresh(cleaned) {
+		return limitSampleQuestions(cleaned, 4)
+	}
+	// 否则（空/通用/垃圾）：有知识库时优先从正文推导，避免旧的半通用问题挡住更新。
 	if len(in.Knowledge) > 0 {
 		if derived := DeriveSampleQuestions(in); len(derived) >= 2 {
 			return limitSampleQuestions(derived, 4)
 		}
-	}
-	cleaned := cleanSampleQuestions(stored)
-	if !NeedsSampleQuestionRefresh(cleaned) {
-		return limitSampleQuestions(cleaned, 4)
 	}
 	derived := DeriveSampleQuestions(in)
 	if len(derived) >= 2 {
