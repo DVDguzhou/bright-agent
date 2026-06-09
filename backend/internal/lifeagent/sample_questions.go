@@ -150,10 +150,6 @@ func isJunkTemplateQuestion(q string) bool {
 	if strings.ContainsAny(q, "「」【】") {
 		return true
 	}
-	// 「关于X有什么建议？」「关于X有什么经验？」这类：语法通顺但很呆、不像真人会问，丢弃。
-	if strings.HasPrefix(q, "关于") && (strings.HasSuffix(q, "有什么建议？") || strings.HasSuffix(q, "有什么经验？")) {
-		return true
-	}
 	// 源数据坏了的信号：模板占位符没填、markdown 链接/转义残渣。整条丢弃。
 	for _, bad := range []string{
 		"学校名称", "项目名称", "录取学校名", "录取公司名", "起一个标题",
@@ -490,7 +486,12 @@ func questionsFromHeadline(headline string) []string {
 				break
 			}
 		}
-		out = append(out, "关于"+topic+"有什么经验？")
+		// 实体（校名/专业）配「怎么样」，话题才用「关于X有什么经验？」——避免「关于北邮有什么经验？」这种呆问法。
+		if eq := entityQuestion(topic); eq != "" {
+			out = append(out, eq)
+		} else {
+			out = append(out, "关于"+topic+"有什么经验？")
+		}
 		if strings.Contains(topic, "资产") || strings.Contains(topic, "副业") || strings.Contains(topic, "赚钱") {
 			out = append(out, topic+"具体怎么做？")
 		}
@@ -536,6 +537,71 @@ func questionsFromHeadline(headline string) []string {
 	return uniqueSampleQuestions(out)
 }
 
+// schoolAbbrevs：常见高校简称（全名由 looksLikeSchool 的后缀判断覆盖，这里补简称）。
+var schoolAbbrevs = map[string]bool{
+	"北大": true, "清华": true, "人大": true, "北航": true, "北理工": true, "北邮": true, "北师大": true,
+	"北科大": true, "北交大": true, "复旦": true, "上交": true, "交大": true, "同济": true, "上财": true,
+	"华师大": true, "华东师大": true, "上外": true, "浙大": true, "南大": true, "东南": true, "南航": true,
+	"南理工": true, "苏大": true, "中科大": true, "科大": true, "合工大": true, "武大": true, "华科": true,
+	"华中大": true, "中南": true, "湖大": true, "中大": true, "华工": true, "暨大": true, "深大": true,
+	"华南理工": true, "川大": true, "电子科大": true, "重大": true, "西交": true, "西安交大": true, "哈工大": true,
+	"大工": true, "吉大": true, "山大": true, "厦大": true, "天大": true, "南开": true, "西工大": true,
+	"西电": true, "西北工大": true, "中财": true, "贸大": true, "央财": true, "中传": true, "国科大": true,
+	"港大": true, "港中文": true, "港科大": true, "港理工": true, "港城大": true,
+}
+
+// looksLikeSchool 判断 X 是否是学校（全名后缀 或 常见简称）。
+func looksLikeSchool(x string) bool {
+	x = strings.TrimSpace(x)
+	if x == "" {
+		return false
+	}
+	if isSchoolNameHook(x) { // 后缀 大学/学院/University/College
+		return true
+	}
+	for _, suf := range []string{"大學", "學院", "中学", "高中", "职业技术学院"} {
+		if strings.HasSuffix(x, suf) {
+			return true
+		}
+	}
+	return schoolAbbrevs[x]
+}
+
+// looksLikeMajor 判断 X 是否是专业/院系（按后缀与常见专业词，长度受限避免误伤长句）。
+func looksLikeMajor(x string) bool {
+	x = strings.TrimSpace(x)
+	r := []rune(x)
+	if len(r) < 2 || len(r) > 12 {
+		return false
+	}
+	for _, suf := range []string{"工程", "技术", "科学", "专业", "医学", "法学", "经济学", "管理学", "传播学", "设计学", "学院", "系"} {
+		if strings.HasSuffix(x, suf) {
+			return true
+		}
+	}
+	for _, kw := range []string{"通信", "电子信息", "计算机", "软件", "机械", "材料", "自动化", "新媒体", "新闻", "金融", "会计", "土木", "化工", "生物医学"} {
+		if strings.Contains(x, kw) {
+			return true
+		}
+	}
+	return false
+}
+
+// entityQuestion：实体类 X（校名/专业）配自然问法，话题/技能类返回空（让调用方用「关于X有什么建议/经验」）。
+func entityQuestion(x string) string {
+	x = strings.TrimSpace(x)
+	if x == "" {
+		return ""
+	}
+	if looksLikeSchool(x) {
+		return x + "怎么样？"
+	}
+	if looksLikeMajor(x) {
+		return x + "就业前景怎么样？"
+	}
+	return ""
+}
+
 func questionsFromTags(tags []string) []string {
 	var out []string
 	for _, tag := range tags {
@@ -545,9 +611,10 @@ func questionsFromTags(tags []string) []string {
 		}
 		if isKnownCompany(tag) {
 			out = append(out, "进"+shortenCompanyName(tag)+"有什么经验？")
-			continue
-		}
-		if len([]rune(tag)) <= 14 {
+		} else if eq := entityQuestion(tag); eq != "" {
+			// 实体类标签（校名/专业）：用「怎么样/就业前景」，不用「关于X有什么建议？」
+			out = append(out, eq)
+		} else if len([]rune(tag)) <= 14 {
 			out = append(out, "关于"+tag+"有什么建议？")
 		}
 		if len(out) >= 2 {
