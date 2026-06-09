@@ -311,6 +311,7 @@ var (
 	narrativeExplicitRe = regexp.MustCompile(`^##\s+\d+\.\s+标题[：:]\s*(.+)$`)
 	narrativePipeRe     = regexp.MustCompile(`^##\s+\d{1,2}｜\s*(.+)$`)
 	narrativeBareNumRe  = regexp.MustCompile(`^##\s+\d{1,2}\s*$`)
+	narrativeNumberedRe = regexp.MustCompile(`^##\s+\d+\.\s+(.+)$`)
 	subHeadingTitleRe   = regexp.MustCompile(`^###\s+标题[：:]\s*(.+)$`)
 	kbReadyEntryRe      = regexp.MustCompile(`^####\s+(.+)$`)
 )
@@ -318,7 +319,8 @@ var (
 func hasNarrativeMode(lines []string) bool {
 	for _, ln := range lines {
 		s := strings.TrimSpace(ln)
-		if narrativeExplicitRe.MatchString(s) || narrativePipeRe.MatchString(s) || narrativeBareNumRe.MatchString(s) {
+		if narrativeExplicitRe.MatchString(s) || narrativePipeRe.MatchString(s) ||
+			narrativeBareNumRe.MatchString(s) || narrativeNumberedRe.MatchString(s) {
 			return true
 		}
 	}
@@ -339,7 +341,8 @@ func titleFromSubheading(buf []string) string {
 //   - ## 1. 标题：叙事小节名
 //   - ## 01｜叙事小节名
 //   - ## 01 + ### 标题：…
-//   - #### 知识库入库版条目（kb-ready 拆分文件）
+//   - ## N. 问答标题（kb-ready 完整清洗版）
+//   - #### 知识库入库版条目（kb-ready 精简版）
 //
 // 若文件含编号叙事条目，则只导入这些条目，跳过 Agent 元信息/背景等原始块。
 // 自动剔除：归属线、虚构标注、事实/虚构说明、批次小结等非正文块。
@@ -409,6 +412,7 @@ func isRawExtractHeading(rest string) bool {
 		"申请流程", "申请结果", "申请心得", "准备工作", "实习机会",
 		"就读体验", "经历分享&总结", "经历分享", "联系方式",
 		"所获荣誉", "明确方向，经验分享", "留学新篇章",
+		"行为模式初判", "入库规则", "入库清洗规则",
 		"01 基本背景", "02 申请时间线", "03 准备工作", "04 实习机会", "05 就读体验",
 		"去哪里", "语言考试", "申请", "就业", "总结":
 		return true
@@ -432,6 +436,9 @@ func headingTitle(line string, narrativeOnly bool) (string, bool) {
 	if m := narrativeExplicitRe.FindStringSubmatch(s); len(m) == 2 {
 		return strings.TrimSpace(m[1]), true
 	}
+	if m := narrativeNumberedRe.FindStringSubmatch(s); len(m) == 2 {
+		return strings.TrimSpace(m[1]), true
+	}
 	if m := narrativePipeRe.FindStringSubmatch(s); len(m) == 2 {
 		return strings.TrimSpace(m[1]), true
 	}
@@ -446,7 +453,7 @@ func headingTitle(line string, narrativeOnly bool) (string, bool) {
 		return "", false
 	}
 	// 跳过批次小结等非条目标题
-	if strings.HasPrefix(rest, "当前进度") || rest == "入库规则" {
+	if strings.HasPrefix(rest, "当前进度") || rest == "入库规则" || rest == "入库清洗规则" || rest == "行为模式初判" {
 		return "", false
 	}
 	return rest, true
