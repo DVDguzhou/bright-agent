@@ -37,12 +37,13 @@ type fieldFix struct {
 var fieldFixes = []fieldFix{
 	// —— 标题 ——
 	{field: "headline", byName: "鲸鱼ya吃火锅", newVal: "鲸鱼ya吃火锅"},
+	// 爱丁堡HPC 去重：保留慵懒的锦鲤7，把它的标题/简介换成新版（海星_麻薯 已移出 jingpin）
+	{field: "headline", byName: "慵懒的锦鲤7", newVal: "深大计软→爱丁堡 HPC， 低gpa"},
 
 	// —— 简介 ——
 	{field: "short_bio", byName: "用AI做图文带货的阿龙",
 		newVal: "阿龙先做直播带货和囤货，亏过钱，后来用AI做电商图文带货。"},
-	{field: "short_bio", anchor: "大二下才决定出国",
-		newVal: "大二下才决定出国，前几学期绩点烂，但靠科研实习把曲线拉回来。"},
+	{field: "short_bio", byName: "慵懒的锦鲤7", newVal: "低gpa怎么翻盘"},
 	{field: "short_bio", anchor: "不死磕一条路",
 		newVal: "不死磕一条路，做过HRBP、安永金融咨询、阳狮广告，最后选了Marketing。"},
 	{field: "short_bio", anchor: "宪法学与行政",
