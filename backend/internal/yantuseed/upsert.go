@@ -162,6 +162,9 @@ func sampleQuestionsFor(p Profile) models.JSONArray {
 	if title == "" {
 		headline = p.DisplayName + " · 考研经验分享"
 	}
+	if strings.TrimSpace(p.Headline) != "" {
+		headline = strings.TrimSpace(p.Headline)
+	}
 	tags := expertiseTagsFor(p)
 	knowledge := []lifeagent.KnowledgeSnippet{}
 	if body := strings.TrimSpace(p.KnowledgeBody); body != "" {

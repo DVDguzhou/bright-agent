@@ -18,6 +18,7 @@ type Profile struct {
 
 	// ---- 以下字段为可选覆盖，为空则沿用默认值 ----
 
+	Headline          string   // 非空时替代自动生成的 headline
 	ShortBio          string   // 非空时替代自动生成的 shortBio
 	Audience          string   // 非空时替代默认 Audience
 	WelcomeMessage    string   // 非空时替代默认 WelcomeMessage

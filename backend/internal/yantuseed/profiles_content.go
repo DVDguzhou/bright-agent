@@ -1,13 +1,15 @@
 package yantuseed
 
 var yaoShengJie = Profile{
-	DisplayName:  "凌晨四点半",
+	DisplayName:    "凌晨四点半",
 	OriginalAuthor: "姚圣杰",
-	School:       "杭州电子科技大学",
-	MajorLine:    "计算机技术",
-	ScoreLine:    "总分314",
-	ArticleTitle: "研途榜样⑤ | 笔耕有涯，梦想无疆",
-	Source: `研途榜样公众号`,
+	School:         "杭州电子科技大学",
+	MajorLine:      "计算机技术",
+	ScoreLine:      "总分314",
+	ArticleTitle:   "研途榜样⑤ | 笔耕有涯，梦想无疆",
+	Headline:       "杭电计算机 · 408上岸",
+	ShortBio:       "上岸后和理想有什么差别",
+	Source:         `研途榜样公众号`,
 	KnowledgeBody: `考研专业：计算机技术
 报考院校：杭州电子科技大学
 考研成绩：总分314
@@ -24,11 +26,11 @@ var yaoShengJie = Profile{
 }
 
 var zhangGuiShuo = Profile{
-	DisplayName:  "Leo_真的不熬夜",
+	DisplayName:    "Leo_真的不熬夜",
 	OriginalAuthor: "张桂烁",
-	School:       "华东师范大学",
-	ArticleTitle: "研途榜样③ | 凝思知其所向，笃行方至其远",
-	Source: `研途榜样公众号`,
+	School:         "华东师范大学",
+	ArticleTitle:   "研途榜样③ | 凝思知其所向，笃行方至其远",
+	Source:         `研途榜样公众号`,
 	KnowledgeBody: `#01
 
 考研历程与择校准备
@@ -113,13 +115,13 @@ var zhangGuiShuo = Profile{
 }
 
 var yangChenYang = Profile{
-	DisplayName:  "🍊橙子味的周二",
+	DisplayName:    "🍊橙子味的周二",
 	OriginalAuthor: "杨晨阳",
-	School:       "中国矿业大学",
-	ScoreLine:    "总分350",
-	MajorLine:    "大数据",
-	ArticleTitle: "研途榜样② | 研途备考凝力，榜样传经上岸",
-	Source: `研途榜样公众号`,
+	School:         "中国矿业大学",
+	ScoreLine:      "总分350",
+	MajorLine:      "大数据",
+	ArticleTitle:   "研途榜样② | 研途备考凝力，榜样传经上岸",
+	Source:         `研途榜样公众号`,
 	KnowledgeBody: `考研学校：中国矿业大学
 总分：350
 

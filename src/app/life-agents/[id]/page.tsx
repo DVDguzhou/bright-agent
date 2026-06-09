@@ -302,8 +302,21 @@ export default function LifeAgentDetailPage() {
         {/* --- 创作者信息 --- */}
         <div className="-mx-4 px-4 py-4 sm:-mx-6 sm:px-6">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-ink text-base font-bold text-paper">
-              {(profile.displayName ?? "?").slice(0, 1)}
+            <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full bg-paper-200 ring-1 ring-hairline">
+              {heroCoverUrl ? (
+                <LifeAgentCoverImage
+                  src={heroCoverUrl}
+                  alt={profile.displayName}
+                  fill
+                  compact
+                  className="object-cover object-center"
+                  sizes="44px"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center bg-ink text-base font-bold text-paper">
+                  {(profile.displayName ?? "?").slice(0, 1)}
+                </div>
+              )}
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5">
@@ -414,14 +427,6 @@ export default function LifeAgentDetailPage() {
             </ul>
           </div>
         )}
-
-        {/* --- 欢迎语 --- */}
-        <div className="-mx-4 px-4 py-4 sm:-mx-6 sm:px-6">
-          <h2 className="text-sm font-semibold text-ink">开场欢迎语</h2>
-          <p className="mt-2 font-serif text-sm italic leading-7 text-ink-500 [text-wrap:pretty]">
-            {ci.welcomeMessage}
-          </p>
-        </div>
 
         {/* --- 评价 --- */}
         <div className="-mx-4 px-4 py-4 sm:-mx-6 sm:px-6">

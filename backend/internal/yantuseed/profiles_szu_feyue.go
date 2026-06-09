@@ -3,10 +3,10 @@ package yantuseed
 const szuFeyueLongBioPrefix = `本文来自深圳大学飞跃手册，著作权属原作者；以下为升学深造/就业经验，仅供参考。`
 
 const (
-	szuFeyueAudience       = `正在准备保研、考研、留学或就业的同学，尤其是双非/双一流院校背景。`
-	szuFeyueEducation      = `硕士/博士研究生（已录取或就读）`
-	szuFeyueMajorLabel     = `专业方向`
-	szuFeyueKnowledgeCat   = `升学就业经验`
+	szuFeyueAudience     = `正在准备保研、考研、留学或就业的同学，尤其是双非/双一流院校背景。`
+	szuFeyueEducation    = `硕士/博士研究生（已录取或就读）`
+	szuFeyueMajorLabel   = `专业方向`
+	szuFeyueKnowledgeCat = `升学就业经验`
 )
 
 var szuFeyueKnowledgeTags = []string{"保研", "考研", "留学", "就业", "深圳大学"}
@@ -25,10 +25,10 @@ var szuFeyueProfiles = []Profile{
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `计软`},
-		OriginalAuthor: `许宏浩`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `计软`},
+		OriginalAuthor:    `许宏浩`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 芋圆_梨子 - 深大VCC优青组@CS<br>2023届，计软，软件工程(腾班)
 
 ## 背景
@@ -98,10 +98,10 @@ var szuFeyueProfiles = []Profile{
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `计软`},
-		OriginalAuthor: `ywh`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `计软`},
+		OriginalAuthor:    `ywh`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# ywh - 厦大MAC实验室@CS<br>2023届, 计软,
 > 加油，适合自己的才是最好的。<br>
 
@@ -142,10 +142,10 @@ var szuFeyueProfiles = []Profile{
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `计软`},
-		OriginalAuthor: `曹弈轩`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `计软`},
+		OriginalAuthor:    `曹弈轩`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 月饼练瑜伽 - 深大@CS<br>2023届, 计软, 计算机科学与技术
 > 想送给学弟学妹的一句话：**多交朋友，少碰感情。**
 
@@ -212,10 +212,10 @@ var szuFeyueProfiles = []Profile{
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `计软`},
-		OriginalAuthor: `汪贝琪`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `计软`},
+		OriginalAuthor:    `汪贝琪`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 酸奶搬砖中 - 华科CS<br>2024届, 计软, 软件工程(腾班)
 
 ## 背景
@@ -320,10 +320,10 @@ var szuFeyueProfiles = []Profile{
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `计软`},
-		OriginalAuthor: `陈耿`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `计软`},
+		OriginalAuthor:    `陈耿`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 花卷打工中 - 北邮@CS<br>2024届, 计软, 计算机科学与技术
 
 ## 背景
@@ -411,10 +411,10 @@ ps ：**弱com** 包括但不限于清北深、北邮、成电、南开、中科
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `计算机`},
-		OriginalAuthor: `梁霈柔`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `计算机`},
+		OriginalAuthor:    `梁霈柔`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 飞翔的椰果oo - 中国科学技术大学<br>2024届, 计算机与软件学院, 软件工程（腾班）
 > 想送给学弟学妹的一句话: 勇气是打开新世界的大门<br>
 
@@ -596,10 +596,10 @@ ps ：**弱com** 包括但不限于清北深、北邮、成电、南开、中科
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `计软`},
-		OriginalAuthor: `刘涛`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `计软`},
+		OriginalAuthor:    `刘涛`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 猫头鹰遛弯了 - 南开大学媒体计算实验室<br>2020届, 计软, 计算机科学与技术专业
 > 套磁很重要<br>
 
@@ -663,10 +663,10 @@ ps ：**弱com** 包括但不限于清北深、北邮、成电、南开、中科
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`},
-		OriginalAuthor: `郭奕彤`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`},
+		OriginalAuthor:    `郭奕彤`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 海星在发呆 - 清华@药学<br>2024届, 医学部, 药学
 > 路在前方，向前看<br>
 
@@ -733,10 +733,10 @@ ps ：**弱com** 包括但不限于清北深、北邮、成电、南开、中科
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `数学`},
-		OriginalAuthor: `洪钊彦`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `数学`},
+		OriginalAuthor:    `洪钊彦`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 奔跑的兔兔ya - 人大信院PhD@CS<br>2020届, 数院, 统计
 > 早开始，多投递，人生处处是惊喜<br>
 
@@ -842,10 +842,10 @@ ppt自我介绍（5分钟）+问题抽答（1个英文翻译+1个探讨题+3个4
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `计软`},
-		OriginalAuthor: `苏梓瀚`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `计软`},
+		OriginalAuthor:    `苏梓瀚`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 机灵的华夫饼酱 - 清华深圳@CS<br>2024届, 计软, 软件工程(腾班)
 >花100%的精力在自己能控制的事情上，不在自己不能控制的事情上浪费精力。<br>
 
@@ -935,10 +935,10 @@ ppt自我介绍（5分钟）+问题抽答（1个英文翻译+1个探讨题+3个4
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `物理`},
-		OriginalAuthor: `蒋畅之`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `物理`},
+		OriginalAuthor:    `蒋畅之`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 章鱼写代码 - 中科院PhD@Astro<br>21届，高等研究院，物理学
 >我自风情万种<br>
 
@@ -1035,10 +1035,10 @@ GPA:<br>
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `计软`},
-		OriginalAuthor: `张豪杰`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `计软`},
+		OriginalAuthor:    `张豪杰`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 拉面整理笔记 - 深大直博@CS<br>2025届, 计软, 计算机科学与技术
 >Fear comes from giving in.<br>
 
@@ -1097,10 +1097,10 @@ GPA:<br>
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `计软`},
-		OriginalAuthor: `钟昊天`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `计软`},
+		OriginalAuthor:    `钟昊天`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 沉默的桃子_0 - 浙大PhD@CS<br>2025届, 计软, 软件工程(腾班)
 > 志之所趋，无远弗届。<br>
 
@@ -1166,10 +1166,10 @@ GPA:<br>
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `电子`},
-		OriginalAuthor: `陈家豪`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `电子`},
+		OriginalAuthor:    `陈家豪`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 苹果吖看星星 - 北大深圳@IC<br>21届, 电信, 电子信息工程
 
 ## 背景
@@ -1226,10 +1226,10 @@ PS: 前面几个top都投了，就北深进了，后面有一些保底的，北�
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `数学`},
-		OriginalAuthor: `李林一`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `数学`},
+		OriginalAuthor:    `李林一`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 阳光的果冻哈 - 南开程明明组@CS<br>2025届, 高研, 数学
 
 ## 背景
@@ -1286,10 +1286,10 @@ cmm组完全没有学历歧视，只要发了邮件基本都给考核机会。�
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `数学`},
-		OriginalAuthor: `王淇`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `数学`},
+		OriginalAuthor:    `王淇`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 樱桃_0的碎碎念 - 南科大@Math<br>2025届, 高研, 数学与应用数学
 > 摈弃学生思维，减少不必焦虑<br>
 
@@ -1355,10 +1355,10 @@ cmm组完全没有学历歧视，只要发了邮件基本都给考核机会。�
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `物理`},
-		OriginalAuthor: `李深艺`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `物理`},
+		OriginalAuthor:    `李深艺`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 蔓越莓7打篮球 – 北大PhD@Matl<br>2025届,高等研究院,物理学
 
 > 放眼未来，不要迷失在过去<br>
@@ -1437,10 +1437,10 @@ cmm组完全没有学历歧视，只要发了邮件基本都给考核机会。�
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `计软`},
-		OriginalAuthor: `陈天行`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `计软`},
+		OriginalAuthor:    `陈天行`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 安静的松鼠君 - 香港大学MMLab直博@CS<br>2025届, 计软, 计算机科学技术(卓越班)
 > [](https://hits.seeyoufarm.com) 主页: <a href="https://tianxingchen.github.io">https://tianxingchen.github.io</a><br>
 
@@ -1559,10 +1559,10 @@ cmm组完全没有学历歧视，只要发了邮件基本都给考核机会。�
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `计软`},
-		OriginalAuthor: `陈婉纯`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `计软`},
+		OriginalAuthor:    `陈婉纯`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `> 格式会有专人调整，各位只需要填写内容即可
 
 # 自在的橙子呀 - 华南理工PhD@CS<br>2025届, 计软, 软件工程
@@ -1632,10 +1632,10 @@ ps:
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `机电`},
-		OriginalAuthor: `陈潇泳`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `机电`},
+		OriginalAuthor:    `陈潇泳`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 奶茶_杨梅 - 北理工@CS<br>2025届, 机电, 自动化
 ## 背景
 **GPA:**<br>
@@ -1749,10 +1749,10 @@ ps:
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `计软`},
-		OriginalAuthor: `朱宇飞`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `计软`},
+		OriginalAuthor:    `朱宇飞`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 牛轧糖在赶DDL - 上科大@CS<br>2025届, 计软, 软件工程(腾班)
 > 慢慢来！会有好消息的...<br>
 
@@ -1833,10 +1833,10 @@ ps:
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `计软`},
-		OriginalAuthor: `Mia`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `计软`},
+		OriginalAuthor:    `Mia`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# Mia - 东南@CS<br>2025届, 计软, 软件工程（腾班）
 
 ## 背景
@@ -1926,10 +1926,10 @@ ps: 可以详细分享你的申请经历，穿插感悟。即使是失败的经�
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `计软`},
-		OriginalAuthor: `陈镇熙`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `计软`},
+		OriginalAuthor:    `陈镇熙`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 拿铁要毕业了 - 中大@CS<br>2025届, 计软, 专业软件工程腾班
 > 万里行舟，业精于勤<br>
 
@@ -2011,10 +2011,10 @@ ps: 可以详细分享你的申请经历，穿插感悟。即使是失败的经�
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `计软`},
-		OriginalAuthor: `宋宗硕`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `计软`},
+		OriginalAuthor:    `宋宗硕`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 樱桃遛弯了 - 成电@CS<br>2021届, 计软, 计算机科学与技术（高性能特色班）
 > 相信自己，没必要太焦虑。<br>
 
@@ -2079,10 +2079,10 @@ ps: 可以详细分享你的申请经历，穿插感悟。即使是失败的经�
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `生物`},
-		OriginalAuthor: `吴骏`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `生物`},
+		OriginalAuthor:    `吴骏`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 快乐的豆腐z - 中科院细胞生物学<br>2025届, 高等研究院, 生物科学
 >想送给学弟学妹的一句话: 严于律己，宽以待人，天天开心 <br>
 
@@ -2164,10 +2164,10 @@ ps: 可以详细分享你的申请经历，穿插感悟。即使是失败的经�
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `光电`},
-		OriginalAuthor: `许若伦`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `光电`},
+		OriginalAuthor:    `许若伦`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 桂花酱吹口琴 - 北理 青椒组PhD@ICE<br>2026届, 物光, 光电信息科学与工程
 >千里马常有而伯乐不常有，愿各位都能遇到属于自己的伯乐<br>
 
@@ -2251,10 +2251,10 @@ ps: 可以详细分享你的申请经历，穿插感悟。即使是失败的经�
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`},
-		OriginalAuthor: `许厚德`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`},
+		OriginalAuthor:    `许厚德`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 薄荷吃火锅 - 中央音乐学院作曲专业<br>2023届, 艺术学部, 音乐表演（时尚音乐编创方向）
 
 ## 1. 请学长做个简单的自我介绍。
@@ -2345,10 +2345,10 @@ ps: 可以详细分享你的申请经历，穿插感悟。即使是失败的经�
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `化学`},
-		OriginalAuthor: `陈雨荷`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `化学`},
+		OriginalAuthor:    `陈雨荷`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 迷路的蜻蜓9 - 清华大学环境工程专业<br>2023届, 化学与环境工程学院, 环境工程
 
 ## 1. 请学姐做个简单的自我介绍。
@@ -2430,10 +2430,10 @@ ps: 可以详细分享你的申请经历，穿插感悟。即使是失败的经�
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `计软`},
-		OriginalAuthor: `颜治强`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `计软`},
+		OriginalAuthor:    `颜治强`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 认真的荔枝7 - 哈工深@CS<br>2024届，计软，软件工程（腾班）
 
 > 给学弟学妹一句话：考研的本质就是考心态
@@ -2492,10 +2492,10 @@ ps: 可以详细分享你的申请经历，穿插感悟。即使是失败的经�
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `电子`},
-		OriginalAuthor: `王知超`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `电子`},
+		OriginalAuthor:    `王知超`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 红薯_0写代码 - 上海交通大学电子与信息工程专业<br>2023届, 电子与信息工程学院, 电子信息工程
 
 ## 1. 请学长做个简单的自我介绍。
@@ -2583,10 +2583,10 @@ ps: 可以详细分享你的申请经历，穿插感悟。即使是失败的经�
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `法学`},
-		OriginalAuthor: `蔡依晴`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `法学`},
+		OriginalAuthor:    `蔡依晴`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 迷路的可可小号 - 武汉大学民商法专业<br>2023届, 法学院, 法学
 
 ## 1. 请学姐做个简单的自我介绍。
@@ -2672,10 +2672,10 @@ ps: 可以详细分享你的申请经历，穿插感悟。即使是失败的经�
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `法学`},
-		OriginalAuthor: `陈宇珺`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `法学`},
+		OriginalAuthor:    `陈宇珺`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 鲸鱼ya吃火锅 - 中国政法大学法学宪法学与行政法学专业<br>2023届, 法学院, 法学
 
 ## 1. 请学姐做个简单的自我介绍。
@@ -2751,10 +2751,10 @@ ps: 可以详细分享你的申请经历，穿插感悟。即使是失败的经�
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `新闻`},
-		OriginalAuthor: `罗碧璇`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `新闻`},
+		OriginalAuthor:    `罗碧璇`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 棉花糖_鸡蛋仔 - 上海交通大学新闻与传播专业<br>2023届, 外国语学院, 法语
 
 ## 1. 请学姐做个简单的自我介绍。
@@ -2815,10 +2815,10 @@ ps: 可以详细分享你的申请经历，穿插感悟。即使是失败的经�
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`},
-		OriginalAuthor: `曾扬阳`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`},
+		OriginalAuthor:    `曾扬阳`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 蜜桃追番中 - 中山大学哲学系科学技术哲学专业<br>2023届, 人文学院, 哲学
 
 ## 1. 请学长做个简单的自我介绍。
@@ -2903,10 +2903,10 @@ ps: 可以详细分享你的申请经历，穿插感悟。即使是失败的经�
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`},
-		OriginalAuthor: `梁洁瑜`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`},
+		OriginalAuthor:    `梁洁瑜`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 飞翔的寿司3 - 复旦大学心理学专业<br>2023届, 人文学院, 汉语国际教育
 
 ## 1. 请学姐做个简单的自我介绍。
@@ -2994,10 +2994,10 @@ ps: 可以详细分享你的申请经历，穿插感悟。即使是失败的经�
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `经济`},
-		OriginalAuthor: `ruijinzhu`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `经济`},
+		OriginalAuthor:    `ruijinzhu`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `#朱芮瑾 - 复旦大学心理学专业<br>2023届, 经济学院, 金融学
 
 ## 1. 请学姐做个简单的自我介绍。
@@ -3073,10 +3073,10 @@ ps: 可以详细分享你的申请经历，穿插感悟。即使是失败的经�
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `生物`},
-		OriginalAuthor: `谭琬潼`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `生物`},
+		OriginalAuthor:    `谭琬潼`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 麻雀钓鱼中 - 浙江大学社会学专业<br>2023届, 生命与海洋科学学院, 生物科学（师范）
 
 ## 1. 请学姐做个简单的自我介绍。
@@ -3148,10 +3148,10 @@ ps: 可以详细分享你的申请经历，穿插感悟。即使是失败的经�
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `计软`},
-		OriginalAuthor: `彭镇灿`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `计软`},
+		OriginalAuthor:    `彭镇灿`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 阳光的豆沙zzz - Rutgers PhD@CS<br>2022届, 计软, 计算机科学与技术专业
 > 冲就完事了<br>
 
@@ -3214,10 +3214,10 @@ ps: 可以详细分享你的申请经历，穿插感悟。即使是失败的经�
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `计软`},
-		OriginalAuthor: `詹卓欣`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `计软`},
+		OriginalAuthor:    `詹卓欣`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 草莓考试周 - SFU PhD@CS<br>2022届, 计软, 软件工程 (腾班)
 ## 背景
 **GPA:**<br>
@@ -3283,10 +3283,10 @@ ps: 可以详细分享你的申请经历，穿插感悟。即使是失败的经�
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `计软`},
-		OriginalAuthor: `王楷盛`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `计软`},
+		OriginalAuthor:    `王楷盛`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 酸奶大王喝牛奶 - 新加坡南洋理工大学<br>2023届, 计软, 计算机科学与技术
 >行路人，用足音代替叹息吧！<br>
 
@@ -3359,10 +3359,10 @@ ps: 可以详细分享你的申请经历，穿插感悟。即使是失败的经�
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `计软`},
-		OriginalAuthor: `苏嘉淇`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `计软`},
+		OriginalAuthor:    `苏嘉淇`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 石榴__修电脑 - HKU MSc@CS<br>2024届, 计软, 计算机科学与技术（国际班）
 
 
@@ -3412,10 +3412,10 @@ ps: 可以详细分享你的申请经历，穿插感悟。即使是失败的经�
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `数学`},
-		OriginalAuthor: `陈同学`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `数学`},
+		OriginalAuthor:    `陈同学`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 飞翔的蓝莓x - 澳门大学 数据科学<br>2020届, 数学科学学院, 统计学
 > 不要去美化那条你没有走过的路<br>
 
@@ -3492,10 +3492,10 @@ ps: 可以详细分享你的申请经历，穿插感悟。即使是失败的经�
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `计软`},
-		OriginalAuthor: `忆如`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `计软`},
+		OriginalAuthor:    `忆如`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 慵懒的锦鲤7 - Edinburgh master@CS<br>2024届, 计软, 软件工程(腾班)
 > 醒着做梦
 
@@ -3573,10 +3573,10 @@ ps: 可以详细分享你的申请经历，穿插感悟。即使是失败的经�
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `数学`},
-		OriginalAuthor: `李晓璐`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `数学`},
+		OriginalAuthor:    `李晓璐`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 自在的瓢虫z - Maryland PhD@Stats <br>2020届, 高等研究院, 数学与应用数学
 
 ## 背景
@@ -3654,10 +3654,10 @@ ps: 可以详细分享你的申请经历，穿插感悟。即使是失败的经�
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `计软`},
-		OriginalAuthor: `快乐摸鱼生活`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `计软`},
+		OriginalAuthor:    `快乐摸鱼生活`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 梨子看日落 - 港科Msc@TLE<br>2024届, 计软, 计科、辅修工管创英班
 
 ## 背景
@@ -3712,17 +3712,18 @@ ps: 可以详细分享你的申请经历，穿插感悟。即使是失败的经�
 		MajorLine:         `计软`,
 		ArticleTitle:      `深大飞跃手册 | CompSci 留学`,
 		LongBioPrefix:     szuFeyueLongBioPrefix,
-		ShortBio:          `深圳大学CompSci计软，Duke@MEM，分享留学经验与备考心得。`,
+		Headline:          `深大 · GPA81，教你怎么写文书`,
+		ShortBio:          `低gpa怎么翻盘`,
 		Audience:          szuFeyueAudience,
 		WelcomeMessage:    `你好，欢迎问我关于升学深造、备考和择校的问题。`,
 		Education:         szuFeyueEducation,
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `计软`},
-		OriginalAuthor: `苏政欣`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `计软`},
+		OriginalAuthor:    `苏政欣`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 西瓜oo喝绿茶 – Duke@MEM<br>2024届, 计软, 计算机科学与技术
 > 申请之路更是自我探索之路，坚定信念，想要的就在前方！<br>
 
@@ -3795,10 +3796,10 @@ ps: 可以详细分享你的申请经历，穿插感悟。即使是失败的经�
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `计软`},
-		OriginalAuthor: `Anthony`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `计软`},
+		OriginalAuthor:    `Anthony`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# Anthony - HKUSTgz MSc dcai@CS<br>2024届, 计软, 计算机科学与技术（国际班）
 
 ## 背景
@@ -3858,10 +3859,10 @@ Timeline 都是11、12月，利兹是4月
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `计软`},
-		OriginalAuthor: `赵子睿`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `计软`},
+		OriginalAuthor:    `赵子睿`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 板栗做饭中 - Rice MCS@CS<br>2024届, 计软
 > 期待一场旅程，精彩万分，你不必该再等。
 
@@ -3957,10 +3958,10 @@ Timeline 都是11、12月，利兹是4月
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `计软`},
-		OriginalAuthor: `陈铭康`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `计软`},
+		OriginalAuthor:    `陈铭康`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 太妃糖今天早睡 - HKU MSc@CS<br>2025届，计软，计算机科学与技术（国际班）。
 
 ## 背景
@@ -4043,10 +4044,10 @@ Timeline 都是11、12月，利兹是4月
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `电子`},
-		OriginalAuthor: `张硕`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `电子`},
+		OriginalAuthor:    `张硕`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 葡萄种花中 - NUS Msc@ECE<br>2025届, 电信, 电子信息工程 
 > 没有人是完美的<br>
 
@@ -4114,10 +4115,10 @@ NUS研究生项目的申请战线接近1年，需要在学业、英语、加强�
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `计软`},
-		OriginalAuthor: `陈天行`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `计软`},
+		OriginalAuthor:    `陈天行`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 酸奶写代码 - 香港大学MMLab直博@CS<br>2025届, 计软, 计算机科学技术(卓越班)
 
 ## 背景
@@ -4236,10 +4237,10 @@ NUS研究生项目的申请战线接近1年，需要在学业、英语、加强�
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `计软`},
-		OriginalAuthor: `陈天行`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `计软`},
+		OriginalAuthor:    `陈天行`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 梨子er逛公园 - 香港大学MMLab直博@CS<br>2025届, 计软, 计算机科学技术(卓越班)
 > [](https://hits.seeyoufarm.com) 主页: <a href="https://tianxingchen.github.io">https://tianxingchen.github.io</a><br>
 
@@ -4360,10 +4361,10 @@ NUS研究生项目的申请战线接近1年，需要在学业、英语、加强�
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `经济`},
-		OriginalAuthor: `徐子晴`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `经济`},
+		OriginalAuthor:    `徐子晴`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 桃子折纸鹤 - NUS MSc@VC<br>2023届, 经济学院, 国际经济与贸易专业
 
 ## 背景:
@@ -4442,10 +4443,10 @@ GMAT：雅思出分之后就开始了漫长的GMAT备考，从4月考到11月都
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `计软`},
-		OriginalAuthor: `debug君`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `计软`},
+		OriginalAuthor:    `debug君`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 温柔的咖啡_0 - 深信服（已离职）, 目前在美团<br>21届, 计软, 计算机科学与技术（兼修数学）
 > 选择比努力重要<br>
 
@@ -4528,10 +4529,10 @@ GMAT：雅思出分之后就开始了漫长的GMAT备考，从4月考到11月都
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `计软`},
-		OriginalAuthor: `李佳乐`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `计软`},
+		OriginalAuthor:    `李佳乐`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 蓝莓酱_草莓 - 腾讯实习转正<br>2025届, 计软, 计算机科学与技术 (卓越班)
 
 ## 背景:
@@ -4585,10 +4586,10 @@ GMAT：雅思出分之后就开始了漫长的GMAT备考，从4月考到11月都
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `计软`},
-		OriginalAuthor: `叶可禾`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `计软`},
+		OriginalAuthor:    `叶可禾`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 梨子oo泡咖啡 - 腾讯实习<br>2025届，计软，软件工程
 > 人生得意须尽欢，莫使金樽空对月。
 
@@ -4649,10 +4650,10 @@ GMAT：雅思出分之后就开始了漫长的GMAT备考，从4月考到11月都
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `计软`},
-		OriginalAuthor: `李伟力`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `计软`},
+		OriginalAuthor:    `李伟力`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 汤圆_章鱼 - 量化交易员<br>2025届, 计软, 计算机科学与技术 (国际班)
 
 > 大学最重要的是个人的成长 不是每个人都有技术天赋 当技术不够的时候 不妨试试勇气
@@ -4739,10 +4740,10 @@ GMAT：雅思出分之后就开始了漫长的GMAT备考，从4月考到11月都
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`},
-		OriginalAuthor: `闪闪`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`},
+		OriginalAuthor:    `闪闪`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 豆包钓鱼中 - 腾讯实习<br>2025届, 医学院, 药学
 > 估计看这篇文章的没啥我专业直系的学弟学妹hhh，如果有的话，那你肯定行的！<br>
 
@@ -4818,10 +4819,10 @@ GMAT：雅思出分之后就开始了漫长的GMAT备考，从4月考到11月都
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `计软`},
-		OriginalAuthor: `陈梓淳`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `计软`},
+		OriginalAuthor:    `陈梓淳`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 梨子听播客 - 腾讯实习转正<br>2025届, 计软, 计算机科学与技术
 > Keep enthusiastic, hungry and humble.<br>
 
@@ -4894,10 +4895,10 @@ GMAT：雅思出分之后就开始了漫长的GMAT备考，从4月考到11月都
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `计软`},
-		OriginalAuthor: `关浩林`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `计软`},
+		OriginalAuthor:    `关浩林`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 兔兔_海星 - Karma数据库实习<br>2026届, 计软, 计算机科学与技术
 > 给学弟学妹的一句话：相信愚公移山的故事 <br>
 
@@ -4996,10 +4997,10 @@ kasma的面试机会是我在里面的一个朋友给我直推到leader处得到
 		MajorLabel:        szuFeyueMajorLabel,
 		KnowledgeCategory: szuFeyueKnowledgeCat,
 		KnowledgeTags:     szuFeyueKnowledgeTags,
-		SampleQuestions: []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
-		ExpertiseTags: []string{`升学深造`, `深圳大学`, `电子`},
-		OriginalAuthor: `正汰`,
-		Source: `深圳大学飞跃手册`,
+		SampleQuestions:   []string{`深大保研到985难度大吗？`, `双非背景如何提升竞争力？`, `考研和保研怎么选择？`},
+		ExpertiseTags:     []string{`升学深造`, `深圳大学`, `电子`},
+		OriginalAuthor:    `正汰`,
+		Source:            `深圳大学飞跃手册`,
 		KnowledgeBody: `# 奶酪_铜锣烧 - 字节<br>2025届，电信、电子科学与技术
 
 ## 背景:

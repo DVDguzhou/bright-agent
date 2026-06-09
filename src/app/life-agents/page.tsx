@@ -756,8 +756,8 @@ function LifeAgentsPageContent() {
     >
       <div className="min-w-0 flex-1">
         <p className="text-[10px] font-medium uppercase tracking-[0.26em] text-oxblood-500">编辑精选</p>
-        <p className="mt-1 font-serif text-base font-medium leading-tight text-ink">问过一轮后，留下这些人</p>
-        <p className="mt-0.5 line-clamp-1 text-xs text-ink-500">有些话，是聊到后半段才会说出来的。</p>
+        <p className="mt-1 font-serif text-base font-medium leading-tight text-ink">这里是我们精选的Agent</p>
+        <p className="mt-0.5 line-clamp-1 text-xs text-ink-500">上岸、大学生活、实习、留学、创业，这里都有答案。</p>
       </div>
       <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-hairline/60 bg-paper/80 px-3 py-1 text-xs font-medium text-ink-600 transition group-hover:text-ink">
         看这组

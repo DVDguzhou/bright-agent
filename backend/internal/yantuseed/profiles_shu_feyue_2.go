@@ -3,10 +3,10 @@ package yantuseed
 const shuFeyue2LongBioPrefix = `本文来自上海大学溯源手册（SHUFly），著作权属原作者；以下为升学/就业经验，仅供参考。`
 
 const (
-	shuFeyue2Audience       = `正在准备保研、考研、出国或就业的同学，尤其是211院校背景。`
-	shuFeyue2Education      = `硕士/博士研究生（已录取或就读）`
-	shuFeyue2MajorLabel     = `专业方向`
-	shuFeyue2KnowledgeCat   = `升学就业经验`
+	shuFeyue2Audience     = `正在准备保研、考研、出国或就业的同学，尤其是211院校背景。`
+	shuFeyue2Education    = `硕士/博士研究生（已录取或就读）`
+	shuFeyue2MajorLabel   = `专业方向`
+	shuFeyue2KnowledgeCat = `升学就业经验`
 )
 
 var shuFeyue2KnowledgeTags = []string{"保研", "考研", "出国", "就业", "上海大学"}
@@ -25,10 +25,10 @@ var shuFeyueProfiles2 = []Profile{
 		MajorLabel:        shuFeyue2MajorLabel,
 		KnowledgeCategory: shuFeyue2KnowledgeCat,
 		KnowledgeTags:     shuFeyue2KnowledgeTags,
-		SampleQuestions: []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
-		ExpertiseTags: []string{`升学深造`, `上海大学`, `数学系`},
-		OriginalAuthor: `刘沂林`,
-		Source: `上海大学溯源手册`,
+		SampleQuestions:   []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
+		ExpertiseTags:     []string{`升学深造`, `上海大学`, `数学系`},
+		OriginalAuthor:    `刘沂林`,
+		Source:            `上海大学溯源手册`,
 		KnowledgeBody: `***注：本文只讨论授课型硕士，不包括研究型硕士和直博***
 
 
@@ -246,10 +246,10 @@ var shuFeyueProfiles2 = []Profile{
 		MajorLabel:        shuFeyue2MajorLabel,
 		KnowledgeCategory: shuFeyue2KnowledgeCat,
 		KnowledgeTags:     shuFeyue2KnowledgeTags,
-		SampleQuestions: []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
-		ExpertiseTags: []string{`升学深造`, `上海大学`, `国际经济与贸易`},
-		OriginalAuthor: `Allison LU`,
-		Source: `上海大学溯源手册`,
+		SampleQuestions:   []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
+		ExpertiseTags:     []string{`升学深造`, `上海大学`, `国际经济与贸易`},
+		OriginalAuthor:    `Allison LU`,
+		Source:            `上海大学溯源手册`,
 		KnowledgeBody: `## 01 基本背景
 
 - 18级SILC毕业生
@@ -460,10 +460,10 @@ var shuFeyueProfiles2 = []Profile{
 		MajorLabel:        shuFeyue2MajorLabel,
 		KnowledgeCategory: shuFeyue2KnowledgeCat,
 		KnowledgeTags:     shuFeyue2KnowledgeTags,
-		SampleQuestions: []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
-		ExpertiseTags: []string{`升学深造`, `上海大学`, `经济学院`},
-		OriginalAuthor: `独木舟`,
-		Source: `上海大学溯源手册`,
+		SampleQuestions:   []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
+		ExpertiseTags:     []string{`升学深造`, `上海大学`, `经济学院`},
+		OriginalAuthor:    `独木舟`,
+		Source:            `上海大学溯源手册`,
 		KnowledgeBody: `## 一、上大经济学院本科出国概述
 
 凭借我对身边同学的了解，大概能建模然后拟合出一些代表性结果。所以以下都是虚拟的预测结果，请勿对号入座。另外只代表22fall数据，bar每年不同，请注意学历通胀效应。
@@ -680,10 +680,10 @@ var shuFeyueProfiles2 = []Profile{
 		MajorLabel:        shuFeyue2MajorLabel,
 		KnowledgeCategory: shuFeyue2KnowledgeCat,
 		KnowledgeTags:     shuFeyue2KnowledgeTags,
-		SampleQuestions: []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
-		ExpertiseTags: []string{`升学深造`, `上海大学`, `信息资源管理`},
-		OriginalAuthor: `许慧妍`,
-		Source: `上海大学溯源手册`,
+		SampleQuestions:   []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
+		ExpertiseTags:     []string{`升学深造`, `上海大学`, `信息资源管理`},
+		OriginalAuthor:    `许慧妍`,
+		Source:            `上海大学溯源手册`,
 		KnowledgeBody: `## 基本背景
 
 - 上海大学 文化遗产与信息管理学院（原图书情报档案系） 信息资源管理专业
@@ -897,10 +897,10 @@ CMU除了cs，其他项目很多都包括非常高科技的内容，学校的学
 		MajorLabel:        shuFeyue2MajorLabel,
 		KnowledgeCategory: shuFeyue2KnowledgeCat,
 		KnowledgeTags:     shuFeyue2KnowledgeTags,
-		SampleQuestions: []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
-		ExpertiseTags: []string{`升学深造`, `上海大学`, `管理学院`},
-		OriginalAuthor: `Chloe`,
-		Source: `上海大学溯源手册`,
+		SampleQuestions:   []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
+		ExpertiseTags:     []string{`升学深造`, `上海大学`, `管理学院`},
+		OriginalAuthor:    `Chloe`,
+		Source:            `上海大学溯源手册`,
 		KnowledgeBody: `## 1️⃣ 申请背景
 
 - 专业：上海大学管理学院工商管理
@@ -1095,10 +1095,10 @@ CMU除了cs，其他项目很多都包括非常高科技的内容，学校的学
 		MajorLabel:        shuFeyue2MajorLabel,
 		KnowledgeCategory: shuFeyue2KnowledgeCat,
 		KnowledgeTags:     shuFeyue2KnowledgeTags,
-		SampleQuestions: []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
-		ExpertiseTags: []string{`升学深造`, `上海大学`, `经济学院`},
-		OriginalAuthor: `LYJ`,
-		Source: `上海大学溯源手册`,
+		SampleQuestions:   []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
+		ExpertiseTags:     []string{`升学深造`, `上海大学`, `经济学院`},
+		OriginalAuthor:    `LYJ`,
+		Source:            `上海大学溯源手册`,
 		KnowledgeBody: `> 这个标题，我估计认识我的人都能一眼看出是我，害
 
  
@@ -1275,10 +1275,10 @@ CMU除了cs，其他项目很多都包括非常高科技的内容，学校的学
 		MajorLabel:        shuFeyue2MajorLabel,
 		KnowledgeCategory: shuFeyue2KnowledgeCat,
 		KnowledgeTags:     shuFeyue2KnowledgeTags,
-		SampleQuestions: []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
-		ExpertiseTags: []string{`升学深造`, `上海大学`, `信息管理与信息系统`},
-		OriginalAuthor: `游畅`,
-		Source: `上海大学溯源手册`,
+		SampleQuestions:   []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
+		ExpertiseTags:     []string{`升学深造`, `上海大学`, `信息管理与信息系统`},
+		OriginalAuthor:    `游畅`,
+		Source:            `上海大学溯源手册`,
 		KnowledgeBody: `## 基本信息
 
 - 本科就读于上海大学悉尼工商学院，信息管理与信息系统专业
@@ -1386,10 +1386,10 @@ CMU除了cs，其他项目很多都包括非常高科技的内容，学校的学
 		MajorLabel:        shuFeyue2MajorLabel,
 		KnowledgeCategory: shuFeyue2KnowledgeCat,
 		KnowledgeTags:     shuFeyue2KnowledgeTags,
-		SampleQuestions: []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
-		ExpertiseTags: []string{`升学深造`, `上海大学`, `数学系`},
-		OriginalAuthor: `邹涵璐`,
-		Source: `上海大学溯源手册`,
+		SampleQuestions:   []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
+		ExpertiseTags:     []string{`升学深造`, `上海大学`, `数学系`},
+		OriginalAuthor:    `邹涵璐`,
+		Source:            `上海大学溯源手册`,
 		KnowledgeBody: `## 基本背景
 - 学院：上海大学-理学院-信息与计算科学
 - GPA：3.68/4.00，89.7/100
@@ -1458,10 +1458,10 @@ CMU除了cs，其他项目很多都包括非常高科技的内容，学校的学
 		MajorLabel:        shuFeyue2MajorLabel,
 		KnowledgeCategory: shuFeyue2KnowledgeCat,
 		KnowledgeTags:     shuFeyue2KnowledgeTags,
-		SampleQuestions: []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
-		ExpertiseTags: []string{`升学深造`, `上海大学`, `机械电子工程`},
-		OriginalAuthor: `孙宇聪`,
-		Source: `上海大学溯源手册`,
+		SampleQuestions:   []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
+		ExpertiseTags:     []string{`升学深造`, `上海大学`, `机械电子工程`},
+		OriginalAuthor:    `孙宇聪`,
+		Source:            `上海大学溯源手册`,
 		KnowledgeBody: `- 考研备考经验
 - 本科学习建议
 
@@ -1526,10 +1526,10 @@ _咨询上交空天院可以联系微信号：Origami_Sun_`,
 		MajorLabel:        shuFeyue2MajorLabel,
 		KnowledgeCategory: shuFeyue2KnowledgeCat,
 		KnowledgeTags:     shuFeyue2KnowledgeTags,
-		SampleQuestions: []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
-		ExpertiseTags: []string{`升学深造`, `上海大学`, `usc`},
-		OriginalAuthor: `Chloe`,
-		Source: `上海大学溯源手册`,
+		SampleQuestions:   []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
+		ExpertiseTags:     []string{`升学深造`, `上海大学`, `usc`},
+		OriginalAuthor:    `Chloe`,
+		Source:            `上海大学溯源手册`,
 		KnowledgeBody: `## 基本背景
 
 - 专业：广播电视学
@@ -1637,10 +1637,10 @@ _咨询上交空天院可以联系微信号：Origami_Sun_`,
 		MajorLabel:        shuFeyue2MajorLabel,
 		KnowledgeCategory: shuFeyue2KnowledgeCat,
 		KnowledgeTags:     shuFeyue2KnowledgeTags,
-		SampleQuestions: []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
-		ExpertiseTags: []string{`升学深造`, `上海大学`, `数学系`},
-		OriginalAuthor: `常付佳`,
-		Source: `上海大学溯源手册`,
+		SampleQuestions:   []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
+		ExpertiseTags:     []string{`升学深造`, `上海大学`, `数学系`},
+		OriginalAuthor:    `常付佳`,
+		Source:            `上海大学溯源手册`,
 		KnowledgeBody: `## 背景
 
 SHU 18级应用数学 —— UBC 22级数学系研究型硕士（方向：数据分析）（O校区）
@@ -1812,10 +1812,10 @@ SHU 18级应用数学 —— UBC 22级数学系研究型硕士（方向：数据
 		MajorLabel:        shuFeyue2MajorLabel,
 		KnowledgeCategory: shuFeyue2KnowledgeCat,
 		KnowledgeTags:     shuFeyue2KnowledgeTags,
-		SampleQuestions: []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
-		ExpertiseTags: []string{`升学深造`, `上海大学`, `数学系`},
-		OriginalAuthor: `李松凌`,
-		Source: `上海大学溯源手册`,
+		SampleQuestions:   []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
+		ExpertiseTags:     []string{`升学深造`, `上海大学`, `数学系`},
+		OriginalAuthor:    `李松凌`,
+		Source:            `上海大学溯源手册`,
 		KnowledgeBody: `## **个人情况简介**
 
 - 18级分流数学与应用数学专业
@@ -2024,10 +2024,10 @@ SHU 18级应用数学 —— UBC 22级数学系研究型硕士（方向：数据
 		MajorLabel:        shuFeyue2MajorLabel,
 		KnowledgeCategory: shuFeyue2KnowledgeCat,
 		KnowledgeTags:     shuFeyue2KnowledgeTags,
-		SampleQuestions: []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
-		ExpertiseTags: []string{`升学深造`, `上海大学`, `数学与应用数学`},
-		OriginalAuthor: `无白少年`,
-		Source: `上海大学溯源手册`,
+		SampleQuestions:   []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
+		ExpertiseTags:     []string{`升学深造`, `上海大学`, `数学与应用数学`},
+		OriginalAuthor:    `无白少年`,
+		Source:            `上海大学溯源手册`,
 		KnowledgeBody: `## 基本背景
 - 18级-理学院-数学与应用数学
 - 学分绩&排名
@@ -2107,10 +2107,10 @@ SHU 18级应用数学 —— UBC 22级数学系研究型硕士（方向：数据
 		MajorLabel:        shuFeyue2MajorLabel,
 		KnowledgeCategory: shuFeyue2KnowledgeCat,
 		KnowledgeTags:     shuFeyue2KnowledgeTags,
-		SampleQuestions: []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
-		ExpertiseTags: []string{`升学深造`, `上海大学`, `数学与应用数学`},
-		OriginalAuthor: `许艺龑`,
-		Source: `上海大学溯源手册`,
+		SampleQuestions:   []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
+		ExpertiseTags:     []string{`升学深造`, `上海大学`, `数学与应用数学`},
+		OriginalAuthor:    `许艺龑`,
+		Source:            `上海大学溯源手册`,
 		KnowledgeBody: `## 基本背景
 - GPA: 3.83/4.00, 94.28/100.00
 - 学院排名: 3/8, 专业排名: 3/19
@@ -2259,10 +2259,10 @@ SHU 18级应用数学 —— UBC 22级数学系研究型硕士（方向：数据
 		MajorLabel:        shuFeyue2MajorLabel,
 		KnowledgeCategory: shuFeyue2KnowledgeCat,
 		KnowledgeTags:     shuFeyue2KnowledgeTags,
-		SampleQuestions: []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
-		ExpertiseTags: []string{`升学深造`, `上海大学`, `考研`},
-		OriginalAuthor: `ysy`,
-		Source: `上海大学溯源手册`,
+		SampleQuestions:   []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
+		ExpertiseTags:     []string{`升学深造`, `上海大学`, `考研`},
+		OriginalAuthor:    `ysy`,
+		Source:            `上海大学溯源手册`,
 		KnowledgeBody: `## 个人简介
 
 - 计算机学院-18级智能科学与技术（直招）
@@ -2360,10 +2360,10 @@ _以下建议针对备考计算机的同学_
 		MajorLabel:        shuFeyue2MajorLabel,
 		KnowledgeCategory: shuFeyue2KnowledgeCat,
 		KnowledgeTags:     shuFeyue2KnowledgeTags,
-		SampleQuestions: []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
-		ExpertiseTags: []string{`升学深造`, `上海大学`, `机械电子工程`},
-		OriginalAuthor: `CYF`,
-		Source: `上海大学溯源手册`,
+		SampleQuestions:   []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
+		ExpertiseTags:     []string{`升学深造`, `上海大学`, `机械电子工程`},
+		OriginalAuthor:    `CYF`,
+		Source:            `上海大学溯源手册`,
 		KnowledgeBody: `## 介绍
 
 - 机械电子工程-大二分流
@@ -2509,10 +2509,10 @@ RM校内赛🤖
 		MajorLabel:        shuFeyue2MajorLabel,
 		KnowledgeCategory: shuFeyue2KnowledgeCat,
 		KnowledgeTags:     shuFeyue2KnowledgeTags,
-		SampleQuestions: []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
-		ExpertiseTags: []string{`升学深造`, `上海大学`, `CS`},
-		OriginalAuthor: `沈纪元`,
-		Source: `上海大学溯源手册`,
+		SampleQuestions:   []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
+		ExpertiseTags:     []string{`升学深造`, `上海大学`, `CS`},
+		OriginalAuthor:    `沈纪元`,
+		Source:            `上海大学溯源手册`,
 		KnowledgeBody: `## 基本背景 
 
 - 上海大学，计算机工程与科学学院，智能科学与技术系
@@ -2589,10 +2589,10 @@ RM校内赛🤖
 		MajorLabel:        shuFeyue2MajorLabel,
 		KnowledgeCategory: shuFeyue2KnowledgeCat,
 		KnowledgeTags:     shuFeyue2KnowledgeTags,
-		SampleQuestions: []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
-		ExpertiseTags: []string{`升学深造`, `上海大学`, `管理科学`},
-		OriginalAuthor: `狗蛋日`,
-		Source: `上海大学溯源手册`,
+		SampleQuestions:   []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
+		ExpertiseTags:     []string{`升学深造`, `上海大学`, `管理科学`},
+		OriginalAuthor:    `狗蛋日`,
+		Source:            `上海大学溯源手册`,
 		KnowledgeBody: `## 瞧，这个人！
 
 ## 0 前言
@@ -2809,17 +2809,18 @@ RM校内赛🤖
 		MajorLine:         `经济学`,
 		ArticleTitle:      `上海大学飞跃手册 | 经济学留学经验`,
 		LongBioPrefix:     shuFeyue2LongBioPrefix,
-		ShortBio:          `上海大学经济学专业，香港中文大学+E-commerce and Logistic，分享留学经验与个人历程。`,
+		Headline:          `一个拒绝申请季演变得很苦的人`,
+		ShortBio:          `申请港校`,
 		Audience:          shuFeyue2Audience,
 		WelcomeMessage:    `你好，欢迎问我关于升学深造、备考和择校的问题。`,
 		Education:         shuFeyue2Education,
 		MajorLabel:        shuFeyue2MajorLabel,
 		KnowledgeCategory: shuFeyue2KnowledgeCat,
 		KnowledgeTags:     shuFeyue2KnowledgeTags,
-		SampleQuestions: []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
-		ExpertiseTags: []string{`升学深造`, `上海大学`, `经济学`},
-		OriginalAuthor: `贝壳`,
-		Source: `上海大学溯源手册`,
+		SampleQuestions:   []string{`怎么申请港校`, `港校申请的bg与定位`, `申请港校`},
+		ExpertiseTags:     []string{`升学深造`, `上海大学`, `经济学`},
+		OriginalAuthor:    `贝壳`,
+		Source:            `上海大学溯源手册`,
 		KnowledgeBody: `## **基本背景**
 
 - 绩点87/100，雅思7，实习4，校内外奖项若干，无科研
@@ -2980,10 +2981,10 @@ RM校内赛🤖
 		MajorLabel:        shuFeyue2MajorLabel,
 		KnowledgeCategory: shuFeyue2KnowledgeCat,
 		KnowledgeTags:     shuFeyue2KnowledgeTags,
-		SampleQuestions: []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
-		ExpertiseTags: []string{`升学深造`, `上海大学`, `CS`},
-		OriginalAuthor: `朝承恩`,
-		Source: `上海大学溯源手册`,
+		SampleQuestions:   []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
+		ExpertiseTags:     []string{`升学深造`, `上海大学`, `CS`},
+		OriginalAuthor:    `朝承恩`,
+		Source:            `上海大学溯源手册`,
 		KnowledgeBody: `## 基本背景 
 
 - 上海大学，计算机工程与科学学院，计算机科学与技术(直招)
@@ -3364,10 +3365,10 @@ SHU学长写的，非常感谢这位学长对我问题的解答。
 		MajorLabel:        shuFeyue2MajorLabel,
 		KnowledgeCategory: shuFeyue2KnowledgeCat,
 		KnowledgeTags:     shuFeyue2KnowledgeTags,
-		SampleQuestions: []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
-		ExpertiseTags: []string{`升学深造`, `上海大学`, `CS`},
-		OriginalAuthor: `小乐`,
-		Source: `上海大学溯源手册`,
+		SampleQuestions:   []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
+		ExpertiseTags:     []string{`升学深造`, `上海大学`, `CS`},
+		OriginalAuthor:    `小乐`,
+		Source:            `上海大学溯源手册`,
 		KnowledgeBody: `## 1. 前言
 
 向所有看到这份笔记的人问好
@@ -3556,10 +3557,10 @@ SHU学长写的，非常感谢这位学长对我问题的解答。
 		MajorLabel:        shuFeyue2MajorLabel,
 		KnowledgeCategory: shuFeyue2KnowledgeCat,
 		KnowledgeTags:     shuFeyue2KnowledgeTags,
-		SampleQuestions: []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
-		ExpertiseTags: []string{`升学深造`, `上海大学`, `CS`},
-		OriginalAuthor: `ZZY`,
-		Source: `上海大学溯源手册`,
+		SampleQuestions:   []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
+		ExpertiseTags:     []string{`升学深造`, `上海大学`, `CS`},
+		OriginalAuthor:    `ZZY`,
+		Source:            `上海大学溯源手册`,
 		KnowledgeBody: `## 1.背景
 
 个人联系方式[联系方式已隐藏], 微信 zyuzhao21
@@ -3817,10 +3818,10 @@ CV在Github找latex模板即可。
 		MajorLabel:        shuFeyue2MajorLabel,
 		KnowledgeCategory: shuFeyue2KnowledgeCat,
 		KnowledgeTags:     shuFeyue2KnowledgeTags,
-		SampleQuestions: []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
-		ExpertiseTags: []string{`升学深造`, `上海大学`, `CS`},
-		OriginalAuthor: `zhonghongshu`,
-		Source: `上海大学溯源手册`,
+		SampleQuestions:   []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
+		ExpertiseTags:     []string{`升学深造`, `上海大学`, `CS`},
+		OriginalAuthor:    `zhonghongshu`,
+		Source:            `上海大学溯源手册`,
 		KnowledgeBody: `# 19-CS-就业-花旗金融(CSTC)
 
 ## 前言
@@ -3932,10 +3933,10 @@ CV在Github找latex模板即可。
 		MajorLabel:        shuFeyue2MajorLabel,
 		KnowledgeCategory: shuFeyue2KnowledgeCat,
 		KnowledgeTags:     shuFeyue2KnowledgeTags,
-		SampleQuestions: []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
-		ExpertiseTags: []string{`升学深造`, `上海大学`, `经济学院`},
-		OriginalAuthor: `佚名`,
-		Source: `上海大学溯源手册`,
+		SampleQuestions:   []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
+		ExpertiseTags:     []string{`升学深造`, `上海大学`, `经济学院`},
+		OriginalAuthor:    `佚名`,
+		Source:            `上海大学溯源手册`,
 		KnowledgeBody: `## 背景
 
 基本信息：
@@ -4050,10 +4051,10 @@ CV在Github找latex模板即可。
 		MajorLabel:        shuFeyue2MajorLabel,
 		KnowledgeCategory: shuFeyue2KnowledgeCat,
 		KnowledgeTags:     shuFeyue2KnowledgeTags,
-		SampleQuestions: []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
-		ExpertiseTags: []string{`升学深造`, `上海大学`, `法学院`},
-		OriginalAuthor: `KevinTu_2000`,
-		Source: `上海大学溯源手册`,
+		SampleQuestions:   []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
+		ExpertiseTags:     []string{`升学深造`, `上海大学`, `法学院`},
+		OriginalAuthor:    `KevinTu_2000`,
+		Source:            `上海大学溯源手册`,
 		KnowledgeBody: `<br>
 
 ## 基本情况
@@ -4284,10 +4285,10 @@ CV在Github找latex模板即可。
 		MajorLabel:        shuFeyue2MajorLabel,
 		KnowledgeCategory: shuFeyue2KnowledgeCat,
 		KnowledgeTags:     shuFeyue2KnowledgeTags,
-		SampleQuestions: []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
-		ExpertiseTags: []string{`升学深造`, `上海大学`, `UZH`},
-		OriginalAuthor: `Cirrostratus`,
-		Source: `上海大学溯源手册`,
+		SampleQuestions:   []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
+		ExpertiseTags:     []string{`升学深造`, `上海大学`, `UZH`},
+		OriginalAuthor:    `Cirrostratus`,
+		Source:            `上海大学溯源手册`,
 		KnowledgeBody: `## 1️⃣ 个人背景
 
 - 专业：汉语言文学
@@ -4445,10 +4446,10 @@ CV在Github找latex模板即可。
 		MajorLabel:        shuFeyue2MajorLabel,
 		KnowledgeCategory: shuFeyue2KnowledgeCat,
 		KnowledgeTags:     shuFeyue2KnowledgeTags,
-		SampleQuestions: []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
-		ExpertiseTags: []string{`升学深造`, `上海大学`, `智能制造工程`},
-		OriginalAuthor: `卷卷`,
-		Source: `上海大学溯源手册`,
+		SampleQuestions:   []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
+		ExpertiseTags:     []string{`升学深造`, `上海大学`, `智能制造工程`},
+		OriginalAuthor:    `卷卷`,
+		Source:            `上海大学溯源手册`,
 		KnowledgeBody: `# **留学项目应该如何选择？（上大机自学院篇）**
 
 
@@ -4616,10 +4617,10 @@ https://www.academy.rwth-aachen.de/en/programs/college-courses/detail/rwth-3-1-2
 		MajorLabel:        shuFeyue2MajorLabel,
 		KnowledgeCategory: shuFeyue2KnowledgeCat,
 		KnowledgeTags:     shuFeyue2KnowledgeTags,
-		SampleQuestions: []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
-		ExpertiseTags: []string{`升学深造`, `上海大学`, `机械工程`},
-		OriginalAuthor: `Jason`,
-		Source: `上海大学溯源手册`,
+		SampleQuestions:   []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
+		ExpertiseTags:     []string{`升学深造`, `上海大学`, `机械工程`},
+		OriginalAuthor:    `Jason`,
+		Source:            `上海大学溯源手册`,
 		KnowledgeBody: `## **前言**
 
 之前在2022年底刚收到DUKE offer的时候在$SHUFly$平台写过一篇名为[**出国历程总结**](https://shuosc.github.io/fly/posts/19-%E5%87%BA%E5%9B%BD%E5%8E%86%E7%A8%8B/)的分享贴，现在到了26/07/2023，终于得到了申请的22所学校的所有回复，于是来写篇短文拆Flag。过了半年，经历了痛苦实习、等offer、选offer、毕业论文、办签证、等签证、找室友、看房租房、研究保险、学信网WES等等一系列的出国前期拷打之后，其实对申请阶段的状态、心态和情绪都已经没什么印象了。
@@ -4831,10 +4832,10 @@ Again千万不要找中介啊！！！出国生活真的很缺那小十万啊！
 		MajorLabel:        shuFeyue2MajorLabel,
 		KnowledgeCategory: shuFeyue2KnowledgeCat,
 		KnowledgeTags:     shuFeyue2KnowledgeTags,
-		SampleQuestions: []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
-		ExpertiseTags: []string{`升学深造`, `上海大学`, `通信学院`},
-		OriginalAuthor: `A.X.`,
-		Source: `上海大学溯源手册`,
+		SampleQuestions:   []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
+		ExpertiseTags:     []string{`升学深造`, `上海大学`, `通信学院`},
+		OriginalAuthor:    `A.X.`,
+		Source:            `上海大学溯源手册`,
 		KnowledgeBody: `## 1、背景
 ### 1.1基本信息
 - 2019-2023	上海大学通信学院通信工程 工学学士
@@ -4913,10 +4914,10 @@ Again千万不要找中介啊！！！出国生活真的很缺那小十万啊！
 		MajorLabel:        shuFeyue2MajorLabel,
 		KnowledgeCategory: shuFeyue2KnowledgeCat,
 		KnowledgeTags:     shuFeyue2KnowledgeTags,
-		SampleQuestions: []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
-		ExpertiseTags: []string{`升学深造`, `上海大学`, `fdu`},
-		OriginalAuthor: `王启元`,
-		Source: `上海大学溯源手册`,
+		SampleQuestions:   []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
+		ExpertiseTags:     []string{`升学深造`, `上海大学`, `fdu`},
+		OriginalAuthor:    `王启元`,
+		Source:            `上海大学溯源手册`,
 		KnowledgeBody: `<u>**关于插班生-上海大学自学上岸复旦插班生学长的纯干货分享**</u>
 
  
@@ -5140,10 +5141,10 @@ Again千万不要找中介啊！！！出国生活真的很缺那小十万啊！
 		MajorLabel:        shuFeyue2MajorLabel,
 		KnowledgeCategory: shuFeyue2KnowledgeCat,
 		KnowledgeTags:     shuFeyue2KnowledgeTags,
-		SampleQuestions: []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
-		ExpertiseTags: []string{`升学深造`, `上海大学`, `管理学院`},
-		OriginalAuthor: `小刀同学`,
-		Source: `上海大学溯源手册`,
+		SampleQuestions:   []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
+		ExpertiseTags:     []string{`升学深造`, `上海大学`, `管理学院`},
+		OriginalAuthor:    `小刀同学`,
+		Source:            `上海大学溯源手册`,
 		KnowledgeBody: `## 写在前面
 
 相比于各路大佬来说，我的保研之路就是小趴菜鼠鼠逃离上大之路。所以我想要通过我自己的经历鼓励想要保外，但目前又不是很有信心，认为自己各方面都不行的朋友们。只要你想，一定要去尝试，会收获不一样的惊喜！
@@ -5285,10 +5286,10 @@ Again千万不要找中介啊！！！出国生活真的很缺那小十万啊！
 		MajorLabel:        shuFeyue2MajorLabel,
 		KnowledgeCategory: shuFeyue2KnowledgeCat,
 		KnowledgeTags:     shuFeyue2KnowledgeTags,
-		SampleQuestions: []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
-		ExpertiseTags: []string{`升学深造`, `上海大学`, `管理学院`},
-		OriginalAuthor: `卡卡`,
-		Source: `上海大学溯源手册`,
+		SampleQuestions:   []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
+		ExpertiseTags:     []string{`升学深造`, `上海大学`, `管理学院`},
+		OriginalAuthor:    `卡卡`,
+		Source:            `上海大学溯源手册`,
 		KnowledgeBody: `## 一、基本信息
 
 - 【专业】上海大学-管理学院-会计专业
@@ -5381,10 +5382,10 @@ Again千万不要找中介啊！！！出国生活真的很缺那小十万啊！
 		MajorLabel:        shuFeyue2MajorLabel,
 		KnowledgeCategory: shuFeyue2KnowledgeCat,
 		KnowledgeTags:     shuFeyue2KnowledgeTags,
-		SampleQuestions: []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
-		ExpertiseTags: []string{`升学深造`, `上海大学`},
-		OriginalAuthor: `曹梓宸`,
-		Source: `上海大学溯源手册`,
+		SampleQuestions:   []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
+		ExpertiseTags:     []string{`升学深造`, `上海大学`},
+		OriginalAuthor:    `曹梓宸`,
+		Source:            `上海大学溯源手册`,
 		KnowledgeBody: `> 本文写于申请季初期，想不到很快就收到了Duke的offer，特此写一篇记录贴分享给申请的朋友们，之后等拿到新的offer后会再更一篇短文，敬请期待~
 
 
@@ -5693,10 +5694,10 @@ Again千万不要找中介啊！！！出国生活真的很缺那小十万啊！
 		MajorLabel:        shuFeyue2MajorLabel,
 		KnowledgeCategory: shuFeyue2KnowledgeCat,
 		KnowledgeTags:     shuFeyue2KnowledgeTags,
-		SampleQuestions: []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
-		ExpertiseTags: []string{`升学深造`, `上海大学`, `通信学院`},
-		OriginalAuthor: `Doin4`,
-		Source: `上海大学溯源手册`,
+		SampleQuestions:   []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
+		ExpertiseTags:     []string{`升学深造`, `上海大学`, `通信学院`},
+		OriginalAuthor:    `Doin4`,
+		Source:            `上海大学溯源手册`,
 		KnowledgeBody: `<!--**飞跃手册欢迎所有的在校生与毕业生分享你们的故事，不限出路、不限水平。**
 
 - 对于熟悉 Git 操作的同学：请在 ` + "`" + `content/posts/` + "`" + ` 目录下复制本模板文件并修改，提交 Pull Request，待 Merge 后便即时上线
@@ -5823,10 +5824,10 @@ Again千万不要找中介啊！！！出国生活真的很缺那小十万啊！
 		MajorLabel:        shuFeyue2MajorLabel,
 		KnowledgeCategory: shuFeyue2KnowledgeCat,
 		KnowledgeTags:     shuFeyue2KnowledgeTags,
-		SampleQuestions: []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
-		ExpertiseTags: []string{`升学深造`, `上海大学`, `国际经济与贸易`},
-		OriginalAuthor: `辣白菜`,
-		Source: `上海大学溯源手册`,
+		SampleQuestions:   []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
+		ExpertiseTags:     []string{`升学深造`, `上海大学`, `国际经济与贸易`},
+		OriginalAuthor:    `辣白菜`,
+		Source:            `上海大学溯源手册`,
 		KnowledgeBody: `## 基本背景
 
 - 悉尼工商学院-国际经济与贸易专业双学位（悉尼科技大学商学院）
@@ -5927,10 +5928,10 @@ Again千万不要找中介啊！！！出国生活真的很缺那小十万啊！
 		MajorLabel:        shuFeyue2MajorLabel,
 		KnowledgeCategory: shuFeyue2KnowledgeCat,
 		KnowledgeTags:     shuFeyue2KnowledgeTags,
-		SampleQuestions: []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
-		ExpertiseTags: []string{`升学深造`, `上海大学`, `物理系`},
-		OriginalAuthor: `匿名`,
-		Source: `上海大学溯源手册`,
+		SampleQuestions:   []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
+		ExpertiseTags:     []string{`升学深造`, `上海大学`, `物理系`},
+		OriginalAuthor:    `匿名`,
+		Source:            `上海大学溯源手册`,
 		KnowledgeBody: `# 19-巧克力_饼干-电子信息科学与技术-保研-上海交通大学
 
 ## 基本背景
@@ -6014,10 +6015,10 @@ Again千万不要找中介啊！！！出国生活真的很缺那小十万啊！
 		MajorLabel:        shuFeyue2MajorLabel,
 		KnowledgeCategory: shuFeyue2KnowledgeCat,
 		KnowledgeTags:     shuFeyue2KnowledgeTags,
-		SampleQuestions: []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
-		ExpertiseTags: []string{`升学深造`, `上海大学`, `计算机工程与科学学院`},
-		OriginalAuthor: `佚名`,
-		Source: `上海大学溯源手册`,
+		SampleQuestions:   []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
+		ExpertiseTags:     []string{`升学深造`, `上海大学`, `计算机工程与科学学院`},
+		OriginalAuthor:    `佚名`,
+		Source:            `上海大学溯源手册`,
 		KnowledgeBody: `## 1. 基本背景
 
 ##### 学校-院系-专业
@@ -6733,10 +6734,10 @@ rk在20%-30%预推免可主要申请次九末九院校，后期上岸中九也�
 		MajorLabel:        shuFeyue2MajorLabel,
 		KnowledgeCategory: shuFeyue2KnowledgeCat,
 		KnowledgeTags:     shuFeyue2KnowledgeTags,
-		SampleQuestions: []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
-		ExpertiseTags: []string{`升学深造`, `上海大学`, `工商管理`},
-		OriginalAuthor: `匿名`,
-		Source: `上海大学溯源手册`,
+		SampleQuestions:   []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
+		ExpertiseTags:     []string{`升学深造`, `上海大学`, `工商管理`},
+		OriginalAuthor:    `匿名`,
+		Source:            `上海大学溯源手册`,
 		KnowledgeBody: `## 基本信息：
 
 - 悉尼工商学院-工商管理专业双学位（悉尼科技大学）
@@ -6813,10 +6814,10 @@ rk在20%-30%预推免可主要申请次九末九院校，后期上岸中九也�
 		MajorLabel:        shuFeyue2MajorLabel,
 		KnowledgeCategory: shuFeyue2KnowledgeCat,
 		KnowledgeTags:     shuFeyue2KnowledgeTags,
-		SampleQuestions: []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
-		ExpertiseTags: []string{`升学深造`, `上海大学`, `应用化学`},
-		OriginalAuthor: `佚名`,
-		Source: `上海大学溯源手册`,
+		SampleQuestions:   []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
+		ExpertiseTags:     []string{`升学深造`, `上海大学`, `应用化学`},
+		OriginalAuthor:    `佚名`,
+		Source:            `上海大学溯源手册`,
 		KnowledgeBody: `## 1.基本信息：
 
 - 专业：上海大学-理学院 应用化学
@@ -6910,10 +6911,10 @@ rk在20%-30%预推免可主要申请次九末九院校，后期上岸中九也�
 		MajorLabel:        shuFeyue2MajorLabel,
 		KnowledgeCategory: shuFeyue2KnowledgeCat,
 		KnowledgeTags:     shuFeyue2KnowledgeTags,
-		SampleQuestions: []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
-		ExpertiseTags: []string{`升学深造`, `上海大学`, `数学系`},
-		OriginalAuthor: `张翼`,
-		Source: `上海大学溯源手册`,
+		SampleQuestions:   []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
+		ExpertiseTags:     []string{`升学深造`, `上海大学`, `数学系`},
+		OriginalAuthor:    `张翼`,
+		Source:            `上海大学溯源手册`,
 		KnowledgeBody: `# 19-水母修电脑-信息与计算科学-保研-华中科技大学
 
 ## 前言
@@ -6996,10 +6997,10 @@ rk在20%-30%预推免可主要申请次九末九院校，后期上岸中九也�
 		MajorLabel:        shuFeyue2MajorLabel,
 		KnowledgeCategory: shuFeyue2KnowledgeCat,
 		KnowledgeTags:     shuFeyue2KnowledgeTags,
-		SampleQuestions: []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
-		ExpertiseTags: []string{`升学深造`, `上海大学`, `生物工程`},
-		OriginalAuthor: `张雅婧`,
-		Source: `上海大学溯源手册`,
+		SampleQuestions:   []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
+		ExpertiseTags:     []string{`升学深造`, `上海大学`, `生物工程`},
+		OriginalAuthor:    `张雅婧`,
+		Source:            `上海大学溯源手册`,
 		KnowledgeBody: `## 基本背景
 
 - 上海大学钱伟长学院生物工程专业
@@ -7123,10 +7124,10 @@ rk在20%-30%预推免可主要申请次九末九院校，后期上岸中九也�
 		MajorLabel:        shuFeyue2MajorLabel,
 		KnowledgeCategory: shuFeyue2KnowledgeCat,
 		KnowledgeTags:     shuFeyue2KnowledgeTags,
-		SampleQuestions: []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
-		ExpertiseTags: []string{`升学深造`, `上海大学`, `数学与应用数学`},
-		OriginalAuthor: `李振东Max`,
-		Source: `上海大学溯源手册`,
+		SampleQuestions:   []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
+		ExpertiseTags:     []string{`升学深造`, `上海大学`, `数学与应用数学`},
+		OriginalAuthor:    `李振东Max`,
+		Source:            `上海大学溯源手册`,
 		KnowledgeBody: `> 从新的角度认识旧事物是一种乐趣。
 >
 > —— <cite>费曼</cite>
@@ -7231,10 +7232,10 @@ PhD申请说实话我个人不那么建议找中介，cv sop都是自己写的�
 		MajorLabel:        shuFeyue2MajorLabel,
 		KnowledgeCategory: shuFeyue2KnowledgeCat,
 		KnowledgeTags:     shuFeyue2KnowledgeTags,
-		SampleQuestions: []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
-		ExpertiseTags: []string{`升学深造`, `上海大学`, `智能制造工程`},
-		OriginalAuthor: `何征宇`,
-		Source: `上海大学溯源手册`,
+		SampleQuestions:   []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
+		ExpertiseTags:     []string{`升学深造`, `上海大学`, `智能制造工程`},
+		OriginalAuthor:    `何征宇`,
+		Source:            `上海大学溯源手册`,
 		KnowledgeBody: `## 基本背景
 - 机电工程与自动化学院_智能制造工程
   > 23年年中本科毕业，该专业第二届
@@ -7327,10 +7328,10 @@ PhD申请说实话我个人不那么建议找中介，cv sop都是自己写的�
 		MajorLabel:        shuFeyue2MajorLabel,
 		KnowledgeCategory: shuFeyue2KnowledgeCat,
 		KnowledgeTags:     shuFeyue2KnowledgeTags,
-		SampleQuestions: []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
-		ExpertiseTags: []string{`升学深造`, `上海大学`, `插班生`},
-		OriginalAuthor: `曹城`,
-		Source: `上海大学溯源手册`,
+		SampleQuestions:   []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
+		ExpertiseTags:     []string{`升学深造`, `上海大学`, `插班生`},
+		OriginalAuthor:    `曹城`,
+		Source:            `上海大学溯源手册`,
 		KnowledgeBody: `## 前言
 - 文字较多，多是介绍和参考资料推荐，大伙见谅。写出来初衷是为了减小信息差，让同学了解之后再去做选择而不是被机构忽悠过去。以后有空会优化一下界面以及更新自己考插的过程和图片。
 
@@ -7400,10 +7401,10 @@ PhD申请说实话我个人不那么建议找中介，cv sop都是自己写的�
 		MajorLabel:        shuFeyue2MajorLabel,
 		KnowledgeCategory: shuFeyue2KnowledgeCat,
 		KnowledgeTags:     shuFeyue2KnowledgeTags,
-		SampleQuestions: []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
-		ExpertiseTags: []string{`升学深造`, `上海大学`, `应用物理学`},
-		OriginalAuthor: `木乙己`,
-		Source: `上海大学溯源手册`,
+		SampleQuestions:   []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
+		ExpertiseTags:     []string{`升学深造`, `上海大学`, `应用物理学`},
+		OriginalAuthor:    `木乙己`,
+		Source:            `上海大学溯源手册`,
 		KnowledgeBody: `# 19-李木-应用物理-保研-南科大
 
 ## 基本背景
@@ -7493,10 +7494,10 @@ K所本身小而精，它的夏令营形式简单，但是内容较难。面试�
 		MajorLabel:        shuFeyue2MajorLabel,
 		KnowledgeCategory: shuFeyue2KnowledgeCat,
 		KnowledgeTags:     shuFeyue2KnowledgeTags,
-		SampleQuestions: []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
-		ExpertiseTags: []string{`升学深造`, `上海大学`, `材料物理`},
-		OriginalAuthor: `林祯`,
-		Source: `上海大学溯源手册`,
+		SampleQuestions:   []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
+		ExpertiseTags:     []string{`升学深造`, `上海大学`, `材料物理`},
+		OriginalAuthor:    `林祯`,
+		Source:            `上海大学溯源手册`,
 		KnowledgeBody: `> 碎碎念：看了这么多篇大佬的保研经历，不妨来看看菜狗是怎么保研的吧 :)
 
 ## 基本信息
@@ -7578,10 +7579,10 @@ https://zhuanlan.zhihu.com/p/353201270
 		MajorLabel:        shuFeyue2MajorLabel,
 		KnowledgeCategory: shuFeyue2KnowledgeCat,
 		KnowledgeTags:     shuFeyue2KnowledgeTags,
-		SampleQuestions: []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
-		ExpertiseTags: []string{`升学深造`, `上海大学`, `通信学院`},
-		OriginalAuthor: `bughht`,
-		Source: `上海大学溯源手册`,
+		SampleQuestions:   []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
+		ExpertiseTags:     []string{`升学深造`, `上海大学`, `通信学院`},
+		OriginalAuthor:    `bughht`,
+		Source:            `上海大学溯源手册`,
 		KnowledgeBody: `<!-- 飞跃手册欢迎所有的毕业生分享你们的故事，不限出路、不限水平。
 
 - 对于熟悉 Git 操作的同学：请在 ` + "`" + `content/posts/` + "`" + ` 目录下复制本模板文件并修改，提交 Pull Request，待 Merge 后便即时上线。
@@ -7701,10 +7702,10 @@ ShanghaiTech是所很新的学校，虽然没有985211的title，但因为科研
 		MajorLabel:        shuFeyue2MajorLabel,
 		KnowledgeCategory: shuFeyue2KnowledgeCat,
 		KnowledgeTags:     shuFeyue2KnowledgeTags,
-		SampleQuestions: []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
-		ExpertiseTags: []string{`升学深造`, `上海大学`, `转专业`},
-		OriginalAuthor: `bughht`,
-		Source: `上海大学溯源手册`,
+		SampleQuestions:   []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
+		ExpertiseTags:     []string{`升学深造`, `上海大学`, `转专业`},
+		OriginalAuthor:    `bughht`,
+		Source:            `上海大学溯源手册`,
 		KnowledgeBody: `# 19-洪浩天-转专业-通信与信息工程学院-BME
 
 
@@ -7773,10 +7774,10 @@ ShanghaiTech是所很新的学校，虽然没有985211的title，但因为科研
 		MajorLabel:        shuFeyue2MajorLabel,
 		KnowledgeCategory: shuFeyue2KnowledgeCat,
 		KnowledgeTags:     shuFeyue2KnowledgeTags,
-		SampleQuestions: []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
-		ExpertiseTags: []string{`升学深造`, `上海大学`, `MSc&Phd`},
-		OriginalAuthor: `佚名`,
-		Source: `上海大学溯源手册`,
+		SampleQuestions:   []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
+		ExpertiseTags:     []string{`升学深造`, `上海大学`, `MSc&Phd`},
+		OriginalAuthor:    `佚名`,
+		Source:            `上海大学溯源手册`,
 		KnowledgeBody: `## 0. 前言
 
 受到朋友邀请来为大家分享我的申请季，同时也是对自己半年来申请经历的一个总结吧。阴差阳错的选择了上大力学，最后获得了很好的就读体验，也对这个之前从未了解过的专业产生了热爱。所以很高兴能和大家分享一下自己的心得体会，希望对大家有所帮助 
@@ -7882,10 +7883,10 @@ ShanghaiTech是所很新的学校，虽然没有985211的title，但因为科研
 		MajorLabel:        shuFeyue2MajorLabel,
 		KnowledgeCategory: shuFeyue2KnowledgeCat,
 		KnowledgeTags:     shuFeyue2KnowledgeTags,
-		SampleQuestions: []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
-		ExpertiseTags: []string{`升学深造`, `上海大学`, `中国科学技术大学`},
-		OriginalAuthor: `王甜甜`,
-		Source: `上海大学溯源手册`,
+		SampleQuestions:   []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
+		ExpertiseTags:     []string{`升学深造`, `上海大学`, `中国科学技术大学`},
+		OriginalAuthor:    `王甜甜`,
+		Source:            `上海大学溯源手册`,
 		KnowledgeBody: `## 基本背景
 - 学院：上海大学-钱伟长学院-理论与应用力学
 - GPA：3.66/4.00 89.40/100
@@ -7932,10 +7933,10 @@ ShanghaiTech是所很新的学校，虽然没有985211的title，但因为科研
 		MajorLabel:        shuFeyue2MajorLabel,
 		KnowledgeCategory: shuFeyue2KnowledgeCat,
 		KnowledgeTags:     shuFeyue2KnowledgeTags,
-		SampleQuestions: []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
-		ExpertiseTags: []string{`升学深造`, `上海大学`, `生物工程`},
-		OriginalAuthor: `曹晓越`,
-		Source: `上海大学溯源手册`,
+		SampleQuestions:   []string{`上大保研需要什么条件？`, `考研和保研怎么选择？`, `如何平衡学业和实习？`},
+		ExpertiseTags:     []string{`升学深造`, `上海大学`, `生物工程`},
+		OriginalAuthor:    `曹晓越`,
+		Source:            `上海大学溯源手册`,
 		KnowledgeBody: `## 基本信息
 - 专业：钱伟长学院-生物工程
 - GPA：3.84/4.00

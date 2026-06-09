@@ -3,14 +3,15 @@
 // 解决的问题：import-persona 未传 -headline/-short/-welcome 时会套默认模板，
 // 导致多个 Agent 简介又水又重复、不像真人。
 // 本工具按 display_name 定位档案，只更新你显式提供的字段（留空的字段保持不变），
+// -name 可传多个候选 display_name，用 | 分隔，方便兼容已经改过展示名的线上数据。
 // 不重刷知识、不覆盖 school/major/author/source 等已有内容。
 //
 // 用法（在 backend 目录下运行，默认 dry-run，加 -apply 才写库）：
 //
 //	go run ./cmd/update-persona-intro -name "豆奶_红豆" \
 //	  -display "只申港中文的豆奶_红豆" \
-//	  -headline "只申港中文3个项目 · 拒绝把申请季演得很苦" \
-//	  -short "两个月结束申请季，只申三个中两个。一种不内耗、只抓自己真想去的地方的申请法。" \
+//	  -headline "一个拒绝申请季演变得很苦的人" \
+//	  -short "申请港校" \
 //	  -welcome "我是豆奶_红豆。要不要海投、怎么挑真想去的项目、港中文体验如何，都能聊。" \
 //	  -audience "被『申请季必须很苦』裹挟、想要松弛打法的同学。" \
 //	  -sample "只申三个项目会不会太冒险？|怎么判断一个项目是不是我真想去的？|港中文读起来什么体验？" \
@@ -30,7 +31,7 @@ import (
 )
 
 func main() {
-	name := flag.String("name", "", "Agent 昵称（display_name，必填）")
+	name := flag.String("name", "", "Agent 昵称（display_name，必填；多个候选用 | 分隔）")
 	display := flag.String("display", "", "新的 Agent 昵称（display_name；留空不改）")
 	headline := flag.String("headline", "", "一句话简介（留空不改）")
 	shortBio := flag.String("short", "", "短简介（留空不改）")
@@ -89,9 +90,17 @@ func main() {
 		log.Fatalf("db connect failed: %v", err)
 	}
 
+	names := splitNames(*name)
 	var profile models.LifeAgentProfile
-	if err := db.DB.Where("display_name = ?", *name).First(&profile).Error; err != nil {
-		log.Fatalf("找不到昵称为 %q 的人生 Agent：%v", *name, err)
+	var found bool
+	for _, candidate := range names {
+		if err := db.DB.Where("display_name = ?", candidate).First(&profile).Error; err == nil {
+			found = true
+			break
+		}
+	}
+	if !found {
+		log.Fatalf("找不到昵称为 %q 的人生 Agent", *name)
 	}
 
 	fmt.Printf("=== 更新门面字段 · %s (%s) ===\n", profile.DisplayName, profile.ID)
@@ -129,4 +138,15 @@ func truncate(s string, n int) string {
 		return s
 	}
 	return string(r[:n])
+}
+
+func splitNames(s string) []string {
+	parts := strings.Split(s, "|")
+	names := make([]string, 0, len(parts))
+	for _, part := range parts {
+		if t := strings.TrimSpace(part); t != "" {
+			names = append(names, t)
+		}
+	}
+	return names
 }

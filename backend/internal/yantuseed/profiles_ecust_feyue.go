@@ -3,10 +3,10 @@ package yantuseed
 const ecustFeyueLongBioPrefix = `本文来自华东理工大学飞跃手册，著作权属原作者；以下为升学深造/就业经验，仅供参考。`
 
 const (
-	ecustFeyueAudience       = `正在准备保研、考研、留学或就业的同学，尤其是211院校背景。`
-	ecustFeyueEducation      = `硕士/博士研究生（已录取或就读）`
-	ecustFeyueMajorLabel     = `专业方向`
-	ecustFeyueKnowledgeCat   = `升学就业经验`
+	ecustFeyueAudience     = `正在准备保研、考研、留学或就业的同学，尤其是211院校背景。`
+	ecustFeyueEducation    = `硕士/博士研究生（已录取或就读）`
+	ecustFeyueMajorLabel   = `专业方向`
+	ecustFeyueKnowledgeCat = `升学就业经验`
 )
 
 var ecustFeyueKnowledgeTags = []string{"保研", "考研", "留学", "就业", "华东理工大学"}
@@ -25,10 +25,10 @@ var ecustFeyueProfiles = []Profile{
 		MajorLabel:        ecustFeyueMajorLabel,
 		KnowledgeCategory: ecustFeyueKnowledgeCat,
 		KnowledgeTags:     ecustFeyueKnowledgeTags,
-		SampleQuestions: []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
-		ExpertiseTags: []string{`升学深造`, `华东理工大学`, `MSc & MA in IDE`},
-		OriginalAuthor: `Danyi`,
-		Source: `华东理工大学飞跃手册`,
+		SampleQuestions:   []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
+		ExpertiseTags:     []string{`升学深造`, `华东理工大学`, `MSc & MA in IDE`},
+		OriginalAuthor:    `Danyi`,
+		Source:            `华东理工大学飞跃手册`,
 		KnowledgeBody: `# Danyi (2015): MSc & MA in IDE @ ICL&RCA
 
 ## 基本背景
@@ -139,10 +139,10 @@ Industrial Design Engineering Assistant (intern) @ designaffairs GmbH (09/2018 �
 		MajorLabel:        ecustFeyueMajorLabel,
 		KnowledgeCategory: ecustFeyueKnowledgeCat,
 		KnowledgeTags:     ecustFeyueKnowledgeTags,
-		SampleQuestions: []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
-		ExpertiseTags: []string{`升学深造`, `华东理工大学`, `MPH in Biostatistics`},
-		OriginalAuthor: `Echo`,
-		Source: `华东理工大学飞跃手册`,
+		SampleQuestions:   []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
+		ExpertiseTags:     []string{`升学深造`, `华东理工大学`, `MPH in Biostatistics`},
+		OriginalAuthor:    `Echo`,
+		Source:            `华东理工大学飞跃手册`,
 		KnowledgeBody: `# Echo (2018): MPH in Biostatistics @ Columbia University
 
 ## 基本背景
@@ -248,10 +248,10 @@ GRE多背单词，多做机经；另外GRE考试的时候是很可能遇到原�
 		MajorLabel:        ecustFeyueMajorLabel,
 		KnowledgeCategory: ecustFeyueKnowledgeCat,
 		KnowledgeTags:     ecustFeyueKnowledgeTags,
-		SampleQuestions: []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
-		ExpertiseTags: []string{`升学深造`, `华东理工大学`, `MPH in Biostatistics`},
-		OriginalAuthor: `Vivian`,
-		Source: `华东理工大学飞跃手册`,
+		SampleQuestions:   []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
+		ExpertiseTags:     []string{`升学深造`, `华东理工大学`, `MPH in Biostatistics`},
+		OriginalAuthor:    `Vivian`,
+		Source:            `华东理工大学飞跃手册`,
 		KnowledgeBody: `# Vivian (2018): MPH in Biostatistics @ Yale University
 
 ## 基本背景
@@ -355,10 +355,10 @@ TOEFL和GRE都是在英国考的，应该是全英的语言环境和上学时被
 		MajorLabel:        ecustFeyueMajorLabel,
 		KnowledgeCategory: ecustFeyueKnowledgeCat,
 		KnowledgeTags:     ecustFeyueKnowledgeTags,
-		SampleQuestions: []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
-		ExpertiseTags: []string{`升学深造`, `华东理工大学`, `MSBA`},
-		OriginalAuthor: `KW`,
-		Source: `华东理工大学飞跃手册`,
+		SampleQuestions:   []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
+		ExpertiseTags:     []string{`升学深造`, `华东理工大学`, `MSBA`},
+		OriginalAuthor:    `KW`,
+		Source:            `华东理工大学飞跃手册`,
 		KnowledgeBody: `# KW (2017): MSBA @ WUSTL
 
 ## 基本背景
@@ -451,10 +451,10 @@ BTW, 圣村犯罪率高并不可怕，学校附近&富人区还是相对安全�
 		MajorLabel:        ecustFeyueMajorLabel,
 		KnowledgeCategory: ecustFeyueKnowledgeCat,
 		KnowledgeTags:     ecustFeyueKnowledgeTags,
-		SampleQuestions: []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
-		ExpertiseTags: []string{`升学深造`, `华东理工大学`, `金融数学`},
-		OriginalAuthor: `小飞`,
-		Source: `华东理工大学飞跃手册`,
+		SampleQuestions:   []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
+		ExpertiseTags:     []string{`升学深造`, `华东理工大学`, `金融数学`},
+		OriginalAuthor:    `小飞`,
+		Source:            `华东理工大学飞跃手册`,
 		KnowledgeBody: `# 自在的年糕_v (2018): 金融数学 @ HKUST
 
 ## 基本背景
@@ -520,10 +520,10 @@ A lot...  DS@HKU, Stat@HKU, DSML@NUS, Stat@NUS
 		MajorLabel:        ecustFeyueMajorLabel,
 		KnowledgeCategory: ecustFeyueKnowledgeCat,
 		KnowledgeTags:     ecustFeyueKnowledgeTags,
-		SampleQuestions: []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
-		ExpertiseTags: []string{`升学深造`, `华东理工大学`, `Industry 4.0`},
-		OriginalAuthor: `Zoe`,
-		Source: `华东理工大学飞跃手册`,
+		SampleQuestions:   []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
+		ExpertiseTags:     []string{`升学深造`, `华东理工大学`, `Industry 4.0`},
+		OriginalAuthor:    `Zoe`,
+		Source:            `华东理工大学飞跃手册`,
 		KnowledgeBody: `# Zoe (2018): Industry 4.0 @ NUS
 
 ## 基本背景
@@ -603,10 +603,10 @@ GRE：背单词我用的墨墨背单词，其他的只需上b站搜索“皇冠G
 		MajorLabel:        ecustFeyueMajorLabel,
 		KnowledgeCategory: ecustFeyueKnowledgeCat,
 		KnowledgeTags:     ecustFeyueKnowledgeTags,
-		SampleQuestions: []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
-		ExpertiseTags: []string{`升学深造`, `华东理工大学`, `国际组织与国际交流`},
-		OriginalAuthor: `Jackie`,
-		Source: `华东理工大学飞跃手册`,
+		SampleQuestions:   []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
+		ExpertiseTags:     []string{`升学深造`, `华东理工大学`, `国际组织与国际交流`},
+		OriginalAuthor:    `Jackie`,
+		Source:            `华东理工大学飞跃手册`,
 		KnowledgeBody: `# Jackie (2018) : 国际组织与国际交流 @ 浙江大学
 
 ## 基本背景
@@ -699,10 +699,10 @@ Follow your inner passion and go get it. 我最后选国际组织就是因为我
 		MajorLabel:        ecustFeyueMajorLabel,
 		KnowledgeCategory: ecustFeyueKnowledgeCat,
 		KnowledgeTags:     ecustFeyueKnowledgeTags,
-		SampleQuestions: []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
-		ExpertiseTags: []string{`升学深造`, `华东理工大学`, `金融专硕`},
-		OriginalAuthor: `DJ`,
-		Source: `华东理工大学飞跃手册`,
+		SampleQuestions:   []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
+		ExpertiseTags:     []string{`升学深造`, `华东理工大学`, `金融专硕`},
+		OriginalAuthor:    `DJ`,
+		Source:            `华东理工大学飞跃手册`,
 		KnowledgeBody: `# DJ (2018) : 金融专硕 @ 清华五道口
 
 ## 基本背景
@@ -842,10 +842,10 @@ Follow your inner passion and go get it. 我最后选国际组织就是因为我
 		MajorLabel:        ecustFeyueMajorLabel,
 		KnowledgeCategory: ecustFeyueKnowledgeCat,
 		KnowledgeTags:     ecustFeyueKnowledgeTags,
-		SampleQuestions: []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
-		ExpertiseTags: []string{`升学深造`, `华东理工大学`, `介科学研究部`},
-		OriginalAuthor: `萃取液`,
-		Source: `华东理工大学飞跃手册`,
+		SampleQuestions:   []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
+		ExpertiseTags:     []string{`升学深造`, `华东理工大学`, `介科学研究部`},
+		OriginalAuthor:    `萃取液`,
+		Source:            `华东理工大学飞跃手册`,
 		KnowledgeBody: `# 淡定的蜗牛er (2017) : 介科学研究部 @ 中国科学院过程工程研究所
 
 ## 基本背景
@@ -927,10 +927,10 @@ Follow your inner passion and go get it. 我最后选国际组织就是因为我
 		MajorLabel:        ecustFeyueMajorLabel,
 		KnowledgeCategory: ecustFeyueKnowledgeCat,
 		KnowledgeTags:     ecustFeyueKnowledgeTags,
-		SampleQuestions: []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
-		ExpertiseTags: []string{`升学深造`, `华东理工大学`, `Global Investment Research`},
-		OriginalAuthor: `Xavier`,
-		Source: `华东理工大学飞跃手册`,
+		SampleQuestions:   []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
+		ExpertiseTags:     []string{`升学深造`, `华东理工大学`, `Global Investment Research`},
+		OriginalAuthor:    `Xavier`,
+		Source:            `华东理工大学飞跃手册`,
 		KnowledgeBody: `# Xavier (2017) : Global Investment Research @ Goldman Sachs Hong Kong
 
 ## 基本背景
@@ -1015,10 +1015,10 @@ talk to me on Linkedin: [Xavier Zhang](https://www.linkedin.com/in/xavierzhang32
 		MajorLabel:        ecustFeyueMajorLabel,
 		KnowledgeCategory: ecustFeyueKnowledgeCat,
 		KnowledgeTags:     ecustFeyueKnowledgeTags,
-		SampleQuestions: []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
-		ExpertiseTags: []string{`升学深造`, `华东理工大学`, `化学`},
-		OriginalAuthor: `波本`,
-		Source: `华东理工大学飞跃手册`,
+		SampleQuestions:   []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
+		ExpertiseTags:     []string{`升学深造`, `华东理工大学`, `化学`},
+		OriginalAuthor:    `波本`,
+		Source:            `华东理工大学飞跃手册`,
 		KnowledgeBody: `# 石榴__不吃宵夜(2018) : 化学 @北京大学
 
 ## 基本背景
@@ -1097,10 +1097,10 @@ BiliBili: 科学侠石榴__不吃宵夜；
 		MajorLabel:        ecustFeyueMajorLabel,
 		KnowledgeCategory: ecustFeyueKnowledgeCat,
 		KnowledgeTags:     ecustFeyueKnowledgeTags,
-		SampleQuestions: []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
-		ExpertiseTags: []string{`升学深造`, `华东理工大学`, `M.S. in ECE`},
-		OriginalAuthor: `Aaron`,
-		Source: `华东理工大学飞跃手册`,
+		SampleQuestions:   []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
+		ExpertiseTags:     []string{`升学深造`, `华东理工大学`, `M.S. in ECE`},
+		OriginalAuthor:    `Aaron`,
+		Source:            `华东理工大学飞跃手册`,
 		KnowledgeBody: `# Aaron (2015): M.S. in ECE @ CMU
 
 ## 基本背景
@@ -1238,10 +1238,10 @@ EECS类知识（尤其是CS）在互联网上有非常多世界顶级的教学�
 		MajorLabel:        ecustFeyueMajorLabel,
 		KnowledgeCategory: ecustFeyueKnowledgeCat,
 		KnowledgeTags:     ecustFeyueKnowledgeTags,
-		SampleQuestions: []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
-		ExpertiseTags: []string{`升学深造`, `华东理工大学`, `M.S. in ECE`},
-		OriginalAuthor: `Jack`,
-		Source: `华东理工大学飞跃手册`,
+		SampleQuestions:   []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
+		ExpertiseTags:     []string{`升学深造`, `华东理工大学`, `M.S. in ECE`},
+		OriginalAuthor:    `Jack`,
+		Source:            `华东理工大学飞跃手册`,
 		KnowledgeBody: `# Jack (2016): M.S. in ECE @ CMU
 
 ## 基本背景
@@ -1342,17 +1342,18 @@ Email: hengw@andrew.cmu.edu`,
 		MajorLine:         `MSc. HPC`,
 		ArticleTitle:      `华理飞跃手册 | 信息科学与工程学院 留学`,
 		LongBioPrefix:     ecustFeyueLongBioPrefix,
-		ShortBio:          `华东理工大学信息科学与工程学院MSc. HPC，UoE，分享留学经验。`,
+		Headline:          `深大计软→爱丁堡 HPC， 低gpa`,
+		ShortBio:          `低gpa怎么翻盘`,
 		Audience:          ecustFeyueAudience,
 		WelcomeMessage:    `你好，欢迎问我关于升学深造、备考和择校的问题。`,
 		Education:         ecustFeyueEducation,
 		MajorLabel:        ecustFeyueMajorLabel,
 		KnowledgeCategory: ecustFeyueKnowledgeCat,
 		KnowledgeTags:     ecustFeyueKnowledgeTags,
-		SampleQuestions: []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
-		ExpertiseTags: []string{`升学深造`, `华东理工大学`, `MSc. HPC`},
-		OriginalAuthor: `pwq`,
-		Source: `华东理工大学飞跃手册`,
+		SampleQuestions:   []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
+		ExpertiseTags:     []string{`升学深造`, `华东理工大学`, `MSc. HPC`},
+		OriginalAuthor:    `pwq`,
+		Source:            `华东理工大学飞跃手册`,
 		KnowledgeBody: `# pwq (2017): MSc. HPC @ UoE
 
 <!-- > <名称> (<本科入学年份>)：<去向，尽量简短，因为标题太长就不美观> -->
@@ -1469,10 +1470,10 @@ caterer.jacket.0q@icloud.com
 		MajorLabel:        ecustFeyueMajorLabel,
 		KnowledgeCategory: ecustFeyueKnowledgeCat,
 		KnowledgeTags:     ecustFeyueKnowledgeTags,
-		SampleQuestions: []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
-		ExpertiseTags: []string{`升学深造`, `华东理工大学`, `M.S. in ECE-SES`},
-		OriginalAuthor: `Yihan`,
-		Source: `华东理工大学飞跃手册`,
+		SampleQuestions:   []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
+		ExpertiseTags:     []string{`升学深造`, `华东理工大学`, `M.S. in ECE-SES`},
+		OriginalAuthor:    `Yihan`,
+		Source:            `华东理工大学飞跃手册`,
 		KnowledgeBody: `# Yihan (2017): M.S. in ECE-SES @ UT Austin
 
 ## 基本背景
@@ -1871,10 +1872,10 @@ yihan.jin1999@gmail.com`,
 		MajorLabel:        ecustFeyueMajorLabel,
 		KnowledgeCategory: ecustFeyueKnowledgeCat,
 		KnowledgeTags:     ecustFeyueKnowledgeTags,
-		SampleQuestions: []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
-		ExpertiseTags: []string{`升学深造`, `华东理工大学`, `计算机软件与理论`},
-		OriginalAuthor: `藤里`,
-		Source: `华东理工大学飞跃手册`,
+		SampleQuestions:   []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
+		ExpertiseTags:     []string{`升学深造`, `华东理工大学`, `计算机软件与理论`},
+		OriginalAuthor:    `藤里`,
+		Source:            `华东理工大学飞跃手册`,
 		KnowledgeBody: `# 兔兔_银杏 (2015) : 计算机软件与理论 @ 复旦大学
 
 ## 基本背景
@@ -2023,10 +2024,10 @@ None
 		MajorLabel:        ecustFeyueMajorLabel,
 		KnowledgeCategory: ecustFeyueKnowledgeCat,
 		KnowledgeTags:     ecustFeyueKnowledgeTags,
-		SampleQuestions: []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
-		ExpertiseTags: []string{`升学深造`, `华东理工大学`, `软件工程学硕`},
-		OriginalAuthor: `PHIKN1GHT`,
-		Source: `华东理工大学飞跃手册`,
+		SampleQuestions:   []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
+		ExpertiseTags:     []string{`升学深造`, `华东理工大学`, `软件工程学硕`},
+		OriginalAuthor:    `PHIKN1GHT`,
+		Source:            `华东理工大学飞跃手册`,
 		KnowledgeBody: `# PHIKN1GHT (2017) : 软件工程学硕 @ 华东师范大学
 
 　　~~来给大伙贡献全站第一篇考研败北与二战指南。~~衷心祝愿所有同学都不用阅读这篇文章的任何内容。但如果你刚刚遭遇到了考研的失败，或是已经萌生了二战的想法，我只希望你知道，即使在这条路上，你也并不孤独。
@@ -2176,10 +2177,10 @@ None
 		MajorLabel:        ecustFeyueMajorLabel,
 		KnowledgeCategory: ecustFeyueKnowledgeCat,
 		KnowledgeTags:     ecustFeyueKnowledgeTags,
-		SampleQuestions: []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
-		ExpertiseTags: []string{`升学深造`, `华东理工大学`, `RD`},
-		OriginalAuthor: `YY`,
-		Source: `华东理工大学飞跃手册`,
+		SampleQuestions:   []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
+		ExpertiseTags:     []string{`升学深造`, `华东理工大学`, `RD`},
+		OriginalAuthor:    `YY`,
+		Source:            `华东理工大学飞跃手册`,
 		KnowledgeBody: `# YY (2015): RD @ 第四范式
 
 ## 基本背景
@@ -2311,10 +2312,10 @@ RD
 		MajorLabel:        ecustFeyueMajorLabel,
 		KnowledgeCategory: ecustFeyueKnowledgeCat,
 		KnowledgeTags:     ecustFeyueKnowledgeTags,
-		SampleQuestions: []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
-		ExpertiseTags: []string{`升学深造`, `华东理工大学`, `信息科学与工程学院`},
-		OriginalAuthor: `CJJ`,
-		Source: `华东理工大学飞跃手册`,
+		SampleQuestions:   []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
+		ExpertiseTags:     []string{`升学深造`, `华东理工大学`, `信息科学与工程学院`},
+		OriginalAuthor:    `CJJ`,
+		Source:            `华东理工大学飞跃手册`,
 		KnowledgeBody: `# CJJ-DarkLin (2020研究生入学) : System R&D Engineer @ ByteDance (base Beijing)
 
 ## 基本背景
@@ -2443,10 +2444,10 @@ Steam神秘代码:172522295
 		MajorLabel:        ecustFeyueMajorLabel,
 		KnowledgeCategory: ecustFeyueKnowledgeCat,
 		KnowledgeTags:     ecustFeyueKnowledgeTags,
-		SampleQuestions: []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
-		ExpertiseTags: []string{`升学深造`, `华东理工大学`, `英语笔译`},
-		OriginalAuthor: `guoyao`,
-		Source: `华东理工大学飞跃手册`,
+		SampleQuestions:   []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
+		ExpertiseTags:     []string{`升学深造`, `华东理工大学`, `英语笔译`},
+		OriginalAuthor:    `guoyao`,
+		Source:            `华东理工大学飞跃手册`,
 		KnowledgeBody: `# guoyao(2018) : 英语笔译 @ 南京大学
 
 ## 基本背景
@@ -2569,10 +2570,10 @@ Steam神秘代码:172522295
 		MajorLabel:        ecustFeyueMajorLabel,
 		KnowledgeCategory: ecustFeyueKnowledgeCat,
 		KnowledgeTags:     ecustFeyueKnowledgeTags,
-		SampleQuestions: []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
-		ExpertiseTags: []string{`升学深造`, `华东理工大学`, `DS & BA`},
-		OriginalAuthor: `小川`,
-		Source: `华东理工大学飞跃手册`,
+		SampleQuestions:   []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
+		ExpertiseTags:     []string{`升学深造`, `华东理工大学`, `DS & BA`},
+		OriginalAuthor:    `小川`,
+		Source:            `华东理工大学飞跃手册`,
 		KnowledgeBody: `# 海豚小号打篮球 (2018): DS & BA @ ESSEC
 
 ## 基本背景
@@ -2652,10 +2653,10 @@ Steam神秘代码:172522295
 		MajorLabel:        ecustFeyueMajorLabel,
 		KnowledgeCategory: ecustFeyueKnowledgeCat,
 		KnowledgeTags:     ecustFeyueKnowledgeTags,
-		SampleQuestions: []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
-		ExpertiseTags: []string{`升学深造`, `华东理工大学`, `高分子材料与工程`},
-		OriginalAuthor: `ing`,
-		Source: `华东理工大学飞跃手册`,
+		SampleQuestions:   []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
+		ExpertiseTags:     []string{`升学深造`, `华东理工大学`, `高分子材料与工程`},
+		OriginalAuthor:    `ing`,
+		Source:            `华东理工大学飞跃手册`,
 		KnowledgeBody: `# ing(2018) : 高分子材料与工程 @复旦大学
 
 ## 基本背景
@@ -2762,10 +2763,10 @@ Steam神秘代码:172522295
 		MajorLabel:        ecustFeyueMajorLabel,
 		KnowledgeCategory: ecustFeyueKnowledgeCat,
 		KnowledgeTags:     ecustFeyueKnowledgeTags,
-		SampleQuestions: []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
-		ExpertiseTags: []string{`升学深造`, `华东理工大学`, `高分子科学系 直博`},
-		OriginalAuthor: `ckkkk`,
-		Source: `华东理工大学飞跃手册`,
+		SampleQuestions:   []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
+		ExpertiseTags:     []string{`升学深造`, `华东理工大学`, `高分子科学系 直博`},
+		OriginalAuthor:    `ckkkk`,
+		Source:            `华东理工大学飞跃手册`,
 		KnowledgeBody: `# ckkkk(2018) : 高分子科学系 直博 @ 复旦大学
 
 ## 基本背景
@@ -2848,10 +2849,10 @@ Steam神秘代码:172522295
 		MajorLabel:        ecustFeyueMajorLabel,
 		KnowledgeCategory: ecustFeyueKnowledgeCat,
 		KnowledgeTags:     ecustFeyueKnowledgeTags,
-		SampleQuestions: []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
-		ExpertiseTags: []string{`升学深造`, `华东理工大学`, `化工（高分子方向）`},
-		OriginalAuthor: `卡夫卡`,
-		Source: `华东理工大学飞跃手册`,
+		SampleQuestions:   []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
+		ExpertiseTags:     []string{`升学深造`, `华东理工大学`, `化工（高分子方向）`},
+		OriginalAuthor:    `卡夫卡`,
+		Source:            `华东理工大学飞跃手册`,
 		KnowledgeBody: `# 麻雀_蔓越莓(2018) : 化工（高分子方向） @ 浙江大学
 
 ## 基本背景
@@ -2941,10 +2942,10 @@ Steam神秘代码:172522295
 		MajorLabel:        ecustFeyueMajorLabel,
 		KnowledgeCategory: ecustFeyueKnowledgeCat,
 		KnowledgeTags:     ecustFeyueKnowledgeTags,
-		SampleQuestions: []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
-		ExpertiseTags: []string{`升学深造`, `华东理工大学`, `新能源材料与器件`},
-		OriginalAuthor: `steven`,
-		Source: `华东理工大学飞跃手册`,
+		SampleQuestions:   []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
+		ExpertiseTags:     []string{`升学深造`, `华东理工大学`, `新能源材料与器件`},
+		OriginalAuthor:    `steven`,
+		Source:            `华东理工大学飞跃手册`,
 		KnowledgeBody: `# steven (2018) : 新能源材料与器件 @ 华东理工大学
 
 ## 基本背景
@@ -3023,10 +3024,10 @@ Steam神秘代码:172522295
 		MajorLabel:        ecustFeyueMajorLabel,
 		KnowledgeCategory: ecustFeyueKnowledgeCat,
 		KnowledgeTags:     ecustFeyueKnowledgeTags,
-		SampleQuestions: []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
-		ExpertiseTags: []string{`升学深造`, `华东理工大学`, `M.S. in Biostatistics`},
-		OriginalAuthor: `Paul`,
-		Source: `华东理工大学飞跃手册`,
+		SampleQuestions:   []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
+		ExpertiseTags:     []string{`升学深造`, `华东理工大学`, `M.S. in Biostatistics`},
+		OriginalAuthor:    `Paul`,
+		Source:            `华东理工大学飞跃手册`,
 		KnowledgeBody: `# Paul (2018): M.S. in Biostatistics @ Yale
 
 ## 基本背景
@@ -3130,10 +3131,10 @@ MS in Biostatistics @ Yale
 		MajorLabel:        ecustFeyueMajorLabel,
 		KnowledgeCategory: ecustFeyueKnowledgeCat,
 		KnowledgeTags:     ecustFeyueKnowledgeTags,
-		SampleQuestions: []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
-		ExpertiseTags: []string{`升学深造`, `华东理工大学`, `Robotics`},
-		OriginalAuthor: `Xiao`,
-		Source: `华东理工大学飞跃手册`,
+		SampleQuestions:   []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
+		ExpertiseTags:     []string{`升学深造`, `华东理工大学`, `Robotics`},
+		OriginalAuthor:    `Xiao`,
+		Source:            `华东理工大学飞跃手册`,
 		KnowledgeBody: `# Xiao (2019): Robotics @ITMO_University
 
 <!-- > <名称> (<本科入学年份>)：<去向，尽量简短，因为标题太长就不美观> -->
@@ -3189,10 +3190,10 @@ xzxhgm@gmail.com
 		MajorLabel:        ecustFeyueMajorLabel,
 		KnowledgeCategory: ecustFeyueKnowledgeCat,
 		KnowledgeTags:     ecustFeyueKnowledgeTags,
-		SampleQuestions: []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
-		ExpertiseTags: []string{`升学深造`, `华东理工大学`, `数学科学系`},
-		OriginalAuthor: `叉烧饭`,
-		Source: `华东理工大学飞跃手册`,
+		SampleQuestions:   []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
+		ExpertiseTags:     []string{`升学深造`, `华东理工大学`, `数学科学系`},
+		OriginalAuthor:    `叉烧饭`,
+		Source:            `华东理工大学飞跃手册`,
 		KnowledgeBody: `# 年糕种花中 (2016) : 数学科学系 @ 清华大学
 
 ## 基本背景
@@ -3248,10 +3249,10 @@ xzxhgm@gmail.com
 		MajorLabel:        ecustFeyueMajorLabel,
 		KnowledgeCategory: ecustFeyueKnowledgeCat,
 		KnowledgeTags:     ecustFeyueKnowledgeTags,
-		SampleQuestions: []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
-		ExpertiseTags: []string{`升学深造`, `华东理工大学`, `基础数学`},
-		OriginalAuthor: `Hubble`,
-		Source: `华东理工大学飞跃手册`,
+		SampleQuestions:   []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
+		ExpertiseTags:     []string{`升学深造`, `华东理工大学`, `基础数学`},
+		OriginalAuthor:    `Hubble`,
+		Source:            `华东理工大学飞跃手册`,
 		KnowledgeBody: `# Hubble (2018) : 基础数学 @ 复旦大学
 
 ## 基本背景
@@ -3306,10 +3307,10 @@ xzxhgm@gmail.com
 		MajorLabel:        ecustFeyueMajorLabel,
 		KnowledgeCategory: ecustFeyueKnowledgeCat,
 		KnowledgeTags:     ecustFeyueKnowledgeTags,
-		SampleQuestions: []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
-		ExpertiseTags: []string{`升学深造`, `华东理工大学`, `统计学`},
-		OriginalAuthor: `Hypon`,
-		Source: `华东理工大学飞跃手册`,
+		SampleQuestions:   []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
+		ExpertiseTags:     []string{`升学深造`, `华东理工大学`, `统计学`},
+		OriginalAuthor:    `Hypon`,
+		Source:            `华东理工大学飞跃手册`,
 		KnowledgeBody: `# Hypon (2018) : 统计学 @ 中国人民大学
 
 ## 基本背景
@@ -3405,10 +3406,10 @@ SJTU的笔试包含的内容比较多，有数学分析、高等代数、概率�
 		MajorLabel:        ecustFeyueMajorLabel,
 		KnowledgeCategory: ecustFeyueKnowledgeCat,
 		KnowledgeTags:     ecustFeyueKnowledgeTags,
-		SampleQuestions: []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
-		ExpertiseTags: []string{`升学深造`, `华东理工大学`, `应用数学`},
-		OriginalAuthor: `njj`,
-		Source: `华东理工大学飞跃手册`,
+		SampleQuestions:   []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
+		ExpertiseTags:     []string{`升学深造`, `华东理工大学`, `应用数学`},
+		OriginalAuthor:    `njj`,
+		Source:            `华东理工大学飞跃手册`,
 		KnowledgeBody: `# njj (2018) : 应用数学 @ 华东理工大学
 
 ## 基本背景
@@ -3476,10 +3477,10 @@ SJTU的笔试包含的内容比较多，有数学分析、高等代数、概率�
 		MajorLabel:        ecustFeyueMajorLabel,
 		KnowledgeCategory: ecustFeyueKnowledgeCat,
 		KnowledgeTags:     ecustFeyueKnowledgeTags,
-		SampleQuestions: []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
-		ExpertiseTags: []string{`升学深造`, `华东理工大学`, `应用数学`},
-		OriginalAuthor: `sky`,
-		Source: `华东理工大学飞跃手册`,
+		SampleQuestions:   []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
+		ExpertiseTags:     []string{`升学深造`, `华东理工大学`, `应用数学`},
+		OriginalAuthor:    `sky`,
+		Source:            `华东理工大学飞跃手册`,
 		KnowledgeBody: `# sky (2018) : 应用数学 @ 同济大学
 
 ## 基本背景
@@ -3561,10 +3562,10 @@ SJTU的笔试包含的内容比较多，有数学分析、高等代数、概率�
 		MajorLabel:        ecustFeyueMajorLabel,
 		KnowledgeCategory: ecustFeyueKnowledgeCat,
 		KnowledgeTags:     ecustFeyueKnowledgeTags,
-		SampleQuestions: []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
-		ExpertiseTags: []string{`升学深造`, `华东理工大学`, `类脑研究院数学直博`},
-		OriginalAuthor: `chentao`,
-		Source: `华东理工大学飞跃手册`,
+		SampleQuestions:   []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
+		ExpertiseTags:     []string{`升学深造`, `华东理工大学`, `类脑研究院数学直博`},
+		OriginalAuthor:    `chentao`,
+		Source:            `华东理工大学飞跃手册`,
 		KnowledgeBody: `# chentao (2019) : 类脑研究院数学直博 @ 复旦大学
 
 ## 基本背景
@@ -3651,10 +3652,10 @@ SJTU的笔试包含的内容比较多，有数学分析、高等代数、概率�
 		MajorLabel:        ecustFeyueMajorLabel,
 		KnowledgeCategory: ecustFeyueKnowledgeCat,
 		KnowledgeTags:     ecustFeyueKnowledgeTags,
-		SampleQuestions: []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
-		ExpertiseTags: []string{`升学深造`, `华东理工大学`, `数学学院`},
-		OriginalAuthor: `fz`,
-		Source: `华东理工大学飞跃手册`,
+		SampleQuestions:   []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
+		ExpertiseTags:     []string{`升学深造`, `华东理工大学`, `数学学院`},
+		OriginalAuthor:    `fz`,
+		Source:            `华东理工大学飞跃手册`,
 		KnowledgeBody: `# fz（2019）: 数理统计方向统计学硕 @ 华东师范大学
 
 ## 基本背景
@@ -3742,10 +3743,10 @@ SJTU的笔试包含的内容比较多，有数学分析、高等代数、概率�
 		MajorLabel:        ecustFeyueMajorLabel,
 		KnowledgeCategory: ecustFeyueKnowledgeCat,
 		KnowledgeTags:     ecustFeyueKnowledgeTags,
-		SampleQuestions: []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
-		ExpertiseTags: []string{`升学深造`, `华东理工大学`, `金融专硕`},
-		OriginalAuthor: `bobotea`,
-		Source: `华东理工大学飞跃手册`,
+		SampleQuestions:   []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
+		ExpertiseTags:     []string{`升学深造`, `华东理工大学`, `金融专硕`},
+		OriginalAuthor:    `bobotea`,
+		Source:            `华东理工大学飞跃手册`,
 		KnowledgeBody: `# bobotea (2018) : 金融专硕 @ 中科大
 
 ## 基本背景
@@ -3882,10 +3883,10 @@ SJTU的笔试包含的内容比较多，有数学分析、高等代数、概率�
 		MajorLabel:        ecustFeyueMajorLabel,
 		KnowledgeCategory: ecustFeyueKnowledgeCat,
 		KnowledgeTags:     ecustFeyueKnowledgeTags,
-		SampleQuestions: []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
-		ExpertiseTags: []string{`升学深造`, `华东理工大学`, `应用统计`},
-		OriginalAuthor: `paopaotea`,
-		Source: `华东理工大学飞跃手册`,
+		SampleQuestions:   []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
+		ExpertiseTags:     []string{`升学深造`, `华东理工大学`, `应用统计`},
+		OriginalAuthor:    `paopaotea`,
+		Source:            `华东理工大学飞跃手册`,
 		KnowledgeBody: `# paopaotea (2018) : 应用统计 @ 上财
 
 ## 基本背景
@@ -3953,10 +3954,10 @@ SJTU的笔试包含的内容比较多，有数学分析、高等代数、概率�
 		MajorLabel:        ecustFeyueMajorLabel,
 		KnowledgeCategory: ecustFeyueKnowledgeCat,
 		KnowledgeTags:     ecustFeyueKnowledgeTags,
-		SampleQuestions: []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
-		ExpertiseTags: []string{`升学深造`, `华东理工大学`, `M.Sc. Mechatronik`},
-		OriginalAuthor: `Shangheng`,
-		Source: `华东理工大学飞跃手册`,
+		SampleQuestions:   []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
+		ExpertiseTags:     []string{`升学深造`, `华东理工大学`, `M.Sc. Mechatronik`},
+		OriginalAuthor:    `Shangheng`,
+		Source:            `华东理工大学飞跃手册`,
 		KnowledgeBody: `# Shangheng (2015) : M.Sc. Mechatronik @ TU Darmstadt
 
 ## 基本背景
@@ -4074,10 +4075,10 @@ Linkedin: https://www.linkedin.com/in/shangheng-wu-6097a7220/`,
 		MajorLabel:        ecustFeyueMajorLabel,
 		KnowledgeCategory: ecustFeyueKnowledgeCat,
 		KnowledgeTags:     ecustFeyueKnowledgeTags,
-		SampleQuestions: []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
-		ExpertiseTags: []string{`升学深造`, `华东理工大学`, `M.Eng in ME`},
-		OriginalAuthor: `Tao`,
-		Source: `华东理工大学飞跃手册`,
+		SampleQuestions:   []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
+		ExpertiseTags:     []string{`升学深造`, `华东理工大学`, `M.Eng in ME`},
+		OriginalAuthor:    `Tao`,
+		Source:            `华东理工大学飞跃手册`,
 		KnowledgeBody: `# Tao (2016): M.Eng in ME @ UC Berkeley
 
 ## 基本背景
@@ -4191,10 +4192,10 @@ M.Eng in ME @ UC Berkeley
 		MajorLabel:        ecustFeyueMajorLabel,
 		KnowledgeCategory: ecustFeyueKnowledgeCat,
 		KnowledgeTags:     ecustFeyueKnowledgeTags,
-		SampleQuestions: []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
-		ExpertiseTags: []string{`升学深造`, `华东理工大学`, `药物化学`},
-		OriginalAuthor: `晏梦锟`,
-		Source: `华东理工大学飞跃手册`,
+		SampleQuestions:   []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
+		ExpertiseTags:     []string{`升学深造`, `华东理工大学`, `药物化学`},
+		OriginalAuthor:    `晏梦锟`,
+		Source:            `华东理工大学飞跃手册`,
 		KnowledgeBody: `# 机灵的豆奶__(2018) : 药物化学 @ 上海药物所
 
 ## 基本背景
@@ -4233,10 +4234,10 @@ M.Eng in ME @ UC Berkeley
 		MajorLabel:        ecustFeyueMajorLabel,
 		KnowledgeCategory: ecustFeyueKnowledgeCat,
 		KnowledgeTags:     ecustFeyueKnowledgeTags,
-		SampleQuestions: []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
-		ExpertiseTags: []string{`升学深造`, `华东理工大学`, `生物医学工程`},
-		OriginalAuthor: `guangru`,
-		Source: `华东理工大学飞跃手册`,
+		SampleQuestions:   []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
+		ExpertiseTags:     []string{`升学深造`, `华东理工大学`, `生物医学工程`},
+		OriginalAuthor:    `guangru`,
+		Source:            `华东理工大学飞跃手册`,
 		KnowledgeBody: `# guangru (2018) : 生物医学工程 @ 上海大学
 
 ## 基本背景
@@ -4388,10 +4389,10 @@ M.Eng in ME @ UC Berkeley
 		MajorLabel:        ecustFeyueMajorLabel,
 		KnowledgeCategory: ecustFeyueKnowledgeCat,
 		KnowledgeTags:     ecustFeyueKnowledgeTags,
-		SampleQuestions: []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
-		ExpertiseTags: []string{`升学深造`, `华东理工大学`, `国贸`},
-		OriginalAuthor: `狗里斯`,
-		Source: `华东理工大学飞跃手册`,
+		SampleQuestions:   []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
+		ExpertiseTags:     []string{`升学深造`, `华东理工大学`, `国贸`},
+		OriginalAuthor:    `狗里斯`,
+		Source:            `华东理工大学飞跃手册`,
 		KnowledgeBody: `# 瓢虫zzz搬砖中 (2018) : 国贸 @ 西南财经
 
 ## 基本背景
@@ -4543,10 +4544,10 @@ Key：
 		MajorLabel:        ecustFeyueMajorLabel,
 		KnowledgeCategory: ecustFeyueKnowledgeCat,
 		KnowledgeTags:     ecustFeyueKnowledgeTags,
-		SampleQuestions: []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
-		ExpertiseTags: []string{`升学深造`, `华东理工大学`, `大数据工程`},
-		OriginalAuthor: `Y学长`,
-		Source: `华东理工大学飞跃手册`,
+		SampleQuestions:   []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
+		ExpertiseTags:     []string{`升学深造`, `华东理工大学`, `大数据工程`},
+		OriginalAuthor:    `Y学长`,
+		Source:            `华东理工大学飞跃手册`,
 		KnowledgeBody: `# 迷路的奶茶吖 (2016) : 大数据工程 @ 清华大学
 
 ## 基本背景
@@ -4639,10 +4640,10 @@ Key：
 		MajorLabel:        ecustFeyueMajorLabel,
 		KnowledgeCategory: ecustFeyueKnowledgeCat,
 		KnowledgeTags:     ecustFeyueKnowledgeTags,
-		SampleQuestions: []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
-		ExpertiseTags: []string{`升学深造`, `华东理工大学`, `电子信息`},
-		OriginalAuthor: `Never`,
-		Source: `华东理工大学飞跃手册`,
+		SampleQuestions:   []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
+		ExpertiseTags:     []string{`升学深造`, `华东理工大学`, `电子信息`},
+		OriginalAuthor:    `Never`,
+		Source:            `华东理工大学飞跃手册`,
 		KnowledgeBody: `# Never(2018) : 电子信息 @ 北京大学
 
 ## 基本背景
@@ -4739,10 +4740,10 @@ Key：
 		MajorLabel:        ecustFeyueMajorLabel,
 		KnowledgeCategory: ecustFeyueKnowledgeCat,
 		KnowledgeTags:     ecustFeyueKnowledgeTags,
-		SampleQuestions: []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
-		ExpertiseTags: []string{`升学深造`, `华东理工大学`, `化工`},
-		OriginalAuthor: `夏夏`,
-		Source: `华东理工大学飞跃手册`,
+		SampleQuestions:   []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
+		ExpertiseTags:     []string{`升学深造`, `华东理工大学`, `化工`},
+		OriginalAuthor:    `夏夏`,
+		Source:            `华东理工大学飞跃手册`,
 		KnowledgeBody: `# 快乐的柠檬鸭(2018) : 化工 @ 清华大学
 
 ## 基本背景
@@ -4804,10 +4805,10 @@ Key：
 		MajorLabel:        ecustFeyueMajorLabel,
 		KnowledgeCategory: ecustFeyueKnowledgeCat,
 		KnowledgeTags:     ecustFeyueKnowledgeTags,
-		SampleQuestions: []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
-		ExpertiseTags: []string{`升学深造`, `华东理工大学`, `Master in Communication`},
-		OriginalAuthor: `Siyi`,
-		Source: `华东理工大学飞跃手册`,
+		SampleQuestions:   []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
+		ExpertiseTags:     []string{`升学深造`, `华东理工大学`, `Master in Communication`},
+		OriginalAuthor:    `Siyi`,
+		Source:            `华东理工大学飞跃手册`,
 		KnowledgeBody: `# Siyi (2017): Master in Communication @ NUS
 
 ## 基本背景
@@ -4889,10 +4890,10 @@ Wx：zsy071042`,
 		MajorLabel:        ecustFeyueMajorLabel,
 		KnowledgeCategory: ecustFeyueKnowledgeCat,
 		KnowledgeTags:     ecustFeyueKnowledgeTags,
-		SampleQuestions: []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
-		ExpertiseTags: []string{`升学深造`, `华东理工大学`, `Master of Accounting`},
-		OriginalAuthor: `Yimin`,
-		Source: `华东理工大学飞跃手册`,
+		SampleQuestions:   []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
+		ExpertiseTags:     []string{`升学深造`, `华东理工大学`, `Master of Accounting`},
+		OriginalAuthor:    `Yimin`,
+		Source:            `华东理工大学飞跃手册`,
 		KnowledgeBody: `# Yimin (2017): Master of Accounting @ The University of Hong Kong
 
 ## 基本背景
@@ -5016,10 +5017,10 @@ GPA也就是绩点，这个绩点不是像保研一样，只看专业课成绩�
 		MajorLabel:        ecustFeyueMajorLabel,
 		KnowledgeCategory: ecustFeyueKnowledgeCat,
 		KnowledgeTags:     ecustFeyueKnowledgeTags,
-		SampleQuestions: []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
-		ExpertiseTags: []string{`升学深造`, `华东理工大学`, `行政管理`},
-		OriginalAuthor: `Joanna`,
-		Source: `华东理工大学飞跃手册`,
+		SampleQuestions:   []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
+		ExpertiseTags:     []string{`升学深造`, `华东理工大学`, `行政管理`},
+		OriginalAuthor:    `Joanna`,
+		Source:            `华东理工大学飞跃手册`,
 		KnowledgeBody: `# Joanna(2018) : 行政管理 @ 山东大学
 
 ## 基本背景
@@ -5147,10 +5148,10 @@ GPA也就是绩点，这个绩点不是像保研一样，只看专业课成绩�
 		MajorLabel:        ecustFeyueMajorLabel,
 		KnowledgeCategory: ecustFeyueKnowledgeCat,
 		KnowledgeTags:     ecustFeyueKnowledgeTags,
-		SampleQuestions: []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
-		ExpertiseTags: []string{`升学深造`, `华东理工大学`, `法硕（非法学）`},
-		OriginalAuthor: `XT`,
-		Source: `华东理工大学飞跃手册`,
+		SampleQuestions:   []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
+		ExpertiseTags:     []string{`升学深造`, `华东理工大学`, `法硕（非法学）`},
+		OriginalAuthor:    `XT`,
+		Source:            `华东理工大学飞跃手册`,
 		KnowledgeBody: `# XT(2018) : 法硕（非法学） @ 华东政法大学
 
 ## 基本背景
@@ -5317,10 +5318,10 @@ GPA也就是绩点，这个绩点不是像保研一样，只看专业课成绩�
 		MajorLabel:        ecustFeyueMajorLabel,
 		KnowledgeCategory: ecustFeyueKnowledgeCat,
 		KnowledgeTags:     ecustFeyueKnowledgeTags,
-		SampleQuestions: []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
-		ExpertiseTags: []string{`升学深造`, `华东理工大学`, `社会工作`},
-		OriginalAuthor: `卷卷`,
-		Source: `华东理工大学飞跃手册`,
+		SampleQuestions:   []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
+		ExpertiseTags:     []string{`升学深造`, `华东理工大学`, `社会工作`},
+		OriginalAuthor:    `卷卷`,
+		Source:            `华东理工大学飞跃手册`,
 		KnowledgeBody: `# 认真的柿子3(2018) : 社会工作 @南京大学
 
 ## 基本背景
@@ -5415,10 +5416,10 @@ GPA也就是绩点，这个绩点不是像保研一样，只看专业课成绩�
 		MajorLabel:        ecustFeyueMajorLabel,
 		KnowledgeCategory: ecustFeyueKnowledgeCat,
 		KnowledgeTags:     ecustFeyueKnowledgeTags,
-		SampleQuestions: []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
-		ExpertiseTags: []string{`升学深造`, `华东理工大学`, `新闻传播`},
-		OriginalAuthor: `小玉`,
-		Source: `华东理工大学飞跃手册`,
+		SampleQuestions:   []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
+		ExpertiseTags:     []string{`升学深造`, `华东理工大学`, `新闻传播`},
+		OriginalAuthor:    `小玉`,
+		Source:            `华东理工大学飞跃手册`,
 		KnowledgeBody: `# 奶茶3打篮球(2018) : 新闻传播 @上海大学
 
 ## 基本背景
@@ -5518,10 +5519,10 @@ Ps, 我当时的一个小优势可能就是我有告诉老师我其实一直在�
 		MajorLabel:        ecustFeyueMajorLabel,
 		KnowledgeCategory: ecustFeyueKnowledgeCat,
 		KnowledgeTags:     ecustFeyueKnowledgeTags,
-		SampleQuestions: []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
-		ExpertiseTags: []string{`升学深造`, `华东理工大学`, `法硕（非法学）`},
-		OriginalAuthor: `rrr`,
-		Source: `华东理工大学飞跃手册`,
+		SampleQuestions:   []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
+		ExpertiseTags:     []string{`升学深造`, `华东理工大学`, `法硕（非法学）`},
+		OriginalAuthor:    `rrr`,
+		Source:            `华东理工大学飞跃手册`,
 		KnowledgeBody: `# rrr (2018) : 法硕（非法学）@ 山东大学
 
 ## 基本背景
@@ -5585,10 +5586,10 @@ Ps, 我当时的一个小优势可能就是我有告诉老师我其实一直在�
 		MajorLabel:        ecustFeyueMajorLabel,
 		KnowledgeCategory: ecustFeyueKnowledgeCat,
 		KnowledgeTags:     ecustFeyueKnowledgeTags,
-		SampleQuestions: []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
-		ExpertiseTags: []string{`升学深造`, `华东理工大学`, `金融专硕`},
-		OriginalAuthor: `lulu`,
-		Source: `华东理工大学飞跃手册`,
+		SampleQuestions:   []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
+		ExpertiseTags:     []string{`升学深造`, `华东理工大学`, `金融专硕`},
+		OriginalAuthor:    `lulu`,
+		Source:            `华东理工大学飞跃手册`,
 		KnowledgeBody: `# lulu (2018) : 金融专硕 @ 上财
 
 ## 基本背景
@@ -6028,10 +6029,10 @@ Ps.我这个进度安排现在感觉是有问题的，尤其是对于零基础�
 		MajorLabel:        ecustFeyueMajorLabel,
 		KnowledgeCategory: ecustFeyueKnowledgeCat,
 		KnowledgeTags:     ecustFeyueKnowledgeTags,
-		SampleQuestions: []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
-		ExpertiseTags: []string{`升学深造`, `华东理工大学`, `Intern`},
-		OriginalAuthor: `Muro`,
-		Source: `华东理工大学飞跃手册`,
+		SampleQuestions:   []string{`华理保研需要什么条件？`, `211背景如何选择目标院校？`, `考研和保研怎么选？`},
+		ExpertiseTags:     []string{`升学深造`, `华东理工大学`, `Intern`},
+		OriginalAuthor:    `Muro`,
+		Source:            `华东理工大学飞跃手册`,
 		KnowledgeBody: `# Muro (2018) : Intern @ UNESCAP
 
 ## 基本背景
