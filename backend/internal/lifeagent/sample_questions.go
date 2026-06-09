@@ -1,8 +1,29 @@
 package lifeagent
 
 import (
+	"regexp"
 	"strings"
 )
+
+// courseCodeRe 识别课程代码：字母+数字（GAMES202 / CS224 / EE16 / STATS214）或带横杠的（10-414）。
+var courseCodeRe = regexp.MustCompile(`[A-Za-z]{2,8}\d{2,}|\d{1,2}-\d{2,}`)
+
+// 这些是成绩/考试/学位词里的「字母+数字」，不是课程，别误删（GPA81、IELTS7、408 等）。
+var nonCourseUpperTokens = []string{"GPA", "IELTS", "TOEFL", "TOEF", "GRE", "GMAT", "SAT", "ACT", "MBA", "CET"}
+
+// looksLikeCourse 判断字符串里是否含课程代码（用于删掉「GAMES202有哪些实操建议？」这类课程经验问题）。
+func looksLikeCourse(s string) bool {
+	if !courseCodeRe.MatchString(s) {
+		return false
+	}
+	up := strings.ToUpper(s)
+	for _, t := range nonCourseUpperTokens {
+		if strings.Contains(up, t) {
+			return false
+		}
+	}
+	return true
+}
 
 // SampleQuestionInput 用于从档案字段推导展示用示例问题。
 type SampleQuestionInput struct {
@@ -148,6 +169,10 @@ func isJunkTemplateQuestion(q string) bool {
 	// 含「」【】括号的，都是模板拼出来的（关于「X」能分享什么？/有什么经验？、你的「X」经历…），
 	// 策划的好问题不用这种括号——一律丢弃。
 	if strings.ContainsAny(q, "「」【】") {
+		return true
+	}
+	// 含课程代码的问题（GAMES202有哪些实操建议？/关于CS224n有什么经验？）——课程经验分享，直接删。
+	if looksLikeCourse(q) {
 		return true
 	}
 	// 「关于{校名/专业}有什么建议/经验？」——对实体的呆问法（如「关于北邮有什么建议？」）删掉；
