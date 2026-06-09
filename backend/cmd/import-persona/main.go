@@ -83,7 +83,7 @@ func main() {
 	}
 	items := parsePersonaMD(string(raw))
 	if len(items) == 0 {
-		log.Fatal("没解析出任何条目；确认文件含 '## 标题' 或 '## N. 问题' 格式")
+		log.Fatal("没解析出任何条目；确认文件含 '## 标题'、'## N. 问题' 或 '#### 知识条目' 格式")
 	}
 
 	label := strings.TrimSpace(*name)
@@ -312,6 +312,7 @@ var (
 	narrativePipeRe     = regexp.MustCompile(`^##\s+\d{1,2}｜\s*(.+)$`)
 	narrativeBareNumRe  = regexp.MustCompile(`^##\s+\d{1,2}\s*$`)
 	subHeadingTitleRe   = regexp.MustCompile(`^###\s+标题[：:]\s*(.+)$`)
+	kbReadyEntryRe      = regexp.MustCompile(`^####\s+(.+)$`)
 )
 
 func hasNarrativeMode(lines []string) bool {
@@ -338,6 +339,7 @@ func titleFromSubheading(buf []string) string {
 //   - ## 1. 标题：叙事小节名
 //   - ## 01｜叙事小节名
 //   - ## 01 + ### 标题：…
+//   - #### 知识库入库版条目（kb-ready 拆分文件）
 //
 // 若文件含编号叙事条目，则只导入这些条目，跳过 Agent 元信息/背景等原始块。
 // 自动剔除：归属线、虚构标注、事实/虚构说明、批次小结等非正文块。
@@ -369,6 +371,13 @@ func parsePersonaMD(text string) []qa {
 			flush()
 			cur = &qa{title: t}
 			continue
+		}
+		if !narrativeOnly {
+			if t, ok := kbReadyEntryTitle(ln); ok {
+				flush()
+				cur = &qa{title: t}
+				continue
+			}
 		}
 		if cur != nil {
 			buf = append(buf, ln)
@@ -437,10 +446,17 @@ func headingTitle(line string, narrativeOnly bool) (string, bool) {
 		return "", false
 	}
 	// 跳过批次小结等非条目标题
-	if strings.HasPrefix(rest, "当前进度") {
+	if strings.HasPrefix(rest, "当前进度") || rest == "入库规则" {
 		return "", false
 	}
 	return rest, true
+}
+
+func kbReadyEntryTitle(line string) (string, bool) {
+	if m := kbReadyEntryRe.FindStringSubmatch(strings.TrimSpace(line)); len(m) == 2 {
+		return strings.TrimSpace(m[1]), true
+	}
+	return "", false
 }
 
 func writeMergedMD(path, displayName, sourceFile string, items []qa) error {
@@ -517,7 +533,7 @@ func isMetaStopLine(t string) bool {
 	if t == "" {
 		return false
 	}
-	if strings.HasPrefix(t, "**归属线") || strings.HasPrefix(t, "### 归属线") {
+	if strings.HasPrefix(t, "**归属线") || strings.HasPrefix(t, "### 归属线") || strings.HasPrefix(t, "归属线：") {
 		return true
 	}
 	if strings.HasPrefix(t, "**🔴") || strings.HasPrefix(t, "### 🔴") {

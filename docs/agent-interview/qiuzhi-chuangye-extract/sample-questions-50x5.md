@@ -279,5 +279,3 @@
 50. 小城市梁平，互联网社交和付费社群怎么破圈？
 
 ---
-
-*生成说明：问题均可在对应 `*-extract.md` 逐字稿中找到依据，供 `update-persona-intro -sample` 或 discover 卡片使用。*
