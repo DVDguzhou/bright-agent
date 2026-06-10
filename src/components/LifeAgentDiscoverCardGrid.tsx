@@ -212,13 +212,13 @@ function LifeAgentLeadCard({
     profile.ratings && profile.ratings.raters > 0 ? profile.ratings.averageScore.toFixed(1) : null;
 
   return (
-    <article className="rounded-lg border border-hairline bg-paper-50 p-2.5 shadow-[0_18px_50px_rgba(17,21,19,0.07)] sm:p-3">
+    <article className="rounded-xl border border-ink bg-ink p-2.5 text-paper shadow-[0_22px_56px_rgba(17,21,19,0.22)] sm:p-3">
       <Link
         href={profileHref(profile.id)}
         className="pressable group block focus:outline-none focus-visible:outline focus-visible:outline-1 focus-visible:outline-signal-600"
       >
         <div className="grid gap-3 sm:grid-cols-[minmax(0,0.92fr)_minmax(0,1fr)] sm:gap-4">
-          <div className="relative w-full overflow-hidden rounded-md border border-hairline bg-paper-200" style={{ aspectRatio: "4 / 3" }}>
+          <div className="relative w-full overflow-hidden rounded-lg border border-white/10 bg-ink-700" style={{ aspectRatio: "4 / 3" }}>
             {showPulse && (
               <div className="pointer-events-none absolute right-2.5 top-2.5 z-20 flex items-center gap-1.5">
                 <span className="relative flex h-2.5 w-2.5">
@@ -238,8 +238,8 @@ function LifeAgentLeadCard({
               sizes="(max-width: 640px) 92vw, 40vw"
               priority
             />
-            <span className="absolute left-2 top-2 rounded-md bg-signal-600 px-2 py-1 text-[11px] font-medium leading-none text-white shadow-[0_8px_18px_rgba(15,118,110,0.22)]">
-              推荐
+            <span className="absolute left-2 top-2 rounded-md border border-white/10 bg-ink/75 px-2 py-1 text-[11px] font-medium leading-none text-white shadow-[0_8px_18px_rgba(17,21,19,0.28)] supports-[backdrop-filter]:backdrop-blur-md">
+              精选推荐
             </span>
             {typeof profile.mindScore === "number" ? (
               <div className="absolute bottom-0 left-0 z-10 p-1.5">
@@ -248,21 +248,21 @@ function LifeAgentLeadCard({
             ) : null}
           </div>
           <div className="flex min-w-0 flex-col">
-            <div className="mb-1 flex min-w-0 items-center gap-2 text-xs text-ink-400">
+            <div className="mb-1 flex min-w-0 items-center gap-2 text-xs text-paper/60">
               <span className="truncate">
                 {[areaLabel || null, profile.creator.name ?? anonymous].filter(Boolean).join(" · ") || anonymous}
               </span>
-              {ratingScore ? <span className="shrink-0 text-ink-500">{ratingScore}★</span> : null}
+              {ratingScore ? <span className="shrink-0 text-paper/70">{ratingScore}★</span> : null}
             </div>
-            <h3 className="text-xl font-semibold leading-7 text-ink sm:text-2xl [text-wrap:balance]">
+            <h3 className="text-xl font-semibold leading-7 text-paper sm:text-2xl [text-wrap:balance]">
               {profile.displayName}
               {verified ? (
-                <span className="ml-1.5 align-middle text-[11px] tracking-widest text-signal-600" aria-label="已认证">
+                <span className="ml-1.5 align-middle text-[11px] tracking-widest text-signal-200" aria-label="已认证">
                   ✓
                 </span>
               ) : null}
             </h3>
-            <p className="mt-1 line-clamp-2 text-sm leading-6 text-ink-500">
+            <p className="mt-1 line-clamp-2 text-sm leading-6 text-paper/70">
               {headlineShown}
             </p>
             {sampleQuestionsShown.length > 0 ? (
@@ -270,24 +270,24 @@ function LifeAgentLeadCard({
                 {sampleQuestionsShown.map((q, i) => (
                   <li
                     key={i}
-                    className="line-clamp-1 rounded-md bg-paper-100 px-2.5 py-1.5 text-xs leading-5 text-ink-500"
+                    className="line-clamp-1 rounded-md border border-white/10 bg-white/10 px-2.5 py-1.5 text-xs leading-5 text-paper/80 supports-[backdrop-filter]:backdrop-blur-md"
                   >
                     {q}
                   </li>
                 ))}
               </ul>
             ) : null}
-            <div className="mt-auto flex items-center justify-between gap-3 pt-4 text-xs text-ink-400">
-              <span className="inline-flex items-center gap-1 font-medium text-signal-600">
+            <div className="mt-auto flex items-center justify-between gap-3 pt-4 text-xs text-paper/60">
+              <span className="inline-flex items-center gap-1 font-semibold text-paper">
                 查看经历
                 <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={1.7} viewBox="0 0 24 24" aria-hidden>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 6l6 6-6 6" />
                 </svg>
               </span>
               {showPrice ? (
-                <span className="shrink-0 text-lg font-semibold tabular-nums text-ink">
+                <span className="shrink-0 text-lg font-semibold tabular-nums text-paper">
                   ¥{(profile.pricePerQuestion / 100).toFixed(0)}
-                  <span className="ml-0.5 text-[10px] font-normal text-ink-300">/问</span>
+                  <span className="ml-0.5 text-[10px] font-normal text-paper/50">/问</span>
                 </span>
               ) : null}
             </div>
@@ -307,6 +307,8 @@ type Props = {
   showFirstCardPulse?: boolean;
   /** 为 true 时第一条用「头条卡」全宽头版处理，其余进网格 */
   lead?: boolean;
+  /** 外部指定推荐卡，常用于从精选合集里抽推荐，不影响下方普通列表 */
+  leadProfile?: LifeAgentListItem | null;
   windowResetKey?: string | number;
   /** 为 false 时一次性渲染全部（管理页等） */
   windowed?: boolean;
@@ -335,12 +337,14 @@ export function LifeAgentDiscoverCardGrid({
   loadingMore = false,
   showFirstCardPulse = false,
   lead = false,
+  leadProfile: leadProfileProp,
 }: Props) {
   const virtualized = virtualizedProp ?? windowed !== false;
   const colCount = useGridColumnCount();
-  const leadProfile = lead && profiles.length > 0 ? profiles[0] : undefined;
+  const leadProfile =
+    leadProfileProp !== undefined ? leadProfileProp ?? undefined : lead && profiles.length > 0 ? profiles[0] : undefined;
   const gridProfiles = useMemo(
-    () => (leadProfile ? profiles.slice(1) : profiles),
+    () => (leadProfile ? profiles.filter((profile) => profile.id !== leadProfile.id) : profiles),
     [leadProfile, profiles],
   );
   const globalIndexOffset = leadProfile ? 1 : 0;

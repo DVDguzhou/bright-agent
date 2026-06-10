@@ -14,7 +14,7 @@ import {
 import { getFavoriteAgentIds } from "@/lib/life-agent-favorites";
 import { LifeAgentDiscoverCardGrid } from "@/components/LifeAgentDiscoverCardGrid";
 import { rankLifeAgentsBySearchQuery, type LifeAgentListItem } from "@/lib/life-agent-feed-search";
-import { fetchFavoriteLifeAgents, fetchLifeAgentsPage } from "@/lib/life-agents-list-api";
+import { fetchFavoriteLifeAgents, fetchLifeAgentCollectionPage, fetchLifeAgentsPage } from "@/lib/life-agents-list-api";
 import { cleanLifeAgentIntroText } from "@/lib/life-agent-intro-clean";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLifeAgentsFeedGestures, useMobileTouchNavEnabled } from "@/hooks/use-life-agents-feed-gestures";
@@ -36,6 +36,8 @@ type PurchasedAgentRow = {
 const PURCHASED_CACHE_TTL_MS = 90_000;
 const INITIAL_VISIBLE_IMAGE_COUNT_MOBILE = 2;
 const INITIAL_VISIBLE_IMAGE_COUNT_DESKTOP = 4;
+const FEATURED_RECOMMENDATION_COLLECTION = "jingpin";
+const FEATURED_RECOMMENDATION_LIMIT = 12;
 
 
 type FeedTabKey = "favorites" | "discover" | "purchased";
@@ -196,6 +198,8 @@ function LifeAgentsPageContent() {
   const [discoverNextCursor, setDiscoverNextCursor] = useState<string | null>(null);
   const [discoverLoading, setDiscoverLoading] = useState(true);
   const [discoverLoadingMore, setDiscoverLoadingMore] = useState(false);
+  const [featuredRecommendationItems, setFeaturedRecommendationItems] = useState<LifeAgentListItem[]>([]);
+  const [featuredRecommendationLoading, setFeaturedRecommendationLoading] = useState(true);
   const [favoritesSource, setFavoritesSource] = useState<LifeAgentListItem[]>([]);
   const [favoritesLoading, setFavoritesLoading] = useState(false);
   const [favoritesFetched, setFavoritesFetched] = useState(false);
@@ -204,6 +208,7 @@ function LifeAgentsPageContent() {
   discoverItemsRef.current = discoverItems;
 
   const discoverSeedRef = useRef((Math.random() * 2147483647) | 0);
+  const featuredRecommendationSeedRef = useRef((Math.random() * 2147483647) | 0);
 
   const [loadError, setLoadError] = useState<string | null>(null);
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
@@ -234,6 +239,29 @@ function LifeAgentsPageContent() {
     if (showPurchaseUi || feedTab !== "purchased") return;
     router.replace("/life-agents", { scroll: false });
   }, [showPurchaseUi, feedTab, router]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    featuredRecommendationSeedRef.current = (Math.random() * 2147483647) | 0;
+    setFeaturedRecommendationLoading(true);
+    fetchLifeAgentCollectionPage(
+      FEATURED_RECOMMENDATION_COLLECTION,
+      FEATURED_RECOMMENDATION_LIMIT,
+      0,
+      featuredRecommendationSeedRef.current,
+      controller.signal,
+    )
+      .then(({ items }) => {
+        setFeaturedRecommendationItems(items);
+      })
+      .catch(() => {
+        setFeaturedRecommendationItems([]);
+      })
+      .finally(() => {
+        setFeaturedRecommendationLoading(false);
+      });
+    return () => controller.abort();
+  }, []);
 
   const visitPanel = useCallback((i: number) => {
     setVisitedMask((m) => {
@@ -600,6 +628,8 @@ function LifeAgentsPageContent() {
   }, [favoriteIds, favoritesSource]);
 
   const displayProfilesDiscover = discoverItems;
+  const featuredRecommendation = featuredRecommendationItems[0] ?? null;
+  const showFeaturedRecommendationLead = featuredRecommendationLoading || Boolean(featuredRecommendation);
 
   const displayProfilesDesktop = useMemo(() => {
     if (feedTab === "favorites") return displayProfilesFavorites;
@@ -622,19 +652,28 @@ function LifeAgentsPageContent() {
         .slice(0, initialVisibleImageCount)
         .map((row) => resolveLifeAgentCoverDisplayUrl(row.coverUrl, row.coverImageUrl, row.coverPresetKey));
     }
-    return displayProfilesDiscover
-      .slice(0, initialVisibleImageCount)
-      .map((profile) =>
-        resolveLifeAgentCoverDisplayUrl(profile.coverUrl, profile.coverImageUrl, profile.coverPresetKey),
-      );
-  }, [displayProfilesDiscover, displayProfilesFavorites, initialFeedTab, initialVisibleImageCount, purchasedItems]);
+    return [
+      ...(featuredRecommendation
+        ? [resolveLifeAgentCoverDisplayUrl(
+            featuredRecommendation.coverUrl,
+            featuredRecommendation.coverImageUrl,
+            featuredRecommendation.coverPresetKey,
+          )]
+        : []),
+      ...displayProfilesDiscover
+        .slice(0, initialVisibleImageCount)
+        .map((profile) =>
+          resolveLifeAgentCoverDisplayUrl(profile.coverUrl, profile.coverImageUrl, profile.coverPresetKey),
+        ),
+    ];
+  }, [displayProfilesDiscover, displayProfilesFavorites, featuredRecommendation, initialFeedTab, initialVisibleImageCount, purchasedItems]);
 
   const initialFeedDataReady =
     initialFeedTab === "purchased"
       ? purchasedFetched || purchasedUnauthorized
       : initialFeedTab === "favorites"
         ? favoritesFetched
-        : !discoverLoading;
+        : !discoverLoading && !featuredRecommendationLoading;
 
   useEffect(() => {
     // 首屏请求失败也要离开骨架屏，否则报错横幅和重试入口永远不可见
@@ -741,15 +780,15 @@ function LifeAgentsPageContent() {
   const featuredCollectionBanner = (
     <Link
       href="/c/jingpin"
-      className="pressable group mb-4 flex items-center justify-between gap-3 rounded-md border border-hairline bg-paper-50/80 px-3.5 py-3 transition-colors hover:border-signal-200 hover:bg-signal-50"
+      className="pressable group mb-4 flex items-center justify-between gap-3 rounded-lg border border-ink bg-ink px-3.5 py-3 text-paper shadow-[0_16px_36px_rgba(17,21,19,0.18)] supports-[backdrop-filter]:bg-ink/90 supports-[backdrop-filter]:backdrop-blur-xl"
     >
       <div className="min-w-0">
-        <p className="text-sm font-semibold leading-5 text-ink">精选咨询</p>
-        <p className="mt-0.5 line-clamp-1 text-xs leading-5 text-ink-500">
+        <p className="text-sm font-semibold leading-5 text-paper">精选咨询</p>
+        <p className="mt-0.5 line-clamp-1 text-xs leading-5 text-paper/60">
           上岸、留学、实习、创业
         </p>
       </div>
-      <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-hairline text-ink-500 transition-colors group-hover:border-signal-200 group-hover:text-signal-600">
+      <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-white/10 bg-white/10 text-paper/80 transition-colors group-hover:bg-white/20 group-hover:text-paper supports-[backdrop-filter]:backdrop-blur-md">
         <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.7} viewBox="0 0 24 24" aria-hidden>
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 6l6 6-6 6" />
         </svg>
@@ -828,7 +867,8 @@ function LifeAgentsPageContent() {
                 loadingMore={discoverLoadingMore}
                 virtualized={false}
                 showFirstCardPulse={firstCardPulsing}
-                lead
+                lead={showFeaturedRecommendationLead}
+                leadProfile={featuredRecommendation}
               />
             </section>
             {showPurchaseUi ? (
@@ -874,7 +914,8 @@ function LifeAgentsPageContent() {
               hasMoreFromServer={feedTab !== "favorites" && feedTab !== "purchased" && !!discoverNextCursor}
               loadingMore={discoverLoadingMore}
               showFirstCardPulse={firstCardPulsing && feedTab !== "favorites" && feedTab !== "purchased"}
-              lead={feedTab !== "favorites" && feedTab !== "purchased"}
+              lead={feedTab !== "favorites" && feedTab !== "purchased" && showFeaturedRecommendationLead}
+              leadProfile={feedTab !== "favorites" && feedTab !== "purchased" ? featuredRecommendation : null}
             />
           )}
         </section>
