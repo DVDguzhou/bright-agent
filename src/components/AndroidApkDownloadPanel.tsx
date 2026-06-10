@@ -22,19 +22,19 @@ export function AndroidApkDownloadPanel({ apkUrl }: Props) {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl border border-hairline bg-paper/80 p-5 sm:p-6">
+      <div className="app-panel p-5 sm:p-6">
         <p className="text-sm font-medium text-ink-400">安装包直链</p>
         <p className="mt-2 break-all text-xs text-ink-500">{apkUrl}</p>
         <button
           type="button"
           onClick={copyLink}
-          className="mt-4 inline-flex items-center justify-center rounded-xl border border-hairline bg-paper px-5 py-3 text-sm font-medium text-ink-600 transition hover:border-olive-400/70 hover:text-ink"
+          className="btn-secondary mt-4"
         >
           {copied ? "已复制链接" : "复制下载链接"}
         </button>
       </div>
 
-      <div className="rounded border border-hairline bg-paper-200/60 p-4 text-sm leading-relaxed text-ink-600">
+      <div className="app-panel bg-paper-200/60 p-4 text-sm leading-relaxed text-ink-600">
         <p className="font-medium">说明</p>
         <ul className="mt-2 list-disc space-y-1 pl-5">
           <li>本安装包仅适用于 Android；iPhone 请点上方「打开 App Store」或搜索「brightagent」。</li>

@@ -12,13 +12,13 @@ export const viewport: Viewport = {
   maximumScale: 1,
   viewportFit: "cover",
   interactiveWidget: "resizes-content",
+  themeColor: "#f7f8f6",
 };
 
 export const metadata: Metadata = {
   title: "BrightAgent",
   description: "专注本地的经验 Agent 市场：学长分享雅思、大妈分享菜市场、酒吧达人分享探店、创业者分享行业——真实经历做成可对话 Agent，按次付费咨询。",
   manifest: "/manifest.json",
-  themeColor: "#fbfbf9",
   appleWebApp: { capable: true, title: "BrightAgent", statusBarStyle: "black-translucent" },
   icons: {
     icon: [
@@ -35,15 +35,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-CN" className="h-full bg-paper">
-      <body className="min-h-full min-h-[100dvh] bg-paper text-ink font-sans antialiased overflow-x-hidden">
+    <html lang="zh-CN" className="h-full bg-[#f7f8f6]">
+      <body className="min-h-full min-h-[100dvh] overflow-x-hidden bg-[#f7f8f6] font-sans text-ink antialiased">
         <PostHogProvider>
           <AuthProvider>
             <ChunkLoadRecovery />
             <Suspense fallback={null}>
               <Nav />
             </Suspense>
-            <main className="container mx-auto min-h-[100dvh] bg-paper px-4 py-3 sm:py-8 max-w-7xl relative z-10 pb-20 lg:min-h-0 lg:pb-8 overflow-x-hidden">{children}</main>
+            <main className="relative z-10 mx-auto min-h-[100dvh] w-full max-w-7xl overflow-x-hidden bg-transparent px-3 py-3 pb-20 sm:px-5 sm:py-7 lg:min-h-0 lg:pb-8">{children}</main>
             <RegisterSW />
           </AuthProvider>
         </PostHogProvider>

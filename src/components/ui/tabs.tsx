@@ -13,7 +13,7 @@ const TabsList = React.forwardRef<
   <TabsPrimitive.List
     ref={ref}
     className={cn(
-      "relative flex items-end gap-0 border-b border-hairline",
+      "relative flex items-end gap-1 border-b border-ink/10",
       className,
     )}
     {...props}
@@ -29,13 +29,13 @@ const TabsTrigger = React.forwardRef<
     ref={ref}
     className={cn(
       // Base
-      "relative pb-2.5 pt-1 text-[15px] font-medium transition-colors duration-150 outline-none",
+      "relative rounded-t-md px-3 pb-2.5 pt-2 text-[15px] font-semibold outline-none transition-colors duration-150",
       // Inactive
-      "text-[#555555] hover:text-[#aaaaaa]",
+      "text-ink-400 hover:bg-paper-200 hover:text-ink",
       // Active — white text
-      "data-[state=active]:text-white",
+      "data-[state=active]:bg-white data-[state=active]:text-ink",
       // Active underline — mint pill
-      "after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:rounded-full after:bg-[var(--accent)] after:opacity-80 after:scale-x-0 after:transition-transform after:duration-200 after:origin-left",
+      "after:absolute after:bottom-0 after:left-3 after:right-3 after:h-[2px] after:bg-ink after:scale-x-0 after:origin-left after:transition-transform after:duration-200",
       "data-[state=active]:after:scale-x-100",
       className,
     )}

@@ -357,14 +357,14 @@ export default function PostsPage() {
         </div>
       )}
 
-      <div className="divide-y divide-hairline/30">
+      <div className="space-y-3">
         {posts.map((post, i) => (
           <motion.article
             key={post.id}
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i < 6 ? i * 0.05 : 0 }}
-            className="py-4 first:pt-0"
+            className="app-panel p-4"
           >
             {/* Author + actions */}
             <div className="mb-2 flex items-center justify-between gap-2">

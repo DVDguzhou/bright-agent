@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useState } from "react";
 import { createPortal } from "react-dom";
+import { Info } from "lucide-react";
 
 type FieldInfoButtonProps = {
   title: string;
@@ -37,7 +38,7 @@ export function FieldInfoButton({ title, body, ariaLabel, className = "" }: Fiel
     open && portalReady
       ? createPortal(
           <div
-            className="fixed inset-0 z-[9999] flex items-end justify-center bg-black/35 p-4 sm:items-center"
+            className="fixed inset-0 z-[9999] flex items-end justify-center bg-ink/35 p-4 backdrop-blur-sm sm:items-center"
             role="presentation"
             onClick={() => setOpen(false)}
           >
@@ -45,10 +46,10 @@ export function FieldInfoButton({ title, body, ariaLabel, className = "" }: Fiel
               role="dialog"
               aria-modal="true"
               aria-labelledby={titleId}
-              className="w-full max-w-sm rounded-2xl bg-paper px-5 py-4 shadow-xl ring-1 ring-hairline/40"
+              className="app-panel w-full max-w-sm px-5 py-4 shadow-[0_24px_70px_rgba(17,21,19,0.18)]"
               onClick={(e) => e.stopPropagation()}
             >
-              <h3 id={titleId} className="font-serif text-base font-medium text-ink">
+              <h3 id={titleId} className="text-base font-semibold text-ink">
                 {title}
               </h3>
               <div className="mt-3 space-y-2 text-sm leading-relaxed text-ink-500">
@@ -59,7 +60,7 @@ export function FieldInfoButton({ title, body, ariaLabel, className = "" }: Fiel
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="mt-4 w-full rounded-full bg-ink py-2.5 text-sm font-medium text-paper active:opacity-90"
+                className="btn-primary mt-4 w-full"
               >
                 知道了
               </button>
@@ -78,18 +79,11 @@ export function FieldInfoButton({ title, body, ariaLabel, className = "" }: Fiel
           e.stopPropagation();
           setOpen(true);
         }}
-        className={`inline-flex shrink-0 items-center justify-center rounded-full text-ink-300 transition hover:bg-paper-300/70 hover:text-ink-500 ${className}`}
+        className={`icon-button h-6 min-h-0 w-6 min-w-0 shrink-0 p-0 text-ink-300 hover:text-ink-500 ${className}`}
         aria-label={ariaLabel}
         title={ariaLabel}
       >
-        <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
+        <Info className="h-3.5 w-3.5" aria-hidden />
       </button>
       {dialog}
     </>

@@ -284,9 +284,9 @@ function LoginContent() {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="max-w-md mx-auto py-16"
+      className="mx-auto max-w-md py-12 sm:py-16"
     >
-      <h1 className="font-serif text-3xl font-medium text-ink mb-2 [text-wrap:balance]">
+      <h1 className="mb-2 text-3xl font-semibold text-ink [text-wrap:balance]">
         登录
       </h1>
       <p className="text-ink-400 mb-6">欢迎回来</p>
@@ -302,7 +302,7 @@ function LoginContent() {
                 setError("");
               }}
               className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${
-                tab === t.key ? "bg-oxblood-100 text-oxblood-700" : "bg-paper-200 text-ink-500 hover:bg-paper-300"
+                tab === t.key ? "bg-ink text-paper" : "bg-white/70 text-ink-500 hover:bg-paper-200"
               }`}
             >
               {t.label}
@@ -336,7 +336,7 @@ function LoginContent() {
       )}
 
       {tab === "email" && emailLoginMode === "code" && (
-        <form onSubmit={submitEmailOtp} className="space-y-5 rounded-3xl border border-hairline bg-paper p-6 shadow-sm">
+        <form onSubmit={submitEmailOtp} className="app-panel space-y-5 p-6">
           <p className="text-sm text-ink-500">
             {LOGIN_SHOW_PHONE ? "验证码将发送至邮箱，与手机号登录相同流程。" : "验证码将发送至你的注册邮箱。"}
           </p>
@@ -364,7 +364,7 @@ function LoginContent() {
               type="button"
               onClick={sendEmailCode}
               disabled={loading || emailOtpCountdown > 0}
-              className="px-4 py-2 rounded-lg bg-paper-200 text-ink-600 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+              className="btn-secondary whitespace-nowrap px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-50"
             >
               {emailOtpCountdown > 0 ? `${emailOtpCountdown}s` : emailOtpSent ? "重新发送" : "获取验证码"}
             </button>
@@ -392,7 +392,7 @@ function LoginContent() {
       )}
 
       {tab === "email" && emailLoginMode === "password" && (
-        <form onSubmit={submitEmail} className="space-y-5 rounded-3xl border border-hairline bg-paper p-6 shadow-sm">
+        <form onSubmit={submitEmail} className="app-panel space-y-5 p-6">
           <label className="block text-sm font-medium text-ink-600">邮箱</label>
           <input
             type="email"
@@ -439,7 +439,7 @@ function LoginContent() {
       )}
 
       {LOGIN_SHOW_WECHAT && tab === "wechat" && (
-        <div className="rounded-3xl border border-hairline bg-paper p-6 shadow-sm">
+        <div className="app-panel p-6">
           <p className="text-ink-500 text-sm mb-6">点击下方按钮跳转至微信授权页面</p>
           <button
             type="button"
@@ -456,7 +456,7 @@ function LoginContent() {
       )}
 
       {LOGIN_SHOW_PHONE && tab === "phone" && (
-        <form onSubmit={submitPhone} className="space-y-5 rounded-3xl border border-hairline bg-paper p-6 shadow-sm">
+        <form onSubmit={submitPhone} className="app-panel space-y-5 p-6">
           <label className="block text-sm font-medium text-ink-600">手机号</label>
           <input
             type="tel"
@@ -479,7 +479,7 @@ function LoginContent() {
               type="button"
               onClick={sendCode}
               disabled={loading || countdown > 0}
-              className="px-4 py-2 rounded-lg bg-paper-200 text-ink-600 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+              className="btn-secondary whitespace-nowrap px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-50"
             >
               {countdown > 0 ? `${countdown}s` : codeSent ? "重新发送" : "获取验证码"}
             </button>

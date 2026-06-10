@@ -69,10 +69,10 @@ export function LifeAgentCoverPicker({ coverImageUrl, onChange, onAvatarSynced, 
       <p className="text-xs text-ink-400">默认使用统一封面，也可上传自己的图片。上传封面会同步更新你的头像。</p>
 
       <div
-        className={`relative mx-auto aspect-[4/5] w-full max-w-[200px] overflow-hidden rounded-2xl border bg-paper-50 ${
+        className={`relative mx-auto aspect-[4/5] w-full max-w-[200px] overflow-hidden rounded-lg border bg-white ${
           pastel
-            ? "border-hairline/30 bg-paper/[0.4] shadow-[0_6px_30px_rgba(26,23,20,0.06)] backdrop-blur-sm"
-            : "border-hairline"
+            ? "border-ink/10 shadow-[0_12px_36px_rgba(17,21,19,0.08)]"
+            : "border-ink/10"
         }`}
       >
         <img src={previewSrc} alt="封面预览" className="absolute inset-0 h-full w-full object-cover" />
@@ -86,8 +86,8 @@ export function LifeAgentCoverPicker({ coverImageUrl, onChange, onAvatarSynced, 
           onClick={() => inputRef.current?.click()}
           className={
             pastel
-              ? "rounded-xl border border-hairline/40 bg-paper/[0.94] px-4 py-2 text-sm font-medium text-ink-600 shadow-[0_2px_14px_rgba(26,23,20,0.05)] backdrop-blur-sm hover:border-hairline/80 hover:text-ink disabled:opacity-50"
-              : "rounded-xl border border-hairline bg-paper px-4 py-2 text-sm font-medium text-ink-600 hover:border-oxblood-200 hover:text-oxblood-700 disabled:opacity-50"
+              ? "btn-secondary disabled:opacity-50"
+              : "btn-secondary disabled:opacity-50"
           }
         >
           {uploading ? "上传中…" : "上传自己的封面"}

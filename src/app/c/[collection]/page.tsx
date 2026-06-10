@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { ChevronLeft } from "lucide-react";
 import { LifeAgentDiscoverCardGrid } from "@/components/LifeAgentDiscoverCardGrid";
 import type { LifeAgentListItem } from "@/lib/life-agent-feed-search";
 import { fetchLifeAgentCollectionPage } from "@/lib/life-agents-list-api";
@@ -106,25 +107,23 @@ export default function CampusCollectionPage() {
   }, [collection, items.length, loadingMore, nextCursor]);
 
   return (
-    <div className="min-h-screen bg-paper">
-      <header className="border-b border-hairline bg-paper pt-[max(0.25rem,env(safe-area-inset-top))]">
+    <div className="min-h-screen bg-transparent">
+      <header className="sticky top-0 z-40 border-b border-ink/10 bg-white/90 pt-[max(0.25rem,env(safe-area-inset-top))] supports-[backdrop-filter]:backdrop-blur-xl">
         <div className="mx-auto max-w-7xl px-4 py-3">
           <Link
             href="/life-agents"
-            className="inline-flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-[0.22em] text-ink-400 transition hover:text-ink"
+            className="inline-flex items-center gap-1.5 rounded-md px-2 py-1.5 text-sm font-semibold text-ink-500 transition hover:bg-paper-200 hover:text-ink"
           >
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 18l-6-6 6-6" />
-            </svg>
+            <ChevronLeft className="h-4 w-4" aria-hidden />
             广场
           </Link>
         </div>
       </header>
 
       <section className="mx-auto max-w-7xl px-4">
-        <div className="border-b border-hairline py-10 sm:py-14">
-          <p className="text-[11px] font-medium uppercase tracking-[0.28em] text-oxblood-500">{meta.eyebrow}</p>
-          <h1 className="mt-3 font-serif text-3xl font-medium leading-tight text-ink sm:text-4xl">{meta.title}</h1>
+        <div className="border-b border-ink/10 py-10 sm:py-14">
+          <p className="text-[12px] font-semibold text-ink-400">{meta.eyebrow}</p>
+          <h1 className="mt-3 max-w-3xl text-3xl font-semibold leading-tight text-ink sm:text-4xl">{meta.title}</h1>
           <p className="mt-4 max-w-2xl text-[15px] leading-7 text-ink-500">{meta.subtitle}</p>
         </div>
       </section>

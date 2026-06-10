@@ -4,9 +4,9 @@ import { MindScoreInfoButton } from "@/components/MindScoreInfoButton";
 
 const SIZE_CLASS = {
   xs: "gap-0.5 rounded-md px-2 py-1 text-[10px]",
-  sm: "gap-1 rounded-lg px-2.5 py-1 text-xs",
-  md: "gap-1 rounded-lg px-3 py-1.5 text-sm",
-  lg: "gap-1.5 rounded-xl px-3 py-2 text-2xl font-black leading-none",
+  sm: "gap-1 rounded-md px-2.5 py-1 text-xs",
+  md: "gap-1 rounded-md px-3 py-1.5 text-sm",
+  lg: "gap-1.5 rounded-lg px-3 py-2 text-2xl font-black leading-none",
 } as const;
 
 type MindScoreBadgeProps = {
@@ -27,7 +27,7 @@ export function MindScoreBadge({
 
   return (
     <span
-      className={`inline-flex items-center bg-paper-200 font-medium tabular-nums text-ink-800 ring-1 ring-hairline/70 ${SIZE_CLASS[size]} ${className}`}
+      className={`inline-flex items-center border border-ink/10 bg-white/80 font-semibold tabular-nums text-ink shadow-[0_8px_18px_rgba(17,21,19,0.08)] supports-[backdrop-filter]:backdrop-blur-md ${SIZE_CLASS[size]} ${className}`}
     >
       <span>{label}</span>
       <MindScoreInfoButton className="text-ink-600/80 hover:text-ink-800" />

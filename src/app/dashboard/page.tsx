@@ -41,7 +41,7 @@ function IconBox({
   children: React.ReactNode;
 }) {
   return (
-    <span className={`flex h-11 w-11 items-center justify-center rounded-full text-ink ${bgClass}`}>
+    <span className={`flex h-11 w-11 items-center justify-center rounded-lg border border-ink/10 text-ink ${bgClass}`}>
       {children}
     </span>
   );
@@ -253,9 +253,9 @@ export default function DashboardPage() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.28 }}
-      className="mx-auto max-w-5xl divide-y divide-hairline/30 max-lg:-mx-4 max-lg:px-4 max-lg:pb-24"
+      className="mx-auto max-w-5xl space-y-4 max-lg:-mx-3 max-lg:px-3 max-lg:pb-24"
     >
-      <section className="pb-4 pt-3">
+      <section className="app-panel p-4 sm:p-5">
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 items-center gap-3">
             <ProfileAvatarEditor
@@ -267,7 +267,7 @@ export default function DashboardPage() {
               }}
             />
             <div className="min-w-0">
-              <h1 className="truncate font-serif text-3xl font-medium tracking-tight text-ink">
+              <h1 className="truncate text-3xl font-semibold tracking-normal text-ink">
                 {user.name || "我的"}
               </h1>
               <p className="mt-1 truncate text-sm text-ink-400">{user.email}</p>
@@ -325,10 +325,10 @@ export default function DashboardPage() {
       </section>
       */}
 
-      <section className="py-4">
+      <section className="app-panel p-4 sm:p-5">
         <div className="flex items-center justify-between">
           <div className="min-w-0">
-            <h2 className="font-serif text-xl font-medium tracking-tight text-ink">我的心智值</h2>
+            <h2 className="text-xl font-semibold tracking-normal text-ink">我的心智值</h2>
           </div>
           <span className="shrink-0 rounded-full bg-paper-300 px-3 py-1 text-xs font-semibold text-oxblood-600">
             上架中 {totals.createdCount}
@@ -357,7 +357,7 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      <section className="py-4">
+      <section className="app-panel p-4 sm:p-5">
         <div className="grid grid-cols-3 gap-x-4 text-center sm:grid-cols-5">
           {quickActions.map((item) => (
             <Link key={item.label} href={item.href} className="group block py-2 active:opacity-80">
@@ -371,11 +371,11 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      <section className="py-4">
+      <section className="app-panel p-4 sm:p-5">
         <div className="flex items-center justify-between gap-4">
           <div className="min-w-0">
             <p className="text-sm font-semibold text-ink">继续打磨你的专属顾问主页</p>
-            <h2 className="mt-1 font-serif text-2xl font-medium tracking-tight text-ink">
+            <h2 className="mt-1 text-2xl font-semibold tracking-normal text-ink">
               让真实经历更有影响力
             </h2>
             <p className="mt-2 text-sm text-ink-400">
@@ -384,7 +384,7 @@ export default function DashboardPage() {
           </div>
           <Link
             href={lifeAgentsCreated[0] ? `/dashboard/life-agents/${lifeAgentsCreated[0].id}` : "/life-agents/create"}
-            className="shrink-0 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-paper active:opacity-90"
+            className="btn-primary shrink-0 px-4 py-2 text-sm"
           >
             去看看
           </Link>

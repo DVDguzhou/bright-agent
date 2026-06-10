@@ -9,14 +9,22 @@
   --font-mono: ui-monospace, "Cascadia Code", "Consolas", monospace;
 
   /* 现代内容产品 token：矿物白、碳黑、少量青绿色 */
-  --paper: #f6f7f5;
+  --paper: #f7f8f6;
   --paper-2: #ffffff;
+  --surface: rgba(255, 255, 255, 0.86);
+  --surface-solid: #ffffff;
+  --surface-soft: #eef1ed;
   --ink: #111513;
   --ink-2: #3f4642;
   --ink-3: #7b837d;
-  --hairline: #d8ded9;
+  --hairline: rgba(17, 21, 19, 0.12);
+  --hairline-strong: rgba(17, 21, 19, 0.22);
   --oxblood: #c2271d;
   --signal: #0f766e;
+  --shadow-soft: 0 12px 36px rgba(17, 21, 19, 0.08);
+  --shadow-float: 0 18px 52px rgba(17, 21, 19, 0.14);
+  --radius-card: 8px;
+  --radius-control: 8px;
 }
 
 * {
@@ -25,7 +33,7 @@
 
 html {
   scroll-behavior: smooth;
-  background-color: #f6f7f5;
+  background-color: #f7f8f6;
   min-height: 100%;
   min-height: 100dvh;
   min-height: -webkit-fill-available;
@@ -40,13 +48,13 @@ html::before {
   right: 0;
   top: -100vh;
   bottom: -100vh;
-  background-color: #f6f7f5;
+  background-color: #f7f8f6;
   pointer-events: none;
 }
 
 body {
   font-family: var(--font-sans);
-  background-color: #f6f7f5;
+  background-color: #f7f8f6;
   color: var(--ink);
   min-height: 100%;
   min-height: 100dvh;
@@ -55,6 +63,37 @@ body {
 }
 
 /* 滚动条：极细，与纸面同色 */
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+a,
+button {
+  touch-action: manipulation;
+}
+
+:focus-visible {
+  outline: 2px solid rgba(17, 21, 19, 0.72);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -105,69 +144,80 @@ body {
 
   /* "卡片"：清爽表面 + 发丝线，避免模板化装饰 */
   .glass-card {
-    @apply relative overflow-hidden bg-paper-50 border border-hairline;
-    border-radius: 4px;
-    box-shadow: none;
-    backdrop-filter: none;
+    @apply relative overflow-hidden border;
+    background: var(--surface);
+    border-color: var(--hairline);
+    border-radius: var(--radius-card);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
   }
   .glass-card:hover {
-    border-color: var(--ink-2);
+    border-color: var(--hairline-strong);
+    box-shadow: var(--shadow-soft);
   }
 
   /* 主按钮：实心碳黑底 + 白字，hover 使用功能强调色 */
   .btn-primary {
-    @apply relative inline-flex items-center justify-center px-6 py-3 text-sm font-medium tracking-wide;
+    @apply relative inline-flex min-h-[44px] items-center justify-center gap-2 px-5 py-2.5 text-sm font-semibold;
     background: var(--ink);
     color: var(--paper-2);
-    border-radius: 2px;
-    transition: background-color 160ms ease;
-    box-shadow: none;
+    border: 1px solid var(--ink);
+    border-radius: var(--radius-control);
+    transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, transform 120ms ease;
+    box-shadow: 0 10px 24px rgba(17, 21, 19, 0.14);
   }
   .btn-primary:hover {
-    background: var(--signal);
+    background: #000;
+    border-color: #000;
     transform: none;
   }
   .btn-primary:active {
-    background: #0b5f59;
+    background: #000;
+    transform: scale(0.985);
   }
 
   /* 次按钮：透明底 + 单边发丝线 + 墨黑字 */
   .btn-secondary {
-    @apply inline-flex items-center justify-center px-5 py-3 text-sm font-medium;
+    @apply inline-flex min-h-[44px] items-center justify-center gap-2 px-5 py-2.5 text-sm font-semibold;
     color: var(--ink);
-    background: transparent;
-    border: 1px solid var(--ink);
-    border-radius: 2px;
-    box-shadow: none;
-    backdrop-filter: none;
-    transition: background-color 160ms ease, color 160ms ease;
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-control);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, transform 120ms ease;
   }
   .btn-secondary:hover {
-    background: var(--ink);
-    color: var(--paper-2);
-    border-color: var(--ink);
+    background: rgba(255, 255, 255, 0.95);
+    color: var(--ink);
+    border-color: var(--hairline-strong);
   }
   .btn-secondary:active {
-    background: var(--ink);
-    color: var(--paper-2);
-    border-color: var(--ink);
+    background: var(--surface-soft);
+    color: var(--ink);
+    border-color: var(--hairline-strong);
+    transform: scale(0.985);
   }
 
   /* 输入框：单边底线，去掉胶囊感 */
   .input-shell {
-    @apply w-full px-1 py-2 text-base outline-none transition-colors;
-    background: transparent;
+    @apply w-full px-3 py-2.5 text-base outline-none transition-colors;
+    min-height: 44px;
+    background: rgba(255, 255, 255, 0.74);
     color: var(--ink);
-    border: 0;
-    border-bottom: 1px solid var(--hairline);
-    border-radius: 0;
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-control);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7);
   }
   .input-shell::placeholder {
     color: var(--ink-3);
   }
   .input-shell:focus {
-    border-bottom-color: var(--ink);
-    box-shadow: none;
+    background: var(--surface-solid);
+    border-color: var(--ink);
+    box-shadow: 0 0 0 3px rgba(17, 21, 19, 0.08);
   }
 
   /* 旧的 "渐变文字" → 改为 serif italic 强调 */
@@ -180,7 +230,7 @@ body {
 
   /* 章节标题：保留少量 serif，用于需要人味的内容标题 */
   .section-title {
-    @apply font-serif text-3xl font-medium tracking-tight;
+    @apply text-3xl font-semibold tracking-normal;
     color: var(--ink);
   }
   .section-subtitle {
@@ -200,11 +250,101 @@ body {
     background: var(--ink-3);
     flex-shrink: 0;
   }
+
+  .app-panel {
+    @apply border;
+    background: var(--surface);
+    border-color: var(--hairline);
+    border-radius: var(--radius-card);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+  }
+
+  .app-toolbar {
+    @apply border;
+    background: rgba(255, 255, 255, 0.82);
+    border-color: var(--hairline);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-soft);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  .icon-button {
+    @apply inline-flex min-h-[40px] min-w-[40px] items-center justify-center transition;
+    color: var(--ink);
+    background: rgba(255, 255, 255, 0.64);
+    border: 1px solid transparent;
+    border-radius: var(--radius-control);
+  }
+  .icon-button:hover {
+    background: var(--surface-solid);
+    border-color: var(--hairline);
+  }
+
+  .chip {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium;
+    color: var(--ink-2);
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid var(--hairline);
+    border-radius: 999px;
+  }
 }
 
 /* 触屏按压反馈：hover 不可用的设备上，点按要有即时响应。
    放在 utilities 层之后，确保不被 transition-colors 等工具类覆盖。 */
 @layer utilities {
+  .bg-paper {
+    background-color: var(--paper);
+  }
+  .bg-paper-50 {
+    background-color: var(--surface-solid);
+  }
+  .bg-paper-100 {
+    background-color: var(--paper);
+  }
+  .bg-paper-200 {
+    background-color: var(--surface-soft);
+  }
+  .border-hairline {
+    border-color: var(--hairline);
+  }
+  .text-ink {
+    color: var(--ink);
+  }
+  .text-ink-500 {
+    color: var(--ink-2);
+  }
+  .text-ink-400 {
+    color: #5c655f;
+  }
+  .rounded-2xl {
+    border-radius: 10px;
+  }
+  .rounded-3xl {
+    border-radius: 12px;
+  }
+  .rounded-xl {
+    border-radius: 8px;
+  }
+  .rounded-\[28px\] {
+    border-radius: 12px;
+  }
+  .rounded-\[24px\],
+  .rounded-\[22px\],
+  .rounded-\[20px\] {
+    border-radius: 10px;
+  }
+  .rounded-\[16px\] {
+    border-radius: 8px;
+  }
+  .shadow-lg {
+    box-shadow: var(--shadow-soft);
+  }
+  .shadow-xl {
+    box-shadow: var(--shadow-float);
+  }
   .pressable {
     transition-property: color, background-color, border-color, opacity, transform;
     transition-duration: 120ms;

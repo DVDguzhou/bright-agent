@@ -96,7 +96,7 @@ export function ChatVirtualKeyboard({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`flex min-h-[44px] items-center justify-center rounded-lg border border-hairline/90 bg-paper px-2 text-base font-medium text-ink-600 shadow-[0_1px_2px_rgba(0,0,0,0.06)] transition active:scale-[0.97] disabled:opacity-50 sm:min-h-[48px] ${
+      className={`flex min-h-[44px] items-center justify-center rounded-md border border-ink/10 bg-white px-2 text-base font-semibold text-ink-600 shadow-[0_1px_2px_rgba(17,21,19,0.05)] transition active:scale-[0.97] disabled:opacity-50 sm:min-h-[48px] ${
         wide ? "flex-1 min-w-0" : "min-w-[28px] sm:min-w-[32px]"
       } ${className}`}
     >
@@ -108,11 +108,11 @@ export function ChatVirtualKeyboard({
   if (!expanded) {
     return (
       <div ref={containerRef} className="flex flex-col">
-        <div className="flex items-center gap-2 rounded-2xl border border-hairline/80 bg-paper/95 px-3 py-2.5 shadow-sm backdrop-blur sm:rounded-[22px] sm:px-4">
+        <div className="app-panel flex items-center gap-2 px-3 py-2.5 sm:px-4">
           <button
             type="button"
             disabled={disabled}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-paper-200 text-ink-400 transition active:scale-95 disabled:opacity-50"
+            className="icon-button h-9 w-9 shrink-0 text-ink-400 disabled:opacity-50"
             aria-label="添加"
           >
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -122,7 +122,7 @@ export function ChatVirtualKeyboard({
           <button
             type="button"
             onClick={() => !disabled && setExpanded(true)}
-            className="min-h-[36px] flex-1 rounded-xl bg-paper-200/80 px-4 py-2 text-left text-[15px] text-ink-700 outline-none transition active:scale-[0.99] disabled:opacity-50"
+            className="min-h-[36px] flex-1 rounded-md bg-paper-200/80 px-4 py-2 text-left text-[15px] text-ink-700 outline-none transition active:scale-[0.99] disabled:opacity-50"
           >
             {value ? (
               <span className="line-clamp-2 break-words">{value}</span>
@@ -133,7 +133,7 @@ export function ChatVirtualKeyboard({
           <button
             type="button"
             disabled={disabled}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-ink-400 transition active:scale-95 disabled:opacity-50"
+            className="icon-button h-9 w-9 shrink-0 text-ink-400 disabled:opacity-50"
             aria-label="表情"
           >
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -149,22 +149,22 @@ export function ChatVirtualKeyboard({
   return (
     <div
       ref={containerRef}
-      className="flex flex-col rounded-t-2xl border border-hairline/90 border-b-0 bg-paper-50/95 shadow-[0_-8px_32px_-16px_rgba(0,0,0,0.12)] backdrop-blur-xl sm:rounded-t-[24px]"
+      className="flex flex-col rounded-t-lg border border-ink/10 border-b-0 bg-white/95 shadow-[0_-12px_36px_rgba(17,21,19,0.12)] backdrop-blur-xl"
       style={{ maxHeight: "min(420px, 45vh)" }}
     >
       {/* 输入条 */}
-      <div className="flex items-center gap-2 border-b border-hairline/60 bg-paper/90 px-3 py-2.5 sm:px-4">
+      <div className="flex items-center gap-2 border-b border-ink/10 bg-white/90 px-3 py-2.5 sm:px-4">
         <button
           type="button"
           disabled={disabled}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-paper-200 text-ink-400 transition active:scale-95 disabled:opacity-50"
+          className="icon-button h-9 w-9 shrink-0 text-ink-400 disabled:opacity-50"
           aria-label="添加"
         >
           <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
         </button>
-        <div className="min-h-[40px] flex-1 rounded-xl bg-paper-200/90 px-4 py-2.5">
+        <div className="min-h-[40px] flex-1 rounded-md bg-paper-200/90 px-4 py-2.5">
           <div className="min-h-[20px] whitespace-pre-wrap break-words text-[15px] leading-6 text-ink-700">
             {value || <span className="text-ink-300">{placeholder}</span>}
           </div>
@@ -173,7 +173,7 @@ export function ChatVirtualKeyboard({
         <button
           type="button"
           disabled={disabled}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-ink-400 transition active:scale-95 disabled:opacity-50"
+          className="icon-button h-9 w-9 shrink-0 text-ink-400 disabled:opacity-50"
           aria-label="表情"
         >
           <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -191,7 +191,7 @@ export function ChatVirtualKeyboard({
               type="button"
               onClick={() => onSuggestionClick?.(item.value)}
               disabled={disabled}
-              className="shrink-0 rounded-full border border-hairline bg-paper px-3.5 py-2 text-xs font-medium text-ink-500 shadow-sm transition active:scale-95 hover:border-oxblood-200 hover:text-oxblood-600 disabled:opacity-50"
+              className="chip shrink-0 px-3.5 py-2 transition active:scale-95 disabled:opacity-50"
             >
               {item.label}
             </button>
@@ -282,7 +282,7 @@ export function ChatVirtualKeyboard({
           <Key
             onClick={onSubmit}
             wide
-            className="border-oxblood-500 bg-oxblood-500 text-paper shadow-[0_2px_8px_-2px_rgba(14,165,233,0.6)] hover:bg-oxblood-600"
+            className="border-ink bg-ink text-paper shadow-[0_10px_24px_rgba(17,21,19,0.16)] hover:bg-black"
           >
             <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
               <path d="M3.72 2.94a.75.75 0 0 1 .8-.12l11.5 5.5a.75.75 0 0 1 0 1.36l-11.5 5.5A.75.75 0 0 1 3.45 14.5l1.34-4.05H9.5a.75.75 0 0 0 0-1.5H4.8L3.45 4.9a.75.75 0 0 1 .27-.96Z" />
@@ -292,7 +292,7 @@ export function ChatVirtualKeyboard({
       </div>
 
       {/* 系统栏：语言 | 麦克风 */}
-      <div className="flex items-center justify-between border-t border-hairline/60 bg-paper/80 px-4 py-2">
+      <div className="flex items-center justify-between border-t border-ink/10 bg-white/80 px-4 py-2">
         <button
           type="button"
           disabled={disabled}

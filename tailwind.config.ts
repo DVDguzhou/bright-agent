@@ -18,9 +18,9 @@ const config: Config = {
         paper: {
           DEFAULT: "#f6f7f5", // 主页面：现代矿物白
           50: "#ffffff",
-          100: "#f6f7f5",
-          200: "#e9ede9",
-          300: "#d8ded9",
+          100: "#f7f8f6",
+          200: "#eef1ed",
+          300: "#d9ded8",
         },
         ink: {
           DEFAULT: "#111513", // 主文字：现代中性碳黑
@@ -97,9 +97,9 @@ const config: Config = {
         "gradient-mesh": "linear-gradient(to right, rgb(15 118 110 / 0.035), transparent 50%), linear-gradient(to bottom, rgb(17 21 19 / 0.03), transparent 50%)",
       },
       boxShadow: {
-        "glow-sm": "0 0 15px -3px rgb(194 39 29 / 0.15), 0 0 30px -5px rgb(24 24 22 / 0.08)",
-        "glow": "0 0 40px -10px rgb(194 39 29 / 0.2), 0 0 80px -20px rgb(24 24 22 / 0.1)",
-        "glow-lg": "0 0 60px -15px rgb(194 39 29 / 0.25)",
+        "glow-sm": "0 10px 28px -18px rgb(17 21 19 / 0.22)",
+        "glow": "0 18px 52px -28px rgb(17 21 19 / 0.28)",
+        "glow-lg": "0 24px 72px -32px rgb(17 21 19 / 0.34)",
         "inner-glow": "inset 0 0 60px -20px rgb(194 39 29 / 0.06)",
       },
       transitionDuration: {

@@ -218,24 +218,24 @@ export default function SignupPage() {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="max-w-md mx-auto py-16"
+      className="mx-auto max-w-md py-12 sm:py-16"
     >
-      <h1 className="font-serif text-3xl font-medium text-ink mb-2 [text-wrap:balance]">
+      <h1 className="mb-2 text-3xl font-semibold text-ink [text-wrap:balance]">
         注册
       </h1>
       <p className="text-ink-400 mb-8">验证邮箱后即可创建账号</p>
-      <form onSubmit={submit} className="space-y-5 rounded-3xl border border-hairline bg-paper p-6 shadow-sm">
+      <form onSubmit={submit} className="app-panel space-y-5 p-6">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.05 }}
-          className="rounded-2xl border border-hairline bg-paper-50/70 p-5"
+          className="app-panel p-5"
         >
           <div className="flex items-start gap-4">
             <img
               src={previewAvatar}
               alt="头像预览"
-              className="h-20 w-20 shrink-0 rounded-3xl border border-paper/70 object-cover shadow-sm"
+              className="h-20 w-20 shrink-0 rounded-lg border border-white/70 object-cover shadow-sm"
             />
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium text-ink-700">头像</p>
@@ -255,7 +255,7 @@ export default function SignupPage() {
                   <button
                     type="button"
                     onClick={() => setAvatarUrl(null)}
-                    className="rounded-xl border border-hairline bg-paper px-4 py-2 text-sm font-medium text-ink-500 transition-colors hover:border-hairline hover:text-ink"
+                    className="btn-secondary px-4 py-2 text-sm"
                   >
                     使用默认头像
                   </button>

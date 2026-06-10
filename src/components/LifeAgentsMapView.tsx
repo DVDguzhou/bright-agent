@@ -326,12 +326,12 @@ export default function LifeAgentsMapView({
 
   const points = useMemo(() => markers.map((m) => m.position), [markers]);
 
-  const ring = rounded ? "rounded-[28px] ring-1 ring-paper/70 shadow-[0_24px_70px_-36px_rgba(15,23,42,.55)]" : "";
-  const roundMap = rounded ? "rounded-[28px]" : "";
+  const ring = rounded ? "rounded-lg ring-1 ring-ink/10 shadow-[0_18px_52px_-28px_rgba(17,21,19,.28)]" : "";
+  const roundMap = rounded ? "rounded-lg" : "";
 
   return (
     <div
-      className={`relative overflow-hidden bg-gradient-to-br from-oxblood-100 via-paper-50 to-paper-100 ${ring} [&_.leaflet-container]:!font-sans [&_.leaflet-control-scale-line]:!rounded-full [&_.leaflet-control-scale-line]:!border-0 [&_.leaflet-control-scale-line]:!bg-paper/80 [&_.leaflet-control-scale-line]:!px-2 [&_.leaflet-control-scale-line]:!text-[10px] [&_.leaflet-control-scale-line]:!text-ink-400 [&_.life-agent-map-pin]:!border-0 [&_.life-agent-map-pin]:!bg-transparent [&_.life-agent-map-cluster]:!border-0 [&_.life-agent-map-cluster]:!bg-transparent [&_.life-agent-map-user-loc]:!border-0 [&_.life-agent-map-user-loc]:!bg-transparent [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!rounded-[6px] [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!bg-paper/[0.97] [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!p-3 [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!shadow-[0_18px_50px_-20px_rgba(26,23,20,.45)] [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!ring-1 [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!ring-hairline [&_.life-agent-map-popup_.leaflet-popup-tip]:!bg-paper/[0.97] [&_.life-agent-map-popup_.leaflet-popup-tip]:!shadow-none ${className}`}
+      className={`relative overflow-hidden bg-white ${ring} [&_.leaflet-container]:!font-sans [&_.leaflet-control-scale-line]:!rounded-md [&_.leaflet-control-scale-line]:!border-0 [&_.leaflet-control-scale-line]:!bg-white/85 [&_.leaflet-control-scale-line]:!px-2 [&_.leaflet-control-scale-line]:!text-[10px] [&_.leaflet-control-scale-line]:!text-ink-400 [&_.life-agent-map-pin]:!border-0 [&_.life-agent-map-pin]:!bg-transparent [&_.life-agent-map-cluster]:!border-0 [&_.life-agent-map-cluster]:!bg-transparent [&_.life-agent-map-user-loc]:!border-0 [&_.life-agent-map-user-loc]:!bg-transparent [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!rounded-md [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!bg-white/[0.97] [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!p-3 [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!shadow-[0_18px_50px_-20px_rgba(17,21,19,.34)] [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!ring-1 [&_.life-agent-map-popup_.leaflet-popup-content-wrapper]:!ring-ink/10 [&_.life-agent-map-popup_.leaflet-popup-tip]:!bg-white/[0.97] [&_.life-agent-map-popup_.leaflet-popup-tip]:!shadow-none ${className}`}
       style={rounded ? { minHeight: "min(62dvh, 520px)" } : { minHeight: "100%" }}
     >
       <MapContainer
@@ -341,7 +341,7 @@ export default function LifeAgentsMapView({
         maxZoom={18}
         zoomControl={false}
         className={`z-0 w-full ${mapHeightClass} ${roundMap}`}
-        style={{ background: "linear-gradient(135deg,#fbfbf9,#efeeea)" }}
+        style={{ background: "#f7f8f6" }}
         scrollWheelZoom
         attributionControl={false}
       >
@@ -367,14 +367,14 @@ export default function LifeAgentsMapView({
         ) : null}
       </MapContainer>
 
-      <div className="pointer-events-none absolute inset-0 z-[350] bg-[radial-gradient(circle_at_18%_14%,rgba(244,239,230,.55),transparent_28%),radial-gradient(circle_at_82%_22%,rgba(122,31,31,.10),transparent_32%),linear-gradient(to_bottom,rgba(244,239,230,.18),transparent_28%,rgba(26,23,20,.05))]" />
+      <div className="pointer-events-none absolute inset-0 z-[350] bg-[linear-gradient(to_bottom,rgba(255,255,255,.18),transparent_24%,rgba(17,21,19,.04))]" />
 
       <MapLegend />
 
       {nearbyLabel && onNearbyBannerClick ? (
         <button
           type="button"
-          className="pointer-events-auto absolute bottom-[calc(4.5rem+env(safe-area-inset-bottom))] left-1/2 z-[420] flex max-w-[min(100%-1.5rem,24rem)] -translate-x-1/2 items-center justify-between gap-3 rounded-full bg-ink/90 px-4 py-2.5 text-left shadow-lg backdrop-blur-sm active:opacity-95"
+          className="pointer-events-auto absolute bottom-[calc(4.5rem+env(safe-area-inset-bottom))] left-1/2 z-[420] flex max-w-[min(100%-1.5rem,24rem)] -translate-x-1/2 items-center justify-between gap-3 rounded-lg bg-ink/90 px-4 py-2.5 text-left shadow-lg backdrop-blur-sm active:opacity-95"
           onClick={onNearbyBannerClick}
         >
           <span className="truncate text-sm font-semibold text-paper">{nearbyLabel}</span>
@@ -387,7 +387,7 @@ export default function LifeAgentsMapView({
           {showLocateButton ? (
             <button
               type="button"
-              className="flex h-11 w-11 items-center justify-center rounded-2xl bg-paper/90 text-ink-600 shadow-[0_12px_30px_-16px_rgba(15,23,42,.55)] ring-1 ring-paper/80 backdrop-blur-md transition active:scale-95 active:bg-paper"
+              className="flex h-11 w-11 items-center justify-center rounded-lg bg-white/90 text-ink-600 shadow-[0_12px_30px_-16px_rgba(17,21,19,.45)] ring-1 ring-white/80 backdrop-blur-md transition active:scale-95 active:bg-white"
               aria-label="位置与绑定 Agent"
               title="位置与绑定 Agent"
               onClick={() => onLocatePress?.()}
@@ -401,7 +401,7 @@ export default function LifeAgentsMapView({
           {onExploreArea ? (
             <button
               type="button"
-              className="flex h-11 w-11 items-center justify-center rounded-2xl bg-paper/90 text-ink-600 shadow-[0_12px_30px_-16px_rgba(15,23,42,.55)] ring-1 ring-paper/80 backdrop-blur-md transition active:scale-95 active:bg-paper"
+              className="flex h-11 w-11 items-center justify-center rounded-lg bg-white/90 text-ink-600 shadow-[0_12px_30px_-16px_rgba(17,21,19,.45)] ring-1 ring-white/80 backdrop-blur-md transition active:scale-95 active:bg-white"
               aria-label="探索此区域"
               title="探索此区域"
               onClick={() => {

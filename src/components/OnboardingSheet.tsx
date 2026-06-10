@@ -43,7 +43,7 @@ export function OnboardingSheet({ open, onDismiss }: { open: boolean; onDismiss:
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25 }}
-            className="fixed inset-0 z-[60] bg-ink/30 backdrop-blur-[2px]"
+            className="fixed inset-0 z-[60] bg-ink/30 backdrop-blur-sm"
             onClick={onDismiss}
           />
 
@@ -54,12 +54,12 @@ export function OnboardingSheet({ open, onDismiss }: { open: boolean; onDismiss:
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", damping: 28, stiffness: 260 }}
-            className="fixed inset-x-0 bottom-0 z-[61] rounded-t-[28px] bg-paper px-6 pb-[calc(env(safe-area-inset-bottom)+28px)] pt-6 shadow-[0_-12px_48px_rgba(26,23,20,0.14)]"
+            className="fixed inset-x-3 bottom-3 z-[61] rounded-lg border border-ink/10 bg-white/95 px-5 pb-[calc(env(safe-area-inset-bottom)+22px)] pt-5 shadow-[0_24px_70px_rgba(17,21,19,0.18)] supports-[backdrop-filter]:backdrop-blur-xl sm:left-1/2 sm:max-w-md sm:-translate-x-1/2"
           >
             {/* drag handle */}
-            <div className="mx-auto mb-5 h-1 w-10 rounded-full bg-hairline/60" />
+            <div className="mx-auto mb-5 h-1 w-10 rounded-full bg-ink/12" />
 
-            <h2 className="font-serif text-[22px] font-medium leading-snug text-ink">
+            <h2 className="text-[22px] font-semibold leading-snug text-ink">
               发现真实人生的智慧
             </h2>
             <p className="mt-2 text-sm leading-relaxed text-ink-400">
@@ -72,7 +72,7 @@ export function OnboardingSheet({ open, onDismiss }: { open: boolean; onDismiss:
                 { step: "02", text: "注册账号后，即可向 Ta 提问，获得一手的经验建议" },
               ].map(({ step, text }) => (
                 <li key={step} className="flex items-start gap-3">
-                  <span className="mt-0.5 shrink-0 font-serif text-xs text-ink-200">{step}</span>
+                  <span className="mt-0.5 shrink-0 rounded-md bg-ink px-2 py-1 text-xs font-semibold text-paper">{step}</span>
                   <span className="text-sm text-ink-600">{text}</span>
                 </li>
               ))}
