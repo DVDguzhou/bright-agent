@@ -14,30 +14,40 @@ const config: Config = {
         mono: ["var(--font-mono)", "monospace"],
       },
       colors: {
-        // === 杂志风色板（editorial palette） ===
+        // === 现代内容产品色板 ===
         paper: {
-          DEFAULT: "#fbfbf9", // 主页面：新闻纸白
+          DEFAULT: "#f6f7f5", // 主页面：现代矿物白
           50: "#ffffff",
-          100: "#fbfbf9",
-          200: "#efeeea",
-          300: "#e0dfd9",
+          100: "#f6f7f5",
+          200: "#e9ede9",
+          300: "#d8ded9",
         },
         ink: {
-          DEFAULT: "#181816", // 主文字：中性近黑
-          50: "#f4f4f2",
-          100: "#e6e5e2",
-          200: "#bcbab4",
-          300: "#8e8c86",
-          400: "#6b6a65",
-          500: "#4d4c48",
-          600: "#3a3935",
-          700: "#272622",
-          800: "#181816",
-          900: "#0d0d0c",
+          DEFAULT: "#111513", // 主文字：现代中性碳黑
+          50: "#f2f4f2",
+          100: "#e2e6e2",
+          200: "#b5beb7",
+          300: "#7b837d",
+          400: "#5c655f",
+          500: "#3f4642",
+          600: "#303632",
+          700: "#232825",
+          800: "#111513",
+          900: "#080a09",
         },
-        hairline: "#dedcd6", // 发丝线分隔
+        hairline: "#d8ded9", // 发丝线分隔
+        signal: {
+          DEFAULT: "#0f766e",
+          50: "#edfafa",
+          100: "#d6f3ef",
+          200: "#a9e4dc",
+          400: "#2aa79b",
+          500: "#0f766e",
+          600: "#0b5f59",
+          700: "#084a46",
+        },
         oxblood: {
-          DEFAULT: "#c2271d", // 主强调色：印刷朱红（token 名沿用 oxblood）
+          DEFAULT: "#c2271d", // 错误和高危状态保留红色，常规强调使用 signal
           50: "#fcf1f0",
           100: "#f6d8d4",
           200: "#eba39b",
@@ -84,7 +94,7 @@ const config: Config = {
       },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
-        "gradient-mesh": "linear-gradient(to right, rgb(194 39 29 / 0.03), transparent 50%), linear-gradient(to bottom, rgb(24 24 22 / 0.03), transparent 50%)",
+        "gradient-mesh": "linear-gradient(to right, rgb(15 118 110 / 0.035), transparent 50%), linear-gradient(to bottom, rgb(17 21 19 / 0.03), transparent 50%)",
       },
       boxShadow: {
         "glow-sm": "0 0 15px -3px rgb(194 39 29 / 0.15), 0 0 30px -5px rgb(24 24 22 / 0.08)",

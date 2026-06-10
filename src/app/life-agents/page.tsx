@@ -741,16 +741,16 @@ function LifeAgentsPageContent() {
   const featuredCollectionBanner = (
     <Link
       href="/c/jingpin"
-      className="pressable group mb-3 flex items-center gap-3 rounded-sm border border-hairline bg-paper-50 px-4 py-3 transition-colors hover:border-ink-300"
+      className="pressable group mb-4 flex items-center justify-between gap-3 rounded-md border border-hairline bg-paper-50/80 px-3.5 py-3 transition-colors hover:border-signal-200 hover:bg-signal-50"
     >
-      <div className="min-w-0 flex-1">
-        <p className="text-[10px] font-medium uppercase tracking-[0.26em] text-oxblood-500">编辑精选</p>
-        <p className="mt-1 font-serif text-base font-medium leading-tight text-ink">这里是我们精选的Agent</p>
-        <p className="mt-0.5 line-clamp-1 text-xs text-ink-500">上岸、大学生活、实习、留学、创业，这里都有答案。</p>
+      <div className="min-w-0">
+        <p className="text-sm font-semibold leading-5 text-ink">精选咨询</p>
+        <p className="mt-0.5 line-clamp-1 text-xs leading-5 text-ink-500">
+          上岸、留学、实习、创业
+        </p>
       </div>
-      <span className="inline-flex shrink-0 items-center gap-1 border border-hairline bg-paper px-3 py-1 text-xs font-medium text-ink-600 transition-colors group-hover:border-ink-300 group-hover:text-ink">
-        看这组
-        <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden>
+      <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-hairline text-ink-500 transition-colors group-hover:border-signal-200 group-hover:text-signal-600">
+        <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.7} viewBox="0 0 24 24" aria-hidden>
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 6l6 6-6 6" />
         </svg>
       </span>
@@ -828,6 +828,7 @@ function LifeAgentsPageContent() {
                 loadingMore={discoverLoadingMore}
                 virtualized={false}
                 showFirstCardPulse={firstCardPulsing}
+                lead
               />
             </section>
             {showPurchaseUi ? (
@@ -873,6 +874,7 @@ function LifeAgentsPageContent() {
               hasMoreFromServer={feedTab !== "favorites" && feedTab !== "purchased" && !!discoverNextCursor}
               loadingMore={discoverLoadingMore}
               showFirstCardPulse={firstCardPulsing && feedTab !== "favorites" && feedTab !== "purchased"}
+              lead={feedTab !== "favorites" && feedTab !== "purchased"}
             />
           )}
         </section>

@@ -8,14 +8,15 @@
   --font-serif: "Source Han Serif SC", "Noto Serif SC", "Songti SC", "STSong", "SimSun", Georgia, "Times New Roman", serif;
   --font-mono: ui-monospace, "Cascadia Code", "Consolas", monospace;
 
-  /* 新闻纸编辑风设计 token（白纸黑墨+朱红） */
-  --paper: #fbfbf9;
+  /* 现代内容产品 token：矿物白、碳黑、少量青绿色 */
+  --paper: #f6f7f5;
   --paper-2: #ffffff;
-  --ink: #181816;
-  --ink-2: #4d4c48;
-  --ink-3: #8e8c86;
-  --hairline: #dedcd6;
+  --ink: #111513;
+  --ink-2: #3f4642;
+  --ink-3: #7b837d;
+  --hairline: #d8ded9;
   --oxblood: #c2271d;
+  --signal: #0f766e;
 }
 
 * {
@@ -24,7 +25,7 @@
 
 html {
   scroll-behavior: smooth;
-  background-color: #fbfbf9;
+  background-color: #f6f7f5;
   min-height: 100%;
   min-height: 100dvh;
   min-height: -webkit-fill-available;
@@ -39,13 +40,13 @@ html::before {
   right: 0;
   top: -100vh;
   bottom: -100vh;
-  background-color: #fbfbf9;
+  background-color: #f6f7f5;
   pointer-events: none;
 }
 
 body {
   font-family: var(--font-sans);
-  background-color: #fbfbf9;
+  background-color: #f6f7f5;
   color: var(--ink);
   min-height: 100%;
   min-height: 100dvh;
@@ -69,9 +70,9 @@ body {
   background: rgba(24, 24, 22, 0.32);
 }
 
-/* 文本选区：朱红 */
+/* 文本选区：功能强调色 */
 ::selection {
-  background: rgba(194, 39, 29, 0.18);
+  background: rgba(15, 118, 110, 0.18);
   color: inherit;
 }
 
@@ -97,12 +98,12 @@ body {
   }
 }
 
-/* === 编辑风组件类（替换原 glass-card / btn-* / input-shell） ===
-   旧的紫色玻璃风类名保留，但视觉重置为编辑风。
+/* === 基础组件类（替换原 glass-card / btn-* / input-shell） ===
+   旧的紫色玻璃风类名保留，但视觉重置为现代内容产品。
    全站现有页面无需改动即可继承新外观。 */
 @layer components {
 
-  /* "卡片"：纯纸面 + 发丝线，没有阴影、没有渐变、没有圆角魔法 */
+  /* "卡片"：清爽表面 + 发丝线，避免模板化装饰 */
   .glass-card {
     @apply relative overflow-hidden bg-paper-50 border border-hairline;
     border-radius: 4px;
@@ -113,7 +114,7 @@ body {
     border-color: var(--ink-2);
   }
 
-  /* 主按钮：实心墨黑底 + 米白字，类似杂志封面的 sticker */
+  /* 主按钮：实心碳黑底 + 白字，hover 使用功能强调色 */
   .btn-primary {
     @apply relative inline-flex items-center justify-center px-6 py-3 text-sm font-medium tracking-wide;
     background: var(--ink);
@@ -123,11 +124,11 @@ body {
     box-shadow: none;
   }
   .btn-primary:hover {
-    background: var(--oxblood);
+    background: var(--signal);
     transform: none;
   }
   .btn-primary:active {
-    background: #781711;
+    background: #0b5f59;
   }
 
   /* 次按钮：透明底 + 单边发丝线 + 墨黑字 */
@@ -177,7 +178,7 @@ body {
     -webkit-text-fill-color: currentColor;
   }
 
-  /* 章节标题：serif，没有粗黑字感 */
+  /* 章节标题：保留少量 serif，用于需要人味的内容标题 */
   .section-title {
     @apply font-serif text-3xl font-medium tracking-tight;
     color: var(--ink);

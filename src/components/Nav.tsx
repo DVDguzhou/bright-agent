@@ -769,7 +769,7 @@ export function Nav() {
       <motion.nav
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className={`sticky top-0 z-50 border-b border-hairline bg-paper overflow-x-hidden pt-[env(safe-area-inset-top,0px)] lg:bg-paper/95 lg:supports-[backdrop-filter]:lg:backdrop-blur-md ${
+        className={`sticky top-0 z-50 border-b border-hairline bg-paper/95 overflow-x-hidden pt-[env(safe-area-inset-top,0px)] lg:supports-[backdrop-filter]:lg:backdrop-blur-md ${
           hideGlobalTopNav ? "hidden" : isLifeAgentChatPage ? "hidden lg:block" : ""
         }`}
       >

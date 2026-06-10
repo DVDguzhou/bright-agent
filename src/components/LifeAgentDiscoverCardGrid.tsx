@@ -54,12 +54,10 @@ function chunkIntoRows<T>(items: T[], cols: number): T[][] {
 }
 
 /**
- * 杂志风卡片：
- *  - 没有外框、没有阴影、没有圆角
- *  - 封面图保持 4:5 编辑挑选比，浅米衬底
- *  - 标题用 serif（衬线），副信息用 sans
- *  - 价格用 oxblood 强调，tabular-nums 让数字对齐
- *  - 不做入场动画，hover 仅图片轻微变暗
+ * 现代内容卡：
+ *  - 封面是主视觉，文字只保留决策信息
+ *  - 使用轻边框和功能强调色，不做 AI 式装饰
+ *  - 简介短，问题只露出一条，方便快速扫读
  */
 function LifeAgentDiscoverCard({
   profile,
@@ -82,20 +80,23 @@ function LifeAgentDiscoverCard({
   const sampleQuestionsShown = (profile.sampleQuestions ?? [])
     .map((q) => cleanLifeAgentIntroText(q, profile.displayName))
     .filter(Boolean)
-    .slice(0, 2);
+    .slice(0, 1);
   const verified = profile.verificationStatus === "verified";
   const showPrice = lifeAgentShowsPurchaseUi();
   const ratingScore =
     profile.ratings && profile.ratings.raters > 0 ? profile.ratings.averageScore.toFixed(1) : null;
 
   return (
-    <article className="min-h-0 [contain-intrinsic-size:auto_340px]">
-      <div className="relative w-full overflow-hidden bg-paper-200" style={{ aspectRatio: "4 / 5" }}>
+    <article className="group min-h-0 rounded-lg border border-transparent p-1.5 transition-[background-color,border-color,box-shadow] duration-200 [contain-intrinsic-size:auto_340px] hover:border-hairline hover:bg-paper-50 hover:shadow-[0_10px_24px_rgba(17,21,19,0.06)]">
+      <div
+        className="relative w-full overflow-hidden rounded-md border border-hairline bg-paper-200 transition-colors duration-200 group-hover:border-signal-200"
+        style={{ aspectRatio: "4 / 5" }}
+      >
         {showPulse && (
           <div className="pointer-events-none absolute right-2.5 top-2.5 z-20 flex items-center gap-1.5">
             <span className="relative flex h-2.5 w-2.5">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-oxblood-500 opacity-75" />
-              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-oxblood-600" />
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-signal-500 opacity-75" />
+              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-signal-600" />
             </span>
             <span className="rounded-full bg-ink/80 px-2 py-0.5 text-[10px] font-medium text-paper backdrop-blur-sm">
               点击开始
@@ -132,29 +133,29 @@ function LifeAgentDiscoverCard({
         href={profileHref(profile.id)}
         className="pressable group block focus:outline-none focus-visible:outline focus-visible:outline-1 focus-visible:outline-ink"
       >
-        <div className="border-t border-hairline pt-2.5">
-          {/* 大标题：作者主头像名 */}
-          <h3 className="font-serif text-[15px] font-medium leading-tight text-ink line-clamp-1 sm:text-base">
+        <div className="pt-2.5">
+          {/* 大标题：创作者姓名 */}
+          <h3 className="line-clamp-1 text-[15px] font-semibold leading-5 text-ink sm:text-base">
             {profile.displayName}
             {verified ? (
-              <span className="ml-1 align-middle text-[10px] tracking-widest text-olive-500" aria-label="已认证">
+              <span className="ml-1 align-middle text-[10px] tracking-widest text-signal-600" aria-label="已认证">
                 ✓
               </span>
             ) : null}
           </h3>
 
-          {/* 副标题：headline，serif italic 给杂志感 */}
-          <p className="mt-0.5 line-clamp-2 min-h-[2.5em] font-serif text-[12.5px] italic leading-snug text-ink-400">
+          {/* 副标题：短简介 */}
+          <p className="mt-0.5 line-clamp-2 min-h-[2.5em] text-[12.5px] leading-5 text-ink-500">
             {headlineShown}
           </p>
 
           {/* 示例问题：帮助用户快速了解可问什么 */}
           {sampleQuestionsShown.length > 0 ? (
-            <ul className="mt-1.5 space-y-0.5" aria-label="你可以问">
+            <ul className="mt-2" aria-label="你可以问">
               {sampleQuestionsShown.map((q, i) => (
                 <li
                   key={i}
-                  className="line-clamp-1 pl-2.5 text-[11px] leading-snug text-ink-300 before:-ml-2.5 before:mr-1 before:inline-block before:w-2 before:text-center before:text-[10px] before:text-ink-200 before:content-['·']"
+                  className="line-clamp-1 rounded-md bg-paper-100 px-2 py-1.5 text-[11px] leading-4 text-ink-500"
                 >
                   {q}
                 </li>
@@ -163,7 +164,7 @@ function LifeAgentDiscoverCard({
           ) : null}
 
           {/* 元数据条：地区 · 评分 / 价格 */}
-          <div className="mt-2 flex items-baseline justify-between gap-2 text-[11px] text-ink-300">
+          <div className="mt-2.5 flex items-baseline justify-between gap-2 border-t border-hairline/70 pt-2 text-[11px] text-ink-400">
             <span className="truncate">
               {[areaLabel || null, profile.creator.name ?? anonymous]
                 .filter(Boolean)
@@ -171,11 +172,125 @@ function LifeAgentDiscoverCard({
               {ratingScore ? <span className="text-ink-400"> · {ratingScore}★</span> : null}
             </span>
             {showPrice ? (
-              <span className="shrink-0 font-serif text-[15px] font-medium tabular-nums text-oxblood-500">
+              <span className="shrink-0 text-[15px] font-semibold tabular-nums text-ink">
                 ¥{(profile.pricePerQuestion / 100).toFixed(0)}
-                <span className="ml-0.5 text-[10px] font-normal not-italic text-ink-300">/问</span>
+                <span className="ml-0.5 text-[10px] font-normal text-ink-300">/问</span>
               </span>
             ) : null}
+          </div>
+        </div>
+      </Link>
+    </article>
+  );
+}
+
+/**
+ * 推荐卡：feed 第一位放大处理，打破均质网格，但不做杂志头版。
+ */
+function LifeAgentLeadCard({
+  profile,
+  profileHref,
+  showPulse,
+}: {
+  profile: LifeAgentListItem;
+  profileHref: (id: string) => string;
+  showPulse?: boolean;
+}) {
+  const areaLabel = [profile.city, profile.province]
+    .filter(Boolean)
+    .filter((seg, i, arr) => i === 0 || arr[i - 1] !== seg)
+    .join(" · ");
+  const coverUrl = resolveLifeAgentCoverDisplayUrl(profile.coverUrl, profile.coverImageUrl, profile.coverPresetKey);
+  const headlineShown = cleanLifeAgentIntroText(profile.headline, profile.displayName);
+  const sampleQuestionsShown = (profile.sampleQuestions ?? [])
+    .map((q) => cleanLifeAgentIntroText(q, profile.displayName))
+    .filter(Boolean)
+    .slice(0, 2);
+  const verified = profile.verificationStatus === "verified";
+  const showPrice = lifeAgentShowsPurchaseUi();
+  const ratingScore =
+    profile.ratings && profile.ratings.raters > 0 ? profile.ratings.averageScore.toFixed(1) : null;
+
+  return (
+    <article className="rounded-lg border border-hairline bg-paper-50 p-2.5 shadow-[0_18px_50px_rgba(17,21,19,0.07)] sm:p-3">
+      <Link
+        href={profileHref(profile.id)}
+        className="pressable group block focus:outline-none focus-visible:outline focus-visible:outline-1 focus-visible:outline-signal-600"
+      >
+        <div className="grid gap-3 sm:grid-cols-[minmax(0,0.92fr)_minmax(0,1fr)] sm:gap-4">
+          <div className="relative w-full overflow-hidden rounded-md border border-hairline bg-paper-200" style={{ aspectRatio: "4 / 3" }}>
+            {showPulse && (
+              <div className="pointer-events-none absolute right-2.5 top-2.5 z-20 flex items-center gap-1.5">
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-signal-500 opacity-75" />
+                  <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-signal-600" />
+                </span>
+                <span className="rounded-md bg-ink/80 px-2 py-0.5 text-[10px] font-medium text-paper backdrop-blur-sm">
+                  点击开始
+                </span>
+              </div>
+            )}
+            <LifeAgentCoverImage
+              src={coverUrl}
+              alt=""
+              fill
+              className="object-cover transition duration-200 group-hover:scale-[1.015] group-hover:opacity-95"
+              sizes="(max-width: 640px) 92vw, 40vw"
+              priority
+            />
+            <span className="absolute left-2 top-2 rounded-md bg-signal-600 px-2 py-1 text-[11px] font-medium leading-none text-white shadow-[0_8px_18px_rgba(15,118,110,0.22)]">
+              推荐
+            </span>
+            {typeof profile.mindScore === "number" ? (
+              <div className="absolute bottom-0 left-0 z-10 p-1.5">
+                <MindScoreBadge value={profile.mindScore} size="xs" className="shadow-sm" />
+              </div>
+            ) : null}
+          </div>
+          <div className="flex min-w-0 flex-col">
+            <div className="mb-1 flex min-w-0 items-center gap-2 text-xs text-ink-400">
+              <span className="truncate">
+                {[areaLabel || null, profile.creator.name ?? anonymous].filter(Boolean).join(" · ") || anonymous}
+              </span>
+              {ratingScore ? <span className="shrink-0 text-ink-500">{ratingScore}★</span> : null}
+            </div>
+            <h3 className="text-xl font-semibold leading-7 text-ink sm:text-2xl [text-wrap:balance]">
+              {profile.displayName}
+              {verified ? (
+                <span className="ml-1.5 align-middle text-[11px] tracking-widest text-signal-600" aria-label="已认证">
+                  ✓
+                </span>
+              ) : null}
+            </h3>
+            <p className="mt-1 line-clamp-2 text-sm leading-6 text-ink-500">
+              {headlineShown}
+            </p>
+            {sampleQuestionsShown.length > 0 ? (
+              <ul className="mt-3 space-y-1.5" aria-label="你可以问">
+                {sampleQuestionsShown.map((q, i) => (
+                  <li
+                    key={i}
+                    className="line-clamp-1 rounded-md bg-paper-100 px-2.5 py-1.5 text-xs leading-5 text-ink-500"
+                  >
+                    {q}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+            <div className="mt-auto flex items-center justify-between gap-3 pt-4 text-xs text-ink-400">
+              <span className="inline-flex items-center gap-1 font-medium text-signal-600">
+                查看经历
+                <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={1.7} viewBox="0 0 24 24" aria-hidden>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 6l6 6-6 6" />
+                </svg>
+              </span>
+              {showPrice ? (
+                <span className="shrink-0 text-lg font-semibold tabular-nums text-ink">
+                  ¥{(profile.pricePerQuestion / 100).toFixed(0)}
+                  <span className="ml-0.5 text-[10px] font-normal text-ink-300">/问</span>
+                </span>
+              ) : null}
+            </div>
           </div>
         </div>
       </Link>
@@ -190,6 +305,8 @@ type Props = {
   emptySubtitle: string;
   profileHref?: (id: string) => string;
   showFirstCardPulse?: boolean;
+  /** 为 true 时第一条用「头条卡」全宽头版处理，其余进网格 */
+  lead?: boolean;
   windowResetKey?: string | number;
   /** 为 false 时一次性渲染全部（管理页等） */
   windowed?: boolean;
@@ -217,10 +334,17 @@ export function LifeAgentDiscoverCardGrid({
   hasMoreFromServer = false,
   loadingMore = false,
   showFirstCardPulse = false,
+  lead = false,
 }: Props) {
   const virtualized = virtualizedProp ?? windowed !== false;
   const colCount = useGridColumnCount();
-  const rows = useMemo(() => chunkIntoRows(profiles, colCount), [profiles, colCount]);
+  const leadProfile = lead && profiles.length > 0 ? profiles[0] : undefined;
+  const gridProfiles = useMemo(
+    () => (leadProfile ? profiles.slice(1) : profiles),
+    [leadProfile, profiles],
+  );
+  const globalIndexOffset = leadProfile ? 1 : 0;
+  const rows = useMemo(() => chunkIntoRows(gridProfiles, colCount), [gridProfiles, colCount]);
   const rowKeys = useMemo(() => rows.map((r, i) => `${i}:${r.map((p) => p.id).join("|")}`), [rows]);
 
   const rowVirtualizer = useWindowVirtualizer({
@@ -271,37 +395,52 @@ export function LifeAgentDiscoverCardGrid({
     };
   }, [hasMoreFromServer, onLoadMore, tryLoadMore, rows.length, loadingMore]);
 
-  const { slice, hasMore, sentinelRef } = useWindowedSlice(profiles, {
+  const { slice, hasMore, sentinelRef } = useWindowedSlice(gridProfiles, {
     enabled: !virtualized && windowed,
     resetKey: windowResetKey,
     initial: 12,
     page: 12,
   });
-  const toRender = !virtualized && windowed ? slice : profiles;
+  const toRender = !virtualized && windowed ? slice : gridProfiles;
 
   if (loading) {
     return (
-      <div className="grid grid-cols-2 gap-x-3 gap-y-7 sm:grid-cols-3 sm:gap-x-5 sm:gap-y-9 lg:grid-cols-4 xl:grid-cols-5">
-        {[1, 2, 3, 4, 5, 6].map((item) => (
-          <div key={item} className="min-h-0">
-            <div className="w-full animate-pulse bg-paper-200" style={{ aspectRatio: "4 / 5" }} />
-            <div className="mt-2.5 border-t border-hairline pt-2.5 space-y-1.5">
-              <div className="h-3.5 w-3/5 animate-pulse bg-paper-200" />
-              <div className="h-3 w-full animate-pulse bg-paper-200" />
-              <div className="h-3 w-2/3 animate-pulse bg-paper-200" />
-              <div className="h-2.5 w-4/5 animate-pulse bg-paper-200" />
+      <div className="space-y-7">
+        {lead ? (
+          <div className="rounded-lg border border-hairline bg-paper-50 p-2.5 sm:p-3">
+            <div className="grid gap-3 sm:grid-cols-[minmax(0,0.92fr)_minmax(0,1fr)] sm:gap-4">
+              <div className="w-full animate-pulse rounded-md bg-paper-200" style={{ aspectRatio: "4 / 3" }} />
+              <div className="space-y-2">
+                <div className="h-3 w-24 animate-pulse bg-paper-200" />
+                <div className="h-6 w-1/2 animate-pulse bg-paper-200" />
+                <div className="h-3.5 w-4/5 animate-pulse bg-paper-200" />
+                <div className="h-3 w-2/3 animate-pulse bg-paper-200" />
+              </div>
             </div>
           </div>
-        ))}
+        ) : null}
+        <div className="grid grid-cols-2 gap-x-3 gap-y-7 sm:grid-cols-3 sm:gap-x-5 sm:gap-y-9 lg:grid-cols-4 xl:grid-cols-5">
+          {(lead ? [1, 2, 3, 4] : [1, 2, 3, 4, 5, 6]).map((item) => (
+            <div key={item} className="min-h-0">
+              <div className="w-full animate-pulse bg-paper-200" style={{ aspectRatio: "4 / 5" }} />
+              <div className="mt-2.5 border-t border-hairline pt-2.5 space-y-1.5">
+                <div className="h-3.5 w-3/5 animate-pulse bg-paper-200" />
+                <div className="h-3 w-full animate-pulse bg-paper-200" />
+                <div className="h-3 w-2/3 animate-pulse bg-paper-200" />
+                <div className="h-2.5 w-4/5 animate-pulse bg-paper-200" />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
 
   if (profiles.length === 0) {
     return (
-      <div className="border-t border-b border-hairline px-6 py-16 text-center">
-        <p className="font-serif text-xl font-medium text-ink">{emptyTitle}</p>
-        <p className="mt-2 font-serif text-sm italic text-ink-400">{emptySubtitle}</p>
+      <div className="rounded-lg border border-hairline bg-paper-50 px-6 py-14 text-center">
+        <p className="text-lg font-semibold text-ink">{emptyTitle}</p>
+        <p className="mt-2 text-sm leading-6 text-ink-500">{emptySubtitle}</p>
       </div>
     );
   }
@@ -309,19 +448,28 @@ export function LifeAgentDiscoverCardGrid({
   if (!virtualized) {
     return (
       <div className="space-y-6">
+        {leadProfile ? (
+          <LifeAgentLeadCard profile={leadProfile} profileHref={profileHref} showPulse={showFirstCardPulse} />
+        ) : null}
         <div className="grid grid-cols-2 gap-x-3 gap-y-7 sm:grid-cols-3 sm:gap-x-5 sm:gap-y-9 lg:grid-cols-4 xl:grid-cols-5">
           {toRender.map((profile, index) => (
-            <LifeAgentDiscoverCard key={profile.id} profile={profile} globalIndex={index} profileHref={profileHref} showPulse={showFirstCardPulse && index === 0} />
+            <LifeAgentDiscoverCard
+              key={profile.id}
+              profile={profile}
+              globalIndex={index + globalIndexOffset}
+              profileHref={profileHref}
+              showPulse={!leadProfile && showFirstCardPulse && index === 0}
+            />
           ))}
         </div>
         {windowed && hasMore ? (
           <div ref={sentinelRef} className="flex min-h-[52px] items-center justify-center py-2" aria-hidden>
-            <span className="font-serif text-xs italic text-ink-300">继续阅读</span>
+            <span className="text-xs font-medium text-ink-400">继续阅读</span>
           </div>
         ) : null}
         {onLoadMore && (hasMoreFromServer || loadingMore) ? (
           <div ref={loadMoreSentinelRef} className="flex min-h-[52px] items-center justify-center py-2" aria-hidden>
-            <span className="font-serif text-xs italic text-ink-300">
+            <span className="text-xs font-medium text-ink-400">
               {loadingMore ? "正在加载…" : "继续阅读"}
             </span>
           </div>
@@ -335,6 +483,9 @@ export function LifeAgentDiscoverCardGrid({
 
   return (
     <div className="space-y-6">
+      {leadProfile ? (
+        <LifeAgentLeadCard profile={leadProfile} profileHref={profileHref} showPulse={showFirstCardPulse} />
+      ) : null}
       <div className="relative w-full" style={{ height: totalSize }}>
         {virtualItems.map((virtualRow) => {
           const row = rows[virtualRow.index];
@@ -359,10 +510,10 @@ export function LifeAgentDiscoverCardGrid({
                     <LifeAgentDiscoverCard
                       key={profile.id}
                       profile={profile}
-                      globalIndex={globalIndex}
+                      globalIndex={globalIndex + globalIndexOffset}
                       profileHref={profileHref}
                       skipMountAnimation
-                      showPulse={showFirstCardPulse && globalIndex === 0}
+                      showPulse={!leadProfile && showFirstCardPulse && globalIndex === 0}
                     />
                   );
                 })}
@@ -373,7 +524,7 @@ export function LifeAgentDiscoverCardGrid({
       </div>
       {onLoadMore && (hasMoreFromServer || loadingMore) ? (
         <div ref={loadMoreSentinelRef} className="flex min-h-[52px] items-center justify-center py-2" aria-hidden>
-          <span className="font-serif text-xs italic text-ink-300">
+          <span className="text-xs font-medium text-ink-400">
             {loadingMore ? "正在加载…" : hasMoreFromServer ? "继续阅读" : ""}
           </span>
         </div>
