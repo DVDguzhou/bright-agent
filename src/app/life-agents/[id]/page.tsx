@@ -190,7 +190,7 @@ export default function LifeAgentDetailPage() {
       <div className="mx-auto max-w-lg space-y-4 px-4 pt-12 text-center">
         <p className="font-serif text-xl font-medium text-ink">未找到该 Agent</p>
         <p className="font-serif text-sm italic text-ink-400">链接可能已失效，请从列表重新进入。</p>
-        <Link href="/life-agents" className="btn-primary mt-4 inline-flex">
+        <Link href="/life-agents" className="btn-primary pressable mt-4 inline-flex">
           返回列表
         </Link>
       </div>
@@ -242,7 +242,7 @@ export default function LifeAgentDetailPage() {
                 onClick={() => {
                   void toggleFavoriteAgentId(profile.id).then(setStarred);
                 }}
-                className="flex h-9 w-9 items-center justify-center rounded-full bg-ink/40 text-paper backdrop-blur-sm transition hover:bg-ink/60"
+                className="pressable flex h-9 w-9 items-center justify-center rounded-full bg-ink/40 text-paper backdrop-blur-sm transition hover:bg-ink/60 active:bg-ink/60"
                 aria-label={starred ? "取消收藏" : "收藏"}
                 title={starred ? "取消收藏" : "收藏"}
               >
@@ -475,21 +475,21 @@ export default function LifeAgentDetailPage() {
           {!profile.viewerState.isLoggedIn ? (
             <Link
               href={`/login?redirect=${encodeURIComponent(`/life-agents/${profile.id}/chat`)}`}
-              className="btn-primary flex w-full items-center justify-center py-3 text-base font-semibold"
+              className="btn-primary pressable flex w-full items-center justify-center py-3 text-base font-semibold"
             >
               登录后开始咨询
             </Link>
           ) : remainingQ > 0 ? (
             <Link
               href={`/life-agents/${profile.id}/chat`}
-              className="btn-primary flex w-full items-center justify-center py-3 text-base font-semibold"
+              className="btn-primary pressable flex w-full items-center justify-center py-3 text-base font-semibold"
             >
               继续聊天（剩余 {remainingQ} 次）
             </Link>
           ) : (
             <Link
               href={`/life-agents/${profile.id}/chat`}
-              className="btn-primary flex w-full items-center justify-center py-3 text-base font-semibold"
+              className="btn-primary pressable flex w-full items-center justify-center py-3 text-base font-semibold"
             >
               开始咨询
             </Link>

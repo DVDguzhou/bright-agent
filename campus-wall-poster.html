@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>校园墙海报 · 过来人 AI</title>
+<style>
+  :root{
+    --paper:#f3ede1; --paper2:#efe7d7; --ink:#211c16; --ink2:#5b5247;
+    --ox:#9a3b34; --ox2:#b5564a; --line:rgba(33,28,22,.14);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#cdc6ba;display:flex;justify-content:center;padding:24px;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--ink)}
+  /* 9:16 竖版，适合手机截图发墙 */
+  .poster{position:relative;width:720px;height:1440px;background:
+      radial-gradient(120% 80% at 50% -10%, #fbf6ec 0%, var(--paper) 42%, var(--paper2) 100%);
+      border-radius:28px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.28);
+      padding:64px 60px 56px}
+  .grain{position:absolute;inset:0;background-image:radial-gradient(rgba(33,28,22,.05) 1px,transparent 1px);background-size:5px 5px;opacity:.5;pointer-events:none}
+  .eyebrow{display:inline-flex;align-items:center;gap:10px;font-size:18px;letter-spacing:.32em;color:var(--ox);font-weight:700;text-transform:uppercase}
+  .eyebrow::before{content:"";width:30px;height:2px;background:var(--ox)}
+  h1{margin-top:30px;font-family:"Songti SC","SimSun",serif;font-weight:800;font-size:62px;line-height:1.22;letter-spacing:1px}
+  h1 .hl{color:var(--ox);position:relative;white-space:nowrap}
+  h1 .hl::after{content:"";position:absolute;left:-2px;right:-2px;bottom:6px;height:14px;background:rgba(154,59,52,.16);z-index:-1;border-radius:3px}
+  .sub{margin-top:24px;font-size:25px;line-height:1.7;color:var(--ink2)}
+  .qs{margin-top:34px;display:flex;flex-direction:column;gap:14px}
+  .q{display:flex;align-items:flex-start;gap:16px;font-size:27px;font-weight:600;line-height:1.35;padding:15px 22px;background:rgba(255,255,255,.55);border:1px solid var(--line);border-radius:16px}
+  .q .mk{color:var(--ox2);font-size:25px;line-height:1.5;flex:none}
+  .punch{margin-top:32px;font-size:25px;line-height:1.66;font-weight:600}
+  .punch b{color:var(--ox);border-bottom:3px solid rgba(154,59,52,.35)}
+  .cta{position:absolute;left:60px;right:60px;bottom:50px;padding-top:28px;border-top:1.5px dashed var(--line)}
+  .cta-head{text-align:center;font-family:"Songti SC","SimSun",serif;font-size:32px;font-weight:800}
+  .soon{display:inline-block;margin-left:10px;font-family:-apple-system,"PingFang SC",sans-serif;font-size:18px;font-weight:700;color:var(--ox);background:rgba(154,59,52,.12);border:1px solid rgba(154,59,52,.32);border-radius:999px;padding:4px 14px;vertical-align:middle}
+  .qr-row{margin-top:26px;display:flex;gap:30px;justify-content:center}
+  .qr-card{flex:1;display:flex;flex-direction:column;align-items:center;gap:13px}
+  .qr{width:188px;height:188px;border-radius:16px;background:#fff;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;padding:14px;text-align:center;color:#9b9286;font-size:18px;line-height:1.55}
+  .qr img{width:100%;height:100%;display:block;object-fit:contain}
+  .qr-label{text-align:center;font-size:23px;font-weight:700}
+  .qr-label span{display:block;margin-top:5px;font-size:17px;font-weight:500;color:var(--ink2)}
+  .brand-line{margin-top:22px;text-align:center;font-size:19px;letter-spacing:.05em;color:var(--ox);font-weight:700}
+  /* 导出 PDF：页面正好等于海报尺寸，无白边、无投影 */
+  @page{size:720px 1440px;margin:0}
+  @media print{
+    body{background:#fff;padding:0;display:block}
+    .poster{box-shadow:none;border-radius:0;margin:0;width:720px;height:1440px}
+  }
+</style>
+</head>
+<body>
+  <div class="poster">
+    <div class="grain"></div>
+
+    <div class="eyebrow">过来人 AI</div>
+
+    <h1>别再一个人在<br><span class="hl">信息差</span>里硬扛了</h1>
+
+    <p class="sub">一群真的上岸 / 留学 / 进大厂的学长学姐，<br>做成了能<b style="color:var(--ink)">随时聊</b>的 AI——随便问，都有答案。</p>
+
+    <div class="qs">
+      <div class="q"><span class="mk">❓</span><span>考研值不值、要不要二战</span></div>
+      <div class="q"><span class="mk">❓</span><span>保研夏令营怎么准备</span></div>
+      <div class="q"><span class="mk">❓</span><span>双非 / 低GPA 留学还有戏吗</span></div>
+      <div class="q"><span class="mk">❓</span><span>没人脉怎么找实习</span></div>
+      <div class="q"><span class="mk">❓</span><span>大学到底该怎么过</span></div>
+    </div>
+
+    <p class="punch">这里的学长姐都是<b>踩过坑的真人</b>，能告诉你<b>具体怎么做</b>——<br>以及，上岸之后，真的有这么好吗？</p>
+
+    <div class="cta">
+      <div class="cta-head">扫码加入 👇<span class="soon">微信小程序上线中</span></div>
+      <div class="qr-row">
+        <div class="qr-card">
+          <div class="qr"><img src="qr-download.svg" alt="下载 App 二维码" /></div>
+          <div class="qr-label">下载 App<span>安卓 / iPhone 都能装</span></div>
+        </div>
+        <div class="qr-card">
+          <div class="qr"><img src="qr-group.png" alt="微信群二维码" /></div>
+          <div class="qr-label">进 QQ 交流群<span>群号 325681658 · 随时有人答</span></div>
+        </div>
+      </div>
+      <div class="brand-line">brightagent.cn/download</div>
+    </div>
+  </div>
+</body>
+</html>

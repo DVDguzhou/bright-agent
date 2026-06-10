@@ -1128,7 +1128,7 @@ export function Nav() {
                   <Link
                     key={link.href}
                     href={link.href}
-                    className={`relative flex min-w-0 flex-1 flex-col items-center gap-1 px-2 py-2 transition-colors ${
+                    className={`pressable relative flex min-w-0 flex-1 flex-col items-center gap-1 px-2 py-2 transition-colors ${
                       active ? "text-ink" : "text-ink-300"
                     }`}
                   >
@@ -1155,7 +1155,7 @@ export function Nav() {
             {user ? (
               <Link
                 href="/dashboard"
-                className={`relative flex flex-col items-center gap-1 px-3 py-2 min-w-0 flex-1 transition-colors ${
+                className={`pressable relative flex flex-col items-center gap-1 px-3 py-2 min-w-0 flex-1 transition-colors ${
                   pathname === "/dashboard" ? "text-ink" : "text-ink-300"
                 }`}
               >
@@ -1168,7 +1168,7 @@ export function Nav() {
             ) : (
               <Link
                 href="/login"
-                className={`relative flex flex-col items-center gap-1 px-3 py-2 min-w-0 flex-1 transition-colors ${
+                className={`pressable relative flex flex-col items-center gap-1 px-3 py-2 min-w-0 flex-1 transition-colors ${
                   pathname === "/login" ? "text-ink" : "text-ink-300"
                 }`}
               >

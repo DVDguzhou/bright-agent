@@ -28,7 +28,7 @@ function mapUploadError(code?: string, status?: number): string {
       return "无法连接上传服务";
     default:
       if (status === 404 || status === 405) {
-        return "上传接口未就绪，请确认后端已更新并重启";
+        return "上传服务暂不可用，请稍后重试";
       }
       return "上传失败，请重试";
   }
@@ -36,7 +36,7 @@ function mapUploadError(code?: string, status?: number): string {
 
 function mapPatchError(status?: number, code?: string): string {
   if (status === 404 || status === 405) {
-    return "保存接口未就绪，请更新并重启后端";
+    return "保存服务暂不可用，请稍后重试";
   }
   if (code === "UNAUTHORIZED") return "请先登录";
   if (code === "VALIDATION_ERROR") return "头像格式无效";

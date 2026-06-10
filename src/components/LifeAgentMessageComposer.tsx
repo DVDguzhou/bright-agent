@@ -110,7 +110,7 @@ export function LifeAgentMessageComposer({
               type="button"
               onClick={() => onMoreClick?.()}
               disabled={disabled}
-              className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-ink-400/50 transition hover:bg-paper-50/90 disabled:opacity-40"
+              className="pressable inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-ink-400/50 transition hover:bg-paper-50/90 active:bg-paper-100 disabled:opacity-40"
               aria-label="更多功能"
             >
               <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden>

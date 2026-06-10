@@ -916,7 +916,7 @@ export default function LifeAgentChatPage() {
               if (window.history.length > 1) router.back();
               else router.push(`/life-agents/${id}`);
             }}
-            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-ink transition hover:bg-paper-50/90"
+            className="pressable inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-ink transition hover:bg-paper-50/90 active:bg-paper-100"
             aria-label="返回"
           >
             <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24" aria-hidden>
@@ -953,7 +953,7 @@ export default function LifeAgentChatPage() {
           <button
             type="button"
             onClick={openMenu}
-            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-ink transition hover:bg-paper-50/90"
+            className="pressable inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-ink transition hover:bg-paper-50/90 active:bg-paper-100"
             aria-expanded={menuOpen}
             aria-controls="chat-side-panel"
             aria-label="更多"

@@ -146,6 +146,11 @@ body {
     color: var(--paper-2);
     border-color: var(--ink);
   }
+  .btn-secondary:active {
+    background: var(--ink);
+    color: var(--paper-2);
+    border-color: var(--ink);
+  }
 
   /* 输入框：单边底线，去掉胶囊感 */
   .input-shell {
@@ -193,5 +198,24 @@ body {
     height: 1px;
     background: var(--ink-3);
     flex-shrink: 0;
+  }
+}
+
+/* 触屏按压反馈：hover 不可用的设备上，点按要有即时响应。
+   放在 utilities 层之后，确保不被 transition-colors 等工具类覆盖。 */
+@layer utilities {
+  .pressable {
+    transition-property: color, background-color, border-color, opacity, transform;
+    transition-duration: 120ms;
+    transition-timing-function: ease;
+  }
+  .pressable:active {
+    opacity: 0.82;
+    transform: scale(0.985);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pressable:active {
+      transform: none;
+    }
   }
 }

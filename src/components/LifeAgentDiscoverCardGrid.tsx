@@ -104,7 +104,7 @@ function LifeAgentDiscoverCard({
         )}
         <Link
           href={profileHref(profile.id)}
-          className="group block h-full focus:outline-none focus-visible:outline focus-visible:outline-1 focus-visible:outline-ink"
+          className="pressable group block h-full focus:outline-none focus-visible:outline focus-visible:outline-1 focus-visible:outline-ink"
         >
           <LifeAgentCoverImage
             src={coverUrl}
@@ -130,7 +130,7 @@ function LifeAgentDiscoverCard({
 
       <Link
         href={profileHref(profile.id)}
-        className="group block focus:outline-none focus-visible:outline focus-visible:outline-1 focus-visible:outline-ink"
+        className="pressable group block focus:outline-none focus-visible:outline focus-visible:outline-1 focus-visible:outline-ink"
       >
         <div className="border-t border-hairline pt-2.5">
           {/* 大标题：作者主头像名 */}

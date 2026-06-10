@@ -120,7 +120,7 @@ function SearchResultsView({ query }: { query: string }) {
       .catch((err: unknown) => {
         const e = err as { name?: string } | null;
         if (e?.name === "AbortError") {
-          setLoadError("请求超时，请检查后端是否启动或稍后重试");
+          setLoadError("请求超时，请稍后重试");
         } else {
           setLoadError("加载失败，请刷新页面重试");
         }
