@@ -88,9 +88,9 @@ function LifeAgentDiscoverCard({
     profile.ratings && profile.ratings.raters > 0 ? profile.ratings.averageScore.toFixed(1) : null;
 
   return (
-    <article className="group mb-4 break-inside-avoid rounded-lg border border-hairline/60 bg-paper-50 p-1.5 shadow-glow-sm transition-[border-color,box-shadow,transform] duration-200 [contain-intrinsic-size:auto_340px] last:mb-0 hover:-translate-y-0.5 hover:border-signal-300 hover:shadow-glow motion-reduce:hover:translate-y-0 sm:mb-5">
+    <article className="group mb-4 break-inside-avoid rounded-lg border border-hairline/60 bg-paper-50 p-1.5 shadow-glow-sm transition-[border-color,box-shadow,transform] duration-200 [contain-intrinsic-size:auto_340px] last:mb-0 hover:-translate-y-0.5 hover:border-hairline hover:shadow-glow motion-reduce:hover:translate-y-0 sm:mb-5">
       <div
-        className="relative w-full overflow-hidden rounded-md border border-hairline bg-paper-200 transition-colors duration-200 group-hover:border-signal-200"
+        className="relative w-full overflow-hidden rounded-md border border-hairline bg-paper-200 transition-colors duration-200 group-hover:border-hairline/80"
         style={{ aspectRatio: "4 / 5" }}
       >
         {showPulse && (
@@ -215,7 +215,7 @@ function LifeAgentLeadCard({
     profile.ratings && profile.ratings.raters > 0 ? profile.ratings.averageScore.toFixed(1) : null;
 
   return (
-    <article className="overflow-hidden rounded-lg border border-ink/10 bg-white text-ink shadow-glow-sm transition duration-200 hover:border-signal-300 hover:shadow-glow">
+    <article className="overflow-hidden rounded-lg border border-ink/10 bg-white text-ink shadow-glow-sm transition duration-200 hover:border-ink/20 hover:shadow-glow">
       <Link
         href={profileHref(profile.id)}
         className="pressable group block focus:outline-none focus-visible:outline focus-visible:outline-1 focus-visible:outline-signal-600"

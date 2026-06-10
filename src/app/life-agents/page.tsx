@@ -630,7 +630,7 @@ function LifeAgentsPageContent() {
 
   const displayProfilesDiscover = discoverItems;
   const featuredRecommendation = featuredRecommendationItems[0] ?? null;
-  const showFeaturedRecommendationLead = featuredRecommendationLoading || Boolean(featuredRecommendation);
+  const showFeaturedRecommendationLead = false; // 已禁用：不再显示置顶大卡片
 
   const displayProfilesDesktop = useMemo(() => {
     if (feedTab === "favorites") return displayProfilesFavorites;
@@ -917,6 +917,7 @@ function LifeAgentsPageContent() {
               onLoadMore={feedTab !== "favorites" && feedTab !== "purchased" ? loadMoreDiscover : undefined}
               hasMoreFromServer={feedTab !== "favorites" && feedTab !== "purchased" && !!discoverNextCursor}
               loadingMore={discoverLoadingMore}
+              virtualized={false}
               showFirstCardPulse={firstCardPulsing && feedTab !== "favorites" && feedTab !== "purchased"}
               lead={feedTab !== "favorites" && feedTab !== "purchased" && showFeaturedRecommendationLead}
               leadProfile={feedTab !== "favorites" && feedTab !== "purchased" ? featuredRecommendation : null}

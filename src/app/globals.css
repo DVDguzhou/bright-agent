@@ -25,6 +25,25 @@
   --shadow-float: 0 18px 52px rgba(28, 26, 22, 0.16);
   --radius-card: 8px;
   --radius-control: 8px;
+
+  /* === 背景渐变可调变量 ===
+     你可以直接在浏览器 DevTools 里改这些值看效果，
+     满意后把数值填回这里保存即可。
+     
+     亮度调节（往 #ffffff 靠 = 更亮，往 #f2f1ed 靠 = 更暗）：
+     --bg-light: 灯光最亮处（左上）
+     --bg-mid:  页面主色调（中间）
+     --bg-deep: 边缘暗处（右下）
+     
+     位置调节：
+     --bg-center-x: 灯光中心水平位置（0% = 最左，50% = 中间）
+     --bg-center-y: 灯光中心垂直位置（0% = 最上，50% = 中间）
+  */
+  --bg-light: #faf9f5;  /* 原来是 #f8f6ef */
+  --bg-mid: #f5f4ef;    /* 原来是 #f2f1ed */
+  --bg-deep: #edeade;    /* 原来是 #e9e6dc */
+  --bg-center-x: 25%;
+  --bg-center-y: 0%;
 }
 
 * {
@@ -33,7 +52,13 @@
 
 html {
   scroll-behavior: smooth;
-  background-color: #f2f1ed;
+  background: radial-gradient(
+    ellipse 120% 100% at var(--bg-center-x) var(--bg-center-y),
+    var(--bg-light) 0%,
+    var(--bg-mid) 45%,
+    var(--bg-deep) 100%
+  );
+  background-attachment: fixed;
   min-height: 100%;
   min-height: 100dvh;
   min-height: -webkit-fill-available;
@@ -48,13 +73,18 @@ html::before {
   right: 0;
   top: -100vh;
   bottom: -100vh;
-  background-color: #f2f1ed;
+  background: radial-gradient(
+    ellipse 120% 100% at var(--bg-center-x) var(--bg-center-y),
+    var(--bg-light) 0%,
+    var(--bg-mid) 45%,
+    var(--bg-deep) 100%
+  );
   pointer-events: none;
 }
 
 body {
   font-family: var(--font-sans);
-  background-color: #f2f1ed;
+  background: transparent;
   color: var(--ink);
   min-height: 100%;
   min-height: 100dvh;
