@@ -19,7 +19,7 @@ const config: CapacitorConfig = {
   appId: 'com.yourname.agentmarketplace',
   appName: 'BrightAgent',
   // 与网站纸面色一致；App 壳 contentInset 留白区会露出此色（非默认白）
-  backgroundColor: '#f4efe6',
+  backgroundColor: '#fbfbf9',
   // 快速模式(有 MOBILE_APP_URL)用 public；完整模式用静态导出的 out
   webDir: appUrl ? 'public' : 'out',
   // 当配置了部署地址时，App 直接加载远程网址（零代码改动）
@@ -39,10 +39,10 @@ const config: CapacitorConfig = {
   ios: {
     allowsLinkPreview: false,
     contentInset: 'always',
-    backgroundColor: '#f4efe6',
+    backgroundColor: '#fbfbf9',
   },
   android: {
-    backgroundColor: '#f4efe6',
+    backgroundColor: '#fbfbf9',
   },
 };
 

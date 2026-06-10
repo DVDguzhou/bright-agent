@@ -16,35 +16,35 @@ const config: Config = {
       colors: {
         // === 杂志风色板（editorial palette） ===
         paper: {
-          DEFAULT: "#f4efe6", // 主页面：暖米纸
-          50: "#faf7f1",
-          100: "#f4efe6",
-          200: "#ebe3d4",
-          300: "#dccfb8",
+          DEFAULT: "#fbfbf9", // 主页面：新闻纸白
+          50: "#ffffff",
+          100: "#fbfbf9",
+          200: "#efeeea",
+          300: "#e0dfd9",
         },
         ink: {
-          DEFAULT: "#1a1714", // 主文字：暖近黑
-          50: "#f5f3f0",
-          100: "#e6e1da",
-          200: "#bfb6aa",
-          300: "#8d8478",
-          400: "#6b635a",
-          500: "#4d463f",
-          600: "#3a342e",
-          700: "#272320",
-          800: "#1a1714",
-          900: "#0d0b09",
+          DEFAULT: "#181816", // 主文字：中性近黑
+          50: "#f4f4f2",
+          100: "#e6e5e2",
+          200: "#bcbab4",
+          300: "#8e8c86",
+          400: "#6b6a65",
+          500: "#4d4c48",
+          600: "#3a3935",
+          700: "#272622",
+          800: "#181816",
+          900: "#0d0d0c",
         },
-        hairline: "#d8cfbf", // 发丝线分隔
+        hairline: "#dedcd6", // 发丝线分隔
         oxblood: {
-          DEFAULT: "#7a1f1f", // 主强调色：酒红
-          50: "#fbf3f3",
-          100: "#f1d9d9",
-          200: "#d99a9a",
-          400: "#9b2929",
-          500: "#7a1f1f",
-          600: "#641a1a",
-          700: "#4d1414",
+          DEFAULT: "#c2271d", // 主强调色：印刷朱红（token 名沿用 oxblood）
+          50: "#fcf1f0",
+          100: "#f6d8d4",
+          200: "#eba39b",
+          400: "#d23a2e",
+          500: "#c2271d",
+          600: "#9e1f17",
+          700: "#781711",
         },
         olive: {
           DEFAULT: "#4a5a2f", // 第二强调色：橄榄绿（用于状态/认证）
@@ -84,13 +84,13 @@ const config: Config = {
       },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
-        "gradient-mesh": "linear-gradient(to right, rgb(122 31 31 / 0.03), transparent 50%), linear-gradient(to bottom, rgb(26 23 20 / 0.03), transparent 50%)",
+        "gradient-mesh": "linear-gradient(to right, rgb(194 39 29 / 0.03), transparent 50%), linear-gradient(to bottom, rgb(24 24 22 / 0.03), transparent 50%)",
       },
       boxShadow: {
-        "glow-sm": "0 0 15px -3px rgb(122 31 31 / 0.15), 0 0 30px -5px rgb(26 23 20 / 0.08)",
-        "glow": "0 0 40px -10px rgb(122 31 31 / 0.2), 0 0 80px -20px rgb(26 23 20 / 0.1)",
-        "glow-lg": "0 0 60px -15px rgb(122 31 31 / 0.25)",
-        "inner-glow": "inset 0 0 60px -20px rgb(122 31 31 / 0.06)",
+        "glow-sm": "0 0 15px -3px rgb(194 39 29 / 0.15), 0 0 30px -5px rgb(24 24 22 / 0.08)",
+        "glow": "0 0 40px -10px rgb(194 39 29 / 0.2), 0 0 80px -20px rgb(24 24 22 / 0.1)",
+        "glow-lg": "0 0 60px -15px rgb(194 39 29 / 0.25)",
+        "inner-glow": "inset 0 0 60px -20px rgb(194 39 29 / 0.06)",
       },
       transitionDuration: {
         "400": "400ms",

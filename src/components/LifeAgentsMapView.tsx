@@ -22,7 +22,7 @@ function avatarColor(name: string): string {
   let h = 0;
   for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) | 0;
   // 杂志色板：酒红 / 墨黑 / 橄榄 / 深蓝灰（无紫色、无粉色）。
-  const palette = ["#7a1f1f", "#1a1714", "#4a5a2f", "#3a342e", "#641a1a", "#5d7140"];
+  const palette = ["#c2271d", "#181816", "#4a5a2f", "#3a3935", "#9e1f17", "#5d7140"];
   return palette[Math.abs(h) % palette.length];
 }
 
@@ -83,11 +83,11 @@ function avatarStackClusterIcon(cluster: L.MarkerCluster) {
   return L.divIcon({
     className: "life-agent-map-cluster",
     html: `<div style="width:${w}px;height:${h}px;filter:drop-shadow(0 3px 8px rgba(122,31,31,.4));position:relative">`
-      + `<div style="width:${dia}px;height:${dia}px;border-radius:50%;background:#7a1f1f;display:flex;align-items:center;justify-content:center">`
+      + `<div style="width:${dia}px;height:${dia}px;border-radius:50%;background:#c2271d;display:flex;align-items:center;justify-content:center">`
       + `<div style="width:${dia - 8}px;height:${dia - 8}px;border-radius:50%;background:rgba(255,255,255,.94);display:flex;align-items:center;justify-content:center">`
-      + `<span style="color:#7a1f1f;font-size:${fs}px;font-weight:700;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;line-height:1">${label}</span>`
+      + `<span style="color:#c2271d;font-size:${fs}px;font-weight:700;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;line-height:1">${label}</span>`
       + `</div></div>`
-      + `<div style="width:0;height:0;border-left:${tip * 0.55}px solid transparent;border-right:${tip * 0.55}px solid transparent;border-top:${tip}px solid #7a1f1f;position:absolute;bottom:0;left:50%;transform:translateX(-50%)"></div>`
+      + `<div style="width:0;height:0;border-left:${tip * 0.55}px solid transparent;border-right:${tip * 0.55}px solid transparent;border-top:${tip}px solid #c2271d;position:absolute;bottom:0;left:50%;transform:translateX(-50%)"></div>`
       + `</div>`,
     iconSize: [w, h],
     iconAnchor: [w / 2, h],
@@ -106,19 +106,19 @@ function buildPopupHtml(agent: MapAgentMarker): string {
   if (isLifeAgentDefaultCoverUrl(avatarSrc)) avatarSrc = "";
   const avatarBlock = avatarSrc
     ? `<div style="width:40px;height:40px;border-radius:50%;background:${bg};flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center">`
-      + `<img src="${escHtml(avatarSrc)}" alt="" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display='none';this.parentElement.innerHTML='<span style=\\'color:#f4efe6;font-family:${serif};font-weight:600;font-size:18px;letter-spacing:.02em\\'>${ch}</span>'"/>`
+      + `<img src="${escHtml(avatarSrc)}" alt="" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display='none';this.parentElement.innerHTML='<span style=\\'color:#fbfbf9;font-family:${serif};font-weight:600;font-size:18px;letter-spacing:.02em\\'>${ch}</span>'"/>`
       + `</div>`
-    : `<div style="width:40px;height:40px;border-radius:50%;background:${bg};color:#f4efe6;display:flex;align-items:center;justify-content:center;font-family:${serif};font-weight:600;font-size:18px;flex-shrink:0;letter-spacing:.02em">${ch}</div>`;
-  return `<div style="min-width:220px;max-width:260px;font-family:${sans};padding:2px;color:#1a1714">
-  <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;padding-bottom:9px;border-bottom:1px solid #d8cfbf">
+    : `<div style="width:40px;height:40px;border-radius:50%;background:${bg};color:#fbfbf9;display:flex;align-items:center;justify-content:center;font-family:${serif};font-weight:600;font-size:18px;flex-shrink:0;letter-spacing:.02em">${ch}</div>`;
+  return `<div style="min-width:220px;max-width:260px;font-family:${sans};padding:2px;color:#181816">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;padding-bottom:9px;border-bottom:1px solid #dedcd6">
     ${avatarBlock}
     <div style="min-width:0;flex:1">
-      <div style="font-family:${serif};font-weight:700;font-size:15px;color:#1a1714;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${name}</div>
-      ${school ? `<div style="font-size:10px;color:#8d8478;line-height:1.3;margin-top:3px;letter-spacing:.14em;text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${school}</div>` : ""}
+      <div style="font-family:${serif};font-weight:700;font-size:15px;color:#181816;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${name}</div>
+      ${school ? `<div style="font-size:10px;color:#8e8c86;line-height:1.3;margin-top:3px;letter-spacing:.14em;text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${school}</div>` : ""}
     </div>
   </div>
-  ${headline ? `<div style="font-size:12.5px;color:#4d463f;line-height:1.6;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:12px;font-style:italic">${headline}</div>` : ""}
-  <a href="/life-agents/${agent.id}" style="display:flex;align-items:center;justify-content:space-between;gap:6px;width:100%;box-sizing:border-box;border-radius:0;background:#1a1714;padding:9px 12px;font-size:11px;font-weight:600;color:#f4efe6;text-decoration:none;letter-spacing:.18em;text-transform:uppercase;font-family:${sans}">
+  ${headline ? `<div style="font-size:12.5px;color:#4d4c48;line-height:1.6;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:12px;font-style:italic">${headline}</div>` : ""}
+  <a href="/life-agents/${agent.id}" style="display:flex;align-items:center;justify-content:space-between;gap:6px;width:100%;box-sizing:border-box;border-radius:0;background:#181816;padding:9px 12px;font-size:11px;font-weight:600;color:#fbfbf9;text-decoration:none;letter-spacing:.18em;text-transform:uppercase;font-family:${sans}">
     <span>查看主页</span>
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
   </a>
@@ -341,7 +341,7 @@ export default function LifeAgentsMapView({
         maxZoom={18}
         zoomControl={false}
         className={`z-0 w-full ${mapHeightClass} ${roundMap}`}
-        style={{ background: "linear-gradient(135deg,#f4efe6,#ebe3d4)" }}
+        style={{ background: "linear-gradient(135deg,#fbfbf9,#efeeea)" }}
         scrollWheelZoom
         attributionControl={false}
       >

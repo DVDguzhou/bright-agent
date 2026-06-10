@@ -23,7 +23,7 @@ export default async function AndroidDownloadPage() {
   const qrDataUrl = await QRCode.toDataURL(pageUrl, {
     width: 280,
     margin: 2,
-    color: { dark: "#1a1714", light: "#ffffff" },
+    color: { dark: "#181816", light: "#ffffff" },
   });
 
   return (

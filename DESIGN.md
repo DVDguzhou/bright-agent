@@ -2,18 +2,18 @@
 name: Life Agent Marketplace
 description: A curated marketplace of real human experience — warm, tactile, authoritative.
 colors:
-  paper: "#f4efe6"
-  paper-light: "#faf7f1"
-  paper-mid: "#ebe3d4"
-  paper-deep: "#dccfb8"
-  ink: "#1a1714"
-  ink-soft: "#4d463f"
-  ink-muted: "#8d8478"
-  ink-faint: "#bfb6aa"
-  hairline: "#d8cfbf"
-  oxblood: "#7a1f1f"
-  oxblood-deep: "#4d1414"
-  oxblood-light: "#f1d9d9"
+  paper: "#fbfbf9"
+  paper-light: "#ffffff"
+  paper-mid: "#efeeea"
+  paper-deep: "#e0dfd9"
+  ink: "#181816"
+  ink-soft: "#4d4c48"
+  ink-muted: "#8e8c86"
+  ink-faint: "#bcbab4"
+  hairline: "#dedcd6"
+  oxblood: "#c2271d"
+  oxblood-deep: "#781711"
+  oxblood-light: "#f6d8d4"
   olive: "#4a5a2f"
   olive-light: "#5d7140"
 typography:
@@ -87,46 +87,48 @@ components:
 
 **Creative North Star: "The Living Archive"**
 
-This design system is built around a single conviction: the person behind the agent is the product. Not the AI powering it, not the platform hosting it — the human whose experience, judgment, and story live inside. Every surface decision follows from that conviction. The palette is warm paper and deep ink because this is a library of real lives, not a tech product. The typography reaches for editorial weight and serif authority because real experience deserves a serious frame. The components are stripped of decoration because the content is the decoration.
+This design system is built around a single conviction: the person behind the agent is the product. Not the AI powering it, not the platform hosting it — the human whose experience, judgment, and story live inside. Every surface decision follows from that conviction. The palette is newsprint white and neutral ink — the visual register of a Chinese weekly (三联/读库), not a tech product. The typography reaches for editorial weight and serif authority because real experience deserves a serious frame. The components are stripped of decoration because the content is the decoration.
+
+> **2026-06 direction change:** the original warm-cream + oxblood palette read as Claude/Anthropic's brand language (cream paper + serif + warm red). The palette pivoted to newsprint white + vermilion to break that association. Token names (`paper`, `ink`, `oxblood`) are unchanged in code; only their values moved.
 
 The system rejects its most obvious temptations. It is not a productivity tool: no neutral grids, no utility-first chrome. It is not a social network: no follower counts, no engagement metrics, no visual language borrowed from Xiaohongshu or Instagram. It is not an AI brand: no dark mode with gradient logos, no "intelligence" abstraction, no interface that makes the AI more prominent than the human it's representing.
 
 The atmosphere is a private journal made public: tactile warmth, unhurried pace, typographic clarity, restraint as a form of respect. Motion is purposeful and quiet. White space is generous and intentional. The oxblood accent appears rarely — when it does, it means something.
 
 **Key Characteristics:**
-- Warm paper ground (#f4efe6) with deep ink text (#1a1714): editorial, not clinical
-- Oxblood (#7a1f1f) as a rare, authoritative accent — not a primary brand color
+- Newsprint-white ground (#fbfbf9) with neutral ink text (#181816): weekly-magazine editorial, deliberately outside the cream band AI brands occupy
+- Vermilion print-red (#c2271d, token name `oxblood`) as a rare, authoritative accent — not a primary brand color
 - Serif for hierarchy and feeling; sans for function and legibility
 - Flat elevation: no shadows at rest; tonal layering separates surfaces
 - 2px border-radius maximum: sharp without being harsh
 
-## 2. Colors: The Archive Palette
+## 2. Colors: The Newsprint Palette
 
-Drawn from the physical world of print and archival paper — warm but never soft, authoritative without being cold.
+Drawn from the physical world of print — white newsprint, neutral ink, vermilion seal-red. Authoritative without being cold; never cream.
 
 ### Primary
-- **Warm Near-Black / Deep Ink** (#1a1714): The primary text and action color. Used for body copy, headings, filled buttons, and interactive elements at rest. Carries the weight of the ink voice.
+- **Neutral Near-Black / Deep Ink** (#181816): The primary text and action color. Used for body copy, headings, filled buttons, and interactive elements at rest. Carries the weight of the ink voice.
 
 ### Secondary
-- **Oxblood** (#7a1f1f): The rare accent. Used for hover states on filled buttons, selection highlights, text selection background, and any moment requiring emphasis. Appears on ≤10% of any given screen. The scarcity is deliberate.
+- **Vermilion** (#c2271d, token `oxblood`): The rare accent. Used for hover states on filled buttons, selection highlights, text selection background, and any moment requiring emphasis. Appears on ≤10% of any given screen. The scarcity is deliberate.
 
 ### Tertiary
 - **Archive Olive** (#4a5a2f): Verification and status states only. Not a decorative color — it means "verified" or "active". Used exclusively in badges and status indicators.
 
 ### Neutral
-- **Warm Paper** (#f4efe6): Body background. Not a default warm-tinted neutral — this IS the brand surface.
-- **Paper Light** (#faf7f1): Card and container surfaces, elevated above the base.
-- **Paper Mid** (#ebe3d4): Secondary surface, hover backgrounds for list items.
-- **Paper Deep** (#dccfb8): Pressed states, deep tonal backgrounds.
-- **Hairline** (#d8cfbf): Dividers and borders. Never thicker than 1px in decorative use.
-- **Ink Soft** (#4d463f): Secondary text — metadata, captions, supporting copy.
-- **Ink Muted** (#8d8478): Tertiary text — timestamps, placeholders, decorative kickers.
-- **Ink Faint** (#bfb6aa): Disabled states and very low-emphasis content only.
+- **Newsprint White** (#fbfbf9): Body background. Chroma-free near-white — the warm cream band is explicitly off-limits (it reads as the AI-default and as Claude's brand surface).
+- **Paper Light** (#ffffff): Card and container surfaces, elevated above the base.
+- **Paper Mid** (#efeeea): Secondary surface, hover backgrounds for list items.
+- **Paper Deep** (#e0dfd9): Pressed states, deep tonal backgrounds.
+- **Hairline** (#dedcd6): Dividers and borders. Never thicker than 1px in decorative use.
+- **Ink Soft** (#4d4c48): Secondary text — metadata, captions, supporting copy.
+- **Ink Muted** (#8e8c86): Tertiary text — timestamps, placeholders, decorative kickers.
+- **Ink Faint** (#bcbab4): Disabled states and very low-emphasis content only.
 
 ### Named Rules
-**The One Oxblood Rule.** Oxblood (#7a1f1f) is an emphasis color, not a brand color. If you're about to use it as a background, a border, or as more than one element per screen, pull back. Its rarity is what gives it authority.
+**The One Oxblood Rule.** Oxblood (#c2271d) is an emphasis color, not a brand color. If you're about to use it as a background, a border, or as more than one element per screen, pull back. Its rarity is what gives it authority.
 
-**The Warm-Paper Rule.** The body background (#f4efe6) is not a "neutral off-white." It is a committed brand surface. Do not lighten it toward white for "cleanliness" — that erases the editorial warmth that carries the whole palette. If a surface needs to feel lighter, use #faf7f1.
+**The Newsprint Rule.** The body background (#fbfbf9) stays chroma-free. Do not tint it warm — cream/sand is the saturated AI default and Claude's brand surface — and do not tint it cool toward clinical blue-white. Cards step up to pure #ffffff. Warmth lives in photography, serif typography, and the vermilion accent, never in the paper itself.
 
 ### Restrained Severity Scale (克制分级)
 
@@ -163,7 +165,7 @@ Instead, use a **restrained severity scale**: one hue family (oxblood) stepped b
 - **Headline** (500 weight, clamp(1.5rem, 4vw, 2rem), 1.2 line-height): Section headings, agent profile titles. Serif only. Letter-spacing -0.01em. `text-wrap: balance`.
 - **Title** (500 weight, 1.125rem, 1.4 line-height): Card titles, dialog headings, list item primary text. Sans only.
 - **Body** (400 weight, 1rem, 1.7 line-height): All running text. Sans only. Max line length 65–75ch on desktop. `text-wrap: pretty` for multi-paragraph prose.
-- **Label** (500 weight, 0.6875rem, 0.2em letter-spacing, uppercase): Kickers, category tags, and status chips only. Max 4 words. Ink Muted (#8d8478). Appears rarely.
+- **Label** (500 weight, 0.6875rem, 0.2em letter-spacing, uppercase): Kickers, category tags, and status chips only. Max 4 words. Ink Muted (#8e8c86). Appears rarely.
 
 ### Named Rules
 **The Serif-for-Feeling Rule.** Serif is reserved for hierarchy and emotional weight: display headings, agent names at their most prominent, pull quotes. It does not appear in navigation, buttons, labels, or form fields. When you reach for serif in a UI element, reach for a weight change instead.
@@ -177,18 +179,18 @@ This system is flat by default. Surfaces are distinguished by tonal stepping (pa
 Shadows exist but are rare: the `glow-sm` shadow (diffuse oxblood glow) appears under featured agent cards on hover — a moment of warmth that rewards attention, not ambient decoration.
 
 ### Shadow Vocabulary
-- **Hover glow** (`0 0 15px -3px rgb(122 31 31 / 0.15), 0 0 30px -5px rgb(26 23 20 / 0.08)`): Featured card hover state. Oxblood-tinted ambient warmth. Not a structural shadow.
-- **No resting shadow.** Cards, panels, and modals at rest use only border (#d8cfbf hairline) and background tonal shift, never box-shadow.
+- **Hover glow** (`0 0 15px -3px rgb(194 39 29 / 0.15), 0 0 30px -5px rgb(24 24 22 / 0.08)`): Featured card hover state. Oxblood-tinted ambient warmth. Not a structural shadow.
+- **No resting shadow.** Cards, panels, and modals at rest use only border (#dedcd6 hairline) and background tonal shift, never box-shadow.
 
 ### Named Rules
-**The Paper Layers Rule.** Depth is expressed through tonal value, not elevation. A card above the page background is #faf7f1 on #f4efe6 — a half-tone step. Never add a drop shadow to achieve the same effect. If the layers aren't visually distinct without shadow, lighten the card background one step further.
+**The Paper Layers Rule.** Depth is expressed through tonal value, not elevation. A card above the page background is #ffffff on #fbfbf9 — a half-tone step. Never add a drop shadow to achieve the same effect. If the layers aren't visually distinct without shadow, lighten the card background one step further.
 
 ## 5. Components
 
 ### Buttons
 Shape: sharp, almost flat — 2px radius. Anti-roundness is deliberate; this isn't a SaaS product.
 
-- **Primary:** Filled ink background (#1a1714), paper-light text (#faf7f1). 12px vertical, 24px horizontal padding. 160ms ease transition. Hover shifts to oxblood (#7a1f1f). Active shifts to oxblood-deep (#4d1414). No border, no shadow.
+- **Primary:** Filled ink background (#181816), paper-light text (#ffffff). 12px vertical, 24px horizontal padding. 160ms ease transition. Hover shifts to oxblood (#c2271d). Active shifts to oxblood-deep (#781711). No border, no shadow.
 - **Secondary:** Transparent background, full ink border (1px), ink text. Hover fills with ink and inverts text. Same shape and transition as primary.
 - **Ghost / text:** No border, no background. Ink text at muted weight. For low-emphasis in-context actions.
 
@@ -196,8 +198,8 @@ Shape: sharp, almost flat — 2px radius. Anti-roundness is deliberate; this isn
 Tactile but restrained: hairline border, 4px radius, paper-light background. No drop shadow.
 
 - **Corner Style:** 4px radius (sharp, not rounded)
-- **Background:** #faf7f1 (paper-light) on a #f4efe6 (paper) page
-- **Border:** 1px hairline (#d8cfbf) at rest; ink-muted (#8d8478) on hover
+- **Background:** #ffffff (paper-light) on a #fbfbf9 (paper) page
+- **Border:** 1px hairline (#dedcd6) at rest; ink-muted (#8e8c86) on hover
 - **Shadow:** None at rest. Hover may add diffuse glow (`glow-sm`) for featured/interactive cards.
 - **Internal padding:** 16–24px. Never cramped; never lavish.
 - **Nested cards:** Never. A card inside a card is always a design failure; restructure with sections and dividers.
@@ -206,14 +208,14 @@ Tactile but restrained: hairline border, 4px radius, paper-light background. No 
 Underline-only style: no box, no background, no radius. Editorial — like filling in a form on quality paper.
 
 - **Style:** Bottom border only (1px hairline), transparent background, full-width. 8px horizontal padding, 8px vertical padding.
-- **Placeholder:** Ink Muted (#8d8478).
-- **Focus:** Bottom border shifts to ink (#1a1714). No box-shadow, no glow ring.
-- **Error:** Bottom border shifts to oxblood (#7a1f1f).
+- **Placeholder:** Ink Muted (#8e8c86).
+- **Focus:** Bottom border shifts to ink (#181816). No box-shadow, no glow ring.
+- **Error:** Bottom border shifts to oxblood (#c2271d).
 
 ### Navigation
 Bottom tab bar on mobile (the primary navigation context); top bar on desktop.
 
-- Bottom tabs: icon + short label (≤4 characters in Chinese). Active state uses ink (#1a1714), resting uses ink-muted (#8d8478). No filled pill or background highlight on active — the color change alone is sufficient.
+- Bottom tabs: icon + short label (≤4 characters in Chinese). Active state uses ink (#181816), resting uses ink-muted (#8e8c86). No filled pill or background highlight on active — the color change alone is sufficient.
 - Top nav: minimal chrome. Logo or wordmark left, auth actions right. No mega-menu, no flyouts.
 - Notification badge: oxblood dot, no border, ≤2 digits before truncating to "+".
 
@@ -238,8 +240,8 @@ A line + small uppercase text pair marking a section or category.
 - **Do** foreground the creator's name, photo, and specific background on every agent card. The human is the product.
 - **Do** use serif for headings and agent names at display scale — it carries the earned-authority voice.
 - **Do** keep oxblood to ≤10% of any given screen. When it appears, it signals "this matters."
-- **Do** use tonal paper steps (#f4efe6 → #faf7f1 → #ebe3d4) to establish depth. Paper layers, not shadow.
-- **Do** check that body text (#4d463f on #f4efe6) meets 4.5:1 contrast — it passes; do not lighten it for "softness."
+- **Do** use tonal paper steps (#fbfbf9 → #ffffff → #efeeea) to establish depth. Paper layers, not shadow.
+- **Do** check that body text (#4d4c48 on #fbfbf9) meets 4.5:1 contrast — it passes; do not lighten it for "softness."
 - **Do** keep touch targets at minimum 44px height on all interactive elements (the primary user is on mobile).
 - **Do** give the chat interface editorial restraint: generous message bubbles, generous line-height, unhurried pacing.
 - **Do** apply `text-wrap: balance` to h1–h3 and `text-wrap: pretty` to long body paragraphs.

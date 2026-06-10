@@ -10,7 +10,7 @@ import {
 } from "@/lib/official-contact";
 
 /** 与全局纸面背景 `--paper` 保持一致，避免顶部和内容区色差。 */
-const SUPPORT_PAGE_BG = "#f4efe6";
+const SUPPORT_PAGE_BG = "#fbfbf9";
 
 const SUPPORT_TOPICS = [
   { title: "账号与登录", desc: "注册、验证码、密码、微信/手机号绑定" },
