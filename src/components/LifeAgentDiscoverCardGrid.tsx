@@ -88,7 +88,7 @@ function LifeAgentDiscoverCard({
     profile.ratings && profile.ratings.raters > 0 ? profile.ratings.averageScore.toFixed(1) : null;
 
   return (
-    <article className="group min-h-0 rounded-lg border border-transparent p-1.5 transition-[background-color,border-color,box-shadow] duration-200 [contain-intrinsic-size:auto_340px] hover:border-hairline hover:bg-paper-50 hover:shadow-[0_10px_24px_rgba(17,21,19,0.06)]">
+    <article className="group min-h-0 rounded-lg border border-hairline/60 bg-paper-50 p-1.5 shadow-glow-sm transition-[border-color,box-shadow,transform] duration-200 [contain-intrinsic-size:auto_340px] hover:-translate-y-0.5 hover:border-signal-300 hover:shadow-glow motion-reduce:hover:translate-y-0">
       <div
         className="relative w-full overflow-hidden rounded-md border border-hairline bg-paper-200 transition-colors duration-200 group-hover:border-signal-200"
         style={{ aspectRatio: "4 / 5" }}
@@ -136,7 +136,7 @@ function LifeAgentDiscoverCard({
       >
         <div className="pt-2.5">
           {/* 大标题：创作者姓名 */}
-          <h3 className="line-clamp-1 text-[15px] font-semibold leading-5 text-ink sm:text-base">
+          <h3 className="line-clamp-1 text-base font-semibold leading-5 text-ink sm:text-[17px] sm:leading-6">
             {profile.displayName}
             {verified ? (
               <span className="ml-1 align-middle text-[10px] tracking-widest text-signal-600" aria-label="已认证">
@@ -170,7 +170,9 @@ function LifeAgentDiscoverCard({
               {[areaLabel || null, profile.creator.name ?? anonymous]
                 .filter(Boolean)
                 .join(" · ") || anonymous}
-              {ratingScore ? <span className="text-ink-400"> · {ratingScore}★</span> : null}
+              {ratingScore ? (
+                <span> · <span className="font-medium text-ink-500">{ratingScore}</span><span className="text-signal-500">★</span></span>
+              ) : null}
             </span>
             {showPrice ? (
               <span className="shrink-0 text-[15px] font-semibold tabular-nums text-ink">
@@ -213,7 +215,7 @@ function LifeAgentLeadCard({
     profile.ratings && profile.ratings.raters > 0 ? profile.ratings.averageScore.toFixed(1) : null;
 
   return (
-    <article className="overflow-hidden rounded-lg border border-ink/10 bg-white text-ink transition duration-200 hover:border-ink/20 hover:shadow-[0_16px_36px_rgba(17,21,19,0.08)]">
+    <article className="overflow-hidden rounded-lg border border-ink/10 bg-white text-ink shadow-glow-sm transition duration-200 hover:border-signal-300 hover:shadow-glow">
       <Link
         href={profileHref(profile.id)}
         className="pressable group block focus:outline-none focus-visible:outline focus-visible:outline-1 focus-visible:outline-signal-600"
@@ -253,9 +255,11 @@ function LifeAgentLeadCard({
               <span className="truncate">
                 {[areaLabel || null, profile.creator.name ?? anonymous].filter(Boolean).join(" · ") || anonymous}
               </span>
-              {ratingScore ? <span className="shrink-0 text-ink-500">{ratingScore}★</span> : null}
+              {ratingScore ? (
+                <span className="shrink-0 text-ink-500">{ratingScore}<span className="text-signal-500">★</span></span>
+              ) : null}
             </div>
-            <h3 className="text-xl font-semibold leading-7 text-ink sm:text-2xl [text-wrap:balance]">
+            <h3 className="font-serif text-2xl font-medium leading-8 text-ink sm:text-[28px] sm:leading-9 [text-wrap:balance]">
               {profile.displayName}
               {verified ? (
                 <span className="ml-1.5 align-middle text-[11px] tracking-widest text-signal-600" aria-label="已认证">
@@ -279,7 +283,7 @@ function LifeAgentLeadCard({
               </ul>
             ) : null}
             <div className="mt-auto flex items-center justify-between gap-3 border-t border-hairline/80 pt-3 text-xs text-ink-400">
-              <span className="inline-flex h-9 items-center gap-1.5 rounded-md bg-ink px-3 text-xs font-semibold text-paper transition duration-200 group-hover:bg-oxblood-500">
+              <span className="inline-flex h-9 items-center gap-1.5 rounded-md bg-ink px-3 text-xs font-semibold text-paper-50 transition duration-200 group-hover:bg-signal-600">
                 查看经历
                 <ChevronRight className="h-3.5 w-3.5" aria-hidden />
               </span>

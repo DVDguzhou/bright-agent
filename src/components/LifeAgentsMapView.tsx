@@ -341,7 +341,7 @@ export default function LifeAgentsMapView({
         maxZoom={18}
         zoomControl={false}
         className={`z-0 w-full ${mapHeightClass} ${roundMap}`}
-        style={{ background: "#f7f8f6" }}
+        style={{ background: "#f2f1ed" }}
         scrollWheelZoom
         attributionControl={false}
       >

@@ -12,7 +12,7 @@ export const viewport: Viewport = {
   maximumScale: 1,
   viewportFit: "cover",
   interactiveWidget: "resizes-content",
-  themeColor: "#f7f8f6",
+  themeColor: "#f2f1ed",
 };
 
 export const metadata: Metadata = {
@@ -35,8 +35,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-CN" className="h-full bg-[#f7f8f6]">
-      <body className="min-h-full min-h-[100dvh] overflow-x-hidden bg-[#f7f8f6] font-sans text-ink antialiased">
+    <html lang="zh-CN" className="h-full bg-[#f2f1ed]">
+      <body className="min-h-full min-h-[100dvh] overflow-x-hidden bg-[#f2f1ed] font-sans text-ink antialiased">
         <PostHogProvider>
           <AuthProvider>
             <ChunkLoadRecovery />

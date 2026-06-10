@@ -8,21 +8,21 @@
   --font-serif: "Source Han Serif SC", "Noto Serif SC", "Songti SC", "STSong", "SimSun", Georgia, "Times New Roman", serif;
   --font-mono: ui-monospace, "Cascadia Code", "Consolas", monospace;
 
-  /* 现代内容产品 token：矿物白、碳黑、少量青绿色 */
-  --paper: #f7f8f6;
+  /* 灯下纸面 token：暖纸灰底、暖碳墨、灯金强调（错误仍用朱红） */
+  --paper: #f2f1ed;
   --paper-2: #ffffff;
-  --surface: rgba(255, 255, 255, 0.86);
+  --surface: rgba(255, 255, 255, 0.88);
   --surface-solid: #ffffff;
-  --surface-soft: #eef1ed;
-  --ink: #111513;
-  --ink-2: #3f4642;
-  --ink-3: #7b837d;
-  --hairline: rgba(17, 21, 19, 0.12);
-  --hairline-strong: rgba(17, 21, 19, 0.22);
+  --surface-soft: #ebe9e2;
+  --ink: #1c1a16;
+  --ink-2: #474337;
+  --ink-3: #847d6f;
+  --hairline: rgba(28, 26, 22, 0.12);
+  --hairline-strong: rgba(28, 26, 22, 0.24);
   --oxblood: #c2271d;
-  --signal: #0f766e;
-  --shadow-soft: 0 12px 36px rgba(17, 21, 19, 0.08);
-  --shadow-float: 0 18px 52px rgba(17, 21, 19, 0.14);
+  --signal: #c08f27;
+  --shadow-soft: 0 12px 36px rgba(28, 26, 22, 0.1);
+  --shadow-float: 0 18px 52px rgba(28, 26, 22, 0.16);
   --radius-card: 8px;
   --radius-control: 8px;
 }
@@ -33,7 +33,7 @@
 
 html {
   scroll-behavior: smooth;
-  background-color: #f7f8f6;
+  background-color: #f2f1ed;
   min-height: 100%;
   min-height: 100dvh;
   min-height: -webkit-fill-available;
@@ -48,13 +48,13 @@ html::before {
   right: 0;
   top: -100vh;
   bottom: -100vh;
-  background-color: #f7f8f6;
+  background-color: #f2f1ed;
   pointer-events: none;
 }
 
 body {
   font-family: var(--font-sans);
-  background-color: #f7f8f6;
+  background-color: #f2f1ed;
   color: var(--ink);
   min-height: 100%;
   min-height: 100dvh;
@@ -76,7 +76,7 @@ button {
 }
 
 :focus-visible {
-  outline: 2px solid rgba(17, 21, 19, 0.72);
+  outline: 2px solid rgba(28, 26, 22, 0.72);
   outline-offset: 3px;
 }
 
@@ -102,16 +102,16 @@ button {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(24, 24, 22, 0.18);
+  background: rgba(28, 26, 22, 0.18);
   border-radius: 0;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(24, 24, 22, 0.32);
+  background: rgba(28, 26, 22, 0.32);
 }
 
-/* 文本选区：功能强调色 */
+/* 文本选区：灯金 */
 ::selection {
-  background: rgba(15, 118, 110, 0.18);
+  background: rgba(192, 143, 39, 0.28);
   color: inherit;
 }
 
@@ -157,7 +157,7 @@ button {
     box-shadow: var(--shadow-soft);
   }
 
-  /* 主按钮：实心碳黑底 + 白字，hover 使用功能强调色 */
+  /* 主按钮：实心墨色底 + 白字，hover 用灯金深色回应 */
   .btn-primary {
     @apply relative inline-flex min-h-[44px] items-center justify-center gap-2 px-5 py-2.5 text-sm font-semibold;
     background: var(--ink);
@@ -165,15 +165,16 @@ button {
     border: 1px solid var(--ink);
     border-radius: var(--radius-control);
     transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, transform 120ms ease;
-    box-shadow: 0 10px 24px rgba(17, 21, 19, 0.14);
+    box-shadow: 0 10px 24px rgba(28, 26, 22, 0.16);
   }
   .btn-primary:hover {
-    background: #000;
-    border-color: #000;
+    background: #7a5712;
+    border-color: #7a5712;
     transform: none;
   }
   .btn-primary:active {
-    background: #000;
+    background: #614410;
+    border-color: #614410;
     transform: scale(0.985);
   }
 
@@ -190,7 +191,7 @@ button {
     transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, transform 120ms ease;
   }
   .btn-secondary:hover {
-    background: rgba(255, 255, 255, 0.95);
+    background: #fdf9ee;
     color: var(--ink);
     border-color: var(--hairline-strong);
   }
@@ -212,12 +213,12 @@ button {
     box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7);
   }
   .input-shell::placeholder {
-    color: var(--ink-3);
+    color: #655f52;
   }
   .input-shell:focus {
     background: var(--surface-solid);
     border-color: var(--ink);
-    box-shadow: 0 0 0 3px rgba(17, 21, 19, 0.08);
+    box-shadow: 0 0 0 3px rgba(192, 143, 39, 0.2);
   }
 
   /* 旧的 "渐变文字" → 改为 serif italic 强调 */
@@ -317,7 +318,7 @@ button {
     color: var(--ink-2);
   }
   .text-ink-400 {
-    color: #5c655f;
+    color: #655f52;
   }
   .rounded-2xl {
     border-radius: 10px;

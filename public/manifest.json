@@ -4,8 +4,8 @@
   "description": "专注本地的经验 Agent 市场：真实经历做成可对话 Agent，按次付费咨询",
   "start_url": "/life-agents",
   "display": "standalone",
-  "background_color": "#fbfbf9",
-  "theme_color": "#fbfbf9",
+  "background_color": "#f2f1ed",
+  "theme_color": "#f2f1ed",
   "orientation": "portrait-primary",
   "icons": [
     {

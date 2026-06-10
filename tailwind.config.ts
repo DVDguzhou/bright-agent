@@ -14,37 +14,39 @@ const config: Config = {
         mono: ["var(--font-mono)", "monospace"],
       },
       colors: {
-        // === 现代内容产品色板 ===
+        // === 灯下纸面色板：暖纸灰底 + 暖碳墨 + 灯金强调 ===
         paper: {
-          DEFAULT: "#f6f7f5", // 主页面：现代矿物白
+          DEFAULT: "#f2f1ed", // 页面底：暖纸灰（比卡片深半档，让白卡片浮起来）
           50: "#ffffff",
-          100: "#f7f8f6",
-          200: "#eef1ed",
-          300: "#d9ded8",
+          100: "#f2f1ed",
+          200: "#ebe9e2",
+          300: "#dcd9cf",
         },
         ink: {
-          DEFAULT: "#111513", // 主文字：现代中性碳黑
-          50: "#f2f4f2",
-          100: "#e2e6e2",
-          200: "#b5beb7",
-          300: "#7b837d",
-          400: "#5c655f",
-          500: "#3f4642",
-          600: "#303632",
-          700: "#232825",
-          800: "#111513",
-          900: "#080a09",
+          DEFAULT: "#1c1a16", // 主文字：暖碳墨
+          50: "#f4f2eb",
+          100: "#e6e2d8",
+          200: "#b9b3a5",
+          300: "#847d6f",
+          400: "#655f52",
+          500: "#474337",
+          600: "#37332a",
+          700: "#282520",
+          800: "#1c1a16",
+          900: "#0d0b08",
         },
-        hairline: "#d8ded9", // 发丝线分隔
+        hairline: "#ddd8cc", // 发丝线分隔
         signal: {
-          DEFAULT: "#0f766e",
-          50: "#edfafa",
-          100: "#d6f3ef",
-          200: "#a9e4dc",
-          400: "#2aa79b",
-          500: "#0f766e",
-          600: "#0b5f59",
-          700: "#084a46",
+          // 灯金：评分、收藏点亮、选中、hover 回应、通知——「值得注意的好事」
+          DEFAULT: "#c08f27",
+          50: "#fdf9ee",
+          100: "#f8efd2",
+          200: "#efdda4",
+          300: "#e4c46a",
+          400: "#d4a73c",
+          500: "#c08f27",
+          600: "#9d7218",
+          700: "#7a5712",
         },
         oxblood: {
           DEFAULT: "#c2271d", // 错误和高危状态保留红色，常规强调使用 signal
@@ -94,13 +96,13 @@ const config: Config = {
       },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
-        "gradient-mesh": "linear-gradient(to right, rgb(15 118 110 / 0.035), transparent 50%), linear-gradient(to bottom, rgb(17 21 19 / 0.03), transparent 50%)",
+        "gradient-mesh": "linear-gradient(to right, rgb(192 143 39 / 0.05), transparent 50%), linear-gradient(to bottom, rgb(28 26 22 / 0.03), transparent 50%)",
       },
       boxShadow: {
-        "glow-sm": "0 10px 28px -18px rgb(17 21 19 / 0.22)",
-        "glow": "0 18px 52px -28px rgb(17 21 19 / 0.28)",
-        "glow-lg": "0 24px 72px -32px rgb(17 21 19 / 0.34)",
-        "inner-glow": "inset 0 0 60px -20px rgb(194 39 29 / 0.06)",
+        "glow-sm": "0 1px 2px rgb(28 26 22 / 0.05), 0 10px 24px -16px rgb(28 26 22 / 0.20)",
+        "glow": "0 1px 2px rgb(28 26 22 / 0.06), 0 18px 44px -24px rgb(28 26 22 / 0.26)",
+        "glow-lg": "0 24px 72px -32px rgb(28 26 22 / 0.34)",
+        "inner-glow": "inset 0 0 60px -20px rgb(192 143 39 / 0.08)",
       },
       transitionDuration: {
         "400": "400ms",

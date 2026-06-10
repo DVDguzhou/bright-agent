@@ -21,9 +21,9 @@ export function RatingStars({ score, size = "md", className = "" }: RatingStarsP
       className={`relative inline-block leading-none ${sizeClassMap[size]} ${className}`.trim()}
       aria-label={`评分 ${safeScore.toFixed(1)} / 5`}
     >
-      <span className="text-ink-200">★★★★★</span>
+      <span className="text-paper-300">★★★★★</span>
       <span
-        className="absolute inset-y-0 left-0 overflow-hidden whitespace-nowrap text-ink-700"
+        className="absolute inset-y-0 left-0 overflow-hidden whitespace-nowrap text-signal-500"
         style={{ width: percentage }}
         aria-hidden="true"
       >

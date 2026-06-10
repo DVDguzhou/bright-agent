@@ -371,7 +371,7 @@ function FloatingVoiceCoachFab({ agent }: { agent: BoundLifeAgent }) {
         onTouchCancel={() => {
           handleCancel();
         }}
-        className={`fixed bottom-[calc(env(safe-area-inset-bottom)+2.25rem)] left-1/2 z-[60] flex h-12 w-12 -translate-x-1/2 select-none items-center justify-center rounded-lg shadow-[0_16px_36px_rgba(17,21,19,0.22)] ring-4 ring-[#f7f8f6] transition-transform lg:hidden ${
+        className={`fixed bottom-[calc(env(safe-area-inset-bottom)+2.25rem)] left-1/2 z-[60] flex h-12 w-12 -translate-x-1/2 select-none items-center justify-center rounded-lg shadow-[0_16px_36px_rgba(17,21,19,0.22)] ring-4 ring-paper transition-transform lg:hidden ${
           isActive
             ? "scale-105 bg-oxblood-500 text-paper"
             : "bg-ink text-paper active:scale-95"
@@ -781,7 +781,7 @@ export function Nav() {
               <div className="relative flex min-w-0 flex-1 items-center justify-center gap-2 sm:gap-4">
                 {touchFeedPager && feedTabUnderlineX !== null ? (
                   <span
-                    className="pointer-events-none absolute bottom-0 h-[1px] w-6 bg-ink transition-[left] duration-75 ease-out sm:w-7"
+                    className="pointer-events-none absolute bottom-0 h-[2px] w-6 rounded-full bg-signal-500 transition-[left] duration-75 ease-out sm:w-7"
                     style={{ left: feedTabUnderlineX, transform: "translateX(-50%)" }}
                     aria-hidden
                   />
@@ -792,13 +792,13 @@ export function Nav() {
                 >
                   动态
                   {isPostsPage ? (
-                    <span className="absolute bottom-0 left-1 right-1 h-[1px] bg-ink" aria-hidden />
+                    <span className="absolute bottom-0 left-1 right-1 h-[2px] rounded-full bg-signal-500" aria-hidden />
                   ) : null}
                 </Link>
                 <Link ref={feedTabDiscRef} href="/life-agents" className={`relative ${feedTabClass(isFeedDiscover)}`} scroll={false}>
                   发现
                   {!touchFeedPager && isFeedDiscover ? (
-                    <span className="absolute bottom-0 left-1 right-1 h-[1px] bg-ink" aria-hidden />
+                    <span className="absolute bottom-0 left-1 right-1 h-[2px] rounded-full bg-signal-500" aria-hidden />
                   ) : null}
                 </Link>
                 {showFeedPurchasedTab ? (
@@ -810,7 +810,7 @@ export function Nav() {
                 >
                   已购买
                   {!touchFeedPager && isFeedPurchased ? (
-                    <span className="absolute bottom-0 left-1 right-1 h-[1px] bg-ink" aria-hidden />
+                    <span className="absolute bottom-0 left-1 right-1 h-[2px] rounded-full bg-signal-500" aria-hidden />
                   ) : null}
                 </Link>
                 ) : null}
@@ -854,7 +854,7 @@ export function Nav() {
                   <span className="relative inline-flex">
                     <Bell className="h-5 w-5" aria-hidden />
                     {notificationCount > 0 ? (
-                      <span className="absolute -right-1.5 -top-1.5 inline-flex min-w-[16px] items-center justify-center bg-oxblood-500 px-1 font-serif text-[10px] font-medium leading-[16px] text-paper">
+                      <span className="absolute -right-1.5 -top-1.5 inline-flex min-w-[16px] items-center justify-center rounded-full bg-signal-500 px-1 text-[10px] font-semibold leading-[16px] text-ink-900">
                         {notificationCount > 99 ? "99+" : notificationCount}
                       </span>
                     ) : null}
@@ -1065,13 +1065,13 @@ export function Nav() {
           ) : shouldShowCreateFab ? (
             <Link
               href="/life-agents/create"
-              className="fixed bottom-[calc(env(safe-area-inset-bottom)+2.25rem)] left-1/2 z-[60] flex h-12 w-12 -translate-x-1/2 items-center justify-center rounded-lg bg-ink text-paper shadow-[0_16px_36px_rgba(17,21,19,0.22)] ring-4 ring-[#f7f8f6] transition-transform active:scale-95 lg:hidden"
+              className="fixed bottom-[calc(env(safe-area-inset-bottom)+2.25rem)] left-1/2 z-[60] flex h-12 w-12 -translate-x-1/2 items-center justify-center rounded-lg bg-ink text-paper shadow-[0_16px_36px_rgba(28,26,22,0.22)] ring-4 ring-paper transition-transform active:scale-95 lg:hidden"
               aria-label="创建人生 Agent"
             >
               <Plus className="h-6 w-6" aria-hidden />
             </Link>
           ) : shouldShowLoadingFab ? (
-            <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+2.25rem)] left-1/2 z-[60] flex h-12 w-12 -translate-x-1/2 items-center justify-center rounded-lg bg-white text-ink shadow-[0_16px_36px_rgba(17,21,19,0.14)] ring-4 ring-[#f7f8f6] lg:hidden">
+            <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+2.25rem)] left-1/2 z-[60] flex h-12 w-12 -translate-x-1/2 items-center justify-center rounded-lg bg-white text-ink shadow-[0_16px_36px_rgba(28,26,22,0.14)] ring-4 ring-paper lg:hidden">
               <span className="h-5 w-5 animate-spin rounded-full border-2 border-current/25 border-t-current" />
             </div>
           ) : null}
