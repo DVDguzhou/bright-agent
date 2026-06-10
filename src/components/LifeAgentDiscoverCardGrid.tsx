@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
+import { ChevronRight } from "lucide-react";
 import { LifeAgentCoverImage } from "@/components/LifeAgentCoverImage";
 import { resolveLifeAgentCoverDisplayUrl } from "@/lib/life-agent-covers";
 import type { LifeAgentListItem } from "@/lib/life-agent-feed-search";
@@ -212,20 +213,20 @@ function LifeAgentLeadCard({
     profile.ratings && profile.ratings.raters > 0 ? profile.ratings.averageScore.toFixed(1) : null;
 
   return (
-    <article className="rounded-xl border border-ink bg-ink p-2.5 text-paper shadow-[0_22px_56px_rgba(17,21,19,0.22)] sm:p-3">
+    <article className="overflow-hidden rounded-lg border border-ink/10 bg-white text-ink transition duration-200 hover:border-ink/20 hover:shadow-[0_16px_36px_rgba(17,21,19,0.08)]">
       <Link
         href={profileHref(profile.id)}
         className="pressable group block focus:outline-none focus-visible:outline focus-visible:outline-1 focus-visible:outline-signal-600"
       >
-        <div className="grid gap-3 sm:grid-cols-[minmax(0,0.92fr)_minmax(0,1fr)] sm:gap-4">
-          <div className="relative w-full overflow-hidden rounded-lg border border-white/10 bg-ink-700" style={{ aspectRatio: "4 / 3" }}>
+        <div className="grid gap-0 sm:grid-cols-[minmax(0,0.92fr)_minmax(0,1fr)]">
+          <div className="relative w-full overflow-hidden border-b border-hairline bg-paper-200 sm:border-b-0 sm:border-r" style={{ aspectRatio: "4 / 3" }}>
             {showPulse && (
               <div className="pointer-events-none absolute right-2.5 top-2.5 z-20 flex items-center gap-1.5">
                 <span className="relative flex h-2.5 w-2.5">
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-signal-500 opacity-75" />
                   <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-signal-600" />
                 </span>
-                <span className="rounded-md bg-ink/80 px-2 py-0.5 text-[10px] font-medium text-paper backdrop-blur-sm">
+                <span className="rounded-md border border-white/70 bg-white/75 px-2 py-0.5 text-[10px] font-medium text-ink shadow-[0_6px_16px_rgba(17,21,19,0.10)] supports-[backdrop-filter]:backdrop-blur-md">
                   点击开始
                 </span>
               </div>
@@ -234,11 +235,11 @@ function LifeAgentLeadCard({
               src={coverUrl}
               alt=""
               fill
-              className="object-cover transition duration-200 group-hover:scale-[1.015] group-hover:opacity-95"
+              className="object-cover transition duration-300 ease-out group-hover:scale-[1.015]"
               sizes="(max-width: 640px) 92vw, 40vw"
               priority
             />
-            <span className="absolute left-2 top-2 rounded-md border border-white/10 bg-ink/75 px-2 py-1 text-[11px] font-medium leading-none text-white shadow-[0_8px_18px_rgba(17,21,19,0.28)] supports-[backdrop-filter]:backdrop-blur-md">
+            <span className="absolute left-2 top-2 rounded-md border border-white/70 bg-white/75 px-2 py-1 text-[11px] font-semibold leading-none text-ink shadow-[0_8px_18px_rgba(17,21,19,0.12)] supports-[backdrop-filter]:backdrop-blur-md">
               精选推荐
             </span>
             {typeof profile.mindScore === "number" ? (
@@ -247,22 +248,22 @@ function LifeAgentLeadCard({
               </div>
             ) : null}
           </div>
-          <div className="flex min-w-0 flex-col">
-            <div className="mb-1 flex min-w-0 items-center gap-2 text-xs text-paper/60">
+          <div className="flex min-w-0 flex-col p-3.5 sm:p-4">
+            <div className="mb-1 flex min-w-0 items-center gap-2 text-xs text-ink-400">
               <span className="truncate">
                 {[areaLabel || null, profile.creator.name ?? anonymous].filter(Boolean).join(" · ") || anonymous}
               </span>
-              {ratingScore ? <span className="shrink-0 text-paper/70">{ratingScore}★</span> : null}
+              {ratingScore ? <span className="shrink-0 text-ink-500">{ratingScore}★</span> : null}
             </div>
-            <h3 className="text-xl font-semibold leading-7 text-paper sm:text-2xl [text-wrap:balance]">
+            <h3 className="text-xl font-semibold leading-7 text-ink sm:text-2xl [text-wrap:balance]">
               {profile.displayName}
               {verified ? (
-                <span className="ml-1.5 align-middle text-[11px] tracking-widest text-signal-200" aria-label="已认证">
+                <span className="ml-1.5 align-middle text-[11px] tracking-widest text-signal-600" aria-label="已认证">
                   ✓
                 </span>
               ) : null}
             </h3>
-            <p className="mt-1 line-clamp-2 text-sm leading-6 text-paper/70">
+            <p className="mt-1 line-clamp-2 text-sm leading-6 text-ink-500">
               {headlineShown}
             </p>
             {sampleQuestionsShown.length > 0 ? (
@@ -270,24 +271,22 @@ function LifeAgentLeadCard({
                 {sampleQuestionsShown.map((q, i) => (
                   <li
                     key={i}
-                    className="line-clamp-1 rounded-md border border-white/10 bg-white/10 px-2.5 py-1.5 text-xs leading-5 text-paper/80 supports-[backdrop-filter]:backdrop-blur-md"
+                    className="line-clamp-1 rounded-md border border-hairline/80 bg-paper/70 px-2.5 py-1.5 text-xs leading-5 text-ink-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.65)] supports-[backdrop-filter]:bg-white/60 supports-[backdrop-filter]:backdrop-blur-md"
                   >
                     {q}
                   </li>
                 ))}
               </ul>
             ) : null}
-            <div className="mt-auto flex items-center justify-between gap-3 pt-4 text-xs text-paper/60">
-              <span className="inline-flex items-center gap-1 font-semibold text-paper">
+            <div className="mt-auto flex items-center justify-between gap-3 border-t border-hairline/80 pt-3 text-xs text-ink-400">
+              <span className="inline-flex h-9 items-center gap-1.5 rounded-md bg-ink px-3 text-xs font-semibold text-paper transition duration-200 group-hover:bg-oxblood-500">
                 查看经历
-                <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={1.7} viewBox="0 0 24 24" aria-hidden>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 6l6 6-6 6" />
-                </svg>
+                <ChevronRight className="h-3.5 w-3.5" aria-hidden />
               </span>
               {showPrice ? (
-                <span className="shrink-0 text-lg font-semibold tabular-nums text-paper">
+                <span className="shrink-0 text-lg font-semibold tabular-nums text-ink">
                   ¥{(profile.pricePerQuestion / 100).toFixed(0)}
-                  <span className="ml-0.5 text-[10px] font-normal text-paper/50">/问</span>
+                  <span className="ml-0.5 text-[10px] font-normal text-ink-400">/问</span>
                 </span>
               ) : null}
             </div>

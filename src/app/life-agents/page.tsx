@@ -4,6 +4,7 @@ import { Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, use
 import { useWindowedSlice } from "@/lib/use-windowed-slice";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { ChevronRight } from "lucide-react";
 import { VerificationBadge } from "@/components/VerificationBadge";
 import { LifeAgentCoverImage } from "@/components/LifeAgentCoverImage";
 import {
@@ -780,18 +781,21 @@ function LifeAgentsPageContent() {
   const featuredCollectionBanner = (
     <Link
       href="/c/jingpin"
-      className="pressable group mb-4 flex items-center justify-between gap-3 rounded-lg border border-ink bg-ink px-3.5 py-3 text-paper shadow-[0_16px_36px_rgba(17,21,19,0.18)] supports-[backdrop-filter]:bg-ink/90 supports-[backdrop-filter]:backdrop-blur-xl"
+      className="pressable group mb-4 flex items-center justify-between gap-3 rounded-lg border border-ink/10 bg-white/75 px-3.5 py-3 text-ink shadow-[0_1px_0_rgba(17,21,19,0.04)] ring-1 ring-white/70 transition duration-200 hover:border-ink/25 hover:bg-white/90 supports-[backdrop-filter]:backdrop-blur-xl"
     >
-      <div className="min-w-0">
-        <p className="text-sm font-semibold leading-5 text-paper">精选咨询</p>
-        <p className="mt-0.5 line-clamp-1 text-xs leading-5 text-paper/60">
-          上岸、留学、实习、创业
-        </p>
+      <div className="flex min-w-0 items-center gap-3">
+        <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-ink text-xs font-semibold text-paper">
+          咨
+        </span>
+        <div className="min-w-0">
+          <p className="text-sm font-semibold leading-5 text-ink">精选咨询</p>
+          <p className="mt-0.5 line-clamp-1 text-xs leading-5 text-ink-400">
+            上岸、留学、实习、创业
+          </p>
+        </div>
       </div>
-      <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-white/10 bg-white/10 text-paper/80 transition-colors group-hover:bg-white/20 group-hover:text-paper supports-[backdrop-filter]:backdrop-blur-md">
-        <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.7} viewBox="0 0 24 24" aria-hidden>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M9 6l6 6-6 6" />
-        </svg>
+      <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-ink/10 bg-white/60 text-ink transition duration-200 group-hover:bg-ink group-hover:text-paper supports-[backdrop-filter]:backdrop-blur-md">
+        <ChevronRight className="h-4 w-4" aria-hidden />
       </span>
     </Link>
   );
