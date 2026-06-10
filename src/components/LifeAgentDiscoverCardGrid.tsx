@@ -81,14 +81,14 @@ function LifeAgentDiscoverCard({
   const sampleQuestionsShown = (profile.sampleQuestions ?? [])
     .map((q) => cleanLifeAgentIntroText(q, profile.displayName))
     .filter(Boolean)
-    .slice(0, 1);
+    .slice(0, 2);
   const verified = profile.verificationStatus === "verified";
   const showPrice = lifeAgentShowsPurchaseUi();
   const ratingScore =
     profile.ratings && profile.ratings.raters > 0 ? profile.ratings.averageScore.toFixed(1) : null;
 
   return (
-    <article className="group min-h-0 rounded-lg border border-hairline/60 bg-paper-50 p-1.5 shadow-glow-sm transition-[border-color,box-shadow,transform] duration-200 [contain-intrinsic-size:auto_340px] hover:-translate-y-0.5 hover:border-signal-300 hover:shadow-glow motion-reduce:hover:translate-y-0">
+    <article className="group mb-4 break-inside-avoid rounded-lg border border-hairline/60 bg-paper-50 p-1.5 shadow-glow-sm transition-[border-color,box-shadow,transform] duration-200 [contain-intrinsic-size:auto_340px] last:mb-0 hover:-translate-y-0.5 hover:border-signal-300 hover:shadow-glow motion-reduce:hover:translate-y-0 sm:mb-5">
       <div
         className="relative w-full overflow-hidden rounded-md border border-hairline bg-paper-200 transition-colors duration-200 group-hover:border-signal-200"
         style={{ aspectRatio: "4 / 5" }}
@@ -152,11 +152,11 @@ function LifeAgentDiscoverCard({
 
           {/* 示例问题：帮助用户快速了解可问什么 */}
           {sampleQuestionsShown.length > 0 ? (
-            <ul className="mt-2" aria-label="你可以问">
+            <ul className="mt-2 space-y-1.5" aria-label="你可以问">
               {sampleQuestionsShown.map((q, i) => (
                 <li
                   key={i}
-                  className="line-clamp-1 rounded-md bg-paper-100 px-2 py-1.5 text-[11px] leading-4 text-ink-500"
+                  className="rounded-md bg-paper-100 px-2 py-1.5 text-[11px] leading-4 text-ink-500"
                 >
                   {q}
                 </li>
@@ -458,7 +458,7 @@ export function LifeAgentDiscoverCardGrid({
         {leadProfile ? (
           <LifeAgentLeadCard profile={leadProfile} profileHref={profileHref} showPulse={showFirstCardPulse} />
         ) : null}
-        <div className="grid grid-cols-2 gap-x-3 gap-y-7 sm:grid-cols-3 sm:gap-x-5 sm:gap-y-9 lg:grid-cols-4 xl:grid-cols-5">
+        <div className="columns-2 gap-x-3 sm:columns-3 sm:gap-x-5 lg:columns-4 xl:columns-5">
           {toRender.map((profile, index) => (
             <LifeAgentDiscoverCard
               key={profile.id}
