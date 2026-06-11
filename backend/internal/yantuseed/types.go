@@ -30,4 +30,5 @@ type Profile struct {
 	Source            string   // 内容来源，如"浙江大学飞跃手册"
 	City              string   // 非空时直接写入 city 字段；为空则从 School 自动推导
 	Province          string   // 非空时直接写入 province 字段
+	CoverImageURL     string   // 非空时直接写入 cover_image_url
 }

@@ -264,7 +264,9 @@ func UpsertProfile(userID, coverPreset string, p Profile) error {
 	var profile models.LifeAgentProfile
 	errFound := db.DB.Where("user_id = ? AND display_name = ?", userID, p.DisplayName).First(&profile).Error
 	coverURL := ""
-	if strings.TrimSpace(coverPreset) == "" {
+	if strings.TrimSpace(p.CoverImageURL) != "" {
+		coverURL = strings.TrimSpace(p.CoverImageURL)
+	} else if strings.TrimSpace(coverPreset) == "" {
 		coverURL = YantuSeedCoverURL(p.DisplayName)
 	}
 	if errFound == nil {
@@ -303,7 +305,10 @@ func UpsertProfile(userID, coverPreset string, p Profile) error {
 		if county != "" {
 			updates["county"] = county
 		}
-		if strings.TrimSpace(coverPreset) != "" {
+		if strings.TrimSpace(p.CoverImageURL) != "" {
+			updates["cover_preset_key"] = nil
+			updates["cover_image_url"] = coverURL
+		} else if strings.TrimSpace(coverPreset) != "" {
 			updates["cover_preset_key"] = strOrNil(coverPreset)
 			updates["cover_image_url"] = nil
 		} else {
@@ -317,7 +322,9 @@ func UpsertProfile(userID, coverPreset string, p Profile) error {
 	} else {
 		var coverImg *string
 		var presetKey *string
-		if strings.TrimSpace(coverPreset) != "" {
+		if strings.TrimSpace(p.CoverImageURL) != "" {
+			coverImg = strPtr(coverURL)
+		} else if strings.TrimSpace(coverPreset) != "" {
 			presetKey = strOrNil(coverPreset)
 		} else {
 			coverImg = strPtr(coverURL)
