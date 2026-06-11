@@ -12,6 +12,10 @@ const {
 
 const CANVAS_EXPORT_DELAY_MS = 16;
 const PROGRESS_EVERY = 4;
+const FALLBACK_PIN_ICON = "/images/map/agent-pin.png";
+const FALLBACK_ACTIVE_PIN_ICON = "/images/map/agent-pin-active.png";
+const FALLBACK_CLUSTER_ICON = "/images/map/cluster-pin.png";
+const USE_STATIC_PIN_ICONS = true;
 
 const iconCache = {};
 const imageInfoCache = {};
@@ -75,6 +79,7 @@ function loadImageInfo(url) {
 }
 
 function warmPinCoverCache(pins, limit) {
+  if (USE_STATIC_PIN_ICONS) return;
   if (!pins || pins.length === 0) return;
   const seen = {};
   const max = limit || 120;
@@ -129,8 +134,9 @@ function drawClusterIcon(page, count) {
       ctx.draw(false, function () {
         setTimeout(function () {
           canvasToFile(page, w, h).then(function (path) {
-            if (path) iconCache[cacheKey] = path;
-            resolve(path);
+            const finalPath = path || FALLBACK_CLUSTER_ICON;
+            if (finalPath) iconCache[cacheKey] = finalPath;
+            resolve(finalPath);
           });
         }, CANVAS_EXPORT_DELAY_MS);
       });
@@ -164,6 +170,12 @@ function drawAvatarFallback(ctx, agent, dia, ring, color) {
 }
 
 function drawAvatarPinIcon(page, agent, highlight, preloadedInfo) {
+  // Native map markers on real devices can fail to consume temp canvas files.
+  // Use bundled PNGs for agent pins so the map never falls back to a broken marker icon.
+  if (USE_STATIC_PIN_ICONS) {
+    return Promise.resolve(highlight ? FALLBACK_ACTIVE_PIN_ICON : FALLBACK_PIN_ICON);
+  }
+
   const color = (agent && agent.catColor) || OXBLOOD;
   const coverUrl = resolveMapPinCoverUrl(agent);
   const cacheKey =
@@ -419,7 +431,7 @@ function makeMarker(id, lat, lng, iconPath, highlighted, zIndex) {
     anchor: { x: 0.5, y: 1 },
     zIndex: zIndex != null ? zIndex : highlighted ? 9999 : 1,
   };
-  if (iconPath) marker.iconPath = iconPath;
+  marker.iconPath = iconPath || (highlighted ? FALLBACK_ACTIVE_PIN_ICON : FALLBACK_PIN_ICON);
   return marker;
 }
 
@@ -543,10 +555,12 @@ function buildMapMarkers(page, agents, highlightId, scale, maxGroups, options) {
     return j.kind === "avatar";
   });
   const preloadUrls = {};
-  avatarJobs.forEach(function (job) {
-    const url = resolveMapPinCoverUrl(job.agent);
-    if (url) preloadUrls[url] = true;
-  });
+  if (!USE_STATIC_PIN_ICONS) {
+    avatarJobs.forEach(function (job) {
+      const url = resolveMapPinCoverUrl(job.agent);
+      if (url) preloadUrls[url] = true;
+    });
+  }
 
   return Promise.all(
     Object.keys(preloadUrls).map(function (url) {
@@ -574,7 +588,7 @@ function buildMapMarkers(page, agents, highlightId, scale, maxGroups, options) {
                 height: 46,
                 anchor: { x: 0.5, y: 1 },
                 zIndex: job.count,
-                iconPath: iconPath || "",
+                iconPath: iconPath || FALLBACK_CLUSTER_ICON,
               };
             });
           }

@@ -141,6 +141,38 @@
   color: #1a1714;
 }
 
+.claim-row {
+  margin-top: 12rpx;
+  display: flex;
+  align-items: center;
+}
+
+.claim-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36rpx;
+  padding: 4rpx 14rpx;
+  border: 1rpx solid #d8cfbf;
+  border-radius: 6rpx;
+  background: rgba(255, 255, 255, 0.64);
+  color: #4d463f;
+  font-size: 22rpx;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.claim-badge.unclaimed {
+  background: rgba(228, 196, 106, 0.16);
+  border-color: rgba(192, 143, 39, 0.42);
+  color: #7a5712;
+}
+
+.claim-badge.claimed {
+  background: rgba(74, 90, 47, 0.08);
+  border-color: rgba(74, 90, 47, 0.26);
+  color: #4a5a2f;
+}
+
 .headline {
   display: block;
   margin-top: 16rpx;

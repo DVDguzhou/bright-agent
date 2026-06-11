@@ -30,6 +30,11 @@ export type LifeAgentListItem = {
   city?: string;
   county?: string;
   verificationStatus?: string;
+  claim?: {
+    status: "claimed" | "unclaimed";
+    label: string;
+    isClaimed: boolean;
+  };
   knowledgeCount: number;
   soldQuestionPacks: number;
   sessionCount: number;

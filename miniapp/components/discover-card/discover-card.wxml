@@ -2,6 +2,7 @@
   <view class="cover-wrap">
     <image wx:if="{{coverFull}}" class="cover" src="{{coverFull}}" mode="aspectFill" lazy-load binderror="onCoverError" />
     <view wx:else class="cover cover-placeholder" />
+    <view class="claim-badge {{isClaimed ? 'claimed' : 'unclaimed'}}">{{claimLabel}}</view>
     <view wx:if="{{showPulse}}" class="pulse-badge">
       <view class="pulse-dot" />
       <text class="pulse-text">点击开始</text>

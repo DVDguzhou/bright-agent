@@ -22,6 +22,31 @@
   background: #ebe3d4;
 }
 
+.claim-badge {
+  position: absolute;
+  left: 12rpx;
+  top: 12rpx;
+  z-index: 2;
+  padding: 5rpx 12rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.72);
+  border-radius: 6rpx;
+  background: rgba(255, 255, 255, 0.86);
+  color: #4d463f;
+  font-size: 20rpx;
+  font-weight: 600;
+  line-height: 1.2;
+  box-shadow: 0 8rpx 18rpx rgba(26, 23, 20, 0.12);
+}
+
+.claim-badge.unclaimed {
+  background: rgba(244, 239, 230, 0.9);
+  color: #7a5712;
+}
+
+.claim-badge.claimed {
+  color: #4a5a2f;
+}
+
 .pulse-badge {
   position: absolute;
   right: 16rpx;

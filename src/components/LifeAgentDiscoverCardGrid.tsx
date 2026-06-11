@@ -95,6 +95,7 @@ function LifeAgentDiscoverCard({
   const expertiseTagsShown = (profile.expertiseTags ?? []).slice(0, 2);
   const sessionCount = profile.sessionCount ?? 0;
   const isActiveAgent = sessionCount >= 10;
+  const claim = profile.claim ?? { status: "unclaimed", label: "未认领", isClaimed: false };
 
   return (
     <article
@@ -138,6 +139,19 @@ function LifeAgentDiscoverCard({
             </div>
           ) : null}
         </Link>
+        <div
+          className={`pointer-events-none absolute left-1.5 z-10 ${
+            profile.published === false ? "top-7" : "top-1.5"
+          }`}
+        >
+          <span
+            className={`rounded-md border border-white/70 px-2 py-0.5 text-[10px] font-semibold leading-none shadow-[0_6px_14px_rgba(17,21,19,0.12)] supports-[backdrop-filter]:backdrop-blur-md ${
+              claim.isClaimed ? "bg-white/85 text-olive-600" : "bg-paper/90 text-signal-700"
+            }`}
+          >
+            {claim.label}
+          </span>
+        </div>
         {typeof profile.mindScore === "number" ? (
           <div className="absolute bottom-1.5 left-1.5 z-10">
             <MindScoreBadge
@@ -251,6 +265,7 @@ function LifeAgentLeadCard({
   const showPrice = lifeAgentShowsPurchaseUi();
   const ratingScore =
     profile.ratings && profile.ratings.raters > 0 ? profile.ratings.averageScore.toFixed(1) : null;
+  const claim = profile.claim ?? { status: "unclaimed", label: "未认领", isClaimed: false };
 
   return (
     <article className="overflow-hidden rounded-lg border border-ink/10 bg-white text-ink shadow-glow-sm transition duration-200 hover:border-ink/20 hover:shadow-glow">
@@ -281,6 +296,13 @@ function LifeAgentLeadCard({
             />
             <span className="absolute left-2 top-2 rounded-md border border-white/70 bg-white/75 px-2 py-1 text-[11px] font-semibold leading-none text-ink shadow-[0_8px_18px_rgba(17,21,19,0.12)] supports-[backdrop-filter]:backdrop-blur-md">
               精选推荐
+            </span>
+            <span
+              className={`absolute left-2 top-9 rounded-md border border-white/70 px-2 py-1 text-[11px] font-semibold leading-none shadow-[0_8px_18px_rgba(17,21,19,0.12)] supports-[backdrop-filter]:backdrop-blur-md ${
+                claim.isClaimed ? "bg-white/80 text-olive-600" : "bg-paper/90 text-signal-700"
+              }`}
+            >
+              {claim.label}
             </span>
             {typeof profile.mindScore === "number" ? (
               <div className="absolute bottom-0 left-0 z-10 p-1.5">

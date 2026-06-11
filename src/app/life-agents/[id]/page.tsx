@@ -63,6 +63,11 @@ type DetailData = {
     status?: string;
   }>;
   verificationStatus?: string;
+  claim?: {
+    status: "claimed" | "unclaimed";
+    label: string;
+    isClaimed: boolean;
+  };
   creator: {
     name: string | null;
   };
@@ -220,6 +225,7 @@ export default function LifeAgentDetailPage() {
   const showPurchaseUi = lifeAgentShowsPurchaseUi();
   const hasPrice = showPurchaseUi && profile.pricePerQuestion > 0;
   const remainingQ = profile.viewerState.remainingQuestions;
+  const claim = profile.claim ?? { status: "unclaimed", label: "未认领", isClaimed: false };
 
   return (
     <>
@@ -280,6 +286,17 @@ export default function LifeAgentDetailPage() {
           <h1 className="font-serif text-2xl font-medium leading-snug text-ink sm:text-3xl [text-wrap:balance]">
             {profile.displayName}
           </h1>
+          <div className="mt-2 flex">
+            <span
+              className={`rounded-md border px-2 py-0.5 text-[11px] font-semibold leading-5 ${
+                claim.isClaimed
+                  ? "border-olive-600/20 bg-olive-400/10 text-olive-600"
+                  : "border-signal-600/30 bg-signal-50 text-signal-700"
+              }`}
+            >
+              {claim.label}
+            </span>
+          </div>
           <p className="mt-2 font-serif text-sm italic leading-relaxed text-ink-400">{ci.headline}</p>
 
           {allTags.length > 0 && (

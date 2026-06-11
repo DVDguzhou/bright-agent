@@ -1,4 +1,4 @@
-const { get } = require("../../utils/request");
+const { get, formatRequestError } = require("../../utils/request");
 const { setTabBarSelected } = require("../../utils/tab-bar");
 const { getNavMetrics } = require("../../utils/nav-metrics");
 const { cleanLifeAgentIntroText } = require("../../utils/intro-clean");
@@ -296,14 +296,14 @@ Page({
         }.bind(this)
       )
       .catch(
-        function () {
+        function (err) {
           this._pins = [];
           this._grid = {};
           this._filteredPins = [];
           this._viewportReady = false;
           this.setData({
             loading: false,
-            loadError: "地图数据加载失败，请稍后重试",
+            loadError: "地图数据加载失败：" + formatRequestError(err),
             totalPinCount: 0,
             filteredPinCount: 0,
             markers: [],

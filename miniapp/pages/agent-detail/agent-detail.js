@@ -43,6 +43,16 @@ function buildIntro(agent) {
   };
 }
 
+function normalizeClaim(agent) {
+  const claim = (agent && agent.claim) || {};
+  const status = claim.status === "claimed" ? "claimed" : "unclaimed";
+  return {
+    claimStatus: status,
+    claimLabel: claim.label || (status === "claimed" ? "已认领" : "未认领"),
+    isClaimed: status === "claimed",
+  };
+}
+
 Page({
   data: {
     id: "",
@@ -68,6 +78,9 @@ Page({
     creatorName: "",
     sessionCount: 0,
     verificationStatus: "none",
+    claimStatus: "unclaimed",
+    claimLabel: "未认领",
+    isClaimed: false,
     showHeroVerify: false,
     sampleQuestions: [],
     hasMindScore: false,
@@ -157,6 +170,7 @@ Page({
 
         const verificationStatus = agent.verificationStatus || "none";
         const creator = agent.creator || {};
+        const claim = normalizeClaim(agent);
 
         this.setData({
           intro: Object.assign({}, intro, {
@@ -190,6 +204,9 @@ Page({
           creatorInitial: (agent.displayName || "?").slice(0, 1),
           sessionCount: (agent.stats && agent.stats.sessionCount) || 0,
           verificationStatus,
+          claimStatus: claim.claimStatus,
+          claimLabel: claim.claimLabel,
+          isClaimed: claim.isClaimed,
           showHeroVerify:
             verificationStatus === "verified" || verificationStatus === "pending",
           sampleQuestions: intro.sampleQuestions || [],

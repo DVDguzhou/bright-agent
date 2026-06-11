@@ -32,6 +32,16 @@ export function normalizeLifeAgentListRow(row: unknown): LifeAgentListItem | nul
     averageScore = asNum(ra.averageScore, 0);
     raters = asNum(ra.raters, 0);
   }
+  let claim: LifeAgentListItem["claim"] | undefined;
+  if (r.claim && typeof r.claim === "object" && r.claim !== null) {
+    const rawClaim = r.claim as Record<string, unknown>;
+    const status = rawClaim.status === "claimed" ? "claimed" : "unclaimed";
+    claim = {
+      status,
+      label: typeof rawClaim.label === "string" ? rawClaim.label : status === "claimed" ? "已认领" : "未认领",
+      isClaimed: status === "claimed",
+    };
+  }
 
   return {
     id,
@@ -53,6 +63,7 @@ export function normalizeLifeAgentListRow(row: unknown): LifeAgentListItem | nul
     city: typeof r.city === "string" ? r.city : undefined,
     county: typeof r.county === "string" ? r.county : undefined,
     verificationStatus: typeof r.verificationStatus === "string" ? r.verificationStatus : undefined,
+    claim,
     knowledgeCount: asNum(r.knowledgeCount, 0),
     soldQuestionPacks: asNum(r.soldQuestionPacks, 0),
     sessionCount: asNum(r.sessionCount, 0),

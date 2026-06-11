@@ -6,6 +6,16 @@ const {
   nextCoverFallback,
 } = require("../../utils/covers");
 
+function normalizeClaim(agent) {
+  const claim = (agent && agent.claim) || {};
+  const status = claim.status === "claimed" ? "claimed" : "unclaimed";
+  return {
+    claimStatus: status,
+    claimLabel: claim.label || (status === "claimed" ? "已认领" : "未认领"),
+    isClaimed: status === "claimed",
+  };
+}
+
 Component({
   properties: {
     agent: { type: Object, value: {} },
@@ -40,12 +50,16 @@ Component({
           agent.coverImageUrl,
           agent.coverPresetKey
         );
+      const claim = normalizeClaim(agent);
 
       this.setData({
         id: agent.id,
         displayName,
         headline,
         coverFull,
+        claimStatus: claim.claimStatus,
+        claimLabel: claim.claimLabel,
+        isClaimed: claim.isClaimed,
         verified: agent.verificationStatus === "verified",
         mindScore: typeof agent.mindScore === "number" ? agent.mindScore : null,
         sampleQuestions,
@@ -60,6 +74,9 @@ Component({
     displayName: "",
     headline: "",
     coverFull: "",
+    claimStatus: "unclaimed",
+    claimLabel: "未认领",
+    isClaimed: false,
     verified: false,
     mindScore: null,
     sampleQuestions: [],

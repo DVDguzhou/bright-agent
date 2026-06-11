@@ -62,14 +62,37 @@ function request(options) {
         if (res.statusCode >= 200 && res.statusCode < 300) {
           resolve(res);
         } else {
-          reject({ statusCode: res.statusCode, data: res.data || {} });
+          reject({
+            statusCode: res.statusCode,
+            data: res.data || {},
+            url,
+            message:
+              (res.data && (res.data.error || res.data.message)) ||
+              `HTTP ${res.statusCode}`,
+          });
         }
       },
       fail(err) {
-        reject({ statusCode: 0, data: {}, err });
+        reject({
+          statusCode: 0,
+          data: {},
+          err,
+          url,
+          message: (err && err.errMsg) || "NETWORK_ERROR",
+        });
       },
     });
   });
+}
+
+function formatRequestError(err) {
+  if (!err) return "网络请求失败";
+  const msg = String(err.message || (err.err && err.err.errMsg) || "");
+  if (msg.indexOf("url not in domain list") >= 0 || msg.indexOf("合法域名") >= 0) {
+    return "请求域名未配置，请在微信公众平台加入 www.brightagent.cn";
+  }
+  if (err.statusCode) return `接口返回 ${err.statusCode}`;
+  return msg || "网络连接失败";
 }
 
 function get(url, header) {
@@ -135,4 +158,5 @@ module.exports = {
   absUrl,
   clearSession,
   getCookieHeader,
+  formatRequestError,
 };

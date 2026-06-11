@@ -44,6 +44,9 @@
     <view class="content">
       <view class="section">
         <text class="display-name font-serif">{{displayName}}</text>
+        <view class="claim-row">
+          <text class="claim-badge {{isClaimed ? 'claimed' : 'unclaimed'}}">{{claimLabel}}</text>
+        </view>
         <text class="headline font-serif">{{intro.headline}}</text>
         <view wx:if="{{tags.length}}" class="tags">
           <text wx:for="{{tags}}" wx:key="*this" class="tag-chip">{{item}}</text>

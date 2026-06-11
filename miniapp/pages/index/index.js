@@ -1,4 +1,4 @@
-const { get } = require("../../utils/request");
+const { get, formatRequestError } = require("../../utils/request");
 const { resolveLifeAgentCoverDisplayUrl } = require("../../utils/covers");
 const { getNavMetrics } = require("../../utils/nav-metrics");
 const { setTabBarSelected } = require("../../utils/tab-bar");
@@ -180,7 +180,7 @@ Page({
         this.setData({
           loading: false,
           loadingMore: false,
-          error: "加载失败，请刷新页面重试",
+          error: "加载失败：" + formatRequestError(err),
         });
         if (this.data.feedView === "discover") {
           this.syncCurrentList();

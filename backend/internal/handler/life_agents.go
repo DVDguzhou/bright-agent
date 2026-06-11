@@ -91,6 +91,16 @@ func coalesceVerificationStatus(v string) string {
 	}
 }
 
+func lifeAgentClaimStatus(p *models.LifeAgentProfile) gin.H {
+	unclaimed := p.IsGenerated ||
+		strings.TrimSpace(ptrStr(p.OriginalAuthor)) != "" ||
+		strings.TrimSpace(ptrStr(p.Source)) != ""
+	if unclaimed {
+		return gin.H{"status": "unclaimed", "label": "未认领", "isClaimed": false}
+	}
+	return gin.H{"status": "claimed", "label": "已认领", "isClaimed": true}
+}
+
 // 用户/接口可保存的预设键（产品侧枚举）；与是否已部署静态 PNG 无关。
 var allowedLifeAgentCoverPresets = map[string]struct{}{
 	"01-student-panda":  {},
@@ -747,38 +757,39 @@ func lifeAgentListResponseItems(profiles []models.LifeAgentProfile, cfg *config.
 		cu := lifeAgentCoverURL(&p)
 		ms := mindScores[p.ID]
 		resp = append(resp, gin.H{
-			"id":                 p.ID,
-			"displayName":        p.DisplayName,
-			"headline":           p.Headline,
-			"shortBio":           p.ShortBio,
-			"audience":           p.Audience,
-			"welcomeMessage":     p.WelcomeMessage,
-			"pricePerQuestion":   p.PricePerQuestion,
-			"expertiseTags":      p.ExpertiseTags,
-			"sampleQuestions":    sampleQuestionsForDisplay(&p, kbByProfile[p.ID]),
-			"education":          ptrStr(p.Education),
-			"income":             ptrStr(p.Income),
-			"job":                ptrStr(p.Job),
-			"school":             ptrStr(p.School),
-			"country":            ptrStr(p.Country),
-			"province":           ptrStr(p.Province),
-			"city":               ptrStr(p.City),
-			"county":             ptrStr(p.County),
-			"regions":            p.Regions,
-			"verificationStatus": coalesceVerificationStatus(p.VerificationStatus),
-			"creator":            gin.H{"id": u.ID, "name": u.Name},
-			"knowledgeCount":     kMap[p.ID],
-			"soldQuestionPacks":  qpMap[p.ID],
-			"sessionCount":       sessMap[p.ID],
-			"ratings":            ratingsSummary,
-			"coverImageUrl":      ptrStr(p.CoverImageURL),
-			"coverPresetKey":     ptrStr(p.CoverPresetKey),
-			"coverUrl":           cu,
-			"mindScore":          ms.Total,
-			"mindScoreLevel":     ms.Level,
+			"id":                  p.ID,
+			"displayName":         p.DisplayName,
+			"headline":            p.Headline,
+			"shortBio":            p.ShortBio,
+			"audience":            p.Audience,
+			"welcomeMessage":      p.WelcomeMessage,
+			"pricePerQuestion":    p.PricePerQuestion,
+			"expertiseTags":       p.ExpertiseTags,
+			"sampleQuestions":     sampleQuestionsForDisplay(&p, kbByProfile[p.ID]),
+			"education":           ptrStr(p.Education),
+			"income":              ptrStr(p.Income),
+			"job":                 ptrStr(p.Job),
+			"school":              ptrStr(p.School),
+			"country":             ptrStr(p.Country),
+			"province":            ptrStr(p.Province),
+			"city":                ptrStr(p.City),
+			"county":              ptrStr(p.County),
+			"regions":             p.Regions,
+			"verificationStatus":  coalesceVerificationStatus(p.VerificationStatus),
+			"claim":               lifeAgentClaimStatus(&p),
+			"creator":             gin.H{"id": u.ID, "name": u.Name},
+			"knowledgeCount":      kMap[p.ID],
+			"soldQuestionPacks":   qpMap[p.ID],
+			"sessionCount":        sessMap[p.ID],
+			"ratings":             ratingsSummary,
+			"coverImageUrl":       ptrStr(p.CoverImageURL),
+			"coverPresetKey":      ptrStr(p.CoverPresetKey),
+			"coverUrl":            cu,
+			"mindScore":           ms.Total,
+			"mindScoreLevel":      ms.Level,
 			"mindScoreLevelLabel": ms.LevelLabel,
-			"featuredRank":       p.FeaturedRank,
-			"featuredCollection": ptrStr(p.FeaturedCollection),
+			"featuredRank":        p.FeaturedRank,
+			"featuredCollection":  ptrStr(p.FeaturedCollection),
 		})
 	}
 	return resp
@@ -1225,24 +1236,24 @@ func LifeAgentsMine(cfg *config.Config) gin.HandlerFunc {
 			db.DB.Model(&models.LifeAgentQuestionPack{}).Where("profile_id = ? AND status = ?", p.ID, "paid").Select("COALESCE(SUM(amount_paid),0)").Scan(&revenue)
 			mindScore := lifeagent.ComputeMindScore(loadMindScoreInput(p.ID, &p, cfg))
 			resp = append(resp, gin.H{
-				"id":                 p.ID,
-				"displayName":        p.DisplayName,
-				"headline":           p.Headline,
-				"shortBio":           p.ShortBio,
-				"pricePerQuestion":   p.PricePerQuestion,
-				"country":            ptrStr(p.Country),
-				"province":           ptrStr(p.Province),
-				"city":               ptrStr(p.City),
-				"county":             ptrStr(p.County),
-				"regions":            p.Regions,
-				"verificationStatus": coalesceVerificationStatus(p.VerificationStatus),
-				"published":          p.Published,
-				"knowledgeCount":     kCount,
-				"sessionCount":       sessCount,
-				"soldPacks":          qpCount,
-				"totalRevenue":       revenue,
-				"mindScore":          mindScore.Total,
-				"mindScoreLevel":     mindScore.Level,
+				"id":                  p.ID,
+				"displayName":         p.DisplayName,
+				"headline":            p.Headline,
+				"shortBio":            p.ShortBio,
+				"pricePerQuestion":    p.PricePerQuestion,
+				"country":             ptrStr(p.Country),
+				"province":            ptrStr(p.Province),
+				"city":                ptrStr(p.City),
+				"county":              ptrStr(p.County),
+				"regions":             p.Regions,
+				"verificationStatus":  coalesceVerificationStatus(p.VerificationStatus),
+				"published":           p.Published,
+				"knowledgeCount":      kCount,
+				"sessionCount":        sessCount,
+				"soldPacks":           qpCount,
+				"totalRevenue":        revenue,
+				"mindScore":           mindScore.Total,
+				"mindScoreLevel":      mindScore.Level,
 				"mindScoreLevelLabel": mindScore.LevelLabel,
 			})
 		}
@@ -1544,6 +1555,7 @@ func LifeAgentsGet(cfg *config.Config) gin.HandlerFunc {
 			"county":             ptrStr(p.County),
 			"regions":            p.Regions,
 			"verificationStatus": coalesceVerificationStatus(p.VerificationStatus),
+			"claim":              lifeAgentClaimStatus(&p),
 			"mbti":               ptrStr(p.MBTI),
 			"personaArchetype":   ptrStr(p.PersonaArchetype),
 			"toneStyle":          ptrStr(p.ToneStyle),
