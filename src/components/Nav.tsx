@@ -798,7 +798,7 @@ export function Nav() {
                 </Link>
               ) : isDashboardArea ? (
                 <div className="min-w-0 flex-1 truncate text-center text-[15px] font-semibold text-ink">
-                  {isDashboardLifeAgentsListPage ? "我的 Agent" : isDashboardApiKeysPage ? "开放 API" : "后台"}
+                  {isDashboardLifeAgentsListPage ? "我的 Agent" : isDashboardApiKeysPage ? "开放 API" : ""}
                 </div>
               ) : (
                 <div className="relative flex min-w-0 flex-1 items-center justify-center gap-2 sm:gap-4">

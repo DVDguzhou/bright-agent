@@ -143,7 +143,6 @@ function LifeAgentDiscoverCard({
             <MindScoreBadge
               value={profile.mindScore}
               size="xs"
-              prefix=""
               className="bg-white/85 px-1.5 py-0.5 text-[9.5px] shadow-[0_4px_10px_rgba(17,21,19,0.10)]"
             />
           </div>
