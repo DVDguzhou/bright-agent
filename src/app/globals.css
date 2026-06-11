@@ -391,13 +391,9 @@ button {
     transition-duration: 120ms;
     transition-timing-function: ease;
   }
+  /* 按压反馈只用透明度：iOS 上 :active 的 transform 在触摸取消时反复建拆合成层，
+     会让虚拟滚动里的封面图整块变空白（WebKit 重绘 bug） */
   .pressable:active {
     opacity: 0.82;
-    transform: scale(0.985);
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .pressable:active {
-      transform: none;
-    }
   }
 }

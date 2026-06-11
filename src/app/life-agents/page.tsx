@@ -196,21 +196,21 @@ function FeaturedShowcase({
 }) {
   if (loading) {
     return (
-      <div className="-mx-1 mb-5 rounded-xl border border-signal-200/70 bg-gradient-mesh bg-signal-50 shadow-glow-sm sm:mx-0">
+      <div className="-mx-1 mb-5 rounded-xl border border-white/[0.06] bg-gradient-to-br from-ink-700 to-ink-900 shadow-glow sm:mx-0">
         <div className="px-3 pt-3 pb-2.5">
           <div className="mb-3 flex items-center justify-between">
             <div className="flex items-center gap-1.5">
-              <div className="h-2.5 w-2.5 animate-pulse rounded-full bg-signal-200" />
-              <div className="h-3.5 w-14 animate-pulse rounded bg-paper-300" />
+              <div className="h-2.5 w-2.5 animate-pulse rounded-full bg-signal-400/40" />
+              <div className="h-3.5 w-14 animate-pulse rounded bg-white/10" />
             </div>
-            <div className="h-3 w-12 animate-pulse rounded bg-paper-300" />
+            <div className="h-3 w-12 animate-pulse rounded bg-white/10" />
           </div>
           <div className="-mx-3 flex gap-2.5 overflow-x-hidden pl-3 pr-3">
             {[1, 2, 3, 4].map((i) => (
               <div key={i} className="w-[108px] shrink-0 sm:w-[124px]">
-                <div className="w-full animate-pulse rounded-lg bg-paper-300" style={{ aspectRatio: "3 / 4" }} />
-                <div className="mt-1.5 h-3 w-4/5 animate-pulse rounded bg-paper-200" />
-                <div className="mt-1 h-2.5 w-3/5 animate-pulse rounded bg-paper-200" />
+                <div className="w-full animate-pulse rounded-lg bg-white/10" style={{ aspectRatio: "3 / 4" }} />
+                <div className="mt-1.5 h-3 w-4/5 animate-pulse rounded bg-white/[0.07]" />
+                <div className="mt-1 h-2.5 w-3/5 animate-pulse rounded bg-white/[0.07]" />
               </div>
             ))}
           </div>
@@ -222,17 +222,17 @@ function FeaturedShowcase({
   if (agents.length === 0) return null;
 
   return (
-    <div className="-mx-1 mb-5 rounded-xl border border-signal-200/70 bg-gradient-mesh bg-signal-50 shadow-glow-sm sm:mx-0">
+    <div className="-mx-1 mb-5 rounded-xl border border-white/[0.06] bg-gradient-to-br from-ink-700 to-ink-900 shadow-glow sm:mx-0">
       <div className="px-3 pt-3 pb-2.5">
         {/* Header */}
         <div className="mb-3 flex items-center justify-between">
           <div className="flex items-center gap-1.5">
-            <span className="text-[12px] text-signal-400" aria-hidden>★</span>
-            <span className="font-serif text-[14px] font-medium text-ink-700">精选推荐</span>
+            <span className="text-[12px] text-signal-300" aria-hidden>★</span>
+            <span className="font-serif text-[14px] font-medium text-paper-50">精选推荐</span>
           </div>
           <Link
             href="/c/jingpin"
-            className="pressable flex items-center gap-0.5 text-[11px] text-ink-300 transition-colors hover:text-ink"
+            className="pressable flex items-center gap-0.5 text-[11px] text-white/60 transition-colors hover:text-white"
           >
             查看全部
             <ChevronRight className="h-3 w-3" />
@@ -263,13 +263,14 @@ function FeaturedShowcase({
               >
                 {/* Cover */}
                 <div
-                  className="relative w-full overflow-hidden rounded-lg border border-hairline/40 bg-paper-200 shadow-glow-sm transition-[border-color,box-shadow] duration-200 group-hover:border-signal-200/60 group-hover:shadow-glow"
+                  className="relative w-full overflow-hidden rounded-lg border border-white/10 bg-ink-600 transition-[border-color] duration-200 group-hover:border-signal-400/60"
                   style={{ aspectRatio: "3 / 4" }}
                 >
                   <LifeAgentCoverImage
                     src={coverUrl}
                     alt=""
                     fill
+                    compact
                     className="object-cover"
                     sizes="124px"
                   />
@@ -304,7 +305,7 @@ function FeaturedShowcase({
                 </div>
                 {/* Featured reason */}
                 {headline ? (
-                  <p className="mt-1.5 line-clamp-2 text-[10.5px] leading-[1.4] text-ink-400">
+                  <p className="mt-1.5 line-clamp-2 text-[10.5px] leading-[1.4] text-white/65">
                     {headline}
                   </p>
                 ) : null}
@@ -315,13 +316,13 @@ function FeaturedShowcase({
           {/* View all card */}
           <Link href="/c/jingpin" className="pressable group shrink-0 w-[108px] sm:w-[124px]">
             <div
-              className="flex w-full flex-col items-center justify-center gap-2 rounded-lg border border-signal-100/60 bg-paper-200/70 transition-[border-color,background-color] duration-200 group-hover:border-signal-300 group-hover:bg-signal-50/50"
+              className="flex w-full flex-col items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/[0.06] transition-[border-color,background-color] duration-200 group-hover:border-signal-400/60 group-hover:bg-white/10"
               style={{ aspectRatio: "3 / 4" }}
             >
-              <span className="flex h-7 w-7 items-center justify-center rounded-full border border-signal-200 text-sm text-signal-500 transition-[border-color,color] duration-200 group-hover:border-signal-400 group-hover:text-signal-600">
+              <span className="flex h-7 w-7 items-center justify-center rounded-full border border-signal-400/60 text-sm text-signal-300 transition-[border-color,color] duration-200 group-hover:border-signal-300 group-hover:text-signal-200">
                 →
               </span>
-              <span className="text-[10px] font-medium text-ink-400 transition-colors duration-200 group-hover:text-ink">
+              <span className="text-[10px] font-medium text-white/60 transition-colors duration-200 group-hover:text-white">
                 全部精选
               </span>
             </div>
@@ -953,7 +954,7 @@ function LifeAgentsPageContent() {
           <div className="w-full overflow-hidden">
             <div
               ref={pagerRef}
-              className={`flex overflow-x-auto overscroll-x-contain [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [touch-action:pan-x_pan-y] ${
+              className={`flex overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [touch-action:pan-x_pan-y] ${
                 feedPagerSnapEnabled ? "snap-x snap-mandatory" : "snap-none"
               }`}
             >

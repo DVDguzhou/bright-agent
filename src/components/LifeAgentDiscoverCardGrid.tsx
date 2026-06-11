@@ -524,7 +524,8 @@ export function LifeAgentDiscoverCardGrid({
               ref={rowVirtualizer.measureElement}
               className="absolute left-0 top-0 w-full"
               style={{
-                transform: `translateY(${virtualRow.start}px)`,
+                /* translate3d 强制独立 GPU 图层：iOS 触摸滚动时 2D translateY 行的位图可能被 WebKit 丢弃导致整行空白 */
+                transform: `translate3d(0, ${virtualRow.start}px, 0)`,
               }}
             >
               <div
