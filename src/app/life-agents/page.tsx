@@ -14,7 +14,8 @@ import {
 import { getFavoriteAgentIds } from "@/lib/life-agent-favorites";
 import { LifeAgentDiscoverCardGrid } from "@/components/LifeAgentDiscoverCardGrid";
 import { rankLifeAgentsBySearchQuery, type LifeAgentListItem } from "@/lib/life-agent-feed-search";
-import { fetchFavoriteLifeAgents, fetchLifeAgentsPage } from "@/lib/life-agents-list-api";
+import { ChevronRight } from "lucide-react";
+import { fetchFavoriteLifeAgents, fetchLifeAgentCollectionPage, fetchLifeAgentsPage } from "@/lib/life-agents-list-api";
 import { cleanLifeAgentIntroText } from "@/lib/life-agent-intro-clean";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLifeAgentsFeedGestures, useMobileTouchNavEnabled } from "@/hooks/use-life-agents-feed-gestures";
@@ -36,7 +37,8 @@ type PurchasedAgentRow = {
 const PURCHASED_CACHE_TTL_MS = 90_000;
 const INITIAL_VISIBLE_IMAGE_COUNT_MOBILE = 2;
 const INITIAL_VISIBLE_IMAGE_COUNT_DESKTOP = 4;
-
+const FEATURED_COLLECTION = "jingpin";
+const FEATURED_LIMIT = 8;
 
 type FeedTabKey = "favorites" | "discover" | "purchased";
 
@@ -185,6 +187,151 @@ function LifeAgentsPageLoadingState({ title = "加载中…" }: { title?: string
   );
 }
 
+function FeaturedShowcase({
+  agents,
+  loading,
+}: {
+  agents: LifeAgentListItem[];
+  loading: boolean;
+}) {
+  if (loading) {
+    return (
+      <div className="-mx-1 mb-5 rounded-xl border border-signal-100/60 bg-gradient-mesh bg-signal-50/40 sm:mx-0">
+        <div className="px-3 pt-3 pb-2.5">
+          <div className="mb-3 flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              <div className="h-2.5 w-2.5 animate-pulse rounded-full bg-signal-200" />
+              <div className="h-3.5 w-14 animate-pulse rounded bg-paper-300" />
+            </div>
+            <div className="h-3 w-12 animate-pulse rounded bg-paper-300" />
+          </div>
+          <div className="-mx-3 flex gap-2.5 overflow-x-hidden pl-3 pr-3">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="w-[108px] shrink-0 sm:w-[124px]">
+                <div className="w-full animate-pulse rounded-lg bg-paper-300" style={{ aspectRatio: "3 / 4" }} />
+                <div className="mt-1.5 h-3 w-4/5 animate-pulse rounded bg-paper-200" />
+                <div className="mt-1 h-2.5 w-3/5 animate-pulse rounded bg-paper-200" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (agents.length === 0) return null;
+
+  return (
+    <div className="-mx-1 mb-5 rounded-xl border border-signal-100/60 bg-gradient-mesh bg-signal-50/40 sm:mx-0">
+      <div className="px-3 pt-3 pb-2.5">
+        {/* Header */}
+        <div className="mb-3 flex items-center justify-between">
+          <div className="flex items-center gap-1.5">
+            <span className="text-[12px] text-signal-400" aria-hidden>★</span>
+            <span className="font-serif text-[14px] font-medium text-ink-700">精选推荐</span>
+          </div>
+          <Link
+            href="/c/jingpin"
+            className="pressable flex items-center gap-0.5 text-[11px] text-ink-300 transition-colors hover:text-ink"
+          >
+            查看全部
+            <ChevronRight className="h-3 w-3" />
+          </Link>
+        </div>
+
+        {/* Horizontal scroll */}
+        <div className="-mx-3 flex gap-2.5 overflow-x-auto pb-1 pl-3 pr-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {agents.map((agent) => {
+            const coverUrl = resolveLifeAgentCoverDisplayUrl(
+              agent.coverUrl,
+              agent.coverImageUrl,
+              agent.coverPresetKey,
+            );
+            const primaryTag = agent.expertiseTags?.[0] ?? null;
+            const secondaryTag = agent.expertiseTags?.[1] ?? null;
+            const ratingScore =
+              agent.ratings && agent.ratings.raters > 0
+                ? agent.ratings.averageScore.toFixed(1)
+                : null;
+            const headline = cleanLifeAgentIntroText(agent.headline, agent.displayName);
+
+            return (
+              <Link
+                key={agent.id}
+                href={`/life-agents/${agent.id}`}
+                className="pressable group shrink-0 w-[108px] sm:w-[124px]"
+              >
+                {/* Cover */}
+                <div
+                  className="relative w-full overflow-hidden rounded-lg border border-hairline/40 bg-paper-200 shadow-glow-sm transition-[border-color,box-shadow] duration-200 group-hover:border-signal-200/60 group-hover:shadow-glow"
+                  style={{ aspectRatio: "3 / 4" }}
+                >
+                  <LifeAgentCoverImage
+                    src={coverUrl}
+                    alt=""
+                    fill
+                    className="object-cover"
+                    sizes="124px"
+                  />
+                  {/* Bottom gradient for text legibility */}
+                  <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[55%] bg-gradient-to-t from-black/60 to-transparent" />
+                  {/* Rating chip */}
+                  {ratingScore ? (
+                    <div className="absolute right-1.5 top-1.5 rounded-sm bg-black/35 px-1.5 py-0.5 text-[9px] font-bold tabular-nums text-signal-200 backdrop-blur-sm">
+                      ★{ratingScore}
+                    </div>
+                  ) : null}
+                  {/* Name + tag overlay */}
+                  <div className="absolute inset-x-0 bottom-0 p-2">
+                    <p className="font-serif text-[12px] font-medium leading-tight text-white line-clamp-1">
+                      {agent.displayName}
+                    </p>
+                    {(primaryTag || secondaryTag) ? (
+                      <div className="mt-0.5 flex flex-wrap gap-0.5">
+                        {primaryTag ? (
+                          <span className="rounded-sm bg-white/15 px-1 py-0.5 text-[9px] leading-none text-white/85 backdrop-blur-sm">
+                            {primaryTag}
+                          </span>
+                        ) : null}
+                        {secondaryTag ? (
+                          <span className="rounded-sm bg-white/15 px-1 py-0.5 text-[9px] leading-none text-white/85 backdrop-blur-sm">
+                            {secondaryTag}
+                          </span>
+                        ) : null}
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+                {/* Featured reason */}
+                {headline ? (
+                  <p className="mt-1.5 line-clamp-2 text-[10.5px] leading-[1.4] text-ink-400">
+                    {headline}
+                  </p>
+                ) : null}
+              </Link>
+            );
+          })}
+
+          {/* View all card */}
+          <Link href="/c/jingpin" className="pressable group shrink-0 w-[108px] sm:w-[124px]">
+            <div
+              className="flex w-full flex-col items-center justify-center gap-2 rounded-lg border border-signal-100/60 bg-paper-200/70 transition-[border-color,background-color] duration-200 group-hover:border-signal-300 group-hover:bg-signal-50/50"
+              style={{ aspectRatio: "3 / 4" }}
+            >
+              <span className="flex h-7 w-7 items-center justify-center rounded-full border border-signal-200 text-sm text-signal-500 transition-[border-color,color] duration-200 group-hover:border-signal-400 group-hover:text-signal-600">
+                →
+              </span>
+              <span className="text-[10px] font-medium text-ink-400 transition-colors duration-200 group-hover:text-ink">
+                全部精选
+              </span>
+            </div>
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function LifeAgentsPageContent() {
   const { user: authUser } = useAuth();
   const router = useRouter();
@@ -204,6 +351,9 @@ function LifeAgentsPageContent() {
   discoverItemsRef.current = discoverItems;
 
   const discoverSeedRef = useRef((Math.random() * 2147483647) | 0);
+  const featuredSeedRef = useRef((Math.random() * 2147483647) | 0);
+  const [featuredItems, setFeaturedItems] = useState<LifeAgentListItem[]>([]);
+  const [featuredLoading, setFeaturedLoading] = useState(true);
 
   const [loadError, setLoadError] = useState<string | null>(null);
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
@@ -557,6 +707,22 @@ function LifeAgentsPageContent() {
   }, [visitedMask & 1, touchNavEnabled, feedTab]);
 
   useEffect(() => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    fetchLifeAgentCollectionPage(FEATURED_COLLECTION, FEATURED_LIMIT, 0, featuredSeedRef.current, controller.signal)
+      .then(({ items }) => setFeaturedItems(items))
+      .catch(() => setFeaturedItems([]))
+      .finally(() => {
+        clearTimeout(timeoutId);
+        setFeaturedLoading(false);
+      });
+    return () => {
+      clearTimeout(timeoutId);
+      controller.abort();
+    };
+  }, []);
+
+  useEffect(() => {
     if (feedTab !== "favorites") return;
     if (favoritesFetched) return;
     void loadFavoritesFullList();
@@ -740,29 +906,6 @@ function LifeAgentsPageContent() {
     );
 
 
-  const jingpinEntry = (
-    <Link
-      href="/c/jingpin"
-      className="pressable group -mx-1 mb-4 block sm:mx-0"
-    >
-      <div className="flex items-center gap-3 rounded-lg border border-signal-100 bg-signal-50/50 px-4 py-3 transition-[border-color,background-color] duration-200 group-hover:border-signal-200 group-hover:bg-signal-50">
-        <div className="min-w-0 flex-1">
-          <div className="flex items-baseline gap-1.5">
-            <span className="text-[12px] text-signal-400" aria-hidden>★</span>
-            <p className="font-serif text-[15px] font-medium leading-snug text-ink">
-              这是我们精选的 Agent
-            </p>
-          </div>
-          <p className="mt-1 text-[11px] leading-relaxed text-ink-400">
-            留学 · 职场 · 创业 · 海外生活
-          </p>
-        </div>
-        <span className="shrink-0 whitespace-nowrap text-[11px] font-medium text-signal-600 transition-colors duration-200 group-hover:text-signal-700">
-          查看全部 →
-        </span>
-      </div>
-    </Link>
-  );
 
   const pagerSectionClass =
     "box-border w-full min-w-[100%] shrink-0 basis-full grow-0 space-y-4 px-1 sm:px-0 max-lg:snap-start max-lg:snap-always";
@@ -821,7 +964,7 @@ function LifeAgentsPageContent() {
               className={pagerSectionClass}
               aria-label="发现"
             >
-              {jingpinEntry}
+              <FeaturedShowcase agents={featuredItems} loading={featuredLoading} />
                 <LifeAgentDiscoverCardGrid
                 profiles={displayProfilesDiscover}
                 loading={discoverLoading}
@@ -860,7 +1003,9 @@ function LifeAgentsPageContent() {
             feedTab === "favorites" ? favoritesHeading : purchasedHeading
           ) : null}
           {loadErrorBanner}
-          {feedTab !== "favorites" && feedTab !== "purchased" ? jingpinEntry : null}
+          {feedTab !== "favorites" && feedTab !== "purchased" ? (
+            <FeaturedShowcase agents={featuredItems} loading={featuredLoading} />
+          ) : null}
           {feedTab === "purchased" && showPurchaseUi ? (
             purchasedBody
           ) : (
