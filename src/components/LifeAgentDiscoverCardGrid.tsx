@@ -136,8 +136,13 @@ function LifeAgentDiscoverCard({
           ) : null}
         </Link>
         {typeof profile.mindScore === "number" ? (
-          <div className="absolute bottom-0 left-0 z-10 p-1.5">
-            <MindScoreBadge value={profile.mindScore} size="xs" className="shadow-sm" />
+          <div className="absolute bottom-1.5 left-1.5 z-10">
+            <MindScoreBadge
+              value={profile.mindScore}
+              size="xs"
+              prefix=""
+              className="bg-white/85 px-1.5 py-0.5 text-[9.5px] shadow-[0_4px_10px_rgba(17,21,19,0.10)]"
+            />
           </div>
         ) : null}
       </div>
@@ -187,7 +192,7 @@ function LifeAgentDiscoverCard({
 
           {/* Sample question — 1 only */}
           {sampleQuestionShown ? (
-            <p className="mt-1.5 line-clamp-1 rounded-md border border-hairline/70 bg-white/75 px-2 py-1.5 text-[11px] font-medium leading-4 text-ink-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]">
+            <p className="mt-1.5 whitespace-normal break-words rounded-md border border-hairline/70 bg-white/75 px-2 py-1.5 text-[11px] font-medium leading-4 text-ink-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]">
               {sampleQuestionShown}
             </p>
           ) : null}
