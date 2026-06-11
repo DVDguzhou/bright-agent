@@ -8,6 +8,19 @@ const { agentCategoryColor } = require("./agent-category");
 const CACHE_TTL_MS = 5 * 60 * 1000;
 /** 空间索引网格大小（度） */
 const GRID_CELL = 0.5;
+const MAP_AVATAR_FALLBACK = "/images/map/agent-avatar-fallback.png";
+
+function resolveMapAvatarUrl(pin) {
+  const src = resolveLifeAgentCoverDisplayUrl(
+    pin.coverUrl,
+    pin.coverImageUrl,
+    pin.coverPresetKey
+  );
+  if (!src || src.indexOf(".svg") >= 0 || src.indexOf("default-cover") >= 0) {
+    return MAP_AVATAR_FALLBACK;
+  }
+  return src;
+}
 
 let cache = {
   pins: null,
@@ -128,11 +141,7 @@ function findPinById(pins, id) {
 function enrichPin(pin) {
   if (!pin) return null;
   return Object.assign({}, pin, {
-    coverFull: resolveLifeAgentCoverDisplayUrl(
-      pin.coverUrl,
-      pin.coverImageUrl,
-      pin.coverPresetKey
-    ),
+    coverFull: resolveMapAvatarUrl(pin),
     area: buildAreaLabel(pin.city, pin.province),
   });
 }
@@ -206,6 +215,7 @@ function formatDistanceKm(km, precise) {
 
 module.exports = {
   GRID_CELL,
+  MAP_AVATAR_FALLBACK,
   buildPinIndex,
   getCachedPinIndex,
   filterPins,

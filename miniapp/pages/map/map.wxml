@@ -95,6 +95,7 @@
         class="agent-card-cover"
         src="{{selectedAgent.coverFull}}"
         mode="aspectFill"
+        binderror="onSelectedCoverError"
       ></image>
       <view class="agent-card-body">
         <view class="agent-card-name-row">
@@ -204,7 +205,7 @@
         data-id="{{item.id}}"
         bindtap="goExploreDetail"
       >
-        <image wx:if="{{item.coverFull}}" class="explore-cover" src="{{item.coverFull}}" mode="aspectFill"></image>
+        <image wx:if="{{item.coverFull}}" class="explore-cover" src="{{item.coverFull}}" mode="aspectFill" data-id="{{item.id}}" binderror="onExploreCoverError"></image>
         <view wx:else class="explore-cover explore-cover-fallback"></view>
         <view class="explore-body">
           <view class="explore-name-row">

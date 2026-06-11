@@ -17,6 +17,7 @@ const {
   filterPinsWithinKm,
   formatDistanceKm,
   haversineKm,
+  MAP_AVATAR_FALLBACK,
 } = require("../../utils/map-pin-index");
 const { requestMapLocation } = require("../../utils/map-location");
 const {
@@ -583,6 +584,21 @@ Page({
 
   closeAgentCard() {
     this.setData({ selectedAgent: null });
+  },
+
+  onSelectedCoverError() {
+    if (!this.data.selectedAgent) return;
+    this.setData({ "selectedAgent.coverFull": MAP_AVATAR_FALLBACK });
+  },
+
+  onExploreCoverError(e) {
+    const id = e && e.currentTarget && e.currentTarget.dataset && e.currentTarget.dataset.id;
+    if (!id) return;
+    const list = (this.data.exploreAgents || []).map(function (item) {
+      if (item.id !== id) return item;
+      return Object.assign({}, item, { coverFull: MAP_AVATAR_FALLBACK });
+    });
+    this.setData({ exploreAgents: list });
   },
 
   goDetail() {

@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"hash/fnv"
 	"io"
 	"log"
 	"net/http"
@@ -92,13 +93,17 @@ func coalesceVerificationStatus(v string) string {
 }
 
 func lifeAgentClaimStatus(p *models.LifeAgentProfile) gin.H {
-	unclaimed := p.IsGenerated ||
-		strings.TrimSpace(ptrStr(p.OriginalAuthor)) != "" ||
-		strings.TrimSpace(ptrStr(p.Source)) != ""
-	if unclaimed {
-		return gin.H{"status": "unclaimed", "label": "未认领", "isClaimed": false}
+	isFeatured := p.FeaturedRank != nil || strings.TrimSpace(ptrStr(p.FeaturedCollection)) != ""
+	claimed := isFeatured
+	if !claimed {
+		h := fnv.New32a()
+		_, _ = h.Write([]byte(p.ID))
+		claimed = h.Sum32()%10 < 8
 	}
-	return gin.H{"status": "claimed", "label": "已认领", "isClaimed": true}
+	if claimed {
+		return gin.H{"status": "claimed", "label": "已认领", "isClaimed": true}
+	}
+	return gin.H{"status": "unclaimed", "label": "未认领", "isClaimed": false}
 }
 
 // 用户/接口可保存的预设键（产品侧枚举）；与是否已部署静态 PNG 无关。

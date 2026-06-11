@@ -15,7 +15,8 @@ const PROGRESS_EVERY = 4;
 const FALLBACK_PIN_ICON = "/images/map/agent-pin.png";
 const FALLBACK_ACTIVE_PIN_ICON = "/images/map/agent-pin-active.png";
 const FALLBACK_CLUSTER_ICON = "/images/map/cluster-pin.png";
-const USE_STATIC_PIN_ICONS = true;
+const FALLBACK_AVATAR_ICON = "/images/map/agent-avatar-fallback.png";
+const USE_STATIC_PIN_ICONS = false;
 
 const iconCache = {};
 const imageInfoCache = {};
@@ -56,7 +57,7 @@ function resolveMapPinCoverUrl(agent) {
     agent.coverPresetKey
   );
   if (!url || isDefaultCoverUrl(url) || url.indexOf(".svg") >= 0) {
-    return "";
+    return FALLBACK_AVATAR_ICON;
   }
   return url;
 }
