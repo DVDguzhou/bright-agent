@@ -266,7 +266,6 @@ export default function LifeAgentTopicsPage() {
   return (
     <AdminPage>
       <PageHeader
-        backHref={`/dashboard/life-agents/${id}`}
         title="Topic 管理"
         description="审核从知识和长会话里长出来的主题，手动激活、归档、合并或修正文案。"
         actions={<SearchInput value={query} onChange={setQuery} placeholder="搜索 Topic、摘要或别名" label="搜索 Topic" />}

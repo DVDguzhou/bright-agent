@@ -231,8 +231,6 @@ export default function LifeAgentManageHomePage() {
   return (
     <AdminPage>
       <PageHeader
-        backHref="/dashboard/life-agents"
-        backLabel="全部 Agent"
         eyebrow="Agent 工作台"
         title={profile.displayName}
         description={headline}

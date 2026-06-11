@@ -81,7 +81,6 @@ export default function LifeAgentSessionsPage() {
   return (
     <AdminPage>
       <PageHeader
-        backHref={`/dashboard/life-agents/${id}`}
         title="聊天记录"
         description="查看最近会话摘要，理解用户正在围绕哪些真实处境提问。"
         actions={<SearchInput value={query} onChange={setQuery} placeholder="搜索用户或会话摘要" label="搜索聊天记录" />}

@@ -301,7 +301,6 @@ export default function LifeAgentEditPage() {
   return (
     <AdminPage>
       <PageHeader
-        backHref={`/dashboard/life-agents/${id}`}
         title="编辑资料"
         description={`分组维护封面、音色、人设、示例内容和地域身份。当前资料完成度 ${completion}%。`}
         actions={

@@ -71,7 +71,6 @@ export default function BlindSpotsPage() {
   return (
     <AdminPage narrow>
       <PageHeader
-        backHref={`/dashboard/life-agents/${id}`}
         title="盲区问题"
         description="用户问过、但 Agent 缺少相关经验的问题。补充后会明显提升回答质量。"
       />

@@ -181,7 +181,6 @@ export default function LifeAgentFeedbackFeedPage() {
   return (
     <AdminPage>
       <PageHeader
-        backHref={`/dashboard/life-agents/${id}`}
         title="反馈诊断"
         description={`${payload.profile.displayName} 的用户评价、轻反馈和近期风险信号。`}
         actions={<SearchInput value={query} onChange={setQuery} placeholder="搜索反馈类型、摘要或评语" label="搜索反馈" />}

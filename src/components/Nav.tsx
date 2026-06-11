@@ -8,7 +8,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Bell,
   ChevronLeft,
-  Code2,
   LayoutDashboard,
   LogIn,
   LogOut,
@@ -52,12 +51,6 @@ const navLinks = [
   { href: "/life-agents", label: "发现", Icon: IconAgent },
   { href: "/dashboard/messages", label: "消息", Icon: IconMessages },
   { href: "/map", label: "地图", Icon: IconMap },
-];
-
-const dashboardNavLinks = [
-  { href: "/dashboard/life-agents", label: "我的 Agent", Icon: IconAgent },
-  { href: "/dashboard/messages", label: "消息", Icon: IconMessages },
-  { href: "/dashboard/api-keys", label: "API", Icon: Code2 },
 ];
 
 const CO_EDIT_PENDING_VOICE_STORAGE_PREFIX = "life-agent-co-edit-pending-voice:";
@@ -537,7 +530,6 @@ export function Nav() {
   const isLifeAgentCreatePage = pathname === "/life-agents/create";
   const isLifeAgentSearchPage = pathname === "/life-agents/search";
   const isDashboardMessagesPage = pathname === "/dashboard/messages";
-  const isDashboardNotificationsPage = pathname === "/dashboard/notifications";
   const isDashboardApiKeysPage = pathname === "/dashboard/api-keys";
   const isDashboardLifeAgentsListPage = pathname === "/dashboard/life-agents";
   const isDashboardLifeAgentPage = /^\/dashboard\/life-agents\/[^/]+\/?$/.test(pathname);
@@ -548,8 +540,8 @@ export function Nav() {
   const isDashboardLifeAgentCoEditPage = /^\/dashboard\/life-agents\/[^/]+\/co-edit\/?$/.test(pathname);
   const isDashboardLifeAgentTopicsPage = /^\/dashboard\/life-agents\/[^/]+\/topics\/?$/.test(pathname);
   const isDashboardLifeAgentBlindSpotsPage = /^\/dashboard\/life-agents\/[^/]+\/blind-spots\/?$/.test(pathname);
-  const isDashboardLifeAgentManageArea =
-    isDashboardLifeAgentsListPage ||
+  const isDashboardArea = pathname === "/dashboard" || pathname.startsWith("/dashboard/");
+  const dashboardBackTarget =
     isDashboardLifeAgentPage ||
     isDashboardLifeAgentEditPage ||
     isDashboardLifeAgentSalesPage ||
@@ -557,8 +549,10 @@ export function Nav() {
     isDashboardLifeAgentFeedbackPage ||
     isDashboardLifeAgentCoEditPage ||
     isDashboardLifeAgentTopicsPage ||
-    isDashboardLifeAgentBlindSpotsPage;
-  const isDashboardArea = pathname === "/dashboard" || pathname.startsWith("/dashboard/");
+    isDashboardLifeAgentBlindSpotsPage ||
+    isDashboardApiKeysPage
+      ? { href: "/dashboard/life-agents", label: "我的 Agent" }
+      : null;
   const isLicensesPage = pathname === "/licenses";
   const isMapPage = pathname === "/map";
   const isSupportChatPage = pathname === "/support/chat";
@@ -568,7 +562,7 @@ export function Nav() {
     isLicensesPage ||
     isMapPage ||
     isSupportChatPage;
-  const useBackArrowOnMobileTop = isLifeAgentDetailPage || isLifeAgentCreatePage;
+  const useBackArrowOnMobileTop = isLifeAgentDetailPage || isLifeAgentCreatePage || !!dashboardBackTarget;
   const hideGlobalBottomNav =
     isLifeAgentChatPage || isLifeAgentDetailPage || isLifeAgentCreatePage || isDashboardLifeAgentCoEditPage;
   const isDiscoverEntryPage = pathname === "/" || pathname === "/life-agents";
@@ -795,22 +789,16 @@ export function Nav() {
                   <Menu className="h-5 w-5" aria-hidden />
                 )}
               </button>
-              {isDashboardArea ? (
-                <div className="relative flex min-w-0 flex-1 items-center justify-center gap-1">
-                  {dashboardNavLinks.map((link) => {
-                    const active =
-                      link.href === "/dashboard/life-agents"
-                        ? isDashboardLifeAgentManageArea
-                        : pathname === link.href;
-                    return (
-                      <Link key={link.href} href={link.href} className={`relative ${feedTabClass(active)}`}>
-                        {link.label}
-                        {active ? (
-                          <span className="absolute bottom-0 left-1 right-1 h-[2px] rounded-full bg-signal-500" aria-hidden />
-                        ) : null}
-                      </Link>
-                    );
-                  })}
+              {dashboardBackTarget ? (
+                <Link
+                  href={dashboardBackTarget.href}
+                  className="min-w-0 flex-1 truncate text-center text-[15px] font-semibold text-ink"
+                >
+                  {dashboardBackTarget.label}
+                </Link>
+              ) : isDashboardArea ? (
+                <div className="min-w-0 flex-1 truncate text-center text-[15px] font-semibold text-ink">
+                  {isDashboardLifeAgentsListPage ? "我的 Agent" : isDashboardApiKeysPage ? "开放 API" : "后台"}
                 </div>
               ) : (
                 <div className="relative flex min-w-0 flex-1 items-center justify-center gap-2 sm:gap-4">
@@ -952,39 +940,19 @@ export function Nav() {
                 </Link>
               );
             })}
-            {user ? (
+            {dashboardBackTarget ? (
               <>
                 <span className="mx-1 hidden h-5 w-px bg-hairline xl:block" aria-hidden />
-                {dashboardNavLinks.map((link) => {
-                  const Icon = link.Icon;
-                  const active =
-                    link.href === "/dashboard/life-agents"
-                      ? isDashboardLifeAgentManageArea
-                      : pathname === link.href;
-                  return (
-                    <Link key={link.href} href={link.href} title={link.label}>
-                      <motion.span
-                        className={`relative flex items-center gap-1.5 rounded-md px-2 py-2 text-sm font-semibold transition-colors xl:gap-2 xl:px-3 ${
-                          active
-                            ? "bg-ink text-paper"
-                            : "text-ink-500 hover:bg-paper-200 hover:text-ink"
-                        }`}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                      >
-                        <Icon className="h-5 w-5 shrink-0" />
-                        <span className="hidden 2xl:inline">{link.label}</span>
-                        {active ? (
-                          <motion.span
-                            layoutId="dashboard-nav-underline"
-                            className="absolute inset-x-2 bottom-1 h-px bg-paper/80"
-                            transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
-                          />
-                        ) : null}
-                      </motion.span>
-                    </Link>
-                  );
-                })}
+                <Link href={dashboardBackTarget.href} title={dashboardBackTarget.label}>
+                  <motion.span
+                    className="relative flex items-center gap-1.5 rounded-md px-2 py-2 text-sm font-semibold text-ink-500 transition-colors hover:bg-paper-200 hover:text-ink xl:gap-2 xl:px-3"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <ChevronLeft className="h-5 w-5 shrink-0" />
+                    <span className="hidden xl:inline">{dashboardBackTarget.label}</span>
+                  </motion.span>
+                </Link>
               </>
             ) : null}
           </div>

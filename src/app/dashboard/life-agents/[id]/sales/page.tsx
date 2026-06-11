@@ -78,7 +78,6 @@ export default function LifeAgentSalesPage() {
   return (
     <AdminPage>
       <PageHeader
-        backHref={`/dashboard/life-agents/${id}`}
         title="互动记录"
         description={`${data.profile.displayName} 的用户提问与对话消耗情况。`}
         actions={

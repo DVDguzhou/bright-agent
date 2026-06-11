@@ -180,8 +180,6 @@ export default function ApiKeysPage() {
   return (
     <AdminPage>
       <PageHeader
-        backHref="/dashboard/life-agents"
-        backLabel="我的 Agent"
         eyebrow="开发者接口"
         title="开放 API"
         description="为每个人生 Agent 管理调用 Key 与调用数据。第三方集成需要先开启 Agent 的开放 API。"
