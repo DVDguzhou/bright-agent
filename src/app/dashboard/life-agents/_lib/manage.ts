@@ -96,6 +96,16 @@ export type ManageProfile = {
   }>;
 };
 
+export type FeedbackAlert = {
+  id: string;
+  title: string;
+  detail: string;
+  priority: "urgent" | "high" | "medium" | "low";
+  source: string;
+  topicId?: string;
+  action: string;
+};
+
 export type ManageData = {
   profile: ManageProfile;
   stats: {
@@ -153,16 +163,6 @@ export type ManageData = {
     updatedAt: string;
     buyer: { email: string; name: string | null };
   }>;
-};
-
-export type FeedbackAlert = {
-  id: string;
-  title: string;
-  detail: string;
-  priority: "urgent" | "high" | "medium" | "low";
-  source: string;
-  topicId?: string;
-  action: string;
 };
 
 export type FormState = {
@@ -229,6 +229,13 @@ export const RESPONSE_STYLE_OPTIONS = [
 ];
 export const REGION_OPTIONS = ["温州", "杭州", "宁波", "台州", "绍兴", "上海", "北京", "深圳", "广州", "东京", "大阪", "新加坡"];
 
+export function splitLooseList(value: string) {
+  return value
+    .split(/[,，\n]/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
 export function createFormState(profile: ManageProfile): FormState {
   return {
     displayName: profile.displayName,
@@ -264,10 +271,7 @@ export function createFormState(profile: ManageProfile): FormState {
 }
 
 export function regionsFromForm(form: FormState) {
-  return form.regions
-    .split(/[,，\n]/)
-    .map((item) => item.trim())
-    .filter(Boolean);
+  return splitLooseList(form.regions);
 }
 
 export function buildProfilePayload(form: FormState, voiceSamplePending?: string | null) {
@@ -276,7 +280,7 @@ export function buildProfilePayload(form: FormState, voiceSamplePending?: string
     .filter(Boolean);
   const displayName = form.displayName.trim();
   if (displayName.length < 1 || displayName.length > 10) {
-    return { error: "Agent 名称长度需为 1 到 10 个字" } as const;
+    return { error: "Agent 名称长度需要在 1 到 10 个字之间" } as const;
   }
   const regions = regionsFromForm(form);
   if (regions.length > 2) {
@@ -303,10 +307,7 @@ export function buildProfilePayload(form: FormState, voiceSamplePending?: string
       county: form.county || undefined,
       pricePerQuestion,
       mbti: form.mbti || undefined,
-      expertiseTags: form.expertiseTags
-        .split(/[,，\n]/)
-        .map((s) => s.trim())
-        .filter(Boolean),
+      expertiseTags: splitLooseList(form.expertiseTags),
       sampleQuestions: form.sampleQuestions
         .split("\n")
         .map((s) => s.trim())
@@ -396,7 +397,7 @@ export function extractTopKeywords(texts: string[], limit = 6) {
   const counter = new Map<string, number>();
   for (const text of texts) {
     const normalized = text
-      .replace(/[，。！？、,.!?/\\|()（）[\]{}:;"'“”‘’]/g, " ")
+      .replace(/[，。！？、,.!?/\\|()[\]{}:;"'“”‘’]/g, " ")
       .split(/\s+/)
       .map((item) => item.trim())
       .filter(Boolean);
@@ -458,19 +459,19 @@ export function buildOptimizationSuggestions(data: ManageData) {
     suggestions.push(`资料完成度约 ${completion}%，建议优先补齐封面、欢迎语、示范回答和知识条目。`);
   }
   if ((data.profile.exampleReplies ?? []).length < 2) {
-    suggestions.push("示范回答偏少，建议至少补 2 条，能明显提升像你本人的程度。");
+    suggestions.push("示范回答偏少，建议至少补 2 条，让 Agent 更像你本人。");
   }
   if ((data.profile.knowledgeEntries ?? []).length < 3) {
     suggestions.push("知识条目不足 3 条，用户更容易觉得回答不够具体。");
   }
   if ((data.profile.structuredFacts ?? []).length < 4) {
-    suggestions.push("结构化事实还偏少，建议补齐学校、职业、城市和关键经历名词，能明显降低编造。");
+    suggestions.push("结构化事实还偏少，建议补齐学校、职业、城市和关键经历名词。");
   }
   if ((data.profile.topicSummaries ?? []).length < 2) {
-    suggestions.push("Topic 摘要还偏少，建议继续补充可复用的经历主题，让检索更容易命中具体场景。");
+    suggestions.push("Topic 摘要还偏少，建议继续补充可复用的经历主题。");
   }
   if (feedback.notSpecific > feedback.helpful) {
-    suggestions.push("近期“不够具体”偏多，建议在对话调教里补充真实案例和决策过程。");
+    suggestions.push("近期“不够具体”偏多，建议补充真实案例、决策过程和示范回答。");
   }
   if ((feedback.factualError ?? 0) + (feedback.contradiction ?? 0) > 0) {
     suggestions.push("近期出现事实错误或前后矛盾，建议优先检查结构化事实和相关知识条目。");
@@ -479,9 +480,7 @@ export function buildOptimizationSuggestions(data: ManageData) {
     suggestions.push("还没有可用音色，补一个语音样本能提升陪伴感与转化。");
   }
   if ((data.stats?.blindSpotCount ?? 0) > 0) {
-    suggestions.push(
-      `有 ${data.stats.blindSpotCount} 个用户问题你的 Agent 答不好，建议查看「盲区问题」并补充相关经验。`,
-    );
+    suggestions.push(`有 ${data.stats.blindSpotCount} 个问题 Agent 答不好，建议查看盲区问题并补充相关经验。`);
   }
   if (!data.profile.apiInvokeEnabled) {
     suggestions.push("可以开启开放 API，让别人直接调用你的 Agent 并查看调用数据。");

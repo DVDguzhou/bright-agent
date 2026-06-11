@@ -4,7 +4,6 @@ import {
   severityFromFeedbackType,
 } from "@/lib/severity-style";
 
-/** 轻反馈类型中文标签（诊断/列表用） */
 export function feedbackTypeLabel(type: string): string {
   if (type === "helpful") return "有帮助";
   if (type === "not_specific") return "不够具体";
@@ -15,7 +14,6 @@ export function feedbackTypeLabel(type: string): string {
   return type;
 }
 
-/** 徽章 class：helpful 用 olive 正向样式，其余走克制分级 */
 export function feedbackTypeBadgeClass(type: string): string {
   if (type === "helpful") {
     return `rounded px-2 py-0.5 text-[11px] font-medium ${FEEDBACK_POSITIVE_BADGE}`;

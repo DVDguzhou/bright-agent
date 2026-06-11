@@ -2,9 +2,18 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { Plus } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { LifeAgentDiscoverCardGrid } from "@/components/LifeAgentDiscoverCardGrid";
 import type { LifeAgentListItem } from "@/lib/life-agent-feed-search";
+import {
+  AdminPage,
+  EmptyState,
+  LoadingBlock,
+  PageHeader,
+  SearchInput,
+  StatStrip,
+} from "@/components/dashboard/AgentAdminUI";
 
 type ProfileItem = {
   id: string;
@@ -76,24 +85,14 @@ export default function LifeAgentsManagePage() {
       setProfiles([]);
       return;
     }
-
     fetch("/api/life-agents/mine", { credentials: "include" })
       .then((r) => (r.ok ? r.json() : []))
-      .then((data) => {
-        setProfiles(Array.isArray(data) ? data : []);
-        setLoading(false);
-      })
-      .catch(() => {
-        setProfiles([]);
-        setLoading(false);
-      });
+      .then((data) => setProfiles(Array.isArray(data) ? data : []))
+      .catch(() => setProfiles([]))
+      .finally(() => setLoading(false));
   }, [user]);
 
-  const listItems = useMemo(
-    () => profiles.map((p) => mineToListItem(p)),
-    [profiles],
-  );
-
+  const listItems = useMemo(() => profiles.map((p) => mineToListItem(p)), [profiles]);
   const filteredItems = useMemo(() => {
     const keyword = query.trim().toLowerCase();
     if (!keyword) return listItems;
@@ -102,95 +101,89 @@ export default function LifeAgentsManagePage() {
     );
   }, [listItems, query]);
 
+  const totals = useMemo(
+    () => ({
+      published: profiles.filter((item) => item.published).length,
+      sessions: profiles.reduce((sum, item) => sum + (item.sessionCount ?? 0), 0),
+      knowledge: profiles.reduce((sum, item) => sum + (item.knowledgeCount ?? 0), 0),
+    }),
+    [profiles],
+  );
+
   if (authLoading) {
     return (
-      <div className="flex min-h-[50vh] items-center justify-center px-4">
-        <p className="text-sm text-ink-400">加载中…</p>
-      </div>
+      <AdminPage>
+        <LoadingBlock />
+      </AdminPage>
     );
   }
 
   if (!user) {
     return (
-      <div className="flex min-h-[50vh] items-center justify-center px-4">
-        <p className="text-sm text-ink-400">
-          请先 <Link href="/login" className="font-medium text-oxblood-600 hover:text-oxblood-700">登录</Link>{" "}
-          后管理你的人生 Agent。
-        </p>
-      </div>
+      <AdminPage narrow>
+        <EmptyState
+          title="请先登录"
+          description="登录后可以管理你创建的人生 Agent。"
+          action={<Link href="/login" className="btn-primary">去登录</Link>}
+        />
+      </AdminPage>
     );
   }
 
   return (
-    <div className="-mx-1 space-y-4 pb-4 max-lg:-mx-4 max-lg:min-h-[calc(100dvh-env(safe-area-inset-bottom)-4.25rem)] max-lg:bg-paper max-lg:px-1 max-lg:pb-24 sm:mx-0 sm:space-y-5">
-      <header className="flex items-center justify-between gap-3 px-4 pb-1 pt-[max(0.25rem,env(safe-area-inset-top))] sm:px-4">
-        <h1 className="font-serif text-3xl font-medium leading-tight tracking-tight text-ink">我的人生 Agent</h1>
-        {!loading && profiles.length === 0 ? (
-          <Link
-            href="/life-agents/create"
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-paper-200 text-ink transition active:bg-paper-300"
-            aria-label="新建 Agent"
-            title="新建 Agent"
-          >
-            <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24" aria-hidden>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-            </svg>
-          </Link>
-        ) : null}
-      </header>
+    <AdminPage>
+      <PageHeader
+        eyebrow="创作者后台"
+        title="我的人生 Agent"
+        description="维护你公开展示的人生经历、话题素材和互动记录。这里的视觉会尽量贴近发现页，让后台也像同一座经验档案馆。"
+        actions={
+          <>
+            <SearchInput value={query} onChange={setQuery} placeholder="搜索名称、标题或简介" label="搜索我的 Agent" />
+            <Link href="/life-agents/create" className="btn-primary">
+              <Plus className="h-4 w-4" aria-hidden />
+              新建 Agent
+            </Link>
+          </>
+        }
+      />
 
-      <div className="px-4 pb-1 sm:px-4">
-        <label className="sr-only">搜索我的 Agent</label>
-        <input
-          className="w-full rounded border border-hairline bg-paper px-4 py-2.5 text-[15px] text-ink outline-none transition placeholder:text-ink-300 focus:border-ink"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="搜索名称、标题或简介"
-          aria-label="搜索我的 Agent"
+      <div className="mb-5">
+        <StatStrip
+          columns={3}
+          items={[
+            { label: "全部 Agent", value: profiles.length, sub: "个" },
+            { label: "已发布", value: totals.published, sub: "个", tone: "olive" },
+            { label: "累计对话", value: totals.sessions, sub: "场", tone: "signal" },
+          ]}
         />
       </div>
 
-      <section className="px-1 sm:px-0">
-        {loading ? (
-          <LifeAgentDiscoverCardGrid
-            profiles={[]}
-            loading
-            emptyTitle=""
-            emptySubtitle=""
-            profileHref={(id) => `/dashboard/life-agents/${id}`}
-            windowed={false}
-          />
-        ) : profiles.length === 0 ? (
-          <div className="border-t border-hairline py-12 text-center">
-            <p className="text-base font-semibold text-ink">还没有人生 Agent</p>
-            <p className="mt-2 text-sm text-ink-400">创建第一个，开始分享你的经验并接受咨询。</p>
-            <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-              <Link
-                href="/life-agents/create"
-                className="inline-flex rounded-full bg-ink px-6 py-2.5 text-sm font-semibold text-paper active:opacity-90"
-              >
-                去创建
-              </Link>
-              <Link
-                href="/life-agents"
-                className="inline-flex rounded-full border border-hairline bg-paper px-6 py-2.5 text-sm font-semibold text-ink-600 active:bg-paper-50"
-              >
-                逛发现页
-              </Link>
-            </div>
-          </div>
-        ) : (
-          <LifeAgentDiscoverCardGrid
-            profiles={filteredItems}
-            loading={false}
-            emptyTitle="没有匹配的 Agent"
-            emptySubtitle="换个关键词试试，或清空搜索框查看全部。"
-            profileHref={(id) => `/dashboard/life-agents/${id}`}
-            windowed={false}
-            windowResetKey={query}
-          />
-        )}
-      </section>
-    </div>
+      {loading ? (
+        <LifeAgentDiscoverCardGrid
+          profiles={[]}
+          loading
+          emptyTitle=""
+          emptySubtitle=""
+          profileHref={(id) => `/dashboard/life-agents/${id}`}
+          windowed={false}
+        />
+      ) : profiles.length === 0 ? (
+        <EmptyState
+          title="还没有人生 Agent"
+          description="创建第一个 Agent，把你的真实经历整理成可以被咨询、被调用、被持续打磨的档案。"
+          action={<Link href="/life-agents/create" className="btn-primary">创建第一个 Agent</Link>}
+        />
+      ) : (
+        <LifeAgentDiscoverCardGrid
+          profiles={filteredItems}
+          loading={false}
+          emptyTitle="没有匹配的 Agent"
+          emptySubtitle="换个关键词试试，或者清空搜索查看全部。"
+          profileHref={(id) => `/dashboard/life-agents/${id}`}
+          windowed={false}
+          windowResetKey={query}
+        />
+      )}
+    </AdminPage>
   );
 }

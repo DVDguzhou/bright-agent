@@ -4,7 +4,15 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { fetchManageData, type ManageData } from "@/app/dashboard/life-agents/_lib/manage";
-import { SEVERITY_BADGE } from "@/lib/severity-style";
+import {
+  AdminPage,
+  EmptyState,
+  LoadingBlock,
+  PageHeader,
+  Panel,
+  StatStrip,
+  StatusBadge,
+} from "@/components/dashboard/AgentAdminUI";
 
 type BlindSpot = {
   id: string;
@@ -26,12 +34,14 @@ export default function BlindSpotsPage() {
     Promise.all([
       fetchManageData(id),
       fetch(`/api/life-agents/${id}/blind-spots`, { credentials: "include" }).then((r) => r.json()),
-    ]).then(([manage, blindData]) => {
-      if (manage.data) setData(manage.data);
-      if (blindData?.blindSpots) setSpots(blindData.blindSpots);
-      if (manage.error) setError(manage.error);
-      setLoading(false);
-    });
+    ])
+      .then(([manage, blindData]) => {
+        if (manage.data) setData(manage.data);
+        if (Array.isArray(blindData?.blindSpots)) setSpots(blindData.blindSpots);
+        if (manage.error) setError(manage.error);
+      })
+      .catch(() => setError("加载失败，请稍后重试"))
+      .finally(() => setLoading(false));
   }, [id]);
 
   async function resolveSpot(spotId: string) {
@@ -43,74 +53,68 @@ export default function BlindSpotsPage() {
   }
 
   if (loading) {
-    return <div className="mx-auto h-56 max-w-3xl animate-pulse bg-paper-100/60" />;
+    return (
+      <AdminPage narrow>
+        <LoadingBlock />
+      </AdminPage>
+    );
   }
 
   if (error || !data) {
     return (
-      <div className="mx-auto max-w-2xl px-4 py-16 text-center">
-        <p className="text-sm text-oxblood-500">{error ?? "加载失败"}</p>
-        <Link
-          href={`/dashboard/life-agents/${id}`}
-          className="mt-6 inline-flex rounded-full bg-ink px-6 py-2.5 text-sm font-medium text-paper"
-        >
-          返回工作台
-        </Link>
-      </div>
+      <AdminPage narrow>
+        <EmptyState title={error ?? "加载失败"} action={<Link href={`/dashboard/life-agents/${id}`} className="btn-primary">返回工作台</Link>} />
+      </AdminPage>
     );
   }
 
   return (
-    <div className="mx-auto max-w-3xl divide-y divide-hairline/30 max-lg:-mx-4 max-lg:px-4 max-lg:pb-24">
-      <section className="pb-4 pt-3">
-        <Link href={`/dashboard/life-agents/${id}`} className="text-sm font-medium text-ink-400 transition hover:text-ink">
-          ← 返回工作台
-        </Link>
-        <h1 className="mt-3 font-serif text-3xl font-medium tracking-tight text-ink">盲区问题</h1>
-        <p className="mt-1 text-sm text-ink-400">
-          以下问题用户问了但你的 Agent 缺少相关经验，补充后可以显著提升回答质量。
-        </p>
-      </section>
+    <AdminPage narrow>
+      <PageHeader
+        backHref={`/dashboard/life-agents/${id}`}
+        title="盲区问题"
+        description="用户问过、但 Agent 缺少相关经验的问题。补充后会明显提升回答质量。"
+      />
 
-      <section className="py-4">
-        {spots.length === 0 ? (
-          <div className="bg-olive-400/10 py-12 text-center">
-            <p className="text-lg font-semibold text-olive-600">暂无盲区问题</p>
-            <p className="mt-1 text-sm text-olive-600">说明你的 Agent 经验覆盖比较全面，继续保持！</p>
-          </div>
-        ) : (
-          <ul className="divide-y divide-hairline/30">
+      <div className="mb-5">
+        <StatStrip
+          columns={2}
+          items={[
+            { label: "待处理", value: spots.length, sub: "个", tone: spots.length > 0 ? "danger" : "olive" },
+            { label: "资料 Topic", value: data.profile.topicSummaries?.length ?? data.stats.topicCount ?? 0, sub: "个" },
+          ]}
+        />
+      </div>
+
+      {spots.length === 0 ? (
+        <EmptyState
+          title="暂无盲区问题"
+          description="说明当前 Agent 的经验覆盖比较完整。继续保持更新，新的盲区会自动出现在这里。"
+        />
+      ) : (
+        <Panel>
+          <ul className="divide-y divide-hairline/60">
             {spots.map((spot) => (
-              <li key={spot.id} className="py-6 first:pt-0">
-                <p className="text-[15px] font-medium leading-relaxed text-ink">&ldquo;{spot.userQuestion}&rdquo;</p>
-                <div className="mt-2 flex items-center gap-3">
-                  <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${SEVERITY_BADGE.medium}`}>
-                    置信度低
-                  </span>
-                  <span className="text-xs text-ink-300">
-                    {new Date(spot.createdAt).toLocaleDateString("zh-CN")}
-                  </span>
+              <li key={spot.id} className="px-4 py-5 sm:px-5">
+                <p className="text-[15px] font-medium leading-7 text-ink">“{spot.userQuestion}”</p>
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <StatusBadge tone="signal">置信度 {spot.confidence || "low"}</StatusBadge>
+                  {spot.route ? <StatusBadge>{spot.route}</StatusBadge> : null}
+                  <span className="text-xs text-ink-300">{new Date(spot.createdAt).toLocaleDateString("zh-CN")}</span>
                 </div>
-                <div className="mt-3 flex items-center gap-2">
-                  <Link
-                    href={`/dashboard/life-agents/${id}/co-edit`}
-                    className="rounded border border-hairline px-3 py-1.5 text-xs font-medium text-ink-600 transition-colors hover:border-ink hover:text-ink"
-                  >
+                <div className="mt-4 flex flex-wrap items-center gap-2">
+                  <Link href={`/dashboard/life-agents/${id}/co-edit`} className="btn-primary !min-h-10">
                     去补充经验
                   </Link>
-                  <button
-                    type="button"
-                    onClick={() => resolveSpot(spot.id)}
-                    className="rounded px-3 py-1.5 text-xs font-medium text-ink-400 transition-colors hover:text-ink"
-                  >
-                    已解决
+                  <button type="button" onClick={() => void resolveSpot(spot.id)} className="btn-secondary !min-h-10">
+                    标记已解决
                   </button>
                 </div>
               </li>
             ))}
           </ul>
-        )}
-      </section>
-    </div>
+        </Panel>
+      )}
+    </AdminPage>
   );
 }

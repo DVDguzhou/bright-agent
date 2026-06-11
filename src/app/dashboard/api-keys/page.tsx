@@ -3,17 +3,21 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { Code2, KeyRound, Plus, Power, Trash2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import {
+  AdminPage,
+  EmptyState,
+  LoadingBlock,
+  PageHeader,
+  Panel,
+  PanelHeader,
+  StatStrip,
+  StatusBadge,
+} from "@/components/dashboard/AgentAdminUI";
 
 type PlatformKey = { id: string; keyPrefix: string; name: string | null; createdAt: string };
-
-type InvokeKey = {
-  id: string;
-  keyPrefix: string;
-  name: string | null;
-  callCount: number;
-  createdAt: string;
-};
+type InvokeKey = { id: string; keyPrefix: string; name: string | null; callCount: number; createdAt: string };
 
 type AgentApiRow = {
   profileId: string;
@@ -29,43 +33,6 @@ type AgentApiRow = {
   keys: InvokeKey[];
 };
 
-function formatYuanFromFen(fen: number) {
-  return (fen / 100).toFixed(2);
-}
-
-function ApiKeysHeader({ onBack }: { onBack: () => void }) {
-  return (
-    <header className="sticky top-0 z-20 border-b border-hairline/80 bg-paper/95 px-4 pb-3 pt-[max(0.35rem,env(safe-area-inset-top))] backdrop-blur-md sm:px-0">
-      <div className="flex items-center justify-between gap-3">
-        <button
-          type="button"
-          onClick={onBack}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-paper-200 text-ink transition active:bg-paper-300"
-          aria-label="返回"
-          title="返回"
-        >
-          <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24" aria-hidden>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-        <div className="min-w-0 flex-1">
-          <h1 className="font-serif text-3xl font-medium leading-tight tracking-tight text-ink">开放 API</h1>
-        </div>
-        <Link
-          href="/life-agents"
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-paper-200 text-ink transition active:bg-paper-300"
-          aria-label="去找 Agent 聊天"
-          title="去找 Agent"
-        >
-          <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24" aria-hidden>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-          </svg>
-        </Link>
-      </div>
-    </header>
-  );
-}
-
 export default function ApiKeysPage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
@@ -77,7 +44,6 @@ export default function ApiKeysPage() {
   const [platformBusy, setPlatformBusy] = useState(false);
   const [newInvokeKey, setNewInvokeKey] = useState<{ profileId: string; key: string; name: string } | null>(null);
   const [busyProfileId, setBusyProfileId] = useState<string | null>(null);
-  const [pricingSavingId, setPricingSavingId] = useState<string | null>(null);
   const [openAgentId, setOpenAgentId] = useState<string | null>(null);
 
   const origin = useMemo(() => (typeof window !== "undefined" ? window.location.origin : ""), []);
@@ -127,30 +93,6 @@ export default function ApiKeysPage() {
     }
   };
 
-  const savePricing = async (a: AgentApiRow, follow: boolean, centsStr: string) => {
-    const cents = Math.max(0, Math.floor(Number(centsStr) || 0));
-    setPricingSavingId(a.profileId);
-    try {
-      const res = await fetch(`/api/life-agents/${a.profileId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(
-          follow
-            ? { apiPriceFollowsConsultation: true }
-            : { apiPriceFollowsConsultation: false, apiPricePerCallCents: cents },
-        ),
-      });
-      if (!res.ok) {
-        alert("收费策略保存失败");
-        return;
-      }
-      loadOverview();
-    } finally {
-      setPricingSavingId(null);
-    }
-  };
-
   const createInvokeKey = async (profileId: string, name: string) => {
     setBusyProfileId(profileId);
     try {
@@ -173,7 +115,7 @@ export default function ApiKeysPage() {
   };
 
   const revokeInvokeKey = async (profileId: string, keyId: string) => {
-    if (!confirm("确定吊销该调用 Key？")) return;
+    if (!confirm("确定吊销这个调用 Key 吗？")) return;
     setBusyProfileId(profileId);
     try {
       await fetch(`/api/life-agents/${profileId}/invoke-keys/${keyId}`, {
@@ -205,210 +147,169 @@ export default function ApiKeysPage() {
   };
 
   const revokePlatformKey = async (id: string) => {
-    if (!confirm("确定吊销此平台 Key？")) return;
+    if (!confirm("确定吊销此平台 Key 吗？")) return;
     await fetch(`/api/user-api-keys/${id}`, { method: "DELETE", credentials: "include" });
     loadPlatformKeys();
   };
 
+  const totals = useMemo(
+    () => ({
+      enabled: agents.filter((agent) => agent.apiInvokeEnabled).length,
+      calls: agents.reduce((sum, agent) => sum + agent.apiTotalCalls, 0),
+      sessions: agents.reduce((sum, agent) => sum + agent.apiSessionCount, 0),
+    }),
+    [agents],
+  );
+
   if (authLoading || !user) {
     return (
-      <div className="mx-auto max-w-2xl bg-paper pb-6 max-lg:-mx-4 max-lg:min-h-[calc(100dvh-env(safe-area-inset-bottom)-4.25rem)] max-lg:pb-24 lg:pb-8">
-        <ApiKeysHeader
-          onBack={() => {
-            if (window.history.length > 1) router.back();
-            else router.push("/dashboard");
-          }}
-        />
-        <div className="flex min-h-[50vh] items-center justify-center px-4 sm:px-0">
-          <p className="text-sm text-ink-400">
-            {authLoading ? (
-              "加载中…"
-            ) : (
-              <>
-                请先{" "}
-                <Link href="/login" className="text-oxblood-600 hover:text-oxblood-700">
-                  登录
-                </Link>
-                后管理 API Key。
-              </>
-            )}
-          </p>
-        </div>
-      </div>
+      <AdminPage narrow>
+        {authLoading ? (
+          <LoadingBlock />
+        ) : (
+          <EmptyState
+            title="请先登录"
+            description="登录后可以管理开放 API 和调用 Key。"
+            action={<Link href="/login" className="btn-primary">去登录</Link>}
+          />
+        )}
+      </AdminPage>
     );
   }
 
   return (
-    <div className="mx-auto max-w-2xl bg-paper pb-6 max-lg:-mx-4 max-lg:min-h-[calc(100dvh-env(safe-area-inset-bottom)-4.25rem)] max-lg:pb-24 lg:pb-8">
-      <ApiKeysHeader
-        onBack={() => {
-          if (window.history.length > 1) router.back();
-          else router.push("/dashboard");
-        }}
+    <AdminPage>
+      <PageHeader
+        backHref="/dashboard/life-agents"
+        backLabel="我的 Agent"
+        eyebrow="开发者接口"
+        title="开放 API"
+        description="为每个人生 Agent 管理调用 Key 与调用数据。第三方集成需要先开启 Agent 的开放 API。"
+        actions={<button type="button" onClick={() => router.refresh()} className="btn-secondary">刷新</button>}
       />
 
-      <div className="px-4 pb-3 sm:px-0">
-        <p className="text-[15px] leading-relaxed text-ink-400">
-          为每个人生 Agent 管理调用 Key 与调用数据。开放 API 供第三方集成，当前展示累计调用与会话统计。
-        </p>
+      <div className="mb-5">
+        <StatStrip
+          columns={3}
+          items={[
+            { label: "已开放 Agent", value: totals.enabled, sub: "个", tone: "olive" },
+            { label: "API 回复", value: totals.calls, sub: "次", tone: "signal" },
+            { label: "API 会话", value: totals.sessions, sub: "个" },
+          ]}
+        />
       </div>
 
-      <div className="divide-y divide-hairline/30 px-4 sm:px-0">
-      <section className="py-4">
-        <h2 className="font-serif text-xl font-medium tracking-tight text-ink">人生 Agent 调用 Key</h2>
-        <p className="mt-1 text-xs text-ink-400">需先开启「开放 API」并上架后，第三方才可凭 Key 调用 JSON 接口。</p>
-        <div className="mt-4">
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
+        <Panel>
+          <PanelHeader title="人生 Agent 调用 Key" description="开启后，第三方可以用专用 Key 调用对应 Agent 的 JSON/SSE 接口。" />
           {overviewLoading ? (
-            <p className="py-8 text-center text-ink-400">加载中…</p>
+            <div className="p-5">
+              <LoadingBlock />
+            </div>
           ) : agents.length === 0 ? (
-            <div className="border border-dashed border-hairline bg-paper-50/80 px-4 py-10 text-center text-sm text-ink-500">
-              你还没有创建人生 Agent。
-              <Link href="/life-agents/create" className="ml-1 font-medium text-oxblood-600 hover:text-oxblood-700">
-                去创建
-              </Link>
+            <div className="p-5">
+              <EmptyState
+                title="你还没有创建人生 Agent"
+                action={<Link href="/life-agents/create" className="btn-primary">去创建</Link>}
+              />
             </div>
           ) : (
-            <ul className="divide-y divide-hairline/30">
-              {agents.map((a) => {
-                const expanded = openAgentId === a.profileId;
-                const busy = busyProfileId === a.profileId;
+            <ul className="divide-y divide-hairline/60">
+              {agents.map((agent) => {
+                const expanded = openAgentId === agent.profileId;
+                const busy = busyProfileId === agent.profileId;
                 return (
-                  <li key={a.profileId} className="py-4 first:pt-0">
+                  <li key={agent.profileId} className="px-4 py-4 sm:px-5">
                     <button
                       type="button"
-                      onClick={() => setOpenAgentId(expanded ? null : a.profileId)}
-                      className="flex w-full items-center justify-between gap-3 text-left transition active:opacity-80"
+                      onClick={() => setOpenAgentId(expanded ? null : agent.profileId)}
+                      className="flex w-full items-start justify-between gap-3 text-left"
                     >
-                      <div className="min-w-0">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="truncate font-medium text-ink">{a.displayName}</span>
-                          {!a.published && (
-                            <span className="shrink-0 rounded-full bg-paper-300 px-2 py-0.5 text-[11px] font-medium text-ink">
-                              未上架
-                            </span>
-                          )}
-                          {a.apiInvokeEnabled ? (
-                            <span className="shrink-0 rounded-full bg-olive-400/20 px-2 py-0.5 text-[11px] font-medium text-olive-600">
-                              已开放
-                            </span>
-                          ) : (
-                            <span className="shrink-0 rounded-full bg-paper-300/80 px-2 py-0.5 text-[11px] font-medium text-ink-500">
-                              未开放
-                            </span>
-                          )}
-                        </div>
-                        <p className="mt-0.5 text-xs text-ink-400">
-                          累计 API 回复 {a.apiTotalCalls} 次 · 会话 {a.apiSessionCount} 个
-                        </p>
-                      </div>
-                      <span className="shrink-0 text-ink-300">{expanded ? "▲" : "▼"}</span>
+                      <span className="min-w-0">
+                        <span className="flex flex-wrap items-center gap-2">
+                          <span className="font-medium text-ink">{agent.displayName}</span>
+                          <StatusBadge tone={agent.published ? "olive" : "neutral"}>{agent.published ? "已上架" : "未上架"}</StatusBadge>
+                          <StatusBadge tone={agent.apiInvokeEnabled ? "signal" : "neutral"}>
+                            {agent.apiInvokeEnabled ? "已开放" : "未开放"}
+                          </StatusBadge>
+                        </span>
+                        <span className="mt-1 block text-xs text-ink-400">
+                          API 回复 {agent.apiTotalCalls} 次 · 会话 {agent.apiSessionCount} 个 · Key {agent.keys.length} 个
+                        </span>
+                      </span>
+                      <span className="text-sm text-ink-300">{expanded ? "收起" : "展开"}</span>
                     </button>
+
                     {expanded ? (
-                      <div className="mt-4 space-y-4 border-t border-hairline/30 pt-4">
-                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                          <label className="flex cursor-pointer items-center gap-3">
-                            <input
-                              type="checkbox"
-                              className="h-4 w-4 rounded border-hairline text-oxblood-600 focus:border-ink focus:outline-none"
-                              checked={a.apiInvokeEnabled}
-                              disabled={busy}
-                              onChange={(e) => patchAgent(a.profileId, { apiInvokeEnabled: e.target.checked })}
-                            />
-                            <span className="text-sm text-ink-700">允许通过专用 Key 调用该 Agent（开放 API）</span>
-                          </label>
+                      <div className="mt-4 space-y-4 border-t border-hairline/60 pt-4">
+                        <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-hairline/70 bg-paper px-4 py-3">
+                          <input
+                            type="checkbox"
+                            className="h-4 w-4 rounded border-hairline"
+                            checked={agent.apiInvokeEnabled}
+                            disabled={busy}
+                            onChange={(e) => void patchAgent(agent.profileId, { apiInvokeEnabled: e.target.checked })}
+                          />
+                          <span className="text-sm font-medium text-ink">
+                            允许通过专用 Key 调用该 Agent
+                          </span>
+                        </label>
+
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          <div className="rounded border border-hairline/60 bg-paper px-3 py-3">
+                            <p className="text-xs text-ink-400">API 成功回复</p>
+                            <p className="mt-1 text-2xl font-semibold tabular-nums text-ink">{agent.apiTotalCalls}</p>
+                          </div>
+                          <div className="rounded border border-hairline/60 bg-paper px-3 py-3">
+                            <p className="text-xs text-ink-400">API 会话</p>
+                            <p className="mt-1 text-2xl font-semibold tabular-nums text-ink">{agent.apiSessionCount}</p>
+                          </div>
                         </div>
 
-                        <AgentPricingForm agent={a} />
-
-                        <div className="grid gap-4 lg:grid-cols-2">
-                          <div className="rounded border border-hairline/50 bg-paper-50/60 p-4">
-                            <h3 className="text-sm font-semibold text-ink-700">数据概览</h3>
-                            <dl className="mt-3 grid grid-cols-2 gap-3 text-sm">
-                              <div>
-                                <dt className="text-ink-400">API 成功回复次数</dt>
-                                <dd className="font-mono text-lg font-semibold text-ink">{a.apiTotalCalls}</dd>
-                              </div>
-                              <div>
-                                <dt className="text-ink-400">API 会话数</dt>
-                                <dd className="font-mono text-lg font-semibold text-ink">{a.apiSessionCount}</dd>
-                              </div>
-                              <div className="col-span-2">
-                                <dt className="text-ink-400">各 Key 调用次数</dt>
-                                <dd className="mt-1 text-ink-600">
-                                  {a.keys.length === 0
-                                    ? "暂无 Key"
-                                    : a.keys.map((k) => (
-                                        <span key={k.id} className="mr-3 inline-block">
-                                          {(k.name || "未命名") + ": "}
-                                          <span className="font-mono">{k.callCount}</span>
-                                        </span>
-                                      ))}
-                                </dd>
-                              </div>
-                            </dl>
+                        <div className="rounded border border-hairline/60 bg-ink p-3 text-paper-50">
+                          <div className="mb-2 flex items-center gap-2 text-xs font-medium text-paper-200">
+                            <Code2 className="h-3.5 w-3.5" />
+                            SSE 调用示例
                           </div>
-                          <div className="rounded border border-hairline/50 bg-paper-50/60 p-4">
-                            <h3 className="text-sm font-semibold text-ink-700">调用示例（SSE 流式）</h3>
-                            <pre className="mt-2 max-h-40 overflow-auto rounded-lg bg-ink/90 p-3 text-[11px] leading-relaxed text-paper-100">
-                              {`curl -N -s -X POST "${origin || "https://你的域名"}/api/life-agents/${a.profileId}/api/chat" \\
+                          <pre className="overflow-auto text-[11px] leading-relaxed">
+{`curl -N -s -X POST "${origin || "https://你的域名"}/api/life-agents/${agent.profileId}/api/chat" \\
   -H "Authorization: Bearer lai_sk_你的密钥" \\
   -H "Content-Type: application/json" \\
   -d '{"message":"你好","sessionId":""}'`}
-                            </pre>
-                            <p className="mt-2 text-[11px] text-ink-400">
-                              成功时为 <span className="font-mono text-ink-500">text/event-stream</span>：
-                              <span className="font-mono text-ink-500"> event: content</span> 推送增量正文，
-                              <span className="font-mono text-ink-500"> event: done</span> 携带完整{" "}
-                              <span className="font-mono text-ink-500">reply</span>、
-                              <span className="font-mono text-ink-500">sessionId</span>、
-                              <span className="font-mono text-ink-500">references</span> 等。curl 请加{" "}
-                              <span className="font-mono text-ink-500">-N</span> 以免缓冲看不到流式输出。
-                              首次不传 sessionId 会新建会话；后续传入上次 done 里的 sessionId 可连续对话。
-                            </p>
-                          </div>
+                          </pre>
                         </div>
 
                         <div>
-                          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                            <h3 className="text-sm font-semibold text-ink-700">调用 Key 列表</h3>
-                            <InvokeKeyCreateForm
-                              disabled={busy || !a.apiInvokeEnabled}
-                              onCreate={(name) => createInvokeKey(a.profileId, name)}
-                            />
+                          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                            <h3 className="text-sm font-semibold text-ink">调用 Key 列表</h3>
+                            <InvokeKeyCreateForm disabled={busy || !agent.apiInvokeEnabled} onCreate={(name) => void createInvokeKey(agent.profileId, name)} />
                           </div>
-                          {newInvokeKey?.profileId === a.profileId && (
-                            <div className="mb-3 rounded border border-olive-400/60 bg-olive-400/10 p-3 text-sm">
-                              <p className="font-medium text-olive-600">已创建，请立即复制（仅显示一次）</p>
-                              <code className="mt-2 block break-all rounded border border-hairline/50 bg-paper px-2 py-2 font-mono text-xs text-ink">
-                                {newInvokeKey.key}
-                              </code>
-                              <button
-                                type="button"
-                                onClick={() => setNewInvokeKey(null)}
-                                className="mt-2 text-xs text-olive-600 underline"
-                              >
-                                已保存，关闭
-                              </button>
-                            </div>
-                          )}
-                          {a.keys.length === 0 ? (
+                          {newInvokeKey?.profileId === agent.profileId ? (
+                            <KeyReveal
+                              title="已创建，请立即保存"
+                              value={newInvokeKey.key}
+                              onClose={() => setNewInvokeKey(null)}
+                            />
+                          ) : null}
+                          {agent.keys.length === 0 ? (
                             <p className="text-sm text-ink-400">暂无 Key。开启开放 API 后可创建。</p>
                           ) : (
-                            <ul className="divide-y divide-hairline/50 border border-hairline/50">
-                              {a.keys.map((k) => (
-                                <li key={k.id} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2.5 text-sm">
+                            <ul className="divide-y divide-hairline/60 rounded border border-hairline/60">
+                              {agent.keys.map((key) => (
+                                <li key={key.id} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2.5 text-sm">
                                   <div className="min-w-0">
-                                    <div className="font-mono text-ink-600">{k.keyPrefix}</div>
-                                    <div className="text-xs text-ink-400">
-                                      {k.name || "未命名"} · 调用 {k.callCount} 次 · {k.createdAt.slice(0, 10)}
-                                    </div>
+                                    <p className="font-mono text-ink">{key.keyPrefix}</p>
+                                    <p className="text-xs text-ink-400">
+                                      {key.name || "未命名"} · 调用 {key.callCount} 次 · {key.createdAt.slice(0, 10)}
+                                    </p>
                                   </div>
                                   <button
                                     type="button"
                                     disabled={busy}
-                                    onClick={() => revokeInvokeKey(a.profileId, k.id)}
-                                    className="shrink-0 text-xs font-medium text-oxblood-600 hover:text-oxblood-700 disabled:opacity-50"
+                                    onClick={() => void revokeInvokeKey(agent.profileId, key.id)}
+                                    className="inline-flex items-center gap-1 text-xs font-medium text-oxblood-600 hover:text-oxblood-700 disabled:opacity-50"
                                   >
+                                    <Trash2 className="h-3.5 w-3.5" />
                                     吊销
                                   </button>
                                 </li>
@@ -423,82 +324,72 @@ export default function ApiKeysPage() {
               })}
             </ul>
           )}
-        </div>
-      </section>
+        </Panel>
 
-      <section className="py-4">
-        <h2 className="font-serif text-xl font-medium tracking-tight text-ink">平台 Key（方法二）</h2>
-        <p className="mt-1 text-xs text-ink-400">
-          <code className="rounded bg-paper-200 px-1 py-0.5 text-[11px]">sk_live_</code>{" "}
-          用于调用平台 Agent invoke 等接口，与人生 Agent 专用 Key 不同。
-        </p>
-        <div className="mt-4 space-y-4">
-          <form onSubmit={createPlatformKey} className="flex flex-col gap-3 sm:flex-row">
-            <input
-              value={platformName}
-              onChange={(e) => setPlatformName(e.target.value)}
-              placeholder="Key 名称（可选）"
-              className="flex-1 rounded border border-hairline bg-paper px-4 py-2.5 text-sm outline-none focus:border-ink"
-            />
-            <button
-              type="submit"
-              disabled={platformBusy}
-              className="rounded bg-ink px-6 py-2.5 text-sm font-medium text-paper hover:bg-ink-700 disabled:opacity-50"
-            >
-              {platformBusy ? "创建中…" : "创建平台 Key"}
-            </button>
-          </form>
-          {newPlatformKey && (
-            <div className="rounded border border-olive-400/60 bg-olive-400/10 p-4 text-sm">
-              <p className="font-medium text-olive-600">请妥善保存（仅显示一次）</p>
-              <code className="mt-2 block break-all rounded border border-hairline/50 bg-paper p-2 font-mono text-xs">
-                {newPlatformKey.key}
-              </code>
-              <button type="button" onClick={() => setNewPlatformKey(null)} className="mt-2 text-xs text-olive-600 underline">
-                已保存，关闭
-              </button>
+        <div className="space-y-5">
+          <Panel>
+            <PanelHeader title="平台 Key" description="用于调用平台级接口，与某个 Agent 的专用 Key 不同。" />
+            <div className="space-y-4 p-4 sm:p-5">
+              <form onSubmit={createPlatformKey} className="flex flex-col gap-2">
+                <input
+                  value={platformName}
+                  onChange={(e) => setPlatformName(e.target.value)}
+                  placeholder="Key 名称，可选"
+                  className="input-shell text-sm"
+                />
+                <button type="submit" disabled={platformBusy} className="btn-primary">
+                  <Plus className="h-4 w-4" />
+                  {platformBusy ? "创建中" : "创建平台 Key"}
+                </button>
+              </form>
+              {newPlatformKey ? (
+                <KeyReveal title="请妥善保存，只显示一次" value={newPlatformKey.key} onClose={() => setNewPlatformKey(null)} />
+              ) : null}
+              {platformKeys.length === 0 ? (
+                <p className="text-sm text-ink-400">暂无平台 Key</p>
+              ) : (
+                <ul className="divide-y divide-hairline/60 rounded border border-hairline/60">
+                  {platformKeys.map((key) => (
+                    <li key={key.id} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2.5 text-sm">
+                      <span className="font-mono text-ink">{key.keyPrefix}</span>
+                      <span className="text-ink-400">{key.name || "未命名"}</span>
+                      <button type="button" onClick={() => void revokePlatformKey(key.id)} className="text-xs font-medium text-oxblood-600 hover:text-oxblood-700">
+                        吊销
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
-          )}
-          {platformKeys.length === 0 ? (
-            <p className="text-sm text-ink-400">暂无平台 Key</p>
-          ) : (
-            <ul className="divide-y divide-hairline/50 border border-hairline/50">
-              {platformKeys.map((k) => (
-                <li key={k.id} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2.5 text-sm">
-                  <span className="font-mono text-ink-500">{k.keyPrefix}</span>
-                  <span className="text-ink-400">{k.name || "未命名"}</span>
-                  <button
-                    type="button"
-                    onClick={() => revokePlatformKey(k.id)}
-                    className="text-xs font-medium text-oxblood-600 hover:text-oxblood-700"
-                  >
-                    吊销
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
+          </Panel>
+
+          <Panel className="p-4 sm:p-5">
+            <div className="flex items-start gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-signal-100 text-signal-800">
+                <Power className="h-5 w-5" />
+              </span>
+              <div>
+                <p className="font-semibold text-ink">上线前检查</p>
+                <p className="mt-1 text-sm leading-6 text-ink-500">
+                  先发布 Agent，再开启开放 API，最后创建专用 Key。新建的密钥只显示一次。
+                </p>
+              </div>
+            </div>
+          </Panel>
         </div>
-      </section>
       </div>
-    </div>
+    </AdminPage>
   );
 }
 
-function AgentPricingForm({ agent }: { agent: AgentApiRow }) {
+function KeyReveal({ title, value, onClose }: { title: string; value: string; onClose: () => void }) {
   return (
-    <div className="rounded border border-hairline/50 bg-paper p-4">
-      {/* 原「对外收费策略」表单，审核期暂隐藏
-      <h3 className="text-sm font-semibold text-ink-700">对外收费策略（公示单价，单位：分/次）</h3>
-      <p className="mt-1 text-xs text-ink-400">
-        当前单次咨询定价 {formatYuanFromFen(agent.pricePerQuestion)} 元（{agent.pricePerQuestion} 分）。API 可单独定价或跟随咨询价；实际扣费与分账以后台规则为准。
-      </p>
-      ...
-      */}
-      <h3 className="text-sm font-semibold text-ink-700">调用统计</h3>
-      <p className="mt-1 text-xs text-ink-400">
-        当前累计 API 回复 {agent.apiTotalCalls} 次，活跃会话 {agent.apiSessionCount} 个。对外收费策略配置审核期暂不展示。
-      </p>
+    <div className="rounded-lg border border-olive-400/40 bg-olive-400/10 p-3 text-sm">
+      <p className="font-medium text-olive-700">{title}</p>
+      <code className="mt-2 block break-all rounded border border-hairline/60 bg-paper px-2 py-2 font-mono text-xs text-ink">{value}</code>
+      <button type="button" onClick={onClose} className="mt-2 text-xs font-medium text-olive-700 underline">
+        已保存，关闭
+      </button>
     </div>
   );
 }
@@ -519,13 +410,10 @@ function InvokeKeyCreateForm({ disabled, onCreate }: { disabled: boolean; onCrea
         onChange={(e) => setName(e.target.value)}
         placeholder="Key 备注"
         disabled={disabled}
-        className="w-40 rounded border border-hairline px-3 py-1.5 text-xs outline-none focus:border-ink sm:w-48"
+        className="input-shell !min-h-9 w-40 text-xs sm:w-48"
       />
-      <button
-        type="submit"
-        disabled={disabled}
-        className="rounded bg-ink px-3 py-1.5 text-xs font-medium text-paper hover:bg-ink-700 disabled:opacity-50"
-      >
+      <button type="submit" disabled={disabled} className="btn-secondary !min-h-9 !px-3 !py-1.5 text-xs">
+        <KeyRound className="h-3.5 w-3.5" />
         新建 Key
       </button>
     </form>

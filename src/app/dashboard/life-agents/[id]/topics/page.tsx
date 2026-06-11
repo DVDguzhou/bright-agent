@@ -3,8 +3,18 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
-import { StatCell } from "@/components/dashboard/StatCell";
 import { FieldInfoButton } from "@/components/FieldInfoButton";
+import {
+  AdminPage,
+  EmptyState,
+  LoadingBlock,
+  PageHeader,
+  Panel,
+  SearchInput,
+  SegmentedControl,
+  StatStrip,
+  StatusBadge,
+} from "@/components/dashboard/AgentAdminUI";
 
 type TopicItem = {
   id: string;
@@ -32,12 +42,8 @@ type TopicItem = {
   };
 };
 
-type LoadState = {
-  topics: TopicItem[];
-  loading: boolean;
-  error: string | null;
-};
-
+type LoadState = { topics: TopicItem[]; loading: boolean; error: string | null };
+type FilterKey = "all" | "active" | "candidate" | "archived";
 type EditState = Record<
   string,
   {
@@ -51,27 +57,14 @@ type EditState = Record<
   }
 >;
 
-function statusTextClass(status?: string) {
-  switch (status) {
-    case "active":
-      return "text-olive-600";
-    case "candidate":
-      return "text-ink-600";
-    case "archived":
-      return "text-ink-500";
-    default:
-      return "text-ink-600";
-  }
-}
-
 const TOPIC_STATUS_INFO = {
   title: "Topic 状态有什么用？",
   ariaLabel: "Topic 状态说明",
   body: [
-    "状态决定这个 Topic 会不会被 Agent 用在对话里。",
-    "candidate（待审核）：系统自动提取，还没确认，建议先人工看一眼。",
-    "active（已启用）：确认可用，用户提问时会参与检索匹配。",
-    "archived（已归档）：不再使用；归并到其他 Topic 后也会变成此状态。",
+    "状态决定这个 Topic 会不会被 Agent 用在对话检索里。",
+    "candidate：系统自动提取，建议先人工看一眼。",
+    "active：确认可用，用户提问时会参与检索匹配。",
+    "archived：不再使用，归并到其他 Topic 后也会变成此状态。",
   ],
 } as const;
 
@@ -82,7 +75,7 @@ const TOPIC_CONFIDENCE_INFO = {
     "置信度表示你对这条 Topic 摘要有多少把握。",
     "low：不太确定，可能是推断或待核实。",
     "medium：一般确定，适合大多数自动生成的主题。",
-    "high：很确定、有充分依据；Agent 检索时会优先引用，回答也会更笃定。",
+    "high：很确定且有充分依据，检索时可以优先引用。",
   ],
 } as const;
 
@@ -110,6 +103,12 @@ function topicMatchesQuery(topic: TopicItem, edit: EditState[string] | undefined
   return haystack.includes(keyword);
 }
 
+function statusTone(status?: string): "neutral" | "signal" | "olive" {
+  if (status === "active") return "olive";
+  if (status === "candidate") return "signal";
+  return "neutral";
+}
+
 export default function LifeAgentTopicsPage() {
   const params = useParams();
   const pathname = usePathname();
@@ -121,13 +120,13 @@ export default function LifeAgentTopicsPage() {
   const [edits, setEdits] = useState<EditState>({});
   const [savingId, setSavingId] = useState<string | null>(null);
   const [mergingId, setMergingId] = useState<string | null>(null);
-  const [filter, setFilter] = useState<"all" | "active" | "candidate" | "archived">("all");
+  const [filter, setFilter] = useState<FilterKey>("all");
 
-  const clearSearch = () => {
+  const setQuery = (value: string) => {
     const params = new URLSearchParams(searchParams.toString());
-    params.delete("q");
-    const qs = params.toString();
-    router.replace(`${pathname}${qs ? `?${qs}` : ""}`, { scroll: false });
+    if (value.trim()) params.set("q", value);
+    else params.delete("q");
+    router.replace(`${pathname}${params.toString() ? `?${params.toString()}` : ""}`, { scroll: false });
   };
 
   const load = useCallback(async () => {
@@ -169,14 +168,10 @@ export default function LifeAgentTopicsPage() {
   const filteredTopics = useMemo(() => {
     const keyword = query.trim().toLowerCase();
     const byStatus = filter === "all" ? state.topics : state.topics.filter((topic) => topic.status === filter);
-    if (!keyword) return byStatus;
     return byStatus.filter((topic) => topicMatchesQuery(topic, edits[topic.id], keyword));
   }, [filter, query, state.topics, edits]);
 
-  const mergeTargets = useMemo(
-    () => state.topics.filter((topic) => topic.status !== "archived"),
-    [state.topics],
-  );
+  const mergeTargets = useMemo(() => state.topics.filter((topic) => topic.status !== "archived"), [state.topics]);
 
   const updateEdit = (topicId: string, patch: Partial<EditState[string]>) => {
     setEdits((prev) => ({
@@ -253,161 +248,106 @@ export default function LifeAgentTopicsPage() {
   };
 
   if (state.loading && state.topics.length === 0) {
-    return <div className="mx-auto h-56 max-w-4xl animate-pulse bg-paper-100/60" />;
+    return (
+      <AdminPage>
+        <LoadingBlock />
+      </AdminPage>
+    );
   }
 
   if (state.error && state.topics.length === 0) {
     return (
-      <div className="mx-auto max-w-2xl px-4 py-16 text-center">
-        <p className="text-[15px] text-ink-400">{state.error}</p>
-        <Link href={`/dashboard/life-agents/${id}`} className="mt-6 inline-flex rounded-full bg-ink px-6 py-2.5 text-sm font-medium text-paper">
-          返回工作台
-        </Link>
-      </div>
+      <AdminPage narrow>
+        <EmptyState title={state.error} action={<Link href={`/dashboard/life-agents/${id}`} className="btn-primary">返回工作台</Link>} />
+      </AdminPage>
     );
   }
 
   return (
-    <div className="mx-auto max-w-4xl divide-y divide-hairline/30 max-lg:-mx-4 max-lg:px-4 max-lg:pb-24">
-      <section className="pb-4 pt-3">
-        <Link href={`/dashboard/life-agents/${id}`} className="text-sm font-medium text-ink-400 transition hover:text-ink">
-          ← 返回工作台
-        </Link>
-        <h1 className="mt-3 font-serif text-3xl font-medium tracking-tight text-ink">Topic 管理</h1>
-        <p className="mt-1 text-sm text-ink-400">审核从知识和长会话里长出来的主题，手动激活、归档、合并或修正文案。</p>
-        <div className="mt-4 flex flex-wrap items-center gap-2">
-          {(["all", "active", "candidate", "archived"] as const).map((item) => (
-            <button
-              key={item}
-              type="button"
-              onClick={() => setFilter(item)}
-              className={`rounded-full px-4 py-2 text-sm font-medium ${
-                filter === item ? "bg-ink text-paper" : "bg-paper-200 text-ink-500"
-              }`}
-            >
-              {item === "all" ? "全部" : item}
-            </button>
-          ))}
-          {query.trim() ? (
-            <span className="text-sm text-ink-400">找到 {filteredTopics.length} 个</span>
-          ) : null}
-        </div>
-      </section>
+    <AdminPage>
+      <PageHeader
+        backHref={`/dashboard/life-agents/${id}`}
+        title="Topic 管理"
+        description="审核从知识和长会话里长出来的主题，手动激活、归档、合并或修正文案。"
+        actions={<SearchInput value={query} onChange={setQuery} placeholder="搜索 Topic、摘要或别名" label="搜索 Topic" />}
+      />
 
-      <section className="divide-y divide-hairline/30">
-        <div className="grid grid-cols-2 [&>*:not(:last-child)]:border-r [&>*]:border-hairline/30">
-          <StatCell value={state.topics.length} label="Topic 总数" sub="个" />
-          <StatCell
-            value={state.topics.filter((topic) => topic.status === "candidate").length}
-            label="待审核"
-            sub="个"
-          />
-        </div>
-        <div className="grid grid-cols-2 [&>*:not(:last-child)]:border-r [&>*]:border-hairline/30">
-          <StatCell
-            value={state.topics.filter((topic) => topic.status === "active").length}
-            label="已启用"
-            sub="个"
-          />
-          <StatCell
-            value={state.topics.reduce((sum, topic) => sum + (topic.feedback?.total ?? 0), 0)}
-            label="关联反馈"
-            sub="条"
-          />
-        </div>
-      </section>
+      <div className="mb-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
+        <StatStrip
+          columns={4}
+          items={[
+            { label: "Topic 总数", value: state.topics.length, sub: "个" },
+            { label: "待审核", value: state.topics.filter((topic) => topic.status === "candidate").length, sub: "个", tone: "signal" },
+            { label: "已启用", value: state.topics.filter((topic) => topic.status === "active").length, sub: "个", tone: "olive" },
+            { label: "关联反馈", value: state.topics.reduce((sum, topic) => sum + (topic.feedback?.total ?? 0), 0), sub: "条" },
+          ]}
+        />
+        <SegmentedControl
+          value={filter}
+          onChange={setFilter}
+          options={[
+            { value: "all", label: "全部" },
+            { value: "candidate", label: "待审核" },
+            { value: "active", label: "已启用" },
+            { value: "archived", label: "已归档" },
+          ]}
+        />
+      </div>
 
-      <section className="py-4">
-        {filteredTopics.length === 0 ? (
-          <div className="py-12 text-center text-sm text-ink-300">
-            {query.trim() ? (
-              <>
-                <p>没有匹配的 Topic</p>
-                <button
-                  type="button"
-                  onClick={clearSearch}
-                  className="mt-4 text-sm font-medium text-ink-500 underline"
-                >
-                  清空搜索
-                </button>
-              </>
-            ) : (
-              "当前筛选下还没有 topic"
-            )}
-          </div>
-        ) : (
-          <ul className="divide-y divide-hairline/30">
-            {filteredTopics.map((topic) => {
-              const edit = edits[topic.id];
-              if (!edit) return null;
-              return (
-                <li key={topic.id} className="py-6 first:pt-0">
+      {filteredTopics.length === 0 ? (
+        <EmptyState title={query.trim() ? "没有匹配的 Topic" : "当前筛选下还没有 Topic"} />
+      ) : (
+        <div className="space-y-4">
+          {filteredTopics.map((topic) => {
+            const edit = edits[topic.id];
+            if (!edit) return null;
+            return (
+              <Panel key={topic.id}>
+                <div className="border-b border-hairline/60 p-4 sm:p-5">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="text-base font-semibold text-ink">{edit.topicLabel || topic.topicLabel}</p>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h2 className="text-base font-semibold text-ink">{edit.topicLabel || topic.topicLabel}</h2>
+                        <StatusBadge tone={statusTone(topic.status)}>{topic.status ?? "candidate"}</StatusBadge>
+                        {topic.manualEdited ? <StatusBadge>人工修改过</StatusBadge> : null}
+                      </div>
                       <p className="mt-1 text-xs text-ink-400">
-                        <span className={`font-medium ${statusTextClass(topic.status)}`}>{topic.status}</span>
-                        {" · "}
-                        {topic.topicGroup}
-                        {" · "}
-                        {topic.source || "unknown"}
-                        {topic.manualEdited ? " · 人工改过" : ""}
+                        {topic.topicGroup} · {topic.source || "unknown"} · 来源 {topic.sourceEntryIds?.length ?? 0}
                       </p>
-                      <p className="mt-1 break-all text-xs text-ink-300">{topic.topicKey}</p>
-                      {topic.mergedIntoTopicLabel ? (
-                        <p className="mt-1 text-xs text-ink-400">已归并到：{topic.mergedIntoTopicLabel}</p>
-                      ) : null}
+                      <p className="mt-1 break-all font-mono text-[11px] text-ink-300">{topic.topicKey}</p>
+                      {topic.mergedIntoTopicLabel ? <p className="mt-1 text-xs text-ink-400">已归并到：{topic.mergedIntoTopicLabel}</p> : null}
                     </div>
-                    <p className="shrink-0 text-xs text-ink-400">
+                    <p className="text-xs text-ink-400">
                       反馈 {topic.feedback?.total ?? 0} · 有帮助 {topic.feedback?.helpful ?? 0} · 事实问题{" "}
-                      {(topic.feedback?.factualError ?? 0) + (topic.feedback?.contradiction ?? 0)} · 来源{" "}
-                      {topic.sourceEntryIds?.length ?? 0}
+                      {(topic.feedback?.factualError ?? 0) + (topic.feedback?.contradiction ?? 0)}
                     </p>
                   </div>
+                </div>
 
-                  <div className="mt-4 grid gap-3 lg:grid-cols-2">
+                <div className="space-y-4 p-4 sm:p-5">
+                  <div className="grid gap-3 lg:grid-cols-2">
                     <label className="block">
-                      <span className="text-xs font-medium text-ink-400">Topic 名称</span>
-                      <input
-                        value={edit.topicLabel}
-                        onChange={(e) => updateEdit(topic.id, { topicLabel: e.target.value })}
-                        className="input-shell mt-1"
-                      />
+                      <span className="text-xs font-medium text-ink-500">Topic 名称</span>
+                      <input value={edit.topicLabel} onChange={(e) => updateEdit(topic.id, { topicLabel: e.target.value })} className="input-shell mt-1" />
                     </label>
                     <div className="grid grid-cols-2 gap-3">
                       <label className="block">
-                        <span className="inline-flex items-center gap-1 text-xs font-medium text-ink-400">
+                        <span className="inline-flex items-center gap-1 text-xs font-medium text-ink-500">
                           状态
-                          <FieldInfoButton
-                            title={TOPIC_STATUS_INFO.title}
-                            body={TOPIC_STATUS_INFO.body}
-                            ariaLabel={TOPIC_STATUS_INFO.ariaLabel}
-                          />
+                          <FieldInfoButton title={TOPIC_STATUS_INFO.title} body={TOPIC_STATUS_INFO.body} ariaLabel={TOPIC_STATUS_INFO.ariaLabel} />
                         </span>
-                        <select
-                          value={edit.status}
-                          onChange={(e) => updateEdit(topic.id, { status: e.target.value })}
-                          className="input-shell mt-1"
-                        >
+                        <select value={edit.status} onChange={(e) => updateEdit(topic.id, { status: e.target.value })} className="input-shell mt-1">
                           <option value="candidate">candidate</option>
                           <option value="active">active</option>
                           <option value="archived">archived</option>
                         </select>
                       </label>
                       <label className="block">
-                        <span className="inline-flex items-center gap-1 text-xs font-medium text-ink-400">
+                        <span className="inline-flex items-center gap-1 text-xs font-medium text-ink-500">
                           置信度
-                          <FieldInfoButton
-                            title={TOPIC_CONFIDENCE_INFO.title}
-                            body={TOPIC_CONFIDENCE_INFO.body}
-                            ariaLabel={TOPIC_CONFIDENCE_INFO.ariaLabel}
-                          />
+                          <FieldInfoButton title={TOPIC_CONFIDENCE_INFO.title} body={TOPIC_CONFIDENCE_INFO.body} ariaLabel={TOPIC_CONFIDENCE_INFO.ariaLabel} />
                         </span>
-                        <select
-                          value={edit.confidence}
-                          onChange={(e) => updateEdit(topic.id, { confidence: e.target.value })}
-                          className="input-shell mt-1"
-                        >
+                        <select value={edit.confidence} onChange={(e) => updateEdit(topic.id, { confidence: e.target.value })} className="input-shell mt-1">
                           <option value="low">low</option>
                           <option value="medium">medium</option>
                           <option value="high">high</option>
@@ -416,51 +356,27 @@ export default function LifeAgentTopicsPage() {
                     </div>
                   </div>
 
-                  <label className="mt-3 block">
-                    <span className="text-xs font-medium text-ink-400">Topic 摘要</span>
-                    <textarea
-                      value={edit.summary}
-                      onChange={(e) => updateEdit(topic.id, { summary: e.target.value })}
-                      rows={5}
-                      className="input-shell mt-1 min-h-28"
-                    />
+                  <label className="block">
+                    <span className="text-xs font-medium text-ink-500">Topic 摘要</span>
+                    <textarea value={edit.summary} onChange={(e) => updateEdit(topic.id, { summary: e.target.value })} rows={5} className="input-shell mt-1 min-h-28" />
                   </label>
 
-                  <div className="mt-3 grid gap-3 lg:grid-cols-2">
+                  <div className="grid gap-3 lg:grid-cols-2">
                     <label className="block">
-                      <span className="text-xs font-medium text-ink-400">别名</span>
-                      <textarea
-                        value={edit.aliases}
-                        onChange={(e) => updateEdit(topic.id, { aliases: e.target.value })}
-                        rows={4}
-                        className="input-shell mt-1 min-h-24"
-                      />
+                      <span className="text-xs font-medium text-ink-500">别名</span>
+                      <textarea value={edit.aliases} onChange={(e) => updateEdit(topic.id, { aliases: e.target.value })} rows={4} className="input-shell mt-1 min-h-24" />
                     </label>
                     <label className="block">
-                      <span className="text-xs font-medium text-ink-400">问题模板</span>
-                      <textarea
-                        value={edit.questionPatterns}
-                        onChange={(e) => updateEdit(topic.id, { questionPatterns: e.target.value })}
-                        rows={4}
-                        className="input-shell mt-1 min-h-24"
-                      />
+                      <span className="text-xs font-medium text-ink-500">问题模板</span>
+                      <textarea value={edit.questionPatterns} onChange={(e) => updateEdit(topic.id, { questionPatterns: e.target.value })} rows={4} className="input-shell mt-1 min-h-24" />
                     </label>
                   </div>
 
-                  <div className="mt-4 flex flex-wrap items-center gap-3">
-                    <button
-                      type="button"
-                      onClick={() => void saveTopic(topic.id)}
-                      disabled={savingId === topic.id}
-                      className="rounded-full bg-ink px-5 py-2.5 text-sm font-medium text-paper disabled:opacity-50"
-                    >
-                      {savingId === topic.id ? "保存中..." : "保存修改"}
+                  <div className="flex flex-wrap items-center gap-3 border-t border-hairline/60 pt-4">
+                    <button type="button" onClick={() => void saveTopic(topic.id)} disabled={savingId === topic.id} className="btn-primary">
+                      {savingId === topic.id ? "保存中" : "保存修改"}
                     </button>
-                    <select
-                      value={edit.mergeTargetId}
-                      onChange={(e) => updateEdit(topic.id, { mergeTargetId: e.target.value })}
-                      className="input-shell !rounded-full !py-2.5"
-                    >
+                    <select value={edit.mergeTargetId} onChange={(e) => updateEdit(topic.id, { mergeTargetId: e.target.value })} className="input-shell !min-h-10 !w-auto min-w-[220px] text-sm">
                       <option value="">选择合并目标</option>
                       {mergeTargets
                         .filter((item) => item.id !== topic.id)
@@ -470,21 +386,16 @@ export default function LifeAgentTopicsPage() {
                           </option>
                         ))}
                     </select>
-                    <button
-                      type="button"
-                      onClick={() => void mergeTopic(topic.id)}
-                      disabled={mergingId === topic.id}
-                      className="rounded-full border border-hairline px-5 py-2.5 text-sm font-medium text-ink-600 disabled:opacity-50"
-                    >
-                      {mergingId === topic.id ? "归并中..." : "归并到目标"}
+                    <button type="button" onClick={() => void mergeTopic(topic.id)} disabled={mergingId === topic.id} className="btn-secondary">
+                      {mergingId === topic.id ? "归并中" : "归并到目标"}
                     </button>
                   </div>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </section>
-    </div>
+                </div>
+              </Panel>
+            );
+          })}
+        </div>
+      )}
+    </AdminPage>
   );
 }
