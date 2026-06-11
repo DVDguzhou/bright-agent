@@ -82,12 +82,13 @@ function LifeAgentDiscoverCard({
   const ratingScore = hasRating ? profile.ratings!.averageScore.toFixed(1) : null;
   const expertiseTagsShown = (profile.expertiseTags ?? []).slice(0, 2);
   const sessionCount = profile.sessionCount ?? 0;
+  const isActiveAgent = sessionCount >= 10;
 
   return (
     <article
-      className={`group mb-4 break-inside-avoid rounded-lg border bg-paper-50 p-1.5 shadow-glow-sm transition-[border-color,box-shadow,transform] duration-200 [contain-intrinsic-size:auto_310px] last:mb-0 hover:-translate-y-0.5 hover:shadow-glow motion-reduce:hover:translate-y-0 sm:mb-5 ${
+      className={`group mb-3 break-inside-avoid rounded-lg border bg-paper-50 p-1.5 shadow-glow-sm transition-[border-color,box-shadow,transform] duration-200 [contain-intrinsic-size:auto_310px] last:mb-0 hover:-translate-y-0.5 hover:shadow-glow motion-reduce:hover:translate-y-0 sm:mb-4 ${
         hasRating
-          ? "border-signal-200/70 hover:border-signal-300"
+          ? "border-signal-200 hover:border-signal-300"
           : "border-hairline/60 hover:border-hairline"
       }`}
     >
@@ -137,9 +138,9 @@ function LifeAgentDiscoverCard({
         className="pressable group block focus:outline-none focus-visible:outline focus-visible:outline-1 focus-visible:outline-ink"
       >
         <div className="pt-2.5">
-          {/* Name row with inline gold rating */}
+          {/* Name row with rating chip */}
           <div className="flex items-baseline gap-1.5">
-            <h3 className="min-w-0 flex-1 truncate font-serif text-[15px] font-medium leading-5 text-ink sm:text-base sm:leading-6">
+            <h3 className="min-w-0 flex-1 truncate font-serif text-base font-medium leading-5 text-ink">
               {profile.displayName}
               {verified ? (
                 <span className="ml-1 align-middle text-[10px] tracking-widest text-signal-600" aria-label="已认证">
@@ -148,19 +149,21 @@ function LifeAgentDiscoverCard({
               ) : null}
             </h3>
             {ratingScore ? (
-              <span className="shrink-0 text-[11px] font-semibold tabular-nums text-signal-600">
+              <span className="shrink-0 rounded-sm bg-signal-50 px-1.5 py-0.5 text-[10.5px] font-bold tabular-nums text-signal-600">
                 ★{ratingScore}
               </span>
             ) : null}
           </div>
 
-          {/* Expertise tags */}
+          {/* Expertise tags — first tag uses brand accent */}
           {expertiseTagsShown.length > 0 ? (
             <div className="mt-1 flex flex-wrap gap-1">
-              {expertiseTagsShown.map((tag) => (
+              {expertiseTagsShown.map((tag, i) => (
                 <span
                   key={tag}
-                  className="rounded-sm bg-paper-200 px-1.5 py-0.5 text-[10px] font-medium leading-none text-ink-400"
+                  className={`rounded-sm px-1.5 py-0.5 text-[10px] font-medium leading-none ${
+                    i === 0 ? "bg-signal-50 text-signal-600" : "bg-paper-200 text-ink-400"
+                  }`}
                 >
                   {tag}
                 </span>
@@ -169,7 +172,7 @@ function LifeAgentDiscoverCard({
           ) : null}
 
           {/* Headline */}
-          <p className="mt-1 line-clamp-2 text-[12px] leading-5 text-ink-400">
+          <p className="mt-1 line-clamp-2 text-[12px] leading-5 text-ink-500">
             {headlineShown}
           </p>
 
@@ -193,7 +196,9 @@ function LifeAgentDiscoverCard({
                 <span className="ml-0.5 text-[10px] font-normal text-ink-300">/问</span>
               </span>
             ) : sessionCount > 0 ? (
-              <span className="shrink-0 tabular-nums">{sessionCount}次</span>
+              <span className={`shrink-0 tabular-nums ${isActiveAgent ? "font-medium text-signal-600" : ""}`}>
+                {sessionCount}次
+              </span>
             ) : null}
           </div>
         </div>
@@ -473,7 +478,7 @@ export function LifeAgentDiscoverCardGrid({
         {leadProfile ? (
           <LifeAgentLeadCard profile={leadProfile} profileHref={profileHref} showPulse={showFirstCardPulse} />
         ) : null}
-        <div className="columns-2 gap-x-3 sm:columns-3 sm:gap-x-5 lg:columns-4 xl:columns-5">
+        <div className="columns-2 gap-x-2.5 sm:columns-3 sm:gap-x-4 lg:columns-4 xl:columns-5">
           {toRender.map((profile, index) => (
             <LifeAgentDiscoverCard
               key={profile.id}
@@ -523,7 +528,7 @@ export function LifeAgentDiscoverCardGrid({
               }}
             >
               <div
-                className="grid gap-x-3 gap-y-5 sm:gap-x-4 sm:gap-y-7"
+                className="grid gap-x-2.5 gap-y-4 sm:gap-x-3.5 sm:gap-y-6"
                 style={{ gridTemplateColumns: `repeat(${colCount}, minmax(0, 1fr))` }}
               >
                 {row.map((profile, colIdx) => {

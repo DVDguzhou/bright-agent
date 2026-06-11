@@ -4,7 +4,6 @@ import { Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, use
 import { useWindowedSlice } from "@/lib/use-windowed-slice";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ChevronRight } from "lucide-react";
 import { VerificationBadge } from "@/components/VerificationBadge";
 import { LifeAgentCoverImage } from "@/components/LifeAgentCoverImage";
 import {
@@ -15,7 +14,7 @@ import {
 import { getFavoriteAgentIds } from "@/lib/life-agent-favorites";
 import { LifeAgentDiscoverCardGrid } from "@/components/LifeAgentDiscoverCardGrid";
 import { rankLifeAgentsBySearchQuery, type LifeAgentListItem } from "@/lib/life-agent-feed-search";
-import { fetchFavoriteLifeAgents, fetchLifeAgentCollectionPage, fetchLifeAgentsPage } from "@/lib/life-agents-list-api";
+import { fetchFavoriteLifeAgents, fetchLifeAgentsPage } from "@/lib/life-agents-list-api";
 import { cleanLifeAgentIntroText } from "@/lib/life-agent-intro-clean";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLifeAgentsFeedGestures, useMobileTouchNavEnabled } from "@/hooks/use-life-agents-feed-gestures";
@@ -37,8 +36,6 @@ type PurchasedAgentRow = {
 const PURCHASED_CACHE_TTL_MS = 90_000;
 const INITIAL_VISIBLE_IMAGE_COUNT_MOBILE = 2;
 const INITIAL_VISIBLE_IMAGE_COUNT_DESKTOP = 4;
-const FEATURED_RECOMMENDATION_COLLECTION = "jingpin";
-const FEATURED_RECOMMENDATION_LIMIT = 12;
 
 
 type FeedTabKey = "favorites" | "discover" | "purchased";
@@ -199,8 +196,6 @@ function LifeAgentsPageContent() {
   const [discoverNextCursor, setDiscoverNextCursor] = useState<string | null>(null);
   const [discoverLoading, setDiscoverLoading] = useState(true);
   const [discoverLoadingMore, setDiscoverLoadingMore] = useState(false);
-  const [featuredRecommendationItems, setFeaturedRecommendationItems] = useState<LifeAgentListItem[]>([]);
-  const [featuredRecommendationLoading, setFeaturedRecommendationLoading] = useState(true);
   const [favoritesSource, setFavoritesSource] = useState<LifeAgentListItem[]>([]);
   const [favoritesLoading, setFavoritesLoading] = useState(false);
   const [favoritesFetched, setFavoritesFetched] = useState(false);
@@ -209,7 +204,6 @@ function LifeAgentsPageContent() {
   discoverItemsRef.current = discoverItems;
 
   const discoverSeedRef = useRef((Math.random() * 2147483647) | 0);
-  const featuredRecommendationSeedRef = useRef((Math.random() * 2147483647) | 0);
 
   const [loadError, setLoadError] = useState<string | null>(null);
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
@@ -241,28 +235,6 @@ function LifeAgentsPageContent() {
     router.replace("/life-agents", { scroll: false });
   }, [showPurchaseUi, feedTab, router]);
 
-  useEffect(() => {
-    const controller = new AbortController();
-    featuredRecommendationSeedRef.current = (Math.random() * 2147483647) | 0;
-    setFeaturedRecommendationLoading(true);
-    fetchLifeAgentCollectionPage(
-      FEATURED_RECOMMENDATION_COLLECTION,
-      FEATURED_RECOMMENDATION_LIMIT,
-      0,
-      featuredRecommendationSeedRef.current,
-      controller.signal,
-    )
-      .then(({ items }) => {
-        setFeaturedRecommendationItems(items);
-      })
-      .catch(() => {
-        setFeaturedRecommendationItems([]);
-      })
-      .finally(() => {
-        setFeaturedRecommendationLoading(false);
-      });
-    return () => controller.abort();
-  }, []);
 
   const visitPanel = useCallback((i: number) => {
     setVisitedMask((m) => {
@@ -629,8 +601,6 @@ function LifeAgentsPageContent() {
   }, [favoriteIds, favoritesSource]);
 
   const displayProfilesDiscover = discoverItems;
-  const featuredRecommendation = featuredRecommendationItems[0] ?? null;
-  const showFeaturedRecommendationLead = false; // 已禁用：不再显示置顶大卡片
 
   const displayProfilesDesktop = useMemo(() => {
     if (feedTab === "favorites") return displayProfilesFavorites;
@@ -653,28 +623,19 @@ function LifeAgentsPageContent() {
         .slice(0, initialVisibleImageCount)
         .map((row) => resolveLifeAgentCoverDisplayUrl(row.coverUrl, row.coverImageUrl, row.coverPresetKey));
     }
-    return [
-      ...(featuredRecommendation
-        ? [resolveLifeAgentCoverDisplayUrl(
-            featuredRecommendation.coverUrl,
-            featuredRecommendation.coverImageUrl,
-            featuredRecommendation.coverPresetKey,
-          )]
-        : []),
-      ...displayProfilesDiscover
-        .slice(0, initialVisibleImageCount)
-        .map((profile) =>
-          resolveLifeAgentCoverDisplayUrl(profile.coverUrl, profile.coverImageUrl, profile.coverPresetKey),
-        ),
-    ];
-  }, [displayProfilesDiscover, displayProfilesFavorites, featuredRecommendation, initialFeedTab, initialVisibleImageCount, purchasedItems]);
+    return displayProfilesDiscover
+      .slice(0, initialVisibleImageCount)
+      .map((profile) =>
+        resolveLifeAgentCoverDisplayUrl(profile.coverUrl, profile.coverImageUrl, profile.coverPresetKey),
+      );
+  }, [displayProfilesDiscover, displayProfilesFavorites, initialFeedTab, initialVisibleImageCount, purchasedItems]);
 
   const initialFeedDataReady =
     initialFeedTab === "purchased"
       ? purchasedFetched || purchasedUnauthorized
       : initialFeedTab === "favorites"
         ? favoritesFetched
-        : !discoverLoading && !featuredRecommendationLoading;
+        : !discoverLoading;
 
   useEffect(() => {
     // 首屏请求失败也要离开骨架屏，否则报错横幅和重试入口永远不可见
@@ -778,80 +739,6 @@ function LifeAgentsPageContent() {
       <PurchasedAgentsWindowedGrid rows={purchasedItems} />
     );
 
-  const featuredStrip =
-    !featuredRecommendationLoading && featuredRecommendationItems.length > 0 ? (
-      <div className="mb-3 -mx-1 sm:mx-0">
-        <div className="mb-2 flex items-center justify-between px-1 sm:px-0">
-          <div className="flex items-center gap-2">
-            <span className="h-px w-5 bg-ink-200" aria-hidden />
-            <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-ink-300">精选</span>
-          </div>
-          <Link
-            href="/c/jingpin"
-            className="flex items-center gap-0.5 text-[11px] text-ink-300 transition-colors hover:text-ink"
-          >
-            全部
-            <ChevronRight className="h-3 w-3" aria-hidden />
-          </Link>
-        </div>
-        <div className="flex gap-2.5 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden px-1 sm:px-0">
-          {featuredRecommendationItems.map((agent) => {
-            const agentCoverUrl = resolveLifeAgentCoverDisplayUrl(
-              agent.coverUrl,
-              agent.coverImageUrl,
-              agent.coverPresetKey,
-            );
-            const firstTag = agent.expertiseTags?.[0] ?? null;
-            const agentRatingScore =
-              agent.ratings && agent.ratings.raters > 0
-                ? agent.ratings.averageScore.toFixed(1)
-                : null;
-            return (
-              <Link
-                key={agent.id}
-                href={`/life-agents/${agent.id}`}
-                className="pressable group shrink-0 w-[80px] sm:w-[90px]"
-              >
-                <div
-                  className="relative w-full overflow-hidden rounded-md border border-hairline/60 bg-paper-200 transition-colors duration-150 group-hover:border-hairline"
-                  style={{ aspectRatio: "3 / 4" }}
-                >
-                  <LifeAgentCoverImage
-                    src={agentCoverUrl}
-                    alt=""
-                    fill
-                    className="object-cover"
-                    sizes="90px"
-                  />
-                </div>
-                <p className="mt-1 truncate text-[11.5px] font-medium leading-tight text-ink">
-                  {agent.displayName}
-                </p>
-                {firstTag ? (
-                  <p className="truncate text-[10.5px] leading-tight text-ink-300">{firstTag}</p>
-                ) : agentRatingScore ? (
-                  <p className="text-[10.5px] font-semibold leading-tight text-signal-600">★{agentRatingScore}</p>
-                ) : null}
-              </Link>
-            );
-          })}
-          <Link
-            href="/c/jingpin"
-            className="pressable group shrink-0 w-[80px] sm:w-[90px]"
-          >
-            <div
-              className="flex w-full items-center justify-center rounded-md border border-hairline/60 bg-paper-200 transition-colors duration-150 group-hover:border-hairline"
-              style={{ aspectRatio: "3 / 4" }}
-            >
-              <div className="flex flex-col items-center gap-1 text-ink-300">
-                <ChevronRight className="h-5 w-5" aria-hidden />
-              </div>
-            </div>
-            <p className="mt-1 text-center text-[10.5px] leading-tight text-ink-300">全部精选</p>
-          </Link>
-        </div>
-      </div>
-    ) : null;
 
   const pagerSectionClass =
     "box-border w-full min-w-[100%] shrink-0 basis-full grow-0 space-y-4 px-1 sm:px-0 max-lg:snap-start max-lg:snap-always";
@@ -910,8 +797,7 @@ function LifeAgentsPageContent() {
               className={pagerSectionClass}
               aria-label="发现"
             >
-              {featuredStrip}
-              <LifeAgentDiscoverCardGrid
+                <LifeAgentDiscoverCardGrid
                 profiles={displayProfilesDiscover}
                 loading={discoverLoading}
                 emptyTitle={loadError ? "加载失败" : UI.emptyTitle}
@@ -924,8 +810,6 @@ function LifeAgentsPageContent() {
                 loadingMore={discoverLoadingMore}
                 virtualized={false}
                 showFirstCardPulse={firstCardPulsing}
-                lead={showFeaturedRecommendationLead}
-                leadProfile={featuredRecommendation}
               />
             </section>
             {showPurchaseUi ? (
@@ -951,7 +835,6 @@ function LifeAgentsPageContent() {
             feedTab === "favorites" ? favoritesHeading : purchasedHeading
           ) : null}
           {loadErrorBanner}
-          {feedTab !== "favorites" && feedTab !== "purchased" ? featuredStrip : null}
           {feedTab === "purchased" && showPurchaseUi ? (
             purchasedBody
           ) : (
@@ -972,8 +855,6 @@ function LifeAgentsPageContent() {
               loadingMore={discoverLoadingMore}
               virtualized={false}
               showFirstCardPulse={firstCardPulsing && feedTab !== "favorites" && feedTab !== "purchased"}
-              lead={feedTab !== "favorites" && feedTab !== "purchased" && showFeaturedRecommendationLead}
-              leadProfile={feedTab !== "favorites" && feedTab !== "purchased" ? featuredRecommendation : null}
             />
           )}
         </section>
