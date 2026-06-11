@@ -75,7 +75,9 @@ export function LifeAgentCoverImage({
         ref={imgRef}
         src={resolved}
         alt={alt}
+        draggable={false}
         className={[cls, loaded ? "opacity-100" : "opacity-0"].filter(Boolean).join(" ")}
+        style={{ WebkitUserDrag: "none", ...(rest.style ?? {}) } as React.CSSProperties}
         loading={priority ? "eager" : loading === "lazy" ? "lazy" : loading}
         decoding="async"
         {...(priority ? ({ fetchPriority: "high" } as ImgHTMLAttributes<HTMLImageElement>) : {})}
