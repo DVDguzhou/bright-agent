@@ -64,6 +64,13 @@ function distributeIntoColumns<T>(items: T[], cols: number): T[][] {
   return columns;
 }
 
+function claimForProfile(profile: LifeAgentListItem): NonNullable<LifeAgentListItem["claim"]> {
+  if (profile.claim) return profile.claim;
+  const isFeatured = profile.featuredRank != null || !!profile.featuredCollection;
+  if (isFeatured) return { status: "claimed", label: "已认领", isClaimed: true };
+  return { status: "unclaimed", label: "未认领", isClaimed: false };
+}
+
 function LifeAgentDiscoverCard({
   profile,
   globalIndex,
@@ -95,7 +102,7 @@ function LifeAgentDiscoverCard({
   const expertiseTagsShown = (profile.expertiseTags ?? []).slice(0, 2);
   const sessionCount = profile.sessionCount ?? 0;
   const isActiveAgent = sessionCount >= 10;
-  const claim = profile.claim ?? { status: "unclaimed", label: "未认领", isClaimed: false };
+  const claim = claimForProfile(profile);
 
   return (
     <article
@@ -265,7 +272,7 @@ function LifeAgentLeadCard({
   const showPrice = lifeAgentShowsPurchaseUi();
   const ratingScore =
     profile.ratings && profile.ratings.raters > 0 ? profile.ratings.averageScore.toFixed(1) : null;
-  const claim = profile.claim ?? { status: "unclaimed", label: "未认领", isClaimed: false };
+  const claim = claimForProfile(profile);
 
   return (
     <article className="overflow-hidden rounded-lg border border-ink/10 bg-white text-ink shadow-glow-sm transition duration-200 hover:border-ink/20 hover:shadow-glow">

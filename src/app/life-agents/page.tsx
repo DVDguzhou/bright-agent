@@ -39,6 +39,8 @@ const INITIAL_VISIBLE_IMAGE_COUNT_MOBILE = 2;
 const INITIAL_VISIBLE_IMAGE_COUNT_DESKTOP = 4;
 const FEATURED_COLLECTION = "jingpin";
 const FEATURED_LIMIT = 8;
+const DISCOVER_TO_POSTS_SWIPE_MIN_X = 72;
+const DISCOVER_TO_POSTS_SWIPE_MAX_Y = 54;
 
 type FeedTabKey = "favorites" | "discover" | "purchased";
 
@@ -161,6 +163,13 @@ function preloadLifeAgentCover(src: string): Promise<void> {
   });
 }
 
+function claimForAgent(agent: LifeAgentListItem): NonNullable<LifeAgentListItem["claim"]> {
+  if (agent.claim) return agent.claim;
+  const isFeatured = agent.featuredRank != null || !!agent.featuredCollection;
+  if (isFeatured) return { status: "claimed", label: "已认领", isClaimed: true };
+  return { status: "unclaimed", label: "未认领", isClaimed: false };
+}
+
 
 /** 页级骨架：与 LifeAgentDiscoverCard 的真实形态一致（4:5 平面封面 + 发丝线 + 文字行），避免加载前后换形 */
 function LifeAgentsPageLoadingState({ title = "加载中…" }: { title?: string }) {
@@ -240,7 +249,10 @@ function FeaturedShowcase({
         </div>
 
         {/* Horizontal scroll */}
-        <div className="-mx-3 flex gap-2.5 overflow-x-auto pb-1 pl-3 pr-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div
+          className="-mx-3 flex gap-2.5 overflow-x-auto pb-1 pl-3 pr-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          data-horizontal-scroll
+        >
           {agents.map((agent) => {
             const coverUrl = resolveLifeAgentCoverDisplayUrl(
               agent.coverUrl,
@@ -254,6 +266,7 @@ function FeaturedShowcase({
                 ? agent.ratings.averageScore.toFixed(1)
                 : null;
             const headline = cleanLifeAgentIntroText(agent.headline, agent.displayName);
+            const claim = claimForAgent(agent);
 
             return (
               <Link
@@ -274,6 +287,13 @@ function FeaturedShowcase({
                     className="object-cover"
                     sizes="124px"
                   />
+                  <div
+                    className={`absolute left-1.5 top-1.5 rounded-md border border-white/70 px-1.5 py-0.5 text-[9px] font-semibold leading-none shadow-[0_6px_14px_rgba(17,21,19,0.12)] supports-[backdrop-filter]:backdrop-blur-md ${
+                      claim.isClaimed ? "bg-white/80 text-olive-600" : "bg-paper/90 text-signal-700"
+                    }`}
+                  >
+                    {claim.label}
+                  </div>
                   {/* Bottom gradient for text legibility */}
                   <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[55%] bg-gradient-to-t from-black/60 to-transparent" />
                   {/* Rating chip */}
@@ -379,12 +399,81 @@ function LifeAgentsPageContent() {
   const lastPagerIdxRef = useRef(-1);
   const purchasedLastLoadedAtRef = useRef(0);
   const purchasedRequestInFlightRef = useRef(false);
+  const discoverSwipeStartRef = useRef<{ x: number; y: number; scrollLeft: number } | null>(null);
+  const discoverSwipeActiveRef = useRef(false);
+  const discoverSwipeNavigatingRef = useRef(false);
   const initialFeedTab = initialFeedTabRef.current;
 
   useEffect(() => {
     if (showPurchaseUi || feedTab !== "purchased") return;
     router.replace("/life-agents", { scroll: false });
   }, [showPurchaseUi, feedTab, router]);
+
+  useEffect(() => {
+    discoverSwipeNavigatingRef.current = false;
+    if (!initialPageReady || !touchNavEnabled || normalizeFeedTab(feedTab) !== "discover") {
+      discoverSwipeStartRef.current = null;
+      discoverSwipeActiveRef.current = false;
+      return;
+    }
+    const el = pagerRef.current;
+    if (!el) return;
+
+    const onTouchStart = (event: TouchEvent) => {
+      if (event.touches.length !== 1) {
+        discoverSwipeStartRef.current = null;
+        discoverSwipeActiveRef.current = false;
+        return;
+      }
+      const target = event.target instanceof Element ? event.target : null;
+      if (target?.closest("input, textarea, select, button, [data-horizontal-scroll]")) {
+        discoverSwipeStartRef.current = null;
+        discoverSwipeActiveRef.current = false;
+        return;
+      }
+      const touch = event.touches[0];
+      discoverSwipeActiveRef.current = true;
+      discoverSwipeStartRef.current = { x: touch.clientX, y: touch.clientY, scrollLeft: el.scrollLeft };
+    };
+
+    const onTouchEnd = (event: TouchEvent) => {
+      const start = discoverSwipeStartRef.current;
+      discoverSwipeStartRef.current = null;
+      discoverSwipeActiveRef.current = false;
+      if (!start || event.changedTouches.length === 0) return;
+      const touch = event.changedTouches[0];
+      const dx = touch.clientX - start.x;
+      const dy = touch.clientY - start.y;
+      const startedOnDiscoverPanel = start.scrollLeft < Math.max(24, el.clientWidth * 0.12);
+      if (
+        startedOnDiscoverPanel &&
+        dx <= -DISCOVER_TO_POSTS_SWIPE_MIN_X &&
+        Math.abs(dy) <= DISCOVER_TO_POSTS_SWIPE_MAX_Y &&
+        Math.abs(dx) > Math.abs(dy) * 1.5
+      ) {
+        discoverSwipeNavigatingRef.current = true;
+        if (replaceDebounceRef.current) {
+          clearTimeout(replaceDebounceRef.current);
+          replaceDebounceRef.current = null;
+        }
+        router.push("/posts");
+      }
+    };
+
+    const onTouchCancel = () => {
+      discoverSwipeStartRef.current = null;
+      discoverSwipeActiveRef.current = false;
+    };
+
+    el.addEventListener("touchstart", onTouchStart, { passive: true });
+    el.addEventListener("touchend", onTouchEnd, { passive: true });
+    el.addEventListener("touchcancel", onTouchCancel, { passive: true });
+    return () => {
+      el.removeEventListener("touchstart", onTouchStart);
+      el.removeEventListener("touchend", onTouchEnd);
+      el.removeEventListener("touchcancel", onTouchCancel);
+    };
+  }, [initialPageReady, touchNavEnabled, feedTab, router]);
 
 
   const visitPanel = useCallback((i: number) => {
@@ -492,6 +581,7 @@ function LifeAgentsPageContent() {
       if (replaceDebounceRef.current) clearTimeout(replaceDebounceRef.current);
       replaceDebounceRef.current = setTimeout(() => {
         replaceDebounceRef.current = null;
+        if (discoverSwipeActiveRef.current || discoverSwipeNavigatingRef.current) return;
         const i = feedTabIndexFromScrollEl(el, feedPanelElsRef.current);
         const href = pathForTabIndex(i);
         const cur = `${window.location.pathname}${window.location.search}`;
