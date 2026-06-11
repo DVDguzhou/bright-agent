@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Bell,
   ChevronLeft,
+  Code2,
   LayoutDashboard,
   LogIn,
   LogOut,
@@ -51,6 +52,12 @@ const navLinks = [
   { href: "/life-agents", label: "发现", Icon: IconAgent },
   { href: "/dashboard/messages", label: "消息", Icon: IconMessages },
   { href: "/map", label: "地图", Icon: IconMap },
+];
+
+const dashboardNavLinks = [
+  { href: "/dashboard/life-agents", label: "我的 Agent", Icon: IconAgent },
+  { href: "/dashboard/messages", label: "消息", Icon: IconMessages },
+  { href: "/dashboard/api-keys", label: "API", Icon: Code2 },
 ];
 
 const CO_EDIT_PENDING_VOICE_STORAGE_PREFIX = "life-agent-co-edit-pending-voice:";
@@ -533,21 +540,31 @@ export function Nav() {
   const isDashboardNotificationsPage = pathname === "/dashboard/notifications";
   const isDashboardApiKeysPage = pathname === "/dashboard/api-keys";
   const isDashboardLifeAgentsListPage = pathname === "/dashboard/life-agents";
+  const isDashboardLifeAgentPage = /^\/dashboard\/life-agents\/[^/]+\/?$/.test(pathname);
+  const isDashboardLifeAgentEditPage = /^\/dashboard\/life-agents\/[^/]+\/edit\/?$/.test(pathname);
+  const isDashboardLifeAgentSalesPage = /^\/dashboard\/life-agents\/[^/]+\/sales\/?$/.test(pathname);
+  const isDashboardLifeAgentSessionsPage = /^\/dashboard\/life-agents\/[^/]+\/sessions\/?$/.test(pathname);
   const isDashboardLifeAgentFeedbackPage = /^\/dashboard\/life-agents\/[^/]+\/feedback\/?$/.test(pathname);
   const isDashboardLifeAgentCoEditPage = /^\/dashboard\/life-agents\/[^/]+\/co-edit\/?$/.test(pathname);
   const isDashboardLifeAgentTopicsPage = /^\/dashboard\/life-agents\/[^/]+\/topics\/?$/.test(pathname);
+  const isDashboardLifeAgentBlindSpotsPage = /^\/dashboard\/life-agents\/[^/]+\/blind-spots\/?$/.test(pathname);
+  const isDashboardLifeAgentManageArea =
+    isDashboardLifeAgentsListPage ||
+    isDashboardLifeAgentPage ||
+    isDashboardLifeAgentEditPage ||
+    isDashboardLifeAgentSalesPage ||
+    isDashboardLifeAgentSessionsPage ||
+    isDashboardLifeAgentFeedbackPage ||
+    isDashboardLifeAgentCoEditPage ||
+    isDashboardLifeAgentTopicsPage ||
+    isDashboardLifeAgentBlindSpotsPage;
+  const isDashboardArea = pathname === "/dashboard" || pathname.startsWith("/dashboard/");
   const isLicensesPage = pathname === "/licenses";
   const isMapPage = pathname === "/map";
   const isSupportChatPage = pathname === "/support/chat";
   const hideGlobalTopNav =
     isLifeAgentCreatePage ||
     isLifeAgentSearchPage ||
-    isDashboardMessagesPage ||
-    isDashboardNotificationsPage ||
-    isDashboardApiKeysPage ||
-    isDashboardLifeAgentsListPage ||
-    isDashboardLifeAgentCoEditPage ||
-    isDashboardLifeAgentFeedbackPage ||
     isLicensesPage ||
     isMapPage ||
     isSupportChatPage;
@@ -778,43 +795,62 @@ export function Nav() {
                   <Menu className="h-5 w-5" aria-hidden />
                 )}
               </button>
-              <div className="relative flex min-w-0 flex-1 items-center justify-center gap-2 sm:gap-4">
-                {touchFeedPager && feedTabUnderlineX !== null ? (
-                  <span
-                    className="pointer-events-none absolute bottom-0 h-[2px] w-6 rounded-full bg-signal-500 transition-[left] duration-75 ease-out sm:w-7"
-                    style={{ left: feedTabUnderlineX, transform: "translateX(-50%)" }}
-                    aria-hidden
-                  />
-                ) : null}
-                <Link
-                  href="/posts"
-                  className={`relative ${feedTabClass(isPostsPage)}`}
-                >
-                  动态
-                  {isPostsPage ? (
-                    <span className="absolute bottom-0 left-1 right-1 h-[2px] rounded-full bg-signal-500" aria-hidden />
+              {isDashboardArea ? (
+                <div className="relative flex min-w-0 flex-1 items-center justify-center gap-1">
+                  {dashboardNavLinks.map((link) => {
+                    const active =
+                      link.href === "/dashboard/life-agents"
+                        ? isDashboardLifeAgentManageArea
+                        : pathname === link.href;
+                    return (
+                      <Link key={link.href} href={link.href} className={`relative ${feedTabClass(active)}`}>
+                        {link.label}
+                        {active ? (
+                          <span className="absolute bottom-0 left-1 right-1 h-[2px] rounded-full bg-signal-500" aria-hidden />
+                        ) : null}
+                      </Link>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="relative flex min-w-0 flex-1 items-center justify-center gap-2 sm:gap-4">
+                  {touchFeedPager && feedTabUnderlineX !== null ? (
+                    <span
+                      className="pointer-events-none absolute bottom-0 h-[2px] w-6 rounded-full bg-signal-500 transition-[left] duration-75 ease-out sm:w-7"
+                      style={{ left: feedTabUnderlineX, transform: "translateX(-50%)" }}
+                      aria-hidden
+                    />
                   ) : null}
-                </Link>
-                <Link ref={feedTabDiscRef} href="/life-agents" className={`relative ${feedTabClass(isFeedDiscover)}`} scroll={false}>
-                  发现
-                  {!touchFeedPager && isFeedDiscover ? (
-                    <span className="absolute bottom-0 left-1 right-1 h-[2px] rounded-full bg-signal-500" aria-hidden />
+                  <Link
+                    href="/posts"
+                    className={`relative ${feedTabClass(isPostsPage)}`}
+                  >
+                    动态
+                    {isPostsPage ? (
+                      <span className="absolute bottom-0 left-1 right-1 h-[2px] rounded-full bg-signal-500" aria-hidden />
+                    ) : null}
+                  </Link>
+                  <Link ref={feedTabDiscRef} href="/life-agents" className={`relative ${feedTabClass(isFeedDiscover)}`} scroll={false}>
+                    发现
+                    {!touchFeedPager && isFeedDiscover ? (
+                      <span className="absolute bottom-0 left-1 right-1 h-[2px] rounded-full bg-signal-500" aria-hidden />
+                    ) : null}
+                  </Link>
+                  {showFeedPurchasedTab ? (
+                  <Link
+                    ref={feedTabPurRef}
+                    href="/life-agents?tab=purchased"
+                    className={`relative ${feedTabClass(isFeedPurchased)}`}
+                    scroll={false}
+                  >
+                    已购买
+                    {!touchFeedPager && isFeedPurchased ? (
+                      <span className="absolute bottom-0 left-1 right-1 h-[2px] rounded-full bg-signal-500" aria-hidden />
+                    ) : null}
+                  </Link>
                   ) : null}
-                </Link>
-                {showFeedPurchasedTab ? (
-                <Link
-                  ref={feedTabPurRef}
-                  href="/life-agents?tab=purchased"
-                  className={`relative ${feedTabClass(isFeedPurchased)}`}
-                  scroll={false}
-                >
-                  已购买
-                  {!touchFeedPager && isFeedPurchased ? (
-                    <span className="absolute bottom-0 left-1 right-1 h-[2px] rounded-full bg-signal-500" aria-hidden />
-                  ) : null}
-                </Link>
-                ) : null}
-              </div>
+                </div>
+              )}
               {isDashboardLifeAgentTopicsPage ? (
                 <label className="flex h-10 w-[7.25rem] shrink-0 items-center sm:w-40">
                   <span className="sr-only">搜索 Topic</span>
@@ -845,12 +881,12 @@ export function Nav() {
                 </label>
               ) : (
               <Link
-                href={isDashboardHomePage ? "/dashboard/notifications" : "/life-agents/search"}
+                href={isDashboardArea ? "/dashboard/notifications" : "/life-agents/search"}
                 className="icon-button h-10 w-10 shrink-0"
-                title={isDashboardHomePage ? "提醒" : "搜索"}
-                aria-label={isDashboardHomePage ? "提醒" : "搜索"}
+                title={isDashboardArea ? "提醒" : "搜索"}
+                aria-label={isDashboardArea ? "提醒" : "搜索"}
               >
-                {isDashboardHomePage ? (
+                {isDashboardArea ? (
                   <span className="relative inline-flex">
                     <Bell className="h-5 w-5" aria-hidden />
                     {notificationCount > 0 ? (
@@ -916,6 +952,41 @@ export function Nav() {
                 </Link>
               );
             })}
+            {user ? (
+              <>
+                <span className="mx-1 hidden h-5 w-px bg-hairline xl:block" aria-hidden />
+                {dashboardNavLinks.map((link) => {
+                  const Icon = link.Icon;
+                  const active =
+                    link.href === "/dashboard/life-agents"
+                      ? isDashboardLifeAgentManageArea
+                      : pathname === link.href;
+                  return (
+                    <Link key={link.href} href={link.href} title={link.label}>
+                      <motion.span
+                        className={`relative flex items-center gap-1.5 rounded-md px-2 py-2 text-sm font-semibold transition-colors xl:gap-2 xl:px-3 ${
+                          active
+                            ? "bg-ink text-paper"
+                            : "text-ink-500 hover:bg-paper-200 hover:text-ink"
+                        }`}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        <Icon className="h-5 w-5 shrink-0" />
+                        <span className="hidden 2xl:inline">{link.label}</span>
+                        {active ? (
+                          <motion.span
+                            layoutId="dashboard-nav-underline"
+                            className="absolute inset-x-2 bottom-1 h-px bg-paper/80"
+                            transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
+                          />
+                        ) : null}
+                      </motion.span>
+                    </Link>
+                  );
+                })}
+              </>
+            ) : null}
           </div>
 
           <div className="flex shrink-0 items-center gap-1 xl:gap-2 2xl:gap-4">
