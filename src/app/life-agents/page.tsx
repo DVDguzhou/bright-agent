@@ -778,27 +778,80 @@ function LifeAgentsPageContent() {
       <PurchasedAgentsWindowedGrid rows={purchasedItems} />
     );
 
-  const featuredCollectionBanner = (
-    <Link
-      href="/c/jingpin"
-      className="pressable group mb-4 flex items-center justify-between gap-3 rounded-lg border border-ink/10 bg-white/75 px-3.5 py-3 text-ink shadow-[0_1px_0_rgba(17,21,19,0.04)] ring-1 ring-white/70 transition duration-200 hover:border-ink/25 hover:bg-white/90 supports-[backdrop-filter]:backdrop-blur-xl"
-    >
-      <div className="flex min-w-0 items-center gap-3">
-        <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-ink text-xs font-semibold text-paper">
-          咨
-        </span>
-        <div className="min-w-0">
-          <p className="text-sm font-semibold leading-5 text-ink">精选咨询</p>
-          <p className="mt-0.5 line-clamp-1 text-xs leading-5 text-ink-400">
-            上岸、留学、实习、创业
-          </p>
+  const featuredStrip =
+    !featuredRecommendationLoading && featuredRecommendationItems.length > 0 ? (
+      <div className="mb-3 -mx-1 sm:mx-0">
+        <div className="mb-2 flex items-center justify-between px-1 sm:px-0">
+          <div className="flex items-center gap-2">
+            <span className="h-px w-5 bg-ink-200" aria-hidden />
+            <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-ink-300">精选</span>
+          </div>
+          <Link
+            href="/c/jingpin"
+            className="flex items-center gap-0.5 text-[11px] text-ink-300 transition-colors hover:text-ink"
+          >
+            全部
+            <ChevronRight className="h-3 w-3" aria-hidden />
+          </Link>
+        </div>
+        <div className="flex gap-2.5 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden px-1 sm:px-0">
+          {featuredRecommendationItems.map((agent) => {
+            const agentCoverUrl = resolveLifeAgentCoverDisplayUrl(
+              agent.coverUrl,
+              agent.coverImageUrl,
+              agent.coverPresetKey,
+            );
+            const firstTag = agent.expertiseTags?.[0] ?? null;
+            const agentRatingScore =
+              agent.ratings && agent.ratings.raters > 0
+                ? agent.ratings.averageScore.toFixed(1)
+                : null;
+            return (
+              <Link
+                key={agent.id}
+                href={`/life-agents/${agent.id}`}
+                className="pressable group shrink-0 w-[80px] sm:w-[90px]"
+              >
+                <div
+                  className="relative w-full overflow-hidden rounded-md border border-hairline/60 bg-paper-200 transition-colors duration-150 group-hover:border-hairline"
+                  style={{ aspectRatio: "3 / 4" }}
+                >
+                  <LifeAgentCoverImage
+                    src={agentCoverUrl}
+                    alt=""
+                    fill
+                    className="object-cover"
+                    sizes="90px"
+                  />
+                </div>
+                <p className="mt-1 truncate text-[11.5px] font-medium leading-tight text-ink">
+                  {agent.displayName}
+                </p>
+                {firstTag ? (
+                  <p className="truncate text-[10.5px] leading-tight text-ink-300">{firstTag}</p>
+                ) : agentRatingScore ? (
+                  <p className="text-[10.5px] font-semibold leading-tight text-signal-600">★{agentRatingScore}</p>
+                ) : null}
+              </Link>
+            );
+          })}
+          <Link
+            href="/c/jingpin"
+            className="pressable group shrink-0 w-[80px] sm:w-[90px]"
+          >
+            <div
+              className="flex w-full items-center justify-center rounded-md border border-hairline/60 bg-paper-200 transition-colors duration-150 group-hover:border-hairline"
+              style={{ aspectRatio: "3 / 4" }}
+            >
+              <div className="flex flex-col items-center gap-1 text-ink-300">
+                <ChevronRight className="h-5 w-5" aria-hidden />
+              </div>
+            </div>
+            <p className="mt-1 text-center text-[10.5px] leading-tight text-ink-300">全部精选</p>
+          </Link>
         </div>
       </div>
-      <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-ink/10 bg-white/60 text-ink transition duration-200 group-hover:bg-ink group-hover:text-paper supports-[backdrop-filter]:backdrop-blur-md">
-        <ChevronRight className="h-4 w-4" aria-hidden />
-      </span>
-    </Link>
-  );
+    ) : null;
 
   const pagerSectionClass =
     "box-border w-full min-w-[100%] shrink-0 basis-full grow-0 space-y-4 px-1 sm:px-0 max-lg:snap-start max-lg:snap-always";
@@ -857,7 +910,7 @@ function LifeAgentsPageContent() {
               className={pagerSectionClass}
               aria-label="发现"
             >
-              {featuredCollectionBanner}
+              {featuredStrip}
               <LifeAgentDiscoverCardGrid
                 profiles={displayProfilesDiscover}
                 loading={discoverLoading}
@@ -898,7 +951,7 @@ function LifeAgentsPageContent() {
             feedTab === "favorites" ? favoritesHeading : purchasedHeading
           ) : null}
           {loadErrorBanner}
-          {feedTab !== "favorites" && feedTab !== "purchased" ? featuredCollectionBanner : null}
+          {feedTab !== "favorites" && feedTab !== "purchased" ? featuredStrip : null}
           {feedTab === "purchased" && showPurchaseUi ? (
             purchasedBody
           ) : (

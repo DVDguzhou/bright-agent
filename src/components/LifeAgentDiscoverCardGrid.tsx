@@ -54,12 +54,6 @@ function chunkIntoRows<T>(items: T[], cols: number): T[][] {
   return rows;
 }
 
-/**
- * 现代内容卡：
- *  - 封面是主视觉，文字只保留决策信息
- *  - 使用轻边框和功能强调色，不做 AI 式装饰
- *  - 简介短，问题只露出一条，方便快速扫读
- */
 function LifeAgentDiscoverCard({
   profile,
   globalIndex,
@@ -74,21 +68,29 @@ function LifeAgentDiscoverCard({
 }) {
   const areaLabel = [profile.city, profile.province]
     .filter(Boolean)
-    .filter((seg, i, arr) => i === 0 || arr[i - 1] !== seg) // 去掉相邻重复（直辖市市=省，如「北京 · 北京」）
+    .filter((seg, i, arr) => i === 0 || arr[i - 1] !== seg)
     .join(" · ");
   const coverUrl = resolveLifeAgentCoverDisplayUrl(profile.coverUrl, profile.coverImageUrl, profile.coverPresetKey);
   const headlineShown = cleanLifeAgentIntroText(profile.headline, profile.displayName);
-  const sampleQuestionsShown = (profile.sampleQuestions ?? [])
-    .map((q) => cleanLifeAgentIntroText(q, profile.displayName))
-    .filter(Boolean)
-    .slice(0, 2);
+  const sampleQuestionShown =
+    (profile.sampleQuestions ?? [])
+      .map((q) => cleanLifeAgentIntroText(q, profile.displayName))
+      .filter(Boolean)[0] ?? null;
   const verified = profile.verificationStatus === "verified";
   const showPrice = lifeAgentShowsPurchaseUi();
-  const ratingScore =
-    profile.ratings && profile.ratings.raters > 0 ? profile.ratings.averageScore.toFixed(1) : null;
+  const hasRating = !!(profile.ratings && profile.ratings.raters > 0);
+  const ratingScore = hasRating ? profile.ratings!.averageScore.toFixed(1) : null;
+  const expertiseTagsShown = (profile.expertiseTags ?? []).slice(0, 2);
+  const sessionCount = profile.sessionCount ?? 0;
 
   return (
-    <article className="group mb-4 break-inside-avoid rounded-lg border border-hairline/60 bg-paper-50 p-1.5 shadow-glow-sm transition-[border-color,box-shadow,transform] duration-200 [contain-intrinsic-size:auto_340px] last:mb-0 hover:-translate-y-0.5 hover:border-hairline hover:shadow-glow motion-reduce:hover:translate-y-0 sm:mb-5">
+    <article
+      className={`group mb-4 break-inside-avoid rounded-lg border bg-paper-50 p-1.5 shadow-glow-sm transition-[border-color,box-shadow,transform] duration-200 [contain-intrinsic-size:auto_310px] last:mb-0 hover:-translate-y-0.5 hover:shadow-glow motion-reduce:hover:translate-y-0 sm:mb-5 ${
+        hasRating
+          ? "border-signal-200/70 hover:border-signal-300"
+          : "border-hairline/60 hover:border-hairline"
+      }`}
+    >
       <div
         className="relative w-full overflow-hidden rounded-md border border-hairline bg-paper-200 transition-colors duration-200 group-hover:border-hairline/80"
         style={{ aspectRatio: "4 / 5" }}
@@ -135,50 +137,63 @@ function LifeAgentDiscoverCard({
         className="pressable group block focus:outline-none focus-visible:outline focus-visible:outline-1 focus-visible:outline-ink"
       >
         <div className="pt-2.5">
-          {/* 大标题：创作者姓名 */}
-          <h3 className="line-clamp-1 text-base font-semibold leading-5 text-ink sm:text-[17px] sm:leading-6">
-            {profile.displayName}
-            {verified ? (
-              <span className="ml-1 align-middle text-[10px] tracking-widest text-signal-600" aria-label="已认证">
-                ✓
+          {/* Name row with inline gold rating */}
+          <div className="flex items-baseline gap-1.5">
+            <h3 className="min-w-0 flex-1 truncate font-serif text-[15px] font-medium leading-5 text-ink sm:text-base sm:leading-6">
+              {profile.displayName}
+              {verified ? (
+                <span className="ml-1 align-middle text-[10px] tracking-widest text-signal-600" aria-label="已认证">
+                  ✓
+                </span>
+              ) : null}
+            </h3>
+            {ratingScore ? (
+              <span className="shrink-0 text-[11px] font-semibold tabular-nums text-signal-600">
+                ★{ratingScore}
               </span>
             ) : null}
-          </h3>
+          </div>
 
-          {/* 副标题：短简介 */}
-          <p className="mt-0.5 line-clamp-2 min-h-[2.5em] text-[12.5px] leading-5 text-ink-500">
+          {/* Expertise tags */}
+          {expertiseTagsShown.length > 0 ? (
+            <div className="mt-1 flex flex-wrap gap-1">
+              {expertiseTagsShown.map((tag) => (
+                <span
+                  key={tag}
+                  className="rounded-sm bg-paper-200 px-1.5 py-0.5 text-[10px] font-medium leading-none text-ink-400"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          ) : null}
+
+          {/* Headline */}
+          <p className="mt-1 line-clamp-2 text-[12px] leading-5 text-ink-400">
             {headlineShown}
           </p>
 
-          {/* 示例问题：帮助用户快速了解可问什么 */}
-          {sampleQuestionsShown.length > 0 ? (
-            <ul className="mt-2 space-y-1.5" aria-label="你可以问">
-              {sampleQuestionsShown.map((q, i) => (
-                <li
-                  key={i}
-                  className="rounded-md bg-paper-100 px-2 py-1.5 text-[11px] leading-4 text-ink-500"
-                >
-                  {q}
-                </li>
-              ))}
-            </ul>
+          {/* Sample question — 1 only */}
+          {sampleQuestionShown ? (
+            <p className="mt-1.5 line-clamp-1 rounded-sm bg-paper-200 px-2 py-1 text-[11px] leading-4 text-ink-400">
+              {sampleQuestionShown}
+            </p>
           ) : null}
 
-          {/* 元数据条：地区 · 评分 / 价格 */}
-          <div className="mt-2.5 flex items-baseline justify-between gap-2 border-t border-hairline/70 pt-2 text-[11px] text-ink-400">
+          {/* Footer: location + session count / price */}
+          <div className="mt-2 flex items-center justify-between gap-2 border-t border-hairline/70 pt-1.5 text-[10.5px] text-ink-300">
             <span className="truncate">
               {[areaLabel || null, profile.creator.name ?? anonymous]
                 .filter(Boolean)
                 .join(" · ") || anonymous}
-              {ratingScore ? (
-                <span> · <span className="font-medium text-ink-500">{ratingScore}</span><span className="text-signal-500">★</span></span>
-              ) : null}
             </span>
-            {showPrice ? (
-              <span className="shrink-0 text-[15px] font-semibold tabular-nums text-ink">
+            {showPrice && profile.pricePerQuestion > 0 ? (
+              <span className="shrink-0 text-[13.5px] font-semibold tabular-nums text-ink">
                 ¥{(profile.pricePerQuestion / 100).toFixed(0)}
                 <span className="ml-0.5 text-[10px] font-normal text-ink-300">/问</span>
               </span>
+            ) : sessionCount > 0 ? (
+              <span className="shrink-0 tabular-nums">{sessionCount}次</span>
             ) : null}
           </div>
         </div>
@@ -426,7 +441,7 @@ export function LifeAgentDiscoverCardGrid({
             </div>
           </div>
         ) : null}
-        <div className="grid grid-cols-2 gap-x-3 gap-y-7 sm:grid-cols-3 sm:gap-x-5 sm:gap-y-9 lg:grid-cols-4 xl:grid-cols-5">
+        <div className="grid grid-cols-2 gap-x-3 gap-y-5 sm:grid-cols-3 sm:gap-x-4 sm:gap-y-7 lg:grid-cols-4 xl:grid-cols-5">
           {(lead ? [1, 2, 3, 4] : [1, 2, 3, 4, 5, 6]).map((item) => (
             <div key={item} className="min-h-0">
               <div className="w-full animate-pulse bg-paper-200" style={{ aspectRatio: "4 / 5" }} />
@@ -508,7 +523,7 @@ export function LifeAgentDiscoverCardGrid({
               }}
             >
               <div
-                className="grid gap-x-3 gap-y-7 sm:gap-x-5 sm:gap-y-9"
+                className="grid gap-x-3 gap-y-5 sm:gap-x-4 sm:gap-y-7"
                 style={{ gridTemplateColumns: `repeat(${colCount}, minmax(0, 1fr))` }}
               >
                 {row.map((profile, colIdx) => {
