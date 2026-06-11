@@ -196,7 +196,7 @@ function FeaturedShowcase({
 }) {
   if (loading) {
     return (
-      <div className="-mx-1 mb-5 rounded-xl border border-signal-300/60 bg-gradient-to-br from-signal-100 to-signal-200 shadow-glow-sm sm:mx-0">
+      <div className="-mx-1 mb-5 rounded-xl border border-hairline/60 bg-paper-50 shadow-glow-sm sm:mx-0">
         <div className="px-3 pt-3 pb-2.5">
           <div className="mb-3 flex items-center justify-between">
             <div className="flex items-center gap-1.5">
@@ -222,7 +222,7 @@ function FeaturedShowcase({
   if (agents.length === 0) return null;
 
   return (
-    <div className="-mx-1 mb-5 rounded-xl border border-signal-300/60 bg-gradient-to-br from-signal-100 to-signal-200 shadow-glow-sm sm:mx-0">
+    <div className="-mx-1 mb-5 rounded-xl border border-hairline/60 bg-paper-50 shadow-glow-sm sm:mx-0">
       <div className="px-3 pt-3 pb-2.5">
         {/* Header */}
         <div className="mb-3 flex items-center justify-between">

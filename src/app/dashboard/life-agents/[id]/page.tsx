@@ -58,7 +58,7 @@ const LIVE_CATEGORIES = [
 
 function MindScoreStatCard({ value, href }: { value: number; href?: string }) {
   const content = (
-    <div className="px-3 py-3 text-center">
+    <div className="group rounded-lg border border-hairline/60 bg-paper-50 p-3 text-center shadow-glow-sm transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-hairline hover:shadow-glow motion-reduce:hover:translate-y-0">
       <div className="flex justify-center">
         <MindScoreBadge value={value} size="lg" prefix="" />
       </div>
@@ -68,7 +68,7 @@ function MindScoreStatCard({ value, href }: { value: number; href?: string }) {
   );
   if (!href) return content;
   return (
-    <Link href={href} className="block transition active:scale-[0.99]">
+    <Link href={href} className="block">
       {content}
     </Link>
   );
@@ -86,7 +86,7 @@ function StatCard({
   href?: string;
 }) {
   const content = (
-    <div className="px-3 py-3 text-center">
+    <div className="group rounded-lg border border-hairline/60 bg-paper-50 p-3 text-center shadow-glow-sm transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-hairline hover:shadow-glow motion-reduce:hover:translate-y-0">
       <p className="text-2xl font-semibold leading-none text-ink">{value}</p>
       <p className="mt-2 text-[11px] font-medium text-ink-600">{label}</p>
       <p className="mt-0.5 text-[11px] text-ink-400">{sub}</p>
@@ -94,7 +94,7 @@ function StatCard({
   );
   if (!href) return content;
   return (
-    <Link href={href} className="block transition active:scale-[0.99]">
+    <Link href={href} className="block">
       {content}
     </Link>
   );
@@ -104,21 +104,21 @@ function QuickAction({
   href,
   title,
   desc,
-  colorClass,
   icon,
 }: {
   href: string;
   title: string;
   desc: string;
-  colorClass: string;
   icon: React.ReactNode;
 }) {
   return (
     <Link
       href={href}
-      className="flex items-start gap-3 py-3 transition active:opacity-80 sm:py-4"
+      className="group flex items-start gap-3 rounded-lg border border-hairline/60 bg-paper-50 p-3 shadow-glow-sm transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-hairline hover:shadow-glow motion-reduce:hover:translate-y-0 sm:p-4"
     >
-      <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${colorClass}`}>{icon}</div>
+      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-paper-200 text-ink-600 transition-colors duration-200 group-hover:bg-signal-100 group-hover:text-signal-600">
+        {icon}
+      </div>
       <div className="min-w-0">
         <p className="text-sm font-semibold text-ink">{title}</p>
         <p className="mt-1 text-xs leading-5 text-ink-400">{desc}</p>
@@ -344,7 +344,7 @@ export default function LifeAgentManageHomePage() {
           />
         </div>
         */}
-        <div className="grid grid-cols-2 border-t border-hairline/30 sm:grid-cols-4 [&>*:not(:nth-child(2n))]:max-sm:border-r [&>*:not(:nth-child(4n))]:sm:border-r [&>*]:border-hairline/30">
+        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
           <StatCard label="被提问" value={data.stats.soldPacks} sub="次" href={`/dashboard/life-agents/${id}/sales`} />
           <StatCard label="互动用户" value={data.questionPacks.length} sub="人" href={`/dashboard/life-agents/${id}/sales`} />
           <StatCard label="累计对话" value={data.stats.sessionCount} sub="场" href={`/dashboard/life-agents/${id}/sessions`} />
@@ -359,19 +359,17 @@ export default function LifeAgentManageHomePage() {
         <div>
           <h2 className="font-serif text-xl font-medium tracking-tight text-ink">快速操作</h2>
         </div>
-        <div className="mt-2 divide-y divide-hairline/30 sm:grid sm:grid-cols-2 sm:gap-x-6 sm:divide-y-0 lg:grid-cols-3">
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <QuickAction
             href={`/dashboard/life-agents/${id}/co-edit`}
             title="对话调教"
             desc="像聊天一样修改欢迎语、风格和知识内容"
-            colorClass="bg-paper-200 text-ink-600"
             icon={<svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5l-2 2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5" /></svg>}
           />
           <QuickAction
             href={`/dashboard/life-agents/${id}/edit`}
             title="编辑资料"
             desc="分组修改封面、人设、示范回答与地区信息"
-            colorClass="bg-paper-200 text-ink-600"
             icon={<svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>}
           />
           {/* 原「销量记录」入口（含购买语义，审核期暂隐藏）
@@ -387,42 +385,36 @@ export default function LifeAgentManageHomePage() {
             href={`/dashboard/life-agents/${id}/sales`}
             title="互动记录"
             desc="查看近 7 天、30 天和全部用户提问互动"
-            colorClass="bg-paper-200 text-ink-600"
             icon={<svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>}
           />
           <QuickAction
             href={`/dashboard/life-agents/${id}/sessions`}
             title="聊天记录"
             desc="按会话搜索，了解用户最近在问什么"
-            colorClass="bg-paper-200 text-ink-600"
             icon={<svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>}
           />
           <QuickAction
             href={`/dashboard/life-agents/${id}/feedback`}
             title="反馈诊断"
             desc="看评分、轻反馈类型和近期差评关键词"
-            colorClass="bg-paper-200 text-ink-600"
             icon={<svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l2.036 6.258a1 1 0 00.95.69h6.58c.969 0 1.371 1.24.588 1.81l-5.323 3.867a1 1 0 00-.364 1.118l2.034 6.258c.3.921-.755 1.688-1.54 1.118l-5.322-3.867a1 1 0 00-1.176 0l-5.323 3.867c-.784.57-1.838-.197-1.539-1.118l2.034-6.258a1 1 0 00-.364-1.118L.895 11.685c-.783-.57-.38-1.81.588-1.81h6.58a1 1 0 00.95-.69l2.036-6.258z" /></svg>}
           />
           <QuickAction
             href={`/dashboard/life-agents/${id}/topics`}
             title="Topic 管理"
             desc="审核 candidate，合并重复主题，并人工修正文案"
-            colorClass="bg-paper-200 text-ink-600"
             icon={<svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h7m-7 4h10M5 4h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z" /></svg>}
           />
           <QuickAction
             href={`/dashboard/life-agents/${id}/blind-spots`}
             title={`盲区问题${(data.stats?.blindSpotCount ?? 0) > 0 ? ` (${data.stats.blindSpotCount})` : ""}`}
             desc="用户问了但 Agent 答不好的问题，补充后提升回答质量"
-            colorClass="bg-paper-200 text-ink-600"
             icon={<svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M12 3a9 9 0 100 18 9 9 0 000-18z" /></svg>}
           />
           <QuickAction
             href="/dashboard/api-keys"
             title="开放 API"
             desc="管理调用 Key 与调用数据，让别人直接调用你的 Agent"
-            colorClass="bg-paper-200 text-ink-600"
             icon={<svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a5 5 0 11-9.9 1H3m0 0l3-3m-3 3l3 3m6 6a5 5 0 109.9-1H21m0 0l-3 3m3-3l-3-3" /></svg>}
           />
         </div>
