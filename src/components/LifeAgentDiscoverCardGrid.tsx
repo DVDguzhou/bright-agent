@@ -187,7 +187,7 @@ function LifeAgentDiscoverCard({
 
           {/* Sample question — 1 only */}
           {sampleQuestionShown ? (
-            <p className="mt-1.5 line-clamp-1 rounded-sm bg-paper-200 px-2 py-1 text-[11px] leading-4 text-ink-400">
+            <p className="mt-1.5 line-clamp-1 rounded-md border border-hairline/70 bg-white/75 px-2 py-1.5 text-[11px] font-medium leading-4 text-ink-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]">
               {sampleQuestionShown}
             </p>
           ) : null}
