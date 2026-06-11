@@ -95,7 +95,6 @@ function LifeAgentDiscoverCard({
 
   return (
     <article
-      data-no-pull-refresh="true"
       className={`group select-none rounded-lg border bg-paper-50 p-1.5 shadow-glow-sm transition-[border-color,box-shadow,transform] duration-200 [contain-intrinsic-size:auto_310px] hover:shadow-glow motion-reduce:hover:translate-y-0 sm:hover:-translate-y-0.5 ${
         hasRating
           ? "border-signal-200 hover:border-signal-300"

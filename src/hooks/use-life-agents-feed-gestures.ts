@@ -27,9 +27,6 @@ const scrollTopNow = () => {
   return window.scrollY ?? window.pageYOffset ?? el.scrollTop ?? 0;
 };
 
-const shouldSkipPullRefresh = (target: EventTarget | null) =>
-  target instanceof Element && Boolean(target.closest("[data-no-pull-refresh='true']"));
-
 /**
  * 人生 Agent 发现页顶部下拉刷新。
  * - 触摸设备：Touch + touchmove passive:false，在 pull 态 preventDefault，避免 iOS Safari 抢走手势导致闪一下就没了。
@@ -126,7 +123,6 @@ export function useLifeAgentsFeedGestures(opts: {
       if (!touchCoarse || e.touches.length !== 1) return;
       detachTouchMove();
       touchSessionRef.current = null;
-      if (shouldSkipPullRefresh(e.target)) return;
       if (scrollTopNow() > PTR_MAX_SCROLL) return;
       const t = e.touches[0];
       touchSessionRef.current = {
