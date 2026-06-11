@@ -740,6 +740,30 @@ function LifeAgentsPageContent() {
     );
 
 
+  const jingpinEntry = (
+    <Link
+      href="/c/jingpin"
+      className="pressable group -mx-1 mb-4 block sm:mx-0"
+    >
+      <div className="flex items-center gap-3 rounded-lg border border-signal-100 bg-signal-50/50 px-4 py-3 transition-[border-color,background-color] duration-200 group-hover:border-signal-200 group-hover:bg-signal-50">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-[12px] text-signal-400" aria-hidden>★</span>
+            <p className="font-serif text-[15px] font-medium leading-snug text-ink">
+              这是我们精选的 Agent
+            </p>
+          </div>
+          <p className="mt-1 text-[11px] leading-relaxed text-ink-400">
+            留学 · 职场 · 创业 · 海外生活
+          </p>
+        </div>
+        <span className="shrink-0 whitespace-nowrap text-[11px] font-medium text-signal-600 transition-colors duration-200 group-hover:text-signal-700">
+          查看全部 →
+        </span>
+      </div>
+    </Link>
+  );
+
   const pagerSectionClass =
     "box-border w-full min-w-[100%] shrink-0 basis-full grow-0 space-y-4 px-1 sm:px-0 max-lg:snap-start max-lg:snap-always";
 
@@ -797,6 +821,7 @@ function LifeAgentsPageContent() {
               className={pagerSectionClass}
               aria-label="发现"
             >
+              {jingpinEntry}
                 <LifeAgentDiscoverCardGrid
                 profiles={displayProfilesDiscover}
                 loading={discoverLoading}
@@ -835,6 +860,7 @@ function LifeAgentsPageContent() {
             feedTab === "favorites" ? favoritesHeading : purchasedHeading
           ) : null}
           {loadErrorBanner}
+          {feedTab !== "favorites" && feedTab !== "purchased" ? jingpinEntry : null}
           {feedTab === "purchased" && showPurchaseUi ? (
             purchasedBody
           ) : (
