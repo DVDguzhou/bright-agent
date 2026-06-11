@@ -7,7 +7,7 @@ import "leaflet.markercluster";
 import "leaflet.markercluster/dist/MarkerCluster.css";
 import { MapContainer, ScaleControl, TileLayer, Marker, useMap } from "react-leaflet";
 import { getLifeAgentLatLng, type MapCoordAgentInput } from "@/lib/life-agent-map-coords";
-import { resolveLifeAgentCoverUrl, isLifeAgentDefaultCoverUrl, DEFAULT_COVER_PNG_URL } from "@/lib/life-agent-covers";
+import { resolveLifeAgentCoverUrl, isLifeAgentDefaultCoverUrl, DEFAULT_COVER_SVG_URL } from "@/lib/life-agent-covers";
 import { agentCategoryColor, LEGEND_ITEMS } from "@/lib/life-agent-category";
 
 export type MapAgentMarker = MapCoordAgentInput & {
@@ -36,16 +36,14 @@ function escHtml(s: string): string {
 function createAvatarPinIcon(agent: MapAgentMarker, highlight = false) {
   const bg = agentCategoryColor(agent.headline, agent.displayName);
   let coverSrc = resolveLifeAgentCoverUrl(agent.coverImageUrl, agent.coverPresetKey);
-  if (isLifeAgentDefaultCoverUrl(coverSrc)) coverSrc = DEFAULT_COVER_PNG_URL;
-  const ch = escHtml(agent.displayName.trim().charAt(0) || "A");
-  const serif = `'Source Han Serif SC','Noto Serif SC','Songti SC','STSong',Georgia,serif`;
+  const fallbackCoverSrc = DEFAULT_COVER_SVG_URL;
+  if (isLifeAgentDefaultCoverUrl(coverSrc)) coverSrc = fallbackCoverSrc;
   // Sizes: outer circle, tip, border thickness
   const dia = highlight ? 38 : 30;
   const tip = highlight ? 10 : 8;
   const w = dia;
   const h = dia + tip;
   const ring = highlight ? 3 : 2.5;
-  const initialSize = highlight ? 16 : 13;
   const shadow = highlight
     ? "filter:drop-shadow(0 3px 8px rgba(0,0,0,.45))"
     : "filter:drop-shadow(0 2px 5px rgba(0,0,0,.35))";
@@ -53,9 +51,8 @@ function createAvatarPinIcon(agent: MapAgentMarker, highlight = false) {
   return L.divIcon({
     className: "life-agent-map-pin",
     html: `<div style="width:${w}px;height:${h}px;${shadow};position:relative">`
-      + `<div style="width:${dia}px;height:${dia}px;border-radius:50%;background:${bg};border:${ring}px solid ${bg};display:flex;align-items:center;justify-content:center;position:relative;${outerGlow}overflow:hidden">`
-      + `<span style="color:#fbfbf9;font-family:${serif};font-weight:600;font-size:${initialSize}px;line-height:1">${ch}</span>`
-      + `<img src="${escHtml(coverSrc)}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block" alt="" onerror="this.remove()"/>`
+      + `<div style="width:${dia}px;height:${dia}px;border-radius:50%;background:#fff;border:${ring}px solid ${bg};display:flex;align-items:center;justify-content:center;position:relative;${outerGlow}overflow:hidden">`
+      + `<img src="${escHtml(coverSrc)}" style="width:100%;height:100%;object-fit:cover;display:block" alt="" onerror="if(this.dataset.fallback!=='1'){this.dataset.fallback='1';this.src='${escHtml(fallbackCoverSrc)}'}else{this.remove()}"/>`
       + `</div>`
       + `<div style="width:0;height:0;border-left:${tip * 0.6}px solid transparent;border-right:${tip * 0.6}px solid transparent;border-top:${tip}px solid ${bg};position:absolute;bottom:0;left:50%;transform:translateX(-50%)"></div>`
       + `</div>`,
