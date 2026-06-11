@@ -6,13 +6,14 @@ import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import { ChevronRight } from "lucide-react";
 import { LifeAgentCoverImage } from "@/components/LifeAgentCoverImage";
 import { resolveLifeAgentCoverDisplayUrl } from "@/lib/life-agent-covers";
+import { overrideLifeAgentCoverUrlByDisplayName } from "@/lib/life-agent-display-overrides";
 import type { LifeAgentListItem } from "@/lib/life-agent-feed-search";
 import { cleanLifeAgentIntroText } from "@/lib/life-agent-intro-clean";
 import { lifeAgentShowsPurchaseUi } from "@/lib/life-agent-commerce";
 import { useWindowedSlice } from "@/lib/use-windowed-slice";
 import { MindScoreBadge } from "@/components/MindScoreBadge";
 
-const anonymous = "佚";
+const anonymous = "�?;
 
 function useGridColumnCount() {
   const [n, setN] = useState(2);
@@ -79,7 +80,9 @@ function LifeAgentDiscoverCard({
     .filter(Boolean)
     .filter((seg, i, arr) => i === 0 || arr[i - 1] !== seg)
     .join(" · ");
-  const coverUrl = resolveLifeAgentCoverDisplayUrl(profile.coverUrl, profile.coverImageUrl, profile.coverPresetKey);
+  const coverUrl =
+    overrideLifeAgentCoverUrlByDisplayName(profile.displayName) ??
+    resolveLifeAgentCoverDisplayUrl(profile.coverUrl, profile.coverImageUrl, profile.coverPresetKey);
   const headlineShown = cleanLifeAgentIntroText(profile.headline, profile.displayName);
   const sampleQuestionShown =
     (profile.sampleQuestions ?? [])
@@ -112,7 +115,7 @@ function LifeAgentDiscoverCard({
               <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-signal-600" />
             </span>
             <span className="rounded-full bg-ink/80 px-2 py-0.5 text-[10px] font-medium text-paper backdrop-blur-sm">
-              点击开始
+              点击开�?
             </span>
           </div>
         )}
@@ -131,7 +134,7 @@ function LifeAgentDiscoverCard({
           />
           {typeof profile.published === "boolean" && profile.published === false ? (
             <div className="absolute left-0 top-0 bg-paper px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.18em] text-ink-400">
-              未发布
+              未发�?
             </div>
           ) : null}
         </Link>
@@ -157,8 +160,8 @@ function LifeAgentDiscoverCard({
             <h3 className="min-w-0 flex-1 truncate font-serif text-base font-medium leading-5 text-ink">
               {profile.displayName}
               {verified ? (
-                <span className="ml-1 align-middle text-[10px] tracking-widest text-signal-600" aria-label="已认证">
-                  ✓
+                <span className="ml-1 align-middle text-[10px] tracking-widest text-signal-600" aria-label="已认�?>
+                  �?
                 </span>
               ) : null}
             </h3>
@@ -169,7 +172,7 @@ function LifeAgentDiscoverCard({
             ) : null}
           </div>
 
-          {/* Expertise tags — first tag uses brand accent */}
+          {/* Expertise tags �?first tag uses brand accent */}
           {expertiseTagsShown.length > 0 ? (
             <div className="mt-1 flex flex-wrap gap-1">
               {expertiseTagsShown.map((tag, i) => (
@@ -190,7 +193,7 @@ function LifeAgentDiscoverCard({
             {headlineShown}
           </p>
 
-          {/* Sample question — 1 only */}
+          {/* Sample question �?1 only */}
           {sampleQuestionShown ? (
             <p className="mt-1.5 whitespace-normal break-words rounded-md border border-hairline/70 bg-white/75 px-2 py-1.5 text-[11px] font-medium leading-4 text-ink-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]">
               {sampleQuestionShown}
@@ -207,11 +210,11 @@ function LifeAgentDiscoverCard({
             {showPrice && profile.pricePerQuestion > 0 ? (
               <span className="shrink-0 text-[13.5px] font-semibold tabular-nums text-ink">
                 ¥{(profile.pricePerQuestion / 100).toFixed(0)}
-                <span className="ml-0.5 text-[10px] font-normal text-ink-300">/问</span>
+                <span className="ml-0.5 text-[10px] font-normal text-ink-300">/�?/span>
               </span>
             ) : sessionCount > 0 ? (
               <span className={`shrink-0 tabular-nums ${isActiveAgent ? "font-medium text-signal-600" : ""}`}>
-                {sessionCount}次
+                {sessionCount}�?
               </span>
             ) : null}
           </div>
@@ -222,7 +225,7 @@ function LifeAgentDiscoverCard({
 }
 
 /**
- * 推荐卡：feed 第一位放大处理，打破均质网格，但不做杂志头版。
+ * 推荐卡：feed 第一位放大处理，打破均质网格，但不做杂志头版�?
  */
 function LifeAgentLeadCard({
   profile,
@@ -237,7 +240,9 @@ function LifeAgentLeadCard({
     .filter(Boolean)
     .filter((seg, i, arr) => i === 0 || arr[i - 1] !== seg)
     .join(" · ");
-  const coverUrl = resolveLifeAgentCoverDisplayUrl(profile.coverUrl, profile.coverImageUrl, profile.coverPresetKey);
+  const coverUrl =
+    overrideLifeAgentCoverUrlByDisplayName(profile.displayName) ??
+    resolveLifeAgentCoverDisplayUrl(profile.coverUrl, profile.coverImageUrl, profile.coverPresetKey);
   const headlineShown = cleanLifeAgentIntroText(profile.headline, profile.displayName);
   const sampleQuestionsShown = (profile.sampleQuestions ?? [])
     .map((q) => cleanLifeAgentIntroText(q, profile.displayName))
@@ -263,7 +268,7 @@ function LifeAgentLeadCard({
                   <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-signal-600" />
                 </span>
                 <span className="rounded-md border border-white/70 bg-white/75 px-2 py-0.5 text-[10px] font-medium text-ink shadow-[0_6px_16px_rgba(17,21,19,0.10)] supports-[backdrop-filter]:backdrop-blur-md">
-                  点击开始
+                  点击开�?
                 </span>
               </div>
             )}
@@ -276,7 +281,7 @@ function LifeAgentLeadCard({
               priority
             />
             <span className="absolute left-2 top-2 rounded-md border border-white/70 bg-white/75 px-2 py-1 text-[11px] font-semibold leading-none text-ink shadow-[0_8px_18px_rgba(17,21,19,0.12)] supports-[backdrop-filter]:backdrop-blur-md">
-              精选推荐
+              精选推�?
             </span>
             {typeof profile.mindScore === "number" ? (
               <div className="absolute bottom-0 left-0 z-10 p-1.5">
@@ -290,14 +295,14 @@ function LifeAgentLeadCard({
                 {[areaLabel || null, profile.creator.name ?? anonymous].filter(Boolean).join(" · ") || anonymous}
               </span>
               {ratingScore ? (
-                <span className="shrink-0 text-ink-500">{ratingScore}<span className="text-signal-500">★</span></span>
+                <span className="shrink-0 text-ink-500">{ratingScore}<span className="text-signal-500">�?/span></span>
               ) : null}
             </div>
             <h3 className="font-serif text-2xl font-medium leading-8 text-ink sm:text-[28px] sm:leading-9 [text-wrap:balance]">
               {profile.displayName}
               {verified ? (
-                <span className="ml-1.5 align-middle text-[11px] tracking-widest text-signal-600" aria-label="已认证">
-                  ✓
+                <span className="ml-1.5 align-middle text-[11px] tracking-widest text-signal-600" aria-label="已认�?>
+                  �?
                 </span>
               ) : null}
             </h3>
@@ -324,7 +329,7 @@ function LifeAgentLeadCard({
               {showPrice ? (
                 <span className="shrink-0 text-lg font-semibold tabular-nums text-ink">
                   ¥{(profile.pricePerQuestion / 100).toFixed(0)}
-                  <span className="ml-0.5 text-[10px] font-normal text-ink-400">/问</span>
+                  <span className="ml-0.5 text-[10px] font-normal text-ink-400">/�?/span>
                 </span>
               ) : null}
             </div>
@@ -342,19 +347,19 @@ type Props = {
   emptySubtitle: string;
   profileHref?: (id: string) => string;
   showFirstCardPulse?: boolean;
-  /** 为 true 时第一条用「头条卡」全宽头版处理，其余进网格 */
+  /** �?true 时第一条用「头条卡」全宽头版处理，其余进网�?*/
   lead?: boolean;
-  /** 外部指定推荐卡，常用于从精选合集里抽推荐，不影响下方普通列表 */
+  /** 外部指定推荐卡，常用于从精选合集里抽推荐，不影响下方普通列�?*/
   leadProfile?: LifeAgentListItem | null;
   windowResetKey?: string | number;
-  /** 为 false 时一次性渲染全部（管理页等） */
+  /** �?false 时一次性渲染全部（管理页等�?*/
   windowed?: boolean;
   /**
-   * 为 true 时用窗口级虚拟列表按「行」回收离屏 DOM；
-   * 未传时：与 windowed 联动，`windowed={false}`（管理页）默认关虚拟列表。
+   * �?true 时用窗口级虚拟列表按「行」回收离�?DOM�?
+   * 未传时：�?windowed 联动，`windowed={false}`（管理页）默认关虚拟列表�?
    */
   virtualized?: boolean;
-  /** 分页：触底加载下一页（与 hasMoreFromServer 配合） */
+  /** 分页：触底加载下一页（�?hasMoreFromServer 配合�?*/
   onLoadMore?: () => void | Promise<void>;
   hasMoreFromServer?: boolean;
   loadingMore?: boolean;
@@ -522,7 +527,7 @@ export function LifeAgentDiscoverCardGrid({
         {onLoadMore && (hasMoreFromServer || loadingMore) ? (
           <div ref={loadMoreSentinelRef} className="flex min-h-[52px] items-center justify-center py-2" aria-hidden>
             <span className="text-xs font-medium text-ink-400">
-              {loadingMore ? "正在加载…" : "继续阅读"}
+              {loadingMore ? "正在加载�? : "继续阅读"}
             </span>
           </div>
         ) : null}
@@ -549,7 +554,7 @@ export function LifeAgentDiscoverCardGrid({
               ref={rowVirtualizer.measureElement}
               className="absolute left-0 top-0 w-full"
               style={{
-                /* translate3d 强制独立 GPU 图层：iOS 触摸滚动时 2D translateY 行的位图可能被 WebKit 丢弃导致整行空白 */
+                /* translate3d 强制独立 GPU 图层：iOS 触摸滚动�?2D translateY 行的位图可能�?WebKit 丢弃导致整行空白 */
                 transform: `translate3d(0, ${virtualRow.start}px, 0)`,
               }}
             >
@@ -578,7 +583,7 @@ export function LifeAgentDiscoverCardGrid({
       {onLoadMore && (hasMoreFromServer || loadingMore) ? (
         <div ref={loadMoreSentinelRef} className="flex min-h-[52px] items-center justify-center py-2" aria-hidden>
           <span className="text-xs font-medium text-ink-400">
-            {loadingMore ? "正在加载…" : hasMoreFromServer ? "继续阅读" : ""}
+            {loadingMore ? "正在加载�? : hasMoreFromServer ? "继续阅读" : ""}
           </span>
         </div>
       ) : null}

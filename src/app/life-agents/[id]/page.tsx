@@ -7,6 +7,7 @@ import { RatingStars } from "@/components/RatingStars";
 import { VerificationBadge } from "@/components/VerificationBadge";
 import { LifeAgentCoverImage } from "@/components/LifeAgentCoverImage";
 import { resolveLifeAgentCoverDisplayUrl } from "@/lib/life-agent-covers";
+import { overrideLifeAgentCoverUrlByDisplayName } from "@/lib/life-agent-display-overrides";
 import { isFavoriteAgentId, toggleFavoriteAgentId } from "@/lib/life-agent-favorites";
 import { useEdgeSwipeBack } from "@/hooks/use-edge-swipe-back";
 import { useMobileTouchNavEnabled } from "@/hooks/use-life-agents-feed-gestures";
@@ -152,7 +153,8 @@ export default function LifeAgentDetailPage() {
 
   const averageScore = profile?.ratings?.averageScore ?? 0;
   const heroCoverUrl = profile
-    ? resolveLifeAgentCoverDisplayUrl(profile.coverUrl, profile.coverImageUrl, profile.coverPresetKey)
+    ? overrideLifeAgentCoverUrlByDisplayName(profile.displayName) ??
+      resolveLifeAgentCoverDisplayUrl(profile.coverUrl, profile.coverImageUrl, profile.coverPresetKey)
     : null;
 
   const cleanedIntro = useMemo(() => {
