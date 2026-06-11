@@ -86,11 +86,12 @@ function LifeAgentDiscoverCard({
 
   return (
     <article
-      className={`group mb-3 break-inside-avoid rounded-lg border bg-paper-50 p-1.5 shadow-glow-sm transition-[border-color,box-shadow,transform] duration-200 [contain-intrinsic-size:auto_310px] last:mb-0 hover:-translate-y-0.5 hover:shadow-glow motion-reduce:hover:translate-y-0 sm:mb-4 ${
+      className={`group mb-3 select-none rounded-lg border bg-paper-50 p-1.5 shadow-glow-sm transition-[border-color,box-shadow,transform] duration-200 [contain-intrinsic-size:auto_310px] last:mb-0 hover:-translate-y-0.5 hover:shadow-glow motion-reduce:hover:translate-y-0 sm:mb-4 ${
         hasRating
           ? "border-signal-200 hover:border-signal-300"
           : "border-hairline/60 hover:border-hairline"
       }`}
+      style={{ breakInside: "avoid", pageBreakInside: "avoid" } as React.CSSProperties & { WebkitBreakInside: string }}
     >
       <div
         className="relative w-full overflow-hidden rounded-md border border-hairline bg-paper-200 transition-colors duration-200 group-hover:border-hairline/80"
@@ -478,7 +479,7 @@ export function LifeAgentDiscoverCardGrid({
         {leadProfile ? (
           <LifeAgentLeadCard profile={leadProfile} profileHref={profileHref} showPulse={showFirstCardPulse} />
         ) : null}
-        <div className="columns-2 gap-x-2.5 sm:columns-3 sm:gap-x-4 lg:columns-4 xl:columns-5">
+        <div className="columns-2 gap-x-2.5 sm:columns-3 sm:gap-x-4 lg:columns-4 xl:columns-5" style={{ transform: "translateZ(0)" }}>
           {toRender.map((profile, index) => (
             <LifeAgentDiscoverCard
               key={profile.id}
