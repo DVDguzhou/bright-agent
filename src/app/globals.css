@@ -50,6 +50,16 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+/* iOS Safari 长按图片/链接会把元素整体「提起来」拖走（系统级 drag & drop），
+   导致瀑布流卡片视觉上消失。img 上的 draggable=false 不够：拖拽可由外层 <a> 发起。 */
+a,
+img {
+  -webkit-user-drag: none;
+}
+img {
+  -webkit-touch-callout: none;
+}
+
 html {
   scroll-behavior: smooth;
   background: radial-gradient(
