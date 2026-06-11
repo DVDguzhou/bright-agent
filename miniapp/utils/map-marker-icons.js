@@ -52,9 +52,7 @@ function resolveMapPinCoverUrl(agent) {
     agent.coverPresetKey
   );
   if (!url || isDefaultCoverUrl(url) || url.indexOf(".svg") >= 0) {
-    const config = require("../config");
-    const base = config.CDN_BASE || config.API_BASE;
-    return base + "/life-agent-cover-presets/default-cover.png";
+    return "";
   }
   return url;
 }
@@ -82,7 +80,7 @@ function warmPinCoverCache(pins, limit) {
   const max = limit || 120;
   for (let i = 0; i < pins.length && i < max; i++) {
     const url = resolveMapPinCoverUrl(pins[i]);
-    if (!seen[url]) {
+    if (url && !seen[url]) {
       seen[url] = true;
       loadImageInfo(url);
     }
@@ -173,7 +171,7 @@ function drawAvatarPinIcon(page, agent, highlight, preloadedInfo) {
     agent.id +
     (highlight ? "-hi" : "") +
     "-" +
-    coverUrl.slice(-24);
+    (coverUrl ? coverUrl.slice(-24) : "fallback");
   if (iconCache[cacheKey]) {
     return Promise.resolve(iconCache[cacheKey]);
   }
@@ -546,7 +544,8 @@ function buildMapMarkers(page, agents, highlightId, scale, maxGroups, options) {
   });
   const preloadUrls = {};
   avatarJobs.forEach(function (job) {
-    preloadUrls[resolveMapPinCoverUrl(job.agent)] = true;
+    const url = resolveMapPinCoverUrl(job.agent);
+    if (url) preloadUrls[url] = true;
   });
 
   return Promise.all(
