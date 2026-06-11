@@ -54,6 +54,15 @@ function chunkIntoRows<T>(items: T[], cols: number): T[][] {
   return rows;
 }
 
+function distributeIntoColumns<T>(items: T[], cols: number): T[][] {
+  const columnCount = Math.max(1, cols);
+  const columns = Array.from({ length: columnCount }, () => [] as T[]);
+  items.forEach((item, index) => {
+    columns[index % columnCount].push(item);
+  });
+  return columns;
+}
+
 function LifeAgentDiscoverCard({
   profile,
   globalIndex,
@@ -86,12 +95,12 @@ function LifeAgentDiscoverCard({
 
   return (
     <article
-      className={`group mb-3 select-none rounded-lg border bg-paper-50 p-1.5 shadow-glow-sm transition-[border-color,box-shadow,transform] duration-200 [contain-intrinsic-size:auto_310px] last:mb-0 hover:-translate-y-0.5 hover:shadow-glow motion-reduce:hover:translate-y-0 sm:mb-4 ${
+      data-no-pull-refresh="true"
+      className={`group select-none rounded-lg border bg-paper-50 p-1.5 shadow-glow-sm transition-[border-color,box-shadow,transform] duration-200 [contain-intrinsic-size:auto_310px] hover:shadow-glow motion-reduce:hover:translate-y-0 sm:hover:-translate-y-0.5 ${
         hasRating
           ? "border-signal-200 hover:border-signal-300"
           : "border-hairline/60 hover:border-hairline"
       }`}
-      style={{ breakInside: "avoid", pageBreakInside: "avoid" } as React.CSSProperties & { WebkitBreakInside: string }}
     >
       <div
         className="relative w-full overflow-hidden rounded-md border border-hairline bg-paper-200 transition-colors duration-200 group-hover:border-hairline/80"
@@ -110,13 +119,13 @@ function LifeAgentDiscoverCard({
         )}
         <Link
           href={profileHref(profile.id)}
-          className="pressable group block h-full focus:outline-none focus-visible:outline focus-visible:outline-1 focus-visible:outline-ink"
+          className="pressable group block h-full select-none [touch-action:pan-y] focus:outline-none focus-visible:outline focus-visible:outline-1 focus-visible:outline-ink"
         >
           <LifeAgentCoverImage
             src={coverUrl}
             alt=""
             fill
-            className="object-cover transition-opacity duration-200 group-hover:opacity-90"
+            className="object-cover"
             sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 220px"
             priority={globalIndex < 6}
             loading={globalIndex < 6 ? undefined : "lazy"}
@@ -136,7 +145,7 @@ function LifeAgentDiscoverCard({
 
       <Link
         href={profileHref(profile.id)}
-        className="pressable group block focus:outline-none focus-visible:outline focus-visible:outline-1 focus-visible:outline-ink"
+        className="pressable group block select-none [touch-action:pan-y] focus:outline-none focus-visible:outline focus-visible:outline-1 focus-visible:outline-ink"
       >
         <div className="pt-2.5">
           {/* Name row with rating chip */}
@@ -430,6 +439,7 @@ export function LifeAgentDiscoverCardGrid({
     page: 12,
   });
   const toRender = !virtualized && windowed ? slice : gridProfiles;
+  const masonryColumns = useMemo(() => distributeIntoColumns(toRender, colCount), [toRender, colCount]);
 
   if (loading) {
     return (
@@ -479,15 +489,25 @@ export function LifeAgentDiscoverCardGrid({
         {leadProfile ? (
           <LifeAgentLeadCard profile={leadProfile} profileHref={profileHref} showPulse={showFirstCardPulse} />
         ) : null}
-        <div className="columns-2 gap-x-2.5 sm:columns-3 sm:gap-x-4 lg:columns-4 xl:columns-5" style={{ transform: "translateZ(0)" }}>
-          {toRender.map((profile, index) => (
-            <LifeAgentDiscoverCard
-              key={profile.id}
-              profile={profile}
-              globalIndex={index + globalIndexOffset}
-              profileHref={profileHref}
-              showPulse={!leadProfile && showFirstCardPulse && index === 0}
-            />
+        <div
+          className="grid gap-x-2.5 sm:gap-x-4"
+          style={{ gridTemplateColumns: `repeat(${colCount}, minmax(0, 1fr))` }}
+        >
+          {masonryColumns.map((column, columnIndex) => (
+            <div key={columnIndex} className="flex min-w-0 flex-col gap-y-3 sm:gap-y-4">
+              {column.map((profile, itemIndex) => {
+                const globalIndex = itemIndex * colCount + columnIndex;
+                return (
+                  <LifeAgentDiscoverCard
+                    key={profile.id}
+                    profile={profile}
+                    globalIndex={globalIndex + globalIndexOffset}
+                    profileHref={profileHref}
+                    showPulse={!leadProfile && showFirstCardPulse && globalIndex === 0}
+                  />
+                );
+              })}
+            </div>
           ))}
         </div>
         {windowed && hasMore ? (
