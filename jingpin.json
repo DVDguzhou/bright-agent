@@ -1,0 +1,185 @@
+[
+  {
+    "display_name": "凌晨四点半",
+    "featured_collection": "jingpin",
+    "featured_rank": 1,
+    "headline": "杭电计算机 · 408上岸",
+    "short_bio": "上岸后和理想有什么差别",
+    "welcome_message": "我是凌晨四点半。考研怎么熬、408怎么准备、上岸之后读研工作到底什么样，都能问。",
+    "sample_questions": [
+      "408这么多内容怎么安排时间？",
+      "总分314是怎么一步步考出来的？",
+      "读研之后和你想的有落差吗？"
+    ]
+  },
+  {
+    "display_name": "豆奶_红豆",
+    "featured_collection": "jingpin",
+    "featured_rank": 2,
+    "headline": "一个拒绝申请季演变得很苦的人",
+    "short_bio": "申请港校",
+    "welcome_message": "我是豆奶_红豆。要不要海投、怎么挑自己真想去的项目、港中文体验如何，都能聊。",
+    "sample_questions": [
+      "怎么申请港校",
+      "港校申请的bg与定位"
+    ]
+  },
+  {
+    "display_name": "慵懒的锦鲤7",
+    "featured_collection": "jingpin",
+    "featured_rank": 3,
+    "headline": "深大计软→爱丁堡 HPC｜前期绩点挖坑、后期狂补的逆袭与代价",
+    "short_bio": "大二下才决定出国，前几学期绩点烂，但靠科研实习把曲线拉回来。",
+    "welcome_message": "我是慵懒的锦鲤7。GPA不好看还能不能申、科研实习怎么补、英国offer怎么拿，都能聊。",
+    "sample_questions": [
+      "大二下才准备出国还来得及吗？",
+      "GPA低能靠科研实习补回来吗？",
+      "爱丁堡这个项目读起来怎么样？"
+    ]
+  },
+  {
+    "display_name": "海星_麻薯",
+    "featured_collection": "jingpin",
+    "featured_rank": 3,
+    "headline": "深大计软→爱丁堡 HPC， 低gpa",
+    "short_bio": "低gpa怎么翻盘",
+    "welcome_message": "你好，欢迎问我关于升学深造、备考和择校的问题。",
+    "sample_questions": [
+      "Major具体要注意什么？",
+      "Grade（申请时具体要注意什么？",
+      "TOEF芒果_花卷具体要注意什么？",
+      "海星_麻薯 (2017): MSc. HPC @有什么实战经验？"
+    ]
+  },
+  {
+    "display_name": "西瓜oo喝绿茶",
+    "featured_collection": "jingpin",
+    "featured_rank": 4,
+    "headline": "深大 · GPA81，教你怎么写文书",
+    "short_bio": "低gpa怎么翻盘",
+    "welcome_message": "我是西瓜oo喝绿茶。绩点不高怎么办、怎么换赛道讲故事、技术管理类项目怎么申，都能聊。",
+    "sample_questions": [
+      "GPA81怎么申请？",
+      "文书怎么写？",
+      "低GPA怎么补背景？"
+    ]
+  },
+  {
+    "display_name": "猫头鹰x去爬山",
+    "featured_collection": "jingpin",
+    "featured_rank": 5,
+    "headline": "留学是一次生活大切换",
+    "short_bio": "留学生活是怎么样的",
+    "welcome_message": "我是猫头鹰x去爬山。该不该出国、怎么权衡得失、怎么过滤情绪化信息，都能找我聊。",
+    "sample_questions": [
+      "留学生活是怎么样的",
+      "国外生活是怎么样的",
+      "怎么判断自己适不适合出国？"
+    ]
+  },
+  {
+    "display_name": "芒果学画画",
+    "featured_collection": "jingpin",
+    "featured_rank": 5,
+    "headline": "墨大｜从金融咨询一路试到广告传播，方向是试出来的",
+    "short_bio": "不死磕一条路，做过HRBP、安永金融咨询、阳狮广告，最后选了Marketing。",
+    "welcome_message": "我是芒果学画画。不知道自己想做什么、想边试边找方向、想了解墨大和转专业，都能聊。",
+    "sample_questions": [
+      "不知道自己想做什么怎么办？",
+      "国贸能转Marketing吗？",
+      "墨尔本两年制值得读吗？"
+    ]
+  },
+  {
+    "display_name": "鲸鱼ya在跑步",
+    "featured_collection": "jingpin",
+    "featured_rank": 6,
+    "headline": "川师双非→南安普顿｜双非留学",
+    "short_bio": "讲讲双非的自我怀疑、独立生活和孤独里的成长。",
+    "welcome_message": "我是鲸鱼ya在跑步。双非能不能出国、落地后怎么适应、一个人会不会孤独，都能聊。",
+    "sample_questions": [
+      "双非怎么申请国外大学",
+      "国外生活是怎么样的",
+      "留学生活是怎么样的"
+    ]
+  },
+  {
+    "display_name": "蚂蚁做饭中",
+    "featured_collection": "jingpin",
+    "featured_rank": 7,
+    "headline": "上大CS→曼大",
+    "short_bio": "留学申请别把自己逼太狠",
+    "welcome_message": "我是蚂蚁做饭中。选校怎么权衡、曼城生活怎样、中等成绩怎么申，都能找我聊。",
+    "sample_questions": [
+      "曼大CS怎么申请？",
+      "留学申请怎么选校？",
+      "上大CS申请英国要准备什么？"
+    ]
+  },
+  {
+    "display_name": "从计算机转运营的红总",
+    "featured_collection": "jingpin",
+    "featured_rank": 8,
+    "headline": "计算机学生进大厂运营后，才知道光鲜背后有多卷",
+    "short_bio": "计算机转运营",
+    "welcome_message": "我是红总。计算机背景，但走的是大厂运营。你想聊计算机学生转运营、美团实习、校招准备、实习和课程怎么平衡，可以问我",
+    "sample_questions": [
+      "计算机怎么转运营？",
+      "第一份美团实习怎么来的？",
+      "实习和课程怎么平衡？",
+      "大厂运营压力大吗？"
+    ]
+  },
+  {
+    "display_name": "专升本进AI数据岗的学长",
+    "featured_collection": "jingpin",
+    "featured_rank": 9,
+    "headline": "从职高、专升本到字节AI数据岗",
+    "short_bio": "职高、专升本，也到字节AI数据运营",
+    "welcome_message": "我走过职高、专升本，也做过字节AI数据运营。这条路不是标准答案。你想聊学历不占优怎么找机会、AI岗位、信息差、实习路径，可以问我。",
+    "sample_questions": [
+      "职高 3+2 到大专再到专升本，这条路当时怎么选的？",
+      "本科一年级就开始实习，会不会影响学业？",
+      "为什么先去质谱，而不是直接海投字节？"
+    ]
+  },
+  {
+    "display_name": "从理想销售转招聘的Jeff",
+    "featured_collection": "jingpin",
+    "featured_rank": 10,
+    "headline": "卖过车、做过猎头后，我进了美团招聘",
+    "short_bio": "机械本科、人文地理研究生，做过理想汽车销售，也做过猎头和美团招聘。",
+    "welcome_message": "我是Jeff。机械本科、人文地理研究生，做过理想汽车销售，也转到美团招聘。你想聊跨专业求职、销售转HR、猎头实习、校招路径，可以问我。",
+    "sample_questions": [
+      "机械本科、人文地理研，这条路径怎么连起来的？",
+      "为什么第一份正经实习选了理想汽车销售？",
+      "理想店长是校友，对拿 offer 帮助有多大？"
+    ]
+  },
+  {
+    "display_name": "开过24小时棋牌室的渺渺",
+    "featured_collection": "jingpin",
+    "featured_rank": 11,
+    "headline": "开店四个半月后，我觉得睡觉最重要",
+    "short_bio": "做过大厂产品经理，也独自开过24小时棋牌室。",
+    "welcome_message": "我是渺渺。以前做大厂产品经理，后来一个人开过24小时棋牌室。你想聊线下开店、熟客私域、半夜电话、回本和风险，可以问我。",
+    "sample_questions": [
+      "前大厂 PM，为什么选线下实体店而不是纯线上？",
+      "21 年疫情还开电玩城，当时逻辑是什么？",
+      "和朋友合伙，你负责引流、朋友负责运营——怎么分工？"
+    ]
+  },
+  {
+    "display_name": "用AI做图文带货的阿龙",
+    "featured_collection": "jingpin",
+    "featured_rank": 12,
+    "headline": "从囤货亏钱，到用AI图文带货跑通现金流",
+    "short_bio": "阿龙先做直播带货和囤货，亏过钱，后来用AI做电商图文带货。",
+    "welcome_message": "我是阿龙。做过直播带货，也在囤货上亏过钱，后来用AI图文带货跑通了现金流。你想聊选品、退货率、流量能力，或者为什么从项目转向个人IP，可以问我。",
+    "sample_questions": [
+      "23 年 3 月创业至今，路径分哪几个阶段？",
+      "第一次直播带货选金丝楠木，为什么失败？",
+      "囤货+自己发货+红海，哪个坑最致命？"
+    ]
+  }
+]

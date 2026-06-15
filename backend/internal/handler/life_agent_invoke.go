@@ -255,6 +255,7 @@ func LifeAgentsChatAPI(cfg *config.Config) gin.HandlerFunc {
 		}
 		// 跨会话记忆：加载之前会话的摘要
 		var crossMemory string
+		var agentSelfAnchor string
 		{
 			var prevSessions []models.LifeAgentChatSession
 			db.DB.Where("profile_id = ? AND buyer_id = ? AND id != ? AND summary IS NOT NULL AND summary != ''",
@@ -267,7 +268,8 @@ func LifeAgentsChatAPI(cfg *config.Config) gin.HandlerFunc {
 					memories = append(memories, lifeagent.ConversationMemory{SummaryText: *s.Summary})
 				}
 			}
-			crossMemory = lifeagent.BuildCrossSessionMemory(memories)
+			crossMemory = lifeagent.BuildCrossSessionMemoryForQuery(memories, body.Message)
+			agentSelfAnchor = lifeagent.BuildAgentSelfConsistencyAnchor(memories)
 		}
 
 		var entries []models.LifeAgentKnowledgeEntry
@@ -374,12 +376,13 @@ func LifeAgentsChatAPI(cfg *config.Config) gin.HandlerFunc {
 					writeSSE("content", gin.H{"content": chunk})
 				},
 				&lifeagent.ChatOptions{
-					SessionSummary:     sessionSummary,
-					CrossSessionMemory: crossMemory,
-					WorkingState:       ws,
-					Embedder:           embedder,
-					Episodes:           episodes,
-					TurnIndex:          userTurns,
+					SessionSummary:       sessionSummary,
+					CrossSessionMemory:   crossMemory,
+					AgentSelfConsistency: agentSelfAnchor,
+					WorkingState:         ws,
+					Embedder:             embedder,
+					Episodes:             episodes,
+					TurnIndex:            userTurns,
 				},
 			)
 		}
@@ -426,9 +429,9 @@ func LifeAgentsChatAPI(cfg *config.Config) gin.HandlerFunc {
 			)
 		}
 
-		// 异步生成会话摘要：消息数 > 12 时触发
+		// 异步生成会话摘要：消息数 > 6 时触发（短会话也能沉淀跨会话记忆）
 		totalMsgCount := len(msgs) + 2
-		if totalMsgCount > 12 {
+		if totalMsgCount > 6 {
 			allHist := make([]lifeagent.ChatMessageForAI, len(hist), len(hist)+2)
 			copy(allHist, hist)
 			allHist = append(allHist, lifeagent.ChatMessageForAI{Role: "user", Content: body.Message})

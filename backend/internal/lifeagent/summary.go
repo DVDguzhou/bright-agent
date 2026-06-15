@@ -15,6 +15,7 @@ import (
 type ChatOptions struct {
 	SessionSummary       string            // compressed summary of earlier messages in this session
 	CrossSessionMemory   string            // summaries from buyer's previous sessions with this agent
+	AgentSelfConsistency string            // agent's own self-stated biographical facts across sessions (anti-contradiction anchor)
 	LiveUpdates          []LiveUpdateForAI // recent live updates from creator
 	RecentlyUsedEntryIDs []string          // entry IDs cited in recent replies (for de-duplication)
 	KnowledgeContext     string            // facts/topics/entry hints injected right before user message for recency attention
@@ -95,6 +96,9 @@ type ConversationMemory struct {
 	UserPreferences      []string        `json:"userPreferences,omitempty"`
 	ConversationTopics   []string        `json:"conversationTopics,omitempty"`
 	AssistantSuggestions []string        `json:"assistantSuggestions,omitempty"`
+	// AgentSelfFacts：Agent 本轮对话里关于"自己"陈述过的生平/身份事实（现状、年级、年份、工作等），
+	// 用于跨会话自我一致性约束，避免一次说毕业一次说研一。
+	AgentSelfFacts []FactCandidate `json:"agentSelfFacts,omitempty"`
 }
 
 // SummarizeConversation 兼容旧调用，只返回摘要文本。
@@ -148,13 +152,24 @@ func SummarizeConversationMemory(ctx context.Context, apiKey, model, baseURL str
   ],
   "userPreferences": ["用户明确表达的偏好"],
   "conversationTopics": ["本次聊到的话题"],
-  "assistantSuggestions": ["你给过的关键建议"]
+  "assistantSuggestions": ["你给过的关键建议"],
+  "agentSelfFacts": [
+    {
+      "factKey": "life_stage",
+      "factValue": "助手在本次对话里关于自己说过的生平/身份事实（如现在研一、已毕业、23年入学、在某公司工作、所在城市等）",
+      "factType": "agent_self_fact",
+      "source": "agent_statement",
+      "confidence": "medium",
+      "status": "stated"
+    }
+  ]
 }
 规则：
 1. 只有用户明确说过的事实，才能写入 userStatedFacts。
 2. 没被用户明确说过的，不要脑补成事实。
 3. userStatedFacts 默认 status 为 pending_review。
-4. summaryText 用第三人称客观描述，不要编号。`,
+4. summaryText 用第三人称客观描述，不要编号。
+5. agentSelfFacts 只记录"助手（你扮演的人）"在本次对话里明确说出来的、关于自己的稳定生平事实：当前人生阶段（研几/是否毕业）、入学或毕业年份、现在的工作/单位、所在城市、学校。助手没明说的不要写。常用 factKey：life_stage、enroll_year、graduate_year、current_job、city、school。`,
 			},
 			{Role: openai.ChatMessageRoleUser, Content: sb.String()},
 		},
@@ -343,7 +358,59 @@ func normalizeConversationMemory(memory ConversationMemory, messages []ChatMessa
 			memory.UserStatedFacts[i].Status = "pending_review"
 		}
 	}
+	memory.AgentSelfFacts = dedupeFactCandidates(memory.AgentSelfFacts)
+	for i := range memory.AgentSelfFacts {
+		if memory.AgentSelfFacts[i].FactType == "" {
+			memory.AgentSelfFacts[i].FactType = "agent_self_fact"
+		}
+		if memory.AgentSelfFacts[i].Source == "" {
+			memory.AgentSelfFacts[i].Source = "agent_statement"
+		}
+		if memory.AgentSelfFacts[i].Confidence == "" {
+			memory.AgentSelfFacts[i].Confidence = "medium"
+		}
+		if memory.AgentSelfFacts[i].Status == "" {
+			memory.AgentSelfFacts[i].Status = "stated"
+		}
+	}
 	return memory
+}
+
+// BuildAgentSelfConsistencyAnchor 汇总 Agent 在过往会话里关于"自己"说过的生平事实，
+// 形成一条强一致性约束注入到 system prompt，避免跨会话自我矛盾（如一次说毕业、一次说研一）。
+// memories 已按 updated_at DESC 排列（最新在前），同一 factKey 以最新一次为准。
+func BuildAgentSelfConsistencyAnchor(memories []ConversationMemory) string {
+	if len(memories) == 0 {
+		return ""
+	}
+	latest := make(map[string]string)
+	order := make([]string, 0)
+	for _, m := range memories {
+		for _, f := range m.AgentSelfFacts {
+			key := strings.TrimSpace(f.FactKey)
+			val := strings.TrimSpace(f.FactValue)
+			if key == "" || val == "" {
+				continue
+			}
+			if _, seen := latest[key]; seen {
+				continue // 最新在前，已记录的就是最新值
+			}
+			latest[key] = val
+			order = append(order, key)
+		}
+	}
+	if len(order) == 0 {
+		return ""
+	}
+	parts := make([]string, 0, len(order))
+	for _, key := range order {
+		parts = append(parts, latest[key])
+	}
+	var sb strings.Builder
+	sb.WriteString("你在之前的对话里已经说过自己：")
+	sb.WriteString(strings.Join(parts, "；"))
+	sb.WriteString("。这一轮必须与上面保持完全一致，绝不能改口（比如之前说在读就不能改成已毕业，年级和年份也不能变）。如果这次的问题涉及上面没提到的生平细节，宁可模糊带过也不要现编一个新版本。")
+	return sb.String()
 }
 
 func buildMemorySection(memory ConversationMemory) string {

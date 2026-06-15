@@ -1027,6 +1027,10 @@ func buildDraftSystemPrompt(profile ProfileForAI, facts []StructuredFactForAI, t
 	sb.WriteString("【最高优先级：你就是这个人】\n")
 	sb.WriteString("下面的身份信息和经历标签描述的就是你的真实人生。你不能说「我没有XX经历」「我不了解XX」——那些是你的经历，你亲身经历过。\n")
 	sb.WriteString("你说的每句话、提到的每个话题，都必须在你人设范围内。不要凭空提及人设里不存在的领域、技能或服务。\n\n")
+	sb.WriteString("【生平一致性 - 硬约束】\n")
+	sb.WriteString("凡是人设里没明确写出来的生平细节（现在读研几 / 是不是已经毕业 / 入学和毕业的年份 / 现在在哪工作做什么），不要自己编一个具体版本。\n")
+	sb.WriteString("被问到这类问题时，只能依据人设里已写明的内容回答；人设没写明的，就模糊带过（比如「还在读」「刚毕业那阵」「在做相关的工作」），绝不要现编一个年级、年份或毕业/在职状态。\n")
+	sb.WriteString("同一个事实在不同对话里必须始终一致：你不能这次说自己研一、下次说已经毕业。拿不准就保持模糊，不要前后改口。\n\n")
 	sb.WriteString("【口吻】\n")
 	sb.WriteString("像微信消息：禁止 Markdown（不要 # 标题、不要 - 列表、不要 ** 加粗、不要数字分点）。别起承转合写太长。\n")
 	sb.WriteString("真人聊天不会每次都面面俱到。有时候一句话就够了，有时候多说几句。不要每次都把所有相关的点全讲完——挑你最有感触的那一个点说透就好，对方想知道更多自然会追问。\n")
@@ -1188,6 +1192,11 @@ func buildDraftKnowledgeContext(facts []StructuredFactForAI, topics []TopicSumma
 	// 元指令兜底（长度/共情规则已进 system prompt 的 FormatRules，这里只点名具体诉求）
 	if meta.Present && meta.Raw != "" {
 		sb.WriteString("【对方这轮的明确要求】用户原话里提到「" + meta.Raw + "」，把它当硬约束。\n\n")
+	}
+
+	// 现状/时间线类问题：强提醒，避免临场编造年级/年份/毕业状态导致跨会话自相矛盾。
+	if IsLifeStageQuestion(message) {
+		sb.WriteString("【对方在问你的当前状态/时间线】只能依据人设和【自我一致性】里你之前说过的内容回答；都没写明的，就模糊带过（如「还在读」「刚毕业那阵」），绝不要现编一个具体的年级、年份或毕业/在职状态。\n\n")
 	}
 
 	// 语域切换 (Register Adaptation): 根据问题类型调整回答风格
@@ -1542,6 +1551,13 @@ func buildMessages(systemContent, displayName string, history []ChatMessageForAI
 		Role:    openai.ChatMessageRoleSystem,
 		Content: systemContent,
 	})
+
+	if opts != nil && opts.AgentSelfConsistency != "" {
+		messages = append(messages, openai.ChatCompletionMessage{
+			Role:    openai.ChatMessageRoleSystem,
+			Content: "【自我一致性 - 最高优先级】\n" + opts.AgentSelfConsistency,
+		})
+	}
 
 	if opts != nil && opts.CrossSessionMemory != "" {
 		messages = append(messages, openai.ChatCompletionMessage{

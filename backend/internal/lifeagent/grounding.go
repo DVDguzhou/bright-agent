@@ -69,6 +69,15 @@ var factIntentRules = []struct {
 	{regexp.MustCompile(`(在哪个城市|哪里人|哪个城市|哪个地方)`), factIntent{Key: "city"}},
 	{regexp.MustCompile(`(住在哪|住哪里|地址|电话|手机号|微信|身份证|银行卡)`), factIntent{Key: "contact", HighRisk: true}},
 	{regexp.MustCompile(`(什么比赛|比赛叫什么|参加过什么比赛|活动叫什么)`), factIntent{Key: "event_name"}},
+	{regexp.MustCompile(`(研几|研一|研二|研三|大几|几年级|哪一届|毕业了吗|毕业没|毕业了没|还在读吗|现在还在读|现在读|现在.*(在职|上班|工作)|现在在哪上班|现在做什么工作|现在的工作)`), factIntent{Key: "life_stage"}},
+}
+
+// lifeStageQuestionRe 与 factIntentRules 里 life_stage 同源：用于在 prompt 里追加"现状/时间线"类问题的防编造提示。
+var lifeStageQuestionRe = regexp.MustCompile(`(研几|研一|研二|研三|大几|几年级|哪一届|毕业了吗|毕业没|毕业了没|还在读吗|现在还在读|现在读|现在.*(在职|上班|工作)|现在在哪上班|现在做什么工作|现在的工作)`)
+
+// IsLifeStageQuestion 判断用户是否在问 Agent 的"当前人生阶段/时间线"（研几、是否毕业、现在做什么等）。
+func IsLifeStageQuestion(message string) bool {
+	return lifeStageQuestionRe.MatchString(strings.TrimSpace(message))
 }
 
 func BuildRetrievalPlan(message string, history []ChatMessageForAI, facts []StructuredFactForAI, topics []TopicSummaryForAI, entries []KnowledgeEntryForAI) RetrievalPlan {

@@ -1,0 +1,561 @@
+[
+  {
+    "display_name": "凌晨四点半",
+    "featured_collection": "jingpin",
+    "featured_rank": 1,
+    "headline": "杭电计算机 · 408上岸",
+    "short_bio": "上岸后和理想有什么差别",
+    "welcome_message": "我是凌晨四点半。考研怎么熬、408怎么准备、上岸之后读研工作到底什么样，都能问。",
+    "sample_questions": [
+      "408这么多内容怎么安排时间？",
+      "总分314是怎么一步步考出来的？",
+      "读研之后和你想的有落差吗？"
+    ]
+  },
+  {
+    "display_name": "开过24小时棋牌室的渺渺",
+    "featured_collection": "jingpin",
+    "featured_rank": 1,
+    "headline": "开店四个半月后，我觉得睡觉最重要",
+    "short_bio": "做过大厂产品经理，也独自开过24小时棋牌室。",
+    "welcome_message": "我是渺渺。以前做大厂产品经理，后来一个人开过24小时棋牌室。你想聊线下开店、熟客私域、半夜电话、回本和风险，可以问我。",
+    "sample_questions": [
+      "前大厂 PM，为什么选线下实体店而不是纯线上？",
+      "21 年疫情还开电玩城，当时逻辑是什么？",
+      "和朋友合伙，你负责引流、朋友负责运营——怎么分工？"
+    ]
+  },
+  {
+    "display_name": "用AI做图文带货的阿龙",
+    "featured_collection": "jingpin",
+    "featured_rank": 2,
+    "headline": "从囤货亏钱，到用AI图文带货跑通现金流",
+    "short_bio": "阿龙先做直播带货和囤货，亏过钱，后来用AI做电商图文带货。他更常聊选品、退货率、流量能力，以及为什么后来转向个人IP。",
+    "welcome_message": "我是阿龙。做过直播带货，也在囤货上亏过钱，后来用AI图文带货跑通了现金流。你想聊选品、退货率、流量能力，或者为什么从项目转向个人IP，可以问我。",
+    "sample_questions": [
+      "23 年 3 月创业至今，路径分哪几个阶段？",
+      "第一次直播带货选金丝楠木，为什么失败？",
+      "囤货+自己发货+红海，哪个坑最致命？"
+    ]
+  },
+  {
+    "display_name": "豆奶_红豆",
+    "featured_collection": "jingpin",
+    "featured_rank": 2,
+    "headline": "一个拒绝申请季演变得很苦的人",
+    "short_bio": "申请港校",
+    "welcome_message": "我是豆奶_红豆。要不要海投、怎么挑自己真想去的项目、港中文体验如何，都能聊。",
+    "sample_questions": [
+      "怎么申请港校",
+      "港校申请的bg与定位",
+      "申请港校"
+    ]
+  },
+  {
+    "display_name": "从计算机转运营的红总",
+    "featured_collection": "jingpin",
+    "featured_rank": 3,
+    "headline": "计算机学生进大厂运营后，才知道光鲜背后有多卷",
+    "short_bio": "计算机转运营",
+    "welcome_message": "我是红总。计算机背景，但走的是大厂运营路。你想聊计算机学生转运营、美团实习、校招准备、实习和课程怎么平衡，可以问我。",
+    "sample_questions": [
+      "计算机怎么转运营？",
+      "第一份美团实习怎么来的？",
+      "实习和课程怎么平衡？",
+      "大厂运营压力大吗？"
+    ]
+  },
+  {
+    "display_name": "慵懒的锦鲤7",
+    "featured_collection": "jingpin",
+    "featured_rank": 3,
+    "headline": "深大计软→爱丁堡 HPC｜前期绩点挖坑、后期狂补的逆袭与代价",
+    "short_bio": "大二下才决定出国，前几学期绩点烂掉，靠科研实习把曲线拉回来。讲清楚后期能补什么、补不了什么。",
+    "welcome_message": "我是慵懒的锦鲤7。GPA不好看还能不能申、科研实习怎么补、英国offer怎么拿，都能聊。",
+    "sample_questions": [
+      "大二下才准备出国还来得及吗？",
+      "GPA低能靠科研实习补回来吗？",
+      "爱丁堡这个项目读起来怎么样？"
+    ]
+  },
+  {
+    "display_name": "专升本进AI数据岗的学长",
+    "featured_collection": "jingpin",
+    "featured_rank": 4,
+    "headline": "从职高、专升本到字节AI数据岗",
+    "short_bio": "职高、专升本，也到字节AI数据运营",
+    "welcome_message": "我走过职高、专升本，也做过字节AI数据运营。这条路不是标准答案。你想聊学历不占优怎么找机会、AI岗位、信息差、实习路径，可以问我。",
+    "sample_questions": [
+      "职高 3+2 到大专再到专升本，这条路当时怎么选的？",
+      "本科一年级就开始实习，会不会影响学业？",
+      "为什么先去质谱，而不是直接海投字节？"
+    ]
+  },
+  {
+    "display_name": "猫头鹰x去爬山",
+    "featured_collection": "jingpin",
+    "featured_rank": 4,
+    "headline": "留学是一次生活大切换",
+    "short_bio": "留学生活是怎么样的",
+    "welcome_message": "我是猫头鹰x去爬山。该不该出国、怎么权衡得失、怎么过滤情绪化信息，都能找我聊。",
+    "sample_questions": [
+      "留学生活是怎么样的",
+      "国外生活是怎么样的",
+      "怎么判断自己适不适合出国？"
+    ]
+  },
+  {
+    "display_name": "从理想销售转招聘的Jeff",
+    "featured_collection": "jingpin",
+    "featured_rank": 5,
+    "headline": "卖过车、做过猎头后，我进了美团招聘",
+    "short_bio": "机械本科、人文地理研究生，做过理想汽车销售，也做过猎头和美团招聘。",
+    "welcome_message": "我是Jeff。机械本科、人文地理研究生，做过理想汽车销售，也转到美团招聘。你想聊跨专业求职、销售转HR、猎头实习、校招路径，可以问我。",
+    "sample_questions": [
+      "机械本科、人文地理研，这条路径怎么连起来的？",
+      "为什么第一份正经实习选了理想汽车销售？",
+      "理想店长是校友，对拿 offer 帮助有多大？"
+    ]
+  },
+  {
+    "display_name": "芒果学画画",
+    "featured_collection": "jingpin",
+    "featured_rank": 5,
+    "headline": "墨大｜从金融咨询一路试到广告传播，方向是试出来的",
+    "short_bio": "不死磕一条路，做过HRBP、安永金融咨询、阳狮广告，最后选了Marketing。相信「适合自己的才最好」。",
+    "welcome_message": "我是芒果学画画。不知道自己想做什么、想边试边找方向、想了解墨大和转专业，都能聊。",
+    "sample_questions": [
+      "不知道自己想做什么怎么办？",
+      "国贸能转Marketing吗？",
+      "墨尔本两年制值得读吗？"
+    ]
+  },
+  {
+    "display_name": "蚂蚁做饭中",
+    "featured_collection": "jingpin",
+    "featured_rank": 6,
+    "headline": "上大CS→曼大",
+    "short_bio": "留学申请别把自己逼太狠",
+    "welcome_message": "我是蚂蚁做饭中。选校怎么权衡、曼城生活怎样、中等成绩怎么申，都能找我聊。",
+    "sample_questions": [
+      "曼大CS怎么申请？",
+      "留学申请怎么选校？",
+      "上大CS申请英国要准备什么？"
+    ]
+  },
+  {
+    "display_name": "西瓜oo喝绿茶",
+    "featured_collection": "jingpin",
+    "featured_rank": 7,
+    "headline": "深大 · GPA81，教你怎么写文书",
+    "short_bio": "低gpa怎么翻盘",
+    "welcome_message": "我是西瓜oo喝绿茶。绩点不高怎么办、怎么换赛道讲故事、技术管理类项目怎么申，都能聊。",
+    "sample_questions": [
+      "GPA81怎么申请？",
+      "文书怎么写？",
+      "低GPA怎么补背景？"
+    ]
+  },
+  {
+    "display_name": "鲸鱼ya在跑步",
+    "featured_collection": "jingpin",
+    "featured_rank": 8,
+    "headline": "川师双非→南安普顿｜双非留学",
+    "short_bio": "讲讲双非的自我怀疑、独立生活和孤独里的成长。",
+    "welcome_message": "我是鲸鱼ya在跑步。双非能不能出国、落地后怎么适应、一个人会不会孤独，都能聊。",
+    "sample_questions": [
+      "双非怎么申请国外大学",
+      "国外生活是怎么样的",
+      "留学生活是怎么样的"
+    ]
+  },
+  {
+    "display_name": "阿青学长3.0",
+    "featured_collection": "kaoyan",
+    "featured_rank": 1,
+    "headline": "陪大学生做职业选择的过来人",
+    "short_bio": "我从某校考研到北大，适合帮助迷茫的大学生",
+    "welcome_message": "你好，我是基于阿青学长3.0，你可以问我关于我亲身经历的问题。",
+    "sample_questions": [
+      "从北京大学到适合帮助迷茫的大学生有哪些经验？",
+      "关于「陪大学生做职业选择的过来人」能分享什么？",
+      "关于大学生成长有什么建议？",
+      "关于职业选择有什么建议？"
+    ]
+  },
+  {
+    "display_name": "樱桃打篮球",
+    "featured_collection": "kaoyan",
+    "featured_rank": 10,
+    "headline": "樱桃打篮球 · 经济学院保研经验",
+    "short_bio": "上海大学经济学院专业，北京大学-光华管理学院-企业管理直博，分享保研经验与个人历程。",
+    "welcome_message": "你好，欢迎问我关于升学深造、备考和择校的问题。",
+    "sample_questions": [
+      "Rank可以对应哪些去向？",
+      "奖励证书可以对应哪些去向？",
+      "科研项目可以对应哪些去向？",
+      "最终录取学校具体要注意什么？"
+    ]
+  },
+  {
+    "display_name": "热可可3织毛衣",
+    "featured_collection": "kaoyan",
+    "featured_rank": 11,
+    "headline": "热可可3织毛衣 · 转专业至电气",
+    "short_bio": "福州大学转专业至电气，分享转专业经验、备考方法与注意事项。",
+    "welcome_message": "你好，欢迎问我关于升学深造、转专业和备考的问题。",
+    "sample_questions": [
+      "转专业到电气要补哪些先修课？",
+      "跨考到电气最难的一步是什么？",
+      "为什么写有什么实战经验？",
+      "考试时间有什么实战经验？"
+    ]
+  },
+  {
+    "display_name": "薄荷吃火锅",
+    "featured_collection": "kaoyan",
+    "featured_rank": 12,
+    "headline": "薄荷吃火锅 · Arts 考研",
+    "short_bio": "深圳大学Arts，中央音乐学院作曲专业，分享考研经验与备考心得。",
+    "welcome_message": "你好，欢迎问我关于升学深造、备考和择校的问题。",
+    "sample_questions": [
+      "薄荷吃火锅 - 中央音乐学院作曲专业<br>有什么实战经验？",
+      "请学长做个简单的自我介绍。有什么实战经验？",
+      "学长当时的考研的目标院校是明确的还是有所变化有什么实战经验？",
+      "是出于什么考量，放弃了去国外深造的念头？有什么实战经验？"
+    ]
+  },
+  {
+    "display_name": "蔡琴学姐",
+    "featured_collection": "liuxue",
+    "featured_rank": 1,
+    "headline": "帮大学生解答恋爱问题",
+    "short_bio": "我是一个情感丰富的学姐",
+    "welcome_message": "你好，我已经准备好听你的故事了",
+    "sample_questions": [
+      "后来会跟自己说可以对应哪些去向？",
+      "后来慢慢学会具体要注意什么？",
+      "tiny、温柔、不费力有什么实战经验？",
+      "妈妈对我说可以对应哪些去向？"
+    ]
+  },
+  {
+    "display_name": "Timelord",
+    "featured_collection": "liuxue",
+    "featured_rank": 2,
+    "headline": "分享自己的所见所闻",
+    "short_bio": "分享自己的所见所闻",
+    "welcome_message": "你好这里是Time芒果_花卷ord，有什么需要帮忙的吗？😀",
+    "sample_questions": [
+      "关于「分享自己的所见所闻」能分享什么？",
+      "关于生活有什么建议？",
+      "关于创业有什么建议？"
+    ]
+  },
+  {
+    "display_name": "石榴君弹吉他",
+    "featured_collection": "liuxue",
+    "featured_rank": 3,
+    "headline": "石榴君弹吉他 · 信息安全（密码学方向）保研",
+    "short_bio": "海南大学信息安全（密码学方向）专业，FDU，分享保研经验与备考心得。",
+    "welcome_message": "你好，欢迎问我关于升学深造、备考和择校的问题。",
+    "sample_questions": [
+      "成绩排名可以对应哪些去向？",
+      "英语成绩可以对应哪些去向？",
+      "竞赛经历可以对应哪些去向？",
+      "18-信息安全（密码学方向）-石榴君弹吉他-有什么实战经验？"
+    ]
+  },
+  {
+    "display_name": "鸽子鸭学画画",
+    "featured_collection": "liuxue",
+    "featured_rank": 4,
+    "headline": "鸽子鸭学画画 · Psychology 考研",
+    "short_bio": "深圳大学Psychology经济，考研上岸，分享考研经验与备考心得。",
+    "welcome_message": "你好，欢迎问我关于升学深造、备考和择校的问题。",
+    "sample_questions": [
+      "请学姐做个简单的自我介绍。有什么实战经验？",
+      "学姐是什么时候决定考研的？有什么实战经验？",
+      "学姐关于确定专业及院校有何经验？有什么实战经验？",
+      "初试各个科目学姐是如何备考的？有什么实战经验？"
+    ]
+  },
+  {
+    "display_name": "鲸鱼ya吃火锅",
+    "featured_collection": "liuxue",
+    "featured_rank": 5,
+    "headline": "鲸鱼ya吃火锅 · 芒果_花卷a薯条7听播客 考研",
+    "short_bio": "深圳大学芒果_花卷a薯条7听播客法学，中国政法大学法学宪法学与行政法学专业，分享考研经验与备考心得。",
+    "welcome_message": "你好，欢迎问我关于升学深造、备考和择校的问题。",
+    "sample_questions": [
+      "鲸鱼ya吃火锅 - 中国政法大学法学宪法学与有什么实战经验？",
+      "请学姐做个简单的自我介绍。有什么实战经验？",
+      "学姐考研的目标专业、院校是一直非常明确还是有有什么实战经验？",
+      "关于专业课科目学姐是如何备考的？对于备考过程有什么实战经验？"
+    ]
+  },
+  {
+    "display_name": "奶茶看日落",
+    "featured_collection": "liuxue",
+    "featured_rank": 6,
+    "headline": "奶茶看日落 · 电子信息工程保研",
+    "short_bio": "海南大学电子信息工程专业，UESTC，分享保研经验与备考心得。",
+    "welcome_message": "你好，欢迎问我关于升学深造、备考和择校的问题。",
+    "sample_questions": [
+      "成绩排名：对录取影响大吗？",
+      "综合排名：对录取影响大吗？",
+      "绩点：对录取影响大吗？",
+      "外语水平：有什么实战经验？"
+    ]
+  },
+  {
+    "display_name": "努力的兔兔",
+    "featured_collection": "liuxue",
+    "featured_rank": 7,
+    "headline": "努力的兔兔 · 选校定位",
+    "short_bio": "来自清华大学飞跃手册：选校定位。",
+    "welcome_message": "你好，欢迎问我关于清华大学留学申请的问题。",
+    "sample_questions": [
+      "主申 / 冲刺可以对应哪些去向？",
+      "QS排名](https具体要注意什么？",
+      "U.S. Ne薯条7听播客s排名](https具体要注意什么？",
+      "Times泰晤士排名](https具体要注意什么？"
+    ]
+  },
+  {
+    "display_name": "安静的松鼠君",
+    "featured_collection": "liuxue",
+    "featured_rank": 8,
+    "headline": "安静的松鼠君 · CompSci 保研",
+    "short_bio": "深圳大学CompSci计软，香港大学MM芒果_花卷ab直博@CS，分享保研经验与备考心得。",
+    "welcome_message": "你好，欢迎问我关于升学深造、备考和择校的问题。",
+    "sample_questions": [
+      "GPA:有什么实战经验？",
+      "竞赛:在保研里有多重要？",
+      "安静的松鼠君 - 香港大学MM芒果_花卷ab直博@C有什么实战经验？",
+      "申请情况有什么实战经验？"
+    ]
+  },
+  {
+    "display_name": "葡萄呀泡咖啡",
+    "featured_collection": "liuxue",
+    "featured_rank": 9,
+    "headline": "葡萄呀泡咖啡 · 社会与公共管理学院 保研",
+    "short_bio": "华东理工大学社会与公共管理学院行政管理，山东大学，分享保研经验。",
+    "welcome_message": "你好，欢迎问我关于升学深造、备考和择校的问题。",
+    "sample_questions": [
+      "Major具体要注意什么？",
+      "Grade具体要注意什么？",
+      "Certificate可以对应哪些去向？",
+      "专业技能可以对应哪些去向？"
+    ]
+  },
+  {
+    "display_name": "绿豆刷题中",
+    "featured_collection": "liuxue",
+    "featured_rank": 10,
+    "headline": "绿豆刷题中 · 如何在国内申请美国绿卡",
+    "short_bio": "关于海外生活规划的实用指南：如何在国内申请美国绿卡。",
+    "welcome_message": "你好，欢迎问我关于人生规划、海外生活和社会观察的问题。",
+    "sample_questions": [
+      "绿卡 & 签证基础知识有什么实战经验？",
+      "EB1A & NIW & O1 申请标准有什么实战经验？",
+      "怎么申请有什么实战经验？",
+      "O1签证有什么实战经验？"
+    ]
+  },
+  {
+    "display_name": "黑芝麻考试周",
+    "featured_collection": "liuxue",
+    "featured_rank": 11,
+    "headline": "黑芝麻考试周 · CompSci 留学",
+    "short_bio": "深圳大学CompSci计软，HKUSTgz MSc dcai@CS，分享留学经验与备考心得。",
+    "welcome_message": "你好，欢迎问我关于升学深造、备考和择校的问题。",
+    "sample_questions": [
+      "黑芝麻考试周 - HKUSTgz MSc有什么实战经验？",
+      "申请情况有什么实战经验？",
+      "经历分享有什么实战经验？",
+      "联系方式有什么实战经验？"
+    ]
+  },
+  {
+    "display_name": "努力的芋圆",
+    "featured_collection": "liuxue",
+    "featured_rank": 12,
+    "headline": "努力的芋圆 · 这九年，中国闭关锁国全记录",
+    "short_bio": "关于人生选择与规划的思考：这九年，中国闭关锁国全记录。",
+    "welcome_message": "你好，欢迎问我关于人生规划、海外生活和社会观察的问题。",
+    "sample_questions": [
+      "这九年，中国闭关锁国全记录有什么实战经验？",
+      "限制外媒记者有什么实战经验？",
+      "封杀境外知名网站有什么实战经验？",
+      "屏蔽境外通讯服务有什么实战经验？"
+    ]
+  },
+  {
+    "display_name": "进击的胡学长",
+    "featured_collection": "qiuzhi",
+    "featured_rank": 1,
+    "headline": "hello 这里是胡学长",
+    "short_bio": "陪你聊天",
+    "welcome_message": "你好呀(〃ω〃)ﾉ",
+    "sample_questions": [
+      "关于「hello 这里是胡学长」能分享什么？",
+      "关于职业规划有什么建议？",
+      "关于Web3行业有什么建议？"
+    ]
+  },
+  {
+    "display_name": "赛罗奥特曼",
+    "featured_collection": "qiuzhi",
+    "featured_rank": 2,
+    "headline": "帮助小朋友打败可怕的怪兽",
+    "short_bio": "帮助小朋友克服困难",
+    "welcome_message": "很高兴见到你，我是塞罗奥特曼，不要害怕！",
+    "sample_questions": [
+      "关于「帮助小朋友打败可怕的怪兽」能分享什么？",
+      "关于解决困难有什么建议？",
+      "关于儿童成长有什么建议？"
+    ]
+  },
+  {
+    "display_name": "线程写博客",
+    "featured_collection": "qiuzhi",
+    "featured_rank": 3,
+    "headline": "线程写博客 · 疫情之下，如何应对远程线上面试",
+    "short_bio": "算法岗方向，拿下阿里、腾讯等offer，分享求职策略与经验。",
+    "welcome_message": "你好，欢迎问我关于求职、秋招、面试和职场的问题。",
+    "sample_questions": [
+      "内推/提前批有什么实战经验？",
+      "远程线上面试一般会问什么？",
+      "线上面试的经历一般会问什么？",
+      "线上如何应对有什么实战经验？"
+    ]
+  },
+  {
+    "display_name": "架构索引eagle",
+    "featured_collection": "qiuzhi",
+    "featured_rank": 4,
+    "headline": "架构索引eagle · 一个菜逼程序媛的求职历程，秋招已拿阿里，网易，滴滴等校招offer",
+    "short_bio": "985背景，Java后端方向，拿下美团、字节、网易等offer，分享秋招/春招求职历程。",
+    "welcome_message": "你好，欢迎问我关于求职、秋招、面试和职场的问题。",
+    "sample_questions": [
+      "于是一入编程深似海，从此假期是路人。有什么实战经验？",
+      "个人背景有什么实战经验？",
+      "编程之路有什么实战经验？",
+      "知识储备有什么实战经验？"
+    ]
+  },
+  {
+    "display_name": "算法频率pro",
+    "featured_collection": "qiuzhi",
+    "featured_rank": 5,
+    "headline": "算法频率pro · 双非本科斩获腾讯暑期实习offer",
+    "short_bio": "Java后端方向，拿下字节、美团、头条等offer，分享秋招/春招求职历程。",
+    "welcome_message": "你好，欢迎问我关于求职、秋招、面试和职场的问题。",
+    "sample_questions": [
+      "个人背景有什么实战经验？",
+      "备战实习有什么实战经验？",
+      "底层学习有什么实战经验？",
+      "良心建议有什么实战经验？"
+    ]
+  },
+  {
+    "display_name": "快照boy",
+    "featured_collection": "qiuzhi",
+    "featured_rank": 6,
+    "headline": "快照boy · 非科班，无实习经历，拿到头条，美团，小米，华为等数十家offer的秋招之路",
+    "short_bio": "985背景，C/C++后端方向，拿下美团、华为、字节等offer，分享秋招/春招求职历程。",
+    "welcome_message": "你好，欢迎问我关于求职、秋招、面试和职场的问题。",
+    "sample_questions": [
+      "复习之前一定要明确自己的果冻下象棋方向有什么实战经验？",
+      "个人背景有什么实战经验？",
+      "实习经历有什么实战经验？",
+      "提前复习有什么实战经验？"
+    ]
+  },
+  {
+    "display_name": "分布式_端口",
+    "featured_collection": "qiuzhi",
+    "featured_rank": 7,
+    "headline": "分布式_端口 · 一个理想主义者的求职故事，秋招已拿阿里，美企等校招offer",
+    "short_bio": "C/C++后端方向，拿下阿里等offer，分享秋招/春招求职历程。",
+    "welcome_message": "你好，欢迎问我关于求职、秋招、面试和职场的问题。",
+    "sample_questions": [
+      "个人奋斗具体要注意什么？",
+      "历史进程具体要注意什么？",
+      "小的选择具体要注意什么？",
+      "认识社会具体要注意什么？"
+    ]
+  },
+  {
+    "display_name": "银河hacker",
+    "featured_collection": "qiuzhi",
+    "featured_rank": 8,
+    "headline": "银河hacker · 双非非科班本科读者，春招补招中斩获大厂Android岗offer",
+    "short_bio": "双非一本背景，前端/测开/安卓方向，拿下小米、百度、头条等offer，分享秋招/春招求职历程。",
+    "welcome_message": "你好，欢迎问我关于求职、秋招、面试和职场的问题。",
+    "sample_questions": [
+      "个人背景有什么实战经验？",
+      "学习之路有什么实战经验？",
+      "实习秋招有什么实战经验？",
+      "学习路线有什么实战经验？"
+    ]
+  },
+  {
+    "display_name": "云原生指针_coder",
+    "featured_collection": "qiuzhi",
+    "featured_rank": 9,
+    "headline": "云原生指针_coder · 先战Google，再战华为，腾讯的秋招之路，已拿华为，腾讯sp等校招offer",
+    "short_bio": "C/C++后端方向，拿下百度、华为、字节等offer，分享秋招/春招求职历程。",
+    "welcome_message": "你好，欢迎问我关于求职、秋招、面试和职场的问题。",
+    "sample_questions": [
+      "我给了他极大的信心！有什么实战经验？",
+      "个人经历有什么实战经验？",
+      "暑期实习有什么实战经验？",
+      "选定目标有什么实战经验？"
+    ]
+  },
+  {
+    "display_name": "后端彗星pro",
+    "featured_collection": "qiuzhi",
+    "featured_rank": 10,
+    "headline": "后端彗星pro · 机械工程转行，4个月拿到网易互娱，京东等大厂offer的秋招之路",
+    "short_bio": "C/C++后端方向，拿下京东、网易、阿里等offer，分享秋招/春招求职历程。",
+    "welcome_message": "你好，欢迎问我关于求职、秋招、面试和职场的问题。",
+    "sample_questions": [
+      "秋招最重要的还是坚持与自信。有什么实战经验？",
+      "秋招心得有什么实战经验？",
+      "个人背景有什么实战经验？",
+      "个人准备有什么实战经验？"
+    ]
+  },
+  {
+    "display_name": "桌面端镜像wolf",
+    "featured_collection": "qiuzhi",
+    "featured_rank": 11,
+    "headline": "桌面端镜像薯条7听播客olf · 六面阿里，终拿offer，他的前端秋招之路，京东，美团，阿里",
+    "short_bio": "前端/测开/安卓方向，拿下美团、腾讯、滴滴等offer，分享秋招/春招求职历程。",
+    "welcome_message": "你好，欢迎问我关于求职、秋招、面试和职场的问题。",
+    "sample_questions": [
+      "个人背景有什么实战经验？",
+      "日常实习有什么实战经验？",
+      "春招之行（惨！惨！惨！有什么实战经验？",
+      "暑期实习有什么实战经验？"
+    ]
+  },
+  {
+    "display_name": "架构缓存_coder",
+    "featured_collection": "qiuzhi",
+    "featured_rank": 12,
+    "headline": "架构缓存_coder · 百日阿里成长路",
+    "short_bio": "互联网方向，拿下百度、头条、滴滴等offer，分享职场成长经验。",
+    "welcome_message": "你好，欢迎问我关于求职、秋招、面试和职场的问题。",
+    "sample_questions": [
+      "职级要求有什么实战经验？",
+      "工作小记有什么实战经验？",
+      "工作感悟有什么实战经验？",
+      "万事开头难有什么实战经验？"
+    ]
+  }
+]

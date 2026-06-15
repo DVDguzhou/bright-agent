@@ -977,7 +977,11 @@ export default function LifeAgentChatPage() {
               </div>
             ) : (
               messages.map((message, index) => {
-                const isVoiceLoadingForMsg = false;
+                const isVoiceLoadingForMsg =
+                  message.role === "assistant" &&
+                  index === messages.length - 1 &&
+                  voiceLoading &&
+                  !message.audioUrl;
 
                 return (
                 <div key={`${message.role}-${index}-${message.messageId ?? "draft"}`} className="space-y-1">
