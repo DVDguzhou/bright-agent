@@ -62,6 +62,41 @@ func TestDeriveSampleQuestionsFromKnowledge_twoAgentsDiffer(t *testing.T) {
 	}
 }
 
+func TestCleanAndValidateSampleQuestions_requiresKnowledgeEvidence(t *testing.T) {
+	knowledge := []KnowledgeSnippet{{
+		Title: "保研准备",
+		Content: `## 夏令营
+- 面试：老师会问数学分析和高等代数
+- 推荐信：提前和老师沟通`,
+	}}
+	got, rejected := CleanAndValidateSampleQuestions([]string{
+		"夏令营面试一般问什么？",
+		"北京生活成本高吗？",
+		"关于「保研」能分享什么？",
+	}, knowledge)
+	if len(got) != 1 || got[0] != "夏令营面试一般问什么？" {
+		t.Fatalf("expected only knowledge-grounded question, got %v", got)
+	}
+	if len(rejected) != 2 {
+		t.Fatalf("expected two rejected questions, got %v", rejected)
+	}
+}
+
+func TestBuildSampleQuestionKnowledgeBrief_prefersUsefulLines(t *testing.T) {
+	brief := BuildSampleQuestionKnowledgeBrief([]KnowledgeSnippet{{
+		Title: "申请总结",
+		Content: `开头闲聊
+## 时间线
+- 简历：三月开始准备
+- 推荐信：四月联系老师
+- 面试：重点复习专业课`,
+		Tags: []string{"保研"},
+	}}, 500)
+	if !containsAny(brief, "时间线", "简历", "推荐信", "面试") {
+		t.Fatalf("expected useful knowledge lines in brief, got %q", brief)
+	}
+}
+
 func TestDeriveSampleQuestions_transferMajorNoStupidHooks(t *testing.T) {
 	qs := DeriveSampleQuestions(SampleQuestionInput{
 		ShortBio: "福州大学，转专业至物理，分享转专业经验。",

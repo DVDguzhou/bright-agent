@@ -57,6 +57,38 @@ func TestDisplaySampleQuestions_keepsCustom(t *testing.T) {
 	}
 }
 
+func TestNormalizeSampleQuestion_stripsBadNumberPrefix(t *testing.T) {
+	got := NormalizeSampleQuestion("3面试一般会问什么？")
+	if got != "面试一般会问什么？" {
+		t.Fatalf("expected number prefix stripped, got %q", got)
+	}
+}
+
+func TestRejectSampleQuestionReason_brokenTransition(t *testing.T) {
+	if reason := RejectSampleQuestionReason("从海南大学到有哪些经验？", nil); reason != "broken_transition" {
+		t.Fatalf("expected broken_transition, got %q", reason)
+	}
+}
+
+func TestDisplaySampleQuestions_filtersStoredBadFormat(t *testing.T) {
+	stored := []string{"3面试一般会问什么？", "从海南大学到有哪些经验？"}
+	got := DisplaySampleQuestions(stored, SampleQuestionInput{
+		ShortBio: "海南大学数学与应用数学专业，保研至厦门大学，分享保研经验。",
+		School:   "海南大学",
+		Knowledge: []KnowledgeSnippet{{
+			Title: "海南大学保研经验",
+			Content: `## 夏令营
+- 面试：准备数学分析和高等代数
+- 推荐信：提前找老师沟通`,
+		}},
+	})
+	for _, q := range got {
+		if q == stored[0] || q == stored[1] {
+			t.Fatalf("expected bad stored questions filtered, got %v", got)
+		}
+	}
+}
+
 func TestDeriveSampleQuestions_fzuPostgrad(t *testing.T) {
 	qs := DeriveSampleQuestions(SampleQuestionInput{
 		DisplayName: "机灵的橙子鸭",
