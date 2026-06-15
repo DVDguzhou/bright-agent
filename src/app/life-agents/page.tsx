@@ -289,7 +289,7 @@ function FeaturedShowcase({
                   />
                   <div
                     className={`absolute left-1.5 top-1.5 rounded-md border border-white/70 px-1.5 py-0.5 text-[9px] font-semibold leading-none shadow-[0_6px_14px_rgba(17,21,19,0.12)] supports-[backdrop-filter]:backdrop-blur-md ${
-                      claim.isClaimed ? "bg-white/80 text-olive-600" : "bg-paper/90 text-signal-700"
+                      claim.isClaimed ? "bg-emerald-600 text-white" : "bg-paper/90 text-signal-700"
                     }`}
                   >
                     {claim.label}

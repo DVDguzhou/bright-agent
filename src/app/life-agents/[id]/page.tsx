@@ -290,7 +290,7 @@ export default function LifeAgentDetailPage() {
             <span
               className={`rounded-md border px-2 py-0.5 text-[11px] font-semibold leading-5 ${
                 claim.isClaimed
-                  ? "border-olive-600/20 bg-olive-400/10 text-olive-600"
+                  ? "border-emerald-600 bg-emerald-600 text-white"
                   : "border-signal-600/30 bg-signal-50 text-signal-700"
               }`}
             >
