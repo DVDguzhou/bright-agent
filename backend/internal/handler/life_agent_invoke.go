@@ -278,6 +278,10 @@ func LifeAgentsChatAPI(cfg *config.Config) gin.HandlerFunc {
 		db.DB.Where("profile_id = ?", id).Order("fact_key ASC, created_at ASC").Find(&facts)
 		var topics []models.LifeAgentTopicSummary
 		db.DB.Where("profile_id = ?", id).Order("topic_group ASC, topic_key ASC").Find(&topics)
+		var timelineRows []models.LifeAgentTimelineEvent
+		db.DB.Where("profile_id = ? AND status IN ?", id, []string{"confirmed", "needs_clarification"}).
+			Order("sequence_order ASC, created_at ASC").Limit(20).Find(&timelineRows)
+		timelineForAI := lifeagent.BuildTimelineEventsForAI(timelineRows)
 		var hist []lifeagent.ChatMessageForAI
 		var msgs []models.LifeAgentChatMessage
 		// 取最近 20 条（DESC），再反转为时间正序，确保 LLM 看到的是最新上下文
@@ -292,13 +296,7 @@ func LifeAgentsChatAPI(cfg *config.Config) gin.HandlerFunc {
 		for _, m := range msgs {
 			hist = append(hist, lifeagent.ChatMessageForAI{Role: m.Role, Content: m.Content})
 		}
-		entriesForAI := make([]lifeagent.KnowledgeEntryForAI, len(entries))
-		for i, e := range entries {
-			entriesForAI[i] = lifeagent.KnowledgeEntryForAI{
-				ID: e.ID, Category: e.Category, Title: e.Title, Content: e.Content,
-				Tags: []string(e.Tags),
-			}
-		}
+		entriesForAI := lifeagent.BuildKnowledgeEntriesForAI(entries)
 		factsForAI := lifeagent.BuildStructuredFactsForAI(facts)
 		topicsForAI := lifeagent.BuildTopicSummariesForAI(topics)
 
@@ -379,6 +377,7 @@ func LifeAgentsChatAPI(cfg *config.Config) gin.HandlerFunc {
 					SessionSummary:       sessionSummary,
 					CrossSessionMemory:   crossMemory,
 					AgentSelfConsistency: agentSelfAnchor,
+					TimelineEvents:       timelineForAI,
 					WorkingState:         ws,
 					Embedder:             embedder,
 					Episodes:             episodes,

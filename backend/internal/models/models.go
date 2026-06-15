@@ -216,21 +216,53 @@ type LifeAgentInvokeKey struct {
 func (LifeAgentInvokeKey) TableName() string { return "life_agent_invoke_keys" }
 
 type LifeAgentKnowledgeEntry struct {
-	ID        string    `gorm:"primaryKey;size:36" json:"id"`
-	ProfileID string    `gorm:"column:profile_id;size:36;not null;index" json:"-"`
-	Category  string    `gorm:"size:128;not null" json:"category"`
-	Title     string    `gorm:"size:255;not null" json:"title"`
-	Content   string    `gorm:"type:text;not null" json:"content"`
-	Tags      JSONArray `gorm:"type:json" json:"tags"`
-	SortOrder int       `gorm:"column:sort_order;default:0" json:"sortOrder"`
+	ID              string    `gorm:"primaryKey;size:36" json:"id"`
+	ProfileID       string    `gorm:"column:profile_id;size:36;not null;index" json:"-"`
+	Category        string    `gorm:"size:128;not null" json:"category"`
+	Title           string    `gorm:"size:255;not null" json:"title"`
+	Content         string    `gorm:"type:text;not null" json:"content"`
+	Tags            JSONArray `gorm:"type:json" json:"tags"`
+	FacetTags       JSONMap   `gorm:"column:facet_tags;type:json" json:"facetTags"`
+	SortOrder       int       `gorm:"column:sort_order;default:0" json:"sortOrder"`
+	SourceType      string    `gorm:"column:source_type;size:32;not null;default:manual" json:"sourceType"`
+	SourceEventID   *string   `gorm:"column:source_event_id;size:36;index" json:"sourceEventId"`
+	SourceSessionID *string   `gorm:"column:source_session_id;size:36;index" json:"sourceSessionId"`
+	TimelineStatus  string    `gorm:"column:timeline_status;size:32;not null;default:not_timeline" json:"timelineStatus"`
+	TimelineMeta    JSONMap   `gorm:"column:timeline_meta;type:json" json:"timelineMeta"`
+	Revision        int       `gorm:"column:revision;not null;default:1" json:"revision"`
+	ChangeReason    *string   `gorm:"column:change_reason;size:255" json:"changeReason"`
 	// RAG 语义层：向量表征（float32 little-endian 序列化）。离线或按需回填，不影响现有检索。
 	Embedding  []byte     `gorm:"column:embedding;type:mediumblob" json:"-"`
 	EmbedModel *string    `gorm:"column:embed_model;size:64" json:"-"`
 	EmbedAt    *time.Time `gorm:"column:embed_at" json:"-"`
 	CreatedAt  time.Time  `gorm:"column:created_at" json:"createdAt"`
+	UpdatedAt  time.Time  `gorm:"column:updated_at" json:"updatedAt"`
 }
 
 func (LifeAgentKnowledgeEntry) TableName() string { return "life_agent_knowledge_entries" }
+
+type LifeAgentTimelineEvent struct {
+	ID                    string    `gorm:"primaryKey;size:36" json:"id"`
+	ProfileID             string    `gorm:"column:profile_id;size:36;not null;index" json:"-"`
+	PeriodLabel           string    `gorm:"column:period_label;size:128;not null;index" json:"periodLabel"`
+	PeriodGranularity     string    `gorm:"column:period_granularity;size:32;not null;default:unknown" json:"periodGranularity"`
+	SequenceOrder         int       `gorm:"column:sequence_order;not null;default:0;index" json:"sequenceOrder"`
+	EventType             string    `gorm:"column:event_type;size:64;not null;default:experience" json:"eventType"`
+	Title                 string    `gorm:"size:255;not null" json:"title"`
+	Summary               string    `gorm:"type:text;not null" json:"summary"`
+	Causes                JSONArray `gorm:"type:json" json:"causes"`
+	Outcomes              JSONArray `gorm:"type:json" json:"outcomes"`
+	Tradeoffs             JSONArray `gorm:"type:json" json:"tradeoffs"`
+	SourceEntryIDs        JSONArray `gorm:"column:source_entry_ids;type:json" json:"sourceEntryIds"`
+	Confidence            string    `gorm:"size:16;not null;default:medium" json:"confidence"`
+	Status                string    `gorm:"size:32;not null;default:confirmed;index" json:"status"`
+	MissingFields         JSONArray `gorm:"column:missing_fields;type:json" json:"missingFields"`
+	ClarificationQuestion *string   `gorm:"column:clarification_question;type:text" json:"clarificationQuestion"`
+	CreatedAt             time.Time `gorm:"column:created_at" json:"createdAt"`
+	UpdatedAt             time.Time `gorm:"column:updated_at" json:"updatedAt"`
+}
+
+func (LifeAgentTimelineEvent) TableName() string { return "life_agent_timeline_events" }
 
 type LifeAgentStructuredFact struct {
 	ID              string     `gorm:"primaryKey;size:36" json:"id"`
@@ -319,9 +351,10 @@ type LifeAgentCoEditState struct {
 func (LifeAgentCoEditState) TableName() string { return "life_agent_co_edit_states" }
 
 // LifeAgentCoEditEvent 一次"对话调教"消息的生命周期记录：
-//   pending   —— 已记录用户原话，正在后台让 LLM 理解
-//   processed —— LLM 已经理解完，AssistantMessage / ChangesSummary 可用
-//   failed    —— LLM 调用失败或解析失败，原话仍然保留，ErrorDetail 记录原因
+//
+//	pending   —— 已记录用户原话，正在后台让 LLM 理解
+//	processed —— LLM 已经理解完，AssistantMessage / ChangesSummary 可用
+//	failed    —— LLM 调用失败或解析失败，原话仍然保留，ErrorDetail 记录原因
 //
 // 设计上"写入是同步的，理解是异步的"：handler 收到消息后立刻建一条 pending 记录返回，
 // 后台 goroutine 完成后更新这条记录；前端轮询或下次进入页面/通知中心查看。
@@ -493,7 +526,7 @@ type Post struct {
 	ID            string    `gorm:"primaryKey;size:36"`
 	UserID        string    `gorm:"column:user_id;size:36;not null;index"`
 	Content       string    `gorm:"type:text;not null"`
-	Images        JSONArray `gorm:"type:json"`                                        // 帖子配图 URL 列表
+	Images        JSONArray `gorm:"type:json"`                                               // 帖子配图 URL 列表
 	Visibility    string    `gorm:"column:visibility;size:16;not null;default:public;index"` // public 公开 / private 私密（仅本人可见，Agent 仍会回复）
 	Likes         int       `gorm:"default:0"`
 	CommentsCount int       `gorm:"column:comments_count;default:0"`

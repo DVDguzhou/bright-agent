@@ -269,6 +269,7 @@ model LifeAgentProfile {
 
   user           User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
   knowledgeEntries LifeAgentKnowledgeEntry[]
+  timelineEvents LifeAgentTimelineEvent[]
   chatSessions   LifeAgentChatSession[]
   questionPacks  LifeAgentQuestionPack[]
   invokeKeys     LifeAgentInvokeKey[]
@@ -344,18 +345,58 @@ model LifeAgentInvokeKey {
 }
 
 model LifeAgentKnowledgeEntry {
-  id        String   @id @default(uuid())
-  profileId String   @map("profile_id")
-  category  String
-  title     String
-  content   String
-  tags      Json
-  sortOrder Int      @default(0) @map("sort_order")
-  createdAt DateTime @default(now()) @map("created_at")
+  id              String   @id @default(uuid())
+  profileId       String   @map("profile_id")
+  category        String
+  title           String
+  content         String
+  tags            Json
+  facetTags       Json?    @map("facet_tags")
+  sortOrder       Int      @default(0) @map("sort_order")
+  sourceType      String   @default("manual") @map("source_type")
+  sourceEventId   String?  @map("source_event_id")
+  sourceSessionId String?  @map("source_session_id")
+  timelineStatus  String   @default("not_timeline") @map("timeline_status")
+  timelineMeta    Json?    @map("timeline_meta")
+  revision        Int      @default(1)
+  changeReason    String?  @map("change_reason")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
 
   profile LifeAgentProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
 
+  @@index([sourceEventId])
+  @@index([sourceSessionId])
   @@map("life_agent_knowledge_entries")
+}
+
+model LifeAgentTimelineEvent {
+  id                    String   @id @default(uuid())
+  profileId             String   @map("profile_id")
+  periodLabel           String   @map("period_label")
+  periodGranularity     String   @default("unknown") @map("period_granularity")
+  sequenceOrder         Int      @default(0) @map("sequence_order")
+  eventType             String   @default("experience") @map("event_type")
+  title                 String
+  summary               String   @db.Text
+  causes                Json
+  outcomes              Json
+  tradeoffs             Json
+  sourceEntryIds        Json     @map("source_entry_ids")
+  confidence            String   @default("medium")
+  status                String   @default("confirmed")
+  missingFields         Json     @map("missing_fields")
+  clarificationQuestion String?  @map("clarification_question") @db.Text
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  profile LifeAgentProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId])
+  @@index([periodLabel])
+  @@index([sequenceOrder])
+  @@index([status])
+  @@map("life_agent_timeline_events")
 }
 
 // 买家咨询会话由 Go 写入 MySQL（表内另有 summary / memory_json 等列）

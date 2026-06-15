@@ -5,6 +5,8 @@ import (
 	"math/rand"
 	"regexp"
 	"strings"
+
+	"github.com/agent-marketplace/backend/internal/models"
 )
 
 // ── Style-Adaptive Fallback Pools ──
@@ -67,6 +69,7 @@ type KnowledgeEntryForAI struct {
 	Title    string
 	Content  string
 	Tags     []string
+	Facets   KnowledgeFacetTags
 	// Embedding 可选：存在则参与 hybrid RAG 的向量召回；为 nil 时自动退化为纯词法。
 	Embedding []float32
 }
@@ -84,6 +87,25 @@ type LiveUpdateForAI struct {
 	CreatedAt string
 	FreshDays int
 	Embedding []float32
+}
+
+func BuildKnowledgeEntriesForAI(entries []models.LifeAgentKnowledgeEntry) []KnowledgeEntryForAI {
+	out := make([]KnowledgeEntryForAI, 0, len(entries))
+	for _, e := range entries {
+		facets := ParseKnowledgeFacetTags(e.FacetTags)
+		if len(facets.Subjects) == 0 && len(facets.Aspects) == 0 {
+			facets = InferKnowledgeFacetTags(e.Title, e.Category, e.Content, []string(e.Tags))
+		}
+		out = append(out, KnowledgeEntryForAI{
+			ID:       e.ID,
+			Category: e.Category,
+			Title:    e.Title,
+			Content:  e.Content,
+			Tags:     []string(e.Tags),
+			Facets:   facets,
+		})
+	}
+	return out
 }
 
 func BuildReply(profile ProfileForAI, facts []StructuredFactForAI, topics []TopicSummaryForAI, entries []KnowledgeEntryForAI, history []ChatMessageForAI, message string) (content string, references []map[string]string) {
@@ -295,6 +317,9 @@ func scoreEntry(message string, entry KnowledgeEntryForAI, route RetrievalRoute,
 				break
 			}
 		}
+	}
+	if facetScore := ScoreFacetMatch(ParseQueryFacet(message), entry.Facets); facetScore > 0 {
+		score += facetScore
 	}
 
 	for _, topic := range selectedTopics {

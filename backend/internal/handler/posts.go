@@ -36,21 +36,21 @@ type postUpdateReq struct {
 }
 
 type postResponse struct {
-	ID                    string   `json:"id"`
-	Content               string   `json:"content"`
-	Images                []string `json:"images"`
-	Visibility            string   `json:"visibility"`
-	AuthorName            string   `json:"authorName"`
-	AuthorEmail           string   `json:"authorEmail"`
-	AuthorID              string   `json:"authorId"`
-	AuthorAvatarUrl       string   `json:"authorAvatarUrl,omitempty"`
-	AuthorAgentProfileID  string   `json:"authorAgentProfileId,omitempty"`
-	CreatedAt             string   `json:"createdAt"`
-	UpdatedAt             string   `json:"updatedAt"`
-	Likes                 int      `json:"likes"`
-	CommentsCount         int      `json:"commentsCount"`
-	LikedByMe             bool              `json:"likedByMe"`
-	PreviewComments       []commentResponse `json:"previewComments,omitempty"`
+	ID                   string            `json:"id"`
+	Content              string            `json:"content"`
+	Images               []string          `json:"images"`
+	Visibility           string            `json:"visibility"`
+	AuthorName           string            `json:"authorName"`
+	AuthorEmail          string            `json:"authorEmail"`
+	AuthorID             string            `json:"authorId"`
+	AuthorAvatarUrl      string            `json:"authorAvatarUrl,omitempty"`
+	AuthorAgentProfileID string            `json:"authorAgentProfileId,omitempty"`
+	CreatedAt            string            `json:"createdAt"`
+	UpdatedAt            string            `json:"updatedAt"`
+	Likes                int               `json:"likes"`
+	CommentsCount        int               `json:"commentsCount"`
+	LikedByMe            bool              `json:"likedByMe"`
+	PreviewComments      []commentResponse `json:"previewComments,omitempty"`
 }
 
 type commentResponse struct {
@@ -937,7 +937,6 @@ func selectAgentsForPostReply(profiles []models.LifeAgentProfile, content string
 	return out[:maxReplies]
 }
 
-
 func loadPostAgentReplyTexts(postID string) []string {
 	var replies []models.PostAgentReply
 	db.DB.Where("post_id = ?", postID).Order("created_at ASC").Find(&replies)
@@ -988,6 +987,9 @@ func generateAgentReply(cfg *config.Config, profile models.LifeAgentProfile, rep
 
 	var topics []models.LifeAgentTopicSummary
 	db.DB.Where("profile_id = ?", profile.ID).Find(&topics)
+	var timelineRows []models.LifeAgentTimelineEvent
+	db.DB.Where("profile_id = ? AND status IN ?", profile.ID, []string{"confirmed", "needs_clarification"}).
+		Order("sequence_order ASC, created_at ASC").Limit(20).Find(&timelineRows)
 
 	log.Printf("[AgentReply] Loaded knowledge: %d entries, %d facts, %d topics", len(entries), len(facts), len(topics))
 
@@ -997,16 +999,7 @@ func generateAgentReply(cfg *config.Config, profile models.LifeAgentProfile, rep
 	}
 
 	// 转换为AI格式
-	entriesForAI := make([]lifeagent.KnowledgeEntryForAI, len(entries))
-	for i, e := range entries {
-		entriesForAI[i] = lifeagent.KnowledgeEntryForAI{
-			ID:       e.ID,
-			Category: e.Category,
-			Title:    e.Title,
-			Content:  e.Content,
-			Tags:     []string(e.Tags),
-		}
-	}
+	entriesForAI := lifeagent.BuildKnowledgeEntriesForAI(entries)
 
 	factsForAI := lifeagent.BuildStructuredFactsForAI(facts)
 	topicsForAI := lifeagent.BuildTopicSummariesForAI(topics)
@@ -1017,6 +1010,7 @@ func generateAgentReply(cfg *config.Config, profile models.LifeAgentProfile, rep
 
 	message := lifeagent.BuildPostReplyMessage(replyCtx)
 	opts := &lifeagent.ChatOptions{
+		TimelineEvents: lifeagent.BuildTimelineEventsForAI(timelineRows),
 		WorkingState: &lifeagent.WorkingState{
 			Strategy: lifeagent.Strategy{
 				PromptLengthHint: lifeagent.PostReplyLengthHint(replyCtx.Tier),

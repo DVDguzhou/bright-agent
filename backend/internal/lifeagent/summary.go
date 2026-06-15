@@ -17,9 +17,10 @@ type ChatOptions struct {
 	CrossSessionMemory   string            // summaries from buyer's previous sessions with this agent
 	AgentSelfConsistency string            // agent's own self-stated biographical facts across sessions (anti-contradiction anchor)
 	LiveUpdates          []LiveUpdateForAI // recent live updates from creator
-	RecentlyUsedEntryIDs []string          // entry IDs cited in recent replies (for de-duplication)
-	KnowledgeContext     string            // facts/topics/entry hints injected right before user message for recency attention
-	FeedbackSignals      *FeedbackSignals  // per-topic/entry feedback from users for retrieval reranking + prompt adaptation
+	TimelineEvents       []TimelineEventForAI
+	RecentlyUsedEntryIDs []string         // entry IDs cited in recent replies (for de-duplication)
+	KnowledgeContext     string           // facts/topics/entry hints injected right before user message for recency attention
+	FeedbackSignals      *FeedbackSignals // per-topic/entry feedback from users for retrieval reranking + prompt adaptation
 
 	// —— CoALA 四层记忆架构新增字段 ——
 	// WorkingState：已经由 handler 完成感知/检索/策略推理的工作记忆；存在则 llm.go 直接消费，
@@ -57,11 +58,11 @@ type FeedbackSignals struct {
 
 // FeedbackStat 单个 Topic 或 Entry 的聚合反馈计数。
 type FeedbackStat struct {
-	Helpful      int
-	NotSpecific  int
-	FactualError int
+	Helpful       int
+	NotSpecific   int
+	FactualError  int
 	Contradiction int
-	TooConfident int
+	TooConfident  int
 }
 
 // HasNegativeSignals 是否存在显著的负面反馈

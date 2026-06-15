@@ -46,6 +46,11 @@ type factIntent struct {
 	HighRisk bool
 }
 
+type FactIntentMatch struct {
+	Key      string
+	HighRisk bool
+}
+
 type retrievalRouteConfig struct {
 	factLimit          int
 	topicLimit         int
@@ -62,10 +67,10 @@ var factIntentRules = []struct {
 	intent  factIntent
 }{
 	{regexp.MustCompile(`你.*(叫什么|名字|称呼)`), factIntent{Key: "display_name"}},
-	{regexp.MustCompile(`(哪所学校|哪个学校|毕业于|就读于|学校)`), factIntent{Key: "school"}},
-	{regexp.MustCompile(`(学历|本科|硕士|博士)`), factIntent{Key: "education"}},
-	{regexp.MustCompile(`(工作|职业|做什么)`), factIntent{Key: "job"}},
-	{regexp.MustCompile(`(收入|年薪|工资|赚)`), factIntent{Key: "income"}},
+	{regexp.MustCompile(`(你|他|她|这个人).*(哪所学校|哪个学校|毕业于|就读于|什么学校|学校是)`), factIntent{Key: "school"}},
+	{regexp.MustCompile(`(你|他|她|这个人).*(学历|本科是|硕士是|博士是|什么学历|读到什么)`), factIntent{Key: "education"}},
+	{regexp.MustCompile(`(你|他|她|这个人).*(工作是什么|职业是什么|做什么工作|现在做什么|现在.*工作|在哪上班|在哪工作)`), factIntent{Key: "job"}},
+	{regexp.MustCompile(`(你|他|她|这个人).*(收入多少|年薪多少|工资多少|月薪多少|赚多少钱|收入是|年薪是|工资是|月薪是)`), factIntent{Key: "income"}},
 	{regexp.MustCompile(`(在哪个城市|哪里人|哪个城市|哪个地方)`), factIntent{Key: "city"}},
 	{regexp.MustCompile(`(住在哪|住哪里|地址|电话|手机号|微信|身份证|银行卡)`), factIntent{Key: "contact", HighRisk: true}},
 	{regexp.MustCompile(`(什么比赛|比赛叫什么|参加过什么比赛|活动叫什么)`), factIntent{Key: "event_name"}},
@@ -83,7 +88,6 @@ func IsLifeStageQuestion(message string) bool {
 func BuildRetrievalPlan(message string, history []ChatMessageForAI, facts []StructuredFactForAI, topics []TopicSummaryForAI, entries []KnowledgeEntryForAI) RetrievalPlan {
 	return buildRetrievalPlan(message, history, facts, topics, entries, true)
 }
-
 
 // BuildRetrievalPlanStrict 仅保留关键词真正命中的知识条目，不注入「前 N 条」兜底，用于双阶段流程里判断是否要知识库仲裁。
 func BuildRetrievalPlanStrict(message string, history []ChatMessageForAI, facts []StructuredFactForAI, topics []TopicSummaryForAI, entries []KnowledgeEntryForAI) RetrievalPlan {
@@ -347,7 +351,7 @@ func ResolveGroundedFactReply(profile ProfileForAI, facts []StructuredFactForAI,
 		if intent.Key == "display_name" && profile.DisplayName != "" {
 			return "我是" + profile.DisplayName + "。", []map[string]string{{"sourceType": "profile", "factKey": "display_name", "title": "名字", "excerpt": profile.DisplayName}}, true
 		}
-		return "我需要更多的信息，你可以说的再详细一点吗？或者我们换一个话题~", nil, true
+		return "", nil, false
 	}
 	reply := buildFactReply(intent.Key, matched)
 	refs := make([]map[string]string, 0, len(matched))
@@ -523,6 +527,7 @@ func BuildRetrievalReferences(plan RetrievalPlan) []map[string]string {
 			"title":      entry.Title,
 			"excerpt":    excerpt,
 			"confidence": plan.Confidence,
+			"facets":     FacetSummary(entry.Facets),
 		})
 	}
 	for _, lu := range plan.LiveUpdates {
@@ -787,12 +792,35 @@ func shouldAllowEntryFallback(query string, route RetrievalRoute) bool {
 
 func detectFactIntent(message string) (factIntent, bool) {
 	msg := strings.TrimSpace(message)
+	if isExperientialQuestion(msg) {
+		return factIntent{}, false
+	}
 	for _, rule := range factIntentRules {
 		if rule.pattern.MatchString(msg) {
 			return rule.intent, true
 		}
 	}
 	return factIntent{}, false
+}
+
+func DetectFactIntentForAudit(message string) (FactIntentMatch, bool) {
+	intent, ok := detectFactIntent(message)
+	if !ok {
+		return FactIntentMatch{}, false
+	}
+	return FactIntentMatch{Key: intent.Key, HighRisk: intent.HighRisk}, true
+}
+
+func isExperientialQuestion(message string) bool {
+	norm := normalize(message)
+	if norm == "" {
+		return false
+	}
+	return containsAnyNormalized(norm, []string{
+		"怎么做到", "怎么做", "怎么准备", "怎么规划", "怎么取舍", "怎么选择", "怎么选",
+		"为什么", "路径", "经历", "经验", "建议", "后悔吗", "怎么看", "如何", "怎么办",
+		"取舍", "选择", "准备", "复盘", "细节", "案例", "过程", "步骤", "方法",
+	})
 }
 
 func looksLikeFactualQuestion(message string) bool {

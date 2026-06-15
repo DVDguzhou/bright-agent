@@ -307,6 +307,9 @@ func buildFeedbackSignals(profileID string) *lifeagent.FeedbackSignals {
 func loadMindScoreInput(profileID string, p *models.LifeAgentProfile, cfg *config.Config) lifeagent.MindScoreInput {
 	var entries []models.LifeAgentKnowledgeEntry
 	db.DB.Where("profile_id = ?", profileID).Order("sort_order").Find(&entries)
+	var timelineRows []models.LifeAgentTimelineEvent
+	db.DB.Where("profile_id = ? AND status IN ?", profileID, []string{"confirmed", "needs_clarification"}).
+		Order("sequence_order ASC, created_at ASC").Limit(20).Find(&timelineRows)
 	var facts []models.LifeAgentStructuredFact
 	db.DB.Where("profile_id = ?", profileID).Find(&facts)
 	var topics []models.LifeAgentTopicSummary
@@ -1100,7 +1103,11 @@ func LifeAgentsCreate(cfg *config.Config) gin.HandlerFunc {
 					Tags:      models.JSONArray(e.Tags),
 					SortOrder: i,
 				}
+				analysis := prepareLifeAgentKnowledgeEntry(&k, "manual_create", nil, nil, nil, "initial_create")
 				if err := tx.Create(&k).Error; err != nil {
+					return err
+				}
+				if err := createTimelineEventForKnowledge(tx, k, analysis); err != nil {
 					return err
 				}
 			}
@@ -1125,12 +1132,15 @@ func LifeAgentsCreate(cfg *config.Config) gin.HandlerFunc {
 		db.DB.Where("profile_id = ?", profileID).Order("fact_key ASC, created_at ASC").Find(&facts)
 		var topics []models.LifeAgentTopicSummary
 		db.DB.Where("profile_id = ?", profileID).Order("topic_group ASC, topic_key ASC").Find(&topics)
+		var timelineRows []models.LifeAgentTimelineEvent
+		db.DB.Where("profile_id = ?", profileID).Order("sequence_order ASC, created_at ASC").Find(&timelineRows)
 		c.JSON(http.StatusOK, gin.H{
 			"id":               profileID,
 			"voiceCloneId":     ptrStr(voiceClonePtr),
 			"knowledgeEntries": entries,
 			"structuredFacts":  buildStructuredFactResponses(facts),
 			"topicSummaries":   buildTopicSummaryResponses(topics),
+			"timelineEvents":   timelineRows,
 		})
 	}
 }
@@ -1813,18 +1823,35 @@ func LifeAgentsUpdate(cfg *config.Config) gin.HandlerFunc {
 			}
 		}
 		if body.KnowledgeEntries != nil {
-			db.DB.Where("profile_id = ?", id).Delete(&models.LifeAgentKnowledgeEntry{})
-			for i, e := range *body.KnowledgeEntries {
-				k := models.LifeAgentKnowledgeEntry{
-					ID:        models.GenID(),
-					ProfileID: id,
-					Category:  e.Category,
-					Title:     e.Title,
-					Content:   e.Content,
-					Tags:      models.JSONArray(e.Tags),
-					SortOrder: i,
+			if err := db.DB.Transaction(func(tx *gorm.DB) error {
+				if err := tx.Where("profile_id = ?", id).Delete(&models.LifeAgentKnowledgeEntry{}).Error; err != nil {
+					return err
 				}
-				db.DB.Create(&k)
+				if err := tx.Where("profile_id = ?", id).Delete(&models.LifeAgentTimelineEvent{}).Error; err != nil {
+					return err
+				}
+				for i, e := range *body.KnowledgeEntries {
+					k := models.LifeAgentKnowledgeEntry{
+						ID:        models.GenID(),
+						ProfileID: id,
+						Category:  e.Category,
+						Title:     e.Title,
+						Content:   e.Content,
+						Tags:      models.JSONArray(e.Tags),
+						SortOrder: i,
+					}
+					analysis := prepareLifeAgentKnowledgeEntry(&k, "manual_update", nil, nil, nil, "replace_knowledge_entries")
+					if err := tx.Create(&k).Error; err != nil {
+						return err
+					}
+					if err := createTimelineEventForKnowledge(tx, k, analysis); err != nil {
+						return err
+					}
+				}
+				return nil
+			}); err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "INTERNAL_ERROR"})
+				return
 			}
 		}
 		refreshLifeAgentStructuredFacts(id)
@@ -1865,6 +1892,8 @@ func LifeAgentsUpdate(cfg *config.Config) gin.HandlerFunc {
 		db.DB.Where("profile_id = ?", id).Order("fact_key ASC, created_at ASC").Find(&facts)
 		var topics []models.LifeAgentTopicSummary
 		db.DB.Where("profile_id = ?", id).Order("topic_group ASC, topic_key ASC").Find(&topics)
+		var timelineRows []models.LifeAgentTimelineEvent
+		db.DB.Where("profile_id = ?", id).Order("sequence_order ASC, created_at ASC").Find(&timelineRows)
 		afterScore := lifeagent.ComputeMindScore(loadMindScoreInput(id, &p, cfg))
 		delta := afterScore.Total - beforeScore
 		nextSuggestion := lifeagent.GenerateNextSuggestion(buildNextSuggestionContext(id, &p, cfg, "", 0, false, false))
@@ -1906,8 +1935,10 @@ func LifeAgentsUpdate(cfg *config.Config) gin.HandlerFunc {
 			"coverImageUrl":                 ptrStr(p.CoverImageURL),
 			"coverPresetKey":                ptrStr(p.CoverPresetKey),
 			"coverUrl":                      lifeAgentCoverURL(&p),
+			"knowledgeEntries":              entries,
 			"structuredFacts":               buildStructuredFactResponses(facts),
 			"topicSummaries":                buildTopicSummaryResponses(topics),
+			"timelineEvents":                timelineRows,
 			"mindScore":                     mindScoreToJSON(afterScore, &delta),
 			"nextSuggestion":                nextSuggestion,
 		})
@@ -1993,6 +2024,9 @@ func processCoEditEvent(cfg *config.Config, eventID, profileID, userID, userMess
 	}
 	var entries []models.LifeAgentKnowledgeEntry
 	db.DB.Where("profile_id = ?", profileID).Order("sort_order").Find(&entries)
+	var timelineRows []models.LifeAgentTimelineEvent
+	db.DB.Where("profile_id = ? AND status IN ?", profileID, []string{"confirmed", "needs_clarification"}).
+		Order("sequence_order ASC, created_at ASC").Limit(20).Find(&timelineRows)
 
 	var coEditEvent models.LifeAgentCoEditEvent
 	recordedAt := time.Now().UTC()
@@ -2000,7 +2034,7 @@ func processCoEditEvent(cfg *config.Config, eventID, profileID, userID, userMess
 		recordedAt = coEditEvent.CreatedAt
 	}
 
-	state := buildModifyStateString(&p, entries, userMessage, &recordedAt)
+	state := buildModifyStateString(&p, entries, timelineRows, userMessage, &recordedAt)
 	trimmedHistory := trimChatHistoryForModify(chatHistory, 10)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 150*time.Second)
@@ -2022,16 +2056,19 @@ func processCoEditEvent(cfg *config.Config, eventID, profileID, userID, userMess
 		lifeagent.StampKnowledgeAddRecordedAt(intent.Changes, recordedAt)
 	}
 
-	summary := applyModifyIntentChanges(&p, &entries, profileID, intent.Changes)
+	summary, timelineClarification := applyModifyIntentChanges(&p, &entries, profileID, intent.Changes, eventID, &recordedAt)
 
 	refreshLifeAgentStructuredFacts(profileID)
 	refreshLifeAgentTopicSummaries(profileID)
 
-	reply := normalizeCoEditAssistantReply(intent.Reply, intent.Changes, summary)
+	reply := normalizeCoEditAssistantReply(intent.Reply, intent.Changes, summary, timelineClarification)
 	finalizeCoEditEventProcessed(eventID, reply, summary)
 }
 
-func normalizeCoEditAssistantReply(rawReply string, changes *lifeagent.ModifyIntentChanges, summary string) string {
+func normalizeCoEditAssistantReply(rawReply string, changes *lifeagent.ModifyIntentChanges, summary, timelineClarification string) string {
+	if strings.TrimSpace(timelineClarification) != "" {
+		return strings.TrimSpace(timelineClarification)
+	}
 	reply := strings.TrimSpace(rawReply)
 	if strings.Contains(reply, "无修改需求") {
 		reply = ""
@@ -2078,13 +2115,86 @@ func finalizeCoEditEventFailed(eventID, detail string) {
 	}
 }
 
+func prepareLifeAgentKnowledgeEntry(k *models.LifeAgentKnowledgeEntry, sourceType string, sourceEventID, sourceSessionID *string, recordedAt *time.Time, changeReason string) lifeagent.TimelineAnalysis {
+	if k == nil {
+		return lifeagent.TimelineAnalysis{}
+	}
+	if strings.TrimSpace(sourceType) == "" {
+		sourceType = "manual"
+	}
+	k.SourceType = sourceType
+	k.SourceEventID = sourceEventID
+	k.SourceSessionID = sourceSessionID
+	if k.Revision <= 0 {
+		k.Revision = 1
+	}
+	if strings.TrimSpace(changeReason) != "" {
+		k.ChangeReason = strOpt(changeReason)
+	}
+
+	facets := lifeagent.ParseKnowledgeFacetTags(k.FacetTags)
+	if len(facets.Subjects) == 0 && len(facets.Aspects) == 0 {
+		facets = lifeagent.InferKnowledgeFacetTags(k.Title, k.Category, k.Content, []string(k.Tags))
+	}
+	if recordedAt != nil && !recordedAt.IsZero() && len(facets.RecordTime) == 0 {
+		facets.RecordTime = []string{lifeagent.FormatCoEditRecordedAt(*recordedAt)}
+	}
+	facets = lifeagent.NormalizeKnowledgeFacetTags(facets)
+	k.FacetTags = models.JSONMap(lifeagent.KnowledgeFacetTagsToMap(facets))
+
+	analysis := lifeagent.AnalyzeKnowledgeTimeline(k.Title, k.Category, k.Content, facets, recordedAt)
+	k.TimelineStatus = analysis.Status
+	k.TimelineMeta = models.JSONMap(timelineAnalysisToMap(analysis))
+	return analysis
+}
+
+func createTimelineEventForKnowledge(tx *gorm.DB, k models.LifeAgentKnowledgeEntry, analysis lifeagent.TimelineAnalysis) error {
+	if tx == nil || !analysis.ShouldTrack {
+		return nil
+	}
+	event := models.LifeAgentTimelineEvent{
+		ID:                    models.GenID(),
+		ProfileID:             k.ProfileID,
+		PeriodLabel:           analysis.PeriodLabel,
+		PeriodGranularity:     analysis.PeriodGranularity,
+		SequenceOrder:         analysis.SequenceOrder,
+		EventType:             analysis.EventType,
+		Title:                 analysis.Title,
+		Summary:               analysis.Summary,
+		Causes:                models.JSONArray(analysis.Causes),
+		Outcomes:              models.JSONArray(analysis.Outcomes),
+		Tradeoffs:             models.JSONArray(analysis.Tradeoffs),
+		SourceEntryIDs:        models.JSONArray([]string{k.ID}),
+		Confidence:            analysis.Confidence,
+		Status:                analysis.Status,
+		MissingFields:         models.JSONArray(analysis.MissingFields),
+		ClarificationQuestion: strOpt(analysis.ClarificationQuestion),
+	}
+	return tx.Create(&event).Error
+}
+
+func timelineAnalysisToMap(a lifeagent.TimelineAnalysis) map[string]interface{} {
+	return map[string]interface{}{
+		"shouldTrack":           a.ShouldTrack,
+		"status":                a.Status,
+		"periodLabel":           a.PeriodLabel,
+		"periodGranularity":     a.PeriodGranularity,
+		"sequenceOrder":         a.SequenceOrder,
+		"eventType":             a.EventType,
+		"missingFields":         a.MissingFields,
+		"clarificationQuestion": a.ClarificationQuestion,
+		"confidence":            a.Confidence,
+	}
+}
+
 // applyModifyIntentChanges 把 LLM 解析出的 Changes 应用到 profile / knowledge_entries 上，
 // 返回一段简短的中文摘要（"新增 2 条知识 · 更新欢迎语"），用于通知中心展示。
-func applyModifyIntentChanges(p *models.LifeAgentProfile, entries *[]models.LifeAgentKnowledgeEntry, profileID string, ch *lifeagent.ModifyIntentChanges) string {
+func applyModifyIntentChanges(p *models.LifeAgentProfile, entries *[]models.LifeAgentKnowledgeEntry, profileID string, ch *lifeagent.ModifyIntentChanges, eventID string, recordedAt *time.Time) (string, string) {
 	if ch == nil {
-		return ""
+		return "", ""
 	}
 	parts := []string{}
+	timelineClarification := ""
 	upd := db.DB.Model(p)
 	if len(ch.ExpertiseTags) > 0 {
 		tags := ch.ExpertiseTags
@@ -2162,15 +2272,22 @@ func applyModifyIntentChanges(p *models.LifeAgentProfile, entries *[]models.Life
 			Tags:      models.JSONArray(tags),
 			SortOrder: len(*entries) + i,
 		}
+		analysis := prepareLifeAgentKnowledgeEntry(&k, "chat_training", strOpt(eventID), nil, recordedAt, "co_edit_chat")
 		if err := db.DB.Create(&k).Error; err == nil {
+			if err := createTimelineEventForKnowledge(db.DB, k, analysis); err != nil {
+				log.Printf("life-agents modify: create timeline event failed entry=%s: %v", k.ID, err)
+			}
 			*entries = append(*entries, k)
 			addedCount++
+			if timelineClarification == "" && analysis.Status == "needs_clarification" {
+				timelineClarification = analysis.ClarificationQuestion
+			}
 		}
 	}
 	if addedCount > 0 {
 		parts = append(parts, fmt.Sprintf("新增 %d 条知识", addedCount))
 	}
-	return strings.Join(parts, " · ")
+	return strings.Join(parts, " · "), timelineClarification
 }
 
 // LifeAgentsCoEditEvents —— 轮询接口：返回某 Agent 最近的调教事件（含 pending 状态）。
@@ -2246,7 +2363,7 @@ func LifeAgentsCoEditEvents(cfg *config.Config) gin.HandlerFunc {
 //
 // 实测能把输入 token 从 3000+ 压到 600~1000，速度提升 3~5 倍，且因为
 // "lost in the middle" 现象的减弱，表现力反而更稳。
-func buildModifyStateString(p *models.LifeAgentProfile, entries []models.LifeAgentKnowledgeEntry, userMessage string, recordedAt *time.Time) string {
+func buildModifyStateString(p *models.LifeAgentProfile, entries []models.LifeAgentKnowledgeEntry, timelineRows []models.LifeAgentTimelineEvent, userMessage string, recordedAt *time.Time) string {
 	var b strings.Builder
 	if recordedAt != nil {
 		b.WriteString(fmt.Sprintf("本条调教时间: %s\n", lifeagent.FormatCoEditRecordedAt(*recordedAt)))
@@ -2280,6 +2397,20 @@ func buildModifyStateString(p *models.LifeAgentProfile, entries []models.LifeAge
 			excerpt := lifeagent.TruncateToRunes(r, 80)
 			b.WriteString(fmt.Sprintf("  %d. %s\n", i+1, excerpt))
 		}
+	}
+	if len(timelineRows) > 0 {
+		b.WriteString("\n【已确认/待确认的人生时间线】\n")
+		for i, ev := range timelineRows {
+			if i >= 8 {
+				break
+			}
+			status := ev.Status
+			if status == "" {
+				status = "confirmed"
+			}
+			b.WriteString(fmt.Sprintf("- %s：%s（%s）[%s]\n", ev.PeriodLabel, ev.Title, ev.EventType, status))
+		}
+		b.WriteString("如果用户新增关键人生节点但没说时间，优先追问时间；如果和这里主线冲突，不要直接覆盖。\n")
 	}
 
 	if len(entries) == 0 {
@@ -2433,22 +2564,33 @@ func trimChatHistoryForModify(history []lifeagent.ChatMessageForAI, maxTurns int
 
 func buildManageProfileResp(p *models.LifeAgentProfile, entries []models.LifeAgentKnowledgeEntry) gin.H {
 	type ke struct {
-		ID       string   `json:"id"`
-		Category string   `json:"category"`
-		Title    string   `json:"title"`
-		Content  string   `json:"content"`
-		Tags     []string `json:"tags"`
+		ID             string         `json:"id"`
+		Category       string         `json:"category"`
+		Title          string         `json:"title"`
+		Content        string         `json:"content"`
+		Tags           []string       `json:"tags"`
+		FacetTags      models.JSONMap `json:"facetTags"`
+		SourceType     string         `json:"sourceType"`
+		TimelineStatus string         `json:"timelineStatus"`
+		TimelineMeta   models.JSONMap `json:"timelineMeta"`
+		Revision       int            `json:"revision"`
+		CreatedAt      time.Time      `json:"createdAt"`
+		UpdatedAt      time.Time      `json:"updatedAt"`
 	}
 	var keList []ke
 	for _, e := range entries {
 		keList = append(keList, ke{
 			ID: e.ID, Category: e.Category, Title: e.Title, Content: e.Content, Tags: []string(e.Tags),
+			FacetTags: e.FacetTags, SourceType: e.SourceType, TimelineStatus: e.TimelineStatus,
+			TimelineMeta: e.TimelineMeta, Revision: e.Revision, CreatedAt: e.CreatedAt, UpdatedAt: e.UpdatedAt,
 		})
 	}
 	var facts []models.LifeAgentStructuredFact
 	db.DB.Where("profile_id = ?", p.ID).Order("fact_key ASC, created_at ASC").Find(&facts)
 	var topics []models.LifeAgentTopicSummary
 	db.DB.Where("profile_id = ?", p.ID).Order("topic_group ASC, topic_key ASC").Find(&topics)
+	var timelineRows []models.LifeAgentTimelineEvent
+	db.DB.Where("profile_id = ?", p.ID).Order("sequence_order ASC, created_at ASC").Find(&timelineRows)
 	return gin.H{
 		"id":               p.ID,
 		"displayName":      p.DisplayName,
@@ -2480,6 +2622,7 @@ func buildManageProfileResp(p *models.LifeAgentProfile, entries []models.LifeAge
 		"knowledgeEntries": keList,
 		"structuredFacts":  buildStructuredFactResponses(facts),
 		"topicSummaries":   buildTopicSummaryResponses(topics),
+		"timelineEvents":   timelineRows,
 		"coverImageUrl":    ptrStr(p.CoverImageURL),
 		"coverPresetKey":   ptrStr(p.CoverPresetKey),
 		"coverUrl":         lifeAgentCoverURL(p),
@@ -2509,6 +2652,8 @@ func LifeAgentsManage(cfg *config.Config) gin.HandlerFunc {
 		db.DB.Where("profile_id = ?", id).Order("fact_key ASC, created_at ASC").Find(&facts)
 		var topics []models.LifeAgentTopicSummary
 		db.DB.Where("profile_id = ?", id).Order("topic_group ASC, topic_key ASC").Find(&topics)
+		var timelineRows []models.LifeAgentTimelineEvent
+		db.DB.Where("profile_id = ?", id).Order("sequence_order ASC, created_at ASC").Find(&timelineRows)
 		var packs []models.LifeAgentQuestionPack
 		db.DB.Where("profile_id = ?", id).Order("created_at DESC").Limit(50).Find(&packs)
 		var sessions []models.LifeAgentChatSession
@@ -2636,6 +2781,7 @@ func LifeAgentsManage(cfg *config.Config) gin.HandlerFunc {
 				"knowledgeEntries":              entries,
 				"structuredFacts":               buildStructuredFactResponses(facts),
 				"topicSummaries":                buildTopicSummaryResponses(topics),
+				"timelineEvents":                timelineRows,
 				"voiceCloneId":                  ptrStr(p.VoiceCloneID),
 				"hasVoiceClone":                 cfg.VoiceReplyConfigured(ptrStr(p.VoiceCloneID)),
 				"coverImageUrl":                 ptrStr(p.CoverImageURL),
@@ -2971,6 +3117,10 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 		db.DB.Where("profile_id = ?", id).Order("fact_key ASC, created_at ASC").Find(&facts)
 		var topics []models.LifeAgentTopicSummary
 		db.DB.Where("profile_id = ?", id).Order("topic_group ASC, topic_key ASC").Find(&topics)
+		var timelineRows []models.LifeAgentTimelineEvent
+		db.DB.Where("profile_id = ? AND status IN ?", id, []string{"confirmed", "needs_clarification"}).
+			Order("sequence_order ASC, created_at ASC").Limit(20).Find(&timelineRows)
+		timelineForAI := lifeagent.BuildTimelineEventsForAI(timelineRows)
 		var hist []lifeagent.ChatMessageForAI
 		var msgs []models.LifeAgentChatMessage
 		// 取最近 20 条（DESC），再反转为时间正序，确保 LLM 看到的是最新上下文
@@ -2998,13 +3148,7 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 				}
 			}
 		}
-		entriesForAI := make([]lifeagent.KnowledgeEntryForAI, len(entries))
-		for i, e := range entries {
-			entriesForAI[i] = lifeagent.KnowledgeEntryForAI{
-				ID: e.ID, Category: e.Category, Title: e.Title, Content: e.Content,
-				Tags: []string(e.Tags),
-			}
-		}
+		entriesForAI := lifeagent.BuildKnowledgeEntriesForAI(entries)
 		// 加载实时动态（未过期）
 		var liveUpdateRows []models.LifeAgentLiveUpdate
 		db.DB.Where("profile_id = ? AND (expires_at IS NULL OR expires_at > ?)", id, time.Now()).
@@ -3084,6 +3228,7 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 			CrossSessionMemory:   crossMemory,
 			AgentSelfConsistency: agentSelfAnchor,
 			LiveUpdates:          liveUpdatesForAI,
+			TimelineEvents:       timelineForAI,
 			RecentlyUsedEntryIDs: recentlyUsedEntryIDs,
 			FeedbackSignals:      feedbackSignals,
 			WorkingState:         ws,
@@ -3605,7 +3750,10 @@ func LifeAgentsImportChat(cfg *config.Config) gin.HandlerFunc {
 		var entries []models.LifeAgentKnowledgeEntry
 		db.DB.Where("profile_id = ?", id).Order("sort_order").Find(&entries)
 		// 聊天记录导入场景没有单条用户消息，传空串走"仅列标题"模式即可。
-		state := buildModifyStateString(&p, entries, "", nil)
+		var timelineRows []models.LifeAgentTimelineEvent
+		db.DB.Where("profile_id = ? AND status IN ?", id, []string{"confirmed", "needs_clarification"}).
+			Order("sequence_order ASC, created_at ASC").Limit(20).Find(&timelineRows)
+		state := buildModifyStateString(&p, entries, timelineRows, "", nil)
 
 		// Build chat summary for LLM
 		chatSummary := lifeagent.BuildChatSummaryForLLM(parseResult, targetName)
@@ -3721,7 +3869,11 @@ func LifeAgentsImportChat(cfg *config.Config) gin.HandlerFunc {
 				Tags:      models.JSONArray(tags),
 				SortOrder: len(entries) + i,
 			}
+			analysis := prepareLifeAgentKnowledgeEntry(&k, "chat_import", nil, nil, nil, "chat_import")
 			db.DB.Create(&k)
+			if err := createTimelineEventForKnowledge(db.DB, k, analysis); err != nil {
+				log.Printf("life-agents import chat: create timeline event failed entry=%s: %v", k.ID, err)
+			}
 			entries = append(entries, k)
 		}
 

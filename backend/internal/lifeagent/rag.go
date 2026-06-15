@@ -13,7 +13,7 @@ package lifeagent
 //      下一轮起自动享用向量召回。
 //
 // 分数融合（0..1）：
-//   hit.Score = 0.55 * lexNorm + 0.35 * vecNorm + 0.10 * freshnessBonus
+//   hit.Score = 0.35 * lexNorm + 0.30 * vecNorm + 0.25 * facetNorm + 0.10 * freshnessBonus
 //   其中 lexNorm 由"是否被词法 plan 选中 + 命中路由"归一化；vecNorm 来自 cosine。
 
 import (
@@ -31,10 +31,11 @@ import (
 type RAGWeights struct {
 	Lexical   float64
 	Vector    float64
+	Facet     float64
 	Freshness float64
 }
 
-var defaultRAGWeights = RAGWeights{Lexical: 0.55, Vector: 0.35, Freshness: 0.10}
+var defaultRAGWeights = RAGWeights{Lexical: 0.35, Vector: 0.30, Facet: 0.25, Freshness: 0.10}
 
 // RunHybridRetrieval 在词法 plan 基础上融合向量召回。
 // 返回的 plan 会被 in-place 扩充（Entries / Topics 可能新增来自向量的命中），
@@ -55,8 +56,11 @@ func RunHybridRetrieval(
 	DeweightRecentlyUsedEntries(&plan, recentlyUsed)
 
 	hits := seedHitsFromPlan(plan)
+	queryFacet := ParseQueryFacet(query)
+	applyFacetScores(hits, queryFacet, entries)
 
 	if embedder == nil || strings.TrimSpace(query) == "" {
+		scoreHits(hits, defaultRAGWeights)
 		return plan, hits
 	}
 
@@ -96,6 +100,7 @@ func RunHybridRetrieval(
 			Snippet: firstRunes(e.Content, 120),
 			Lexical: lex,
 			Vector:  NormalizeCosine(cos),
+			Facet:   normalizeFacetScore(ScoreFacetMatch(queryFacet, e.Facets)),
 		})
 	}
 
@@ -213,8 +218,33 @@ func mergeHits(primary, extra []SemanticHit) []SemanticHit {
 
 func scoreHits(hits []SemanticHit, w RAGWeights) {
 	for i := range hits {
-		hits[i].Score = w.Lexical*hits[i].Lexical + w.Vector*hits[i].Vector + w.Freshness*hits[i].Freshness
+		hits[i].Score = w.Lexical*hits[i].Lexical + w.Vector*hits[i].Vector + w.Facet*hits[i].Facet + w.Freshness*hits[i].Freshness
 	}
+}
+
+func applyFacetScores(hits []SemanticHit, query QueryFacet, entries []KnowledgeEntryForAI) {
+	byID := make(map[string]KnowledgeEntryForAI, len(entries))
+	for _, e := range entries {
+		byID[e.ID] = e
+	}
+	for i := range hits {
+		if hits[i].Kind != "entry" {
+			continue
+		}
+		if e, ok := byID[hits[i].ID]; ok {
+			hits[i].Facet = normalizeFacetScore(ScoreFacetMatch(query, e.Facets))
+		}
+	}
+}
+
+func normalizeFacetScore(score int) float64 {
+	if score <= 0 {
+		return 0
+	}
+	if score >= 16 {
+		return 1
+	}
+	return float64(score) / 16.0
 }
 
 // injectVectorHitsIntoPlan 把词法漏掉但向量命中的 entry / topic 追加进 plan（带最大数量与最低分门槛）。

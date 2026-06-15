@@ -12,7 +12,7 @@ import (
 
 // ModifyIntent 表示用户通过对话表达的修改意图
 type ModifyIntent struct {
-	Reply   string              `json:"reply"`   // 给用户的自然语言回复
+	Reply   string               `json:"reply"`   // 给用户的自然语言回复
 	Changes *ModifyIntentChanges `json:"changes"` // 要应用的修改，nil 表示无修改
 }
 
@@ -72,9 +72,10 @@ func InterpretModificationIntent(ctx context.Context, apiKey, model, baseURL str
 2. 【应入库】个人经历、观点、技巧、故事、可帮助他人回答的具体信息；用户明确要求「记录/添加/记住」的内容；**当下状态/进行时描述**（如「正在…」「我现在…」「刚才…」），用于说明某时某刻在做什么——category 用「状态」，title 概括当时在做什么，content 写清时间与状态（可引用「本条调教时间」）。
 3. 【不入库】纯寒暄（你好/谢谢/在吗）、**仅询问 Agent 系统元信息**（有多少条知识/几个标签/当前列表）、明确跳过（暂无/无/没有/跳过）、与知识库已有条目含义完全重复的内容。
 4. 【改字段】用户说「改成/更新/换成」时替换对应 profile 字段；说「加上/添加」时对数组追加。expertiseTags、sampleQuestions 最多 8/6 个；exampleReplies 最多 3 个；forbiddenPhrases 最多 8 个。
-5. 【回复】reply 30 字内：入库了说「已记成一条新知识」；未入库简要说明原因；改了字段说「已更新 xxx」。禁止回复「无修改需求」。
-6. 若无任何变更（既无 knowledgeAdd 也无字段修改），changes 设为 null。
-7. 只输出这一个 JSON 对象，不要 markdown 代码块、不要额外说明。`
+5. 【时间线追问】关键人生经历（如放弃保研、毕业、入职、转行、创业、赚到第一桶金、拿 offer、搬城市、申请/录取等）如果用户没说清发生时间，仍可先写入 knowledgeAdd，但 reply 要轻轻追问时间，例如「这段是大四那阵，还是毕业后？」；不要自己编年份。
+6. 【回复】reply 30 字内：入库了说「已记成一条新知识」；未入库简要说明原因；改了字段说「已更新 xxx」。禁止回复「无修改需求」。
+7. 若无任何变更（既无 knowledgeAdd 也无字段修改），changes 设为 null。
+8. 只输出这一个 JSON 对象，不要 markdown 代码块、不要额外说明。`
 
 	userContent := fmt.Sprintf("【当前 Agent 状态】\n%s\n\n【用户新消息】\n%s", currentState, userMessage)
 
@@ -94,8 +95,8 @@ func InterpretModificationIntent(ctx context.Context, apiKey, model, baseURL str
 	client := getClient(apiKey, baseURL)
 
 	resp, err := client.CreateChatCompletion(ctx, openai.ChatCompletionRequest{
-		Model:       model,
-		Messages:    messages,
+		Model:               model,
+		Messages:            messages,
 		Temperature:         safeTemperature(model, 0.2),
 		MaxCompletionTokens: 1200,
 	})
@@ -175,4 +176,3 @@ func StampKnowledgeAddRecordedAt(ch *ModifyIntentChanges, recordedAt time.Time) 
 		}
 	}
 }
-

@@ -93,12 +93,13 @@ type RetrievedContext struct {
 // SemanticHit 语义层命中结果（facts / topics / entries / live 的统一视图）。
 // Kind 标记来源，用于 prompt 排序和去重。
 type SemanticHit struct {
-	Kind      string  // "fact" | "topic" | "entry" | "live"
-	ID        string  // 可能为空（facts 没 ID）
+	Kind      string // "fact" | "topic" | "entry" | "live"
+	ID        string // 可能为空（facts 没 ID）
 	Title     string
 	Snippet   string
 	Lexical   float64 // 归一化到 [0,1]
 	Vector    float64 // 归一化到 [0,1]（未启用向量时 0）
+	Facet     float64 // 归一化到 [0,1]，来自主体/方面/空间/时间等分面匹配
 	Freshness float64 // 归一化到 [0,1]，只有 live 有意义
 	Score     float64 // 融合后综合分
 }

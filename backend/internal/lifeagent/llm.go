@@ -439,8 +439,8 @@ func detectUserEmotionalTone(message string, history []ChatMessageForAI) emotion
 		"睡不着", "失眠", "好累", "太累了",
 	) {
 		tone := emotionalTone{
-			Type:   "anxious",
-			Signal: "对方现在情绪比较焦虑、有压力感。",
+			Type:     "anxious",
+			Signal:   "对方现在情绪比较焦虑、有压力感。",
 			Guidance: "回应策略：先用一两句话接住对方的情绪（比如「这个阶段确实煎熬」），然后再用你的亲身经历告诉对方你当时也有过类似的阶段，最后才给具体建议。不要上来就讲道理或者说「别焦虑」。",
 		}
 		if isAccumulated {
@@ -457,8 +457,8 @@ func detectUserEmotionalTone(message string, history []ChatMessageForAI) emotion
 		"看不清", "没方向", "没头绪", "一头雾水",
 	) {
 		return emotionalTone{
-			Type:   "confused",
-			Signal: "对方现在比较迷茫，需要有人帮理清思路。",
+			Type:     "confused",
+			Signal:   "对方现在比较迷茫，需要有人帮理清思路。",
 			Guidance: "回应策略：不要直接给答案或建议（对方听了太多建议了）。用你的经历帮对方梳理：你当时面对类似选择时考虑了哪几个因素、最终怎么做的决定、事后回头看那个决定怎么样。让对方从你的故事里自己找到思路。",
 		}
 	}
@@ -470,8 +470,8 @@ func detectUserEmotionalTone(message string, history []ChatMessageForAI) emotion
 		"夸张了吧", "吹的吧", "太理想了",
 	) {
 		return emotionalTone{
-			Type:   "skeptical",
-			Signal: "对方对某些信息持怀疑态度。",
+			Type:     "skeptical",
+			Signal:   "对方对某些信息持怀疑态度。",
 			Guidance: "回应策略：不要急着辩护或证明自己。用具体的数字、时间、地点来支撑你说的话（「我说的是我自己的情况，具体来说是……」）。承认你的经历不一定普遍适用。真实比完美更重要。",
 		}
 	}
@@ -483,8 +483,8 @@ func detectUserEmotionalTone(message string, history []ChatMessageForAI) emotion
 		"没意义", "后悔", "早知道", "当初不该",
 	) {
 		tone := emotionalTone{
-			Type:   "frustrated",
-			Signal: "对方刚经历了挫折或失败，情绪比较低落。",
+			Type:     "frustrated",
+			Signal:   "对方刚经历了挫折或失败，情绪比较低落。",
 			Guidance: "回应策略：不要说「没关系下次会更好」「失败是成功之母」这种废话。说你自己失败的经历——你当时什么感受、多久才缓过来、后来是怎么重新开始的。让对方知道这个坑你也踩过。",
 		}
 		if isAccumulated {
@@ -500,8 +500,8 @@ func detectUserEmotionalTone(message string, history []ChatMessageForAI) emotion
 		"好开心", "好激动", "兴奋", "感觉有希望",
 	) {
 		return emotionalTone{
-			Type:   "excited",
-			Signal: "对方心情不错，有好消息或者比较兴奋。",
+			Type:     "excited",
+			Signal:   "对方心情不错，有好消息或者比较兴奋。",
 			Guidance: "回应策略：跟着对方的节奏，真心为对方高兴（用你自己的方式）。可以分享你当时类似的开心时刻。如果有需要提醒注意的事（比如拿到 offer 后入职前的准备），可以顺便提，但不要泼冷水。",
 		}
 	}
@@ -513,8 +513,8 @@ func detectUserEmotionalTone(message string, history []ChatMessageForAI) emotion
 		"不公平", "太离谱", "无语", "服了",
 	) {
 		return emotionalTone{
-			Type:   "angry",
-			Signal: "对方在发泄情绪，比较气愤。",
+			Type:     "angry",
+			Signal:   "对方在发泄情绪，比较气愤。",
 			Guidance: "回应策略：先让对方把情绪释放完，不要急着讲道理或分析。可以站在对方这边附和几句（「这确实离谱」「搁谁谁不气」），等对方情绪过了再自然地聊你遇到过的类似情况。绝对不要说「冷静一下」「理性看待」。",
 		}
 	}
@@ -526,8 +526,8 @@ func detectUserEmotionalTone(message string, history []ChatMessageForAI) emotion
 		"大家都不理解", "别人都不懂", "没有同路人",
 	) {
 		return emotionalTone{
-			Type:   "lonely",
-			Signal: "对方感到孤立，觉得身边没人理解自己的处境。",
+			Type:     "lonely",
+			Signal:   "对方感到孤立，觉得身边没人理解自己的处境。",
 			Guidance: "回应策略：这是对方来找你的核心原因——找一个经历过的人聊。告诉对方你当时也有过同样的感觉（用具体的场景：在哪、什么时候、当时身边的人怎么说的），让对方知道「不是只有你这样」。不要给建议，对方需要的是共鸣。",
 		}
 	}
@@ -539,8 +539,8 @@ func detectUserEmotionalTone(message string, history []ChatMessageForAI) emotion
 		"对不起", "辜负了", "配不上",
 	) {
 		return emotionalTone{
-			Type:   "self_blaming",
-			Signal: "对方在自责，觉得是自己的问题。",
+			Type:     "self_blaming",
+			Signal:   "对方在自责，觉得是自己的问题。",
 			Guidance: "回应策略：不要说「不是你的错」（对方不会信），也不要说「别这样想」。讲你自己当时犯的类似错误或者做得不好的地方，让对方知道这种事谁都会遇到。如果适合的话，说说你后来是怎么跟自己和解的。",
 		}
 	}
@@ -552,8 +552,8 @@ func detectUserEmotionalTone(message string, history []ChatMessageForAI) emotion
 		"今天之内", "急", "加急", "十万火急",
 	) {
 		return emotionalTone{
-			Type:   "urgent",
-			Signal: "对方有时间压力，需要快速可执行的信息。",
+			Type:     "urgent",
+			Signal:   "对方有时间压力，需要快速可执行的信息。",
 			Guidance: "回应策略：别讲长故事了，直奔重点。用最短的话告诉对方你的经验中最关键的那一两个要点。如果你经历过类似的紧急情况，说你当时是怎么在短时间内搞定的。",
 		}
 	}
@@ -565,8 +565,8 @@ func detectUserEmotionalTone(message string, history []ChatMessageForAI) emotion
 		"a还是b", "优缺点", "取舍",
 	) {
 		return emotionalTone{
-			Type:   "comparing",
-			Signal: "对方在两个或多个选项之间做比较，需要帮忙权衡。",
+			Type:     "comparing",
+			Signal:   "对方在两个或多个选项之间做比较，需要帮忙权衡。",
 			Guidance: "回应策略：不要直接说「我觉得选A」。先说你当时面对类似选择时两边各有什么感受，然后说你最终选了什么、为什么、事后觉得怎么样。让对方自己判断，但把你的真实考量过程讲清楚。",
 		}
 	}
@@ -859,7 +859,11 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 
 	var entryHints []string
 	for _, e := range fullPlan.Entries {
-		entryHints = append(entryHints, e.Title+"（"+e.Category+"）")
+		hint := e.Title + "（" + e.Category + "）"
+		if facet := FacetSummary(e.Facets); facet != "" {
+			hint += "；" + facet
+		}
+		entryHints = append(entryHints, hint)
 	}
 
 	// Intent-based routing: 闲聊/打招呼直接走 Draft，跳过 Reconcile
@@ -1259,6 +1263,13 @@ func buildDraftKnowledgeContext(facts []StructuredFactForAI, topics []TopicSumma
 			sb.WriteString("\n")
 		}
 	}
+	if opts != nil && len(opts.TimelineEvents) > 0 {
+		if section := FormatTimelinePromptSection(opts.TimelineEvents); section != "" {
+			sb.WriteString("\n")
+			sb.WriteString(section)
+			sb.WriteString("\n")
+		}
+	}
 	if len(liveUpdates) > 0 {
 		sb.WriteString("\n【最近动态 - 你本人最近分享的实时信息，优先引用】\n")
 		sb.WriteString("使用规则：\n")
@@ -1331,7 +1342,14 @@ func buildReconcileSystemPrompt(profile ProfileForAI, plan RetrievalPlan) string
 	}
 	sb.WriteString("\n\n【经历素材】\n")
 	for i, e := range plan.Entries {
-		sb.WriteString(fmt.Sprintf("[%d] %s（%s）\n%s\n\n", i+1, e.Title, e.Category, e.Content))
+		sb.WriteString(fmt.Sprintf("[%d] %s（%s）\n", i+1, e.Title, e.Category))
+		if facet := FacetSummary(e.Facets); facet != "" {
+			sb.WriteString("分面：")
+			sb.WriteString(facet)
+			sb.WriteString("\n")
+		}
+		sb.WriteString(e.Content)
+		sb.WriteString("\n\n")
 	}
 	return sb.String()
 }
@@ -1461,7 +1479,14 @@ func buildSystemPrompt(profile ProfileForAI, plan RetrievalPlan) string {
 	sb.WriteString("\n\n--- 经历素材（可组合、口语化转述；勿对用户描述本块来源）---\n\n")
 
 	for i, e := range plan.Entries {
-		sb.WriteString(fmt.Sprintf("[%d] %s（%s）\n%s\n\n", i+1, e.Title, e.Category, e.Content))
+		sb.WriteString(fmt.Sprintf("[%d] %s（%s）\n", i+1, e.Title, e.Category))
+		if facet := FacetSummary(e.Facets); facet != "" {
+			sb.WriteString("分面：")
+			sb.WriteString(facet)
+			sb.WriteString("\n")
+		}
+		sb.WriteString(e.Content)
+		sb.WriteString("\n\n")
 	}
 	sb.WriteString("\n最后再提醒一次：只输出自然聊天文本，不要分点标题；叙述尽量扣住上面素材与【长介绍】，禁止编造无关长篇传记；事实拿不准就糊弄带过，禁止出现上文【对用户说话的禁忌】里的说法。不要把推测说成铁事实；尽量不要反问用户。\n\n不要重复：如果对话历史里你已经说过某段经历或例子，这次回答要换一个角度或换一段经历，不要把同样的话再说一遍。")
 	return sb.String()
