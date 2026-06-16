@@ -424,7 +424,11 @@ export default function LifeAgentDetailPage() {
                 {growthEventLocation(latestGrowth) ? <span>{growthEventLocation(latestGrowth)}</span> : null}
                 <span>{formatGrowthFreshDays(latestGrowth.freshDays)}</span>
               </div>
-              <p className="mt-1 text-sm leading-6 text-ink-600 [text-wrap:pretty]">{latestGrowth.summary}</p>
+              {latestGrowth.summary.trim() ? (
+                <p className="mt-1 text-sm leading-6 text-ink-600 [text-wrap:pretty]">{latestGrowth.summary}</p>
+              ) : (
+                <p className="mt-1 text-sm leading-6 text-ink-500">这位学长最近维护过相关话题，可以直接追问最新情况。</p>
+              )}
               <div className="mt-3 flex flex-wrap gap-2">
                 <Link
                   href={`/life-agents/${profile.id}/chat?prefill=${encodeURIComponent(buildGrowthQuestion(latestGrowth, profile.displayName))}`}
@@ -552,7 +556,9 @@ export default function LifeAgentDetailPage() {
                     {growthEventLocation(event) ? <span>{growthEventLocation(event)}</span> : null}
                     <span>{formatGrowthFreshDays(event.freshDays)}</span>
                   </div>
-                  <p className="mt-1 text-sm leading-relaxed text-ink-500">{event.summary}</p>
+                  {event.summary.trim() ? (
+                    <p className="mt-1 text-sm leading-relaxed text-ink-500">{event.summary}</p>
+                  ) : null}
                   <Link
                     href={`/life-agents/${profile.id}/chat?prefill=${encodeURIComponent(buildGrowthQuestion(event, profile.displayName))}`}
                     className="mt-1 inline-flex text-xs font-semibold text-signal-700 underline decoration-signal-300 underline-offset-4"

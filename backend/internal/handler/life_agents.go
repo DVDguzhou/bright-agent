@@ -798,6 +798,7 @@ func lifeAgentListResponseItems(profiles []models.LifeAgentProfile, cfg *config.
 			"mindScoreLevelLabel": ms.LevelLabel,
 			"featuredRank":        p.FeaturedRank,
 			"featuredCollection":  ptrStr(p.FeaturedCollection),
+			"updateStatus":        lifeAgentUpdateStatusResp(&p, kbByProfile[p.ID]),
 		})
 	}
 	return resp
@@ -2721,7 +2722,7 @@ func LifeAgentsManage(cfg *config.Config) gin.HandlerFunc {
 		feedbackAlerts := lifeagent.BuildFeedbackAlerts(manageFbSignals, manageTopicLabels, bsForAlert)
 		mindScore := lifeagent.ComputeMindScore(loadMindScoreInput(id, &p, cfg))
 		nextSuggestion := lifeagent.GenerateNextSuggestion(buildNextSuggestionContext(id, &p, cfg, "", 0, false, false))
-		growthLog := buildGrowthLogPayload(id, user.ID, true, 8)
+		growthLog := buildGrowthLogPayload(&p, entries, user.ID, true, 8)
 
 		type packResp struct {
 			ID            string `json:"id"`
@@ -4119,6 +4120,84 @@ func growthEventToResp(e models.LifeAgentGrowthEvent, now time.Time) gin.H {
 	}
 }
 
+func inferGrowthCategoryFromSampleQuestions(samples []string) string {
+	text := strings.ToLower(strings.Join(samples, " "))
+	switch {
+	case strings.Contains(text, "秋招") || strings.Contains(text, "春招") || strings.Contains(text, "面试") || strings.Contains(text, "简历") || strings.Contains(text, "offer") || strings.Contains(text, "工作") || strings.Contains(text, "大厂"):
+		return "job"
+	case strings.Contains(text, "保研") || strings.Contains(text, "考研") || strings.Contains(text, "留学") || strings.Contains(text, "申请") || strings.Contains(text, "学校") || strings.Contains(text, "专业") || strings.Contains(text, "上岸"):
+		return "study"
+	case strings.Contains(text, "城市") || strings.Contains(text, "落户") || strings.Contains(text, "通勤") || strings.Contains(text, "租房") || strings.Contains(text, "买房") || strings.Contains(text, "杭州") || strings.Contains(text, "上海") || strings.Contains(text, "北京"):
+		return "housing"
+	case strings.Contains(text, "政策") || strings.Contains(text, "签证") || strings.Contains(text, "绿卡"):
+		return "policy"
+	case strings.Contains(text, "行业") || strings.Contains(text, "创业") || strings.Contains(text, "市场") || strings.Contains(text, "行情"):
+		return "market"
+	case strings.Contains(text, "资源") || strings.Contains(text, "资料") || strings.Contains(text, "课程"):
+		return "resource"
+	case strings.Contains(text, "生活") || strings.Contains(text, "家庭") || strings.Contains(text, "感情") || strings.Contains(text, "心理"):
+		return "life"
+	default:
+		return "general"
+	}
+}
+
+func stableGrowthHash(parts ...string) uint32 {
+	h := fnv.New32a()
+	for _, part := range parts {
+		_, _ = h.Write([]byte(part))
+		_, _ = h.Write([]byte{0})
+	}
+	return h.Sum32()
+}
+
+func syntheticGrowthCreatedAt(p *models.LifeAgentProfile) time.Time {
+	featured := p.FeaturedRank != nil || strings.TrimSpace(ptrStr(p.FeaturedCollection)) != ""
+	hash := stableGrowthHash(p.ID, p.DisplayName, "growth-status")
+	var offset time.Duration
+	if featured {
+		// 精选 Agent 都保持在最近 0-2 天内，但错开到不同小时和分钟。
+		offset = time.Duration(2+int(hash%46))*time.Hour + time.Duration((hash/47)%60)*time.Minute
+	} else {
+		offset = time.Duration(8+int(hash%(24*21)))*time.Hour + time.Duration((hash/97)%60)*time.Minute
+	}
+	return time.Now().UTC().Add(-offset)
+}
+
+func syntheticLifeAgentGrowthEvent(p *models.LifeAgentProfile, entries []models.LifeAgentKnowledgeEntry) models.LifeAgentGrowthEvent {
+	samples := sampleQuestionsForDisplay(p, entries)
+	category := inferGrowthCategoryFromSampleQuestions(samples)
+	createdAt := syntheticGrowthCreatedAt(p)
+	return models.LifeAgentGrowthEvent{
+		ID:         "synthetic-" + p.ID,
+		ProfileID:  p.ID,
+		Type:       "live_update",
+		Visibility: "public",
+		Title:      growthEventTitle("live_update", category),
+		Summary:    "",
+		Payload: models.JSONMap{
+			"category":  category,
+			"synthetic": true,
+		},
+		CreatedAt: createdAt,
+	}
+}
+
+func lifeAgentUpdateStatusResp(p *models.LifeAgentProfile, entries []models.LifeAgentKnowledgeEntry) gin.H {
+	event := syntheticLifeAgentGrowthEvent(p, entries)
+	freshDays := int(time.Since(event.CreatedAt).Hours() / 24)
+	if freshDays < 0 {
+		freshDays = 0
+	}
+	return gin.H{
+		"title":     event.Title,
+		"category":  event.Payload["category"],
+		"createdAt": event.CreatedAt.Format(time.RFC3339),
+		"freshDays": freshDays,
+		"isRecent":  freshDays <= 7,
+	}
+}
+
 func listLifeAgentGrowthEvents(profileID string, ownerView bool, limit int) []models.LifeAgentGrowthEvent {
 	if limit <= 0 || limit > 100 {
 		limit = 30
@@ -4132,8 +4211,15 @@ func listLifeAgentGrowthEvents(profileID string, ownerView bool, limit int) []mo
 	return events
 }
 
-func buildGrowthLogPayload(profileID, userID string, ownerView bool, limit int) gin.H {
+func buildGrowthLogPayload(profile *models.LifeAgentProfile, entries []models.LifeAgentKnowledgeEntry, userID string, ownerView bool, limit int) gin.H {
+	profileID := profile.ID
 	events := listLifeAgentGrowthEvents(profileID, ownerView, limit)
+	if len(events) == 0 && !ownerView && profile != nil {
+		events = append(events, syntheticLifeAgentGrowthEvent(profile, entries))
+	}
+	if len(events) == 0 && ownerView && profile != nil {
+		events = append(events, syntheticLifeAgentGrowthEvent(profile, entries))
+	}
 	now := time.Now()
 	items := make([]gin.H, 0, len(events))
 	publicCount := 0
@@ -4149,6 +4235,15 @@ func buildGrowthLogPayload(profileID, userID string, ownerView bool, limit int) 
 	db.DB.Model(&models.LifeAgentGrowthEvent{}).Where("profile_id = ? AND visibility = ?", profileID, "public").Count(&publicTotal)
 	db.DB.Model(&models.LifeAgentGrowthEvent{}).Where("profile_id = ? AND created_at >= ?", profileID, now.AddDate(0, 0, -7)).Count(&weekCount)
 	db.DB.Model(&models.LifeAgentFavorite{}).Where("profile_id = ?", profileID).Count(&followerCount)
+	if publicTotal == 0 && len(events) > 0 {
+		publicTotal = 1
+	}
+	if total == 0 && len(events) > 0 {
+		total = 1
+	}
+	if weekCount == 0 && len(events) > 0 && now.Sub(events[0].CreatedAt) <= 7*24*time.Hour {
+		weekCount = 1
+	}
 
 	following := false
 	var lastSeen *time.Time
@@ -4163,6 +4258,11 @@ func buildGrowthLogPayload(profileID, userID string, ownerView bool, limit int) 
 				q = q.Where("created_at > ?", *lastSeen)
 			}
 			q.Count(&unread)
+			if unread == 0 && len(events) > 0 && events[0].Visibility == "public" {
+				if lastSeen == nil || events[0].CreatedAt.After(*lastSeen) {
+					unread = 1
+				}
+			}
 		}
 	}
 
@@ -4232,16 +4332,18 @@ func LifeAgentsGrowthLog(cfg *config.Config) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
 		var p models.LifeAgentProfile
-		if err := db.DB.Select("id").Where("id = ? AND published = ?", id, true).First(&p).Error; err != nil {
+		if err := db.DB.Where("id = ? AND published = ?", id, true).First(&p).Error; err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "NOT_FOUND"})
 			return
 		}
+		var entries []models.LifeAgentKnowledgeEntry
+		db.DB.Where("profile_id = ?", id).Order("sort_order").Find(&entries)
 		user := middleware.MustGetUser(c)
 		userID := ""
 		if user != nil {
 			userID = user.ID
 		}
-		c.JSON(http.StatusOK, buildGrowthLogPayload(id, userID, false, 30))
+		c.JSON(http.StatusOK, buildGrowthLogPayload(&p, entries, userID, false, 30))
 	}
 }
 
@@ -4254,7 +4356,7 @@ func LifeAgentsManageGrowthLog(cfg *config.Config) gin.HandlerFunc {
 		}
 		id := c.Param("id")
 		var p models.LifeAgentProfile
-		if err := db.DB.Select("id,user_id").Where("id = ?", id).First(&p).Error; err != nil {
+		if err := db.DB.Where("id = ?", id).First(&p).Error; err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "NOT_FOUND"})
 			return
 		}
@@ -4262,7 +4364,9 @@ func LifeAgentsManageGrowthLog(cfg *config.Config) gin.HandlerFunc {
 			c.JSON(http.StatusForbidden, gin.H{"error": "FORBIDDEN"})
 			return
 		}
-		c.JSON(http.StatusOK, buildGrowthLogPayload(id, user.ID, true, 50))
+		var entries []models.LifeAgentKnowledgeEntry
+		db.DB.Where("profile_id = ?", id).Order("sort_order").Find(&entries)
+		c.JSON(http.StatusOK, buildGrowthLogPayload(&p, entries, user.ID, true, 50))
 	}
 }
 

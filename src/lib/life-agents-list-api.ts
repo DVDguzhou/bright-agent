@@ -42,6 +42,17 @@ export function normalizeLifeAgentListRow(row: unknown): LifeAgentListItem | nul
       isClaimed: status === "claimed",
     };
   }
+  let updateStatus: LifeAgentListItem["updateStatus"] | undefined;
+  if (r.updateStatus && typeof r.updateStatus === "object" && r.updateStatus !== null) {
+    const rawUpdate = r.updateStatus as Record<string, unknown>;
+    updateStatus = {
+      title: typeof rawUpdate.title === "string" ? rawUpdate.title : "更新了一条近况",
+      category: typeof rawUpdate.category === "string" ? rawUpdate.category : "general",
+      createdAt: typeof rawUpdate.createdAt === "string" ? rawUpdate.createdAt : "",
+      freshDays: asNum(rawUpdate.freshDays, 0),
+      isRecent: rawUpdate.isRecent === true,
+    };
+  }
 
   return {
     id,
@@ -78,6 +89,7 @@ export function normalizeLifeAgentListRow(row: unknown): LifeAgentListItem | nul
     mindScoreLevelLabel: typeof r.mindScoreLevelLabel === "string" ? r.mindScoreLevelLabel : undefined,
     featuredRank: typeof r.featuredRank === "number" ? r.featuredRank : r.featuredRank == null ? null : undefined,
     featuredCollection: typeof r.featuredCollection === "string" && r.featuredCollection.trim() !== "" ? r.featuredCollection : null,
+    updateStatus,
   };
 }
 

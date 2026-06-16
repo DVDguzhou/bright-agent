@@ -406,7 +406,11 @@ export default function LifeAgentManageHomePage() {
                             <span>{formatGrowthFreshDays(event.freshDays)}</span>
                           </div>
                           <p className="mt-1 text-sm font-medium text-ink">{event.title}</p>
-                          <p className="mt-1 text-sm leading-6 text-ink-500">{event.summary}</p>
+                          {event.summary.trim() ? (
+                            <p className="mt-1 text-sm leading-6 text-ink-500">{event.summary}</p>
+                          ) : (
+                            <p className="mt-1 text-sm leading-6 text-ink-400">这是一条系统生成的更新状态，真实发布后会自动覆盖。</p>
+                          )}
                         </div>
                         <span className={`shrink-0 rounded px-2 py-0.5 text-[11px] font-medium ${
                           event.visibility === "public" ? "bg-signal-100 text-signal-800" : "bg-paper-200 text-ink-500"
@@ -461,7 +465,7 @@ export default function LifeAgentManageHomePage() {
                 <RowLink
                   href={`/life-agents/${id}`}
                   title={growthEvents[0].title}
-                  description={growthEvents[0].summary}
+                  description={growthEvents[0].summary || "系统已给这个 Agent 生成一条更新状态。"}
                   meta={formatGrowthFreshDays(growthEvents[0].freshDays)}
                 />
               ) : null}

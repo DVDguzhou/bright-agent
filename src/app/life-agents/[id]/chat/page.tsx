@@ -1018,7 +1018,7 @@ export default function LifeAgentChatPage() {
                             {LIFE_AGENT_GROWTH_CATEGORY_LABELS[growthEventCategory(event)] ?? growthEventCategory(event)}
                           </span>
                           <span className="text-ink-300"> · {formatGrowthFreshDays(event.freshDays)}</span>
-                          <span className="block max-w-[16rem] truncate">{event.summary}</span>
+                          <span className="block max-w-[16rem] truncate">{event.summary || event.title}</span>
                         </button>
                       );
                     })}

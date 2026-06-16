@@ -12,6 +12,7 @@ import { cleanLifeAgentIntroText } from "@/lib/life-agent-intro-clean";
 import { lifeAgentShowsPurchaseUi } from "@/lib/life-agent-commerce";
 import { useWindowedSlice } from "@/lib/use-windowed-slice";
 import { MindScoreBadge } from "@/components/MindScoreBadge";
+import { formatGrowthFreshDays, LIFE_AGENT_GROWTH_CATEGORY_LABELS } from "@/lib/life-agent-growth";
 
 const anonymous = "匿名";
 
@@ -103,6 +104,7 @@ function LifeAgentDiscoverCard({
   const sessionCount = profile.sessionCount ?? 0;
   const isActiveAgent = sessionCount >= 10;
   const claim = claimForProfile(profile);
+  const updateStatus = profile.updateStatus;
 
   return (
     <article
@@ -207,6 +209,17 @@ function LifeAgentDiscoverCard({
               ))}
             </div>
           ) : null}
+          {updateStatus ? (
+            <div className="mt-1.5 flex items-center gap-1.5 text-[10.5px] font-medium text-signal-700">
+              <span className="h-1.5 w-1.5 rounded-full bg-signal-500" aria-hidden />
+              <span>
+                {formatGrowthFreshDays(updateStatus.freshDays)}更新
+                <span className="ml-1 text-ink-300">
+                  {LIFE_AGENT_GROWTH_CATEGORY_LABELS[updateStatus.category] ?? updateStatus.category}
+                </span>
+              </span>
+            </div>
+          ) : null}
 
           {/* Headline */}
           <p className="mt-1 line-clamp-2 text-[12px] leading-5 text-ink-500">
@@ -273,6 +286,7 @@ function LifeAgentLeadCard({
   const ratingScore =
     profile.ratings && profile.ratings.raters > 0 ? profile.ratings.averageScore.toFixed(1) : null;
   const claim = claimForProfile(profile);
+  const updateStatus = profile.updateStatus;
 
   return (
     <article className="overflow-hidden rounded-lg border border-ink/10 bg-white text-ink shadow-glow-sm transition duration-200 hover:border-ink/20 hover:shadow-glow">
@@ -337,6 +351,15 @@ function LifeAgentLeadCard({
             <p className="mt-1 line-clamp-2 text-sm leading-6 text-ink-500">
               {headlineShown}
             </p>
+            {updateStatus ? (
+              <div className="mt-2 inline-flex w-fit items-center gap-1.5 rounded-md bg-signal-50 px-2.5 py-1 text-xs font-semibold text-signal-700">
+                <span className="h-1.5 w-1.5 rounded-full bg-signal-500" aria-hidden />
+                {formatGrowthFreshDays(updateStatus.freshDays)}更新
+                <span className="text-ink-300">
+                  {LIFE_AGENT_GROWTH_CATEGORY_LABELS[updateStatus.category] ?? updateStatus.category}
+                </span>
+              </div>
+            ) : null}
             {sampleQuestionsShown.length > 0 ? (
               <ul className="mt-3 space-y-1.5" aria-label="你可以问">
                 {sampleQuestionsShown.map((q, i) => (

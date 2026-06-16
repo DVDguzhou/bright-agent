@@ -57,6 +57,13 @@ export type LifeAgentListItem = {
   featuredRank?: number | null;
   /** 专题/校园合集 key（如 kaoyan/liuxue/qiuzhi）；空=不属于任何合集 */
   featuredCollection?: string | null;
+  updateStatus?: {
+    title: string;
+    category: string;
+    createdAt: string;
+    freshDays: number;
+    isRecent: boolean;
+  };
 };
 
 function clamp01(v: number): number {
