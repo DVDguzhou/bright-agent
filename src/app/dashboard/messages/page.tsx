@@ -11,6 +11,7 @@ import {
   fetchLifeAgentSubscriptions,
   formatGrowthFreshDays,
   LIFE_AGENT_GROWTH_CATEGORY_LABELS,
+  markLifeAgentGrowthSeen,
   type LifeAgentSubscription,
 } from "@/lib/life-agent-growth";
 import {
@@ -57,7 +58,13 @@ function previewText(item: ChatHistoryItem) {
   return cleanLifeAgentIntroText(item.profile.headline, item.profile.displayName) || "这场对话暂无摘要";
 }
 
-function SubscriptionStrip({ items }: { items: LifeAgentSubscription[] }) {
+function SubscriptionStrip({
+  items,
+  onMarkSeen,
+}: {
+  items: LifeAgentSubscription[];
+  onMarkSeen: (profileId: string) => void;
+}) {
   if (items.length === 0) return null;
 
   return (
@@ -86,6 +93,7 @@ function SubscriptionStrip({ items }: { items: LifeAgentSubscription[] }) {
             <Link
               key={item.id}
               href={`/life-agents/${item.id}`}
+              onClick={() => onMarkSeen(item.id)}
               className="pressable group shrink-0 w-[5.75rem] text-center sm:w-[6.5rem]"
             >
               <div className="relative mx-auto h-[4.25rem] w-[4.25rem] overflow-visible sm:h-[4.75rem] sm:w-[4.75rem]">
@@ -127,6 +135,19 @@ export default function DashboardMessagesPage() {
   const [dataLoading, setDataLoading] = useState(true);
   const [query, setQuery] = useState("");
 
+  const markSubscriptionSeen = (profileId: string) => {
+    setSubscriptions((prev) =>
+      prev.map((item) => (item.id === profileId ? { ...item, growthUnread: 0 } : item)),
+    );
+    void markLifeAgentGrowthSeen(profileId);
+  };
+
+  const refreshSubscriptions = () => {
+    fetchLifeAgentSubscriptions()
+      .then(setSubscriptions)
+      .catch(() => {});
+  };
+
   useEffect(() => {
     if (!user) {
       setDataLoading(false);
@@ -152,6 +173,31 @@ export default function DashboardMessagesPage() {
       });
     return () => {
       cancelled = true;
+    };
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+    const onVisible = () => {
+      if (document.visibilityState === "visible") refreshSubscriptions();
+    };
+    const onGrowthSeen = (event: Event) => {
+      const profileId = (event as CustomEvent<{ profileId?: string }>).detail?.profileId;
+      if (profileId) {
+        setSubscriptions((prev) =>
+          prev.map((item) => (item.id === profileId ? { ...item, growthUnread: 0 } : item)),
+        );
+      } else {
+        refreshSubscriptions();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", onVisible);
+    window.addEventListener("la-growth-seen", onGrowthSeen);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", onVisible);
+      window.removeEventListener("la-growth-seen", onGrowthSeen);
     };
   }, [user]);
 
@@ -194,7 +240,7 @@ export default function DashboardMessagesPage() {
         <LoadingBlock />
       ) : (
         <>
-          <SubscriptionStrip items={subscriptions} />
+          <SubscriptionStrip items={subscriptions} onMarkSeen={markSubscriptionSeen} />
 
           {items.length === 0 ? (
             <EmptyState

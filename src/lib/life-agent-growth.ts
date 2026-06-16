@@ -101,10 +101,13 @@ export async function fetchLifeAgentGrowthLog(profileId: string, includeCredenti
 }
 
 export async function markLifeAgentGrowthSeen(profileId: string): Promise<void> {
-  await fetch(`/api/life-agents/${profileId}/growth-log/mark-seen`, {
+  const res = await fetch(`/api/life-agents/${profileId}/growth-log/mark-seen`, {
     method: "POST",
     credentials: "include",
-  }).catch(() => undefined);
+  }).catch(() => null);
+  if (res?.ok && typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("la-growth-seen", { detail: { profileId } }));
+  }
 }
 
 export type LifeAgentSubscription = {

@@ -4457,7 +4457,11 @@ func LifeAgentsGrowthLogMarkSeen(cfg *config.Config) gin.HandlerFunc {
 			c.JSON(http.StatusOK, gin.H{"ok": true, "following": false})
 			return
 		}
-		db.DB.Model(&fav).Update("last_seen_growth_at", now)
+		fav.LastSeenGrowthAt = &now
+		if err := db.DB.Save(&fav).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "INTERNAL_ERROR"})
+			return
+		}
 		c.JSON(http.StatusOK, gin.H{"ok": true, "following": true, "lastSeenAt": now.Format(time.RFC3339)})
 	}
 }

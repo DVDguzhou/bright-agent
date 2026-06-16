@@ -160,7 +160,9 @@ export default function LifeAgentDetailPage() {
   }, [id]);
 
   useEffect(() => {
-    if (!profile?.viewerState?.isLoggedIn || !starred || !growthLog?.summary?.unread) return;
+    if (!profile?.viewerState?.isLoggedIn) return;
+    const following = growthLog?.summary?.following || starred;
+    if (!following) return;
     void markLifeAgentGrowthSeen(id).then(() => {
       setGrowthLog((prev) =>
         prev
@@ -171,7 +173,7 @@ export default function LifeAgentDetailPage() {
           : prev
       );
     });
-  }, [growthLog?.summary?.unread, id, profile?.viewerState?.isLoggedIn, starred]);
+  }, [growthLog?.summary?.following, id, profile?.viewerState?.isLoggedIn, starred]);
 
   useEffect(() => {
     if (!profile?.viewerState?.isOwner || typeof window === "undefined") return;
