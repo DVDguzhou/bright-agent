@@ -21,6 +21,14 @@ import { useEdgeSwipeBack } from "@/hooks/use-edge-swipe-back";
 import { useIsDesktop, useKeyboardViewport, chatInputFooterPaddingClass } from "@/hooks/use-keyboard-viewport";
 import { useMobileTouchNavEnabled } from "@/hooks/use-life-agents-feed-gestures";
 import { LIFE_AGENT_UNLIMITED_CHAT, lifeAgentShowsPurchaseUi } from "@/lib/life-agent-commerce";
+import {
+  buildGrowthQuestion,
+  fetchLifeAgentGrowthLog,
+  formatGrowthFreshDays,
+  growthEventCategory,
+  LIFE_AGENT_GROWTH_CATEGORY_LABELS,
+  type LifeAgentGrowthEvent,
+} from "@/lib/life-agent-growth";
 
 type Profile = {
   id: string;
@@ -141,6 +149,7 @@ export default function LifeAgentChatPage() {
   const touchNavEnabled = useMobileTouchNavEnabled();
   useEdgeSwipeBack(touchNavEnabled);
   const initialRequestedSessionIdRef = useRef(searchParams.get("sessionId"));
+  const initialPrefillRef = useRef(searchParams.get("prefill") ?? "");
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -149,6 +158,7 @@ export default function LifeAgentChatPage() {
   const [sessionLoading, setSessionLoading] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
+  const [recentGrowthEvents, setRecentGrowthEvents] = useState<LifeAgentGrowthEvent[]>([]);
   const [loading, setLoading] = useState(false);
   const [voiceLoading, setVoiceLoading] = useState(false);
   const [error, setError] = useState("");
@@ -247,6 +257,17 @@ export default function LifeAgentChatPage() {
         syncRatingForm(data.viewerState?.rating);
         resetToWelcome(profileForUi.welcomeMessage);
         setSessions([]);
+        if (initialPrefillRef.current.trim()) {
+          setInput(initialPrefillRef.current.trim());
+        }
+
+        void fetchLifeAgentGrowthLog(id)
+          .then((log) => {
+            if (!cancelled && log?.events) {
+              setRecentGrowthEvents(log.events.slice(0, 3));
+            }
+          })
+          .catch(() => {});
 
         if (!data.viewerState?.isLoggedIn) return;
 
@@ -260,7 +281,7 @@ export default function LifeAgentChatPage() {
         const normalizedSessions = Array.isArray(sessionList) ? sessionList : [];
         setSessions(normalizedSessions);
 
-        if (normalizedSessions.length > 0) {
+        if (normalizedSessions.length > 0 && !initialPrefillRef.current.trim()) {
           const initialSession =
             (initialRequestedSessionIdRef.current &&
               normalizedSessions.find((session: SessionSummary) => session.id === initialRequestedSessionIdRef.current)) ||
@@ -976,7 +997,35 @@ export default function LifeAgentChatPage() {
                 正在加载历史会话...
               </div>
             ) : (
-              messages.map((message, index) => {
+              <>
+              {recentGrowthEvents.length > 0 && !sessionId ? (
+                <div className="ml-10 rounded-lg border border-signal-200/70 bg-paper-50 px-3 py-3 text-sm shadow-glow-sm">
+                  <p className="text-xs font-semibold text-signal-700">最近可追问</p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {recentGrowthEvents.slice(0, 2).map((event) => {
+                      const question = buildGrowthQuestion(event, profile.displayName);
+                      return (
+                        <button
+                          key={event.id}
+                          type="button"
+                          onClick={() => {
+                            setInput(question);
+                            setTimeout(scrollToLastMessage, 80);
+                          }}
+                          className="rounded border border-hairline bg-paper px-2.5 py-1.5 text-left text-xs leading-5 text-ink-600 transition hover:border-signal-200 hover:bg-signal-50 hover:text-signal-700"
+                        >
+                          <span className="font-medium">
+                            {LIFE_AGENT_GROWTH_CATEGORY_LABELS[growthEventCategory(event)] ?? growthEventCategory(event)}
+                          </span>
+                          <span className="text-ink-300"> · {formatGrowthFreshDays(event.freshDays)}</span>
+                          <span className="block max-w-[16rem] truncate">{event.summary}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : null}
+              {messages.map((message, index) => {
                 const isVoiceLoadingForMsg =
                   message.role === "assistant" &&
                   index === messages.length - 1 &&
@@ -1138,7 +1187,8 @@ export default function LifeAgentChatPage() {
                     </div>
                   ) : null}
                 </div>
-              )})
+              )})}
+              </>
             )}
             <div ref={chatEndRef} className="h-1 shrink-0 scroll-mt-4" aria-hidden />
           </div>

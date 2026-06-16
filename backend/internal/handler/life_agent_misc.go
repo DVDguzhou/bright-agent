@@ -128,11 +128,13 @@ func LifeAgentFavoritesToggle(cfg *config.Config) gin.HandlerFunc {
 			return
 		}
 
+		seenAt := time.Now()
 		favorite := models.LifeAgentFavorite{
-			ID:        models.GenID(),
-			UserID:    user.ID,
-			ProfileID: profileID,
-			CreatedAt: time.Now(),
+			ID:               models.GenID(),
+			UserID:           user.ID,
+			ProfileID:        profileID,
+			LastSeenGrowthAt: &seenAt,
+			CreatedAt:        seenAt,
 		}
 		if err := db.DB.Create(&favorite).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "INTERNAL_ERROR"})
@@ -194,11 +196,13 @@ func LifeAgentFavoritesImport(cfg *config.Config) gin.HandlerFunc {
 			if _, ok := valid[profileID]; !ok {
 				continue
 			}
+			seenAt := time.Now()
 			favorite := models.LifeAgentFavorite{
-				ID:        models.GenID(),
-				UserID:    user.ID,
-				ProfileID: profileID,
-				CreatedAt: time.Now(),
+				ID:               models.GenID(),
+				UserID:           user.ID,
+				ProfileID:        profileID,
+				LastSeenGrowthAt: &seenAt,
+				CreatedAt:        seenAt,
 			}
 			if err := db.DB.Where("user_id = ? AND profile_id = ?", user.ID, profileID).FirstOrCreate(&favorite).Error; err == nil {
 				imported++

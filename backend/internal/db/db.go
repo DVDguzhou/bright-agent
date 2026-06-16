@@ -146,6 +146,7 @@ func Init(dsn string) error {
 		&models.Dispute{},
 		&models.LifeAgentProfile{},
 		&models.LifeAgentFavorite{},
+		&models.LifeAgentGrowthEvent{},
 		&models.LifeAgentKnowledgeEntry{},
 		&models.LifeAgentTimelineEvent{},
 		&models.LifeAgentStructuredFact{},

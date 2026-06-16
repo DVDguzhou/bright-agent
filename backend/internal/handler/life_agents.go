@@ -2102,6 +2102,20 @@ func finalizeCoEditEventProcessed(eventID, reply, summary string) {
 	if err := db.DB.Model(&models.LifeAgentCoEditEvent{}).Where("id = ?", eventID).Updates(updates).Error; err != nil {
 		log.Printf("life-agents modify: failed to mark event processed event=%s: %v", eventID, err)
 	}
+	if strings.TrimSpace(summary) != "" {
+		var event models.LifeAgentCoEditEvent
+		if err := db.DB.Where("id = ?", eventID).First(&event).Error; err == nil {
+			createLifeAgentGrowthEvent(
+				event.ProfileID,
+				"co_edit_applied",
+				"owner",
+				growthEventTitle("co_edit_applied", ""),
+				summary,
+				models.JSONMap{"rawMessage": event.RawMessage},
+				&eventID,
+			)
+		}
+	}
 }
 
 func finalizeCoEditEventFailed(eventID, detail string) {
@@ -2707,6 +2721,7 @@ func LifeAgentsManage(cfg *config.Config) gin.HandlerFunc {
 		feedbackAlerts := lifeagent.BuildFeedbackAlerts(manageFbSignals, manageTopicLabels, bsForAlert)
 		mindScore := lifeagent.ComputeMindScore(loadMindScoreInput(id, &p, cfg))
 		nextSuggestion := lifeagent.GenerateNextSuggestion(buildNextSuggestionContext(id, &p, cfg, "", 0, false, false))
+		growthLog := buildGrowthLogPayload(id, user.ID, true, 8)
 
 		type packResp struct {
 			ID            string `json:"id"`
@@ -2812,6 +2827,7 @@ func LifeAgentsManage(cfg *config.Config) gin.HandlerFunc {
 			},
 			"questionPacks": packResps,
 			"chatSessions":  sessResps,
+			"growth":        growthLog,
 		})
 	}
 }
@@ -3938,7 +3954,20 @@ func LifeAgentsBlindSpotResolve(cfg *config.Config) gin.HandlerFunc {
 			c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
 			return
 		}
+		var spot models.LifeAgentBlindSpot
+		db.DB.Where("id = ? AND profile_id = ?", spotID, id).First(&spot)
 		db.DB.Model(&models.LifeAgentBlindSpot{}).Where("id = ? AND profile_id = ?", spotID, id).Update("resolved", true)
+		if strings.TrimSpace(spot.ID) != "" {
+			createLifeAgentGrowthEvent(
+				id,
+				"feedback_fixed",
+				"owner",
+				growthEventTitle("feedback_fixed", ""),
+				spot.UserQuestion,
+				models.JSONMap{"route": spot.Route, "confidence": spot.Confidence},
+				&spotID,
+			)
+		}
 		c.JSON(http.StatusOK, gin.H{"ok": true})
 	}
 }
@@ -4040,6 +4069,222 @@ func LifeAgentsFollowUpQuestions(cfg *config.Config) gin.HandlerFunc {
 	}
 }
 
+func growthEventTitle(eventType, category string) string {
+	switch eventType {
+	case "live_update":
+		switch category {
+		case "job":
+			return "更新了求职近况"
+		case "study":
+			return "更新了升学近况"
+		case "market":
+			return "更新了行业行情"
+		case "housing":
+			return "更新了居住信息"
+		case "policy":
+			return "更新了政策变化"
+		case "resource":
+			return "更新了可用资源"
+		case "life":
+			return "更新了生活近况"
+		default:
+			return "更新了一条近况"
+		}
+	case "co_edit_applied":
+		return "补充了 Agent 记忆"
+	case "feedback_fixed":
+		return "处理了一条用户反馈"
+	case "profile_polished":
+		return "完善了展示资料"
+	default:
+		return "更新了 Agent"
+	}
+}
+
+func growthEventToResp(e models.LifeAgentGrowthEvent, now time.Time) gin.H {
+	freshDays := int(now.Sub(e.CreatedAt).Hours() / 24)
+	if freshDays < 0 {
+		freshDays = 0
+	}
+	return gin.H{
+		"id":         e.ID,
+		"type":       e.Type,
+		"visibility": e.Visibility,
+		"title":      e.Title,
+		"summary":    e.Summary,
+		"payload":    e.Payload,
+		"sourceId":   e.SourceID,
+		"createdAt":  e.CreatedAt.Format(time.RFC3339),
+		"freshDays":  freshDays,
+	}
+}
+
+func listLifeAgentGrowthEvents(profileID string, ownerView bool, limit int) []models.LifeAgentGrowthEvent {
+	if limit <= 0 || limit > 100 {
+		limit = 30
+	}
+	q := db.DB.Where("profile_id = ?", profileID)
+	if !ownerView {
+		q = q.Where("visibility = ?", "public")
+	}
+	var events []models.LifeAgentGrowthEvent
+	q.Order("created_at DESC").Limit(limit).Find(&events)
+	return events
+}
+
+func buildGrowthLogPayload(profileID, userID string, ownerView bool, limit int) gin.H {
+	events := listLifeAgentGrowthEvents(profileID, ownerView, limit)
+	now := time.Now()
+	items := make([]gin.H, 0, len(events))
+	publicCount := 0
+	for _, event := range events {
+		if event.Visibility == "public" {
+			publicCount++
+		}
+		items = append(items, growthEventToResp(event, now))
+	}
+
+	var total, weekCount, publicTotal, followerCount, unread int64
+	db.DB.Model(&models.LifeAgentGrowthEvent{}).Where("profile_id = ?", profileID).Count(&total)
+	db.DB.Model(&models.LifeAgentGrowthEvent{}).Where("profile_id = ? AND visibility = ?", profileID, "public").Count(&publicTotal)
+	db.DB.Model(&models.LifeAgentGrowthEvent{}).Where("profile_id = ? AND created_at >= ?", profileID, now.AddDate(0, 0, -7)).Count(&weekCount)
+	db.DB.Model(&models.LifeAgentFavorite{}).Where("profile_id = ?", profileID).Count(&followerCount)
+
+	following := false
+	var lastSeen *time.Time
+	if strings.TrimSpace(userID) != "" {
+		var fav models.LifeAgentFavorite
+		if err := db.DB.Where("user_id = ? AND profile_id = ?", userID, profileID).First(&fav).Error; err == nil {
+			following = true
+			lastSeen = fav.LastSeenGrowthAt
+			q := db.DB.Model(&models.LifeAgentGrowthEvent{}).
+				Where("profile_id = ? AND visibility = ?", profileID, "public")
+			if lastSeen != nil {
+				q = q.Where("created_at > ?", *lastSeen)
+			}
+			q.Count(&unread)
+		}
+	}
+
+	latestTitle := ""
+	if len(events) > 0 {
+		latestTitle = events[0].Title
+	}
+	return gin.H{
+		"events": items,
+		"summary": gin.H{
+			"total":         total,
+			"publicTotal":   publicTotal,
+			"publicLoaded":  publicCount,
+			"weekCount":     weekCount,
+			"followerCount": followerCount,
+			"unread":        unread,
+			"following":     following,
+			"latestTitle":   latestTitle,
+			"lastSeenAt": func() interface{} {
+				if lastSeen == nil {
+					return nil
+				}
+				return lastSeen.Format(time.RFC3339)
+			}(),
+		},
+	}
+}
+
+func createLifeAgentGrowthEvent(profileID, eventType, visibility, title, summary string, payload models.JSONMap, sourceID *string) {
+	profileID = strings.TrimSpace(profileID)
+	summary = strings.TrimSpace(summary)
+	if profileID == "" || summary == "" {
+		return
+	}
+	if visibility == "" {
+		visibility = "owner"
+	}
+	if title == "" {
+		title = growthEventTitle(eventType, "")
+	}
+	if payload == nil {
+		payload = models.JSONMap{}
+	}
+	if sourceID != nil && *sourceID != "" {
+		var existing models.LifeAgentGrowthEvent
+		if err := db.DB.Where("profile_id = ? AND type = ? AND source_id = ?", profileID, eventType, *sourceID).First(&existing).Error; err == nil {
+			return
+		}
+	}
+	event := models.LifeAgentGrowthEvent{
+		ID:         models.GenID(),
+		ProfileID:  profileID,
+		Type:       eventType,
+		Visibility: visibility,
+		Title:      strings.TrimSpace(title),
+		Summary:    summary,
+		Payload:    payload,
+		SourceID:   sourceID,
+		CreatedAt:  time.Now().UTC(),
+	}
+	if err := db.DB.Create(&event).Error; err != nil {
+		log.Printf("life-agent growth: create event failed profile=%s type=%s: %v", profileID, eventType, err)
+	}
+}
+
+func LifeAgentsGrowthLog(cfg *config.Config) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id := c.Param("id")
+		var p models.LifeAgentProfile
+		if err := db.DB.Select("id").Where("id = ? AND published = ?", id, true).First(&p).Error; err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "NOT_FOUND"})
+			return
+		}
+		user := middleware.MustGetUser(c)
+		userID := ""
+		if user != nil {
+			userID = user.ID
+		}
+		c.JSON(http.StatusOK, buildGrowthLogPayload(id, userID, false, 30))
+	}
+}
+
+func LifeAgentsManageGrowthLog(cfg *config.Config) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		user := middleware.MustGetUser(c)
+		if user == nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "UNAUTHORIZED"})
+			return
+		}
+		id := c.Param("id")
+		var p models.LifeAgentProfile
+		if err := db.DB.Select("id,user_id").Where("id = ?", id).First(&p).Error; err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "NOT_FOUND"})
+			return
+		}
+		if p.UserID != user.ID {
+			c.JSON(http.StatusForbidden, gin.H{"error": "FORBIDDEN"})
+			return
+		}
+		c.JSON(http.StatusOK, buildGrowthLogPayload(id, user.ID, true, 50))
+	}
+}
+
+func LifeAgentsGrowthLogMarkSeen(cfg *config.Config) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		user := middleware.MustGetUser(c)
+		if user == nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "UNAUTHORIZED"})
+			return
+		}
+		id := c.Param("id")
+		now := time.Now().UTC()
+		var fav models.LifeAgentFavorite
+		if err := db.DB.Where("user_id = ? AND profile_id = ?", user.ID, id).First(&fav).Error; err != nil {
+			c.JSON(http.StatusOK, gin.H{"ok": true, "following": false})
+			return
+		}
+		db.DB.Model(&fav).Update("last_seen_growth_at", now)
+		c.JSON(http.StatusOK, gin.H{"ok": true, "following": true, "lastSeenAt": now.Format(time.RFC3339)})
+	}
+}
+
 func LifeAgentsLiveUpdateCreate(cfg *config.Config) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		user := middleware.MustGetUser(c)
@@ -4066,6 +4311,15 @@ func LifeAgentsLiveUpdateCreate(cfg *config.Config) gin.HandlerFunc {
 		if body.Category == "" {
 			body.Category = "general"
 		}
+		location := body.Location
+		if location != nil {
+			trimmed := strings.TrimSpace(*location)
+			if trimmed == "" {
+				location = nil
+			} else {
+				location = &trimmed
+			}
+		}
 		var expiresAt *time.Time
 		if body.ExpiresIn != nil && *body.ExpiresIn > 0 {
 			t := time.Now().Add(time.Duration(*body.ExpiresIn) * time.Hour)
@@ -4076,11 +4330,20 @@ func LifeAgentsLiveUpdateCreate(cfg *config.Config) gin.HandlerFunc {
 			ProfileID: id,
 			Content:   strings.TrimSpace(body.Content),
 			Category:  body.Category,
-			Location:  body.Location,
+			Location:  location,
 			ExpiresAt: expiresAt,
 			Pinned:    body.Pinned,
 		}
 		db.DB.Create(&update)
+		createLifeAgentGrowthEvent(
+			id,
+			"live_update",
+			"public",
+			growthEventTitle("live_update", update.Category),
+			update.Content,
+			models.JSONMap{"category": update.Category, "location": ptrStr(update.Location)},
+			&update.ID,
+		)
 		c.JSON(http.StatusOK, gin.H{
 			"id":        update.ID,
 			"content":   update.Content,
@@ -4140,6 +4403,7 @@ func LifeAgentsLiveUpdateDelete(cfg *config.Config) gin.HandlerFunc {
 			return
 		}
 		db.DB.Where("id = ? AND profile_id = ?", updateID, id).Delete(&models.LifeAgentLiveUpdate{})
+		db.DB.Where("profile_id = ? AND type = ? AND source_id = ?", id, "live_update", updateID).Delete(&models.LifeAgentGrowthEvent{})
 		c.JSON(http.StatusOK, gin.H{"ok": true})
 	}
 }

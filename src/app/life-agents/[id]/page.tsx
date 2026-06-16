@@ -14,6 +14,17 @@ import { useMobileTouchNavEnabled } from "@/hooks/use-life-agents-feed-gestures"
 import { cleanLifeAgentIntroMultiline, cleanLifeAgentIntroText } from "@/lib/life-agent-intro-clean";
 import { MindScoreBadge } from "@/components/MindScoreBadge";
 import { lifeAgentShowsPurchaseUi } from "@/lib/life-agent-commerce";
+import {
+  buildGrowthQuestion,
+  fetchLifeAgentGrowthLog,
+  formatGrowthFreshDays,
+  growthEventCategory,
+  growthEventLocation,
+  LIFE_AGENT_GROWTH_CATEGORY_LABELS,
+  markLifeAgentGrowthSeen,
+  type LifeAgentGrowthEvent,
+  type LifeAgentGrowthLog,
+} from "@/lib/life-agent-growth";
 
 type DetailData = {
   id: string;
@@ -114,6 +125,7 @@ export default function LifeAgentDetailPage() {
   const [voiceEnrollBanner, setVoiceEnrollBanner] = useState<"warn" | null>(null);
   const [starred, setStarred] = useState(false);
   const [liveUpdates, setLiveUpdates] = useState<Array<{ id: string; content: string; category: string; location?: string; createdAt: string; freshDays: number }>>([]);
+  const [growthLog, setGrowthLog] = useState<LifeAgentGrowthLog | null>(null);
 
   useEffect(() => {
     const sync = () => setStarred(isFavoriteAgentId(id));
@@ -139,7 +151,27 @@ export default function LifeAgentDetailPage() {
       .then((res) => (res.ok ? res.json() : null))
       .then((json) => { if (json?.updates) setLiveUpdates(json.updates); })
       .catch(() => {});
+
+    fetchLifeAgentGrowthLog(id)
+      .then((log) => {
+        if (log) setGrowthLog(log);
+      })
+      .catch(() => {});
   }, [id]);
+
+  useEffect(() => {
+    if (!profile?.viewerState?.isLoggedIn || !starred || !growthLog?.summary?.unread) return;
+    void markLifeAgentGrowthSeen(id).then(() => {
+      setGrowthLog((prev) =>
+        prev
+          ? {
+              ...prev,
+              summary: { ...prev.summary, unread: 0, following: true },
+            }
+          : prev
+      );
+    });
+  }, [growthLog?.summary?.unread, id, profile?.viewerState?.isLoggedIn, starred]);
 
   useEffect(() => {
     if (!profile?.viewerState?.isOwner || typeof window === "undefined") return;
@@ -226,6 +258,21 @@ export default function LifeAgentDetailPage() {
   const hasPrice = showPurchaseUi && profile.pricePerQuestion > 0;
   const remainingQ = profile.viewerState.remainingQuestions;
   const claim = profile.claim ?? { status: "unclaimed", label: "未认领", isClaimed: false };
+  const fallbackGrowthEvents: LifeAgentGrowthEvent[] = liveUpdates.map((u) => ({
+    id: u.id,
+    type: "live_update",
+    visibility: "public",
+    title: "更新了一条近况",
+    summary: u.content,
+    payload: { category: u.category, location: u.location },
+    sourceId: u.id,
+    createdAt: u.createdAt,
+    freshDays: u.freshDays,
+  }));
+  const growthEvents = growthLog?.events.length ? growthLog.events : fallbackGrowthEvents;
+  const latestGrowth = growthEvents[0];
+  const growthUnread = growthLog?.summary.unread ?? 0;
+  const growthTotal = growthLog?.summary.publicTotal || growthEvents.length;
 
   return (
     <>
@@ -248,11 +295,21 @@ export default function LifeAgentDetailPage() {
               <button
                 type="button"
                 onClick={() => {
-                  void toggleFavoriteAgentId(profile.id).then(setStarred);
+                  void toggleFavoriteAgentId(profile.id).then((next) => {
+                    setStarred(next);
+                    if (next && profile.viewerState.isLoggedIn) {
+                      void markLifeAgentGrowthSeen(profile.id);
+                    }
+                    setGrowthLog((prev) =>
+                      prev
+                        ? { ...prev, summary: { ...prev.summary, following: next, unread: next ? 0 : prev.summary.unread } }
+                        : prev
+                    );
+                  });
                 }}
                 className="pressable flex h-9 w-9 items-center justify-center rounded-full bg-ink/40 text-paper backdrop-blur-sm transition hover:bg-ink/60 active:bg-ink/60"
-                aria-label={starred ? "取消收藏" : "收藏"}
-                title={starred ? "取消收藏" : "收藏"}
+                aria-label={starred ? "取消追更" : "追更这个学长"}
+                title={starred ? "取消追更" : "追更这个学长"}
               >
                 {starred ? (
                   <svg className="h-5 w-5 text-paper" fill="currentColor" viewBox="0 0 24 24" aria-hidden>
@@ -315,6 +372,75 @@ export default function LifeAgentDetailPage() {
               <MindScoreBadge value={profile.mindScore?.total ?? profile.stats.mindScore ?? 0} size="sm" />
             ) : null}
           </div>
+        </div>
+
+        {/* --- 最近更新 / 追更 --- */}
+        <div className="-mx-4 bg-paper-50 px-4 py-4 sm:-mx-6 sm:px-6">
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-ink">
+                {growthUnread > 0
+                  ? `你养着的学长更新了 ${growthUnread} 条`
+                  : latestGrowth
+                    ? `最近更新 ${growthTotal} 条`
+                    : "最近还没有公开近况"}
+              </p>
+              <p className="mt-1 text-xs leading-5 text-ink-400">
+                {latestGrowth
+                  ? `${latestGrowth.title} · ${formatGrowthFreshDays(latestGrowth.freshDays)}`
+                  : "可以先问他的过往经验，之后追更会看到新的近况。"}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                void toggleFavoriteAgentId(profile.id).then((next) => {
+                  setStarred(next);
+                  if (next && profile.viewerState.isLoggedIn) {
+                    void markLifeAgentGrowthSeen(profile.id);
+                  }
+                  setGrowthLog((prev) =>
+                    prev
+                      ? { ...prev, summary: { ...prev.summary, following: next, unread: next ? 0 : prev.summary.unread } }
+                      : prev
+                  );
+                });
+              }}
+              className={`shrink-0 rounded border px-3 py-2 text-xs font-semibold transition ${
+                starred
+                  ? "border-signal-200 bg-signal-50 text-signal-700 hover:bg-signal-100"
+                  : "border-hairline bg-paper text-ink-600 hover:border-signal-200 hover:text-signal-700"
+              }`}
+            >
+              {starred ? "已追更" : "追更"}
+            </button>
+          </div>
+          {latestGrowth ? (
+            <div className="mt-3 rounded-md border border-hairline bg-paper px-3 py-3">
+              <div className="flex flex-wrap items-center gap-2 text-[11px] text-ink-400">
+                <span className="font-medium text-signal-700">
+                  {LIFE_AGENT_GROWTH_CATEGORY_LABELS[growthEventCategory(latestGrowth)] ?? growthEventCategory(latestGrowth)}
+                </span>
+                {growthEventLocation(latestGrowth) ? <span>{growthEventLocation(latestGrowth)}</span> : null}
+                <span>{formatGrowthFreshDays(latestGrowth.freshDays)}</span>
+              </div>
+              <p className="mt-1 text-sm leading-6 text-ink-600 [text-wrap:pretty]">{latestGrowth.summary}</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Link
+                  href={`/life-agents/${profile.id}/chat?prefill=${encodeURIComponent(buildGrowthQuestion(latestGrowth, profile.displayName))}`}
+                  className="inline-flex min-h-9 items-center rounded bg-ink px-3 text-xs font-semibold text-paper-50 transition hover:bg-signal-700"
+                >
+                  问问这件事
+                </Link>
+                <Link
+                  href={`/life-agents/${profile.id}/chat`}
+                  className="inline-flex min-h-9 items-center rounded border border-hairline px-3 text-xs font-semibold text-ink-500 transition hover:bg-paper-200 hover:text-ink"
+                >
+                  继续咨询
+                </Link>
+              </div>
+            </div>
+          ) : null}
         </div>
 
         {/* --- 创作者信息 --- */}
@@ -412,19 +538,27 @@ export default function LifeAgentDetailPage() {
           );
         })()}
 
-        {/* --- 最近动态 --- */}
-        {liveUpdates.length > 0 && (
+        {/* --- 更新时间线 --- */}
+        {growthEvents.length > 1 && (
           <div className="-mx-4 px-4 py-4 sm:-mx-6 sm:px-6">
-            <h2 className="text-sm font-semibold text-ink">最近动态</h2>
+            <h2 className="text-sm font-semibold text-ink">更新轨迹</h2>
             <div className="mt-3 divide-y divide-hairline/60">
-              {liveUpdates.slice(0, 5).map((u) => (
-                <div key={u.id} className="py-2.5 first:pt-0 last:pb-0">
-                  <div className="flex items-center gap-2 text-[11px] text-ink-400">
-                    <span className="font-medium text-oxblood-600/80">{{ general: "综合", market: "行情", job: "求职", study: "升学", housing: "房产", life: "生活", policy: "当地政策", cost: "物价", community: "社区", transport: "交通", weather: "气候", resource: "本地资源" }[u.category] ?? u.category}</span>
-                    {u.location && <span>{u.location}</span>}
-                    <span>{u.freshDays === 0 ? "今天" : `${u.freshDays}天前`}</span>
+              {growthEvents.slice(1, 5).map((event) => (
+                <div key={event.id} className="py-2.5 first:pt-0 last:pb-0">
+                  <div className="flex flex-wrap items-center gap-2 text-[11px] text-ink-400">
+                    <span className="font-medium text-signal-700">
+                      {LIFE_AGENT_GROWTH_CATEGORY_LABELS[growthEventCategory(event)] ?? growthEventCategory(event)}
+                    </span>
+                    {growthEventLocation(event) ? <span>{growthEventLocation(event)}</span> : null}
+                    <span>{formatGrowthFreshDays(event.freshDays)}</span>
                   </div>
-                  <p className="mt-1 text-sm leading-relaxed text-ink-500">{u.content}</p>
+                  <p className="mt-1 text-sm leading-relaxed text-ink-500">{event.summary}</p>
+                  <Link
+                    href={`/life-agents/${profile.id}/chat?prefill=${encodeURIComponent(buildGrowthQuestion(event, profile.displayName))}`}
+                    className="mt-1 inline-flex text-xs font-semibold text-signal-700 underline decoration-signal-300 underline-offset-4"
+                  >
+                    问问这条更新
+                  </Link>
                 </div>
               ))}
             </div>

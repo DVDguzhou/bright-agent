@@ -1,4 +1,5 @@
 import { centsToYuanInput, yuanInputToCents } from "@/lib/price";
+import type { LifeAgentGrowthLog } from "@/lib/life-agent-growth";
 
 export type MindScoreBreakdown = {
   total: number;
@@ -189,6 +190,7 @@ export type ManageData = {
     updatedAt: string;
     buyer: { email: string; name: string | null };
   }>;
+  growth?: LifeAgentGrowthLog;
 };
 
 export type FormState = {

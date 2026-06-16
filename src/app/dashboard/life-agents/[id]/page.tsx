@@ -45,6 +45,13 @@ import {
   SEVERITY_LINK,
   severityFromPriority,
 } from "@/lib/severity-style";
+import {
+  formatGrowthFreshDays,
+  growthEventCategory,
+  LIFE_AGENT_GROWTH_CATEGORY_LABELS,
+  LIFE_AGENT_GROWTH_TYPE_LABELS,
+  type LifeAgentGrowthEvent,
+} from "@/lib/life-agent-growth";
 
 type LoadState = {
   data: ManageData | null;
@@ -172,6 +179,7 @@ export default function LifeAgentManageHomePage() {
         setLiveContent("");
         setLiveLocation("");
         void loadLiveUpdates();
+        void load();
       }
     } finally {
       setLivePosting(false);
@@ -184,6 +192,7 @@ export default function LifeAgentManageHomePage() {
       credentials: "include",
     });
     setLiveUpdates((prev) => prev.filter((u) => u.id !== updateId));
+    void load();
   };
 
   const deleteAgent = async () => {
@@ -227,6 +236,8 @@ export default function LifeAgentManageHomePage() {
 
   const coverSrc = resolveLifeAgentCoverDisplayUrl(profile.coverUrl, profile.coverImageUrl, profile.coverPresetKey);
   const headline = cleanLifeAgentIntroText(profile.headline, profile.displayName);
+  const growthSummary = data.growth?.summary;
+  const growthEvents = data.growth?.events ?? [];
 
   return (
     <AdminPage>
@@ -281,6 +292,15 @@ export default function LifeAgentManageHomePage() {
               { label: "反馈记录", value: feedbackTotal, sub: "条" },
             ]}
           />
+          <StatStrip
+            columns={4}
+            items={[
+              { label: "本周更新", value: growthSummary?.weekCount ?? 0, sub: "条", tone: "signal" },
+              { label: "被追更", value: growthSummary?.followerCount ?? 0, sub: "人", tone: "olive" },
+              { label: "待回应反馈", value: (data.feedback?.alerts ?? []).length, sub: "项" },
+              { label: "公开近况", value: growthSummary?.publicTotal ?? liveUpdates.length, sub: "条" },
+            ]}
+          />
 
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             <QuickAction href={`/dashboard/life-agents/${id}/edit`} title="编辑资料" desc="封面、人设、示范回答、地区身份。" icon={<Pencil className="h-5 w-5" />} />
@@ -297,14 +317,31 @@ export default function LifeAgentManageHomePage() {
       <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
         <Panel>
           <PanelHeader
-            title="实时更新"
-            description="写下最近变化，Agent 回答时可以优先引用这些新信息。"
+            title="成长日志"
+            description="写下最近变化。公开近况会出现在展示页，也会进入 Agent 回答上下文。"
           />
           <div className="space-y-3 p-4 sm:p-5">
+            {(data.feedback?.alerts ?? []).length > 0 ? (
+              <div className="rounded-md border border-signal-200 bg-signal-50 px-3 py-3">
+                <p className="text-xs font-semibold text-signal-800">建议优先补充</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {(data.feedback?.alerts ?? []).slice(0, 3).map((alert) => (
+                    <button
+                      key={alert.id}
+                      type="button"
+                      onClick={() => setLiveContent((prev) => prev || `${alert.title}：${alert.detail}`)}
+                      className="rounded border border-signal-200 bg-paper-50 px-2.5 py-1.5 text-left text-xs leading-5 text-signal-800 transition hover:bg-signal-100"
+                    >
+                      {alert.title}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
             <textarea
               value={liveContent}
               onChange={(e) => setLiveContent(e.target.value)}
-              placeholder="比如：杭州余杭区最近落户政策放宽了；秋招里字节和阿里都在扩招..."
+              placeholder="比如：最近我在帮几位同学改秋招简历，发现大厂实习经历最好写清楚业务指标..."
               className="input-shell min-h-28 resize-y text-sm"
             />
             <div className="flex flex-wrap items-center gap-2">
@@ -320,9 +357,12 @@ export default function LifeAgentManageHomePage() {
                 className="input-shell !min-h-10 flex-1 text-sm"
               />
               <button type="button" onClick={postLiveUpdate} disabled={livePosting || !liveContent.trim()} className="btn-primary !min-h-10">
-                {livePosting ? "发布中" : "发布更新"}
+                {livePosting ? "发布中" : "发布公开近况"}
               </button>
             </div>
+            <p className="text-xs leading-5 text-ink-400">
+              发布后用户能在展示页看到，也可以点“问问这件事”直接进入聊天。
+            </p>
             {liveUpdates.length > 0 ? (
               <ul className="divide-y divide-hairline/60">
                 {liveUpdates.slice(0, 5).map((u) => (
@@ -343,6 +383,41 @@ export default function LifeAgentManageHomePage() {
                   </li>
                 ))}
               </ul>
+            ) : null}
+            {growthEvents.length > 0 ? (
+              <div className="rounded-md border border-hairline/70 bg-paper-50">
+                <div className="border-b border-hairline/60 px-3 py-2">
+                  <p className="text-xs font-semibold text-ink-500">维护轨迹</p>
+                </div>
+                <ul className="divide-y divide-hairline/60">
+                  {growthEvents.slice(0, 8).map((event: LifeAgentGrowthEvent) => (
+                    <li key={event.id} className="px-3 py-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-2 text-[11px] text-ink-400">
+                            <span className="font-medium text-ink-600">
+                              {LIFE_AGENT_GROWTH_TYPE_LABELS[event.type] ?? event.type}
+                            </span>
+                            {event.type === "live_update" ? (
+                              <span className="text-signal-700">
+                                {LIFE_AGENT_GROWTH_CATEGORY_LABELS[growthEventCategory(event)] ?? growthEventCategory(event)}
+                              </span>
+                            ) : null}
+                            <span>{formatGrowthFreshDays(event.freshDays)}</span>
+                          </div>
+                          <p className="mt-1 text-sm font-medium text-ink">{event.title}</p>
+                          <p className="mt-1 text-sm leading-6 text-ink-500">{event.summary}</p>
+                        </div>
+                        <span className={`shrink-0 rounded px-2 py-0.5 text-[11px] font-medium ${
+                          event.visibility === "public" ? "bg-signal-100 text-signal-800" : "bg-paper-200 text-ink-500"
+                        }`}>
+                          {event.visibility === "public" ? "主页可见" : "后台记录"}
+                        </span>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             ) : null}
           </div>
         </Panel>
@@ -380,8 +455,16 @@ export default function LifeAgentManageHomePage() {
           ) : null}
 
           <Panel>
-            <PanelHeader title="最近动态" description="互动、聊天和反馈的最新记录。" />
+            <PanelHeader title="最近成长" description="公开近况、互动、聊天和反馈的最新记录。" />
             <div className="divide-y divide-hairline/60">
+              {growthEvents[0] ? (
+                <RowLink
+                  href={`/life-agents/${id}`}
+                  title={growthEvents[0].title}
+                  description={growthEvents[0].summary}
+                  meta={formatGrowthFreshDays(growthEvents[0].freshDays)}
+                />
+              ) : null}
               {data.questionPacks[0] ? (
                 <RowLink
                   href={`/dashboard/life-agents/${id}/sales`}

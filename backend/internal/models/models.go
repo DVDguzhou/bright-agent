@@ -195,13 +195,28 @@ type LifeAgentProfile struct {
 func (LifeAgentProfile) TableName() string { return "life_agent_profiles" }
 
 type LifeAgentFavorite struct {
-	ID        string    `gorm:"primaryKey;size:36"`
-	UserID    string    `gorm:"column:user_id;size:36;not null;index;uniqueIndex:idx_life_agent_favorite_user_profile"`
-	ProfileID string    `gorm:"column:profile_id;size:36;not null;index;uniqueIndex:idx_life_agent_favorite_user_profile"`
-	CreatedAt time.Time `gorm:"column:created_at"`
+	ID               string     `gorm:"primaryKey;size:36"`
+	UserID           string     `gorm:"column:user_id;size:36;not null;index;uniqueIndex:idx_life_agent_favorite_user_profile"`
+	ProfileID        string     `gorm:"column:profile_id;size:36;not null;index;uniqueIndex:idx_life_agent_favorite_user_profile"`
+	LastSeenGrowthAt *time.Time `gorm:"column:last_seen_growth_at;index"`
+	CreatedAt        time.Time  `gorm:"column:created_at"`
 }
 
 func (LifeAgentFavorite) TableName() string { return "life_agent_favorites" }
+
+type LifeAgentGrowthEvent struct {
+	ID         string    `gorm:"primaryKey;size:36" json:"id"`
+	ProfileID  string    `gorm:"column:profile_id;size:36;not null;index" json:"profileId"`
+	Type       string    `gorm:"column:type;size:64;not null;index" json:"type"`
+	Visibility string    `gorm:"column:visibility;size:16;not null;default:owner;index" json:"visibility"`
+	Title      string    `gorm:"column:title;size:255;not null" json:"title"`
+	Summary    string    `gorm:"column:summary;type:text;not null" json:"summary"`
+	Payload    JSONMap   `gorm:"column:payload;type:json" json:"payload"`
+	SourceID   *string   `gorm:"column:source_id;size:36;index" json:"sourceId"`
+	CreatedAt  time.Time `gorm:"column:created_at;index" json:"createdAt"`
+}
+
+func (LifeAgentGrowthEvent) TableName() string { return "life_agent_growth_events" }
 
 type LifeAgentInvokeKey struct {
 	ID        string    `gorm:"primaryKey;size:36"`
