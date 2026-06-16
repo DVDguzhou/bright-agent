@@ -73,6 +73,7 @@ func Setup(cfg *config.Config) *gin.Engine {
 			lifeAgents.GET("/:id/topics", middleware.RequireAuth(cfg), handler.LifeAgentsTopicsList(cfg))
 			lifeAgents.PATCH("/:id/topics/:topicId", middleware.RequireAuth(cfg), handler.LifeAgentsTopicUpdate(cfg))
 			lifeAgents.POST("/:id/topics/merge", middleware.RequireAuth(cfg), handler.LifeAgentsTopicsMerge(cfg))
+			lifeAgents.PATCH("/:id/timeline-events/:eventId", middleware.RequireAuth(cfg), handler.LifeAgentsTimelineEventUpdate(cfg))
 			lifeAgents.GET("/:id/invoke-keys", middleware.RequireAuth(cfg), handler.LifeAgentsInvokeKeysList(cfg))
 			lifeAgents.POST("/:id/invoke-keys", middleware.RequireAuth(cfg), handler.LifeAgentsInvokeKeysCreate(cfg))
 			lifeAgents.DELETE("/:id/invoke-keys/:keyId", middleware.RequireAuth(cfg), handler.LifeAgentsInvokeKeysDelete(cfg))

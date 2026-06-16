@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"regexp"
 	"sort"
 	"strings"
 
@@ -21,6 +22,8 @@ type topicFeedbackCounts struct {
 	Contradiction int `json:"contradiction"`
 	TooConfident  int `json:"tooConfident"`
 }
+
+var timelineManageYearRe = regexp.MustCompile(`(19|20)\d{2}`)
 
 func LifeAgentsTopicsList(cfg *config.Config) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -181,6 +184,119 @@ func LifeAgentsTopicsMerge(cfg *config.Config) gin.HandlerFunc {
 	}
 }
 
+func LifeAgentsTimelineEventUpdate(cfg *config.Config) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		user := middleware.MustGetUser(c)
+		if user == nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "UNAUTHORIZED"})
+			return
+		}
+		id := c.Param("id")
+		eventID := c.Param("eventId")
+		var profile models.LifeAgentProfile
+		if err := db.DB.Where("id = ? AND user_id = ?", id, user.ID).First(&profile).Error; err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "PROFILE_NOT_FOUND"})
+			return
+		}
+		var event models.LifeAgentTimelineEvent
+		if err := db.DB.Where("id = ? AND profile_id = ?", eventID, id).First(&event).Error; err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "TIMELINE_EVENT_NOT_FOUND"})
+			return
+		}
+		var body struct {
+			PeriodLabel       *string  `json:"periodLabel"`
+			PeriodGranularity *string  `json:"periodGranularity"`
+			Title             *string  `json:"title"`
+			Summary           *string  `json:"summary"`
+			Causes            []string `json:"causes"`
+			Outcomes          []string `json:"outcomes"`
+			Tradeoffs         []string `json:"tradeoffs"`
+			Confidence        *string  `json:"confidence"`
+			Status            *string  `json:"status"`
+		}
+		if err := c.ShouldBindJSON(&body); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "VALIDATION_ERROR"})
+			return
+		}
+		if body.PeriodLabel != nil {
+			period := strings.TrimSpace(*body.PeriodLabel)
+			if period == "" {
+				period = "时间未确认"
+			}
+			event.PeriodLabel = period
+			event.PeriodGranularity = inferManagedTimelineGranularity(period)
+			event.SequenceOrder = managedTimelineSequenceOrder(period, event.SequenceOrder)
+			if period != "" && period != "时间未确认" && event.Status == "needs_clarification" {
+				event.Status = "confirmed"
+				event.Confidence = higherTopicConfidence(event.Confidence, "medium")
+				event.MissingFields = models.JSONArray{}
+				event.ClarificationQuestion = nil
+			}
+		}
+		if body.PeriodGranularity != nil {
+			granularity := strings.TrimSpace(*body.PeriodGranularity)
+			if !validTimelineGranularity(granularity) {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "VALIDATION_ERROR", "detail": "invalid periodGranularity"})
+				return
+			}
+			event.PeriodGranularity = granularity
+		}
+		if body.Title != nil {
+			event.Title = strings.TrimSpace(*body.Title)
+		}
+		if body.Summary != nil {
+			event.Summary = strings.TrimSpace(*body.Summary)
+		}
+		if body.Causes != nil {
+			event.Causes = models.JSONArray(cleanStringList(body.Causes, 8))
+		}
+		if body.Outcomes != nil {
+			event.Outcomes = models.JSONArray(cleanStringList(body.Outcomes, 8))
+		}
+		if body.Tradeoffs != nil {
+			event.Tradeoffs = models.JSONArray(cleanStringList(body.Tradeoffs, 8))
+		}
+		if body.Confidence != nil {
+			confidence := strings.TrimSpace(*body.Confidence)
+			if confidence != "low" && confidence != "medium" && confidence != "high" {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "VALIDATION_ERROR", "detail": "invalid confidence"})
+				return
+			}
+			event.Confidence = confidence
+		}
+		if body.Status != nil {
+			status := strings.TrimSpace(*body.Status)
+			if status != "confirmed" && status != "needs_clarification" {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "VALIDATION_ERROR", "detail": "invalid status"})
+				return
+			}
+			event.Status = status
+			if status == "confirmed" {
+				event.MissingFields = models.JSONArray{}
+				event.ClarificationQuestion = nil
+			}
+		}
+		if event.Title == "" || event.Summary == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "VALIDATION_ERROR", "detail": "title and summary are required"})
+			return
+		}
+		if err := db.DB.Save(&event).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "INTERNAL_ERROR"})
+			return
+		}
+		if len(event.SourceEntryIDs) > 0 && event.Status == "confirmed" {
+			db.DB.Model(&models.LifeAgentKnowledgeEntry{}).
+				Where("profile_id = ? AND id IN ?", id, []string(event.SourceEntryIDs)).
+				Update("timeline_status", "confirmed")
+		}
+		var events []models.LifeAgentTimelineEvent
+		db.DB.Where("profile_id = ? AND status IN ?", id, []string{"confirmed", "needs_clarification"}).
+			Order("sequence_order ASC, created_at ASC").
+			Find(&events)
+		c.JSON(http.StatusOK, gin.H{"event": event, "timelineEvents": events})
+	}
+}
+
 func buildTopicManagementResponses(profileID string, topics []models.LifeAgentTopicSummary) []gin.H {
 	feedbackStats := buildTopicFeedbackStats(profileID, topics)
 	topicByID := make(map[string]models.LifeAgentTopicSummary, len(topics))
@@ -291,6 +407,65 @@ func resolveMergedTopicID(topicID string, topics map[string]models.LifeAgentTopi
 		current = strings.TrimSpace(*topic.MergedIntoTopicID)
 	}
 	return current
+}
+
+func inferManagedTimelineGranularity(period string) string {
+	p := strings.TrimSpace(period)
+	switch {
+	case p == "" || p == "时间未确认":
+		return "unknown"
+	case timelineManageYearRe.MatchString(p):
+		return "year"
+	case containsAnyText(p, "大一", "大二", "大三", "大四", "研一", "研二", "研三", "秋招", "春招", "毕业后"):
+		return "stage"
+	case containsAnyText(p, "后来", "之后", "以前", "前后", "刚开始", "当时"):
+		return "relative"
+	case containsAnyText(p, "大学期间", "读书期间", "工作早期", "毕业前后"):
+		return "broad"
+	default:
+		return "explicit"
+	}
+}
+
+func managedTimelineSequenceOrder(period string, fallback int) int {
+	p := strings.TrimSpace(period)
+	if match := timelineManageYearRe.FindString(p); match != "" {
+		year := 0
+		for _, ch := range match {
+			year = year*10 + int(ch-'0')
+		}
+		if year > 0 {
+			return year * 10000
+		}
+	}
+	stageOrder := []string{"大一", "大二", "大三", "大四", "研一", "研二", "研三", "秋招", "春招", "毕业前", "毕业后", "工作早期"}
+	for idx, stage := range stageOrder {
+		if strings.Contains(p, stage) {
+			return 90000000 + idx*100
+		}
+	}
+	if fallback != 0 {
+		return fallback
+	}
+	return 99999999
+}
+
+func validTimelineGranularity(value string) bool {
+	switch value {
+	case "unknown", "year", "stage", "relative", "broad", "explicit":
+		return true
+	default:
+		return false
+	}
+}
+
+func containsAnyText(text string, needles ...string) bool {
+	for _, needle := range needles {
+		if strings.Contains(text, needle) {
+			return true
+		}
+	}
+	return false
 }
 
 func cleanStringList(items []string, max int) []string {

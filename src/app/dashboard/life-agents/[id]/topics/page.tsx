@@ -66,6 +66,19 @@ type LoadState = {
 };
 type FilterKey = "all" | "active" | "candidate" | "archived";
 type WorkspaceView = "timeline" | "tags" | "topics";
+type TimelineEditState = Record<
+  string,
+  {
+    periodLabel: string;
+    title: string;
+    summary: string;
+    causes: string;
+    outcomes: string;
+    tradeoffs: string;
+    confidence: string;
+    status: string;
+  }
+>;
 type EditState = Record<
   string,
   {
@@ -120,6 +133,14 @@ const TIMELINE_LABELS: Record<string, string> = {
   needs_clarification: "待补时间",
   inferred: "推断",
 };
+
+const topicFieldClass =
+  "mt-2 w-full rounded-md border border-hairline/80 bg-paper-50 px-3 py-2.5 text-[15px] text-ink shadow-[0_1px_0_rgba(255,255,255,0.72)] outline-none transition duration-150 placeholder:text-ink-300 focus:border-signal-600 focus:bg-white focus:ring-2 focus:ring-signal-200/70 motion-reduce:transition-none";
+const topicTextareaClass = `${topicFieldClass} resize-none leading-7`;
+const topicSelectClass = `${topicFieldClass} appearance-none pr-8`;
+const timelineFieldClass =
+  "mt-2 w-full rounded-md border border-hairline/70 bg-white/88 px-3 py-2.5 text-[15px] text-ink shadow-[0_1px_0_rgba(255,255,255,0.82)] outline-none transition duration-150 placeholder:text-ink-300 focus:border-signal-600 focus:bg-white focus:ring-2 focus:ring-signal-200/80 motion-reduce:transition-none";
+const timelineTextareaClass = `${timelineFieldClass} resize-none leading-7`;
 
 function statusTone(status?: string): "neutral" | "signal" | "olive" {
   if (status === "active") return "olive";
@@ -280,54 +301,163 @@ function TimelineRail({
   );
 }
 
-function TimelineDetail({ event }: { event: TimelineEvent | null }) {
+function TimelineDetail({
+  event,
+  edit,
+  saving,
+  onChange,
+  onSave,
+}: {
+  event: TimelineEvent | null;
+  edit: TimelineEditState[string] | undefined;
+  saving: boolean;
+  onChange: (patch: Partial<TimelineEditState[string]>) => void;
+  onSave: () => void;
+}) {
   if (!event) {
     return (
       <div className="rounded-lg border border-dashed border-hairline/80 bg-paper-50 p-5 text-sm leading-6 text-ink-400">
-        选择左侧时间线节点，查看它对应的经历、因果和待补充信息。
+        选择左侧时间线节点，把它补成一张完整的经历档案。
       </div>
     );
   }
+  if (!edit) return null;
+  const missingFields = new Set(event.missingFields ?? []);
   return (
-    <div className="rounded-lg border border-hairline/70 bg-paper-50 p-4 shadow-glow-sm transition duration-200 motion-safe:animate-fade-in">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <p className="text-sm font-semibold text-ink">{event.title}</p>
-          <p className="mt-1 text-xs text-ink-400">
-            {event.periodLabel} · {event.eventType || "experience"} · 来源 {event.sourceEntryIds?.length ?? 0}
-          </p>
+    <div className="overflow-visible rounded-xl border border-hairline/70 bg-paper-50 shadow-glow-sm transition duration-200 motion-safe:animate-fade-in">
+      <div className="relative overflow-hidden rounded-t-xl bg-gradient-to-br from-paper-50 via-paper-50 to-signal-50/80 p-4 sm:p-5">
+        <div className="absolute -right-10 -top-16 h-36 w-36 rounded-full bg-signal-200/35 blur-3xl" aria-hidden />
+        <div className="relative flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <StatusBadge tone={timelineTone(edit.status)}>{formatTimelineStatus(edit.status)}</StatusBadge>
+              <StatusBadge tone={confidenceTone(edit.confidence)}>{edit.confidence || "medium"}</StatusBadge>
+              <span className="rounded bg-paper-50/80 px-2 py-0.5 text-[11px] text-ink-400">来源 {event.sourceEntryIds?.length ?? 0}</span>
+            </div>
+            <h2 className="mt-3 text-lg font-semibold leading-snug text-ink">补齐这段经历</h2>
+            <p className="mt-1 max-w-xl text-sm leading-6 text-ink-500">
+              时间、原因、结果和取舍会进入 Agent 的主线记忆。越像你自己讲述，回答越不容易乱编。
+            </p>
+          </div>
+          <button type="button" onClick={onSave} disabled={saving} className="btn-primary min-h-10 px-4 py-2 text-sm">
+            {saving ? "保存中" : "保存时间线"}
+          </button>
         </div>
-        <StatusBadge tone={confidenceTone(event.confidence)}>{event.confidence ?? "medium"}</StatusBadge>
       </div>
-      <p className="mt-3 text-sm leading-6 text-ink-600">{event.summary}</p>
-      {event.clarificationQuestion ? (
-        <div className="mt-4 rounded-md bg-signal-50 px-3 py-2 text-sm leading-6 text-signal-700">
-          {event.clarificationQuestion}
+
+      <div className="space-y-4 p-4 sm:p-5">
+        {event.clarificationQuestion || missingFields.size > 0 ? (
+          <div className="rounded-lg border border-signal-200 bg-signal-50 px-3 py-3 text-sm leading-6 text-signal-700">
+            {event.clarificationQuestion || "这段经历还有信息待补充，建议先确认发生时间。"}
+          </div>
+        ) : null}
+
+        <div className="grid gap-3 lg:grid-cols-[180px_minmax(0,1fr)]">
+          <label className="block rounded-lg bg-paper-100/80 p-3">
+            <span className="flex items-center justify-between gap-2 text-xs font-semibold text-ink-500">
+              发生时间
+              {missingFields.has("contentTime") || edit.status === "needs_clarification" ? <span className="text-signal-700">建议补充</span> : null}
+            </span>
+            <input
+              value={edit.periodLabel}
+              onChange={(e) => onChange({ periodLabel: e.target.value })}
+              placeholder="例如：大四、2024 年、毕业前后"
+              className={timelineFieldClass}
+            />
+          </label>
+          <label className="block rounded-lg bg-paper-100/80 p-3">
+            <span className="text-xs font-semibold text-ink-500">这段经历叫什么</span>
+            <input
+              value={edit.title}
+              onChange={(e) => onChange({ title: e.target.value })}
+              placeholder="例如：放弃保研后开始做副业"
+              className={timelineFieldClass}
+            />
+          </label>
         </div>
-      ) : null}
-      <div className="mt-4 grid gap-3 sm:grid-cols-3">
-        <MiniList title="原因" items={event.causes ?? []} />
-        <MiniList title="结果" items={event.outcomes ?? []} />
-        <MiniList title="取舍" items={event.tradeoffs ?? []} />
+
+        <label className="block rounded-lg bg-paper-100/80 p-3 sm:p-4">
+          <span className="text-xs font-semibold text-ink-500">用自己的话概括</span>
+          <textarea
+            value={edit.summary}
+            onChange={(e) => onChange({ summary: e.target.value })}
+            rows={5}
+            placeholder="说清楚当时的处境、你做了什么、后来发生了什么。"
+            className={`${timelineTextareaClass} min-h-32`}
+          />
+        </label>
+
+        <div className="grid gap-3 lg:grid-cols-3">
+          <TimelineNoteField
+            title="为什么会这样"
+            hint="原因、动机、外部条件"
+            value={edit.causes}
+            onChange={(value) => onChange({ causes: value })}
+            placeholder="一行写一个原因"
+          />
+          <TimelineNoteField
+            title="后来怎样了"
+            hint="结果、收获、代价"
+            value={edit.outcomes}
+            onChange={(value) => onChange({ outcomes: value })}
+            placeholder="一行写一个结果"
+          />
+          <TimelineNoteField
+            title="当时的取舍"
+            hint="放弃了什么，换来了什么"
+            value={edit.tradeoffs}
+            onChange={(value) => onChange({ tradeoffs: value })}
+            placeholder="一行写一个取舍"
+          />
+        </div>
+
+        <div className="grid gap-3 rounded-lg bg-paper-100/80 p-3 sm:grid-cols-2">
+          <label className="block">
+            <span className="text-xs font-semibold text-ink-500">状态</span>
+            <select value={edit.status} onChange={(e) => onChange({ status: e.target.value })} className={`${timelineFieldClass} appearance-none`}>
+              <option value="confirmed">已确认</option>
+              <option value="needs_clarification">还需要补充</option>
+            </select>
+          </label>
+          <label className="block">
+            <span className="text-xs font-semibold text-ink-500">把握程度</span>
+            <select value={edit.confidence} onChange={(e) => onChange({ confidence: e.target.value })} className={`${timelineFieldClass} appearance-none`}>
+              <option value="low">low</option>
+              <option value="medium">medium</option>
+              <option value="high">high</option>
+            </select>
+          </label>
+        </div>
       </div>
     </div>
   );
 }
 
-function MiniList({ title, items }: { title: string; items: string[] }) {
+function TimelineNoteField({
+  title,
+  hint,
+  value,
+  onChange,
+  placeholder,
+}: {
+  title: string;
+  hint: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+}) {
   return (
-    <div className="rounded-md bg-paper-100 px-3 py-2">
-      <p className="text-xs font-medium text-ink-500">{title}</p>
-      {items.length > 0 ? (
-        <ul className="mt-1 space-y-1 text-xs leading-5 text-ink-400">
-          {items.slice(0, 3).map((item) => (
-            <li key={item}>{item}</li>
-          ))}
-        </ul>
-      ) : (
-        <p className="mt-1 text-xs text-ink-300">暂无</p>
-      )}
-    </div>
+    <label className="block rounded-lg bg-paper-100/80 p-3 transition duration-150 hover:bg-paper-100 motion-reduce:transition-none">
+      <span className="text-xs font-semibold text-ink-500">{title}</span>
+      <span className="mt-0.5 block text-[11px] text-ink-300">{hint}</span>
+      <textarea
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        rows={5}
+        placeholder={placeholder}
+        className={`${timelineTextareaClass} min-h-32 text-sm`}
+      />
+    </label>
   );
 }
 
@@ -404,7 +534,9 @@ export default function LifeAgentTopicsPage() {
   const query = searchParams.get("q") ?? "";
   const [state, setState] = useState<LoadState>({ topics: [], manage: null, loading: true, error: null });
   const [edits, setEdits] = useState<EditState>({});
+  const [timelineEdits, setTimelineEdits] = useState<TimelineEditState>({});
   const [savingId, setSavingId] = useState<string | null>(null);
+  const [savingTimelineId, setSavingTimelineId] = useState<string | null>(null);
   const [mergingId, setMergingId] = useState<string | null>(null);
   const [filter, setFilter] = useState<FilterKey>("all");
   const [view, setView] = useState<WorkspaceView>("timeline");
@@ -440,6 +572,23 @@ export default function LifeAgentTopicsPage() {
       setState({ topics, manage: manageRes.data, loading: false, error: null });
       setActiveTimelineId((prev) => prev ?? timelineEvents[0]?.id ?? null);
       setExpandedTopicId((prev) => prev ?? topics[0]?.id ?? null);
+      setTimelineEdits(
+        Object.fromEntries(
+          timelineEvents.map((event) => [
+            event.id,
+            {
+              periodLabel: event.periodLabel ?? "",
+              title: event.title ?? "",
+              summary: event.summary ?? "",
+              causes: (event.causes ?? []).join("\n"),
+              outcomes: (event.outcomes ?? []).join("\n"),
+              tradeoffs: (event.tradeoffs ?? []).join("\n"),
+              confidence: event.confidence ?? "medium",
+              status: event.status ?? "confirmed",
+            },
+          ]),
+        ),
+      );
       setEdits(
         Object.fromEntries(
           topics.map((topic) => [
@@ -518,6 +667,88 @@ export default function LifeAgentTopicsPage() {
         ...patch,
       },
     }));
+  };
+
+  const updateTimelineEdit = (eventId: string, patch: Partial<TimelineEditState[string]>) => {
+    setTimelineEdits((prev) => ({
+      ...prev,
+      [eventId]: {
+        ...(prev[eventId] ?? {
+          periodLabel: "",
+          title: "",
+          summary: "",
+          causes: "",
+          outcomes: "",
+          tradeoffs: "",
+          confidence: "medium",
+          status: "confirmed",
+        }),
+        ...patch,
+      },
+    }));
+  };
+
+  const saveTimelineEvent = async (eventId: string) => {
+    const edit = timelineEdits[eventId];
+    if (!edit) return;
+    setSavingTimelineId(eventId);
+    try {
+      const res = await fetch(`/api/life-agents/${id}/timeline-events/${eventId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          periodLabel: edit.periodLabel.trim(),
+          title: edit.title.trim(),
+          summary: edit.summary.trim(),
+          causes: edit.causes.split("\n").map((item) => item.trim()).filter(Boolean),
+          outcomes: edit.outcomes.split("\n").map((item) => item.trim()).filter(Boolean),
+          tradeoffs: edit.tradeoffs.split("\n").map((item) => item.trim()).filter(Boolean),
+          confidence: edit.confidence,
+          status: edit.status,
+        }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        alert(data?.detail || "保存时间线失败");
+        return;
+      }
+      const timelineEvents = Array.isArray(data?.timelineEvents) ? (data.timelineEvents as TimelineEvent[]) : [];
+      setState((prev) =>
+        prev.manage
+          ? {
+              ...prev,
+              manage: {
+                ...prev.manage,
+                profile: {
+                  ...prev.manage.profile,
+                  timelineEvents,
+                },
+              },
+            }
+          : prev,
+      );
+      setTimelineEdits(
+        Object.fromEntries(
+          timelineEvents.map((event) => [
+            event.id,
+            {
+              periodLabel: event.periodLabel ?? "",
+              title: event.title ?? "",
+              summary: event.summary ?? "",
+              causes: (event.causes ?? []).join("\n"),
+              outcomes: (event.outcomes ?? []).join("\n"),
+              tradeoffs: (event.tradeoffs ?? []).join("\n"),
+              confidence: event.confidence ?? "medium",
+              status: event.status ?? "confirmed",
+            },
+          ]),
+        ),
+      );
+      setActiveTimelineId(eventId);
+    } finally {
+      setSavingTimelineId(null);
+    }
   };
 
   const saveTopic = async (topicId: string) => {
@@ -683,7 +914,17 @@ export default function LifeAgentTopicsPage() {
           <Panel className="p-3">
             <TimelineRail events={timelineEvents} activeId={activeTimeline?.id ?? null} onSelect={setActiveTimelineId} />
           </Panel>
-          <TimelineDetail event={activeTimeline} />
+          <TimelineDetail
+            event={activeTimeline}
+            edit={activeTimeline ? timelineEdits[activeTimeline.id] : undefined}
+            saving={activeTimeline ? savingTimelineId === activeTimeline.id : false}
+            onChange={(patch) => {
+              if (activeTimeline) updateTimelineEdit(activeTimeline.id, patch);
+            }}
+            onSave={() => {
+              if (activeTimeline) void saveTimelineEvent(activeTimeline.id);
+            }}
+          />
         </div>
       ) : null}
 
@@ -734,7 +975,7 @@ export default function LifeAgentTopicsPage() {
               const linkedEntries = findKnowledgeByTopic(topic, entries);
               const riskyFeedback = (topic.feedback?.factualError ?? 0) + (topic.feedback?.contradiction ?? 0) + (topic.feedback?.tooConfident ?? 0);
               return (
-                <Panel key={topic.id} className="overflow-hidden transition duration-200 hover:border-signal-300 hover:shadow-glow motion-reduce:transition-none">
+                <Panel key={topic.id} className="overflow-visible transition duration-200 hover:border-signal-300 hover:shadow-glow motion-reduce:transition-none">
                   <button
                     type="button"
                     onClick={() => setExpandedTopicId(expanded ? null : topic.id)}
@@ -762,61 +1003,78 @@ export default function LifeAgentTopicsPage() {
                   </button>
 
                   {expanded ? (
-                    <div className="grid gap-5 p-4 sm:p-5 lg:grid-cols-[minmax(0,1fr)_320px] motion-safe:animate-slide-up">
+                    <div className="grid gap-5 p-3 sm:p-5 lg:grid-cols-[minmax(0,1fr)_320px] motion-safe:animate-slide-up">
                       <div className="space-y-4">
-                        <div className="grid gap-3 lg:grid-cols-2">
-                          <label className="block">
-                            <span className="text-xs font-medium text-ink-500">Topic 名称</span>
-                            <input value={edit.topicLabel} onChange={(e) => updateEdit(topic.id, { topicLabel: e.target.value })} className="input-shell mt-1" />
-                          </label>
-                          <div className="grid grid-cols-2 gap-3">
+                        <div className="rounded-lg bg-paper-100/80 p-3 sm:p-4">
+                          <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_260px]">
                             <label className="block">
-                              <span className="inline-flex items-center gap-1 text-xs font-medium text-ink-500">
-                                状态
-                                <FieldInfoButton title={TOPIC_STATUS_INFO.title} body={TOPIC_STATUS_INFO.body} ariaLabel={TOPIC_STATUS_INFO.ariaLabel} />
-                              </span>
-                              <select value={edit.status} onChange={(e) => updateEdit(topic.id, { status: e.target.value })} className="input-shell mt-1">
-                                <option value="candidate">candidate</option>
-                                <option value="active">active</option>
-                                <option value="archived">archived</option>
-                              </select>
+                              <span className="text-xs font-semibold text-ink-500">Topic 名称</span>
+                              <input value={edit.topicLabel} onChange={(e) => updateEdit(topic.id, { topicLabel: e.target.value })} className={topicFieldClass} />
                             </label>
-                            <label className="block">
-                              <span className="inline-flex items-center gap-1 text-xs font-medium text-ink-500">
-                                置信度
-                                <FieldInfoButton title={TOPIC_CONFIDENCE_INFO.title} body={TOPIC_CONFIDENCE_INFO.body} ariaLabel={TOPIC_CONFIDENCE_INFO.ariaLabel} />
-                              </span>
-                              <select value={edit.confidence} onChange={(e) => updateEdit(topic.id, { confidence: e.target.value })} className="input-shell mt-1">
-                                <option value="low">low</option>
-                                <option value="medium">medium</option>
-                                <option value="high">high</option>
-                              </select>
-                            </label>
+                            <div className="grid grid-cols-2 gap-3">
+                              <label className="block">
+                                <span className="inline-flex items-center gap-1 text-xs font-semibold text-ink-500">
+                                  状态
+                                  <FieldInfoButton title={TOPIC_STATUS_INFO.title} body={TOPIC_STATUS_INFO.body} ariaLabel={TOPIC_STATUS_INFO.ariaLabel} />
+                                </span>
+                                <select value={edit.status} onChange={(e) => updateEdit(topic.id, { status: e.target.value })} className={topicSelectClass}>
+                                  <option value="candidate">candidate</option>
+                                  <option value="active">active</option>
+                                  <option value="archived">archived</option>
+                                </select>
+                              </label>
+                              <label className="block">
+                                <span className="inline-flex items-center gap-1 text-xs font-semibold text-ink-500">
+                                  置信度
+                                  <FieldInfoButton title={TOPIC_CONFIDENCE_INFO.title} body={TOPIC_CONFIDENCE_INFO.body} ariaLabel={TOPIC_CONFIDENCE_INFO.ariaLabel} />
+                                </span>
+                                <select value={edit.confidence} onChange={(e) => updateEdit(topic.id, { confidence: e.target.value })} className={topicSelectClass}>
+                                  <option value="low">low</option>
+                                  <option value="medium">medium</option>
+                                  <option value="high">high</option>
+                                </select>
+                              </label>
+                            </div>
                           </div>
                         </div>
 
-                        <label className="block">
-                          <span className="text-xs font-medium text-ink-500">Topic 摘要</span>
-                          <textarea value={edit.summary} onChange={(e) => updateEdit(topic.id, { summary: e.target.value })} rows={5} className="input-shell mt-1 min-h-28" />
+                        <label className="block rounded-lg bg-paper-100/80 p-3 sm:p-4">
+                          <span className="text-xs font-semibold text-ink-500">Topic 摘要</span>
+                          <textarea
+                            value={edit.summary}
+                            onChange={(e) => updateEdit(topic.id, { summary: e.target.value })}
+                            rows={5}
+                            className={`${topicTextareaClass} min-h-32`}
+                          />
                         </label>
 
                         <div className="grid gap-3 lg:grid-cols-2">
-                          <label className="block">
-                            <span className="text-xs font-medium text-ink-500">别名</span>
-                            <textarea value={edit.aliases} onChange={(e) => updateEdit(topic.id, { aliases: e.target.value })} rows={4} className="input-shell mt-1 min-h-24" />
+                          <label className="block rounded-lg bg-paper-100/80 p-3 sm:p-4">
+                            <span className="text-xs font-semibold text-ink-500">别名</span>
+                            <textarea
+                              value={edit.aliases}
+                              onChange={(e) => updateEdit(topic.id, { aliases: e.target.value })}
+                              rows={4}
+                              className={`${topicTextareaClass} min-h-28`}
+                            />
                           </label>
-                          <label className="block">
-                            <span className="text-xs font-medium text-ink-500">问题模板</span>
-                            <textarea value={edit.questionPatterns} onChange={(e) => updateEdit(topic.id, { questionPatterns: e.target.value })} rows={4} className="input-shell mt-1 min-h-24" />
+                          <label className="block rounded-lg bg-paper-100/80 p-3 sm:p-4">
+                            <span className="text-xs font-semibold text-ink-500">问题模板</span>
+                            <textarea
+                              value={edit.questionPatterns}
+                              onChange={(e) => updateEdit(topic.id, { questionPatterns: e.target.value })}
+                              rows={4}
+                              className={`${topicTextareaClass} min-h-28`}
+                            />
                           </label>
                         </div>
 
-                        <div className="flex flex-wrap items-center gap-3 border-t border-hairline/60 pt-4">
-                          <button type="button" onClick={() => void saveTopic(topic.id)} disabled={savingId === topic.id} className="btn-primary inline-flex items-center gap-2">
+                        <div className="sticky bottom-[calc(env(safe-area-inset-bottom)+5rem)] z-10 -mx-3 flex flex-col gap-2 border-t border-hairline/60 bg-paper-50/95 px-3 py-3 shadow-[0_-18px_40px_-32px_rgba(28,26,22,0.45)] backdrop-blur sm:static sm:mx-0 sm:flex-row sm:flex-wrap sm:items-center sm:bg-transparent sm:px-0 sm:pb-0 sm:shadow-none sm:backdrop-blur-0">
+                          <button type="button" onClick={() => void saveTopic(topic.id)} disabled={savingId === topic.id} className="btn-primary inline-flex w-full items-center gap-2 sm:w-auto">
                             {savingId === topic.id ? <Sparkles className="h-4 w-4 animate-pulse" aria-hidden /> : <Check className="h-4 w-4" aria-hidden />}
                             {savingId === topic.id ? "保存中" : "保存修改"}
                           </button>
-                          <select value={edit.mergeTargetId} onChange={(e) => updateEdit(topic.id, { mergeTargetId: e.target.value })} className="input-shell !min-h-10 !w-auto min-w-[220px] text-sm">
+                          <select value={edit.mergeTargetId} onChange={(e) => updateEdit(topic.id, { mergeTargetId: e.target.value })} className={`${topicSelectClass} min-h-10 text-sm sm:mt-0 sm:w-auto sm:min-w-[220px]`}>
                             <option value="">选择合并目标</option>
                             {mergeTargets
                               .filter((item) => item.id !== topic.id)
@@ -826,7 +1084,7 @@ export default function LifeAgentTopicsPage() {
                                 </option>
                               ))}
                           </select>
-                          <button type="button" onClick={() => void mergeTopic(topic.id)} disabled={mergingId === topic.id} className="btn-secondary inline-flex items-center gap-2">
+                          <button type="button" onClick={() => void mergeTopic(topic.id)} disabled={mergingId === topic.id} className="btn-secondary inline-flex w-full items-center gap-2 sm:w-auto">
                             <GitMerge className="h-4 w-4" aria-hidden />
                             {mergingId === topic.id ? "归并中" : "归并到目标"}
                           </button>
