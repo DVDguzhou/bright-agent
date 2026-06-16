@@ -61,7 +61,7 @@ function SubscriptionStrip({ items }: { items: LifeAgentSubscription[] }) {
   if (items.length === 0) return null;
 
   return (
-    <Panel className="mb-5 overflow-hidden">
+    <Panel className="mb-5">
       <div className="flex items-center justify-between gap-3 px-5 pt-5 pb-4 sm:px-6">
         <p className="text-sm font-medium text-ink">我的订阅</p>
         <Link href="/life-agents?tab=favorites" className="text-xs text-ink-400 transition hover:text-ink">
@@ -69,7 +69,7 @@ function SubscriptionStrip({ items }: { items: LifeAgentSubscription[] }) {
         </Link>
       </div>
       <div
-        className="flex gap-5 overflow-x-auto px-5 pb-5 sm:gap-6 sm:px-6 sm:pb-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="flex gap-5 overflow-x-auto px-5 pb-5 pt-1 sm:gap-6 sm:px-6 sm:pb-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         data-horizontal-scroll
       >
         {items.map((item) => {
@@ -88,7 +88,7 @@ function SubscriptionStrip({ items }: { items: LifeAgentSubscription[] }) {
               href={`/life-agents/${item.id}`}
               className="pressable group shrink-0 w-[5.75rem] text-center sm:w-[6.5rem]"
             >
-              <div className="relative mx-auto h-[4.25rem] w-[4.25rem] sm:h-[4.75rem] sm:w-[4.75rem]">
+              <div className="relative mx-auto h-[4.25rem] w-[4.25rem] overflow-visible sm:h-[4.75rem] sm:w-[4.75rem]">
                 <div className="h-full w-full overflow-hidden rounded-full border border-hairline bg-paper-200 shadow-glow-sm transition group-hover:border-signal-300">
                   <LifeAgentCoverImage
                     src={coverUrl}
@@ -101,7 +101,7 @@ function SubscriptionStrip({ items }: { items: LifeAgentSubscription[] }) {
                 </div>
                 {item.growthUnread > 0 ? (
                   <span
-                    className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-paper-50"
+                    className="absolute -right-0.5 -top-0.5 z-10 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-paper-50"
                     aria-label="有未读更新"
                   />
                 ) : null}
