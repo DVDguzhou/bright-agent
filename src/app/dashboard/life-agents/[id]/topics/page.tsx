@@ -11,10 +11,13 @@ import {
   CircleDot,
   Clock3,
   GitMerge,
+  GripVertical,
   Layers3,
   PencilLine,
+  Plus,
   Sparkles,
   Tag,
+  X,
 } from "lucide-react";
 import { FieldInfoButton } from "@/components/FieldInfoButton";
 import {
@@ -64,7 +67,7 @@ type LoadState = {
   loading: boolean;
   error: string | null;
 };
-type FilterKey = "all" | "active" | "candidate" | "archived";
+type FilterKey = "all" | "active" | "candidate" | "archived" | "confirmed" | "needs_clarification" | "time_not_needed" | "not_timeline";
 type WorkspaceView = "timeline" | "tags" | "topics";
 type TimelineEditState = Record<
   string,
@@ -132,6 +135,34 @@ const TIMELINE_LABELS: Record<string, string> = {
   confirmed: "已确认",
   needs_clarification: "待补时间",
   inferred: "推断",
+  time_not_needed: "不需要具体时间",
+  not_timeline: "非时间线",
+};
+
+const TOPIC_STATUS_LABELS: Record<string, string> = {
+  candidate: "待审核",
+  active: "已启用",
+  archived: "已归档",
+};
+
+const TAG_LABELS: Record<string, string> = {
+  process: "过程",
+  reason: "原因",
+  tradeoff: "取舍",
+  state: "状态",
+  method: "方法",
+  outcome: "结果",
+  advice: "建议",
+  profile: "档案",
+  knowledge: "知识",
+  career: "职业",
+  education: "教育",
+  money: "收入",
+  startup: "创业",
+  relationship: "关系",
+  family: "家庭",
+  mental: "心理状态",
+  social: "社交",
 };
 
 const topicFieldClass =
@@ -207,6 +238,17 @@ function tagsForEntry(entry: KnowledgeEntry) {
   return Array.from(new Set([...(entry.tags ?? []), ...facetSubjects(entry), entry.category].filter(Boolean)));
 }
 
+function splitLineItems(value: string) {
+  return value
+    .split("\n")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function joinLineItems(items: string[]) {
+  return items.map((item) => item.trim()).filter(Boolean).join("\n");
+}
+
 function contentPreview(content: string, limit = 118) {
   const normalized = content.replace(/\s+/g, " ").trim();
   if (normalized.length <= limit) return normalized;
@@ -219,6 +261,14 @@ function sourceCount(topic: TopicItem) {
 
 function formatTimelineStatus(status?: string) {
   return TIMELINE_LABELS[status ?? ""] ?? status ?? "待确认";
+}
+
+function formatTopicStatus(status?: string) {
+  return TOPIC_STATUS_LABELS[status ?? ""] ?? status ?? "待审核";
+}
+
+function formatTagLabel(tag: string) {
+  return TAG_LABELS[tag] ?? GROUP_LABELS[tag] ?? TIMELINE_LABELS[tag] ?? tag;
 }
 
 function findKnowledgeByTopic(topic: TopicItem, entries: KnowledgeEntry[]) {
@@ -250,11 +300,14 @@ function TimelineRail({
   events,
   activeId,
   onSelect,
+  onMove,
 }: {
   events: TimelineEvent[];
   activeId: string | null;
   onSelect: (id: string) => void;
+  onMove: (sourceId: string, targetId: string) => void;
 }) {
+  const [draggingId, setDraggingId] = useState<string | null>(null);
   if (events.length === 0) {
     return (
       <EmptyState
@@ -269,15 +322,40 @@ function TimelineRail({
       <div className="space-y-2">
         {events.map((event) => {
           const active = event.id === activeId;
+          const dragging = event.id === draggingId;
           return (
             <button
               key={event.id}
               type="button"
+              draggable
               onClick={() => onSelect(event.id)}
+              onDragStart={(dragEvent) => {
+                setDraggingId(event.id);
+                dragEvent.dataTransfer.effectAllowed = "move";
+                dragEvent.dataTransfer.setData("text/plain", event.id);
+              }}
+              onDragOver={(dragEvent) => {
+                dragEvent.preventDefault();
+                dragEvent.dataTransfer.dropEffect = "move";
+              }}
+              onDrop={(dragEvent) => {
+                dragEvent.preventDefault();
+                const sourceId = dragEvent.dataTransfer.getData("text/plain") || draggingId;
+                if (sourceId && sourceId !== event.id) {
+                  onMove(sourceId, event.id);
+                }
+                setDraggingId(null);
+              }}
+              onDragEnd={() => setDraggingId(null)}
               className={`group relative flex w-full items-start gap-3 rounded-lg px-2 py-2.5 text-left transition duration-200 motion-reduce:transition-none ${
                 active ? "bg-paper-200 shadow-inner-glow" : "hover:bg-paper-100"
+              } ${dragging ? "scale-[0.99] opacity-55" : ""} ${
+                draggingId && !dragging ? "outline outline-1 outline-transparent hover:outline-signal-300" : ""
               }`}
             >
+              <span className="mt-1 hidden cursor-grab rounded p-1 text-ink-200 transition group-hover:bg-paper-50 group-hover:text-ink-400 active:cursor-grabbing sm:inline-flex">
+                <GripVertical className="h-4 w-4" aria-hidden />
+              </span>
               <span
                 className={`relative z-10 mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border bg-paper-50 transition duration-200 ${
                   active ? "border-signal-500 text-signal-700 shadow-glow-sm" : "border-hairline text-ink-300 group-hover:border-signal-300 group-hover:text-signal-700"
@@ -364,6 +442,17 @@ function TimelineDetail({
               placeholder="例如：大四、2024 年、毕业前后"
               className={timelineFieldClass}
             />
+            <button
+              type="button"
+              onClick={() => onChange({ status: "time_not_needed", periodLabel: "不需要具体时间", confidence: edit.confidence === "low" ? "medium" : edit.confidence })}
+              className={`mt-2 min-h-8 rounded-md border px-2.5 text-xs font-medium transition ${
+                edit.status === "time_not_needed"
+                  ? "border-ink bg-ink text-paper-50"
+                  : "border-hairline bg-paper-50 text-ink-400 hover:border-signal-300 hover:text-ink"
+              }`}
+            >
+              这条不需要具体时间
+            </button>
           </label>
           <label className="block rounded-lg bg-paper-100/80 p-3">
             <span className="text-xs font-semibold text-ink-500">这段经历叫什么</span>
@@ -414,9 +503,17 @@ function TimelineDetail({
         <div className="grid gap-3 rounded-lg bg-paper-100/80 p-3 sm:grid-cols-2">
           <label className="block">
             <span className="text-xs font-semibold text-ink-500">状态</span>
-            <select value={edit.status} onChange={(e) => onChange({ status: e.target.value })} className={`${timelineFieldClass} appearance-none`}>
+            <select
+              value={edit.status}
+              onChange={(e) => {
+                const status = e.target.value;
+                onChange(status === "time_not_needed" ? { status, periodLabel: "不需要具体时间" } : { status });
+              }}
+              className={`${timelineFieldClass} appearance-none`}
+            >
               <option value="confirmed">已确认</option>
               <option value="needs_clarification">还需要补充</option>
+              <option value="time_not_needed">不需要具体时间</option>
             </select>
           </label>
           <label className="block">
@@ -466,7 +563,7 @@ function TagCloud({
   selected,
   onSelect,
 }: {
-  tags: Array<{ label: string; count: number }>;
+  tags: Array<{ value: string; label: string; count: number }>;
   selected: string | null;
   onSelect: (tag: string | null) => void;
 }) {
@@ -484,11 +581,11 @@ function TagCloud({
       </button>
       {tags.map((tag) => (
         <button
-          key={tag.label}
+          key={tag.value}
           type="button"
-          onClick={() => onSelect(tag.label)}
+          onClick={() => onSelect(tag.value)}
           className={`group min-h-9 rounded border px-3 text-sm transition active:scale-[0.98] motion-reduce:transition-none ${
-            selected === tag.label ? "border-signal-600 bg-signal-50 text-signal-700" : "border-hairline bg-paper-50 text-ink-500 hover:border-signal-300 hover:text-ink"
+            selected === tag.value ? "border-signal-600 bg-signal-50 text-signal-700" : "border-hairline bg-paper-50 text-ink-500 hover:border-signal-300 hover:text-ink"
           }`}
         >
           <span className="font-medium">{tag.label}</span>
@@ -509,18 +606,110 @@ function KnowledgeStrip({ entries }: { entries: KnowledgeEntry[] }) {
         <div key={entry.id} className="rounded-md bg-paper-100 px-3 py-2">
           <div className="flex flex-wrap items-center gap-2">
             <p className="text-xs font-semibold text-ink">{entry.title}</p>
-            {entry.timelineStatus ? <StatusBadge tone={entry.timelineStatus === "needs_clarification" ? "signal" : "neutral"}>{entry.timelineStatus}</StatusBadge> : null}
+            {entry.timelineStatus ? <StatusBadge tone={entry.timelineStatus === "needs_clarification" ? "signal" : "neutral"}>{formatTimelineStatus(entry.timelineStatus)}</StatusBadge> : null}
           </div>
           <p className="mt-1 line-clamp-2 text-xs leading-5 text-ink-400">{contentPreview(entry.content)}</p>
           <div className="mt-2 flex flex-wrap gap-1.5">
             {tagsForEntry(entry).slice(0, 5).map((tag) => (
               <span key={tag} className="rounded bg-paper-50 px-1.5 py-0.5 text-[11px] text-ink-400">
-                {tag}
+                {formatTagLabel(tag)}
               </span>
             ))}
           </div>
         </div>
       ))}
+    </div>
+  );
+}
+
+function LineItemEditor({
+  title,
+  hint,
+  value,
+  onChange,
+  placeholder,
+  variant = "chip",
+}: {
+  title: string;
+  hint: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+  variant?: "chip" | "question";
+}) {
+  const [draft, setDraft] = useState("");
+  const items = splitLineItems(value);
+  const addDraft = () => {
+    const next = draft.trim();
+    if (!next) return;
+    onChange(joinLineItems([...items, next]));
+    setDraft("");
+  };
+  const removeItem = (index: number) => {
+    onChange(joinLineItems(items.filter((_, itemIndex) => itemIndex !== index)));
+  };
+  const updateItem = (index: number, nextValue: string) => {
+    onChange(joinLineItems(items.map((item, itemIndex) => (itemIndex === index ? nextValue : item))));
+  };
+
+  return (
+    <div className="rounded-lg bg-paper-100/80 p-3 sm:p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold text-ink-500">{title}</p>
+          <p className="mt-0.5 text-[11px] leading-5 text-ink-300">{hint}</p>
+        </div>
+        <span className="rounded bg-paper-50 px-2 py-0.5 text-[11px] text-ink-300">{items.length} 条</span>
+      </div>
+
+      <div className={variant === "chip" ? "mt-3 flex min-h-12 flex-wrap gap-2" : "mt-3 space-y-2"}>
+        {items.length === 0 ? (
+          <p className="rounded-md border border-dashed border-hairline/80 bg-paper-50 px-3 py-3 text-sm text-ink-300">
+            暂无，下面添加一条。
+          </p>
+        ) : null}
+        {items.map((item, index) =>
+          variant === "chip" ? (
+            <span key={`${item}-${index}`} className="group inline-flex min-h-9 max-w-full items-center gap-2 rounded-md border border-hairline/80 bg-paper-50 px-3 text-sm text-ink shadow-[0_1px_0_rgba(255,255,255,0.72)]">
+              <span className="truncate">{item}</span>
+              <button type="button" onClick={() => removeItem(index)} className="rounded p-0.5 text-ink-300 transition hover:bg-paper-200 hover:text-oxblood-600" aria-label={`删除${item}`}>
+                <X className="h-3.5 w-3.5" aria-hidden />
+              </button>
+            </span>
+          ) : (
+            <div key={`${item}-${index}`} className="flex items-center gap-2 rounded-md border border-hairline/80 bg-paper-50 px-2 py-2 shadow-[0_1px_0_rgba(255,255,255,0.72)] transition focus-within:border-signal-600 focus-within:ring-2 focus-within:ring-signal-200/70">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-paper-200 text-[11px] font-semibold text-ink-400">{index + 1}</span>
+              <input
+                value={item}
+                onChange={(event) => updateItem(index, event.target.value)}
+                className="min-w-0 flex-1 bg-transparent text-sm leading-6 text-ink outline-none"
+              />
+              <button type="button" onClick={() => removeItem(index)} className="rounded p-1 text-ink-300 transition hover:bg-paper-200 hover:text-oxblood-600" aria-label={`删除第 ${index + 1} 条`}>
+                <X className="h-4 w-4" aria-hidden />
+              </button>
+            </div>
+          ),
+        )}
+      </div>
+
+      <div className="mt-3 flex gap-2">
+        <input
+          value={draft}
+          onChange={(event) => setDraft(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              event.preventDefault();
+              addDraft();
+            }
+          }}
+          placeholder={placeholder}
+          className="min-h-10 min-w-0 flex-1 rounded-md border border-hairline/80 bg-white/88 px-3 text-sm text-ink outline-none transition placeholder:text-ink-300 focus:border-signal-600 focus:ring-2 focus:ring-signal-200/70"
+        />
+        <button type="button" onClick={addDraft} className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-md border border-ink bg-ink px-3 text-paper-50 transition hover:border-signal-700 hover:bg-signal-700 active:scale-[0.98]">
+          <Plus className="h-4 w-4" aria-hidden />
+          <span className="sr-only">添加</span>
+        </button>
+      </div>
     </div>
   );
 }
@@ -537,6 +726,7 @@ export default function LifeAgentTopicsPage() {
   const [timelineEdits, setTimelineEdits] = useState<TimelineEditState>({});
   const [savingId, setSavingId] = useState<string | null>(null);
   const [savingTimelineId, setSavingTimelineId] = useState<string | null>(null);
+  const [orderingTimeline, setOrderingTimeline] = useState(false);
   const [mergingId, setMergingId] = useState<string | null>(null);
   const [filter, setFilter] = useState<FilterKey>("all");
   const [view, setView] = useState<WorkspaceView>("timeline");
@@ -614,15 +804,73 @@ export default function LifeAgentTopicsPage() {
     void load();
   }, [load]);
 
+  useEffect(() => {
+    setFilter("all");
+  }, [view]);
+
   const profile = state.manage?.profile;
   const entries = useMemo(() => profile?.knowledgeEntries ?? [], [profile?.knowledgeEntries]);
   const timelineEvents = useMemo(() => profile?.timelineEvents ?? [], [profile?.timelineEvents]);
-  const activeTimeline = useMemo(() => timelineEvents.find((event) => event.id === activeTimelineId) ?? timelineEvents[0] ?? null, [activeTimelineId, timelineEvents]);
   const completion = profile ? computeCompletion(profile) : 0;
+
+  const setManagedTimelineEvents = (nextEvents: TimelineEvent[]) => {
+    setState((prev) =>
+      prev.manage
+        ? {
+            ...prev,
+            manage: {
+              ...prev.manage,
+              profile: {
+                ...prev.manage.profile,
+                timelineEvents: nextEvents,
+              },
+            },
+          }
+        : prev,
+    );
+  };
+
+  const visibleTimelineEvents = useMemo(() => {
+    if (filter === "all" || view !== "timeline") return timelineEvents;
+    return timelineEvents.filter((event) => event.status === filter);
+  }, [filter, timelineEvents, view]);
+
+  const activeTimeline = useMemo(() => visibleTimelineEvents.find((event) => event.id === activeTimelineId) ?? visibleTimelineEvents[0] ?? null, [activeTimelineId, visibleTimelineEvents]);
+
+  const statusFilteredEntries = useMemo(() => {
+    if (view !== "tags" || filter === "all") return entries;
+    return entries.filter((entry) => entry.timelineStatus === filter);
+  }, [entries, filter, view]);
+
+  const filterOptions = useMemo(() => {
+    if (view === "timeline") {
+      return [
+        { value: "all" as const, label: "全部节点" },
+        { value: "needs_clarification" as const, label: "待补时间" },
+        { value: "confirmed" as const, label: "已确认" },
+        { value: "time_not_needed" as const, label: "不需时间" },
+      ];
+    }
+    if (view === "tags") {
+      return [
+        { value: "all" as const, label: "全部内容" },
+        { value: "needs_clarification" as const, label: "待补时间" },
+        { value: "confirmed" as const, label: "已定位" },
+        { value: "time_not_needed" as const, label: "不需时间" },
+        { value: "not_timeline" as const, label: "非时间线" },
+      ];
+    }
+    return [
+      { value: "all" as const, label: "全部" },
+      { value: "candidate" as const, label: "待审核" },
+      { value: "active" as const, label: "已启用" },
+      { value: "archived" as const, label: "已归档" },
+    ];
+  }, [view]);
 
   const tagCounts = useMemo(() => {
     const counts = new Map<string, number>();
-    for (const entry of entries) {
+    for (const entry of statusFilteredEntries) {
       for (const tag of tagsForEntry(entry)) {
         counts.set(tag, (counts.get(tag) ?? 0) + 1);
       }
@@ -630,13 +878,13 @@ export default function LifeAgentTopicsPage() {
     return Array.from(counts.entries())
       .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "zh-CN"))
       .slice(0, 18)
-      .map(([label, count]) => ({ label, count }));
-  }, [entries]);
+      .map(([value, count]) => ({ value, label: formatTagLabel(value), count }));
+  }, [statusFilteredEntries]);
 
   const filteredEntries = useMemo(() => {
-    if (!selectedTag) return entries;
-    return entries.filter((entry) => tagsForEntry(entry).includes(selectedTag));
-  }, [entries, selectedTag]);
+    if (!selectedTag) return statusFilteredEntries;
+    return statusFilteredEntries.filter((entry) => tagsForEntry(entry).includes(selectedTag));
+  }, [selectedTag, statusFilteredEntries]);
 
   const filteredTopics = useMemo(() => {
     const keyword = query.trim().toLowerCase();
@@ -714,20 +962,7 @@ export default function LifeAgentTopicsPage() {
         return;
       }
       const timelineEvents = Array.isArray(data?.timelineEvents) ? (data.timelineEvents as TimelineEvent[]) : [];
-      setState((prev) =>
-        prev.manage
-          ? {
-              ...prev,
-              manage: {
-                ...prev.manage,
-                profile: {
-                  ...prev.manage.profile,
-                  timelineEvents,
-                },
-              },
-            }
-          : prev,
-      );
+      setManagedTimelineEvents(timelineEvents);
       setTimelineEdits(
         Object.fromEntries(
           timelineEvents.map((event) => [
@@ -748,6 +983,43 @@ export default function LifeAgentTopicsPage() {
       setActiveTimelineId(eventId);
     } finally {
       setSavingTimelineId(null);
+    }
+  };
+
+  const moveTimelineEvent = async (sourceId: string, targetId: string) => {
+    const sourceIndex = timelineEvents.findIndex((event) => event.id === sourceId);
+    const targetIndex = timelineEvents.findIndex((event) => event.id === targetId);
+    if (sourceIndex < 0 || targetIndex < 0 || sourceIndex === targetIndex) return;
+    const nextEvents = [...timelineEvents];
+    const [moved] = nextEvents.splice(sourceIndex, 1);
+    nextEvents.splice(targetIndex, 0, moved);
+    const orderedEvents = nextEvents.map((event, index) => ({
+      ...event,
+      sequenceOrder: 10000000 + index * 100,
+    }));
+    setManagedTimelineEvents(orderedEvents);
+    setActiveTimelineId(sourceId);
+    setOrderingTimeline(true);
+    try {
+      const results = await Promise.all(
+        orderedEvents.map((event) =>
+          fetch(`/api/life-agents/${id}/timeline-events/${event.id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ sequenceOrder: event.sequenceOrder }),
+          }),
+        ),
+      );
+      if (results.some((res) => !res.ok)) {
+        alert("保存时间线顺序失败，请稍后重试");
+        void load();
+      }
+    } catch {
+      alert("保存时间线顺序失败，请稍后重试");
+      void load();
+    } finally {
+      setOrderingTimeline(false);
     }
   };
 
@@ -852,7 +1124,7 @@ export default function LifeAgentTopicsPage() {
                 </div>
               </div>
               <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                <InsightChip icon={<PencilLine className="h-4 w-4" aria-hidden />} label="身份线索" value={compactList([profile?.school, profile?.job, profile?.city])} />
+                <InsightChip icon={<PencilLine className="h-4 w-4" aria-hidden />} label="档案线索" value={compactList([profile?.school, profile?.job, profile?.city])} />
                 <InsightChip icon={<Tag className="h-4 w-4" aria-hidden />} label="擅长标签" value={(profile?.expertiseTags ?? []).slice(0, 3).join(" · ") || "待补充"} />
               </div>
             </div>
@@ -900,19 +1172,18 @@ export default function LifeAgentTopicsPage() {
         <SegmentedControl
           value={filter}
           onChange={setFilter}
-          options={[
-            { value: "all", label: "全部" },
-            { value: "candidate", label: "待审核" },
-            { value: "active", label: "已启用" },
-            { value: "archived", label: "已归档" },
-          ]}
+          options={filterOptions}
         />
       </div>
 
       {view === "timeline" ? (
         <div className="grid gap-5 lg:grid-cols-[360px_minmax(0,1fr)]">
           <Panel className="p-3">
-            <TimelineRail events={timelineEvents} activeId={activeTimeline?.id ?? null} onSelect={setActiveTimelineId} />
+            <div className="mb-3 flex items-center justify-between gap-3 px-1">
+              <p className="text-xs leading-5 text-ink-400">拖动节点调整先后；改时间会自动重新定位。</p>
+              {orderingTimeline ? <span className="shrink-0 text-xs font-medium text-signal-700">保存排序中</span> : null}
+            </div>
+            <TimelineRail events={visibleTimelineEvents} activeId={activeTimeline?.id ?? null} onSelect={setActiveTimelineId} onMove={(sourceId, targetId) => void moveTimelineEvent(sourceId, targetId)} />
           </Panel>
           <TimelineDetail
             event={activeTimeline}
@@ -942,7 +1213,7 @@ export default function LifeAgentTopicsPage() {
               <Panel key={entry.id} className="p-4 transition duration-200 hover:-translate-y-0.5 hover:border-signal-300 hover:shadow-glow motion-reduce:transition-none motion-reduce:hover:translate-y-0">
                 <div className="flex flex-wrap items-center gap-2">
                   <h3 className="text-sm font-semibold text-ink">{entry.title}</h3>
-                  {entry.timelineStatus ? <StatusBadge tone={entry.timelineStatus === "needs_clarification" ? "signal" : "neutral"}>{entry.timelineStatus}</StatusBadge> : null}
+                  {entry.timelineStatus ? <StatusBadge tone={entry.timelineStatus === "needs_clarification" ? "signal" : "neutral"}>{formatTimelineStatus(entry.timelineStatus)}</StatusBadge> : null}
                 </div>
                 <p className="mt-2 line-clamp-3 text-sm leading-6 text-ink-500">{contentPreview(entry.content, 180)}</p>
                 <div className="mt-3 flex flex-wrap gap-1.5">
@@ -953,7 +1224,7 @@ export default function LifeAgentTopicsPage() {
                       onClick={() => setSelectedTag(tag)}
                       className="rounded bg-paper-200 px-2 py-1 text-xs text-ink-500 transition hover:bg-signal-50 hover:text-signal-700"
                     >
-                      {tag}
+                      {formatTagLabel(tag)}
                     </button>
                   ))}
                 </div>
@@ -984,7 +1255,7 @@ export default function LifeAgentTopicsPage() {
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <h2 className="text-base font-semibold text-ink">{edit.topicLabel || topic.topicLabel}</h2>
-                        <StatusBadge tone={statusTone(topic.status)}>{topic.status ?? "candidate"}</StatusBadge>
+                        <StatusBadge tone={statusTone(topic.status)}>{formatTopicStatus(topic.status)}</StatusBadge>
                         <StatusBadge tone={confidenceTone(topic.confidence)}>{topic.confidence ?? "medium"}</StatusBadge>
                         {topic.manualEdited ? <StatusBadge>人工修改</StatusBadge> : null}
                       </div>
@@ -1018,9 +1289,9 @@ export default function LifeAgentTopicsPage() {
                                   <FieldInfoButton title={TOPIC_STATUS_INFO.title} body={TOPIC_STATUS_INFO.body} ariaLabel={TOPIC_STATUS_INFO.ariaLabel} />
                                 </span>
                                 <select value={edit.status} onChange={(e) => updateEdit(topic.id, { status: e.target.value })} className={topicSelectClass}>
-                                  <option value="candidate">candidate</option>
-                                  <option value="active">active</option>
-                                  <option value="archived">archived</option>
+                                  <option value="candidate">待审核</option>
+                                  <option value="active">已启用</option>
+                                  <option value="archived">已归档</option>
                                 </select>
                               </label>
                               <label className="block">
@@ -1049,24 +1320,21 @@ export default function LifeAgentTopicsPage() {
                         </label>
 
                         <div className="grid gap-3 lg:grid-cols-2">
-                          <label className="block rounded-lg bg-paper-100/80 p-3 sm:p-4">
-                            <span className="text-xs font-semibold text-ink-500">别名</span>
-                            <textarea
-                              value={edit.aliases}
-                              onChange={(e) => updateEdit(topic.id, { aliases: e.target.value })}
-                              rows={4}
-                              className={`${topicTextareaClass} min-h-28`}
-                            />
-                          </label>
-                          <label className="block rounded-lg bg-paper-100/80 p-3 sm:p-4">
-                            <span className="text-xs font-semibold text-ink-500">问题模板</span>
-                            <textarea
-                              value={edit.questionPatterns}
-                              onChange={(e) => updateEdit(topic.id, { questionPatterns: e.target.value })}
-                              rows={4}
-                              className={`${topicTextareaClass} min-h-28`}
-                            />
-                          </label>
+                          <LineItemEditor
+                            title="别名"
+                            hint="用户可能会怎么称呼这个主题"
+                            value={edit.aliases}
+                            onChange={(value) => updateEdit(topic.id, { aliases: value })}
+                            placeholder="添加别名，比如 UE 开发"
+                          />
+                          <LineItemEditor
+                            title="问题模板"
+                            hint="用户可能直接问出的句子"
+                            value={edit.questionPatterns}
+                            onChange={(value) => updateEdit(topic.id, { questionPatterns: value })}
+                            placeholder="添加一个常见问法"
+                            variant="question"
+                          />
                         </div>
 
                         <div className="sticky bottom-[calc(env(safe-area-inset-bottom)+5rem)] z-10 -mx-3 flex flex-col gap-2 border-t border-hairline/60 bg-paper-50/95 px-3 py-3 shadow-[0_-18px_40px_-32px_rgba(28,26,22,0.45)] backdrop-blur sm:static sm:mx-0 sm:flex-row sm:flex-wrap sm:items-center sm:bg-transparent sm:px-0 sm:pb-0 sm:shadow-none sm:backdrop-blur-0">

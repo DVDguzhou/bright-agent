@@ -211,6 +211,7 @@ func LifeAgentsTimelineEventUpdate(cfg *config.Config) gin.HandlerFunc {
 			Causes            []string `json:"causes"`
 			Outcomes          []string `json:"outcomes"`
 			Tradeoffs         []string `json:"tradeoffs"`
+			SequenceOrder     *int     `json:"sequenceOrder"`
 			Confidence        *string  `json:"confidence"`
 			Status            *string  `json:"status"`
 		}
@@ -256,6 +257,9 @@ func LifeAgentsTimelineEventUpdate(cfg *config.Config) gin.HandlerFunc {
 		if body.Tradeoffs != nil {
 			event.Tradeoffs = models.JSONArray(cleanStringList(body.Tradeoffs, 8))
 		}
+		if body.SequenceOrder != nil {
+			event.SequenceOrder = *body.SequenceOrder
+		}
 		if body.Confidence != nil {
 			confidence := strings.TrimSpace(*body.Confidence)
 			if confidence != "low" && confidence != "medium" && confidence != "high" {
@@ -266,14 +270,18 @@ func LifeAgentsTimelineEventUpdate(cfg *config.Config) gin.HandlerFunc {
 		}
 		if body.Status != nil {
 			status := strings.TrimSpace(*body.Status)
-			if status != "confirmed" && status != "needs_clarification" {
+			if status != "confirmed" && status != "needs_clarification" && status != "time_not_needed" {
 				c.JSON(http.StatusBadRequest, gin.H{"error": "VALIDATION_ERROR", "detail": "invalid status"})
 				return
 			}
 			event.Status = status
-			if status == "confirmed" {
+			if status == "confirmed" || status == "time_not_needed" {
 				event.MissingFields = models.JSONArray{}
 				event.ClarificationQuestion = nil
+			}
+			if status == "time_not_needed" && (event.PeriodLabel == "" || event.PeriodLabel == "时间未确认") {
+				event.PeriodLabel = "不需要具体时间"
+				event.PeriodGranularity = "broad"
 			}
 		}
 		if event.Title == "" || event.Summary == "" {
@@ -290,7 +298,7 @@ func LifeAgentsTimelineEventUpdate(cfg *config.Config) gin.HandlerFunc {
 				Update("timeline_status", "confirmed")
 		}
 		var events []models.LifeAgentTimelineEvent
-		db.DB.Where("profile_id = ? AND status IN ?", id, []string{"confirmed", "needs_clarification"}).
+		db.DB.Where("profile_id = ? AND status IN ?", id, []string{"confirmed", "needs_clarification", "time_not_needed"}).
 			Order("sequence_order ASC, created_at ASC").
 			Find(&events)
 		c.JSON(http.StatusOK, gin.H{"event": event, "timelineEvents": events})
