@@ -72,6 +72,13 @@ export type ManageProfile = {
     title: string;
     content: string;
     tags: string[];
+    facetTags?: Record<string, unknown>;
+    sourceType?: string;
+    timelineStatus?: string;
+    timelineMeta?: Record<string, unknown>;
+    revision?: number;
+    createdAt?: string;
+    updatedAt?: string;
   }>;
   structuredFacts?: Array<{
     id: string;
@@ -93,6 +100,25 @@ export type ManageProfile = {
     sourceEntryIds?: string[];
     confidence?: string;
     status?: string;
+  }>;
+  timelineEvents?: Array<{
+    id: string;
+    periodLabel: string;
+    periodGranularity?: string;
+    sequenceOrder?: number;
+    eventType?: string;
+    title: string;
+    summary: string;
+    causes?: string[];
+    outcomes?: string[];
+    tradeoffs?: string[];
+    sourceEntryIds?: string[];
+    confidence?: string;
+    status?: string;
+    missingFields?: string[];
+    clarificationQuestion?: string | null;
+    createdAt?: string;
+    updatedAt?: string;
   }>;
 };
 
