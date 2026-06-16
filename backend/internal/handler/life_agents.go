@@ -4268,6 +4268,32 @@ func listLifeAgentGrowthEvents(profileID string, ownerView bool, limit int) []mo
 	return events
 }
 
+func latestPublicGrowthEvents(profile *models.LifeAgentProfile, entries []models.LifeAgentKnowledgeEntry, limit int) []models.LifeAgentGrowthEvent {
+	events := listLifeAgentGrowthEvents(profile.ID, false, limit)
+	if len(events) == 0 {
+		events = []models.LifeAgentGrowthEvent{syntheticLifeAgentGrowthEvent(profile, entries)}
+	}
+	return events
+}
+
+func growthUnreadForFavorite(fav *models.LifeAgentFavorite, profile *models.LifeAgentProfile, entries []models.LifeAgentKnowledgeEntry) int64 {
+	events := latestPublicGrowthEvents(profile, entries, 1)
+	var unread int64
+	q := db.DB.Model(&models.LifeAgentGrowthEvent{}).
+		Where("profile_id = ? AND visibility = ?", profile.ID, "public")
+	lastSeen := fav.LastSeenGrowthAt
+	if lastSeen != nil {
+		q = q.Where("created_at > ?", *lastSeen)
+	}
+	q.Count(&unread)
+	if unread == 0 && len(events) > 0 && events[0].Visibility == "public" {
+		if lastSeen == nil || events[0].CreatedAt.After(*lastSeen) {
+			unread = 1
+		}
+	}
+	return unread
+}
+
 func buildGrowthLogPayload(profile *models.LifeAgentProfile, entries []models.LifeAgentKnowledgeEntry, userID string, ownerView bool, limit int) gin.H {
 	profileID := profile.ID
 	events := listLifeAgentGrowthEvents(profileID, ownerView, limit)
@@ -4309,17 +4335,7 @@ func buildGrowthLogPayload(profile *models.LifeAgentProfile, entries []models.Li
 		if err := db.DB.Where("user_id = ? AND profile_id = ?", userID, profileID).First(&fav).Error; err == nil {
 			following = true
 			lastSeen = fav.LastSeenGrowthAt
-			q := db.DB.Model(&models.LifeAgentGrowthEvent{}).
-				Where("profile_id = ? AND visibility = ?", profileID, "public")
-			if lastSeen != nil {
-				q = q.Where("created_at > ?", *lastSeen)
-			}
-			q.Count(&unread)
-			if unread == 0 && len(events) > 0 && events[0].Visibility == "public" {
-				if lastSeen == nil || events[0].CreatedAt.After(*lastSeen) {
-					unread = 1
-				}
-			}
+			unread = growthUnreadForFavorite(&fav, profile, entries)
 		}
 	}
 

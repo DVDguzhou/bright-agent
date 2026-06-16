@@ -64,6 +64,47 @@ func LifeAgentFavoritesList(cfg *config.Config) gin.HandlerFunc {
 				ids = append(ids, row.ProfileID)
 			}
 		}
+		if strings.TrimSpace(c.Query("include")) == "subscriptions" {
+			if len(ids) == 0 {
+				c.JSON(http.StatusOK, []gin.H{})
+				return
+			}
+			var profiles []models.LifeAgentProfile
+			if err := db.DB.Where("id IN ? AND published = ?", ids, true).Find(&profiles).Error; err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "INTERNAL_ERROR"})
+				return
+			}
+			profileMap := make(map[string]models.LifeAgentProfile, len(profiles))
+			for _, p := range profiles {
+				profileMap[p.ID] = p
+			}
+			favMap := make(map[string]models.LifeAgentFavorite, len(rows))
+			for _, row := range rows {
+				favMap[row.ProfileID] = row
+			}
+			kbByProfile := batchKnowledgeEntriesByProfileIDs(ids)
+			items := make([]gin.H, 0, len(rows))
+			for _, row := range rows {
+				p, ok := profileMap[row.ProfileID]
+				if !ok {
+					continue
+				}
+				fav := favMap[row.ProfileID]
+				entries := kbByProfile[p.ID]
+				items = append(items, gin.H{
+					"id":             p.ID,
+					"displayName":    p.DisplayName,
+					"headline":       p.Headline,
+					"coverUrl":       lifeAgentCoverURL(&p),
+					"coverImageUrl":  ptrStr(p.CoverImageURL),
+					"coverPresetKey": ptrStr(p.CoverPresetKey),
+					"updateStatus":   lifeAgentUpdateStatusResp(&p, entries),
+					"growthUnread":   growthUnreadForFavorite(&fav, &p, entries),
+				})
+			}
+			c.JSON(http.StatusOK, items)
+			return
+		}
 		if strings.TrimSpace(c.Query("include")) == "items" {
 			if len(ids) == 0 {
 				c.JSON(http.StatusOK, []gin.H{})

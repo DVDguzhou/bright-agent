@@ -5,7 +5,7 @@ const API_BACKEND = process.env.API_BACKEND_URL || "http://localhost:8080";
 async function proxy(req: NextRequest, method: "GET" | "POST" | "PUT") {
   try {
     const body = method === "GET" ? undefined : await req.text();
-    const backendRes = await fetch(`${API_BACKEND}/api/life-agents/favorites`, {
+    const backendRes = await fetch(`${API_BACKEND}/api/life-agents/favorites${req.nextUrl.search}`, {
       method,
       headers: {
         ...(method === "GET" ? {} : { "Content-Type": "application/json" }),

@@ -106,3 +106,51 @@ export async function markLifeAgentGrowthSeen(profileId: string): Promise<void> 
     credentials: "include",
   }).catch(() => undefined);
 }
+
+export type LifeAgentSubscription = {
+  id: string;
+  displayName: string;
+  headline?: string;
+  coverUrl?: string;
+  coverImageUrl?: string;
+  coverPresetKey?: string;
+  growthUnread: number;
+  updateStatus?: {
+    title: string;
+    category: string;
+    createdAt: string;
+    freshDays: number;
+    isRecent: boolean;
+  };
+};
+
+export async function fetchLifeAgentSubscriptions(): Promise<LifeAgentSubscription[]> {
+  const res = await fetch("/api/life-agents/favorites?include=subscriptions", {
+    credentials: "include",
+  });
+  if (!res.ok) return [];
+  const data = (await res.json().catch(() => null)) as unknown;
+  if (!Array.isArray(data)) return [];
+  return data
+    .filter((item): item is Record<string, unknown> => item && typeof item === "object")
+    .map((item) => ({
+      id: String(item.id ?? ""),
+      displayName: String(item.displayName ?? ""),
+      headline: typeof item.headline === "string" ? item.headline : undefined,
+      coverUrl: typeof item.coverUrl === "string" ? item.coverUrl : undefined,
+      coverImageUrl: typeof item.coverImageUrl === "string" ? item.coverImageUrl : undefined,
+      coverPresetKey: typeof item.coverPresetKey === "string" ? item.coverPresetKey : undefined,
+      growthUnread: typeof item.growthUnread === "number" ? item.growthUnread : 0,
+      updateStatus:
+        item.updateStatus && typeof item.updateStatus === "object"
+          ? {
+              title: String((item.updateStatus as Record<string, unknown>).title ?? ""),
+              category: String((item.updateStatus as Record<string, unknown>).category ?? ""),
+              createdAt: String((item.updateStatus as Record<string, unknown>).createdAt ?? ""),
+              freshDays: Number((item.updateStatus as Record<string, unknown>).freshDays ?? 0),
+              isRecent: Boolean((item.updateStatus as Record<string, unknown>).isRecent),
+            }
+          : undefined,
+    }))
+    .filter((item) => item.id);
+}
