@@ -272,28 +272,22 @@ func IsGenericSampleQuestions(questions []string) bool {
 }
 
 // DisplaySampleQuestions 返回用于发现页/详情页展示的示例问题。
+// 仅展示库里 sample_questions 字段；空或全为垃圾/通用模板时不展示。
+// 不从知识库、headline、档案等推导（推导逻辑保留在 DeriveSampleQuestions 供批处理等场景使用）。
 func DisplaySampleQuestions(stored []string, in SampleQuestionInput) []string {
+	_ = in
 	cleaned := cleanSampleQuestions(stored)
-	// 人工策划过的示例问题（非空、且不通用/不垃圾）优先展示，哪怕有知识库也不覆盖它。
-	// 这样在 sample_questions 里改好的问题能真正显示出来。即便走这条路也过滤掉垃圾/带括号的，
-	// 防止过去刷进库里的模板问题透出。
-	if len(cleaned) > 0 && !NeedsSampleQuestionRefresh(cleaned) {
-		if good := filterStupidSampleQuestions(cleaned); len(good) > 0 {
-			return limitSampleQuestions(good, 4)
-		}
+	if len(cleaned) == 0 {
+		return nil
 	}
-	// 否则（空/通用/垃圾）：有知识库时优先从正文推导，避免旧的半通用问题挡住更新。
-	if len(in.Knowledge) > 0 {
-		if derived := DeriveSampleQuestions(in); len(derived) >= 2 {
-			return limitSampleQuestions(derived, 4)
-		}
+	if NeedsSampleQuestionRefresh(cleaned) {
+		return nil
 	}
-	derived := DeriveSampleQuestions(in)
-	if len(derived) >= 2 {
-		return limitSampleQuestions(derived, 4)
+	good := filterStupidSampleQuestions(cleaned)
+	if len(good) == 0 {
+		return nil
 	}
-	// 最后兜底也要滤掉垃圾模板：宁可少显示几条，也不让「X有什么实战经验？」「](https」露出来。
-	return limitSampleQuestions(filterStupidSampleQuestions(cleaned), 4)
+	return limitSampleQuestions(good, 4)
 }
 
 // DeriveSampleQuestions 根据知识库或档案内容生成个性化示例问题。

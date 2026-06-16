@@ -125,10 +125,8 @@ func TestDisplaySampleQuestions_replacesFzuTemplate(t *testing.T) {
 		School:      "福州大学",
 		Headline:    "年糕做蛋糕 · 考研至中国科学技术大学",
 	})
-	for _, q := range got {
-		if q == stored[0] || q == stored[1] {
-			t.Fatalf("expected derived not template, got %v", got)
-		}
+	if len(got) != 0 {
+		t.Fatalf("expected generic templates not displayed, got %v", got)
 	}
 }
 
@@ -159,10 +157,8 @@ func TestDeriveSampleQuestions_szuBaoyan(t *testing.T) {
 		ShortBio:    "深圳大学CompSci计算机，中国科学技术大学，分享保研经验与备考心得。",
 		School:      "深圳大学",
 	})
-	for _, q := range got {
-		if q == stored[0] {
-			t.Fatalf("expected personalized, got template %v", got)
-		}
+	if len(got) != 0 {
+		t.Fatalf("expected generic templates not displayed, got %v", got)
 	}
 }
 
@@ -180,12 +176,8 @@ func TestDisplaySampleQuestions_prefersKnowledgeOverStored(t *testing.T) {
 			Tags: []string{"保研", "福州大学"},
 		}},
 	})
-	for _, bad := range stored {
-		for _, q := range got {
-			if q == bad {
-				t.Fatalf("expected knowledge-derived not stored generic, got %v", got)
-			}
-		}
+	if len(got) != 0 {
+		t.Fatalf("expected no display without stored good questions, got %v", got)
 	}
 }
 
@@ -196,9 +188,20 @@ func TestDeriveSampleQuestions_shuAbroad(t *testing.T) {
 		ShortBio:    "上海大学数学系专业，University of Southern Califor，分享留学经验与个人历程。",
 		School:      "上海大学",
 	})
-	for _, q := range got {
-		if q == stored[0] {
-			t.Fatalf("expected personalized, got template %v", got)
-		}
+	if len(got) != 0 {
+		t.Fatalf("expected generic templates not displayed, got %v", got)
+	}
+}
+
+func TestDisplaySampleQuestions_emptyAfterDelete(t *testing.T) {
+	got := DisplaySampleQuestions(nil, SampleQuestionInput{
+		ShortBio: "来自北大CS自学指南的课程推荐与学习经验：UCB CS169: software engineerin。",
+		Knowledge: []KnowledgeSnippet{{
+			Title:   "UCB CS169",
+			Content: "## Descriptions\n- Offered by: UC Berkeley\n",
+		}},
+	})
+	if len(got) != 0 {
+		t.Fatalf("expected empty after delete, got %v", got)
 	}
 }
