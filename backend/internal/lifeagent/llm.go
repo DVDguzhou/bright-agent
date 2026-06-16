@@ -1275,6 +1275,7 @@ func buildDraftKnowledgeContext(facts []StructuredFactForAI, topics []TopicSumma
 		sb.WriteString("使用规则：\n")
 		sb.WriteString("- 用户问「最近」「现在」「目前」等时效性话题时→优先用这些内容回答\n")
 		sb.WriteString("- 用户问「你那边」「当地」等或提到具体地名时→优先用带位置标签的动态回答\n")
+		sb.WriteString("- 用户问「最近更新」「近况」「这条更新」时→以上即你刚分享的新鲜信息；不要说没发过、没有更新，像跟朋友讲近况一样自然展开\n")
 		sb.WriteString("- 回答时自然融入，像跟朋友说近况，不要说「根据我的动态」\n\n")
 		for _, u := range liveUpdates {
 			fresh := "刚刚"
@@ -1337,7 +1338,7 @@ func buildReconcileSystemPrompt(profile ProfileForAI, plan RetrievalPlan) string
 	sb.WriteString(BuildTopicsPromptSection(plan.Topics))
 	if liveSection := BuildLiveUpdatesPromptSection(plan.LiveUpdates); liveSection != "" {
 		sb.WriteString("\n\n【最近动态 - 优先使用的新鲜信息（含本地情报）】\n")
-		sb.WriteString("草稿中涉及时效性或地方性话题时，以这些动态为准。动态中的地名、数字、政策等比草稿更新更准。\n")
+		sb.WriteString("草稿中涉及时效性或地方性话题时，以这些动态为准。动态中的地名、数字、政策等比草稿更新更准。用户问近况或最近更新时，不要否认发过更新，自然展开即可。\n")
 		sb.WriteString(liveSection)
 	}
 	sb.WriteString("\n\n【经历素材】\n")
@@ -1472,7 +1473,7 @@ func buildSystemPrompt(profile ProfileForAI, plan RetrievalPlan) string {
 	}
 	if liveSection := BuildLiveUpdatesPromptSection(plan.LiveUpdates); liveSection != "" {
 		sb.WriteString("\n\n--- 最近动态（你本人发的实时信息）---\n")
-		sb.WriteString("对方问「最近/现在/目前」等时效性话题、问「你那边/当地」等地方性话题、或问具体地名+政策/物价/社区/学区/交通等本地话题时，优先用这些动态回答。像跟朋友说近况一样自然融入，不要说「我的动态里写了」。\n\n")
+		sb.WriteString("对方问「最近/现在/目前」等时效性话题、问「最近更新/近况/这条更新」、问「你那边/当地」等地方性话题、或问具体地名+政策/物价/社区/学区/交通等本地话题时，优先用这些动态回答。像跟朋友说近况一样自然融入，不要说「我的动态里写了」，也别说没发过更新。\n\n")
 		sb.WriteString(liveSection)
 	}
 

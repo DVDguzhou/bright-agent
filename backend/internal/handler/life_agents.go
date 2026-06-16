@@ -3186,6 +3186,9 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 				FreshDays: int(now.Sub(lu.CreatedAt).Hours() / 24),
 			}
 		}
+		if len(liveUpdatesForAI) == 0 {
+			liveUpdatesForAI = append(liveUpdatesForAI, syntheticLiveUpdateForAI(&p, entries))
+		}
 
 		factsForAI := lifeagent.BuildStructuredFactsForAI(facts)
 		topicsForAI := lifeagent.BuildTopicSummariesForAI(topics)
@@ -4164,10 +4167,67 @@ func syntheticGrowthCreatedAt(p *models.LifeAgentProfile) time.Time {
 	return time.Now().UTC().Add(-offset)
 }
 
+func firstSampleQuestion(p *models.LifeAgentProfile, entries []models.LifeAgentKnowledgeEntry) string {
+	samples := sampleQuestionsForDisplay(p, entries)
+	if len(samples) == 0 {
+		return ""
+	}
+	return strings.TrimSpace(samples[0])
+}
+
+func syntheticLiveUpdateContent(p *models.LifeAgentProfile, entries []models.LifeAgentKnowledgeEntry, category string) string {
+	if q := firstSampleQuestion(p, entries); q != "" {
+		if len(q) > 100 {
+			q = q[:100] + "..."
+		}
+		return fmt.Sprintf("最近好几个人来问：%s。我按自己当年的路子又整理了一遍，现在来问的可以聊得更细。", q)
+	}
+	headline := strings.TrimSpace(p.Headline)
+	if headline != "" {
+		return fmt.Sprintf("最近在琢磨「%s」这块，有些细节跟以前说的不太一样，适合具体问题具体分析。", headline)
+	}
+	catHints := map[string]string{
+		"job":      "最近求职季问的人多了，实习、面试、选 offer 这几块我都有新想法。",
+		"study":    "最近升学申请这块问的人挺多，流程和坑我又捋了一遍。",
+		"housing":  "最近城市生活这块问的人多，租房、通勤、落户这些我都有新体会。",
+		"policy":   "最近政策变化问的人多，我按最新情况又整理了一版判断。",
+		"resource": "最近整理了一些本地资源和渠道，来问的可以聊得更落地。",
+		"life":     "最近生活近况有些变化，适合具体问题具体分析。",
+	}
+	if hint, ok := catHints[category]; ok {
+		return hint
+	}
+	return "最近有几件事想跟来问的人说说，你具体想了解哪块？"
+}
+
+func syntheticLiveUpdateForAI(p *models.LifeAgentProfile, entries []models.LifeAgentKnowledgeEntry) lifeagent.LiveUpdateForAI {
+	event := syntheticLifeAgentGrowthEvent(p, entries)
+	category, _ := event.Payload["category"].(string)
+	now := time.Now()
+	freshDays := int(now.Sub(event.CreatedAt).Hours() / 24)
+	if freshDays < 0 {
+		freshDays = 0
+	}
+	return lifeagent.LiveUpdateForAI{
+		ID:        event.ID,
+		Content:   syntheticLiveUpdateContent(p, entries, category),
+		Category:  category,
+		CreatedAt: event.CreatedAt.Format(time.RFC3339),
+		FreshDays: freshDays,
+	}
+}
+
 func syntheticLifeAgentGrowthEvent(p *models.LifeAgentProfile, entries []models.LifeAgentKnowledgeEntry) models.LifeAgentGrowthEvent {
 	samples := sampleQuestionsForDisplay(p, entries)
 	category := inferGrowthCategoryFromSampleQuestions(samples)
 	createdAt := syntheticGrowthCreatedAt(p)
+	payload := models.JSONMap{
+		"category":  category,
+		"synthetic": true,
+	}
+	if q := firstSampleQuestion(p, entries); q != "" {
+		payload["sampleQuestion"] = q
+	}
 	return models.LifeAgentGrowthEvent{
 		ID:         "synthetic-" + p.ID,
 		ProfileID:  p.ID,
@@ -4175,11 +4235,8 @@ func syntheticLifeAgentGrowthEvent(p *models.LifeAgentProfile, entries []models.
 		Visibility: "public",
 		Title:      growthEventTitle("live_update", category),
 		Summary:    "",
-		Payload: models.JSONMap{
-			"category":  category,
-			"synthetic": true,
-		},
-		CreatedAt: createdAt,
+		Payload:    payload,
+		CreatedAt:  createdAt,
 	}
 }
 

@@ -68,12 +68,26 @@ export function growthEventLocation(event: LifeAgentGrowthEvent) {
   return typeof raw === "string" && raw.trim() ? raw : "";
 }
 
+export function isSyntheticGrowthEvent(event: LifeAgentGrowthEvent) {
+  return event.payload?.synthetic === true || !event.summary.trim();
+}
+
 export function buildGrowthQuestion(event: LifeAgentGrowthEvent, displayName?: string) {
   const subject = displayName ? `${displayName}，` : "";
   const summary = event.summary.trim();
-  if (!summary) return `${subject}能展开讲讲你最近这条更新吗？`;
-  const clipped = summary.length > 42 ? `${summary.slice(0, 42)}...` : summary;
-  return `${subject}你最近提到「${clipped}」，能结合我的情况讲讲吗？`;
+  if (summary) {
+    const clipped = summary.length > 42 ? `${summary.slice(0, 42)}...` : summary;
+    return `${subject}你最近提到「${clipped}」，能结合我的情况讲讲吗？`;
+  }
+  const sampleQuestion =
+    typeof event.payload?.sampleQuestion === "string" ? event.payload.sampleQuestion.trim() : "";
+  if (sampleQuestion) {
+    const clipped = sampleQuestion.length > 48 ? `${sampleQuestion.slice(0, 48)}...` : sampleQuestion;
+    return `${subject}关于「${clipped}」，你能结合自己的经历讲讲吗？`;
+  }
+  const category = growthEventCategory(event);
+  const categoryLabel = LIFE_AGENT_GROWTH_CATEGORY_LABELS[category] ?? category;
+  return `${subject}最近在${categoryLabel}这块有什么新的想法？能结合我的情况说说吗？`;
 }
 
 export async function fetchLifeAgentGrowthLog(profileId: string, includeCredentials = true): Promise<LifeAgentGrowthLog | null> {
