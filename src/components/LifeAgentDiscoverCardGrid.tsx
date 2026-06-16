@@ -153,7 +153,7 @@ function LifeAgentDiscoverCard({
         >
           <span
             className={`rounded-md border border-white/70 px-2 py-0.5 text-[10px] font-semibold leading-none shadow-[0_6px_14px_rgba(17,21,19,0.12)] supports-[backdrop-filter]:backdrop-blur-md ${
-              claim.isClaimed ? "bg-emerald-600 text-white" : "bg-paper/90 text-signal-700"
+              claim.isClaimed ? "bg-paper/90 text-ink-700" : "bg-paper/90 text-signal-700"
             }`}
           >
             {claim.label}
@@ -306,7 +306,7 @@ function LifeAgentLeadCard({
             </span>
             <span
               className={`absolute left-2 top-9 rounded-md border border-white/70 px-2 py-1 text-[11px] font-semibold leading-none shadow-[0_8px_18px_rgba(17,21,19,0.12)] supports-[backdrop-filter]:backdrop-blur-md ${
-                claim.isClaimed ? "bg-emerald-600 text-white" : "bg-paper/90 text-signal-700"
+                claim.isClaimed ? "bg-paper/90 text-ink-700" : "bg-paper/90 text-signal-700"
               }`}
             >
               {claim.label}
