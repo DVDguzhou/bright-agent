@@ -62,17 +62,14 @@ function SubscriptionStrip({ items }: { items: LifeAgentSubscription[] }) {
 
   return (
     <Panel className="mb-5 overflow-hidden">
-      <div className="px-4 pt-4 pb-2 sm:px-5">
-        <div className="flex items-center justify-between gap-2">
-          <p className="text-sm font-medium text-ink">我的订阅</p>
-          <Link href="/life-agents?tab=favorites" className="text-xs text-ink-400 transition hover:text-ink">
-            全部
-          </Link>
-        </div>
-        <p className="mt-0.5 text-xs text-ink-400">追更的学长有更新时，头像上会亮小红点</p>
+      <div className="flex items-center justify-between gap-3 px-5 pt-5 pb-4 sm:px-6">
+        <p className="text-sm font-medium text-ink">我的订阅</p>
+        <Link href="/life-agents?tab=favorites" className="text-xs text-ink-400 transition hover:text-ink">
+          全部
+        </Link>
       </div>
       <div
-        className="flex gap-3 overflow-x-auto px-4 pb-4 sm:px-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="flex gap-5 overflow-x-auto px-5 pb-5 sm:gap-6 sm:px-6 sm:pb-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         data-horizontal-scroll
       >
         {items.map((item) => {
@@ -89,9 +86,9 @@ function SubscriptionStrip({ items }: { items: LifeAgentSubscription[] }) {
             <Link
               key={item.id}
               href={`/life-agents/${item.id}`}
-              className="pressable group shrink-0 w-[4.5rem] text-center sm:w-20"
+              className="pressable group shrink-0 w-[5.75rem] text-center sm:w-[6.5rem]"
             >
-              <div className="relative mx-auto h-14 w-14 sm:h-[3.75rem] sm:w-[3.75rem]">
+              <div className="relative mx-auto h-[4.25rem] w-[4.25rem] sm:h-[4.75rem] sm:w-[4.75rem]">
                 <div className="h-full w-full overflow-hidden rounded-full border border-hairline bg-paper-200 shadow-glow-sm transition group-hover:border-signal-300">
                   <LifeAgentCoverImage
                     src={coverUrl}
@@ -99,7 +96,7 @@ function SubscriptionStrip({ items }: { items: LifeAgentSubscription[] }) {
                     fill
                     compact
                     className="object-cover"
-                    sizes="60px"
+                    sizes="76px"
                   />
                 </div>
                 {item.growthUnread > 0 ? (
@@ -109,9 +106,9 @@ function SubscriptionStrip({ items }: { items: LifeAgentSubscription[] }) {
                   />
                 ) : null}
               </div>
-              <p className="mt-1.5 line-clamp-2 text-[11px] leading-tight text-ink">{item.displayName}</p>
+              <p className="mt-2 line-clamp-2 text-xs leading-snug text-ink">{item.displayName}</p>
               {item.updateStatus?.isRecent && categoryLabel ? (
-                <p className="mt-0.5 text-[10px] text-signal-700">
+                <p className="mt-1 text-[11px] leading-tight text-signal-700">
                   {formatGrowthFreshDays(item.updateStatus.freshDays)} · {categoryLabel}
                 </p>
               ) : null}
@@ -170,7 +167,7 @@ export default function DashboardMessagesPage() {
 
   if (loading || !user) {
     return (
-      <AdminPage narrow>
+      <AdminPage>
         {loading ? (
           <LoadingBlock />
         ) : (
@@ -185,7 +182,7 @@ export default function DashboardMessagesPage() {
   }
 
   return (
-    <AdminPage narrow>
+    <AdminPage>
       <PageHeader
         eyebrow="对话档案"
         title="消息"
