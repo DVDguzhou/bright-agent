@@ -672,13 +672,14 @@ export default function LifeAgentChatPage() {
       </div>
     )}
     <div
-      className={`flex min-h-0 flex-col lg:-mx-4 lg:-mt-3 lg:-mb-8 lg:min-h-[calc(100dvh-5rem)] max-lg:fixed max-lg:inset-x-0 max-lg:top-0 max-lg:z-[35] max-lg:overflow-hidden ${CHAT_PAGE_BACKGROUND_CLASSNAME}`}
+      className={`flex min-h-0 flex-col lg:-mx-4 lg:-mt-3 lg:-mb-8 lg:min-h-[calc(100dvh-5rem)] max-lg:fixed max-lg:inset-0 max-lg:z-[50] max-lg:overflow-hidden ${CHAT_PAGE_BACKGROUND_CLASSNAME}`}
       style={
         // 桌面端不使用 visualViewport 内联高度：根容器在文档流中、上方还有 navbar，
         // 强行 height=window.innerHeight 会把输入框挤到视口外（用户报告 PC 看不到输入框）。
-        // 桌面端交给 Tailwind 的 lg:min-h-[calc(100dvh-5rem)] 控制。
-        // 移动端必须保留，用以处理 iOS/Android 虚拟键盘弹起时的视口变化。
-        isDesktop ? undefined : mobileContainerStyle
+        // 移动端键盘未弹起时用 inset-0 铺满视口；仅键盘弹起时用 visualViewport 高度。
+        isDesktop || !keyboardVisible
+          ? undefined
+          : { ...mobileContainerStyle, left: 0, right: 0, bottom: "auto" }
       }
     >
       <AnimatePresence>
@@ -995,7 +996,7 @@ export default function LifeAgentChatPage() {
             ) : (
               <>
               {recentGrowthEvents.length > 0 && !sessionId ? (
-                <div className="ml-10 rounded-lg border border-signal-200/70 bg-paper-50 px-3 py-3 text-sm shadow-glow-sm">
+                <div className="rounded-lg border border-signal-200/70 bg-paper-50 px-3 py-3 text-sm shadow-glow-sm">
                   <p className="text-xs font-semibold text-signal-700">最近可追问</p>
                   <div className="mt-2 flex flex-wrap gap-2">
                     {recentGrowthEvents.slice(0, 2).map((event) => {

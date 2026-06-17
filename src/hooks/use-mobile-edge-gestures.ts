@@ -31,26 +31,18 @@ function canSwipeBack(pathname: string) {
   return false;
 }
 
-/** 发现页主 tab：左缘右滑进入「动态」(/posts)。 */
-function canSwipeToPosts(pathname: string) {
-  if (pathname !== "/" && pathname !== "/life-agents") return false;
-  if (typeof window === "undefined") return false;
-  const tab = new URLSearchParams(window.location.search).get("tab");
-  return tab !== "favorites" && tab !== "purchased";
-}
-
 /** 动态页：右缘左滑进入「发现」(/life-agents)。 */
 function canSwipeToDiscover(pathname: string) {
   return pathname === "/posts";
 }
 
 function canOpenDrawer(pathname: string) {
-  // 发现/动态顶栏用左缘滑切 tab；菜单仅通过汉堡按钮打开
+  // 菜单仅通过汉堡按钮打开
   if (pathname === "/" || pathname === "/life-agents" || pathname.startsWith("/posts")) return false;
   return false;
 }
 
-type GestureMode = "none" | "back" | "navigate-posts" | "navigate-discover" | "drawer-open" | "drawer-close";
+type GestureMode = "none" | "back" | "navigate-discover" | "drawer-open" | "drawer-close";
 
 /**
  * Edge gestures: interactive swipe-back + Twitter-style drawer drag (mobile).
@@ -106,8 +98,6 @@ export function useMobileEdgeGestures(enabled: boolean) {
       if (t.clientX <= EDGE_PX) {
         if (canSwipeBack(path)) {
           mode = "back";
-        } else if (canSwipeToPosts(path) && !drawerOpen) {
-          mode = "navigate-posts";
         } else if (canOpenDrawer(path) && !drawerOpen) {
           mode = "drawer-open";
         }
@@ -135,7 +125,7 @@ export function useMobileEdgeGestures(enabled: boolean) {
       const drawerW = getDrawerWidth();
       const width = window.innerWidth;
 
-      if (mode === "back" || mode === "navigate-posts") {
+      if (mode === "back") {
         if (dx < 0) return;
         e.preventDefault();
         const shift = Math.min(width * 0.92, dx * 0.96);
@@ -192,22 +182,6 @@ export function useMobileEdgeGestures(enabled: boolean) {
             const r = routerRef.current;
             if (typeof window !== "undefined" && window.history.length > 1) r.back();
             else r.push("/life-agents");
-            setMobileGestureState({ translateX: 0, transitioning: false, drawerOpen: false });
-          }, 260);
-        } else {
-          reset(true);
-        }
-        mode = "none";
-        return;
-      }
-
-      if (mode === "navigate-posts") {
-        const shouldOpen = dx >= Math.min(96, width * 0.28) && dy <= MAX_DEV_Y;
-        if (shouldOpen) {
-          triggerHapticImpact();
-          setMobileGestureState({ translateX: width, transitioning: true, drawerOpen: false });
-          window.setTimeout(() => {
-            routerRef.current.push("/posts");
             setMobileGestureState({ translateX: 0, transitioning: false, drawerOpen: false });
           }, 260);
         } else {

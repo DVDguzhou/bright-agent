@@ -51,7 +51,7 @@ function measureViewport(nativeKeyboardInset: number): ViewportBox {
 
 /** 聊天输入栏底边距：键盘弹起时去掉 safe-area，避免与键盘之间出现空隙 */
 export function chatInputFooterPaddingClass(keyboardVisible: boolean): string {
-  return keyboardVisible ? "pb-0.5" : "pb-[env(safe-area-inset-bottom)]";
+  return keyboardVisible ? "pb-0.5" : "pb-[max(0.75rem,env(safe-area-inset-bottom))]";
 }
 
 /** 是否桌面宽屏（默认 lg ≥1024px），用于关闭移动端键盘视口逻辑 */
