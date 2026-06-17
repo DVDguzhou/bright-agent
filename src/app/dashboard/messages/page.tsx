@@ -69,14 +69,14 @@ function SubscriptionStrip({
 
   return (
     <Panel className="mb-5 -mx-3 w-[calc(100%+1.5rem)] rounded-none border-x-0 sm:mx-0 sm:w-full sm:rounded-lg sm:border-x">
-      <div className="flex items-center justify-between gap-3 px-4 pt-5 pb-4 sm:px-6">
+      <div className="flex items-center justify-between gap-3 px-4 pt-4 pb-3 sm:px-6 sm:pt-5 sm:pb-4">
         <p className="text-sm font-medium text-ink">我的订阅</p>
         <Link href="/life-agents?tab=favorites" className="text-xs text-ink-400 transition hover:text-ink">
           全部
         </Link>
       </div>
       <div
-        className="flex gap-6 overflow-x-auto px-4 pb-5 pt-1 sm:gap-8 sm:px-6 sm:pb-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="flex gap-4 overflow-x-auto px-4 pb-4 pt-0.5 sm:gap-6 sm:px-6 sm:pb-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         data-horizontal-scroll
       >
         {items.map((item) => {
@@ -94,9 +94,9 @@ function SubscriptionStrip({
               key={item.id}
               href={`/life-agents/${item.id}`}
               onClick={() => onMarkSeen(item.id)}
-              className="pressable group shrink-0 w-[7.25rem] text-center sm:w-[8.25rem]"
+              className="pressable group shrink-0 w-[4.75rem] text-center sm:w-20"
             >
-              <div className="relative mx-auto h-[5.25rem] w-[5.25rem] overflow-visible sm:h-[5.75rem] sm:w-[5.75rem]">
+              <div className="relative mx-auto h-14 w-14 overflow-visible sm:h-16 sm:w-16">
                 <div className="h-full w-full overflow-hidden rounded-full border border-hairline bg-paper-200 shadow-glow-sm transition group-hover:border-signal-300">
                   <LifeAgentCoverImage
                     src={coverUrl}
@@ -104,7 +104,7 @@ function SubscriptionStrip({
                     fill
                     compact
                     className="object-cover"
-                    sizes="92px"
+                    sizes="64px"
                   />
                 </div>
                 {item.growthUnread > 0 ? (
@@ -114,7 +114,7 @@ function SubscriptionStrip({
                   />
                 ) : null}
               </div>
-              <p className="mt-2.5 line-clamp-2 text-[13px] leading-snug text-ink">{item.displayName}</p>
+              <p className="mt-2 line-clamp-2 text-[12px] leading-snug text-ink sm:text-[13px]">{item.displayName}</p>
               {item.updateStatus?.isRecent && categoryLabel ? (
                 <p className="mt-1 text-xs leading-tight text-signal-700">
                   {formatGrowthFreshDays(item.updateStatus.freshDays)} · {categoryLabel}
@@ -229,7 +229,7 @@ export default function DashboardMessagesPage() {
 
   return (
     <AdminPage wide>
-      <div className="px-3 sm:px-0">
+      <div className="px-4 sm:px-0">
         <PageHeader
           eyebrow="对话档案"
           title="消息"
@@ -239,28 +239,31 @@ export default function DashboardMessagesPage() {
       </div>
 
       {dataLoading ? (
-        <div className="px-3 sm:px-0">
+        <div className="px-4 sm:px-0">
           <LoadingBlock />
         </div>
       ) : (
         <>
           <SubscriptionStrip items={subscriptions} onMarkSeen={markSubscriptionSeen} />
 
-          <div className="px-3 sm:px-0">
-            {items.length === 0 ? (
+          {items.length === 0 ? (
+            <div className="px-4 sm:px-0">
               <EmptyState
                 title="还没有会话"
                 description="去发现页找一个经历相近的人生 Agent，第一条消息会在这里留下记录。"
                 action={<Link href="/life-agents" className="btn-primary">去找 Agent 聊聊</Link>}
               />
-            ) : filteredItems.length === 0 ? (
+            </div>
+          ) : filteredItems.length === 0 ? (
+            <div className="px-4 sm:px-0">
               <EmptyState
                 title="没有匹配的会话"
                 description="换一个关键词，或者清空搜索查看全部消息。"
                 action={<button type="button" onClick={() => setQuery("")} className="btn-secondary">清空搜索</button>}
               />
-            ) : (
-              <Panel>
+            </div>
+          ) : (
+            <Panel className="-mx-3 w-[calc(100%+1.5rem)] rounded-none border-x-0 sm:mx-0 sm:w-full sm:rounded-lg sm:border-x">
                 <ul className="divide-y divide-hairline/60">
                   {filteredItems.map((item) => {
                     const coverUrl = resolveLifeAgentCoverDisplayUrl(
@@ -293,9 +296,8 @@ export default function DashboardMessagesPage() {
                     );
                   })}
                 </ul>
-              </Panel>
-            )}
-          </div>
+            </Panel>
+          )}
         </>
       )}
     </AdminPage>
