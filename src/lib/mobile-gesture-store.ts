@@ -1,7 +1,9 @@
+import { triggerHapticTap } from "@/lib/haptic";
+
 type Listener = () => void;
 
 export type MobileGestureState = {
-  /** Main surface horizontal shift (px), e.g. drawer peek or swipe-back preview */
+  /** Main surface horizontal shift (px); negative = left, positive = right */
   translateX: number;
   transitioning: boolean;
   drawerOpen: boolean;
@@ -35,6 +37,7 @@ export function subscribeMobileGesture(listener: Listener) {
 }
 
 export function openMobileDrawer(animated = true) {
+  triggerHapticTap();
   const w = getDrawerWidth();
   setMobileGestureState({
     drawerOpen: true,
@@ -47,6 +50,7 @@ export function openMobileDrawer(animated = true) {
 }
 
 export function closeMobileDrawer(animated = true) {
+  triggerHapticTap();
   if (!animated) {
     setMobileGestureState({
       drawerOpen: false,

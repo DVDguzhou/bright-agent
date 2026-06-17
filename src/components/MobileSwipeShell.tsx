@@ -12,6 +12,13 @@ import {
   subscribeMobileGesture,
 } from "@/lib/mobile-gesture-store";
 
+function shellShadow(shift: number, drawerWidth: number) {
+  const opacity = Math.min(0.22, (Math.abs(shift) / drawerWidth) * 0.22);
+  if (shift > 4) return `-10px 0 28px rgba(17, 21, 19, ${opacity})`;
+  if (shift < -4) return `10px 0 28px rgba(17, 21, 19, ${opacity})`;
+  return undefined;
+}
+
 export function MobileSwipeShell({ children }: { children: ReactNode }) {
   const touchNavEnabled = useMobileTouchNavEnabled();
   useMobileEdgeGestures(touchNavEnabled);
@@ -28,7 +35,6 @@ export function MobileSwipeShell({ children }: { children: ReactNode }) {
 
   const drawerWidth = getDrawerWidth();
   const shift = gesture.translateX;
-  const shadowOpacity = Math.min(0.22, (shift / drawerWidth) * 0.22);
   const transition = gesture.transitioning
     ? "transform 280ms cubic-bezier(0.32, 0.72, 0, 1)"
     : "none";
@@ -37,10 +43,10 @@ export function MobileSwipeShell({ children }: { children: ReactNode }) {
     <div
       className="relative z-40 min-h-[100dvh] bg-[#f2f1ed] will-change-transform"
       style={{
-        transform: shift > 0 ? `translateX(${shift}px)` : undefined,
+        transform: shift !== 0 ? `translateX(${shift}px)` : undefined,
         transition,
-        boxShadow: shift > 4 ? `-10px 0 28px rgba(17, 21, 19, ${shadowOpacity})` : undefined,
-        zIndex: shift > 0 ? 189 : undefined,
+        boxShadow: shellShadow(shift, drawerWidth),
+        zIndex: shift !== 0 ? 189 : undefined,
       }}
     >
       {children}

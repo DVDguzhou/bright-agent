@@ -33,7 +33,6 @@ import {
   openMobileDrawer,
   subscribeMobileGesture,
 } from "@/lib/mobile-gesture-store";
-import { triggerHapticTap } from "@/lib/haptic";
 import { lifeAgentShowsPurchaseUi } from "@/lib/life-agent-commerce";
 import {
   fetchAgentNotificationUnreadCount,
@@ -460,13 +459,18 @@ export function Nav() {
   const showDrawerPanel = mobileGesture.drawerOpen;
   const drawerOpen = mobileGesture.drawerOpen;
   const shellShiftStyle =
-    touchNavEnabled && mobileGesture.translateX > 0
+    touchNavEnabled && mobileGesture.translateX !== 0
       ? {
           transform: `translateX(${mobileGesture.translateX}px)`,
           transition: mobileGesture.transitioning
             ? "transform 280ms cubic-bezier(0.32, 0.72, 0, 1)"
             : "none",
-          boxShadow: `-10px 0 28px rgba(17, 21, 19, ${Math.min(0.22, (mobileGesture.translateX / drawerWidth) * 0.22)})`,
+          boxShadow:
+            mobileGesture.translateX > 4
+              ? `-10px 0 28px rgba(17, 21, 19, ${Math.min(0.22, (mobileGesture.translateX / drawerWidth) * 0.22)})`
+              : mobileGesture.translateX < -4
+                ? `10px 0 28px rgba(17, 21, 19, ${Math.min(0.22, (-mobileGesture.translateX / drawerWidth) * 0.22)})`
+                : undefined,
           zIndex: 190,
         }
       : undefined;
@@ -800,7 +804,6 @@ export function Nav() {
               <button
                 type="button"
                 onClick={() => {
-                  triggerHapticTap();
                   if (useBackArrowOnMobileTop) {
                     if (window.history.length > 1) router.back();
                     else router.push("/life-agents");
