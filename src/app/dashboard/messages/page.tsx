@@ -68,15 +68,15 @@ function SubscriptionStrip({
   if (items.length === 0) return null;
 
   return (
-    <Panel className="mb-5">
-      <div className="flex items-center justify-between gap-3 px-5 pt-5 pb-4 sm:px-6">
+    <Panel className="mb-5 -mx-3 w-[calc(100%+1.5rem)] rounded-none border-x-0 sm:mx-0 sm:w-full sm:rounded-lg sm:border-x">
+      <div className="flex items-center justify-between gap-3 px-4 pt-5 pb-4 sm:px-6">
         <p className="text-sm font-medium text-ink">我的订阅</p>
         <Link href="/life-agents?tab=favorites" className="text-xs text-ink-400 transition hover:text-ink">
           全部
         </Link>
       </div>
       <div
-        className="flex gap-5 overflow-x-auto px-5 pb-5 pt-1 sm:gap-6 sm:px-6 sm:pb-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="flex gap-6 overflow-x-auto px-4 pb-5 pt-1 sm:gap-8 sm:px-6 sm:pb-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         data-horizontal-scroll
       >
         {items.map((item) => {
@@ -94,9 +94,9 @@ function SubscriptionStrip({
               key={item.id}
               href={`/life-agents/${item.id}`}
               onClick={() => onMarkSeen(item.id)}
-              className="pressable group shrink-0 w-[5.75rem] text-center sm:w-[6.5rem]"
+              className="pressable group shrink-0 w-[7.25rem] text-center sm:w-[8.25rem]"
             >
-              <div className="relative mx-auto h-[4.25rem] w-[4.25rem] overflow-visible sm:h-[4.75rem] sm:w-[4.75rem]">
+              <div className="relative mx-auto h-[5.25rem] w-[5.25rem] overflow-visible sm:h-[5.75rem] sm:w-[5.75rem]">
                 <div className="h-full w-full overflow-hidden rounded-full border border-hairline bg-paper-200 shadow-glow-sm transition group-hover:border-signal-300">
                   <LifeAgentCoverImage
                     src={coverUrl}
@@ -104,7 +104,7 @@ function SubscriptionStrip({
                     fill
                     compact
                     className="object-cover"
-                    sizes="76px"
+                    sizes="92px"
                   />
                 </div>
                 {item.growthUnread > 0 ? (
@@ -114,9 +114,9 @@ function SubscriptionStrip({
                   />
                 ) : null}
               </div>
-              <p className="mt-2 line-clamp-2 text-xs leading-snug text-ink">{item.displayName}</p>
+              <p className="mt-2.5 line-clamp-2 text-[13px] leading-snug text-ink">{item.displayName}</p>
               {item.updateStatus?.isRecent && categoryLabel ? (
-                <p className="mt-1 text-[11px] leading-tight text-signal-700">
+                <p className="mt-1 text-xs leading-tight text-signal-700">
                   {formatGrowthFreshDays(item.updateStatus.freshDays)} · {categoryLabel}
                 </p>
               ) : null}
@@ -213,7 +213,7 @@ export default function DashboardMessagesPage() {
 
   if (loading || !user) {
     return (
-      <AdminPage>
+      <AdminPage wide>
         {loading ? (
           <LoadingBlock />
         ) : (
@@ -228,68 +228,74 @@ export default function DashboardMessagesPage() {
   }
 
   return (
-    <AdminPage>
-      <PageHeader
-        eyebrow="对话档案"
-        title="消息"
-        description="你发起过的咨询会保存在这里，按最近回复排序。"
-        actions={<SearchInput value={query} onChange={setQuery} placeholder="搜索会话或 Agent" label="搜索会话" />}
-      />
+    <AdminPage wide>
+      <div className="px-3 sm:px-0">
+        <PageHeader
+          eyebrow="对话档案"
+          title="消息"
+          description="你发起过的咨询会保存在这里，按最近回复排序。"
+          actions={<SearchInput value={query} onChange={setQuery} placeholder="搜索会话或 Agent" label="搜索会话" />}
+        />
+      </div>
 
       {dataLoading ? (
-        <LoadingBlock />
+        <div className="px-3 sm:px-0">
+          <LoadingBlock />
+        </div>
       ) : (
         <>
           <SubscriptionStrip items={subscriptions} onMarkSeen={markSubscriptionSeen} />
 
-          {items.length === 0 ? (
-            <EmptyState
-              title="还没有会话"
-              description="去发现页找一个经历相近的人生 Agent，第一条消息会在这里留下记录。"
-              action={<Link href="/life-agents" className="btn-primary">去找 Agent 聊聊</Link>}
-            />
-          ) : filteredItems.length === 0 ? (
-            <EmptyState
-              title="没有匹配的会话"
-              description="换一个关键词，或者清空搜索查看全部消息。"
-              action={<button type="button" onClick={() => setQuery("")} className="btn-secondary">清空搜索</button>}
-            />
-          ) : (
-            <Panel>
-              <ul className="divide-y divide-hairline/60">
-                {filteredItems.map((item) => {
-                  const coverUrl = resolveLifeAgentCoverDisplayUrl(
-                    item.profile.coverUrl,
-                    item.profile.coverImageUrl,
-                    item.profile.coverPresetKey,
-                  );
-                  const chatHref = `/life-agents/${item.profile.id}/chat?sessionId=${item.id}`;
-                  return (
-                    <li key={item.id}>
-                      <Link href={chatHref} className="group flex items-center gap-3 px-4 py-3.5 transition hover:bg-paper-100 sm:px-5">
-                        <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md border border-hairline bg-paper-200">
-                          <LifeAgentCoverImage src={coverUrl} alt="" fill compact className="object-cover" sizes="48px" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="flex min-w-0 items-center gap-2">
-                            <p className="truncate font-medium text-ink">{item.profile.displayName}</p>
-                            <span className="inline-flex items-center gap-1 text-[11px] text-ink-300">
-                              <MessageCircle className="h-3 w-3" />
-                              {item.messageCount}
-                            </span>
+          <div className="px-3 sm:px-0">
+            {items.length === 0 ? (
+              <EmptyState
+                title="还没有会话"
+                description="去发现页找一个经历相近的人生 Agent，第一条消息会在这里留下记录。"
+                action={<Link href="/life-agents" className="btn-primary">去找 Agent 聊聊</Link>}
+              />
+            ) : filteredItems.length === 0 ? (
+              <EmptyState
+                title="没有匹配的会话"
+                description="换一个关键词，或者清空搜索查看全部消息。"
+                action={<button type="button" onClick={() => setQuery("")} className="btn-secondary">清空搜索</button>}
+              />
+            ) : (
+              <Panel>
+                <ul className="divide-y divide-hairline/60">
+                  {filteredItems.map((item) => {
+                    const coverUrl = resolveLifeAgentCoverDisplayUrl(
+                      item.profile.coverUrl,
+                      item.profile.coverImageUrl,
+                      item.profile.coverPresetKey,
+                    );
+                    const chatHref = `/life-agents/${item.profile.id}/chat?sessionId=${item.id}`;
+                    return (
+                      <li key={item.id}>
+                        <Link href={chatHref} className="group flex items-center gap-3 px-4 py-3.5 transition hover:bg-paper-100 sm:px-5">
+                          <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md border border-hairline bg-paper-200">
+                            <LifeAgentCoverImage src={coverUrl} alt="" fill compact className="object-cover" sizes="48px" />
                           </div>
-                          <p className="mt-1 line-clamp-1 text-sm text-ink-500">{previewText(item)}</p>
-                        </div>
-                        <time className="shrink-0 text-xs tabular-nums text-ink-300" dateTime={item.updatedAt}>
-                          {formatSessionTime(item.updatedAt)}
-                        </time>
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            </Panel>
-          )}
+                          <div className="min-w-0 flex-1">
+                            <div className="flex min-w-0 items-center gap-2">
+                              <p className="truncate font-medium text-ink">{item.profile.displayName}</p>
+                              <span className="inline-flex items-center gap-1 text-[11px] text-ink-300">
+                                <MessageCircle className="h-3 w-3" />
+                                {item.messageCount}
+                              </span>
+                            </div>
+                            <p className="mt-1 line-clamp-1 text-sm text-ink-500">{previewText(item)}</p>
+                          </div>
+                          <time className="shrink-0 text-xs tabular-nums text-ink-300" dateTime={item.updatedAt}>
+                            {formatSessionTime(item.updatedAt)}
+                          </time>
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </Panel>
+            )}
+          </div>
         </>
       )}
     </AdminPage>

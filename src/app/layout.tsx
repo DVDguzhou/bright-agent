@@ -4,6 +4,8 @@ import "./globals.css";
 import { Nav } from "@/components/Nav";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ChunkLoadRecovery } from "@/components/ChunkLoadRecovery";
+import { HapticRoot } from "@/components/HapticRoot";
+import { MobileSwipeShell } from "@/components/MobileSwipeShell";
 import { RegisterSW } from "@/components/RegisterSW";
 import { PostHogProvider } from "@/components/PostHogProvider";
 export const viewport: Viewport = {
@@ -40,10 +42,13 @@ export default function RootLayout({
         <PostHogProvider>
           <AuthProvider>
             <ChunkLoadRecovery />
+            <HapticRoot />
             <Suspense fallback={null}>
               <Nav />
             </Suspense>
-            <main className="relative z-10 mx-auto min-h-[100dvh] w-full max-w-7xl overflow-x-hidden bg-transparent px-3 py-3 pb-20 sm:px-5 sm:py-7 lg:min-h-0 lg:pb-8">{children}</main>
+            <main className="relative z-10 mx-auto min-h-[100dvh] w-full max-w-7xl overflow-x-hidden bg-transparent px-3 py-3 pb-20 sm:px-5 sm:py-7 lg:min-h-0 lg:pb-8">
+              <MobileSwipeShell>{children}</MobileSwipeShell>
+            </main>
             <RegisterSW />
           </AuthProvider>
         </PostHogProvider>

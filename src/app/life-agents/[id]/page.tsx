@@ -9,8 +9,6 @@ import { LifeAgentCoverImage } from "@/components/LifeAgentCoverImage";
 import { resolveLifeAgentCoverDisplayUrl } from "@/lib/life-agent-covers";
 import { overrideLifeAgentCoverUrlByDisplayName } from "@/lib/life-agent-display-overrides";
 import { isFavoriteAgentId, toggleFavoriteAgentId } from "@/lib/life-agent-favorites";
-import { useEdgeSwipeBack } from "@/hooks/use-edge-swipe-back";
-import { useMobileTouchNavEnabled } from "@/hooks/use-life-agents-feed-gestures";
 import { cleanLifeAgentIntroMultiline, cleanLifeAgentIntroText } from "@/lib/life-agent-intro-clean";
 import { MindScoreBadge } from "@/components/MindScoreBadge";
 import { lifeAgentShowsPurchaseUi } from "@/lib/life-agent-commerce";
@@ -25,6 +23,7 @@ import {
   type LifeAgentGrowthEvent,
   type LifeAgentGrowthLog,
 } from "@/lib/life-agent-growth";
+import { triggerHapticTap } from "@/lib/haptic";
 
 type DetailData = {
   id: string;
@@ -118,8 +117,6 @@ type DetailData = {
 export default function LifeAgentDetailPage() {
   const params = useParams();
   const id = params.id as string;
-  const touchNavEnabled = useMobileTouchNavEnabled();
-  useEdgeSwipeBack(touchNavEnabled);
   const [profile, setProfile] = useState<DetailData | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [voiceEnrollBanner, setVoiceEnrollBanner] = useState<"warn" | null>(null);
@@ -231,7 +228,7 @@ export default function LifeAgentDetailPage() {
       <div className="mx-auto max-w-lg space-y-4 px-4 pt-12 text-center">
         <p className="font-serif text-xl font-medium text-ink">未找到该 Agent</p>
         <p className="font-serif text-sm italic text-ink-400">链接可能已失效，请从列表重新进入。</p>
-        <Link href="/life-agents" className="btn-primary pressable mt-4 inline-flex">
+        <Link href="/life-agents" className="btn-primary pressable mt-4 inline-flex" onClick={() => triggerHapticTap()}>
           返回列表
         </Link>
       </div>
@@ -297,6 +294,7 @@ export default function LifeAgentDetailPage() {
               <button
                 type="button"
                 onClick={() => {
+                  triggerHapticTap();
                   void toggleFavoriteAgentId(profile.id).then((next) => {
                     setStarred(next);
                     if (next && profile.viewerState.isLoggedIn) {
@@ -310,8 +308,8 @@ export default function LifeAgentDetailPage() {
                   });
                 }}
                 className="pressable flex h-9 w-9 items-center justify-center rounded-full bg-ink/40 text-paper backdrop-blur-sm transition hover:bg-ink/60 active:bg-ink/60"
-                aria-label={starred ? "取消追更" : "追更这个学长"}
-                title={starred ? "取消追更" : "追更这个学长"}
+                aria-label={starred ? "取消追更" : "追更这位前辈"}
+                title={starred ? "取消追更" : "追更这位前辈"}
               >
                 {starred ? (
                   <svg className="h-5 w-5 text-paper" fill="currentColor" viewBox="0 0 24 24" aria-hidden>
@@ -382,7 +380,7 @@ export default function LifeAgentDetailPage() {
             <div className="min-w-0">
               <p className="text-sm font-semibold text-ink">
                 {growthUnread > 0
-                  ? `你养着的学长更新了 ${growthUnread} 条`
+                  ? `你养着的前辈更新了 ${growthUnread} 条`
                   : latestGrowth
                     ? `最近更新 ${growthTotal} 条`
                     : "最近还没有公开近况"}
@@ -396,6 +394,7 @@ export default function LifeAgentDetailPage() {
             <button
               type="button"
               onClick={() => {
+                triggerHapticTap();
                 void toggleFavoriteAgentId(profile.id).then((next) => {
                   setStarred(next);
                   if (next && profile.viewerState.isLoggedIn) {
@@ -408,7 +407,7 @@ export default function LifeAgentDetailPage() {
                   );
                 });
               }}
-              className={`shrink-0 rounded border px-3 py-2 text-xs font-semibold transition ${
+              className={`pressable shrink-0 rounded border px-3 py-2 text-xs font-semibold transition ${
                 starred
                   ? "border-signal-200 bg-signal-50 text-signal-700 hover:bg-signal-100"
                   : "border-hairline bg-paper text-ink-600 hover:border-signal-200 hover:text-signal-700"
@@ -429,20 +428,15 @@ export default function LifeAgentDetailPage() {
               {latestGrowth.summary.trim() ? (
                 <p className="mt-1 text-sm leading-6 text-ink-600 [text-wrap:pretty]">{latestGrowth.summary}</p>
               ) : (
-                <p className="mt-1 text-sm leading-6 text-ink-500">这位学长最近维护过相关话题，可以直接追问最新情况。</p>
+                <p className="mt-1 text-sm leading-6 text-ink-500">这位前辈最近维护过相关话题，可以直接追问最新情况。</p>
               )}
-              <div className="mt-3 flex flex-wrap gap-2">
+              <div className="mt-3">
                 <Link
                   href={`/life-agents/${profile.id}/chat?prefill=${encodeURIComponent(buildGrowthQuestion(latestGrowth, profile.displayName))}`}
-                  className="inline-flex min-h-9 items-center rounded bg-ink px-3 text-xs font-semibold text-paper-50 transition hover:bg-signal-700"
+                  onClick={() => triggerHapticTap()}
+                  className="pressable inline-flex min-h-9 items-center rounded bg-ink px-3 text-xs font-semibold text-paper-50 transition hover:bg-signal-700"
                 >
                   问问这件事
-                </Link>
-                <Link
-                  href={`/life-agents/${profile.id}/chat`}
-                  className="inline-flex min-h-9 items-center rounded border border-hairline px-3 text-xs font-semibold text-ink-500 transition hover:bg-paper-200 hover:text-ink"
-                >
-                  继续咨询
                 </Link>
               </div>
             </div>
@@ -497,10 +491,21 @@ export default function LifeAgentDetailPage() {
               音色样本已上传，但<strong>云端注册未完成</strong>。请到后台重新录制。
             </p>
             <div className="mt-2 flex gap-2">
-              <Link href={`/dashboard/life-agents/${profile.id}`} className="rounded-sm bg-oxblood-600 px-3 py-1.5 text-xs font-semibold text-paper">
+              <Link
+                href={`/dashboard/life-agents/${profile.id}`}
+                onClick={() => triggerHapticTap()}
+                className="pressable rounded-sm bg-oxblood-600 px-3 py-1.5 text-xs font-semibold text-paper"
+              >
                 去后台
               </Link>
-              <button type="button" onClick={dismissVoiceBanner} className="text-xs text-oxblood-600 underline">
+              <button
+                type="button"
+                onClick={() => {
+                  triggerHapticTap();
+                  dismissVoiceBanner();
+                }}
+                className="pressable text-xs text-oxblood-600 underline"
+              >
                 知道了
               </button>
             </div>
@@ -563,7 +568,8 @@ export default function LifeAgentDetailPage() {
                   ) : null}
                   <Link
                     href={`/life-agents/${profile.id}/chat?prefill=${encodeURIComponent(buildGrowthQuestion(event, profile.displayName))}`}
-                    className="mt-1 inline-flex text-xs font-semibold text-signal-700 underline decoration-signal-300 underline-offset-4"
+                    onClick={() => triggerHapticTap()}
+                    className="pressable mt-1 inline-flex text-xs font-semibold text-signal-700 underline decoration-signal-300 underline-offset-4"
                   >
                     问问这条更新
                   </Link>
@@ -636,6 +642,7 @@ export default function LifeAgentDetailPage() {
           {!profile.viewerState.isLoggedIn ? (
             <Link
               href={`/login?redirect=${encodeURIComponent(`/life-agents/${profile.id}/chat`)}`}
+              onClick={() => triggerHapticTap()}
               className="btn-primary pressable flex w-full items-center justify-center py-3 text-base font-semibold"
             >
               登录后开始咨询
@@ -643,6 +650,7 @@ export default function LifeAgentDetailPage() {
           ) : remainingQ > 0 ? (
             <Link
               href={`/life-agents/${profile.id}/chat`}
+              onClick={() => triggerHapticTap()}
               className="btn-primary pressable flex w-full items-center justify-center py-3 text-base font-semibold"
             >
               继续聊天（剩余 {remainingQ} 次）
@@ -650,6 +658,7 @@ export default function LifeAgentDetailPage() {
           ) : (
             <Link
               href={`/life-agents/${profile.id}/chat`}
+              onClick={() => triggerHapticTap()}
               className="btn-primary pressable flex w-full items-center justify-center py-3 text-base font-semibold"
             >
               开始咨询

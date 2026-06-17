@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
@@ -26,6 +26,14 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { fetchBoundLifeAgents, LIFE_AGENT_OWNED_CHANGE_EVENT, type BoundLifeAgent } from "@/lib/bound-life-agents";
 import { useMobileTouchNavEnabled } from "@/hooks/use-life-agents-feed-gestures";
+import {
+  closeMobileDrawer,
+  getDrawerWidth,
+  getMobileGestureState,
+  openMobileDrawer,
+  subscribeMobileGesture,
+} from "@/lib/mobile-gesture-store";
+import { triggerHapticTap } from "@/lib/haptic";
 import { lifeAgentShowsPurchaseUi } from "@/lib/life-agent-commerce";
 import {
   fetchAgentNotificationUnreadCount,
@@ -441,8 +449,27 @@ export function Nav() {
   const searchParams = useSearchParams();
   const { user, refetch } = useAuth();
   const [notificationCount, setNotificationCount] = useState(0);
-  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [ownedLifeAgents, setOwnedLifeAgents] = useState<BoundLifeAgent[] | null>(null);
+  const touchNavEnabled = useMobileTouchNavEnabled();
+  const mobileGesture = useSyncExternalStore(
+    subscribeMobileGesture,
+    getMobileGestureState,
+    () => ({ translateX: 0, transitioning: false, drawerOpen: false }),
+  );
+  const drawerWidth = getDrawerWidth();
+  const drawerVisible = mobileGesture.translateX > 8;
+  const drawerOpen = mobileGesture.drawerOpen || mobileGesture.translateX >= drawerWidth * 0.92;
+  const shellShiftStyle =
+    touchNavEnabled && mobileGesture.translateX > 0
+      ? {
+          transform: `translateX(${mobileGesture.translateX}px)`,
+          transition: mobileGesture.transitioning
+            ? "transform 280ms cubic-bezier(0.32, 0.72, 0, 1)"
+            : "none",
+          boxShadow: `-10px 0 28px rgba(17, 21, 19, ${Math.min(0.22, (mobileGesture.translateX / drawerWidth) * 0.22)})`,
+          zIndex: 190,
+        }
+      : undefined;
 
   useEffect(() => {
     if (!user) {
@@ -645,18 +672,18 @@ export function Nav() {
   }, [touchFeedPager, feedTab, updateFeedUnderlineFromProgress]);
 
   useEffect(() => {
-    if (!mobileDrawerOpen) return;
+    if (!drawerOpen) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setMobileDrawerOpen(false);
+      if (e.key === "Escape") closeMobileDrawer(true);
     };
     window.addEventListener("keydown", onKey);
     return () => {
       document.body.style.overflow = prev;
       window.removeEventListener("keydown", onKey);
     };
-  }, [mobileDrawerOpen]);
+  }, [drawerOpen]);
 
   const feedTabClass = (active: boolean) =>
     `relative px-2.5 py-1.5 text-[15px] transition-colors ${
@@ -761,7 +788,8 @@ export function Nav() {
       <motion.nav
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className={`sticky top-0 z-50 overflow-x-hidden border-b border-ink/10 bg-white/90 pt-[env(safe-area-inset-top,0px)] shadow-[0_1px_0_rgba(255,255,255,0.72)] supports-[backdrop-filter]:backdrop-blur-xl ${
+        style={shellShiftStyle}
+        className={`sticky top-0 z-50 overflow-x-hidden border-b border-ink/10 bg-white/90 pt-[env(safe-area-inset-top,0px)] shadow-[0_1px_0_rgba(255,255,255,0.72)] supports-[backdrop-filter]:backdrop-blur-xl will-change-transform ${
           hideGlobalTopNav ? "hidden" : isLifeAgentChatPage ? "hidden lg:block" : ""
         }`}
       >
@@ -772,16 +800,17 @@ export function Nav() {
               <button
                 type="button"
                 onClick={() => {
+                  triggerHapticTap();
                   if (useBackArrowOnMobileTop) {
                     if (window.history.length > 1) router.back();
                     else router.push("/life-agents");
                     return;
                   }
-                  setMobileDrawerOpen(true);
+                  openMobileDrawer(true);
                 }}
                 className="icon-button h-10 w-10 shrink-0"
                 aria-label={useBackArrowOnMobileTop ? "返回" : "打开菜单"}
-                aria-expanded={mobileDrawerOpen}
+                aria-expanded={drawerOpen}
               >
                 {useBackArrowOnMobileTop ? (
                   <ChevronLeft className="h-5 w-5" aria-hidden />
@@ -965,136 +994,130 @@ export function Nav() {
       </motion.nav>
 
       {/* 手机+平板：底部导航栏；Agent 详情/聊天页有专用操作栏时隐藏 */}
-      <AnimatePresence>
-        {mobileDrawerOpen && !isLifeAgentChatPage ? (
-          <>
-            <motion.button
-              key="nav-drawer-backdrop"
-              type="button"
-              aria-label="关闭菜单"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-              className="fixed inset-0 z-[190] bg-ink/35 backdrop-blur-sm lg:hidden"
-              onClick={() => setMobileDrawerOpen(false)}
-            />
-            <motion.aside
-              key="nav-drawer-panel"
-              initial={{ x: "-105%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "-105%" }}
-              transition={{ type: "spring", stiffness: 380, damping: 36 }}
-              className="fixed left-0 top-0 z-[191] flex h-[100dvh] w-[min(100vw,19rem)] flex-col border-r border-ink/10 bg-white/95 shadow-[18px_0_60px_rgba(17,21,19,0.16)] supports-[backdrop-filter]:backdrop-blur-xl lg:hidden"
-            >
-              <div className="flex items-center justify-between border-b border-ink/10 px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
-                <span className="text-base font-semibold text-ink">菜单</span>
-                <button
-                  type="button"
-                  onClick={() => setMobileDrawerOpen(false)}
-                  className="icon-button h-9 w-9 text-ink-400 hover:text-ink"
-                  aria-label="关闭"
-                >
-                  <X className="h-5 w-5" aria-hidden />
-                </button>
-              </div>
-              <div className="min-h-0 flex-1 overflow-y-auto px-3 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
-                <Link
-                  href="/life-agents/create"
-                  onClick={() => setMobileDrawerOpen(false)}
-                  className="mb-1 flex items-center gap-3 rounded-md px-3 py-3 text-[15px] font-semibold text-ink transition hover:bg-paper-200"
-                >
-                  <Plus className="h-5 w-5 text-ink" aria-hidden />
-                  创建人生 Agent
-                </Link>
-                <Link
-                  href="/dashboard/life-agents"
-                  onClick={() => setMobileDrawerOpen(false)}
-                  className="flex items-center gap-3 rounded-md px-3 py-3 text-[15px] font-semibold text-ink transition hover:bg-paper-200"
-                >
-                  <IconAgent className="h-5 w-5 text-ink-400" />
-                  我创建的
-                </Link>
-                <Link
-                  href="/dashboard/messages"
-                  onClick={() => setMobileDrawerOpen(false)}
-                  className="flex items-center gap-3 rounded-md px-3 py-3 text-[15px] font-semibold text-ink transition hover:bg-paper-200"
-                >
-                  <IconMessages className="h-5 w-5 text-ink-400" />
-                  消息
-                </Link>
-                <Link
-                  href="/map"
-                  onClick={() => setMobileDrawerOpen(false)}
-                  className="flex items-center gap-3 rounded-md px-3 py-3 text-[15px] font-semibold text-ink transition hover:bg-paper-200"
-                >
-                  <IconMap className="h-5 w-5 text-ink-400" />
-                  地图
-                </Link>
-                {showFeedPurchasedTab ? (
-                <Link
-                  href="/licenses"
-                  onClick={() => setMobileDrawerOpen(false)}
-                  className="flex items-center gap-3 rounded-md px-3 py-3 text-[15px] font-semibold text-ink transition hover:bg-paper-200"
-                >
-                  <ShieldCheck className="h-5 w-5 text-ink-400" aria-hidden />
-                  已购咨询
-                </Link>
-                ) : null}
-                {user ? (
-                  <>
-                    <Link
-                      href="/dashboard"
-                      onClick={() => setMobileDrawerOpen(false)}
-                      className="flex items-center gap-3 rounded-md px-3 py-3 text-[15px] font-semibold text-ink transition hover:bg-paper-200"
-                    >
-                      <IconDashboard className="h-5 w-5 text-ink-400" />
-                      我的
-                    </Link>
-                    <Link
-                      href="/dashboard/account"
-                      onClick={() => setMobileDrawerOpen(false)}
-                      className="flex items-center gap-3 rounded-md px-3 py-3 text-[15px] font-semibold text-ink transition hover:bg-paper-200"
-                    >
-                      <UserRound className="h-5 w-5 text-ink-400" aria-hidden />
-                      账号与安全
-                    </Link>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setMobileDrawerOpen(false);
-                        void logout();
-                      }}
-                      className="flex w-full items-center gap-3 rounded-md px-3 py-3 text-left text-[15px] font-semibold text-ink-500 transition hover:bg-paper-200 hover:text-ink"
-                    >
-                      <IconLogout className="h-5 w-5" />
-                      退出登录
-                    </button>
-                  </>
-                ) : (
-                  <div className="mt-2 space-y-2 border-t border-hairline pt-4">
-                    <Link
-                      href="/login"
-                      onClick={() => setMobileDrawerOpen(false)}
-                      className="btn-primary flex w-full items-center justify-center gap-2 py-3 text-sm"
-                    >
-                      <IconLogin className="h-4 w-4" />
-                      登录
-                    </Link>
-                    <Link
-                      href="/signup"
-                      onClick={() => setMobileDrawerOpen(false)}
-                      className="btn-secondary flex w-full items-center justify-center gap-2 py-3 text-sm font-semibold"
-                    >
-                      注册
-                    </Link>
-                  </div>
-                )}
-              </div>
-            </motion.aside>
-          </>
-        ) : null}
-      </AnimatePresence>
+      {!isLifeAgentChatPage ? (
+        <>
+          <button
+            type="button"
+            aria-label="关闭菜单"
+            className="fixed inset-0 z-[188] bg-ink/35 backdrop-blur-sm lg:hidden"
+            style={{
+              opacity: drawerVisible ? Math.min(0.42, (mobileGesture.translateX / drawerWidth) * 0.42) : 0,
+              pointerEvents: drawerVisible ? "auto" : "none",
+              transition: mobileGesture.transitioning ? "opacity 280ms ease" : "none",
+            }}
+            onClick={() => closeMobileDrawer(true)}
+          />
+          <aside
+            className="fixed left-0 top-0 z-[187] flex h-[100dvh] w-[min(100vw,19rem)] flex-col border-r border-ink/10 bg-white/95 supports-[backdrop-filter]:backdrop-blur-xl lg:hidden"
+            aria-hidden={!drawerVisible}
+          >
+            <div className="flex items-center justify-between border-b border-ink/10 px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
+              <span className="text-base font-semibold text-ink">菜单</span>
+              <button
+                type="button"
+                onClick={() => closeMobileDrawer(true)}
+                className="icon-button h-9 w-9 text-ink-400 hover:text-ink"
+                aria-label="关闭"
+              >
+                <X className="h-5 w-5" aria-hidden />
+              </button>
+            </div>
+            <div className="min-h-0 flex-1 overflow-y-auto px-3 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+              <Link
+                href="/life-agents/create"
+                onClick={() => closeMobileDrawer(true)}
+                className="mb-1 flex items-center gap-3 rounded-md px-3 py-3 text-[15px] font-semibold text-ink transition hover:bg-paper-200"
+              >
+                <Plus className="h-5 w-5 text-ink" aria-hidden />
+                创建人生 Agent
+              </Link>
+              <Link
+                href="/dashboard/life-agents"
+                onClick={() => closeMobileDrawer(true)}
+                className="flex items-center gap-3 rounded-md px-3 py-3 text-[15px] font-semibold text-ink transition hover:bg-paper-200"
+              >
+                <IconAgent className="h-5 w-5 text-ink-400" />
+                我创建的
+              </Link>
+              <Link
+                href="/dashboard/messages"
+                onClick={() => closeMobileDrawer(true)}
+                className="flex items-center gap-3 rounded-md px-3 py-3 text-[15px] font-semibold text-ink transition hover:bg-paper-200"
+              >
+                <IconMessages className="h-5 w-5 text-ink-400" />
+                消息
+              </Link>
+              <Link
+                href="/map"
+                onClick={() => closeMobileDrawer(true)}
+                className="flex items-center gap-3 rounded-md px-3 py-3 text-[15px] font-semibold text-ink transition hover:bg-paper-200"
+              >
+                <IconMap className="h-5 w-5 text-ink-400" />
+                地图
+              </Link>
+              {showFeedPurchasedTab ? (
+              <Link
+                href="/licenses"
+                onClick={() => closeMobileDrawer(true)}
+                className="flex items-center gap-3 rounded-md px-3 py-3 text-[15px] font-semibold text-ink transition hover:bg-paper-200"
+              >
+                <ShieldCheck className="h-5 w-5 text-ink-400" aria-hidden />
+                已购咨询
+              </Link>
+              ) : null}
+              {user ? (
+                <>
+                  <Link
+                    href="/dashboard"
+                    onClick={() => closeMobileDrawer(true)}
+                    className="flex items-center gap-3 rounded-md px-3 py-3 text-[15px] font-semibold text-ink transition hover:bg-paper-200"
+                  >
+                    <IconDashboard className="h-5 w-5 text-ink-400" />
+                    我的
+                  </Link>
+                  <Link
+                    href="/dashboard/account"
+                    onClick={() => closeMobileDrawer(true)}
+                    className="flex items-center gap-3 rounded-md px-3 py-3 text-[15px] font-semibold text-ink transition hover:bg-paper-200"
+                  >
+                    <UserRound className="h-5 w-5 text-ink-400" aria-hidden />
+                    账号与安全
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      closeMobileDrawer(true);
+                      void logout();
+                    }}
+                    className="flex w-full items-center gap-3 rounded-md px-3 py-3 text-left text-[15px] font-semibold text-ink-500 transition hover:bg-paper-200 hover:text-ink"
+                  >
+                    <IconLogout className="h-5 w-5" />
+                    退出登录
+                  </button>
+                </>
+              ) : (
+                <div className="mt-2 space-y-2 border-t border-hairline pt-4">
+                  <Link
+                    href="/login"
+                    onClick={() => closeMobileDrawer(true)}
+                    className="btn-primary flex w-full items-center justify-center gap-2 py-3 text-sm"
+                  >
+                    <IconLogin className="h-4 w-4" />
+                    登录
+                  </Link>
+                  <Link
+                    href="/signup"
+                    onClick={() => closeMobileDrawer(true)}
+                    className="btn-secondary flex w-full items-center justify-center gap-2 py-3 text-sm font-semibold"
+                  >
+                    注册
+                  </Link>
+                </div>
+              )}
+            </div>
+          </aside>
+        </>
+      ) : null}
 
       {!hideGlobalBottomNav && (
         <>
@@ -1115,7 +1138,10 @@ export function Nav() {
             </div>
           ) : null}
 
-          <div className="fixed bottom-0 left-0 right-0 z-50 box-border flex items-end justify-around border-t border-ink/10 bg-white/90 pt-2 pb-[env(safe-area-inset-bottom,0px)] shadow-[0_-12px_36px_rgba(17,21,19,0.08)] supports-[backdrop-filter]:backdrop-blur-xl lg:hidden">
+          <div
+            className="fixed bottom-0 left-0 right-0 z-50 box-border flex items-end justify-around border-t border-ink/10 bg-white/90 pt-2 pb-[env(safe-area-inset-bottom,0px)] shadow-[0_-12px_36px_rgba(17,21,19,0.08)] supports-[backdrop-filter]:backdrop-blur-xl will-change-transform lg:hidden"
+            style={shellShiftStyle}
+          >
             {(() => {
               const [lifeAgentsLink, messagesLink, licenseLink] = navLinks;
               const renderTab = (

@@ -13,15 +13,17 @@ import {
 export function AdminPage({
   children,
   narrow = false,
+  wide = false,
 }: {
   children: ReactNode;
   narrow?: boolean;
+  wide?: boolean;
 }) {
+  const widthClass = narrow ? "max-w-3xl" : wide ? "max-w-7xl" : "max-w-5xl";
+  const padClass = wide ? "px-0 sm:px-2 lg:px-0" : "px-4 sm:px-6 lg:px-0";
   return (
     <main
-      className={`mx-auto w-full ${
-        narrow ? "max-w-3xl" : "max-w-5xl"
-      } px-4 pb-24 pt-3 sm:px-6 lg:px-0 lg:pb-10`}
+      className={`mx-auto w-full ${widthClass} ${padClass} pb-24 pt-3 lg:pb-10`}
     >
       {children}
     </main>

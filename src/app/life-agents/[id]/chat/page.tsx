@@ -17,9 +17,7 @@ import {
   CHAT_SCROLL_SURFACE_CLASSNAME,
   getChatBubbleClassName,
 } from "@/lib/chat-glass";
-import { useEdgeSwipeBack } from "@/hooks/use-edge-swipe-back";
 import { useIsDesktop, useKeyboardViewport, chatInputFooterPaddingClass } from "@/hooks/use-keyboard-viewport";
-import { useMobileTouchNavEnabled } from "@/hooks/use-life-agents-feed-gestures";
 import { LIFE_AGENT_UNLIMITED_CHAT, lifeAgentShowsPurchaseUi } from "@/lib/life-agent-commerce";
 import {
   buildGrowthQuestion,
@@ -146,8 +144,6 @@ export default function LifeAgentChatPage() {
   const searchParams = useSearchParams();
   const { user } = useAuth();
   const id = params.id as string;
-  const touchNavEnabled = useMobileTouchNavEnabled();
-  useEdgeSwipeBack(touchNavEnabled);
   const initialRequestedSessionIdRef = useRef(searchParams.get("sessionId"));
   const initialPrefillRef = useRef(searchParams.get("prefill") ?? "");
   const viewportRef = useRef<HTMLDivElement | null>(null);
