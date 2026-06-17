@@ -47,12 +47,23 @@ export function openMobileDrawer(animated = true) {
 }
 
 export function closeMobileDrawer(animated = true) {
-  setMobileGestureState({
-    drawerOpen: false,
-    translateX: 0,
-    transitioning: animated,
-  });
-  if (animated) {
-    window.setTimeout(() => setMobileGestureState({ transitioning: false }), 280);
+  if (!animated) {
+    setMobileGestureState({
+      drawerOpen: false,
+      translateX: 0,
+      transitioning: false,
+    });
+    return;
   }
+  setMobileGestureState({
+    drawerOpen: true,
+    translateX: 0,
+    transitioning: true,
+  });
+  window.setTimeout(() => {
+    setMobileGestureState({
+      drawerOpen: false,
+      transitioning: false,
+    });
+  }, 280);
 }

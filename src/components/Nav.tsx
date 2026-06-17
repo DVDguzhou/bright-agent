@@ -457,8 +457,8 @@ export function Nav() {
     () => ({ translateX: 0, transitioning: false, drawerOpen: false }),
   );
   const drawerWidth = getDrawerWidth();
-  const drawerVisible = mobileGesture.translateX > 8;
-  const drawerOpen = mobileGesture.drawerOpen || mobileGesture.translateX >= drawerWidth * 0.92;
+  const showDrawerPanel = mobileGesture.drawerOpen;
+  const drawerOpen = mobileGesture.drawerOpen;
   const shellShiftStyle =
     touchNavEnabled && mobileGesture.translateX > 0
       ? {
@@ -994,22 +994,10 @@ export function Nav() {
       </motion.nav>
 
       {/* 手机+平板：底部导航栏；Agent 详情/聊天页有专用操作栏时隐藏 */}
-      {!isLifeAgentChatPage ? (
+      {showDrawerPanel && !isLifeAgentChatPage ? (
         <>
-          <button
-            type="button"
-            aria-label="关闭菜单"
-            className="fixed inset-0 z-[188] bg-ink/35 backdrop-blur-sm lg:hidden"
-            style={{
-              opacity: drawerVisible ? Math.min(0.42, (mobileGesture.translateX / drawerWidth) * 0.42) : 0,
-              pointerEvents: drawerVisible ? "auto" : "none",
-              transition: mobileGesture.transitioning ? "opacity 280ms ease" : "none",
-            }}
-            onClick={() => closeMobileDrawer(true)}
-          />
           <aside
-            className="fixed left-0 top-0 z-[187] flex h-[100dvh] w-[min(100vw,19rem)] flex-col border-r border-ink/10 bg-white/95 supports-[backdrop-filter]:backdrop-blur-xl lg:hidden"
-            aria-hidden={!drawerVisible}
+            className="fixed left-0 top-0 z-[200] flex h-[100dvh] w-[min(100vw,19rem)] flex-col border-r border-ink/10 bg-white/95 shadow-[18px_0_60px_rgba(17,21,19,0.16)] supports-[backdrop-filter]:backdrop-blur-xl lg:hidden"
           >
             <div className="flex items-center justify-between border-b border-ink/10 px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
               <span className="text-base font-semibold text-ink">菜单</span>
@@ -1116,6 +1104,19 @@ export function Nav() {
               )}
             </div>
           </aside>
+          <button
+            type="button"
+            aria-label="关闭菜单"
+            className="fixed top-0 bottom-0 right-0 z-[199] bg-ink/35 backdrop-blur-sm lg:hidden"
+            style={{
+              left: mobileGesture.translateX,
+              opacity: Math.min(0.42, (mobileGesture.translateX / drawerWidth) * 0.42),
+              transition: mobileGesture.transitioning
+                ? "opacity 280ms ease, left 280ms cubic-bezier(0.32, 0.72, 0, 1)"
+                : "none",
+            }}
+            onClick={() => closeMobileDrawer(true)}
+          />
         </>
       ) : null}
 

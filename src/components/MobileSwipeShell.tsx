@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import type { ReactNode } from "react";
 import { useSyncExternalStore } from "react";
 import { useMobileTouchNavEnabled } from "@/hooks/use-life-agents-feed-gestures";
@@ -7,12 +8,17 @@ import { useMobileEdgeGestures } from "@/hooks/use-mobile-edge-gestures";
 import {
   getDrawerWidth,
   getMobileGestureState,
+  setMobileGestureState,
   subscribeMobileGesture,
 } from "@/lib/mobile-gesture-store";
 
 export function MobileSwipeShell({ children }: { children: ReactNode }) {
   const touchNavEnabled = useMobileTouchNavEnabled();
   useMobileEdgeGestures(touchNavEnabled);
+
+  useEffect(() => {
+    setMobileGestureState({ translateX: 0, transitioning: false, drawerOpen: false });
+  }, []);
 
   const gesture = useSyncExternalStore(
     subscribeMobileGesture,
@@ -29,7 +35,7 @@ export function MobileSwipeShell({ children }: { children: ReactNode }) {
 
   return (
     <div
-      className="relative min-h-[100dvh] will-change-transform"
+      className="relative z-40 min-h-[100dvh] bg-[#f2f1ed] will-change-transform"
       style={{
         transform: shift > 0 ? `translateX(${shift}px)` : undefined,
         transition,
