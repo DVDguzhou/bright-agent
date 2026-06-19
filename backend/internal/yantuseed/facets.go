@@ -95,6 +95,62 @@ func corpusText(in ProfileFacetInput) string {
 	return strings.Join(parts, " ")
 }
 
+// contentCorpusText 用于路径推断的正文语料，不含 Audience 等模板话术（常含「保研、考研或升学深造」泛化描述）。
+func contentCorpusText(in ProfileFacetInput) string {
+	parts := []string{
+		in.DisplayName, in.Headline, in.ShortBio, in.LongBio, in.Job, in.School,
+	}
+	parts = append(parts, in.ExpertiseTags...)
+	parts = append(parts, in.SampleQuestions...)
+	return strings.Join(parts, " ")
+}
+
+// pathSignalCorpusText 用于核心路径（考研/求职/实习）推断，排除 LongBio 模板前缀，避免「升学就业经验Wiki」等误触。
+func pathSignalCorpusText(in ProfileFacetInput) string {
+	parts := []string{in.DisplayName, in.Headline, in.ShortBio, in.Job}
+	parts = append(parts, in.ExpertiseTags...)
+	parts = append(parts, in.SampleQuestions...)
+	return strings.Join(parts, " ")
+}
+
+func hasStrongKaoyanSignal(text string) bool {
+	return hasKeyword(text,
+		"408", "初试", "复试", "调剂", "二战",
+		"考研经验", "考研至", "考研→", "考研->",
+		"Sociology 考研", "考研上岸", "考研专业",
+	)
+}
+
+func isExplicitKaoyanContent(text string) bool {
+	if hasStrongKaoyanSignal(text) {
+		return true
+	}
+	if !hasKeyword(text, "考研") {
+		return false
+	}
+	// 排除样例问题里的泛化对比句（如「考研和保研怎么选择？」），不作为真实考研路径。
+	if hasKeyword(text, "考研和保研", "保研和考研", "考研或保研", "保研或考研") &&
+		!hasKeyword(text, "考研经验", "分享考研", "考研至", "考研→", "考研->", "初试", "408") {
+		return false
+	}
+	return true
+}
+
+func isPrimarilyBaoyanProfile(in ProfileFacetInput) bool {
+	signal := pathSignalCorpusText(in)
+	primary := strings.Join([]string{in.Headline, in.ShortBio}, " ")
+	if tags := strings.Join(in.ExpertiseTags, " "); tags != "" {
+		primary += " " + tags
+	}
+	if !hasKeyword(primary, "保研", "推免", "预推免", "夏令营") {
+		return false
+	}
+	if hasKeyword(primary, "实习", "转正", "就业经验", "分享就业", "秋招", "春招", "校招", "求职", "面试", "腾讯", "字节", "美团") {
+		return false
+	}
+	return !isExplicitKaoyanContent(signal)
+}
+
 func hasKeyword(text string, keywords ...string) bool {
 	for _, kw := range keywords {
 		if kw != "" && strings.Contains(text, kw) {
@@ -106,7 +162,8 @@ func hasKeyword(text string, keywords ...string) bool {
 
 // InferPathTags 推断路径轴标签（可多个，按优先级排序去重）。
 func InferPathTags(in ProfileFacetInput) []string {
-	text := corpusText(in)
+	content := contentCorpusText(in)
+	signal := pathSignalCorpusText(in)
 	existing := make(map[string]bool)
 	for _, t := range in.ExpertiseTags {
 		t = strings.TrimSpace(t)
@@ -130,38 +187,39 @@ func InferPathTags(in ProfileFacetInput) []string {
 		}
 		switch path {
 		case "考研":
-			if hasKeyword(text, "考研", "408", "初试", "复试", "调剂", "二战", "上岸", "备考") {
+			if isExplicitKaoyanContent(signal) ||
+				hasKeyword(signal, "408", "初试", "复试", "调剂", "二战", "上岸") {
 				existing["考研"] = true
 			}
 		case "留学":
-			if hasKeyword(text, "留学", "申请", "文书", "选校", "雅思", "托福", "GRE", "offer", "港校", "飞跃") {
+			if hasKeyword(content, "留学", "申请", "文书", "选校", "雅思", "托福", "GRE", "offer", "港校", "飞跃") {
 				existing["留学"] = true
 			}
 		case "找工作":
-			if hasKeyword(text, "找工作", "求职", "秋招", "春招", "校招", "面试", "简历", "offer", "大厂", "转行") {
+			if hasKeyword(signal, "找工作", "求职", "秋招", "春招", "校招", "面试", "简历", "offer", "大厂", "转行", "就业经验", "分享就业") {
 				existing["找工作"] = true
 			}
 		case "找实习":
-			if hasKeyword(text, "实习", "暑期实习", "日常实习") && !existing["找工作"] {
+			if hasKeyword(signal, "实习", "暑期实习", "日常实习") && !existing["找工作"] {
 				existing["找实习"] = true
 			}
-			if hasKeyword(text, "找实习") {
+			if hasKeyword(signal, "找实习") {
 				existing["找实习"] = true
 			}
 		case "创业":
-			if hasKeyword(text, "创业", "开店", "带货", "自媒体", "一人企业", "副业") {
+			if hasKeyword(signal, "创业", "开店", "带货", "自媒体", "一人企业", "副业") {
 				existing["创业"] = true
 			}
 		case "保研":
-			if hasKeyword(text, "保研", "推免", "夏令营", "预推免") {
+			if hasKeyword(content, "保研", "推免", "夏令营", "预推免") {
 				existing["保研"] = true
 			}
 		case "转专业":
-			if hasKeyword(text, "转专业", "转系", "换专业") {
+			if hasKeyword(content, "转专业", "转系", "换专业") {
 				existing["转专业"] = true
 			}
 		case "专升本":
-			if hasKeyword(text, "专升本", "3+2", "职高") {
+			if hasKeyword(content, "专升本", "3+2", "职高") {
 				existing["专升本"] = true
 			}
 		}
@@ -171,14 +229,20 @@ func InferPathTags(in ProfileFacetInput) []string {
 		add(p)
 	}
 
-	if hasKeyword(text, "升学深造") {
+	if hasKeyword(content, "升学深造") {
 		if !existing["考研"] && !existing["留学"] && !existing["保研"] {
-			if hasKeyword(text, "申请", "留学", "雅思", "托福", "港", "爱丁堡", "曼大", "墨大") {
+			if hasKeyword(content, "申请", "留学", "雅思", "托福", "港", "爱丁堡", "曼大", "墨大") {
 				existing["留学"] = true
-			} else if hasKeyword(text, "保研", "推免", "夏令营") {
+			} else if hasKeyword(content, "保研", "推免", "夏令营") {
 				existing["保研"] = true
 			}
 		}
+	}
+
+	if isPrimarilyBaoyanProfile(in) {
+		delete(existing, "考研")
+		delete(existing, "找工作")
+		delete(existing, "找实习")
 	}
 
 	out := make([]string, 0, len(existing))
@@ -188,7 +252,7 @@ func InferPathTags(in ProfileFacetInput) []string {
 		}
 	}
 	if len(out) == 0 {
-		if hasKeyword(text, "考研", "408", "上岸", "备考") {
+		if isExplicitKaoyanContent(signal) || hasKeyword(signal, "408", "上岸") {
 			out = append(out, "考研")
 		}
 	}

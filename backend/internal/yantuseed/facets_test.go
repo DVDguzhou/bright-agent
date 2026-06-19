@@ -139,3 +139,128 @@ func TestSortProfilesForDiscoverFeed(t *testing.T) {
 }
 
 func ptr(s string) *string { return &s }
+
+func seedFacetInputByDisplayName(t *testing.T, displayName string) ProfileFacetInput {
+	t.Helper()
+	for _, p := range Profiles() {
+		if p.DisplayName == displayName {
+			return profileFacetInputFromSeed(p)
+		}
+	}
+	t.Fatalf("seed profile %q not found", displayName)
+	return ProfileFacetInput{}
+}
+
+func pathsContain(paths []string, path string) bool {
+	for _, p := range paths {
+		if p == path {
+			return true
+		}
+	}
+	return false
+}
+
+func TestInferPathTags_baoyanSicnuSeedsNoFalseKaoyan(t *testing.T) {
+	names := []string{
+		"荔枝ii看电影", "银杏_萤火虫", "蘑菇_菠萝", "可可骑单车", "杨梅ii搬砖中",
+	}
+	for _, name := range names {
+		paths := InferPathTags(seedFacetInputByDisplayName(t, name))
+		if pathsContain(paths, "考研") {
+			t.Errorf("%s: should not infer 考研 from template/boilerplate, got %v", name, paths)
+		}
+		if !pathsContain(paths, "保研") {
+			t.Errorf("%s: expected 保研 path, got %v", name, paths)
+		}
+	}
+}
+
+func TestInferPathTags_realKaoyanSeedKeepsKaoyan(t *testing.T) {
+	paths := InferPathTags(seedFacetInputByDisplayName(t, "麻雀钓鱼中"))
+	if !pathsContain(paths, "考研") {
+		t.Fatalf("麻雀钓鱼中 should keep 考研, got %v", paths)
+	}
+}
+
+func TestInferPathTags_jobSeedKeepsInternship(t *testing.T) {
+	paths := InferPathTags(seedFacetInputByDisplayName(t, "蓝莓酱_草莓"))
+	if !pathsContain(paths, "找实习") && !pathsContain(paths, "找工作") {
+		t.Fatalf("蓝莓酱_草莓 should infer 找实习 or 找工作, got %v", paths)
+	}
+}
+
+func TestClassifyFeaturedTier_productionSeeds(t *testing.T) {
+	cases := []struct {
+		name string
+		want FeaturedTier
+	}{
+		{"荔枝ii看电影", FeaturedNone},
+		{"银杏_萤火虫", FeaturedNone},
+		{"蘑菇_菠萝", FeaturedNone},
+		{"可可骑单车", FeaturedNone},
+		{"蓝莓酱_草莓", FeaturedShuangfeiCore},
+		{"麻雀钓鱼中", FeaturedShuangfeiCore},
+		{"阳光的豆沙zzz", FeaturedShuangfeiAbroad},
+	}
+	for _, tc := range cases {
+		in := seedFacetInputByDisplayName(t, tc.name)
+		got := ClassifyFeaturedTier(in)
+		if got != tc.want {
+			t.Errorf("%s paths=%v tier=%v, want %v", tc.name, InferPathTags(in), got, tc.want)
+		}
+	}
+}
+
+func TestFeedICPHit_baoyanSicnuSeeds(t *testing.T) {
+	for _, name := range []string{"荔枝ii看电影", "蘑菇_菠萝", "银杏_萤火虫"} {
+		if FeedICPHit(seedFacetInputByDisplayName(t, name)) {
+			t.Errorf("%s: baoyan-only seed should not ICP hit", name)
+		}
+	}
+}
+
+func TestFeedICPHit_icpSeeds(t *testing.T) {
+	for _, name := range []string{"蓝莓酱_草莓", "麻雀钓鱼中", "阳光的豆沙zzz"} {
+		if !FeedICPHit(seedFacetInputByDisplayName(t, name)) {
+			t.Errorf("%s: should ICP hit", name)
+		}
+	}
+}
+
+func TestSelectJingpinFeatured_excludesBaoyanOnlySeeds(t *testing.T) {
+	baoyanOnly := map[string]bool{
+		"荔枝ii看电影": true,
+		"银杏_萤火虫": true,
+		"蘑菇_菠萝":  true,
+	}
+	var candidates []FeaturedCandidate
+	for _, p := range Profiles() {
+		in := profileFacetInputFromSeed(p)
+		tier := ClassifyFeaturedTier(in)
+		if tier == FeaturedNone {
+			continue
+		}
+		candidates = append(candidates, FeaturedCandidate{
+			ProfileID:   p.DisplayName,
+			DisplayName: p.DisplayName,
+			Tier:        tier,
+			UpdatedAt:   time.Now(),
+		})
+	}
+	selected, _ := SelectJingpinFeatured(candidates, 8)
+	for _, c := range selected {
+		if baoyanOnly[c.DisplayName] {
+			t.Errorf("jingpin selected baoyan-only profile %q", c.DisplayName)
+		}
+	}
+}
+
+func TestMergeAxisExpertiseTags_baoyanSeedNoKaoyanAxis(t *testing.T) {
+	in := seedFacetInputByDisplayName(t, "荔枝ii看电影")
+	out := MergeAxisExpertiseTags(in.ExpertiseTags, in)
+	for _, tag := range out {
+		if tag == AxisPathPrefix+"考研" {
+			t.Fatalf("baoyan seed should not get 路径:考研, got %v", out)
+		}
+	}
+}
