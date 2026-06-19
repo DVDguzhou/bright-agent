@@ -1,6 +1,7 @@
 package yantuseed
 
 import (
+	"fmt"
 	"sort"
 	"strings"
 	"time"
@@ -321,18 +322,27 @@ func FeedICPHit(in ProfileFacetInput) bool {
 	return hasCorePath(pathSetFrom(in))
 }
 
+// DiscoverFeedSeedOrderSQL 同 ICP/精选档位内的 seeded 随机（与 collection 列表 MD5 语义一致）。
+func DiscoverFeedSeedOrderSQL(seed int) string {
+	if seed < 0 {
+		seed = 0
+	}
+	return fmt.Sprintf("MD5(CONCAT(%d, id))", seed)
+}
+
 // DiscoverFeedOrderClauses 主 feed（发现列表）ORDER BY 子句，与 handler 共用。
-func DiscoverFeedOrderClauses() []string {
+// 优先级：ICP 命中 → jingpin featured_rank → 同档内 seed 随机 → id 稳定 tiebreak。
+func DiscoverFeedOrderClauses(seed int) []string {
 	return []string{
 		DiscoverFeedICPOrderSQL,
 		"featured_rank IS NULL ASC",
 		"featured_rank ASC",
-		"updated_at DESC",
-		"id DESC",
+		DiscoverFeedSeedOrderSQL(seed),
+		"id ASC",
 	}
 }
 
-// DiscoverFeedLess 主 feed 排序比较（与 SQL ORDER BY 语义一致）。
+// DiscoverFeedLess 主 feed 排序比较（dry-run 预览；线上同档内用 seed+MD5 随机，此处用 updatedAt 近似）。
 func DiscoverFeedLess(aIn ProfileFacetInput, aRank *int, aUpdated time.Time, aID string,
 	bIn ProfileFacetInput, bRank *int, bUpdated time.Time, bID string) bool {
 	aICP, bICP := FeedICPHit(aIn), FeedICPHit(bIn)

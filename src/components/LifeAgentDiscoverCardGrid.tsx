@@ -194,15 +194,13 @@ function LifeAgentDiscoverCard({
             ) : null}
           </div>
 
-          {/* Expertise tags — first tag uses brand accent */}
+          {/* Expertise tags */}
           {expertiseTagsShown.length > 0 ? (
             <div className="mt-1 flex flex-wrap gap-1">
-              {expertiseTagsShown.map((tag, i) => (
+              {expertiseTagsShown.map((tag) => (
                 <span
                   key={tag}
-                  className={`rounded-sm px-1.5 py-0.5 text-[10px] font-medium leading-none ${
-                    i === 0 ? "bg-signal-50 text-signal-600" : "bg-paper-200 text-ink-400"
-                  }`}
+                  className="rounded-sm bg-signal-50 px-1.5 py-0.5 text-[10px] font-medium leading-none text-signal-600"
                 >
                   {tag}
                 </span>

@@ -1,6 +1,7 @@
 package yantuseed
 
 import (
+	"strings"
 	"testing"
 	"time"
 
@@ -102,6 +103,16 @@ func TestSelectJingpinFeaturedRespectsMax(t *testing.T) {
 	selected, _ := SelectJingpinFeatured(pool, 5)
 	if len(selected) != 5 {
 		t.Fatalf("expected max 5, got %d", len(selected))
+	}
+}
+
+func TestDiscoverFeedOrderClauses_includesSeededShuffle(t *testing.T) {
+	clauses := DiscoverFeedOrderClauses(42)
+	if len(clauses) < 4 {
+		t.Fatalf("expected order clauses, got %v", clauses)
+	}
+	if !strings.Contains(clauses[3], "MD5(CONCAT(42, id))") {
+		t.Fatalf("expected seeded shuffle, got %q", clauses[3])
 	}
 }
 
