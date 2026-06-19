@@ -1,10 +1,13 @@
-// rebalance-jingpin：按「双非及同档 × 考研/求职」主滩头策略重排 jingpin 精选、打轴标签、预览主 feed 排序。
+// rebalance-jingpin：按 ICP 规则重打轴标签、预览主 feed 排序。
+// jingpin 精选成员由 scripts/set-jingpin.sh（set-featured）维护，本脚本 -apply 只写 expertise_tags，不改 featured。
 //
 // 用法（backend 目录）：
 //
-//	go run ./cmd/rebalance-jingpin              # dry-run，输出三张清单
-//	go run ./cmd/rebalance-jingpin -apply       # 写库（全部保持 published=true）
+//	go run ./cmd/rebalance-jingpin              # dry-run，输出标签矩阵 + feed 预览
+//	go run ./cmd/rebalance-jingpin -apply       # 写库（仅 tags + published，不动 jingpin 精选位）
 //	go run ./cmd/rebalance-jingpin -out report.json
+//
+// 恢复编辑精选：bash scripts/set-jingpin.sh -apply
 package main
 
 import (
@@ -117,10 +120,6 @@ func main() {
 	}
 
 	selected, gap := yantuseed.SelectJingpinFeatured(candidates, *maxFeatured)
-	selectedIDs := make(map[string]int, len(selected))
-	for i, c := range selected {
-		selectedIDs[c.ProfileID] = i + 1
-	}
 
 	rep := report{
 		Featured:  make([]featuredRow, 0, len(selected)),
@@ -191,25 +190,14 @@ func main() {
 	}
 
 	if !*apply {
-		fmt.Println("\n[dry-run] 加 -apply 写库")
+		fmt.Println("\n[dry-run] 加 -apply 写库（仅 expertise_tags；jingpin 用 scripts/set-jingpin.sh）")
 		return
 	}
 
-	jingpin := yantuseed.JingpinCollection
 	for _, p := range profiles {
 		updates := map[string]interface{}{
 			"expertise_tags": models.JSONArray(tagsByID[p.ID]),
 			"published":      true,
-		}
-
-		if rank, ok := selectedIDs[p.ID]; ok {
-			updates["featured_rank"] = rank
-			updates["featured_collection"] = jingpin
-		} else {
-			updates["featured_rank"] = nil
-			if p.FeaturedCollection != nil && *p.FeaturedCollection == jingpin {
-				updates["featured_collection"] = nil
-			}
 		}
 
 		if err := db.DB.Model(&models.LifeAgentProfile{}).Where("id = ?", p.ID).Updates(updates).Error; err != nil {
@@ -237,7 +225,7 @@ func identityPrefixed(identity string) string {
 }
 
 func printReport(rep report) {
-	fmt.Println("========== ① 进精选（jingpin）==========")
+	fmt.Println("========== ① 算法精选预览（不写库；线上 jingpin 用 scripts/set-jingpin.sh）==========")
 	if len(rep.Featured) == 0 {
 		fmt.Println("（无）")
 	} else {
