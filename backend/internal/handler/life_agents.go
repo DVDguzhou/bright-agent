@@ -804,9 +804,12 @@ func lifeAgentListResponseItems(profiles []models.LifeAgentProfile, cfg *config.
 	return resp
 }
 
-// globalFeaturedFirstSQL 把"全站精选"（设置了 featured_rank 且不属于任何合集）排到最前。
-// 合集成员（featured_collection 非空）不污染主广场首屏，只在各自合集内置顶。
-const globalFeaturedFirstSQL = "CASE WHEN featured_rank IS NOT NULL AND featured_collection IS NULL THEN 0 ELSE 1 END ASC"
+func orderDiscoverFeed(q *gorm.DB) *gorm.DB {
+	for _, clause := range yantuseed.DiscoverFeedOrderClauses() {
+		q = q.Order(clause)
+	}
+	return q
+}
 
 func LifeAgentsList(cfg *config.Config) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -820,10 +823,10 @@ func LifeAgentsList(cfg *config.Config) gin.HandlerFunc {
 				q = q.Where("featured_collection = ?", collection).
 					Order("featured_rank IS NULL ASC").Order("featured_rank ASC")
 			} else {
-				q = q.Order(globalFeaturedFirstSQL).Order("featured_rank ASC")
+				q = orderDiscoverFeed(q)
 			}
 			var profiles []models.LifeAgentProfile
-			if err := q.Order("updated_at DESC").Order("id DESC").Find(&profiles).Error; err != nil {
+			if err := q.Find(&profiles).Error; err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "INTERNAL_ERROR"})
 				return
 			}
@@ -854,20 +857,19 @@ func LifeAgentsList(cfg *config.Config) gin.HandlerFunc {
 				}
 			}
 
-			// Use fmt.Sprintf with validated integer to avoid GORM ORDER BY param-binding issues.
-			orderSQL := fmt.Sprintf("MD5(CONCAT(%d, id))", seed)
 			q := db.DB.Where("published = ?", true)
 			if collection != "" {
 				// 合集内：先按 featured_rank 置顶，再 seeded 随机
+				orderSQL := fmt.Sprintf("MD5(CONCAT(%d, id))", seed)
 				q = q.Where("featured_collection = ?", collection).
-					Order("featured_rank IS NULL ASC").Order("featured_rank ASC")
+					Order("featured_rank IS NULL ASC").Order("featured_rank ASC").
+					Order(orderSQL)
 			} else {
-				// 主广场：全站精选浮到首屏，其余维持 seeded 随机曝光
-				q = q.Order(globalFeaturedFirstSQL).Order("featured_rank ASC")
+				// 主 feed：ICP 命中 + featured_rank + updated_at（不再 seeded 随机）
+				q = orderDiscoverFeed(q)
 			}
 			var profiles []models.LifeAgentProfile
 			if err := q.
-				Order(orderSQL).
 				Offset(offset).
 				Limit(limit + 1).
 				Find(&profiles).Error; err != nil {
@@ -903,7 +905,12 @@ func LifeAgentsList(cfg *config.Config) gin.HandlerFunc {
 		}
 
 		var profiles []models.LifeAgentProfile
-		if err := q.Order("updated_at DESC").Order("id DESC").Limit(limit + 1).Find(&profiles).Error; err != nil {
+		if collection != "" {
+			q = q.Order("featured_rank IS NULL ASC").Order("featured_rank ASC").Order("updated_at DESC").Order("id DESC")
+		} else {
+			q = orderDiscoverFeed(q)
+		}
+		if err := q.Limit(limit + 1).Find(&profiles).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "INTERNAL_ERROR"})
 			return
 		}

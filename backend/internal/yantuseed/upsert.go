@@ -131,21 +131,8 @@ func expertiseTagsFor(p Profile) models.JSONArray {
 		base = []string{"考研", "计算机考研", "备考经验", "温州大学"}
 	}
 	base = filterHiddenTags(base)
-	tierTags := schoolTierTags(p.School)
-	if len(tierTags) == 0 {
-		return models.JSONArray(base)
-	}
-	existing := make(map[string]bool, len(base))
-	for _, t := range base {
-		existing[t] = true
-	}
-	merged := append([]string{}, base...)
-	for _, t := range tierTags {
-		if !existing[t] {
-			merged = append(merged, t)
-		}
-	}
-	return models.JSONArray(merged)
+	in := profileFacetInputFromSeed(p)
+	return models.JSONArray(MergeAxisExpertiseTags(base, in))
 }
 
 func sampleQuestionsFor(p Profile) models.JSONArray {
