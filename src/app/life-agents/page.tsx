@@ -370,6 +370,8 @@ function LifeAgentsPageContent() {
   discoverItemsRef.current = discoverItems;
 
   const discoverSeedRef = useRef((Math.random() * 2147483647) | 0);
+  /** 首次加载 feed 置顶精选；下拉刷新后改为随机发现（排除 jingpin） */
+  const discoverFeaturedFirstRef = useRef(true);
   const featuredSeedRef = useRef((Math.random() * 2147483647) | 0);
   const [featuredItems, setFeaturedItems] = useState<LifeAgentListItem[]>([]);
   const [featuredLoading, setFeaturedLoading] = useState(true);
@@ -627,12 +629,15 @@ function LifeAgentsPageContent() {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 15000);
     discoverSeedRef.current = (Math.random() * 2147483647) | 0;
+    discoverFeaturedFirstRef.current = false;
     const seed = discoverSeedRef.current;
     setLoadError(null);
     setDiscoverLoading(true);
     setDiscoverItems([]);
     setDiscoverNextCursor(null);
-    return fetchLifeAgentsPage(48, undefined, controller.signal, seed)
+    return fetchLifeAgentsPage(48, undefined, controller.signal, seed, {
+      excludeCollection: FEATURED_COLLECTION,
+    })
       .then(({ items, nextCursor }) => {
         setDiscoverItems(items);
         setDiscoverNextCursor(nextCursor || null);
@@ -699,7 +704,10 @@ function LifeAgentsPageContent() {
     const seed = discoverSeedRef.current;
     setLoadError(null);
     setDiscoverLoading(true);
-    fetchLifeAgentsPage(48, undefined, controller.signal, seed)
+    fetchLifeAgentsPage(48, undefined, controller.signal, seed, {
+      featuredFirst: discoverFeaturedFirstRef.current,
+      excludeCollection: discoverFeaturedFirstRef.current ? undefined : FEATURED_COLLECTION,
+    })
       .then(({ items, nextCursor }) => {
         setDiscoverItems(items);
         setDiscoverNextCursor(nextCursor || null);
@@ -755,7 +763,10 @@ function LifeAgentsPageContent() {
     setDiscoverLoadingMore(true);
     try {
       const { items, nextCursor } = await fetchLifeAgentsPage(
-        48, discoverNextCursor, undefined, discoverSeedRef.current,
+        48, discoverNextCursor, undefined, discoverSeedRef.current, {
+          featuredFirst: discoverFeaturedFirstRef.current,
+          excludeCollection: discoverFeaturedFirstRef.current ? undefined : FEATURED_COLLECTION,
+        },
       );
       setDiscoverItems((prev) => {
         const seen = new Set(prev.map((p) => p.id));

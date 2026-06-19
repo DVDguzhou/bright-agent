@@ -804,9 +804,25 @@ func lifeAgentListResponseItems(profiles []models.LifeAgentProfile, cfg *config.
 	return resp
 }
 
-func orderDiscoverFeed(q *gorm.DB, seed int) *gorm.DB {
-	for _, clause := range yantuseed.DiscoverFeedOrderClauses(seed) {
+func orderDiscoverFeed(q *gorm.DB, seed int, featuredFirst bool) *gorm.DB {
+	for _, clause := range yantuseed.DiscoverFeedOrderClauses(seed, featuredFirst) {
 		q = q.Order(clause)
+	}
+	return q
+}
+
+func discoverFeedFeaturedFirst(c *gin.Context) bool {
+	switch strings.ToLower(strings.TrimSpace(c.Query("featuredFirst"))) {
+	case "1", "true", "yes":
+		return true
+	default:
+		return false
+	}
+}
+
+func applyDiscoverFeedFilters(q *gorm.DB, c *gin.Context) *gorm.DB {
+	if ex := strings.TrimSpace(c.Query("excludeCollection")); ex != "" {
+		q = q.Where("(featured_collection IS NULL OR featured_collection <> ?)", ex)
 	}
 	return q
 }
@@ -823,7 +839,8 @@ func LifeAgentsList(cfg *config.Config) gin.HandlerFunc {
 				q = q.Where("featured_collection = ?", collection).
 					Order("featured_rank IS NULL ASC").Order("featured_rank ASC")
 			} else {
-				q = orderDiscoverFeed(q, 0)
+				q = applyDiscoverFeedFilters(q, c)
+				q = orderDiscoverFeed(q, 0, discoverFeedFeaturedFirst(c))
 			}
 			var profiles []models.LifeAgentProfile
 			if err := q.Find(&profiles).Error; err != nil {
@@ -865,8 +882,8 @@ func LifeAgentsList(cfg *config.Config) gin.HandlerFunc {
 					Order("featured_rank IS NULL ASC").Order("featured_rank ASC").
 					Order(orderSQL)
 			} else {
-				// 主 feed：ICP → featured_rank → 同档 seed 随机
-				q = orderDiscoverFeed(q, seed)
+				q = applyDiscoverFeedFilters(q, c)
+				q = orderDiscoverFeed(q, seed, discoverFeedFeaturedFirst(c))
 			}
 			var profiles []models.LifeAgentProfile
 			if err := q.
@@ -908,7 +925,8 @@ func LifeAgentsList(cfg *config.Config) gin.HandlerFunc {
 		if collection != "" {
 			q = q.Order("featured_rank IS NULL ASC").Order("featured_rank ASC").Order("updated_at DESC").Order("id DESC")
 		} else {
-			q = orderDiscoverFeed(q, 0)
+			q = applyDiscoverFeedFilters(q, c)
+			q = orderDiscoverFeed(q, 0, discoverFeedFeaturedFirst(c))
 		}
 		if err := q.Limit(limit + 1).Find(&profiles).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "INTERNAL_ERROR"})

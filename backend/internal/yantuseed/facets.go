@@ -330,16 +330,14 @@ func DiscoverFeedSeedOrderSQL(seed int) string {
 	return fmt.Sprintf("MD5(CONCAT(%d, id))", seed)
 }
 
-// DiscoverFeedOrderClauses 主 feed（发现列表）ORDER BY 子句，与 handler 共用。
-// 优先级：ICP 命中 → jingpin featured_rank → 同档内 seed 随机 → id 稳定 tiebreak。
-func DiscoverFeedOrderClauses(seed int) []string {
-	return []string{
-		DiscoverFeedICPOrderSQL,
-		"featured_rank IS NULL ASC",
-		"featured_rank ASC",
-		DiscoverFeedSeedOrderSQL(seed),
-		"id ASC",
+// DiscoverFeedOrderClauses 主 feed ORDER BY。featuredFirst 为 true 时 jingpin rank 置顶。
+func DiscoverFeedOrderClauses(seed int, featuredFirst bool) []string {
+	clauses := []string{DiscoverFeedICPOrderSQL}
+	if featuredFirst {
+		clauses = append(clauses, "featured_rank IS NULL ASC", "featured_rank ASC")
 	}
+	clauses = append(clauses, DiscoverFeedSeedOrderSQL(seed), "id ASC")
+	return clauses
 }
 
 // DiscoverFeedLess 主 feed 排序比较（dry-run 预览；线上同档内用 seed+MD5 随机，此处用 updatedAt 近似）。

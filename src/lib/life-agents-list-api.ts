@@ -107,14 +107,28 @@ export function parsePublishedLifeAgentsPayload(data: unknown): LifeAgentListIte
   return [];
 }
 
+export type FetchLifeAgentsPageOptions = {
+  /** 首次进发现页：jingpin featured_rank 置顶 */
+  featuredFirst?: boolean;
+  /** 下拉刷新后：排除某合集成员（如 jingpin） */
+  excludeCollection?: string;
+};
+
 export async function fetchLifeAgentsPage(
   limit: number,
   cursor: string | undefined,
   signal?: AbortSignal,
   seed?: number,
+  options?: FetchLifeAgentsPageOptions,
 ): Promise<{ items: LifeAgentListItem[]; nextCursor: string }> {
   const params = new URLSearchParams();
   params.set("limit", String(limit));
+  if (options?.featuredFirst) {
+    params.set("featuredFirst", "1");
+  }
+  if (options?.excludeCollection) {
+    params.set("excludeCollection", options.excludeCollection);
+  }
   if (seed != null) {
     params.set("seed", String(seed));
     if (cursor) {

@@ -107,12 +107,16 @@ func TestSelectJingpinFeaturedRespectsMax(t *testing.T) {
 }
 
 func TestDiscoverFeedOrderClauses_includesSeededShuffle(t *testing.T) {
-	clauses := DiscoverFeedOrderClauses(42)
-	if len(clauses) < 4 {
+	clauses := DiscoverFeedOrderClauses(42, false)
+	if len(clauses) < 3 {
 		t.Fatalf("expected order clauses, got %v", clauses)
 	}
-	if !strings.Contains(clauses[3], "MD5(CONCAT(42, id))") {
-		t.Fatalf("expected seeded shuffle, got %q", clauses[3])
+	if !strings.Contains(clauses[1], "MD5(CONCAT(42, id))") {
+		t.Fatalf("expected seeded shuffle, got %q", clauses[1])
+	}
+	featured := DiscoverFeedOrderClauses(42, true)
+	if len(featured) != len(clauses)+2 {
+		t.Fatalf("featuredFirst should add rank clauses, got %v vs %v", featured, clauses)
 	}
 }
 
