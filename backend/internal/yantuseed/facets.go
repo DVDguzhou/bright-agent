@@ -100,7 +100,7 @@ func contentCorpusText(in ProfileFacetInput) string {
 	parts := []string{
 		in.DisplayName, in.Headline, in.ShortBio, in.LongBio, in.Job, in.School,
 	}
-	parts = append(parts, in.ExpertiseTags...)
+	parts = append(parts, stripAxisTags(in.ExpertiseTags)...)
 	parts = append(parts, in.SampleQuestions...)
 	return strings.Join(parts, " ")
 }
@@ -108,7 +108,7 @@ func contentCorpusText(in ProfileFacetInput) string {
 // pathSignalCorpusText 用于核心路径（考研/求职/实习）推断，排除 LongBio 模板前缀，避免「升学就业经验Wiki」等误触。
 func pathSignalCorpusText(in ProfileFacetInput) string {
 	parts := []string{in.DisplayName, in.Headline, in.ShortBio, in.Job}
-	parts = append(parts, in.ExpertiseTags...)
+	parts = append(parts, stripAxisTags(in.ExpertiseTags)...)
 	parts = append(parts, in.SampleQuestions...)
 	return strings.Join(parts, " ")
 }
@@ -167,11 +167,7 @@ func InferPathTags(in ProfileFacetInput) []string {
 	existing := make(map[string]bool)
 	for _, t := range in.ExpertiseTags {
 		t = strings.TrimSpace(t)
-		if t == "" {
-			continue
-		}
-		if strings.HasPrefix(t, AxisPathPrefix) {
-			existing[strings.TrimPrefix(t, AxisPathPrefix)] = true
+		if t == "" || strings.HasPrefix(t, AxisPathPrefix) || strings.HasPrefix(t, AxisIdentityPrefix) {
 			continue
 		}
 		for _, p := range allPathKeys {

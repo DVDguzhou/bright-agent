@@ -255,6 +255,31 @@ func TestSelectJingpinFeatured_excludesBaoyanOnlySeeds(t *testing.T) {
 	}
 }
 
+func TestInferPathTags_ignoresStaleAxisTagsFromDB(t *testing.T) {
+	in := ProfileFacetInputFromModel(models.LifeAgentProfile{
+		DisplayName: "荔枝ii看电影",
+		Headline:    "荔枝ii看电影 · 物理与电子工程学院电子信息",
+		School:      ptr("四川师范大学"),
+		ShortBio:    "四川师范大学电子信息专业，**电子科技大学-电子信息**，分享学业规划、竞赛科研与保研历程。",
+		LongBio:     "本文来自四川师范大学升学就业经验Wiki…",
+		ExpertiseTags: models.JSONArray{
+			"路径:考研", "路径:找工作", "路径:保研", "身份:双非",
+			"保研", "升学深造", "四川师范大学", "电子信息",
+		},
+		SampleQuestions: models.JSONArray{
+			"保研综成绩绩点和量化占比多少？",
+			"竞赛加分国一国二各加几分？",
+		},
+	})
+	paths := InferPathTags(in)
+	if pathsContain(paths, "考研") || pathsContain(paths, "找工作") {
+		t.Fatalf("stale DB axis tags must not be re-used, got %v", paths)
+	}
+	if ClassifyFeaturedTier(in) != FeaturedNone {
+		t.Fatalf("荔枝 with stale tags should not enter jingpin, tier=%v", ClassifyFeaturedTier(in))
+	}
+}
+
 func TestMergeAxisExpertiseTags_baoyanSeedNoKaoyanAxis(t *testing.T) {
 	in := seedFacetInputByDisplayName(t, "荔枝ii看电影")
 	out := MergeAxisExpertiseTags(in.ExpertiseTags, in)
