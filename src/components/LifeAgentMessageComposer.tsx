@@ -87,7 +87,7 @@ export function LifeAgentMessageComposer({
               onCloseMorePanel?.();
               onTextareaFocus?.();
             }}
-            className="max-h-32 min-h-[36px] w-full min-w-0 flex-1 resize-none border-0 bg-transparent py-2 text-[15px] leading-5 text-ink outline-none placeholder:text-ink-300"
+            className="max-h-32 min-h-[36px] w-full min-w-0 flex-1 resize-none border-0 bg-transparent py-2 text-base leading-5 text-ink outline-none focus:outline-none focus-visible:outline-none placeholder:text-ink-300 sm:text-[15px]"
             value={value}
             onChange={(e) => {
               onChange(e.target.value);

@@ -13,7 +13,8 @@ const {
   lifeAgentShowsPurchaseUi,
   LIFE_AGENT_UNLIMITED_CHAT,
 } = require("../../utils/commerce");
-const voice = require("../../utils/voice");
+/** 输入框与键盘顶部的间距（px） */
+const KEYBOARD_GAP = 28;
 
 const FEEDBACK_LABELS = {
   helpful: "有帮助",
@@ -112,8 +113,7 @@ Page({
     feedbackModalIndex: -1,
     feedbackModalType: "",
     feedbackModalSubmitting: false,
-    voiceRecording: false,
-    voiceTranscribing: false,
+    keyboardPad: 0,
   },
 
   onLoad(options) {
@@ -134,28 +134,28 @@ Page({
     this.syncUser();
     this.loadProfile(sessionId);
 
-    voice.bindRecorderEvents({
-      onStart: () => {
-        this.setData({ voiceRecording: true });
-      },
-      onStop: (res) => {
-        this.onVoiceRecorded(res);
-      },
-      onError: () => {
-        this._voicePressed = false;
-        this.setData({ voiceRecording: false, voiceTranscribing: false });
-        wx.showToast({ title: "录音失败", icon: "none" });
-      },
-    });
+    this._onKeyboardHeight = (res) => {
+      const h = res && res.height ? res.height : 0;
+      this.setData({
+        keyboardPad: h > 0 ? h + KEYBOARD_GAP : 0,
+      });
+      if (h > 0) {
+        this.scheduleScrollBottom();
+      }
+    };
+    wx.onKeyboardHeightChange(this._onKeyboardHeight);
   },
 
   onUnload() {
-    voice.stopRecording();
-    this._voicePressed = false;
+    if (this._onKeyboardHeight) {
+      wx.offKeyboardHeightChange(this._onKeyboardHeight);
+    }
+    if (this._scrollTimer) {
+      clearTimeout(this._scrollTimer);
+    }
   },
 
   onShow() {
-    voice.refreshRecordPermission();
     const app = getApp();
     if (app && typeof app.refreshUser === "function") {
       app.refreshUser().finally(() => this.syncUser());
@@ -225,9 +225,6 @@ Page({
         });
 
         if (!viewer.isLoggedIn) return;
-
-        voice.refreshRecordPermission();
-        voice.requestRecordPermission().catch(function () {});
 
         this.bootstrapSessions(initialSessionId, welcome);
       })
@@ -635,74 +632,20 @@ Page({
 
   noop() {},
 
-  onVoiceTouch(e) {
-    const type = (e && e.type) || "";
-    if (type === "touchstart") {
-      if (
-        this.data.sending ||
-        this.data.voiceTranscribing ||
-        this.data.sessionLoading ||
-        this.data.profileLoading
-      ) {
-        return;
-      }
-      if (!this.data.isLoggedIn) {
-        this.goLogin();
-        return;
-      }
-      this._voiceDidStart = false;
-      if (!voice.isRecordReady()) {
-        voice
-          .requestRecordPermission()
-          .then(function () {
-            wx.showToast({ title: "请再次按住说话", icon: "none" });
-          })
-          .catch(function () {});
-        return;
-      }
-      this._voicePressed = true;
-      if (!voice.beginRecordingSync()) {
-        this._voicePressed = false;
-        wx.showToast({ title: "无法启动录音", icon: "none" });
-      }
-      return;
+  scheduleScrollBottom() {
+    if (this._scrollTimer) {
+      clearTimeout(this._scrollTimer);
     }
-    if (type === "touchend" || type === "touchcancel") {
-      if (!this._voicePressed && !this.data.voiceRecording) return;
-      this._voicePressed = false;
-      if (this.data.voiceRecording) {
-        this._voiceDidStart = true;
-        voice.stopRecording();
+    this._scrollTimer = setTimeout(() => {
+      const msgs = this.data.messages;
+      if (msgs.length > 0) {
+        this.setData({ scrollTo: "msg-" + (msgs.length - 1) });
       }
-    }
+    }, 80);
   },
 
-  onVoiceTapHint() {
-    if (this._voiceDidStart || this.data.voiceRecording || this.data.voiceTranscribing) {
-      return;
-    }
-    wx.showToast({ title: "按住说话，松开发送", icon: "none" });
-  },
-
-  onVoiceRecorded(res) {
-    this.setData({ voiceRecording: false, voiceTranscribing: true });
-    voice
-      .transcribe(res.tempFilePath, res.fileSize)
-      .then((text) => {
-        this.setData({ voiceTranscribing: false });
-        this.sendWithText(text);
-      })
-      .catch((err) => {
-        this.setData({ voiceTranscribing: false });
-        if (err && err.code === 401) {
-          this.goLogin();
-          return;
-        }
-        wx.showToast({
-          title: (err && err.message) || "语音识别失败",
-          icon: "none",
-        });
-      });
+  onInputFocus() {
+    this.scheduleScrollBottom();
   },
 
   onComposerMore() {

@@ -1,4 +1,7 @@
-<view class="page">
+<view
+  class="page"
+  style="{{keyboardPad ? 'padding-bottom: ' + keyboardPad + 'px' : ''}}"
+>
   <view class="status-bar" style="height: {{statusBarHeight}}px"></view>
   <view class="header" style="height: {{navBarHeight}}px;">
     <view class="header-btn" bindtap="goBack">
@@ -133,27 +136,24 @@
 
   <view wx:if="{{error}}" class="error-bar">{{error}}</view>
 
-  <view class="composer-footer">
+  <view class="composer-footer {{keyboardPad ? 'composer-footer--keyboard' : ''}}">
     <view class="composer-pill">
-      <view
-        class="composer-icon-btn {{voiceRecording ? 'voice-active' : ''}} {{voiceTranscribing ? 'voice-busy' : ''}}"
-        catchtouchstart="onVoiceTouch"
-        catchtouchend="onVoiceTouch"
-        catchtouchcancel="onVoiceTouch"
-        catchtap="onVoiceTapHint"
-      >
-        <view class="icon-mic {{voiceRecording ? 'icon-mic-active' : ''}}"></view>
+      <view class="composer-field-wrap">
+        <input
+          class="composer-field"
+          placeholder="发消息..."
+          placeholder-class="composer-placeholder"
+          value="{{input}}"
+          bindinput="onInput"
+          bindfocus="onInputFocus"
+          confirm-type="send"
+          bindconfirm="send"
+          disabled="{{sending || sessionLoading || profileLoading}}"
+          adjust-position="{{false}}"
+          always-embed="{{true}}"
+          hold-keyboard="{{false}}"
+        ></input>
       </view>
-      <input
-        class="composer-field"
-        placeholder="发消息..."
-        value="{{input}}"
-        bindinput="onInput"
-        confirm-type="send"
-        bindconfirm="send"
-        disabled="{{sending || sessionLoading || profileLoading}}"
-        adjust-position="{{true}}"
-      ></input>
       <view class="composer-icon-btn" bindtap="onComposerMore">
         <view class="icon-plus"></view>
       </view>

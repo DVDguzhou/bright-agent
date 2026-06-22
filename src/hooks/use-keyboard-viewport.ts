@@ -13,6 +13,14 @@ export type ViewportBox = {
 /** 键盘占用超过此阈值（px）才认为 visualViewport 已正确反映键盘高度 */
 const KEYBOARD_INSET_THRESHOLD = 50;
 
+/** 输入栏与键盘顶部的间距（px），与小程序 chat 页 KEYBOARD_GAP 对齐 */
+export const CHAT_KEYBOARD_GAP = 28;
+
+function applyKeyboardGap(height: number, keyboardVisible: boolean): number {
+  if (!keyboardVisible) return height;
+  return Math.max(0, height - CHAT_KEYBOARD_GAP);
+}
+
 function measureViewport(nativeKeyboardInset: number): ViewportBox {
   if (typeof window === "undefined") {
     return { height: 0, offsetTop: 0, keyboardVisible: false };
@@ -24,7 +32,7 @@ function measureViewport(nativeKeyboardInset: number): ViewportBox {
   if (!vv) {
     const keyboardVisible = nativeKeyboardInset > 0;
     const height = keyboardVisible
-      ? Math.max(0, layoutHeight - nativeKeyboardInset)
+      ? applyKeyboardGap(Math.max(0, layoutHeight - nativeKeyboardInset), true)
       : layoutHeight;
     return { height, offsetTop: 0, keyboardVisible };
   }
@@ -35,12 +43,16 @@ function measureViewport(nativeKeyboardInset: number): ViewportBox {
   const keyboardVisible = nativeKeyboardInset > 0 || insetFromVv >= KEYBOARD_INSET_THRESHOLD;
 
   if (insetFromVv >= KEYBOARD_INSET_THRESHOLD) {
-    return { height: vvHeight, offsetTop: vvOffsetTop, keyboardVisible };
+    return {
+      height: applyKeyboardGap(vvHeight, true),
+      offsetTop: vvOffsetTop,
+      keyboardVisible: true,
+    };
   }
 
   if (nativeKeyboardInset > 0) {
     return {
-      height: Math.max(0, layoutHeight - nativeKeyboardInset),
+      height: applyKeyboardGap(Math.max(0, layoutHeight - nativeKeyboardInset), true),
       offsetTop: 0,
       keyboardVisible: true,
     };
@@ -49,9 +61,9 @@ function measureViewport(nativeKeyboardInset: number): ViewportBox {
   return { height: vvHeight, offsetTop: vvOffsetTop, keyboardVisible: false };
 }
 
-/** 聊天输入栏底边距：键盘弹起时去掉 safe-area，避免与键盘之间出现空隙 */
+/** 聊天输入栏底边距：键盘弹起时保留少量内边距；未弹起时用 safe-area */
 export function chatInputFooterPaddingClass(keyboardVisible: boolean): string {
-  return keyboardVisible ? "pb-0.5" : "pb-[max(0.75rem,env(safe-area-inset-bottom))]";
+  return keyboardVisible ? "pb-2" : "pb-[max(0.75rem,env(safe-area-inset-bottom))]";
 }
 
 /** 是否桌面宽屏（默认 lg ≥1024px），用于关闭移动端键盘视口逻辑 */
