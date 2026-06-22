@@ -1123,7 +1123,6 @@ export default function LifeAgentCoEditPage() {
               onSubmit={(e) => void submitModify(e)}
               disabled={modifyLoading}
               placeholder={modifyLoading ? "AI 正在处理这次修改…" : "例如：把擅长标签改成考研、转行、找工作"}
-              onVoiceFinal={(text) => void submitModify(undefined, text.trim())}
               onTextareaFocus={() => {
                 setTimeout(() => endRef.current?.scrollIntoView({ behavior: "smooth" }), 280);
                 setTimeout(() => endRef.current?.scrollIntoView({ behavior: "smooth" }), 520);

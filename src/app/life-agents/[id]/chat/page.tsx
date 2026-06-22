@@ -1205,9 +1205,6 @@ export default function LifeAgentChatPage() {
               onSubmit={sendMessage}
               disabled={loading || sessionLoading}
               placeholder="发消息..."
-              onVoiceFinal={(text) => {
-                if (text.trim()) sendMessageWithText(text);
-              }}
               onTextareaFocus={() => {
                 setTimeout(scrollToLastMessage, 280);
                 setTimeout(scrollToLastMessage, 520);

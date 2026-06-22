@@ -1,7 +1,6 @@
 "use client";
 
 import { FormEvent, useEffect, useRef } from "react";
-import { VoiceInputButton } from "@/components/voice";
 
 function autoResizeTextarea(textarea: HTMLTextAreaElement | null) {
   if (!textarea) return;
@@ -15,7 +14,6 @@ export type LifeAgentMessageComposerProps = {
   onSubmit: (e: FormEvent<HTMLFormElement>) => void;
   disabled?: boolean;
   placeholder?: string;
-  onVoiceFinal?: (text: string) => void;
   onTextareaFocus?: () => void;
   textareaRef?: React.Ref<HTMLTextAreaElement>;
   formRef?: React.Ref<HTMLFormElement>;
@@ -35,7 +33,6 @@ export function LifeAgentMessageComposer({
   onSubmit,
   disabled = false,
   placeholder = "发消息...",
-  onVoiceFinal,
   onTextareaFocus,
   textareaRef,
   formRef,
@@ -72,15 +69,7 @@ export function LifeAgentMessageComposer({
         {moreOpen && morePanel ? (
           <div className="absolute bottom-full left-0 right-0 z-20 mb-2">{morePanel}</div>
         ) : null}
-        <div className="flex items-end gap-1.5 rounded-full border border-paper/40 bg-paper/55 py-1.5 pl-2 pr-1 shadow-[0_8px_24px_-12px_rgba(26,23,20,0.12)] ring-1 ring-hairline/20 backdrop-blur-xl supports-[backdrop-filter]:bg-paper/75 sm:gap-2 sm:py-2 sm:pl-3">
-          <VoiceInputButton
-            onTranscript={(text, isFinal) => {
-              if (isFinal && text.trim()) onVoiceFinal?.(text);
-            }}
-            disabled={disabled}
-            size="sm"
-            className="!h-9 !w-9 shrink-0 border-hairline/40 sm:!h-10 sm:!w-10"
-          />
+        <div className="flex items-end gap-1.5 rounded-full border border-paper/40 bg-paper/55 py-1.5 pl-3 pr-1 shadow-[0_8px_24px_-12px_rgba(26,23,20,0.12)] ring-1 ring-hairline/20 backdrop-blur-xl supports-[backdrop-filter]:bg-paper/75 sm:gap-2 sm:py-2 sm:pl-4">
           <textarea
             ref={textareaRef}
             onFocus={() => {

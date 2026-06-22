@@ -2396,7 +2396,6 @@ export default function CreateLifeAgentPage() {
                   disabled={experienceLoading || experienceDone}
                   placeholder={experienceLoading ? "AI 正在思考下一问…" : "说出你需要分享的经验和信息"}
                   required
-                  onVoiceFinal={(text) => void submitExperienceAnswer(undefined, text.trim())}
                   onTextareaFocus={() => {
                     setTimeout(scrollToLastExperienceMessage, 280);
                     setTimeout(scrollToLastExperienceMessage, 520);
