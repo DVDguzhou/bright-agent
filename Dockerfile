@@ -1,7 +1,6 @@
 # 多阶段构建 - Next.js 前端
-# 国内服务器拉取慢时，优先配置 /etc/docker/daemon.json 的 registry-mirrors（阿里云加速器），
-# 不要写死 docker.m.daocloud.io（易出现 TLS handshake timeout）。
-# 若必须指定：docker build --build-arg NODE_BASE_IMAGE=node:20-alpine .
+# 默认使用官方镜像；若某台服务器拉取慢，可在构建时覆盖：
+#   docker build --build-arg NODE_BASE_IMAGE=docker.m.daocloud.io/library/node:20-alpine .
 ARG NODE_BASE_IMAGE=node:20-alpine
 
 FROM ${NODE_BASE_IMAGE} AS deps
