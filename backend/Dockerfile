@@ -1,8 +1,9 @@
 # Go 后端
 # 默认使用官方镜像；若某台服务器拉取慢，可在构建时覆盖：
-#   docker build --build-arg GO_BUILDER_IMAGE=docker.m.daocloud.io/library/golang:1.22-alpine .
-ARG GO_BUILDER_IMAGE=docker.m.daocloud.io/library/golang:1.22-alpine
-ARG ALPINE_RUNTIME_IMAGE=docker.m.daocloud.io/library/alpine:3.19
+# 默认使用官方镜像；国内 ECS 请配置 Docker registry-mirrors（见 docs/阿里云部署步步指南.md）
+#   docker build --build-arg GO_BUILDER_IMAGE=golang:1.22-alpine .
+ARG GO_BUILDER_IMAGE=golang:1.22-alpine
+ARG ALPINE_RUNTIME_IMAGE=alpine:3.19
 
 FROM ${GO_BUILDER_IMAGE} AS builder
 WORKDIR /app
