@@ -1,5 +1,12 @@
 /** @type {import('next').NextConfig} */
-const cdnOrigin = (process.env.NEXT_PUBLIC_CDN_URL ?? "").replace(/\/+$/, "");
+const rawCdn = (process.env.NEXT_PUBLIC_CDN_URL ?? "").trim().replace(/\/+$/, "");
+// 仅接受 http(s) URL，避免 .env 误填（如 NODE_BASE_IMAGE=...）导致 assetPrefix 错误、整站白屏
+const cdnOrigin = /^https?:\/\//i.test(rawCdn) ? rawCdn : "";
+if (rawCdn && !cdnOrigin) {
+  console.warn(
+    `[next.config] 忽略无效的 NEXT_PUBLIC_CDN_URL="${rawCdn}"（须以 http:// 或 https:// 开头）`,
+  );
+}
 
 const nextConfig = {
   output: "standalone", // Docker 部署需要
