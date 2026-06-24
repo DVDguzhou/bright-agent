@@ -68,7 +68,10 @@ export function chatInputFooterPaddingClass(keyboardVisible: boolean): string {
 
 /** 是否桌面宽屏（默认 lg ≥1024px），用于关闭移动端键盘视口逻辑 */
 export function useIsDesktop(breakpoint = 1024) {
-  const [isDesktop, setIsDesktop] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return window.matchMedia(`(min-width: ${breakpoint}px)`).matches;
+  });
 
   useEffect(() => {
     if (typeof window === "undefined") return;

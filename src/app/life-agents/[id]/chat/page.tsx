@@ -176,8 +176,10 @@ export default function LifeAgentChatPage() {
   const sendingRef = useRef(false);
 
   const scrollToLastMessage = () => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-    viewportRef.current?.scrollTo({ top: viewportRef.current.scrollHeight, behavior: "smooth" });
+    const scroller = viewportRef.current;
+    if (scroller) {
+      scroller.scrollTo({ top: scroller.scrollHeight, behavior: "smooth" });
+    }
   };
 
   const dismissKeyboard = (e?: MouseEvent<HTMLElement> | TouchEvent<HTMLElement>) => {
@@ -672,7 +674,7 @@ export default function LifeAgentChatPage() {
       </div>
     )}
     <div
-      className={`flex min-h-0 flex-col lg:-mx-4 lg:-mt-3 lg:-mb-8 lg:min-h-[calc(100dvh-5rem)] max-lg:fixed max-lg:inset-0 max-lg:z-[50] max-lg:overflow-hidden ${CHAT_PAGE_BACKGROUND_CLASSNAME}`}
+      className={`flex min-h-0 flex-col lg:-mx-4 lg:-mt-3 lg:-mb-8 lg:h-[calc(100dvh-5rem)] lg:max-h-[calc(100dvh-5rem)] max-lg:fixed max-lg:inset-0 max-lg:z-[50] max-lg:overflow-hidden ${CHAT_PAGE_BACKGROUND_CLASSNAME}`}
       style={
         // 桌面端不使用 visualViewport 内联高度：根容器在文档流中、上方还有 navbar，
         // 强行 height=window.innerHeight 会把输入框挤到视口外（用户报告 PC 看不到输入框）。
@@ -1205,10 +1207,6 @@ export default function LifeAgentChatPage() {
               onSubmit={sendMessage}
               disabled={loading || sessionLoading}
               placeholder="发消息..."
-              onTextareaFocus={() => {
-                setTimeout(scrollToLastMessage, 280);
-                setTimeout(scrollToLastMessage, 520);
-              }}
               onMoreClick={openMenu}
             />
           </div>
