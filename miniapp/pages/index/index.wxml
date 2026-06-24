@@ -6,7 +6,7 @@
       <view class="icon-menu" />
     </view>
     <view class="feed-tabs font-serif">
-      <view class="feed-tab {{topTab === 'posts' ? 'active' : 'inactive'}}" bindtap="goPosts">动态</view>
+      <view wx:if="{{showPostsNav}}" class="feed-tab {{topTab === 'posts' ? 'active' : 'inactive'}}" bindtap="goPosts">动态</view>
       <view class="feed-tab {{topTab === 'discover' ? 'active' : 'inactive'}}" bindtap="goDiscoverTab">发现</view>
     </view>
     <view class="nav-btn" bindtap="goSearch">

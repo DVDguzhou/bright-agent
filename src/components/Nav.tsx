@@ -34,6 +34,7 @@ import {
   subscribeMobileGesture,
 } from "@/lib/mobile-gesture-store";
 import { lifeAgentShowsPurchaseUi } from "@/lib/life-agent-commerce";
+import { SHOW_POSTS_NAV } from "@/lib/product-feature-flags";
 import {
   fetchAgentNotificationUnreadCount,
   readUnreadCount,
@@ -839,6 +840,7 @@ export function Nav() {
                       aria-hidden
                     />
                   ) : null}
+                  {SHOW_POSTS_NAV ? (
                   <Link
                     href="/posts"
                     className={`relative ${feedTabClass(isPostsPage)}`}
@@ -848,6 +850,7 @@ export function Nav() {
                       <span className="absolute bottom-0 left-1 right-1 h-[2px] rounded-full bg-signal-500" aria-hidden />
                     ) : null}
                   </Link>
+                  ) : null}
                   <Link ref={feedTabDiscRef} href="/life-agents" className={`relative ${feedTabClass(isFeedDiscover)}`} scroll={false}>
                     发现
                     {!touchFeedPager && isFeedDiscover ? (

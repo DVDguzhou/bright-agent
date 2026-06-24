@@ -2,6 +2,7 @@ const { get, formatRequestError } = require("../../utils/request");
 const { resolveLifeAgentCoverDisplayUrl } = require("../../utils/covers");
 const { getNavMetrics } = require("../../utils/nav-metrics");
 const { setTabBarSelected } = require("../../utils/tab-bar");
+const { SHOW_POSTS_NAV } = require("../../utils/product-feature-flags");
 
 const ONBOARDING_KEY = "la_onboarding_v1";
 const PAGE_SIZE = 48;
@@ -46,6 +47,7 @@ Page({
     onboardingOpen: false,
     firstCardPulsing: false,
     drawerOpen: false,
+    showPostsNav: SHOW_POSTS_NAV,
     emptyTitle: "还没有人生 Agent",
     emptySubtitle: "创建第一个，把你的经验变成可对话的咨询页",
     favoritesLoaded: false,

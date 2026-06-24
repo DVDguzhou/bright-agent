@@ -1,4 +1,5 @@
 const { getNavMetrics } = require("../../utils/nav-metrics");
+const { SHOW_POSTS_NAV } = require("../../utils/product-feature-flags");
 
 Component({
   properties: {
@@ -9,6 +10,7 @@ Component({
     statusBarHeight: 44,
     navBarHeight: 44,
     menuRight: 16,
+    showPostsNav: SHOW_POSTS_NAV,
   },
   lifetimes: {
     attached() {

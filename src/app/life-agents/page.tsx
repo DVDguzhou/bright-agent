@@ -20,6 +20,7 @@ import { cleanLifeAgentIntroText } from "@/lib/life-agent-intro-clean";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLifeAgentsFeedGestures, useMobileTouchNavEnabled } from "@/hooks/use-life-agents-feed-gestures";
 import { lifeAgentShowsPurchaseUi } from "@/lib/life-agent-commerce";
+import { SHOW_DISCOVER_FEATURED } from "@/lib/product-feature-flags";
 import { OnboardingSheet, useOnboarding } from "@/components/OnboardingSheet";
 
 type PurchasedAgentRow = {
@@ -733,6 +734,11 @@ function LifeAgentsPageContent() {
   }, [visitedMask & 1, touchNavEnabled, feedTab]);
 
   useEffect(() => {
+    if (!SHOW_DISCOVER_FEATURED) {
+      setFeaturedItems([]);
+      setFeaturedLoading(false);
+      return;
+    }
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000);
     fetchLifeAgentCollectionPage(FEATURED_COLLECTION, FEATURED_LIMIT, 0, featuredSeedRef.current, controller.signal)
@@ -993,7 +999,9 @@ function LifeAgentsPageContent() {
               className={pagerSectionClass}
               aria-label="发现"
             >
+              {SHOW_DISCOVER_FEATURED ? (
               <FeaturedShowcase agents={featuredItems} loading={featuredLoading} />
+              ) : null}
                 <LifeAgentDiscoverCardGrid
                 profiles={displayProfilesDiscover}
                 loading={discoverLoading}
@@ -1032,7 +1040,7 @@ function LifeAgentsPageContent() {
             feedTab === "favorites" ? favoritesHeading : purchasedHeading
           ) : null}
           {loadErrorBanner}
-          {feedTab !== "favorites" && feedTab !== "purchased" ? (
+          {SHOW_DISCOVER_FEATURED && feedTab !== "favorites" && feedTab !== "purchased" ? (
             <FeaturedShowcase agents={featuredItems} loading={featuredLoading} />
           ) : null}
           {feedTab === "purchased" && showPurchaseUi ? (
