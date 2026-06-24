@@ -631,8 +631,6 @@ export function Nav() {
   }, [isDashboardLifeAgentTopicsPage, topicSearchQuery]);
 
   const primaryOwnedLifeAgent = ownedLifeAgents?.[0] ?? null;
-  const shouldShowCreateFab = !user || (ownedLifeAgents !== null && ownedLifeAgents.length === 0);
-  const shouldShowLoadingFab = Boolean(user && ownedLifeAgents === null);
 
   const touchFeedPager = useMobileTouchNavEnabled() && isDiscoverEntryPage;
   const showFeedPurchasedTab = lifeAgentShowsPurchaseUi();
@@ -1128,18 +1126,6 @@ export function Nav() {
           {/* 中间 FAB 与第 3 列空白对齐：发现 | 消息 | （+） | 地图 | 我的 */}
           {primaryOwnedLifeAgent ? (
             <FloatingVoiceCoachFab agent={primaryOwnedLifeAgent} />
-          ) : shouldShowCreateFab ? (
-            <Link
-              href="/life-agents/create"
-              className="fixed bottom-[calc(env(safe-area-inset-bottom)+2.25rem)] left-1/2 z-[60] flex h-12 w-12 -translate-x-1/2 items-center justify-center rounded-lg bg-ink text-paper shadow-[0_16px_36px_rgba(28,26,22,0.22)] ring-4 ring-paper transition-transform active:scale-95 lg:hidden"
-              aria-label="创建人生 Agent"
-            >
-              <Plus className="h-6 w-6" aria-hidden />
-            </Link>
-          ) : shouldShowLoadingFab ? (
-            <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+2.25rem)] left-1/2 z-[60] flex h-12 w-12 -translate-x-1/2 items-center justify-center rounded-lg bg-white text-ink shadow-[0_16px_36px_rgba(28,26,22,0.14)] ring-4 ring-paper lg:hidden">
-              <span className="h-5 w-5 animate-spin rounded-full border-2 border-current/25 border-t-current" />
-            </div>
           ) : null}
 
           <div

@@ -7,7 +7,6 @@ Component({
     selectedColor: "#1a1714",
     isLoggedIn: false,
     primaryAgent: null,
-    fabLoading: false,
   },
 
   lifetimes: {
@@ -29,7 +28,7 @@ Component({
       const isLoggedIn = !!user;
       this.setData({ isLoggedIn });
       if (!isLoggedIn) {
-        this.setData({ primaryAgent: null, fabLoading: false });
+        this.setData({ primaryAgent: null });
         return;
       }
       this.loadOwnedAgents();
@@ -38,7 +37,6 @@ Component({
     loadOwnedAgents() {
       if (this._loadingAgents) return;
       this._loadingAgents = true;
-      this.setData({ fabLoading: true });
       get("/api/life-agents/mine")
         .then((res) => {
           const raw = Array.isArray(res.data) ? res.data : [];
@@ -50,10 +48,10 @@ Component({
                   displayName: String(first.displayName || "Agent"),
                 }
               : null;
-          this.setData({ primaryAgent, fabLoading: false });
+          this.setData({ primaryAgent });
         })
         .catch(() => {
-          this.setData({ primaryAgent: null, fabLoading: false });
+          this.setData({ primaryAgent: null });
         })
         .finally(() => {
           this._loadingAgents = false;
@@ -70,16 +68,6 @@ Component({
         wx.switchTab({ url: path });
         this.setData({ selected: index });
       }
-    },
-
-    onFabTap() {
-      const app = getApp();
-      const user = app && app.globalData && app.globalData.user;
-      if (!user) {
-        wx.navigateTo({ url: "/pages/login/login" });
-        return;
-      }
-      wx.navigateTo({ url: "/pages/agent-create/agent-create" });
     },
   },
 });

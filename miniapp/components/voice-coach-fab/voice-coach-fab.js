@@ -238,10 +238,7 @@ Component({
 
     openCoEdit() {
       const agentId = (this.properties.agentId || "").trim();
-      if (!agentId) {
-        wx.showToast({ title: "请先创建 Agent", icon: "none" });
-        return;
-      }
+      if (!agentId) return;
       const draft = (this.data.draftText || "").trim();
       this.persistDraft(draft);
       wx.navigateTo({

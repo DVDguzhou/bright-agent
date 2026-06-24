@@ -52,14 +52,8 @@
     <text class="tab-text font-serif">登录</text>
   </view>
 </view>
-<view wx:if="{{fabLoading}}" class="fab fab-loading">
-  <view class="fab-spinner"></view>
-</view>
 <voice-coach-fab
-  wx:elif="{{primaryAgent}}"
+  wx:if="{{primaryAgent}}"
   agent-id="{{primaryAgent.id}}"
   agent-name="{{primaryAgent.displayName}}"
 ></voice-coach-fab>
-<view wx:else class="fab" bindtap="onFabTap">
-  <text class="fab-plus">+</text>
-</view>
