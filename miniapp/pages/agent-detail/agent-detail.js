@@ -16,14 +16,8 @@ const {
   formatFreshDays,
   formatReviewDate,
 } = require("../../utils/format");
+const { selectTopLifeAgentDisplayTags } = require("../../utils/life-agent-display-tags");
 const { lifeAgentShowsPurchaseUi } = require("../../utils/commerce");
-
-function isShortTag(s) {
-  const v = (s || "").trim();
-  if (!v || v.length > 12) return false;
-  if (/[，。；：、！？,;:!?·…—\-—·"'""''()（）\s→↔]/.test(v)) return false;
-  return true;
-}
 
 function buildIntro(agent) {
   const dn = agent.displayName || "";
@@ -110,11 +104,15 @@ Page({
 
         const intro = buildIntro(agent);
         const viewer = agent.viewerState || {};
-        // 标签只展示 MBTI + 专长话题；人设/语气/回应风格是内部行为字段，不当话题标签露出
-        // （它们常是自动生成的近义描述，如「犀利直给」「直接犀利」，并排显示重复又跑题）。
-        const allTags = [agent.mbti, ...(agent.expertiseTags || [])]
-          .filter(isShortTag)
-          .filter((tag, i, arr) => arr.indexOf(tag) === i);
+        const allTags = selectTopLifeAgentDisplayTags({
+          mbti: agent.mbti,
+          expertiseTags: agent.expertiseTags,
+          headline: intro.headline,
+          audience: intro.audience,
+          shortBio: intro.shortBio,
+          sampleQuestions: intro.sampleQuestions,
+          limit: 5,
+        });
 
         const facts = [];
         if (intro.school) facts.push({ label: "学校", value: intro.school });

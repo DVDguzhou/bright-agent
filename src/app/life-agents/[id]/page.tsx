@@ -23,6 +23,7 @@ import {
   type LifeAgentGrowthEvent,
   type LifeAgentGrowthLog,
 } from "@/lib/life-agent-growth";
+import { selectTopLifeAgentDisplayTags } from "@/lib/life-agent-display-tags";
 import { triggerHapticTap } from "@/lib/haptic";
 
 type DetailData = {
@@ -240,18 +241,17 @@ export default function LifeAgentDetailPage() {
     .filter(Boolean)
     .filter((seg, i, arr) => i === 0 || arr[i - 1] !== seg) // 去掉相邻重复段（直辖市省=市，如「北京 · 北京」）
     .join(" · ");
-  const isShortTag = (s?: string | null): s is string => {
-    const v = (s ?? "").trim();
-    if (!v) return false;
-    if (v.length > 12) return false;
-    if (/[，。；：、！？,;:!?·…—\-—·"'""''()（）\s→↔]/.test(v)) return false;
-    return true;
-  };
-  // 标签只展示 MBTI + 专长话题；人设/语气/回应风格是内部行为字段，不当话题标签露出
-  // （它们常是自动生成的近义描述，如「犀利直给」「直接犀利」，并排显示重复又跑题）。
-  const allTags = [profile.mbti, ...(profile.expertiseTags ?? [])]
-    .filter(isShortTag)
-    .filter((tag, i, arr) => arr.indexOf(tag) === i);
+  // 标签只展示 MBTI + 专长话题；人设/语气/回应风格是内部行为字段，不当话题标签露出。
+  // 分类展开后 tag 可能很多，详情页只展示与简介/受众最相关的前 5 个。
+  const allTags = selectTopLifeAgentDisplayTags({
+    mbti: profile.mbti,
+    expertiseTags: profile.expertiseTags,
+    headline: ci.headline,
+    audience: ci.audience,
+    shortBio: ci.shortBio,
+    sampleQuestions: profile.sampleQuestions,
+    limit: 5,
+  });
 
   const showPurchaseUi = lifeAgentShowsPurchaseUi();
   const hasPrice = showPurchaseUi && profile.pricePerQuestion > 0;
