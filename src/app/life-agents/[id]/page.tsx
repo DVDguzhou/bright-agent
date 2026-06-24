@@ -518,37 +518,6 @@ export default function LifeAgentDetailPage() {
           <p className="mt-2 text-sm leading-7 text-ink-500 [text-wrap:pretty]">{ci.audience}</p>
         </div>
 
-        {/* --- 经验覆盖 --- */}
-        {(() => {
-          const activeTopics = (profile.topicSummaries ?? []).filter((t) => t.status === "active");
-          if (activeTopics.length === 0) return null;
-          const groupLabels: Record<string, string> = {
-            education: "教育升学", career: "职业发展", industry: "行业认知",
-            cityChoice: "城市选择", startup: "创业", money: "财务",
-            relationship: "感情", family: "家庭", mental: "心理",
-            lifeChoice: "人生选择", social: "社交", other: "其他",
-          };
-          return (
-            <div className="-mx-4 px-4 py-4 sm:-mx-6 sm:px-6">
-              <h2 className="text-sm font-semibold text-ink">擅长回答的话题</h2>
-              <div className="mt-3 flex flex-wrap gap-1.5">
-                {activeTopics.map((t) => (
-                  <span
-                    key={t.id}
-                    className="border border-hairline px-2.5 py-1 text-xs font-medium text-ink-500"
-                    title={t.summary}
-                  >
-                    {t.topicLabel}
-                    <span className="ml-1 text-ink-300">
-                      {groupLabels[t.topicGroup] ?? t.topicGroup}
-                    </span>
-                  </span>
-                ))}
-              </div>
-            </div>
-          );
-        })()}
-
         {/* --- 更新时间线 --- */}
         {growthEvents.length > 1 && (
           <div className="-mx-4 px-4 py-4 sm:-mx-6 sm:px-6">

@@ -80,15 +80,6 @@
         <text class="section-body" user-select>{{intro.audience}}</text>
       </view>
 
-      <view wx:if="{{topics.length}}" class="section">
-        <text class="section-title">擅长回答的话题</text>
-        <view class="tags topic-tags">
-          <text wx:for="{{topics}}" wx:key="id" class="tag-chip topic-chip">
-            {{item.topicLabel}}<text class="topic-group"> {{item.groupLabel}}</text>
-          </text>
-        </view>
-      </view>
-
       <view wx:if="{{liveUpdates.length}}" class="section">
         <text class="section-title">最近动态</text>
         <view class="updates">

@@ -12,7 +12,6 @@ const {
   buildFullArea,
   formatRating,
   formatYuan,
-  topicGroupLabel,
   liveUpdateCategoryLabel,
   formatFreshDays,
   formatReviewDate,
@@ -64,7 +63,6 @@ Page({
     remainingQ: 0,
     starred: false,
     tags: [],
-    topics: [],
     liveUpdates: [],
     facts: [],
     mindScore: null,
@@ -117,16 +115,6 @@ Page({
         const allTags = [agent.mbti, ...(agent.expertiseTags || [])]
           .filter(isShortTag)
           .filter((tag, i, arr) => arr.indexOf(tag) === i);
-
-        const activeTopics = (agent.topicSummaries || [])
-          .filter(function (t) {
-            return t.status === "active";
-          })
-          .map(function (t) {
-            return Object.assign({}, t, {
-              groupLabel: topicGroupLabel(t.topicGroup),
-            });
-          });
 
         const facts = [];
         if (intro.school) facts.push({ label: "学校", value: intro.school });
@@ -185,7 +173,6 @@ Page({
           remainingQ,
           starred: isFavoriteAgentId(id),
           tags: allTags,
-          topics: activeTopics,
           liveUpdates,
           facts,
           mindScore,
