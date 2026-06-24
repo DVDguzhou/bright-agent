@@ -17,6 +17,7 @@ import {
   Plus,
   Sparkles,
   Tag,
+  Trash2,
   X,
 } from "lucide-react";
 import { FieldInfoButton } from "@/components/FieldInfoButton";
@@ -32,6 +33,7 @@ import {
   StatusBadge,
 } from "@/components/dashboard/AgentAdminUI";
 import { computeCompletion, fetchManageData, type ManageData, type ManageProfile } from "@/app/dashboard/life-agents/_lib/manage";
+import { useDragAutoScroll } from "@/hooks/use-drag-auto-scroll";
 
 type TopicItem = {
   id: string;
@@ -308,6 +310,7 @@ function TimelineRail({
   onMove: (sourceId: string, targetId: string) => void;
 }) {
   const [draggingId, setDraggingId] = useState<string | null>(null);
+  useDragAutoScroll(draggingId !== null);
   if (events.length === 0) {
     return (
       <EmptyState
@@ -383,14 +386,18 @@ function TimelineDetail({
   event,
   edit,
   saving,
+  deleting,
   onChange,
   onSave,
+  onDelete,
 }: {
   event: TimelineEvent | null;
   edit: TimelineEditState[string] | undefined;
   saving: boolean;
+  deleting: boolean;
   onChange: (patch: Partial<TimelineEditState[string]>) => void;
   onSave: () => void;
+  onDelete: () => void;
 }) {
   if (!event) {
     return (
@@ -417,9 +424,20 @@ function TimelineDetail({
               时间、原因、结果和取舍会进入 Agent 的主线记忆。越像你自己讲述，回答越不容易乱编。
             </p>
           </div>
-          <button type="button" onClick={onSave} disabled={saving} className="btn-primary min-h-10 px-4 py-2 text-sm">
-            {saving ? "保存中" : "保存时间线"}
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={onDelete}
+              disabled={saving || deleting}
+              className="inline-flex min-h-10 items-center gap-1.5 rounded-md border border-oxblood-200 bg-paper-50 px-3 py-2 text-sm font-medium text-oxblood-700 transition hover:border-oxblood-300 hover:bg-oxblood-50 disabled:opacity-50"
+            >
+              <Trash2 className="h-4 w-4" aria-hidden />
+              {deleting ? "删除中" : "删除经历"}
+            </button>
+            <button type="button" onClick={onSave} disabled={saving || deleting} className="btn-primary min-h-10 px-4 py-2 text-sm">
+              {saving ? "保存中" : "保存时间线"}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -726,6 +744,7 @@ export default function LifeAgentTopicsPage() {
   const [timelineEdits, setTimelineEdits] = useState<TimelineEditState>({});
   const [savingId, setSavingId] = useState<string | null>(null);
   const [savingTimelineId, setSavingTimelineId] = useState<string | null>(null);
+  const [deletingTimelineId, setDeletingTimelineId] = useState<string | null>(null);
   const [orderingTimeline, setOrderingTimeline] = useState(false);
   const [mergingId, setMergingId] = useState<string | null>(null);
   const [filter, setFilter] = useState<FilterKey>("all");
@@ -936,6 +955,51 @@ export default function LifeAgentTopicsPage() {
     }));
   };
 
+  const syncTimelineWorkspace = (timelineEvents: TimelineEvent[], knowledgeEntries?: ManageProfile["knowledgeEntries"], topics?: TopicItem[]) => {
+    setManagedTimelineEvents(timelineEvents);
+    if (knowledgeEntries) {
+      setState((prev) =>
+        prev.manage
+          ? {
+              ...prev,
+              topics: topics ?? prev.topics,
+              manage: {
+                ...prev.manage,
+                profile: {
+                  ...prev.manage.profile,
+                  knowledgeEntries,
+                  timelineEvents,
+                },
+              },
+            }
+          : prev,
+      );
+    } else if (topics) {
+      setState((prev) => ({ ...prev, topics }));
+    }
+    setTimelineEdits(
+      Object.fromEntries(
+        timelineEvents.map((event) => [
+          event.id,
+          {
+            periodLabel: event.periodLabel ?? "",
+            title: event.title ?? "",
+            summary: event.summary ?? "",
+            causes: (event.causes ?? []).join("\n"),
+            outcomes: (event.outcomes ?? []).join("\n"),
+            tradeoffs: (event.tradeoffs ?? []).join("\n"),
+            confidence: event.confidence ?? "medium",
+            status: event.status ?? "confirmed",
+          },
+        ]),
+      ),
+    );
+    setActiveTimelineId((prev) => {
+      if (prev && timelineEvents.some((event) => event.id === prev)) return prev;
+      return timelineEvents[0]?.id ?? null;
+    });
+  };
+
   const saveTimelineEvent = async (eventId: string) => {
     const edit = timelineEdits[eventId];
     if (!edit) return;
@@ -962,27 +1026,34 @@ export default function LifeAgentTopicsPage() {
         return;
       }
       const timelineEvents = Array.isArray(data?.timelineEvents) ? (data.timelineEvents as TimelineEvent[]) : [];
-      setManagedTimelineEvents(timelineEvents);
-      setTimelineEdits(
-        Object.fromEntries(
-          timelineEvents.map((event) => [
-            event.id,
-            {
-              periodLabel: event.periodLabel ?? "",
-              title: event.title ?? "",
-              summary: event.summary ?? "",
-              causes: (event.causes ?? []).join("\n"),
-              outcomes: (event.outcomes ?? []).join("\n"),
-              tradeoffs: (event.tradeoffs ?? []).join("\n"),
-              confidence: event.confidence ?? "medium",
-              status: event.status ?? "confirmed",
-            },
-          ]),
-        ),
-      );
+      syncTimelineWorkspace(timelineEvents);
       setActiveTimelineId(eventId);
     } finally {
       setSavingTimelineId(null);
+    }
+  };
+
+  const deleteTimelineEvent = async (eventId: string) => {
+    if (!confirm("确定删除这段经历？关联的知识条目也会一并删除，且无法恢复。")) return;
+    setDeletingTimelineId(eventId);
+    try {
+      const res = await fetch(`/api/life-agents/${id}/timeline-events/${eventId}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        alert(data?.detail || "删除经历失败");
+        return;
+      }
+      const timelineEvents = Array.isArray(data?.timelineEvents) ? (data.timelineEvents as TimelineEvent[]) : [];
+      const knowledgeEntries = Array.isArray(data?.knowledgeEntries)
+        ? (data.knowledgeEntries as ManageProfile["knowledgeEntries"])
+        : undefined;
+      const topics = Array.isArray(data?.topics) ? (data.topics as TopicItem[]) : undefined;
+      syncTimelineWorkspace(timelineEvents, knowledgeEntries, topics);
+    } finally {
+      setDeletingTimelineId(null);
     }
   };
 
@@ -1189,11 +1260,15 @@ export default function LifeAgentTopicsPage() {
             event={activeTimeline}
             edit={activeTimeline ? timelineEdits[activeTimeline.id] : undefined}
             saving={activeTimeline ? savingTimelineId === activeTimeline.id : false}
+            deleting={activeTimeline ? deletingTimelineId === activeTimeline.id : false}
             onChange={(patch) => {
               if (activeTimeline) updateTimelineEdit(activeTimeline.id, patch);
             }}
             onSave={() => {
               if (activeTimeline) void saveTimelineEvent(activeTimeline.id);
+            }}
+            onDelete={() => {
+              if (activeTimeline) void deleteTimelineEvent(activeTimeline.id);
             }}
           />
         </div>

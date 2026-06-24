@@ -11,6 +11,7 @@ import (
 	"github.com/agent-marketplace/backend/internal/middleware"
 	"github.com/agent-marketplace/backend/internal/models"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type topicFeedbackCounts struct {
@@ -303,6 +304,93 @@ func LifeAgentsTimelineEventUpdate(cfg *config.Config) gin.HandlerFunc {
 			Find(&events)
 		c.JSON(http.StatusOK, gin.H{"event": event, "timelineEvents": events})
 	}
+}
+
+func LifeAgentsTimelineEventDelete(cfg *config.Config) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		user := middleware.MustGetUser(c)
+		if user == nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "UNAUTHORIZED"})
+			return
+		}
+		id := c.Param("id")
+		eventID := c.Param("eventId")
+		var profile models.LifeAgentProfile
+		if err := db.DB.Where("id = ? AND user_id = ?", id, user.ID).First(&profile).Error; err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "PROFILE_NOT_FOUND"})
+			return
+		}
+		var event models.LifeAgentTimelineEvent
+		if err := db.DB.Where("id = ? AND profile_id = ?", eventID, id).First(&event).Error; err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "TIMELINE_EVENT_NOT_FOUND"})
+			return
+		}
+		entryIDs := cleanStringList([]string(event.SourceEntryIDs), 0)
+		if len(entryIDs) > 0 {
+			var totalEntries int64
+			db.DB.Model(&models.LifeAgentKnowledgeEntry{}).Where("profile_id = ?", id).Count(&totalEntries)
+			if totalEntries <= int64(len(entryIDs)) {
+				c.JSON(http.StatusBadRequest, gin.H{
+					"error":  "CANNOT_DELETE_LAST_EXPERIENCE",
+					"detail": "至少保留一条经历素材，无法删除最后一条。",
+				})
+				return
+			}
+		}
+		if err := db.DB.Transaction(func(tx *gorm.DB) error {
+			if len(entryIDs) > 0 {
+				if err := tx.Where("profile_id = ? AND id IN ?", id, entryIDs).
+					Delete(&models.LifeAgentKnowledgeEntry{}).Error; err != nil {
+					return err
+				}
+			}
+			if err := tx.Delete(&event).Error; err != nil {
+				return err
+			}
+			return nil
+		}); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "INTERNAL_ERROR"})
+			return
+		}
+		refreshLifeAgentStructuredFacts(id)
+		refreshLifeAgentTopicSummaries(id)
+
+		var entries []models.LifeAgentKnowledgeEntry
+		db.DB.Where("profile_id = ?", id).Order("sort_order").Find(&entries)
+		var topics []models.LifeAgentTopicSummary
+		db.DB.Where("profile_id = ?", id).Order("topic_group ASC, topic_key ASC").Find(&topics)
+		var events []models.LifeAgentTimelineEvent
+		db.DB.Where("profile_id = ? AND status IN ?", id, []string{"confirmed", "needs_clarification", "time_not_needed"}).
+			Order("sequence_order ASC, created_at ASC").
+			Find(&events)
+		c.JSON(http.StatusOK, gin.H{
+			"ok":               true,
+			"timelineEvents":   events,
+			"knowledgeEntries": buildManageKnowledgeEntryResponses(entries),
+			"topics":           buildTopicManagementResponses(id, topics),
+		})
+	}
+}
+
+func buildManageKnowledgeEntryResponses(entries []models.LifeAgentKnowledgeEntry) []gin.H {
+	out := make([]gin.H, 0, len(entries))
+	for _, e := range entries {
+		out = append(out, gin.H{
+			"id":             e.ID,
+			"category":       e.Category,
+			"title":          e.Title,
+			"content":        e.Content,
+			"tags":           e.Tags,
+			"facetTags":      e.FacetTags,
+			"sourceType":     e.SourceType,
+			"timelineStatus": e.TimelineStatus,
+			"timelineMeta":   e.TimelineMeta,
+			"revision":       e.Revision,
+			"createdAt":      e.CreatedAt,
+			"updatedAt":      e.UpdatedAt,
+		})
+	}
+	return out
 }
 
 func buildTopicManagementResponses(profileID string, topics []models.LifeAgentTopicSummary) []gin.H {

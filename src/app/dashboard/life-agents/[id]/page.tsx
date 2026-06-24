@@ -12,6 +12,7 @@ import {
   MessageCircle,
   Pencil,
   ShieldQuestion,
+  Sparkles,
   Star,
   Trash2,
 } from "lucide-react";
@@ -304,6 +305,7 @@ export default function LifeAgentManageHomePage() {
 
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             <QuickAction href={`/dashboard/life-agents/${id}/edit`} title="编辑资料" desc="封面、人设、示范回答、地区身份。" icon={<Pencil className="h-5 w-5" />} />
+            <QuickAction href={`/dashboard/life-agents/${id}/co-edit`} title="对话调教" desc="像聊天一样修改欢迎语、风格和知识内容。" icon={<Sparkles className="h-5 w-5" />} />
             <QuickAction href={`/dashboard/life-agents/${id}/sales`} title="互动记录" desc="查看用户提问、购买与使用情况。" icon={<Activity className="h-5 w-5" />} />
             <QuickAction href={`/dashboard/life-agents/${id}/sessions`} title="聊天记录" desc="按会话查看用户最近在问什么。" icon={<MessageCircle className="h-5 w-5" />} />
             <QuickAction href={`/dashboard/life-agents/${id}/feedback`} title="反馈诊断" desc="看评分、轻反馈和需要关注的问题。" icon={<Star className="h-5 w-5" />} />
