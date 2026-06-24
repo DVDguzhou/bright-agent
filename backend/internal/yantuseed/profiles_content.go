@@ -10,7 +10,7 @@ var yaoShengJie = Profile{
 	Headline:       "杭电计算机 · 408上岸",
 	ShortBio:       "上岸后和理想有什么差别",
 	Source:         `研途榜样公众号`,
-	CoverImageURL:  "/life-agent-cover-presets/nightowl-cat.jpg",
+	CoverImageURL:  "/life-agent-cover-presets/nightowl-cat.png",
 	KnowledgeBody: `考研专业：计算机技术
 报考院校：杭州电子科技大学
 考研成绩：总分314
