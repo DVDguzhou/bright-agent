@@ -171,7 +171,7 @@ export default function LifeAgentChatPage() {
   const [useVoiceReply, setUseVoiceReply] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
   const isDesktop = useIsDesktop();
-  const { viewportBox, containerStyle: mobileContainerStyle, keyboardVisible } = useKeyboardViewport(!isDesktop);
+  const { viewportBox, keyboardVisible } = useKeyboardViewport(!isDesktop);
   const chatEndRef = useRef<HTMLDivElement | null>(null);
   const sendingRef = useRef(false);
 
@@ -675,14 +675,6 @@ export default function LifeAgentChatPage() {
     )}
     <div
       className={`flex min-h-0 flex-col lg:-mx-4 lg:-mt-3 lg:-mb-8 lg:h-[calc(100dvh-5rem)] lg:max-h-[calc(100dvh-5rem)] max-lg:fixed max-lg:inset-0 max-lg:z-[50] max-lg:overflow-hidden ${CHAT_PAGE_BACKGROUND_CLASSNAME}`}
-      style={
-        // 桌面端不使用 visualViewport 内联高度：根容器在文档流中、上方还有 navbar，
-        // 强行 height=window.innerHeight 会把输入框挤到视口外（用户报告 PC 看不到输入框）。
-        // 移动端键盘未弹起时用 inset-0 铺满视口；仅键盘弹起时用 visualViewport 高度。
-        isDesktop || !keyboardVisible
-          ? undefined
-          : { ...mobileContainerStyle, left: 0, right: 0, bottom: "auto" }
-      }
     >
       <AnimatePresence>
         {menuOpen && (
@@ -1207,6 +1199,10 @@ export default function LifeAgentChatPage() {
               onSubmit={sendMessage}
               disabled={loading || sessionLoading}
               placeholder="发消息..."
+              onTextareaFocus={() => {
+                window.setTimeout(() => scrollToLastMessage(), 120);
+                window.setTimeout(() => scrollToLastMessage(), 320);
+              }}
             />
           </div>
         </div>

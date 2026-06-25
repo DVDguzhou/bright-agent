@@ -42,23 +42,29 @@ function measureViewport(nativeKeyboardInset: number): ViewportBox {
   const insetFromVv = Math.max(0, layoutHeight - vvHeight - vvOffsetTop);
   const keyboardVisible = nativeKeyboardInset > 0 || insetFromVv >= KEYBOARD_INSET_THRESHOLD;
 
-  if (insetFromVv >= KEYBOARD_INSET_THRESHOLD) {
-    return {
-      height: applyKeyboardGap(vvHeight, true),
-      offsetTop: vvOffsetTop,
-      keyboardVisible: true,
-    };
+  if (!keyboardVisible) {
+    return { height: layoutHeight, offsetTop: 0, keyboardVisible: false };
   }
 
-  if (nativeKeyboardInset > 0) {
+  // interactiveWidget: resizes-content 已缩小 layout viewport 时，不要再叠 vv.offsetTop，
+  // 否则 Android / 第三方输入法（搜狗等）常出现「头顶空白、聊天区消失」。
+  const layoutTracksKeyboard =
+    insetFromVv < KEYBOARD_INSET_THRESHOLD || Math.abs(vvHeight - layoutHeight) <= 48;
+
+  if (layoutTracksKeyboard) {
     return {
-      height: applyKeyboardGap(Math.max(0, layoutHeight - nativeKeyboardInset), true),
+      height: applyKeyboardGap(layoutHeight, true),
       offsetTop: 0,
       keyboardVisible: true,
     };
   }
 
-  return { height: vvHeight, offsetTop: vvOffsetTop, keyboardVisible: false };
+  // 旧版 overlay 键盘：按 visualViewport 切片定位
+  return {
+    height: applyKeyboardGap(vvHeight, true),
+    offsetTop: vvOffsetTop,
+    keyboardVisible: true,
+  };
 }
 
 /** 聊天输入栏底边距：键盘弹起时保留少量内边距；未弹起时用 safe-area */
