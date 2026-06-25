@@ -28,7 +28,7 @@ import {
   type LifeAgentGrowthEvent,
 } from "@/lib/life-agent-growth";
 import { CitedMessageContent } from "@/components/citations/CitedMessageContent";
-import { CitationPanel, CitationSourceChips } from "@/components/citations/CitationPanel";
+import { CitationPanel } from "@/components/citations/CitationPanel";
 import {
   attributionHint,
   parseCiteIndex,
@@ -137,6 +137,65 @@ function feedbackChipClass(isSelected: boolean, hasSelection: boolean, isHelpful
 
 function feedbackOptionalComment(feedbackType: string) {
   return feedbackType === "helpful" || feedbackType === "not_suitable";
+}
+
+function isAssistantTurnTail(messages: ChatMessage[], index: number) {
+  const message = messages[index];
+  if (message.role !== "assistant") return false;
+  return index + 1 >= messages.length || messages[index + 1].role !== "assistant";
+}
+
+function shouldShowAssistantAvatar(messages: ChatMessage[], index: number) {
+  return index === 0 || messages[index - 1]?.role !== "assistant";
+}
+
+function applyDoneAssistantMessages(
+  prev: ChatMessage[],
+  assistantIdx: number,
+  data: {
+    reply?: string;
+    replySegments?: string[];
+    messageIds?: string[];
+    messageId?: string;
+    sessionId?: string;
+    references?: ChatMessage["references"];
+    attribution?: ChatMessage["attribution"];
+    audioUrl?: string;
+    audioDurationSec?: number;
+  }
+): ChatMessage[] {
+  const segments =
+    Array.isArray(data.replySegments) && data.replySegments.length > 1 ? data.replySegments : null;
+  if (!segments) {
+    return prev.map((m, i) =>
+      i === assistantIdx
+        ? {
+            ...m,
+            content: data.reply || m.content,
+            messageId: data.messageId,
+            sessionId: data.sessionId,
+            references: data.references,
+            attribution: data.attribution,
+            audioUrl: data.audioUrl,
+            audioDurationSec: data.audioDurationSec,
+          }
+        : m
+    );
+  }
+  const before = prev.slice(0, assistantIdx);
+  const ids = data.messageIds ?? [];
+  const last = segments.length - 1;
+  const segMessages: ChatMessage[] = segments.map((seg, i) => ({
+    role: "assistant",
+    content: seg,
+    messageId: ids[i] ?? (i === last ? data.messageId : undefined),
+    sessionId: data.sessionId,
+    references: i === last ? data.references : undefined,
+    attribution: i === last ? data.attribution : undefined,
+    audioUrl: i === last ? data.audioUrl : undefined,
+    audioDurationSec: i === last ? data.audioDurationSec : undefined,
+  }));
+  return [...before, ...segMessages];
 }
 
 export default function LifeAgentChatPage() {
@@ -414,13 +473,7 @@ export default function LifeAgentChatPage() {
             return;
           }
           // 兜底：非流式成功响应
-          setMessages((prev) =>
-            prev.map((m, i) =>
-              i === assistantIdx.current
-                ? { ...m, content: data.reply, messageId: data.messageId, sessionId: data.sessionId, references: data.references, attribution: data.attribution, audioUrl: data.audioUrl, audioDurationSec: data.audioDurationSec }
-                : m
-            )
-          );
+          setMessages((prev) => applyDoneAssistantMessages(prev, assistantIdx.current, data));
           return;
         }
 
@@ -460,20 +513,7 @@ export default function LifeAgentChatPage() {
                 );
               } else if (eventType === "done") {
                 const data = parsed;
-                setMessages((prev) =>
-                  prev.map((m, i) =>
-                    i === assistantIdx.current
-                      ? {
-                          ...m,
-                          content: data.reply || m.content,
-                          messageId: data.messageId,
-                          sessionId: data.sessionId,
-                          references: data.references,
-                          attribution: data.attribution,
-                        }
-                      : m
-                  )
-                );
+                setMessages((prev) => applyDoneAssistantMessages(prev, assistantIdx.current, data));
                 setLoading(false);
                 sendingRef.current = false;
                 if (useVoiceReply && profile?.hasVoiceClone && !parsed.audioUrl) {
@@ -1057,7 +1097,7 @@ export default function LifeAgentChatPage() {
                   <div
                     className={`flex items-end gap-2 ${message.role === "user" ? "justify-end" : "justify-start"}`}
                   >
-                    {message.role === "assistant" ? (
+                    {message.role === "assistant" && shouldShowAssistantAvatar(messages, index) ? (
                       <Link
                         href={`/life-agents/${id}`}
                         onClick={(e) => e.stopPropagation()}
@@ -1079,6 +1119,8 @@ export default function LifeAgentChatPage() {
                           </span>
                         )}
                       </Link>
+                    ) : message.role === "assistant" ? (
+                      <span className="h-8 w-8 shrink-0" aria-hidden />
                     ) : null}
                     <div className={getChatBubbleClassName(message.role)}>
                       {message.role === "assistant" && message.audioUrl ? (
@@ -1106,44 +1148,29 @@ export default function LifeAgentChatPage() {
                         <AgentTypingIndicator />
                       ) : (
                         <div className="space-y-2">
-                          {message.references && message.references.length > 0 ? (
-                            <CitedMessageContent
-                              content={message.content}
-                              activeCiteIndex={
-                                activeCitation?.messageKey === (message.messageId ?? message.content.slice(0, 24))
+                          <CitedMessageContent
+                            content={message.content}
+                            activeCiteIndex={
+                              message.references?.length
+                                ? activeCitation?.messageKey ===
+                                    (message.messageId ?? message.content.slice(0, 24))
                                   ? activeCitation.citeIndex
                                   : null
-                              }
-                              onCiteClick={(idx) =>
-                                openCitations(
-                                  message.references!,
-                                  message.messageId ?? message.content.slice(0, 24),
-                                  idx
-                                )
-                              }
-                            />
-                          ) : (
-                            <p className="whitespace-pre-wrap">{message.content}</p>
-                          )}
+                                : null
+                            }
+                            onCiteClick={
+                              message.references?.length
+                                ? (idx) =>
+                                    openCitations(
+                                      message.references!,
+                                      message.messageId ?? message.content.slice(0, 24),
+                                      idx
+                                    )
+                                : undefined
+                            }
+                          />
                           {attributionHint(message.attribution) && (
                             <p className="text-[11px] text-ink-400">{attributionHint(message.attribution)}</p>
-                          )}
-                          {message.references && message.references.length > 0 && (
-                            <CitationSourceChips
-                              references={message.references}
-                              activeCiteIndex={
-                                activeCitation?.messageKey === (message.messageId ?? message.content.slice(0, 24))
-                                  ? activeCitation.citeIndex
-                                  : null
-                              }
-                              onOpen={(idx) =>
-                                openCitations(
-                                  message.references!,
-                                  message.messageId ?? message.content.slice(0, 24),
-                                  idx ?? null
-                                )
-                              }
-                            />
                           )}
                         </div>
                       )}
@@ -1157,7 +1184,7 @@ export default function LifeAgentChatPage() {
                       />
                     ) : null}
                   </div>
-                  {message.role === "assistant" && message.messageId && message.sessionId ? (
+                  {message.role === "assistant" && message.messageId && message.sessionId && isAssistantTurnTail(messages, index) ? (
                     <div className="ml-10 max-w-full space-y-2">
                       <div className="flex flex-wrap gap-2 text-xs">
                         {FEEDBACK_PRIMARY.map((item) => {

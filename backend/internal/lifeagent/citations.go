@@ -342,11 +342,24 @@ func buildReconcileCatalogPrompt(catalog CitationCatalog) string {
 	return sb.String()
 }
 
+// NormalizeCitationMarkers converts Unicode superscripts to [n] for consistent inline display.
+func NormalizeCitationMarkers(text string) string {
+	var b strings.Builder
+	for _, r := range text {
+		if n, ok := citeSuperscript[r]; ok {
+			b.WriteString(fmt.Sprintf("[%d]", n))
+			continue
+		}
+		b.WriteRune(r)
+	}
+	return b.String()
+}
+
 func buildReconcileCitationRule(citationsEnabled bool) string {
 	if !citationsEnabled {
 		return ""
 	}
-	return "9. 【引用上标】当某句内容明确来自上方编号素材时，在该句末尾加 Unicode 上标（¹ ² ³ …，编号与素材 [n] 对应），每句最多 3 个上标。禁止写「根据资料」「知识库」等词；上标是唯一可见的引用形式。\n"
+	return "9. 【引用标注】当某句内容明确来自上方编号素材时，在该句末尾紧跟方括号编号（如[1]、[2]，数字与素材 [n] 一致），每句最多 3 个。禁止写「根据资料」「知识库」等词；只用 [n] 标注，不要另起一行列来源。\n"
 }
 
 func IndexToSuperscript(n int) string {

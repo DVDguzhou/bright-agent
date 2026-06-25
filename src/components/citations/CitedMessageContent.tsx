@@ -12,26 +12,28 @@ export function CitedMessageContent({
   onCiteClick?: (citeIndex: number) => void;
 }) {
   const parts = splitCitationContent(content);
-  if (parts.length === 0) {
+  const hasCites = parts.some((p) => p.type === "cite");
+
+  if (!hasCites) {
     return <p className="whitespace-pre-wrap">{content}</p>;
   }
 
   return (
-    <p className="whitespace-pre-wrap">
+    <p className="whitespace-pre-wrap leading-relaxed">
       {parts.map((part, idx) => {
         if (part.type === "text") {
           return <span key={`t-${idx}`}>{part.value}</span>;
         }
         const isActive = activeCiteIndex === part.citeIndex;
         return (
-          <sup key={`c-${idx}`}>
+          <sup key={`c-${idx}`} className="mx-0.5 align-super">
             <button
               type="button"
               onClick={() => onCiteClick?.(part.citeIndex)}
-              className={`mx-0.5 inline-flex min-h-[1.1rem] min-w-[1.1rem] items-center justify-center rounded text-[10px] font-semibold leading-none transition ${
+              className={`inline text-[0.65em] font-semibold leading-none underline-offset-2 transition ${
                 isActive
-                  ? "bg-signal-600 text-paper-50"
-                  : "bg-paper-200 text-ink-500 hover:bg-signal-100 hover:text-signal-800"
+                  ? "text-signal-700 underline"
+                  : "text-signal-600/90 hover:text-signal-800 hover:underline"
               }`}
               aria-label={`查看引用 ${part.citeIndex}`}
             >

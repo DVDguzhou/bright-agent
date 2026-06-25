@@ -3444,16 +3444,28 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 			refsAny = append(refsAny, m)
 		}
 		db.DB.Create(&models.LifeAgentChatMessage{ID: models.GenID(), SessionID: sessionID, Role: "user", Content: body.Message})
-		assistantMsgID := models.GenID()
+		replySegments := lifeagent.SplitReplySegments(content)
+		if len(replySegments) == 0 {
+			replySegments = []string{content}
+		}
+		assistantMsgIDs := make([]string, len(replySegments))
+		for i, seg := range replySegments {
+			assistantMsgIDs[i] = models.GenID()
+			var segRefs models.JSONAny
+			if i == len(replySegments)-1 {
+				segRefs = refsAny
+			}
+			db.DB.Create(&models.LifeAgentChatMessage{
+				ID:        assistantMsgIDs[i],
+				SessionID: sessionID,
+				Role:      "assistant",
+				Content:   seg,
+				Refs:      segRefs,
+			})
+		}
+		assistantMsgID := assistantMsgIDs[len(assistantMsgIDs)-1]
 
 		// 先保存消息（无音频）、发 done 事件，让前端立即拿到完整文本
-		db.DB.Create(&models.LifeAgentChatMessage{
-			ID:        assistantMsgID,
-			SessionID: sessionID,
-			Role:      "assistant",
-			Content:   content,
-			Refs:      refsAny,
-		})
 		if !cfg.LifeAgentUnlimitedChat && packToConsume != nil {
 			db.DB.Model(packToConsume).Update("questions_used", packToConsume.QuestionsUsed+1)
 		}
@@ -3497,7 +3509,7 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 		}(id, sessionID, body.Message, factsForAI, topicsForAI, entriesForAI, hist)
 
 		// 异步生成会话摘要：消息数 > 6 时触发，不阻塞响应（短会话也能沉淀跨会话记忆）
-		totalMsgCount := len(msgs) + 2
+		totalMsgCount := len(msgs) + 1 + len(replySegments)
 		if totalMsgCount > 6 {
 			allHist := make([]lifeagent.ChatMessageForAI, len(hist), len(hist)+2)
 			copy(allHist, hist)
@@ -3533,7 +3545,9 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 			"sessionId":          sessionID,
 			"sessionTitle":       buildLifeAgentSessionTitle(body.Message),
 			"messageId":          assistantMsgID,
+			"messageIds":         assistantMsgIDs,
 			"reply":              content,
+			"replySegments":      replySegments,
 			"references":         refsMap,
 			"attribution":        attribution,
 			"remainingQuestions": remainingOut,

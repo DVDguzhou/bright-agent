@@ -53,7 +53,7 @@
         class="msg-block"
       >
         <view class="msg-row {{msg.isUser ? 'user' : 'assistant'}}">
-          <view wx:if="{{!msg.isUser}}" class="msg-avatar-wrap" bindtap="goDetail">
+          <view wx:if="{{!msg.isUser && msg.showAvatar}}" class="msg-avatar-wrap" bindtap="goDetail">
             <image
               wx:if="{{coverFull}}"
               class="msg-avatar"
@@ -62,6 +62,7 @@
             ></image>
             <text wx:else class="msg-avatar-fallback">{{agentInitial}}</text>
           </view>
+          <view wx:elif="{{!msg.isUser}}" class="msg-avatar-spacer"></view>
 
           <view wx:if="{{!msg.isUser}}" class="msg-main">
             <view class="bubble {{msg.error ? 'error' : ''}} {{msg.pending ? 'pending' : ''}}">
@@ -88,17 +89,6 @@
               <text wx:else user-select>{{msg.content}}</text>
             </view>
             <text wx:if="{{msg.attributionHint}}" class="attribution-hint">{{msg.attributionHint}}</text>
-            <view wx:if="{{msg.hasReferences}}" class="ref-chips">
-              <view
-                wx:for="{{msg.references}}"
-                wx:for-item="ref"
-                wx:key="id"
-                class="ref-chip"
-                data-msg-idx="{{msgIdx}}"
-                data-cite-index="{{ref.citeIndex}}"
-                catchtap="openCitationSheet"
-              >{{ref.title}}</view>
-            </view>
 
             <view wx:if="{{msg.showFeedback && !msg.pending}}" class="feedback-wrap">
               <view class="feedback-line">

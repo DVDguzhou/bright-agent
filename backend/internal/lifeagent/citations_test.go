@@ -70,6 +70,14 @@ func TestTopicRedundantWithEntries(t *testing.T) {
 	}
 }
 
+func TestNormalizeCitationMarkers(t *testing.T) {
+	got := NormalizeCitationMarkers("你好¹世界²")
+	want := "你好[1]世界[2]"
+	if got != want {
+		t.Fatalf("got %q want %q", got, want)
+	}
+}
+
 func TestStripInlineCitations(t *testing.T) {
 	got := StripInlineCitations("你好¹世界[2]")
 	want := "你好世界"

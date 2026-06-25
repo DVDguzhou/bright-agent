@@ -1025,6 +1025,9 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 		out = draft
 	}
 	out = ApplyClaimGuard(message, out, facts, planStrict)
+	if citationsEnabled {
+		out = NormalizeCitationMarkers(out)
+	}
 
 	_, usedIndexes := ParseInlineCitations(out)
 	if !citationsEnabled {
@@ -1705,6 +1708,36 @@ func humanizeReply(content string) string {
 		paragraphs[i] = joinLinesInParagraph(para)
 	}
 	return strings.Join(paragraphs, "\n\n")
+}
+
+const maxReplySegments = 6
+
+// SplitReplySegments 把最终正文按段落拆成多条聊天气泡；单段则返回单元素切片。
+func SplitReplySegments(content string) []string {
+	content = strings.TrimSpace(content)
+	if content == "" {
+		return nil
+	}
+	paras := splitParagraphs(content)
+	out := make([]string, 0, len(paras))
+	for _, p := range paras {
+		seg := strings.TrimSpace(joinLinesInParagraph(p))
+		if seg != "" {
+			out = append(out, seg)
+		}
+	}
+	if len(out) == 0 {
+		return []string{content}
+	}
+	if len(out) == 1 {
+		return out
+	}
+	if len(out) > maxReplySegments {
+		merged := append([]string{}, out[:maxReplySegments-1]...)
+		merged = append(merged, strings.Join(out[maxReplySegments-1:], "\n\n"))
+		out = merged
+	}
+	return out
 }
 
 // splitParagraphs 按"空行"切段；连续换行压缩成一个空行。

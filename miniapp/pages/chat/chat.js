@@ -78,6 +78,18 @@ function normalizeMessage(m, sessionId) {
   return out;
 }
 
+function finalizeAssistantMessages(messages) {
+  return messages.map(function (m, idx, arr) {
+    if (m.isUser) return m;
+    var showAvatar = idx === 0 || arr[idx - 1].isUser;
+    var hasNextAssistant = idx + 1 < arr.length && !arr[idx + 1].isUser;
+    return Object.assign({}, m, {
+      showAvatar: showAvatar,
+      showFeedback: m.showFeedback && !hasNextAssistant,
+    });
+  });
+}
+
 Page({
   data: {
     id: "",
@@ -331,7 +343,7 @@ Page({
         }
         this.setData({
           sessionId,
-          messages: msgs,
+          messages: finalizeAssistantMessages(msgs),
           sessionLoading: false,
           scrollTo: "msg-" + (msgs.length - 1),
         });
@@ -445,25 +457,49 @@ Page({
     })
       .then((res) => {
         const data = res.data || {};
-        const reply = data.reply || "（无回复）";
-        const next = this.data.messages.filter(function (m) {
+        const sessionId = data.sessionId || this.data.sessionId;
+        let next = this.data.messages.filter(function (m) {
           return !m.pending;
         });
-        next.push(
-          normalizeMessage(
-            {
-              role: "assistant",
-              content: reply,
-              messageId: data.messageId,
-              references: data.references,
-              attribution: data.attribution,
-            },
-            data.sessionId || this.data.sessionId
-          )
-        );
+        const segments =
+          Array.isArray(data.replySegments) && data.replySegments.length > 1
+            ? data.replySegments
+            : null;
+        if (segments) {
+          const ids = data.messageIds || [];
+          const last = segments.length - 1;
+          segments.forEach(function (seg, i) {
+            next.push(
+              normalizeMessage(
+                {
+                  role: "assistant",
+                  content: seg,
+                  messageId: ids[i] || (i === last ? data.messageId : undefined),
+                  references: i === last ? data.references : [],
+                  attribution: i === last ? data.attribution : "",
+                },
+                sessionId
+              )
+            );
+          });
+        } else {
+          const reply = data.reply || "（无回复）";
+          next.push(
+            normalizeMessage(
+              {
+                role: "assistant",
+                content: reply,
+                messageId: data.messageId,
+                references: data.references,
+                attribution: data.attribution,
+              },
+              sessionId
+            )
+          );
+        }
         const patch = {
-          messages: next,
-          sessionId: data.sessionId || this.data.sessionId,
+          messages: finalizeAssistantMessages(next),
+          sessionId: sessionId,
           sending: false,
           scrollTo: "msg-" + (next.length - 1),
         };
