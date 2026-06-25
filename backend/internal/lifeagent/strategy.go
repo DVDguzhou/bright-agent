@@ -269,6 +269,13 @@ func buildFormatRules(p PerceptionSnapshot, length LengthTarget, empathy string,
 
 	// elaborate 模式下，还要防"每句一行"的短消息风格，并且必须明确对抗
 	// 系统提示里"宁可说少一点"的底层默认——否则这类"怎么准备"的问题会被压成一段话。
+	if length.Label == "sparse_elaborate" {
+		rules = append(rules,
+			"素材只有一两句：详细=口语重述事实+模糊感受，大约 80–160 字、1–2 段。禁止补地点、人物、过程、原因链、对话场景。",
+			"同一件事情不要一句一行地甩出来——用「，」「。」「还有」自然连起来。",
+		)
+	}
+
 	if length.Label == "elaborate" {
 		rules = append(rules,
 			"这次要写得完整：每段内部是两三句连贯的话，不要把每一句都单独成行。段与段之间可以空一行分隔不同侧面。",

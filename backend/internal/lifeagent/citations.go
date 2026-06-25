@@ -384,7 +384,8 @@ func buildReconcileCitationRule(citationsEnabled bool) string {
 	if !citationsEnabled {
 		return ""
 	}
-	return "9. 【引用标注】正文转述了编号素材中的事实时，对应句末必须加 [n]（如[1]、[2]），不得全部省略。仅当素材与句意完全无关时才禁止标注。每句最多 3 个。禁止写「根据资料」「知识库」；只用 [n]。\n"
+	return "9. 【引用标注】每条编号素材 [n] 整段回复最多出现 1 次，只在直接转述该素材事实的那一句末尾标注。" +
+		"模糊感受、态度、反问句禁止加 [n]。素材与句意无关时禁止标注。禁止写「根据资料」「知识库」；只用 [n]。\n"
 }
 
 // EnsureInlineCitations adds [n] markers via a lightweight LLM pass when reconcile omitted them.
@@ -397,8 +398,9 @@ func EnsureInlineCitations(ctx context.Context, client *openai.Client, model, te
 		return ValidateInlineCitations(NormalizeCitationMarkers(text), catalog)
 	}
 
-	system := "你是引用标注助手。任务：在正文每句使用了下方编号素材信息的句末添加 [n] 标注，n 与素材编号一致。\n" +
-		"规则：素材与句意无关时禁止加标注；不要改正文措辞、不要删字、不要加解释、不要 Markdown；只输出标注后的正文。"
+	system := "你是引用标注助手。任务：仅在直接转述编号素材事实的那一句句末添加 [n] 标注，n 与素材编号一致。\n" +
+		"规则：每条素材整段回复最多 1 次 [n]；模糊感受/态度/反问禁止加标注；素材与句意无关时禁止加标注；" +
+		"不要改正文措辞、不要删字、不要加解释、不要 Markdown；只输出标注后的正文。"
 	user := "【编号素材】\n" + buildReconcileCatalogPrompt(catalog) +
 		"\n【待标注正文】\n" + text +
 		"\n\n请输出加了 [n] 标注的正文（仅此一段）："
@@ -699,8 +701,93 @@ func appendCitationMarker(s string, n int) string {
 	return s + mark
 }
 
+// CapCitationMarkers enforces at-most-once per source, one marker per paragraph, and overlap validation.
+func CapCitationMarkers(text string, catalog CitationCatalog) string {
+	text = strings.TrimSpace(text)
+	if text == "" || len(catalog.Items) == 0 {
+		return text
+	}
+	byIndex := make(map[int]CitationItem, len(catalog.Items))
+	for _, item := range catalog.Items {
+		byIndex[item.CiteIndex] = item
+	}
+	seenIndex := map[int]bool{}
+	paras := splitParagraphs(text)
+	changed := false
+	for i, para := range paras {
+		joined := joinLinesInParagraph(para)
+		capped := capCitationMarkersInParagraph(joined, byIndex, seenIndex)
+		if capped != joined {
+			changed = true
+			paras[i] = capped
+		}
+	}
+	if !changed {
+		return text
+	}
+	out := make([]string, len(paras))
+	for i, para := range paras {
+		out[i] = joinLinesInParagraph(para)
+	}
+	return strings.Join(out, "\n\n")
+}
+
+func capCitationMarkersInParagraph(para string, byIndex map[int]CitationItem, seenIndex map[int]bool) string {
+	matches := citeBracketRe.FindAllStringSubmatchIndex(para, -1)
+	if len(matches) == 0 {
+		return para
+	}
+	var b strings.Builder
+	last := 0
+	keptInPara := 0
+	for _, m := range matches {
+		b.WriteString(para[last:m[0]])
+		n, _ := strconv.Atoi(para[m[2]:m[3]])
+		item, ok := byIndex[n]
+		keep := ok && keptInPara == 0 && !seenIndex[n] && !citationShouldStrip(para, item)
+		if keep {
+			sentence := sentenceAroundMarker(para, m[0], m[1])
+			if contentOverlapScore(sentence, item.FullContent) < citationMinMatchScore {
+				keep = false
+			}
+		}
+		if keep {
+			b.WriteString(para[m[0]:m[1]])
+			seenIndex[n] = true
+			keptInPara++
+		}
+		last = m[1]
+	}
+	b.WriteString(para[last:])
+	return b.String()
+}
+
+func sentenceAroundMarker(para string, start, end int) string {
+	before := para[:start]
+	after := para[end:]
+	sentStart := 0
+	for _, sep := range []string{"。", "！", "？", "\n", ".", "!", "?"} {
+		if i := strings.LastIndex(before, sep); i >= 0 {
+			candidate := i + len(sep)
+			if candidate > sentStart {
+				sentStart = candidate
+			}
+		}
+	}
+	sentEnd := len(para)
+	for _, sep := range []string{"。", "！", "？", "\n", ".", "!", "?"} {
+		if i := strings.Index(after, sep); i >= 0 {
+			candidate := end + i + len(sep)
+			if candidate < sentEnd {
+				sentEnd = candidate
+			}
+		}
+	}
+	return strings.TrimSpace(para[sentStart:sentEnd])
+}
+
 // FinalizeCitedReply normalizes markers, ensures inline cites when enabled, and builds references.
-func FinalizeCitedReply(ctx context.Context, client *openai.Client, model, out string, catalog CitationCatalog, citationsEnabled bool) (string, []map[string]string) {
+func FinalizeCitedReply(ctx context.Context, client *openai.Client, model, out string, catalog CitationCatalog, citationsEnabled bool, sparse bool) (string, []map[string]string) {
 	if citationsEnabled {
 		out = NormalizeCitationMarkers(out)
 		_, usedIndexes := ParseInlineCitations(out)
@@ -712,7 +799,7 @@ func FinalizeCitedReply(ctx context.Context, client *openai.Client, model, out s
 			out = HeuristicEnsureInlineCitations(out, catalog)
 		}
 		_, usedIndexes = ParseInlineCitations(out)
-		if len(catalog.Items) > 0 && len(usedIndexes) == 0 {
+		if !sparse && len(catalog.Items) > 0 && len(usedIndexes) == 0 {
 			out = overlapEnsureInlineCitations(out, catalog)
 		}
 	} else {
@@ -724,6 +811,7 @@ func FinalizeCitedReply(ctx context.Context, client *openai.Client, model, out s
 		return out, nil
 	}
 	out = ValidateInlineCitations(out, catalog)
+	out = CapCitationMarkers(out, catalog)
 	_, usedIndexes = ParseInlineCitations(out)
 	refs := BuildCitedReferences(catalog, usedIndexes, citationsEnabled)
 	return out, refs

@@ -6,8 +6,9 @@ import "strings"
 type AnswerPolicy string
 
 const (
-	PolicyGrounded      AnswerPolicy = "grounded"
-	PolicyAdvisory      AnswerPolicy = "advisory"
+	PolicyGrounded       AnswerPolicy = "grounded"
+	PolicySparseGrounded AnswerPolicy = "sparse_grounded"
+	PolicyAdvisory       AnswerPolicy = "advisory"
 	PolicySoftPersonal  AnswerPolicy = "soft_personal"
 	PolicyHardFallback  AnswerPolicy = "hard_fallback"
 )
@@ -20,6 +21,9 @@ func ClassifyAnswerPolicy(message string, plan RetrievalPlan, opts *ChatOptions)
 	}
 	// 有素材时优先 grounded + reconcile（含引用），不因「怎么规划/建议」类问法降级为通识
 	if hasTargets {
+		if AssessPlanSparsity(plan).IsSparse {
+			return PolicySparseGrounded
+		}
 		return PolicyGrounded
 	}
 	if asksPersonalExperience(message) {
@@ -61,6 +65,8 @@ func answerPolicyGuidance(policy AnswerPolicy) string {
 		return "【个人经历但素材不足】对方在问你的事，但你这边没有对应素材。用推测/模糊语气（「我猜」「可能」「看情况」「记不太清了」），不要断言具体发生过什么；别整段说「没经历过/不太懂」。"
 	case PolicyGrounded:
 		return "【个人经历对齐】具体经历、时间线必须和注入素材一致；用了哪条素材的信息，最终正文里要有对应引用标注。"
+	case PolicySparseGrounded:
+		return "【稀疏素材对齐】素材只有一两句：详细=口语重述事实+模糊感受，禁止编场景。每条素材最多标注 1 次，只在转述事实的那句末尾。"
 	default:
 		return ""
 	}
@@ -68,7 +74,7 @@ func answerPolicyGuidance(policy AnswerPolicy) string {
 
 func attributionForPolicy(policy AnswerPolicy) string {
 	switch policy {
-	case PolicyGrounded:
+	case PolicyGrounded, PolicySparseGrounded:
 		return AttributionGrounded
 	case PolicyHardFallback:
 		return AttributionFallback
@@ -94,7 +100,7 @@ func ApplyClaimGuardWithPolicy(message, content string, facts []StructuredFactFo
 				return buildFactReply(intent.Key, matched)
 			}
 		}
-		if len(matched) == 0 && policy != PolicyAdvisory {
+		if len(matched) == 0 && policy != PolicyAdvisory && policy != PolicySparseGrounded {
 			return pickRandom(fallbackSpeculative)
 		}
 	}

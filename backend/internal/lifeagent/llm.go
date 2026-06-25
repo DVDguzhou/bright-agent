@@ -859,12 +859,50 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 		)
 	}
 
+	// ─── 检索计划 + 回答策略（需在 draft 前，以便稀疏素材约束长度与 prompt）───
+	chatIntent := ws.Perception.Intent
+
+	var planStrict RetrievalPlan
+	needsReconcile := false
+	answerPolicy := PolicyAdvisory
+	if chatIntent != chatIntentSmallTalk {
+		planStrict = StrictFromPlan(fullPlan, message, entries)
+		if opts != nil && len(opts.LiveUpdates) > 0 {
+			AttachLiveUpdates(&planStrict, opts.LiveUpdates)
+		}
+		if opts != nil && len(opts.RecentlyUsedEntryIDs) > 0 {
+			DeweightRecentlyUsedEntries(&planStrict, opts.RecentlyUsedEntryIDs)
+		}
+		answerPolicy = ClassifyAnswerPolicy(message, planStrict, opts)
+		if opts != nil {
+			opts.CatalogSparsity = AssessPlanSparsity(planStrict)
+			opts.AnswerPolicy = answerPolicy
+		}
+		if answerPolicy == PolicyHardFallback {
+			fallback := DefaultKnowledgeFallbackMessage
+			if opts != nil && strings.TrimSpace(opts.KnowledgeFallbackMessage) != "" {
+				fallback = strings.TrimSpace(opts.KnowledgeFallbackMessage)
+			}
+			if opts != nil {
+				opts.ReplyAttribution = AttributionFallback
+			}
+			return deliverFinalReply(fallback, nil, onChunk, opts)
+		}
+		needsReconcile = (answerPolicy == PolicyGrounded || answerPolicy == PolicySparseGrounded) && PlanHasArbitrationTargets(planStrict)
+	}
+	log.Printf("[LLM-timing] retrieval plan in %dms, needsReconcile=%v, policy=%s, sparse=%v, intent=%s",
+		time.Since(tStart).Milliseconds(), needsReconcile, answerPolicy,
+		opts != nil && opts.CatalogSparsity.IsSparse, chatIntent)
+
 	// ─── 策略层：把感知 + 画像 翻译成确定性的 PromptLengthHint + FormatRules ───
 	var strategy Strategy
 	if strings.TrimSpace(ws.Strategy.PromptLengthHint) != "" || len(ws.Strategy.FormatRules) > 0 {
 		strategy = ws.Strategy
 	} else {
 		strategy = DeriveStrategy(ws, profile)
+	}
+	if opts != nil && opts.CatalogSparsity.IsSparse {
+		ApplySparseStrategyOverride(&strategy, opts.CatalogSparsity, ws.Perception)
 	}
 	// 把 ws 回写 opts，确保 buildDraftKnowledgeContext 能读到 Perception / Episodes
 	opts.WorkingState = ws
@@ -879,8 +917,6 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 	}
 
 	// Intent-based routing: 闲聊/打招呼直接走 Draft，跳过 Reconcile
-	chatIntent := ws.Perception.Intent
-
 	draftSystem := buildDraftSystemPrompt(profile, facts, topics, luSlice, &strategy)
 	knowledgeCtx := buildDraftKnowledgeContext(facts, topics, luSlice, entryHints, message, history, opts)
 	opts.KnowledgeContext = knowledgeCtx
@@ -908,36 +944,6 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 	} else {
 		draftReq.Tools = chatTools[:1] // 非 DashScope 只提供 get_current_datetime
 	}
-
-	var planStrict RetrievalPlan
-	needsReconcile := false
-	answerPolicy := PolicyAdvisory
-	if chatIntent != chatIntentSmallTalk {
-		// 从宽松 plan 派生严格版本，避免二次全量检索
-		planStrict = StrictFromPlan(fullPlan, message, entries)
-		if opts != nil && len(opts.LiveUpdates) > 0 {
-			AttachLiveUpdates(&planStrict, opts.LiveUpdates)
-		}
-		if opts != nil && len(opts.RecentlyUsedEntryIDs) > 0 {
-			DeweightRecentlyUsedEntries(&planStrict, opts.RecentlyUsedEntryIDs)
-		}
-		answerPolicy = ClassifyAnswerPolicy(message, planStrict, opts)
-		if opts != nil {
-			opts.AnswerPolicy = answerPolicy
-		}
-		if answerPolicy == PolicyHardFallback {
-			fallback := DefaultKnowledgeFallbackMessage
-			if opts != nil && strings.TrimSpace(opts.KnowledgeFallbackMessage) != "" {
-				fallback = strings.TrimSpace(opts.KnowledgeFallbackMessage)
-			}
-			if opts != nil {
-				opts.ReplyAttribution = AttributionFallback
-			}
-			return deliverFinalReply(fallback, nil, onChunk, opts)
-		}
-		needsReconcile = answerPolicy == PolicyGrounded && PlanHasArbitrationTargets(planStrict)
-	}
-	log.Printf("[LLM-timing] retrieval plan in %dms, needsReconcile=%v, policy=%s, intent=%s", time.Since(tStart).Milliseconds(), needsReconcile, answerPolicy, chatIntent)
 
 	// Draft 生成阶段不向客户端推 token；最终按单段流式或多段 segment 事件交付。
 	filter := newReasoningStreamFilter(nil)
@@ -1017,8 +1023,9 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 	// 仲裁阶段静默执行，完成后通过 segment SSE 逐段推送
 	catalog := BuildCitationCatalog(planStrict)
 	citationsEnabled := opts == nil || opts.CitationsEnabled
-	reconcileSystem := buildReconcileSystemPrompt(profile, catalog, citationsEnabled)
-	reconcileUser := buildReconcileUserMessage(message, draft)
+	sparse := opts != nil && opts.CatalogSparsity.IsSparse
+	reconcileSystem := buildReconcileSystemPrompt(profile, catalog, citationsEnabled, sparse)
+	reconcileUser := buildReconcileUserMessage(message, draft, sparse)
 	reconcileMaxTokens := estimateReconcileTokenBudget(draft)
 	reconcileReq := openai.ChatCompletionRequest{
 		Model: model,
@@ -1044,8 +1051,8 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 		log.Printf("[LLM] reconcile humanized to empty (reasoning-only?), falling back to draft")
 		out = draft
 	}
-	out = ApplyClaimGuardWithPolicy(message, out, facts, planStrict, PolicyGrounded)
-	out, references = FinalizeCitedReply(ctx, client, model, out, catalog, citationsEnabled)
+	out = ApplyClaimGuardWithPolicy(message, out, facts, planStrict, answerPolicy)
+	out, references = FinalizeCitedReply(ctx, client, model, out, catalog, citationsEnabled, sparse)
 	if opts != nil {
 		opts.ReplyAttribution = AttributionGrounded
 		opts.ReplyUseSegmentDelivery = true
@@ -1321,6 +1328,10 @@ func buildDraftKnowledgeContext(facts []StructuredFactForAI, topics []TopicSumma
 		}
 	}
 
+	if opts != nil && opts.CatalogSparsity.IsSparse {
+		sb.WriteString(sparseDraftKnowledgeGuidance())
+	}
+
 	if confirmedFacts := filterConfirmedFacts(facts); len(confirmedFacts) > 0 {
 		sb.WriteString("【我的基本信息 - 这些是你的真实情况】\n")
 		for _, f := range confirmedFacts {
@@ -1390,33 +1401,53 @@ func buildDraftKnowledgeContext(facts []StructuredFactForAI, topics []TopicSumma
 	return sb.String()
 }
 
-func buildReconcileSystemPrompt(profile ProfileForAI, catalog CitationCatalog, citationsEnabled bool) string {
+func buildReconcileSystemPrompt(profile ProfileForAI, catalog CitationCatalog, citationsEnabled bool, sparse bool) string {
 	var sb strings.Builder
 	sb.WriteString("你是同一人设「")
 	sb.WriteString(profile.DisplayName)
-	sb.WriteString("」的校对：下面【编号素材】来自该账号已入库内容，**与草稿冲突时以这些内容为准**；不冲突则尽量保留草稿的人声与长度感。\n\n")
+	sb.WriteString("」的校对：下面【编号素材】来自该账号已入库内容，**与草稿冲突时以这些内容为准**")
+	if sparse {
+		sb.WriteString("；素材极短时宁可删情节也不要编全")
+	} else {
+		sb.WriteString("；不冲突则尽量保留草稿的人声与长度感")
+	}
+	sb.WriteString("。\n\n")
 	sb.WriteString("规则：\n")
 	sb.WriteString("1. 输出仍是微信聊天正文：无 Markdown、无列表符号、无 #。\n")
 	sb.WriteString("2. 若草稿与事实/素材在具体经历、数字、人物关系上矛盾，改写到一致，口吻仍口语。\n")
-	sb.WriteString("3. 若不矛盾，可基本保留草稿，仅去掉格式符号、略顺句。\n")
+	if sparse {
+		sb.WriteString("3. 草稿里凡素材未明确写出的情节/地点/人物/过程，一律删除；保留口语转述 + 最多 2 句模糊感受（不加引用）。输出应明显短于草稿。\n")
+	} else {
+		sb.WriteString("3. 若不矛盾，可基本保留草稿，仅去掉格式符号、略顺句。\n")
+	}
 	sb.WriteString("4. 禁止在输出里提：知识库、资料、依据、检索、修改过程。\n")
 	sb.WriteString("5. 最重要：保留草稿的口语感和个人风格，只改事实层面的错误。不要把草稿改得更客套、更全面、更像AI。宁可短一点粗一点，也不要精致得像客服。\n")
 	sb.WriteString("6. 如果用户只是打招呼或闲聊，草稿回得简短自然就直接保留，不要强行把素材内容塞进去、不要把回复改成话题菜单或服务介绍。\n")
 	sb.WriteString("7. 【口语保护】草稿里如果有口语化的表达（比如「说实话挺难熬的」「反正就是那个意思」「我也不知道咋回事」），绝对不要改成书面语（比如「确实比较艰难」「大致如此」「原因不太明确」）。口语表达比书面表达更真实。\n")
-	sb.WriteString("8. 【不要补充】如果草稿只讲了一个角度，不要自作主张补充其他角度。真人聊天经常只说一面之词——这不是缺点，这是真实。\n")
+	if sparse {
+		sb.WriteString("8. 【不要补充】素材很短时禁止补充任何新角度或场景细节。\n")
+	} else {
+		sb.WriteString("8. 【不要补充】如果草稿只讲了一个角度，不要自作主张补充其他角度。真人聊天经常只说一面之词——这不是缺点，这是真实。\n")
+	}
 	sb.WriteString(buildReconcileCitationRule(citationsEnabled))
+	if sparse {
+		sb.WriteString(sparseReconcileRule())
+	}
 	sb.WriteString("\n【编号素材】\n")
 	sb.WriteString(buildReconcileCatalogPrompt(catalog))
 	return sb.String()
 }
 
-func buildReconcileUserMessage(userMessage, draft string) string {
+func buildReconcileUserMessage(userMessage, draft string, sparse bool) string {
 	var sb strings.Builder
 	sb.WriteString("用户刚才说：\n")
 	sb.WriteString(userMessage)
 	sb.WriteString("\n\n下面是第一遍回复草稿（可能与上面入库内容不一致）：\n")
 	sb.WriteString(draft)
 	sb.WriteString("\n\n请输出一条最终发给用户的正文（仅此一段对话，不要前缀说明）。")
+	if sparse {
+		sb.WriteString(sparseReconcileUserSuffix())
+	}
 	return sb.String()
 }
 

@@ -46,6 +46,9 @@ type ChatOptions struct {
 
 	// ReplyUseSegmentDelivery: when true, handler should emit segment SSE events instead of content chunks.
 	ReplyUseSegmentDelivery bool
+
+	// CatalogSparsity set when retrieval hits are too thin to elaborate safely.
+	CatalogSparsity CatalogSparsity
 }
 
 // EpisodeCandidate 从 DB 读出来、准备参加情景层召回的候选；已做 buyer_only 过滤。

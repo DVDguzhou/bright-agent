@@ -143,3 +143,18 @@ func TestStripInlineCitations(t *testing.T) {
 		t.Fatalf("got %q want %q", got, want)
 	}
 }
+
+func TestCapCitationMarkersOnePerParagraph(t *testing.T) {
+	catalog := BuildCitationCatalog(RetrievalPlan{
+		Entries: []KnowledgeEntryForAI{
+			{ID: "e1", Title: "留学", Content: "温州大学 CMU"},
+			{ID: "e2", Title: "实习", Content: "大二实习"},
+		},
+	})
+	text := "本科温州大学 CMU[1] 大二实习[2]。"
+	got := CapCitationMarkers(text, catalog)
+	_, used := ParseInlineCitations(got)
+	if len(used) > 2 {
+		t.Fatalf("too many cites: %v in %q", used, got)
+	}
+}

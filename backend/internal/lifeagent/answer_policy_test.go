@@ -1,10 +1,14 @@
 package lifeagent
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 func TestClassifyAnswerPolicyGrounded(t *testing.T) {
+	longContent := strings.Repeat("考研准备细节包括择校、刷题、复试与调剂。", 8)
 	plan := RetrievalPlan{
-		Entries: []KnowledgeEntryForAI{{ID: "e1", Title: "考研", Content: "..."}},
+		Entries: []KnowledgeEntryForAI{{ID: "e1", Title: "考研", Content: longContent}},
 	}
 	opts := &ChatOptions{AllowGeneralKnowledge: true}
 	got := ClassifyAnswerPolicy("你当时考研怎么准备的？", plan, opts)
@@ -23,8 +27,9 @@ func TestClassifyAnswerPolicyAdvisory(t *testing.T) {
 }
 
 func TestClassifyAnswerPolicyGroundedWhenHasTargets(t *testing.T) {
+	longContent := strings.Repeat("大学路线规划包括探索期、定向期与冲刺期。", 8)
 	plan := RetrievalPlan{
-		Entries: []KnowledgeEntryForAI{{ID: "e1", Title: "路线", Content: "..."}},
+		Entries: []KnowledgeEntryForAI{{ID: "e1", Title: "路线", Content: longContent}},
 	}
 	opts := &ChatOptions{AllowGeneralKnowledge: true}
 	got := ClassifyAnswerPolicy("大学路线怎么规划？", plan, opts)
