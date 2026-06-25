@@ -1,4 +1,7 @@
 {
   "navigationStyle": "custom",
-  "disableScroll": true
+  "disableScroll": true,
+  "usingComponents": {
+    "citation-sheet": "/components/citation-sheet/citation-sheet"
+  }
 }

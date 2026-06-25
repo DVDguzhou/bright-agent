@@ -72,7 +72,32 @@
                 </view>
                 <text class="typing-label">思考中...</text>
               </view>
+              <view wx:elif="{{msg.citationSegments && msg.citationSegments.length}}" class="msg-rich">
+                <block wx:for="{{msg.citationSegments}}" wx:for-item="seg" wx:key="index">
+                  <text wx:if="{{seg.type == 'text'}}" user-select>{{seg.text}}</text>
+                  <text
+                    wx:else
+                    class="cite-sup"
+                    user-select
+                    data-msg-idx="{{msgIdx}}"
+                    data-cite-index="{{seg.citeIndex}}"
+                    catchtap="openCitationSheet"
+                  >{{seg.citeIndex}}</text>
+                </block>
+              </view>
               <text wx:else user-select>{{msg.content}}</text>
+            </view>
+            <text wx:if="{{msg.attributionHint}}" class="attribution-hint">{{msg.attributionHint}}</text>
+            <view wx:if="{{msg.hasReferences}}" class="ref-chips">
+              <view
+                wx:for="{{msg.references}}"
+                wx:for-item="ref"
+                wx:key="id"
+                class="ref-chip"
+                data-msg-idx="{{msgIdx}}"
+                data-cite-index="{{ref.citeIndex}}"
+                catchtap="openCitationSheet"
+              >{{ref.title}}</view>
             </view>
 
             <view wx:if="{{msg.showFeedback && !msg.pending}}" class="feedback-wrap">
@@ -268,3 +293,10 @@
     </view>
   </view>
 </view>
+
+<citation-sheet
+  open="{{citationSheetOpen}}"
+  references="{{citationSheetRefs}}"
+  active-cite-index="{{citationSheetActiveIndex}}"
+  bind:close="closeCitationSheet"
+/>

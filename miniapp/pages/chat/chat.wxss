@@ -779,3 +779,53 @@
 .feedback-modal-submit::after {
   border: none;
 }
+
+.msg-rich {
+  display: inline;
+  font-size: 28rpx;
+  line-height: 1.55;
+  color: #2a2622;
+}
+
+.cite-sup {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28rpx;
+  height: 28rpx;
+  margin: 0 4rpx;
+  padding: 0 6rpx;
+  border-radius: 6rpx;
+  background: rgba(17, 21, 19, 0.08);
+  color: rgba(17, 21, 19, 0.55);
+  font-size: 18rpx;
+  font-weight: 600;
+  vertical-align: super;
+}
+
+.attribution-hint {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: rgba(17, 21, 19, 0.45);
+}
+
+.ref-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8rpx;
+  margin-top: 10rpx;
+}
+
+.ref-chip {
+  max-width: 100%;
+  padding: 4rpx 12rpx;
+  border: 1rpx solid rgba(17, 21, 19, 0.1);
+  border-radius: 8rpx;
+  background: rgba(255, 255, 255, 0.6);
+  font-size: 22rpx;
+  color: rgba(17, 21, 19, 0.55);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

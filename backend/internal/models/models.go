@@ -188,6 +188,9 @@ type LifeAgentProfile struct {
 	ApiInvokeEnabled     bool      `gorm:"column:api_invoke_enabled;default:false"`
 	ApiPricePerCallCents *int      `gorm:"column:api_price_per_call_cents"` // nil 表示与单次咨询同价（price_per_question）
 	ApiTotalCalls        int       `gorm:"column:api_total_calls;default:0"`
+	AllowGeneralKnowledge    bool   `gorm:"column:allow_general_knowledge;default:true"`
+	KnowledgeFallbackMessage string `gorm:"column:knowledge_fallback_message;type:text"`
+	CitationsEnabled         bool   `gorm:"column:citations_enabled;default:true"`
 	CreatedAt            time.Time `gorm:"column:created_at"`
 	UpdatedAt            time.Time `gorm:"column:updated_at"`
 }

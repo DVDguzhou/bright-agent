@@ -489,9 +489,10 @@ func BuildRetrievalReferences(plan RetrievalPlan) []map[string]string {
 	refs := make([]map[string]string, 0, len(plan.Facts)+len(plan.Topics)+len(plan.Entries)+len(plan.LiveUpdates))
 	for _, fact := range plan.Facts {
 		refs = append(refs, map[string]string{
-			"id":         fact.ID,
-			"sourceType": "fact",
-			"route":      string(plan.Route),
+			"id":              fact.ID,
+			"sourceType":      "fact",
+			"sourceTypeLabel": SourceTypeLabel("fact"),
+			"route":           string(plan.Route),
 			"factKey":    fact.FactKey,
 			"title":      factLabel(fact.FactKey),
 			"excerpt":    fact.FactValue,
@@ -504,8 +505,9 @@ func BuildRetrievalReferences(plan RetrievalPlan) []map[string]string {
 			excerpt = "基于该主题经验生成的摘要。"
 		}
 		refs = append(refs, map[string]string{
-			"id":         topic.ID,
-			"sourceType": "topic",
+			"id":              topic.ID,
+			"sourceType":      "topic",
+			"sourceTypeLabel": SourceTypeLabel("topic"),
 			"route":      string(plan.Route),
 			"topicGroup": topic.TopicGroup,
 			"topicKey":   topic.TopicKey,
@@ -520,8 +522,9 @@ func BuildRetrievalReferences(plan RetrievalPlan) []map[string]string {
 			excerpt = "基于已有经历给到的一条可执行建议。"
 		}
 		refs = append(refs, map[string]string{
-			"id":         entry.ID,
-			"sourceType": "knowledge",
+			"id":              entry.ID,
+			"sourceType":      "knowledge",
+			"sourceTypeLabel": SourceTypeLabel("knowledge"),
 			"route":      string(plan.Route),
 			"category":   entry.Category,
 			"title":      entry.Title,
@@ -536,8 +539,9 @@ func BuildRetrievalReferences(plan RetrievalPlan) []map[string]string {
 			excerpt = "实时动态"
 		}
 		refs = append(refs, map[string]string{
-			"id":         lu.ID,
-			"sourceType": "liveUpdate",
+			"id":              lu.ID,
+			"sourceType":      "liveUpdate",
+			"sourceTypeLabel": SourceTypeLabel("liveUpdate"),
 			"route":      string(plan.Route),
 			"category":   lu.Category,
 			"title":      "最近动态",

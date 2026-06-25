@@ -570,15 +570,18 @@ func buildLifeAgentChatReferences(refs models.JSONAny) []gin.H {
 			continue
 		}
 		list = append(list, gin.H{
-			"id":         refMap["id"],
-			"sourceType": refMap["sourceType"],
-			"factKey":    refMap["factKey"],
-			"topicGroup": refMap["topicGroup"],
-			"topicKey":   refMap["topicKey"],
-			"category":   refMap["category"],
-			"title":      refMap["title"],
-			"excerpt":    refMap["excerpt"],
-			"confidence": refMap["confidence"],
+			"id":              refMap["id"],
+			"sourceType":      refMap["sourceType"],
+			"sourceTypeLabel": refMap["sourceTypeLabel"],
+			"factKey":         refMap["factKey"],
+			"topicGroup":      refMap["topicGroup"],
+			"topicKey":        refMap["topicKey"],
+			"category":        refMap["category"],
+			"title":           refMap["title"],
+			"excerpt":         refMap["excerpt"],
+			"fullContent":     refMap["fullContent"],
+			"citeIndex":       refMap["citeIndex"],
+			"confidence":      refMap["confidence"],
 		})
 	}
 	return list
@@ -1100,7 +1103,9 @@ func LifeAgentsCreate(cfg *config.Config) gin.HandlerFunc {
 			VoiceCloneID:       voiceClonePtr,
 			CoverImageURL:      coverImgPtr,
 			CoverPresetKey:     coverPresetPtr,
-			Published:          true,
+			Published:             true,
+			AllowGeneralKnowledge: true,
+			CitationsEnabled:      true,
 		}
 		if err := db.DB.Transaction(func(tx *gorm.DB) error {
 			var lockedUser models.User
@@ -3344,25 +3349,30 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 		log.Printf("[chat-timing] DB+prep done in %dms", time.Since(chatStartTime).Milliseconds())
 
 		chatOpts := &lifeagent.ChatOptions{
-			SessionSummary:       sessionSummary,
-			CrossSessionMemory:   crossMemory,
-			AgentSelfConsistency: agentSelfAnchor,
-			LiveUpdates:          liveUpdatesForAI,
-			TimelineEvents:       timelineForAI,
-			RecentlyUsedEntryIDs: recentlyUsedEntryIDs,
-			FeedbackSignals:      feedbackSignals,
-			WorkingState:         ws,
-			Embedder:             embedder,
-			Episodes:             episodes,
-			TurnIndex:            userTurns,
+			SessionSummary:           sessionSummary,
+			CrossSessionMemory:       crossMemory,
+			AgentSelfConsistency:     agentSelfAnchor,
+			LiveUpdates:              liveUpdatesForAI,
+			TimelineEvents:           timelineForAI,
+			RecentlyUsedEntryIDs:     recentlyUsedEntryIDs,
+			FeedbackSignals:          feedbackSignals,
+			WorkingState:             ws,
+			Embedder:                 embedder,
+			Episodes:                 episodes,
+			TurnIndex:                userTurns,
+			AllowGeneralKnowledge:    p.AllowGeneralKnowledge,
+			KnowledgeFallbackMessage: p.KnowledgeFallbackMessage,
+			CitationsEnabled:         p.CitationsEnabled,
 		}
 
 		var content string
 		var refs []map[string]string
+		attribution := ""
 		if isMiniAppClient(c) {
 			if reply, replyRefs, ok := lifeagent.ResolveGroundedFactReply(profileForAI, factsForAI, body.Message); ok {
 				content = reply
 				refs = replyRefs
+				attribution = lifeagent.AttributionGrounded
 			} else if lifeagent.ClassifyQuestionIntent(body.Message) {
 				content = lifeagent.BuildIdentityReply(profileForAI)
 			} else {
@@ -3374,6 +3384,9 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 					factsForAI, topicsForAI, entriesForAI, hist, body.Message,
 					chatOpts,
 				)
+				if chatOpts.ReplyAttribution != "" {
+					attribution = chatOpts.ReplyAttribution
+				}
 			}
 		} else {
 			// --- SSE streaming ---
@@ -3393,6 +3406,7 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 			if reply, replyRefs, ok := lifeagent.ResolveGroundedFactReply(profileForAI, factsForAI, body.Message); ok {
 				content = reply
 				refs = replyRefs
+				attribution = lifeagent.AttributionGrounded
 				lifeagent.EmitReplyChunks(content, func(chunk string) {
 					writeSSE("content", gin.H{"content": chunk})
 				})
@@ -3414,6 +3428,9 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 					chatOpts,
 				)
 			}
+		}
+		if attribution == "" && chatOpts.ReplyAttribution != "" {
+			attribution = chatOpts.ReplyAttribution
 		}
 		refsMap := make([]map[string]interface{}, len(refs))
 		for i, r := range refs {
@@ -3518,6 +3535,7 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 			"messageId":          assistantMsgID,
 			"reply":              content,
 			"references":         refsMap,
+			"attribution":        attribution,
 			"remainingQuestions": remainingOut,
 			"rating":             ratingState,
 		}

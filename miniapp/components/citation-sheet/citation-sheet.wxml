@@ -1,0 +1,39 @@
+<view wx:if="{{open}}" class="sheet-mask" bindtap="close" catchtouchmove="noop">
+  <view class="sheet-panel" catchtap="noop">
+    <view class="sheet-handle"></view>
+    <view class="sheet-header">
+      <text class="sheet-title">引用来源</text>
+      <view class="sheet-close" bindtap="close">×</view>
+    </view>
+
+    <scroll-view scroll-y class="sheet-body">
+      <view wx:if="{{primary}}" class="sheet-section">
+        <text class="sheet-label">当前来源</text>
+        <view class="source-card active">
+          <view class="source-meta">
+            <text wx:if="{{primary.citeIndex}}" class="cite-badge">[{{primary.citeIndex}}]</text>
+            <text class="type-badge">{{primary.typeLabel}}</text>
+          </view>
+          <text class="source-title">{{primary.title}}</text>
+          <text class="source-excerpt">{{primary.fullContent || primary.excerpt}}</text>
+        </view>
+      </view>
+
+      <view wx:if="{{others.length}}" class="sheet-section">
+        <text class="sheet-label">更多来源</text>
+        <view
+          wx:for="{{others}}"
+          wx:key="id"
+          class="source-card"
+        >
+          <view class="source-meta">
+            <text wx:if="{{item.citeIndex}}" class="cite-badge">[{{item.citeIndex}}]</text>
+            <text class="type-badge">{{item.typeLabel}}</text>
+          </view>
+          <text class="source-title">{{item.title}}</text>
+          <text class="source-excerpt">{{item.fullContent || item.excerpt}}</text>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+</view>

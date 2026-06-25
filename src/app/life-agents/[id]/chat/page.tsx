@@ -27,6 +27,14 @@ import {
   LIFE_AGENT_GROWTH_CATEGORY_LABELS,
   type LifeAgentGrowthEvent,
 } from "@/lib/life-agent-growth";
+import { CitedMessageContent } from "@/components/citations/CitedMessageContent";
+import { CitationPanel, CitationSourceChips } from "@/components/citations/CitationPanel";
+import {
+  attributionHint,
+  parseCiteIndex,
+  type CitationReference,
+  type ReplyAttribution,
+} from "@/lib/citations";
 
 type Profile = {
   id: string;
@@ -60,15 +68,8 @@ type ChatMessage = {
   sessionId?: string;
   audioUrl?: string;
   audioDurationSec?: number;
-  references?: Array<{
-    id: string;
-    sourceType?: string;
-    factKey?: string;
-    category: string;
-    title: string;
-    excerpt: string;
-    confidence?: string;
-  }>;
+  references?: CitationReference[];
+  attribution?: ReplyAttribution;
 };
 
 type SessionSummary = {
@@ -170,6 +171,12 @@ export default function LifeAgentChatPage() {
   const activeTextareaRef = useRef<HTMLTextAreaElement | null>(null);
   const [useVoiceReply, setUseVoiceReply] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [citationPanelOpen, setCitationPanelOpen] = useState(false);
+  const [activeCitation, setActiveCitation] = useState<{
+    messageKey: string;
+    citeIndex: number | null;
+    references: CitationReference[];
+  } | null>(null);
   const isDesktop = useIsDesktop();
   const keyboardViewportEnabled = useKeyboardViewportEnabled();
   const [composerFocused, setComposerFocused] = useState(false);
@@ -410,7 +417,7 @@ export default function LifeAgentChatPage() {
           setMessages((prev) =>
             prev.map((m, i) =>
               i === assistantIdx.current
-                ? { ...m, content: data.reply, messageId: data.messageId, sessionId: data.sessionId, references: data.references, audioUrl: data.audioUrl, audioDurationSec: data.audioDurationSec }
+                ? { ...m, content: data.reply, messageId: data.messageId, sessionId: data.sessionId, references: data.references, attribution: data.attribution, audioUrl: data.audioUrl, audioDurationSec: data.audioDurationSec }
                 : m
             )
           );
@@ -462,6 +469,7 @@ export default function LifeAgentChatPage() {
                           messageId: data.messageId,
                           sessionId: data.sessionId,
                           references: data.references,
+                          attribution: data.attribution,
                         }
                       : m
                   )
@@ -607,6 +615,20 @@ export default function LifeAgentChatPage() {
 
   const openMenu = () => setMenuOpen(true);
   const closeMenu = () => setMenuOpen(false);
+  const openCitations = (
+    references: CitationReference[],
+    messageKey: string,
+    citeIndex?: number | null
+  ) => {
+    if (!references.length) return;
+    const firstIdx = parseCiteIndex(references[0]?.citeIndex);
+    setActiveCitation({
+      messageKey,
+      citeIndex: citeIndex ?? firstIdx,
+      references,
+    });
+    setCitationPanelOpen(true);
+  };
 
   return (
     <>
@@ -926,7 +948,8 @@ export default function LifeAgentChatPage() {
         )}
       </AnimatePresence>
 
-      <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-none border-0 border-hairline bg-paper sm:rounded sm:border lg:rounded max-lg:flex-1">
+      <div className="flex min-h-0 flex-1 overflow-hidden">
+      <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-none border-0 border-hairline bg-paper sm:rounded sm:border lg:rounded max-lg:flex-1">
         <header className="z-20 flex shrink-0 items-center gap-2 border-b border-hairline bg-paper px-1 py-2 pt-[env(safe-area-inset-top)] sm:px-3">
           <button
             type="button"
@@ -1082,9 +1105,46 @@ export default function LifeAgentChatPage() {
                       ) : message.role === "assistant" && !message.content.trim() && loading ? (
                         <AgentTypingIndicator />
                       ) : (
-                        <div className="space-y-3">
-                          <p className="whitespace-pre-wrap">{message.content}</p>
-                          {/* reference tags hidden */}
+                        <div className="space-y-2">
+                          {message.references && message.references.length > 0 ? (
+                            <CitedMessageContent
+                              content={message.content}
+                              activeCiteIndex={
+                                activeCitation?.messageKey === (message.messageId ?? message.content.slice(0, 24))
+                                  ? activeCitation.citeIndex
+                                  : null
+                              }
+                              onCiteClick={(idx) =>
+                                openCitations(
+                                  message.references!,
+                                  message.messageId ?? message.content.slice(0, 24),
+                                  idx
+                                )
+                              }
+                            />
+                          ) : (
+                            <p className="whitespace-pre-wrap">{message.content}</p>
+                          )}
+                          {attributionHint(message.attribution) && (
+                            <p className="text-[11px] text-ink-400">{attributionHint(message.attribution)}</p>
+                          )}
+                          {message.references && message.references.length > 0 && (
+                            <CitationSourceChips
+                              references={message.references}
+                              activeCiteIndex={
+                                activeCitation?.messageKey === (message.messageId ?? message.content.slice(0, 24))
+                                  ? activeCitation.citeIndex
+                                  : null
+                              }
+                              onOpen={(idx) =>
+                                openCitations(
+                                  message.references!,
+                                  message.messageId ?? message.content.slice(0, 24),
+                                  idx ?? null
+                                )
+                              }
+                            />
+                          )}
                         </div>
                       )}
                     </div>
@@ -1216,6 +1276,31 @@ export default function LifeAgentChatPage() {
           </div>
         </div>
       </section>
+      {citationPanelOpen && activeCitation && (
+        <CitationPanel
+          variant="sidebar"
+          open={citationPanelOpen}
+          references={activeCitation.references}
+          activeCiteIndex={activeCitation.citeIndex}
+          onSelectCiteIndex={(idx) =>
+            setActiveCitation((prev) => (prev ? { ...prev, citeIndex: idx } : prev))
+          }
+          onClose={() => setCitationPanelOpen(false)}
+        />
+      )}
+      </div>
+      {activeCitation && (
+        <CitationPanel
+          variant="sheet"
+          open={citationPanelOpen}
+          references={activeCitation.references}
+          activeCiteIndex={activeCitation.citeIndex}
+          onSelectCiteIndex={(idx) =>
+            setActiveCitation((prev) => (prev ? { ...prev, citeIndex: idx } : prev))
+          }
+          onClose={() => setCitationPanelOpen(false)}
+        />
+      )}
     </div>
     </>
   );

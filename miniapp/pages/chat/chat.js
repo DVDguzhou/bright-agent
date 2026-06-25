@@ -7,7 +7,10 @@ const {
   cleanLifeAgentIntroText,
   cleanLifeAgentIntroMultiline,
 } = require("../../utils/intro-clean");
-const { formatSessionTime } = require("../../utils/format");
+const {
+  parseCitationSegments,
+  attributionHint,
+} = require("../../utils/citations");
 const { getNavMetrics } = require("../../utils/nav-metrics");
 const {
   lifeAgentShowsPurchaseUi,
@@ -50,13 +53,15 @@ function userInitial(user) {
 }
 
 function normalizeMessage(m, sessionId) {
-  return {
+  const refs = m.references || [];
+  const out = {
     role: m.role,
     isUser: m.role === "user",
     content: m.content || "",
     messageId: m.messageId || (m.role === "assistant" ? m.id : ""),
     sessionId: m.sessionId || sessionId || "",
-    references: m.references || [],
+    references: refs,
+    attribution: m.attribution || "",
     pending: !!m.pending,
     error: !!m.error,
     showFeedback:
@@ -65,6 +70,12 @@ function normalizeMessage(m, sessionId) {
       !!(m.sessionId || sessionId),
     feedbackType: m.feedbackType || "",
   };
+  if (m.role === "assistant" && !m.pending) {
+    out.citationSegments = parseCitationSegments(out.content);
+    out.attributionHint = attributionHint(m.attribution);
+    out.hasReferences = refs.length > 0;
+  }
+  return out;
 }
 
 Page({
@@ -114,6 +125,9 @@ Page({
     feedbackModalType: "",
     feedbackModalSubmitting: false,
     keyboardPad: 0,
+    citationSheetOpen: false,
+    citationSheetRefs: [],
+    citationSheetActiveIndex: 0,
   },
 
   onLoad(options) {
@@ -379,6 +393,23 @@ Page({
     this.sendWithText(text);
   },
 
+  closeCitationSheet() {
+    this.setData({ citationSheetOpen: false });
+  },
+
+  openCitationSheet(e) {
+    const msgIdx = e.currentTarget.dataset.msgIdx;
+    const citeIndex = parseInt(e.currentTarget.dataset.citeIndex, 10);
+    const msg = (this.data.messages || [])[msgIdx];
+    if (!msg || !msg.references || !msg.references.length) return;
+    const firstIdx = parseInt(msg.references[0].citeIndex, 10) || 1;
+    this.setData({
+      citationSheetOpen: true,
+      citationSheetRefs: msg.references,
+      citationSheetActiveIndex: citeIndex || firstIdx,
+    });
+  },
+
   sendWithText(text) {
     const trimmed = (text || "").trim();
     if (!trimmed || this.data.sending || this.data.sessionLoading) return;
@@ -425,6 +456,7 @@ Page({
               content: reply,
               messageId: data.messageId,
               references: data.references,
+              attribution: data.attribution,
             },
             data.sessionId || this.data.sessionId
           )

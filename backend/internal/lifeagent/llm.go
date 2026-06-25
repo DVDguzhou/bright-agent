@@ -977,11 +977,27 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 		return "", nil, fmt.Errorf("draft: empty after humanize (reasoning-only output?)")
 	}
 	if !needsReconcile {
+		if opts != nil {
+			if chatIntent == chatIntentSmallTalk {
+				opts.ReplyAttribution = AttributionGeneral
+			} else if !allowsGeneralKnowledge(opts) {
+				fallback := strings.TrimSpace(opts.KnowledgeFallbackMessage)
+				if fallback == "" {
+					fallback = DefaultKnowledgeFallbackMessage
+				}
+				opts.ReplyAttribution = AttributionFallback
+				return fallback, nil, nil
+			} else {
+				opts.ReplyAttribution = AttributionGeneral
+			}
+		}
 		return draft, nil, nil
 	}
 
 	// 仲裁阶段静默执行，结果通过 done 事件的 reply 字段替换前端已显示的 draft
-	reconcileSystem := buildReconcileSystemPrompt(profile, planStrict)
+	catalog := BuildCitationCatalog(planStrict)
+	citationsEnabled := opts == nil || opts.CitationsEnabled
+	reconcileSystem := buildReconcileSystemPrompt(profile, catalog, citationsEnabled)
 	reconcileUser := buildReconcileUserMessage(message, draft)
 	reconcileMaxTokens := estimateReconcileTokenBudget(draft)
 	reconcileReq := openai.ChatCompletionRequest{
@@ -1009,7 +1025,27 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 		out = draft
 	}
 	out = ApplyClaimGuard(message, out, facts, planStrict)
-	return out, BuildRetrievalReferences(planStrict), nil
+
+	_, usedIndexes := ParseInlineCitations(out)
+	if !citationsEnabled {
+		out = StripInlineCitations(out)
+	}
+	references = BuildCitedReferences(catalog, usedIndexes, citationsEnabled)
+	if len(references) == 0 {
+		references = EnrichReferencesFromCatalog(BuildRetrievalReferences(planStrict), catalog)
+	}
+	if opts != nil {
+		opts.ReplyAttribution = AttributionGrounded
+	}
+	return out, references, nil
+}
+
+// allowsGeneralKnowledge：产品默认允许通识；仅当 Mind 设置显式关闭时为 false。
+func allowsGeneralKnowledge(opts *ChatOptions) bool {
+	if opts == nil {
+		return true
+	}
+	return opts.AllowGeneralKnowledge
 }
 
 // buildDraftSystemPrompt 构建 Layer 1-2 的 system prompt。
@@ -1313,16 +1349,11 @@ func buildDraftKnowledgeContext(facts []StructuredFactForAI, topics []TopicSumma
 	return sb.String()
 }
 
-func buildReconcileSystemPrompt(profile ProfileForAI, plan RetrievalPlan) string {
+func buildReconcileSystemPrompt(profile ProfileForAI, catalog CitationCatalog, citationsEnabled bool) string {
 	var sb strings.Builder
 	sb.WriteString("你是同一人设「")
 	sb.WriteString(profile.DisplayName)
-	sb.WriteString("」的校对：下面【结构化事实】【Topic】【经历素材】来自该账号已入库内容，**与草稿冲突时以这些内容为准**；不冲突则尽量保留草稿的人声与长度感。\n\n")
-	sb.WriteString("本轮检索路由: ")
-	sb.WriteString(string(plan.Route))
-	sb.WriteString("\n本轮检索 query: ")
-	sb.WriteString(plan.Query)
-	sb.WriteString("\n\n")
+	sb.WriteString("」的校对：下面【编号素材】来自该账号已入库内容，**与草稿冲突时以这些内容为准**；不冲突则尽量保留草稿的人声与长度感。\n\n")
 	sb.WriteString("规则：\n")
 	sb.WriteString("1. 输出仍是微信聊天正文：无 Markdown、无列表符号、无 #。\n")
 	sb.WriteString("2. 若草稿与事实/素材在具体经历、数字、人物关系上矛盾，改写到一致，口吻仍口语。\n")
@@ -1331,27 +1362,10 @@ func buildReconcileSystemPrompt(profile ProfileForAI, plan RetrievalPlan) string
 	sb.WriteString("5. 最重要：保留草稿的口语感和个人风格，只改事实层面的错误。不要把草稿改得更客套、更全面、更像AI。宁可短一点粗一点，也不要精致得像客服。\n")
 	sb.WriteString("6. 如果用户只是打招呼或闲聊，草稿回得简短自然就直接保留，不要强行把素材内容塞进去、不要把回复改成话题菜单或服务介绍。\n")
 	sb.WriteString("7. 【口语保护】草稿里如果有口语化的表达（比如「说实话挺难熬的」「反正就是那个意思」「我也不知道咋回事」），绝对不要改成书面语（比如「确实比较艰难」「大致如此」「原因不太明确」）。口语表达比书面表达更真实。\n")
-	sb.WriteString("8. 【不要补充】如果草稿只讲了一个角度，不要自作主张补充其他角度。真人聊天经常只说一面之词——这不是缺点，这是真实。\n\n")
-	sb.WriteString("【结构化事实】\n")
-	sb.WriteString(BuildFactsPromptSection(plan.Facts))
-	sb.WriteString("\n\n【相关 Topic 摘要】\n")
-	sb.WriteString(BuildTopicsPromptSection(plan.Topics))
-	if liveSection := BuildLiveUpdatesPromptSection(plan.LiveUpdates); liveSection != "" {
-		sb.WriteString("\n\n【最近动态 - 优先使用的新鲜信息（含本地情报）】\n")
-		sb.WriteString("草稿中涉及时效性或地方性话题时，以这些动态为准。动态中的地名、数字、政策等比草稿更新更准。用户问近况或最近更新时，不要否认发过更新，自然展开即可。\n")
-		sb.WriteString(liveSection)
-	}
-	sb.WriteString("\n\n【经历素材】\n")
-	for i, e := range plan.Entries {
-		sb.WriteString(fmt.Sprintf("[%d] %s（%s）\n", i+1, e.Title, e.Category))
-		if facet := FacetSummary(e.Facets); facet != "" {
-			sb.WriteString("分面：")
-			sb.WriteString(facet)
-			sb.WriteString("\n")
-		}
-		sb.WriteString(e.Content)
-		sb.WriteString("\n\n")
-	}
+	sb.WriteString("8. 【不要补充】如果草稿只讲了一个角度，不要自作主张补充其他角度。真人聊天经常只说一面之词——这不是缺点，这是真实。\n")
+	sb.WriteString(buildReconcileCitationRule(citationsEnabled))
+	sb.WriteString("\n【编号素材】\n")
+	sb.WriteString(buildReconcileCatalogPrompt(catalog))
 	return sb.String()
 }
 

@@ -171,8 +171,33 @@ func Init(dsn string) error {
 	); err != nil {
 		return err
 	}
+	applySchemaPatches(DB)
 	scrubHiddenExpertiseTags(DB)
 	return ensureLifeAgentAPICallerUser(DB)
+}
+
+type schemaPatch struct {
+	Key       string    `gorm:"primaryKey;size:64"`
+	AppliedAt time.Time `gorm:"column:applied_at"`
+}
+
+func (schemaPatch) TableName() string { return "app_schema_patches" }
+
+// applySchemaPatches 幂等的一次性数据修正（新列上线、默认策略变更等）。
+func applySchemaPatches(db *gorm.DB) {
+	if err := db.AutoMigrate(&schemaPatch{}); err != nil {
+		log.Printf("schema patches migrate: %v", err)
+		return
+	}
+	var row schemaPatch
+	if db.First(&row, "key = ?", "mind_allow_general_default_v1").Error == nil {
+		return
+	}
+	if err := db.Exec("UPDATE life_agent_profiles SET allow_general_knowledge = 1").Error; err != nil {
+		log.Printf("schema patch mind_allow_general_default_v1: %v", err)
+		return
+	}
+	_ = db.Create(&schemaPatch{Key: "mind_allow_general_default_v1", AppliedAt: time.Now()}).Error
 }
 
 // Connect opens MySQL without AutoMigrate (for one-off CLI tools).

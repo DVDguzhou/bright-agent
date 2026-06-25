@@ -32,6 +32,14 @@ type ChatOptions struct {
 	Episodes []EpisodeCandidate
 	// TurnIndex：会话内第几轮，感知轨迹落库时写入。
 	TurnIndex int
+
+	// Mind settings (from LifeAgentProfile)
+	AllowGeneralKnowledge    bool
+	KnowledgeFallbackMessage string
+	CitationsEnabled         bool
+
+	// ReplyAttribution is set by twoPhaseLifeAgentReply: grounded | general | fallback
+	ReplyAttribution string
 }
 
 // EpisodeCandidate 从 DB 读出来、准备参加情景层召回的候选；已做 buyer_only 过滤。

@@ -15,6 +15,8 @@ import {
   Sparkles,
   Star,
   Trash2,
+  BookOpen,
+  Brain,
 } from "lucide-react";
 import { LifeAgentCoverImage } from "@/components/LifeAgentCoverImage";
 import { resolveLifeAgentCoverDisplayUrl } from "@/lib/life-agent-covers";
@@ -309,6 +311,8 @@ export default function LifeAgentManageHomePage() {
             <QuickAction href={`/dashboard/life-agents/${id}/sales`} title="互动记录" desc="查看用户提问、购买与使用情况。" icon={<Activity className="h-5 w-5" />} />
             <QuickAction href={`/dashboard/life-agents/${id}/sessions`} title="聊天记录" desc="按会话查看用户最近在问什么。" icon={<MessageCircle className="h-5 w-5" />} />
             <QuickAction href={`/dashboard/life-agents/${id}/feedback`} title="反馈诊断" desc="看评分、轻反馈和需要关注的问题。" icon={<Star className="h-5 w-5" />} />
+            <QuickAction href={`/dashboard/life-agents/${id}/knowledge`} title="知识库" desc="统一管理经历条目、Q&A 与导入内容。" icon={<BookOpen className="h-5 w-5" />} />
+            <QuickAction href={`/dashboard/life-agents/${id}/mind`} title="Mind 设置" desc="通识开关、兜底话术与引用展示。" icon={<Brain className="h-5 w-5" />} />
             <QuickAction href={`/dashboard/life-agents/${id}/topics`} title="Topic 管理" desc="审核、合并、修正可复用主题。" icon={<FileText className="h-5 w-5" />} />
             <QuickAction href={`/dashboard/life-agents/${id}/blind-spots`} title="盲区问题" desc="补上 Agent 答不好的真实问题。" icon={<ShieldQuestion className="h-5 w-5" />} />
             <QuickAction href="/dashboard/api-keys" title="开放 API" desc="管理调用 Key 和第三方集成。" icon={<Code2 className="h-5 w-5" />} />
