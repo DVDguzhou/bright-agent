@@ -1,11 +1,15 @@
 package lifeagent
 
 import (
+	"context"
 	"fmt"
+	"log"
 	"regexp"
 	"sort"
 	"strconv"
 	"strings"
+
+	openai "github.com/sashabaranov/go-openai"
 )
 
 const (
@@ -238,6 +242,7 @@ func BuildCitedReferences(catalog CitationCatalog, usedIndexes []int, citationsE
 
 	indexes := usedIndexes
 	if len(indexes) == 0 {
+		log.Printf("[citations] no inline markers found; falling back to full catalog (%d items)", len(catalog.Items))
 		for _, item := range catalog.Items {
 			indexes = append(indexes, item.CiteIndex)
 		}
@@ -359,7 +364,94 @@ func buildReconcileCitationRule(citationsEnabled bool) string {
 	if !citationsEnabled {
 		return ""
 	}
-	return "9. 【引用标注】当某句内容明确来自上方编号素材时，在该句末尾紧跟方括号编号（如[1]、[2]，数字与素材 [n] 一致），每句最多 3 个。禁止写「根据资料」「知识库」等词；只用 [n] 标注，不要另起一行列来源。\n"
+	return "9. 【引用标注】凡句中使用了某条编号素材的具体信息，该句末尾必须有对应 [n]（如[1]、[2]，数字与素材 [n] 一致），每句最多 3 个。禁止写「根据资料」「知识库」等词；只用 [n] 标注，不要另起一行列来源；加标注时不得删改草稿语义。\n"
+}
+
+// EnsureInlineCitations adds [n] markers via a lightweight LLM pass when reconcile omitted them.
+func EnsureInlineCitations(ctx context.Context, client *openai.Client, model, text string, catalog CitationCatalog) string {
+	text = strings.TrimSpace(text)
+	if text == "" || len(catalog.Items) == 0 {
+		return text
+	}
+	if _, used := ParseInlineCitations(text); len(used) > 0 {
+		return text
+	}
+
+	system := "你是引用标注助手。任务：在正文每句使用了下方编号素材信息的句末添加 [n] 标注，n 与素材编号一致。\n" +
+		"规则：不要改正文措辞、不要删字、不要加解释、不要 Markdown；只输出标注后的正文。"
+	user := "【编号素材】\n" + buildReconcileCatalogPrompt(catalog) +
+		"\n【待标注正文】\n" + text +
+		"\n\n请输出加了 [n] 标注的正文（仅此一段）："
+
+	req := openai.ChatCompletionRequest{
+		Model: model,
+		Messages: []openai.ChatCompletionMessage{
+			{Role: openai.ChatMessageRoleSystem, Content: system},
+			{Role: openai.ChatMessageRoleUser, Content: user},
+		},
+		Temperature: safeTemperature(model, 0.2),
+	}
+	setMaxTokens(&req, model, estimateReconcileTokenBudget(text))
+	result := streamWithDetails(ctx, client, req, nil)
+	out := strings.TrimSpace(result.Content)
+	if out == "" {
+		log.Printf("[citations] ensureInlineCitations returned empty, keeping original")
+		return text
+	}
+	out = humanizeReply(out)
+	if out == "" {
+		return text
+	}
+	return NormalizeCitationMarkers(out)
+}
+
+// FinalizeCitedReply normalizes markers, ensures inline cites when enabled, and builds references.
+func FinalizeCitedReply(ctx context.Context, client *openai.Client, model, out string, catalog CitationCatalog, citationsEnabled bool) (string, []map[string]string) {
+	if citationsEnabled {
+		out = NormalizeCitationMarkers(out)
+		_, usedIndexes := ParseInlineCitations(out)
+		if len(catalog.Items) > 0 && len(usedIndexes) == 0 {
+			out = EnsureInlineCitations(ctx, client, model, out, catalog)
+		}
+	} else {
+		out = StripInlineCitations(out)
+	}
+
+	_, usedIndexes := ParseInlineCitations(out)
+	if !citationsEnabled {
+		return out, nil
+	}
+	refs := BuildCitedReferences(catalog, usedIndexes, citationsEnabled)
+	if len(refs) == 0 {
+		refs = EnrichReferencesFromCatalog(BuildRetrievalReferences(catalogToPlan(catalog)), catalog)
+	}
+	return out, refs
+}
+
+func catalogToPlan(catalog CitationCatalog) RetrievalPlan {
+	plan := RetrievalPlan{}
+	for _, item := range catalog.Items {
+		switch item.SourceType {
+		case "fact":
+			plan.Facts = append(plan.Facts, StructuredFactForAI{
+				ID: item.ID, FactKey: item.FactKey, FactValue: item.FullContent, Confidence: item.Confidence,
+			})
+		case "topic":
+			plan.Topics = append(plan.Topics, TopicSummaryForAI{
+				ID: item.ID, TopicLabel: item.Title, Summary: item.FullContent, Confidence: item.Confidence,
+				TopicGroup: item.TopicGroup, TopicKey: item.TopicKey,
+			})
+		case "knowledge":
+			plan.Entries = append(plan.Entries, KnowledgeEntryForAI{
+				ID: item.ID, Title: item.Title, Content: item.FullContent, Category: item.Category,
+			})
+		case "liveUpdate":
+			plan.LiveUpdates = append(plan.LiveUpdates, LiveUpdateForAI{
+				ID: item.ID, Content: item.FullContent, Category: item.Category, CreatedAt: item.CreatedAt,
+			})
+		}
+	}
+	return plan
 }
 
 func IndexToSuperscript(n int) string {

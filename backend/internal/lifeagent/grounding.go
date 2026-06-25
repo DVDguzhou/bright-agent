@@ -369,29 +369,7 @@ func ResolveGroundedFactReply(profile ProfileForAI, facts []StructuredFactForAI,
 }
 
 func ApplyClaimGuard(message, content string, facts []StructuredFactForAI, plan RetrievalPlan) string {
-	content = strings.TrimSpace(content)
-	if content == "" {
-		return content
-	}
-	if plan.Confidence == "low" && looksLikeFactualQuestion(message) {
-		return pickRandom(fallbackNoKnowledge)
-	}
-
-	// Claim-level 校验：逐条检查已确认的事实，修正回答中的具体矛盾
-	confirmed := filterConfirmedFacts(facts)
-	content = applyClaimLevelFixes(content, confirmed)
-
-	// 用户直接问某个事实时的兜底校验
-	if intent, ok := detectFactIntent(message); ok {
-		matched := factsForKey(intent.Key, facts)
-		if len(matched) > 0 {
-			expected := matched[0].FactValue
-			if intent.Key != "event_name" && !strings.Contains(content, expected) {
-				return buildFactReply(intent.Key, matched)
-			}
-		}
-	}
-	return content
+	return ApplyClaimGuardWithPolicy(message, content, facts, plan, PolicyGrounded)
 }
 
 // applyClaimLevelFixes 逐句检查回答中是否存在与已确认事实矛盾的声明。

@@ -3368,6 +3368,7 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 		var content string
 		var refs []map[string]string
 		attribution := ""
+		var sseWriter func(eventType string, payload interface{})
 		if isMiniAppClient(c) {
 			if reply, replyRefs, ok := lifeagent.ResolveGroundedFactReply(profileForAI, factsForAI, body.Message); ok {
 				content = reply
@@ -3402,6 +3403,7 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 				fmt.Fprintf(c.Writer, "event: %s\ndata: %s\n\n", eventType, data)
 				c.Writer.Flush()
 			}
+			sseWriter = writeSSE
 
 			if reply, replyRefs, ok := lifeagent.ResolveGroundedFactReply(profileForAI, factsForAI, body.Message); ok {
 				content = reply
@@ -3449,18 +3451,38 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 			replySegments = []string{content}
 		}
 		assistantMsgIDs := make([]string, len(replySegments))
-		for i, seg := range replySegments {
+		for i := range replySegments {
 			assistantMsgIDs[i] = models.GenID()
-			var segRefs models.JSONAny
-			if i == len(replySegments)-1 {
-				segRefs = refsAny
+		}
+
+		// SSE: 逐段推送（reconcile / 多段回复）；单段且已流式推送则跳过
+		if sseWriter != nil {
+			useSegmentSSE := chatOpts.ReplyUseSegmentDelivery || len(replySegments) > 1
+			if useSegmentSSE {
+				const segmentDelay = 350 * time.Millisecond
+				for i, seg := range replySegments {
+					if i > 0 {
+						time.Sleep(segmentDelay)
+					}
+					sseWriter("segment", gin.H{
+						"index":       i,
+						"total":       len(replySegments),
+						"content":     seg,
+						"messageId":   assistantMsgIDs[i],
+						"references":  refsMap,
+						"attribution": attribution,
+					})
+				}
 			}
+		}
+
+		for i, seg := range replySegments {
 			db.DB.Create(&models.LifeAgentChatMessage{
 				ID:        assistantMsgIDs[i],
 				SessionID: sessionID,
 				Role:      "assistant",
 				Content:   seg,
-				Refs:      segRefs,
+				Refs:      refsAny,
 			})
 		}
 		assistantMsgID := assistantMsgIDs[len(assistantMsgIDs)-1]

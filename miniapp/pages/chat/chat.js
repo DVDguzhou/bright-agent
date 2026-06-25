@@ -458,65 +458,69 @@ Page({
       .then((res) => {
         const data = res.data || {};
         const sessionId = data.sessionId || this.data.sessionId;
+        const page = this;
         let next = this.data.messages.filter(function (m) {
           return !m.pending;
         });
         const segments =
-          Array.isArray(data.replySegments) && data.replySegments.length > 1
+          Array.isArray(data.replySegments) && data.replySegments.length > 0
             ? data.replySegments
-            : null;
-        if (segments) {
-          const ids = data.messageIds || [];
-          const last = segments.length - 1;
-          segments.forEach(function (seg, i) {
-            next.push(
-              normalizeMessage(
-                {
-                  role: "assistant",
-                  content: seg,
-                  messageId: ids[i] || (i === last ? data.messageId : undefined),
-                  references: i === last ? data.references : [],
-                  attribution: i === last ? data.attribution : "",
-                },
-                sessionId
-              )
-            );
-          });
-        } else {
-          const reply = data.reply || "（无回复）";
+            : [data.reply || "（无回复）"];
+        const ids = data.messageIds || [];
+        const refs = data.references || [];
+        const attribution = data.attribution || "";
+        const SEGMENT_DELAY_MS = 350;
+
+        function finishPatch() {
+          const patch = {
+            messages: finalizeAssistantMessages(next),
+            sessionId: sessionId,
+            sending: false,
+            scrollTo: "msg-" + (next.length - 1),
+          };
+          if (typeof data.remainingQuestions === "number") {
+            patch.remainingQ = data.remainingQuestions;
+          }
+          if (data.rating) {
+            patch.ratingState = data.rating;
+            if (typeof data.rating.currentScore === "number") {
+              patch.ratingScore = data.rating.currentScore;
+            }
+            if (data.rating.currentComment) {
+              patch.ratingComment = data.rating.currentComment;
+            }
+          }
+          page.setData(patch);
+          page.refreshSessionsList(data);
+        }
+
+        function appendSegment(i) {
           next.push(
             normalizeMessage(
               {
                 role: "assistant",
-                content: reply,
-                messageId: data.messageId,
-                references: data.references,
-                attribution: data.attribution,
+                content: segments[i],
+                messageId: ids[i] || (i === segments.length - 1 ? data.messageId : undefined),
+                references: refs,
+                attribution: attribution,
               },
               sessionId
             )
           );
-        }
-        const patch = {
-          messages: finalizeAssistantMessages(next),
-          sessionId: sessionId,
-          sending: false,
-          scrollTo: "msg-" + (next.length - 1),
-        };
-        if (typeof data.remainingQuestions === "number") {
-          patch.remainingQ = data.remainingQuestions;
-        }
-        if (data.rating) {
-          patch.ratingState = data.rating;
-          if (typeof data.rating.currentScore === "number") {
-            patch.ratingScore = data.rating.currentScore;
-          }
-          if (data.rating.currentComment) {
-            patch.ratingComment = data.rating.currentComment;
+          page.setData({
+            messages: finalizeAssistantMessages(next),
+            scrollTo: "msg-" + (next.length - 1),
+          });
+          if (i + 1 < segments.length) {
+            setTimeout(function () {
+              appendSegment(i + 1);
+            }, SEGMENT_DELAY_MS);
+          } else {
+            finishPatch();
           }
         }
-        this.setData(patch);
-        this.refreshSessionsList(data);
+
+        appendSegment(0);
       })
       .catch((err) => {
         const next = this.data.messages.filter(function (m) {

@@ -70,6 +70,7 @@ type ChatMessage = {
   audioDurationSec?: number;
   references?: CitationReference[];
   attribution?: ReplyAttribution;
+  pending?: boolean;
 };
 
 type SessionSummary = {
@@ -149,6 +150,34 @@ function shouldShowAssistantAvatar(messages: ChatMessage[], index: number) {
   return index === 0 || messages[index - 1]?.role !== "assistant";
 }
 
+function applySegmentMessage(
+  prev: ChatMessage[],
+  assistantIdx: number,
+  segment: {
+    index: number;
+    content: string;
+    messageId?: string;
+    references?: CitationReference[];
+    attribution?: ReplyAttribution;
+  },
+  sessionId?: string
+): ChatMessage[] {
+  const msg: ChatMessage = {
+    role: "assistant",
+    content: segment.content,
+    messageId: segment.messageId,
+    sessionId,
+    references: segment.references,
+    attribution: segment.attribution,
+    pending: false,
+  };
+  if (segment.index === 0) {
+    return prev.map((m, i) => (i === assistantIdx ? msg : m));
+  }
+  const insertAt = assistantIdx + segment.index;
+  return [...prev.slice(0, insertAt), msg, ...prev.slice(insertAt)];
+}
+
 function applyDoneAssistantMessages(
   prev: ChatMessage[],
   assistantIdx: number,
@@ -162,8 +191,30 @@ function applyDoneAssistantMessages(
     attribution?: ChatMessage["attribution"];
     audioUrl?: string;
     audioDurationSec?: number;
-  }
+  },
+  segmentsAlreadyStreamed = false
 ): ChatMessage[] {
+  if (segmentsAlreadyStreamed) {
+    const ids = data.messageIds ?? [];
+    const segCount = Math.max(ids.length, 1);
+    const lastIdx = assistantIdx + segCount - 1;
+    return prev.map((m, i) => {
+      if (i < assistantIdx || i > lastIdx || m.role !== "assistant") return m;
+      const segIndex = i - assistantIdx;
+      return {
+        ...m,
+        messageId: ids[segIndex] ?? m.messageId ?? data.messageId,
+        sessionId: data.sessionId,
+        references: m.references ?? data.references,
+        attribution: m.attribution ?? data.attribution,
+        pending: false,
+        ...(i === lastIdx
+          ? { audioUrl: data.audioUrl, audioDurationSec: data.audioDurationSec }
+          : {}),
+      };
+    });
+  }
+
   const segments =
     Array.isArray(data.replySegments) && data.replySegments.length > 1 ? data.replySegments : null;
   if (!segments) {
@@ -174,10 +225,11 @@ function applyDoneAssistantMessages(
             content: data.reply || m.content,
             messageId: data.messageId,
             sessionId: data.sessionId,
-            references: data.references,
+            references: data.references ?? m.references,
             attribution: data.attribution,
             audioUrl: data.audioUrl,
             audioDurationSec: data.audioDurationSec,
+            pending: false,
           }
         : m
     );
@@ -190,10 +242,11 @@ function applyDoneAssistantMessages(
     content: seg,
     messageId: ids[i] ?? (i === last ? data.messageId : undefined),
     sessionId: data.sessionId,
-    references: i === last ? data.references : undefined,
-    attribution: i === last ? data.attribution : undefined,
+    references: data.references,
+    attribution: data.attribution,
     audioUrl: i === last ? data.audioUrl : undefined,
     audioDurationSec: i === last ? data.audioDurationSec : undefined,
+    pending: false,
   }));
   return [...before, ...segMessages];
 }
@@ -427,11 +480,12 @@ export default function LifeAgentChatPage() {
       setMessages((prev) => [...prev, { role: "user", content: trimmed }]);
       setInput("");
 
-      // 先插入一条空的 assistant 占位消息，后续流式追加内容
+      // 插入 typing 占位；segment 或 content 事件到达后替换/追加
       const assistantIdx = { current: -1 };
+      const segmentsStreamed = { current: false };
       setMessages((prev) => {
         assistantIdx.current = prev.length;
-        return [...prev, { role: "assistant" as const, content: "" }];
+        return [...prev, { role: "assistant" as const, content: "", pending: true }];
       });
 
       try {
@@ -507,13 +561,40 @@ export default function LifeAgentChatPage() {
                 setMessages((prev) =>
                   prev.map((m, i) =>
                     i === assistantIdx.current
-                      ? { ...m, content: m.content + parsed.content }
+                      ? {
+                          ...m,
+                          content: (m.pending ? "" : m.content) + parsed.content,
+                          pending: false,
+                        }
                       : m
+                  )
+                );
+              } else if (eventType === "segment" && parsed.content != null) {
+                segmentsStreamed.current = true;
+                setMessages((prev) =>
+                  applySegmentMessage(
+                    prev,
+                    assistantIdx.current,
+                    {
+                      index: parsed.index ?? 0,
+                      content: parsed.content,
+                      messageId: parsed.messageId,
+                      references: parsed.references,
+                      attribution: parsed.attribution,
+                    },
+                    parsed.sessionId
                   )
                 );
               } else if (eventType === "done") {
                 const data = parsed;
-                setMessages((prev) => applyDoneAssistantMessages(prev, assistantIdx.current, data));
+                setMessages((prev) =>
+                  applyDoneAssistantMessages(
+                    prev,
+                    assistantIdx.current,
+                    data,
+                    segmentsStreamed.current
+                  )
+                );
                 setLoading(false);
                 sendingRef.current = false;
                 if (useVoiceReply && profile?.hasVoiceClone && !parsed.audioUrl) {
@@ -1144,7 +1225,7 @@ export default function LifeAgentChatPage() {
                           </div>
                           <p className="whitespace-pre-wrap">{message.content || ""}</p>
                         </div>
-                      ) : message.role === "assistant" && !message.content.trim() && loading ? (
+                      ) : message.role === "assistant" && (message.pending || (!message.content.trim() && loading)) ? (
                         <AgentTypingIndicator />
                       ) : (
                         <div className="space-y-2">

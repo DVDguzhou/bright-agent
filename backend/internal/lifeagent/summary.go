@@ -40,6 +40,12 @@ type ChatOptions struct {
 
 	// ReplyAttribution is set by twoPhaseLifeAgentReply: grounded | general | fallback
 	ReplyAttribution string
+
+	// AnswerPolicy is set during retrieval routing (grounded | advisory | soft_personal | hard_fallback).
+	AnswerPolicy AnswerPolicy
+
+	// ReplyUseSegmentDelivery: when true, handler should emit segment SSE events instead of content chunks.
+	ReplyUseSegmentDelivery bool
 }
 
 // EpisodeCandidate 从 DB 读出来、准备参加情景层召回的候选；已做 buyer_only 过滤。

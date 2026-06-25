@@ -144,12 +144,16 @@ func BuildReplyWithLLMStream(ctx context.Context, apiKey, model, baseURL string,
 	if err != nil {
 		log.Printf("[LLM-stream] two-phase failed: %v", err)
 		content = llmErrorFallback
-		EmitReplyChunks(content, onChunk)
+		if opts == nil || !opts.ReplyUseSegmentDelivery {
+			EmitReplyChunks(content, onChunk)
+		}
 		return content, nil, nil
 	}
 	if content == "" {
 		content = llmErrorFallback
-		EmitReplyChunks(content, onChunk)
+		if opts == nil || !opts.ReplyUseSegmentDelivery {
+			EmitReplyChunks(content, onChunk)
+		}
 		return content, nil, nil
 	}
 
@@ -899,6 +903,7 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 
 	var planStrict RetrievalPlan
 	needsReconcile := false
+	answerPolicy := PolicyAdvisory
 	if chatIntent != chatIntentSmallTalk {
 		// 从宽松 plan 派生严格版本，避免二次全量检索
 		planStrict = StrictFromPlan(fullPlan, message, entries)
@@ -908,13 +913,26 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 		if opts != nil && len(opts.RecentlyUsedEntryIDs) > 0 {
 			DeweightRecentlyUsedEntries(&planStrict, opts.RecentlyUsedEntryIDs)
 		}
-		needsReconcile = PlanHasArbitrationTargets(planStrict)
+		answerPolicy = ClassifyAnswerPolicy(message, planStrict, opts)
+		if opts != nil {
+			opts.AnswerPolicy = answerPolicy
+		}
+		if answerPolicy == PolicyHardFallback {
+			fallback := DefaultKnowledgeFallbackMessage
+			if opts != nil && strings.TrimSpace(opts.KnowledgeFallbackMessage) != "" {
+				fallback = strings.TrimSpace(opts.KnowledgeFallbackMessage)
+			}
+			if opts != nil {
+				opts.ReplyAttribution = AttributionFallback
+			}
+			return deliverFinalReply(fallback, nil, onChunk, opts)
+		}
+		needsReconcile = answerPolicy == PolicyGrounded && PlanHasArbitrationTargets(planStrict)
 	}
-	log.Printf("[LLM-timing] retrieval plan in %dms, needsReconcile=%v, intent=%s", time.Since(tStart).Milliseconds(), needsReconcile, chatIntent)
+	log.Printf("[LLM-timing] retrieval plan in %dms, needsReconcile=%v, policy=%s, intent=%s", time.Since(tStart).Milliseconds(), needsReconcile, answerPolicy, chatIntent)
 
-	// 始终流式输出 draft，让用户立即看到文字
-	// 用 reasoningStreamFilter 包装 onChunk：一旦检测到推理标记就停止向前端推送
-	filter := newReasoningStreamFilter(onChunk)
+	// Draft 生成阶段不向客户端推 token；最终按单段流式或多段 segment 事件交付。
+	filter := newReasoningStreamFilter(nil)
 	draftResult := streamWithDetails(ctx, client, draftReq, filter.write)
 
 	// ── Function Calling: 模型请求了工具 → 执行 → 把结果喂回去 → 流式输出最终回复 ──
@@ -945,7 +963,7 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 		}
 		setMaxTokens(&followupReq, model, draftMaxTokens)
 
-		filter2 := newReasoningStreamFilter(onChunk)
+		filter2 := newReasoningStreamFilter(nil)
 		draftResult = streamWithDetails(ctx, client, followupReq, filter2.write)
 	}
 
@@ -980,21 +998,15 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 		if opts != nil {
 			if chatIntent == chatIntentSmallTalk {
 				opts.ReplyAttribution = AttributionGeneral
-			} else if !allowsGeneralKnowledge(opts) {
-				fallback := strings.TrimSpace(opts.KnowledgeFallbackMessage)
-				if fallback == "" {
-					fallback = DefaultKnowledgeFallbackMessage
-				}
-				opts.ReplyAttribution = AttributionFallback
-				return fallback, nil, nil
 			} else {
-				opts.ReplyAttribution = AttributionGeneral
+				opts.ReplyAttribution = attributionForPolicy(answerPolicy)
 			}
 		}
-		return draft, nil, nil
+		draft = ApplyClaimGuardWithPolicy(message, draft, facts, fullPlan, answerPolicy)
+		return deliverFinalReply(draft, nil, onChunk, opts)
 	}
 
-	// 仲裁阶段静默执行，结果通过 done 事件的 reply 字段替换前端已显示的 draft
+	// 仲裁阶段静默执行，完成后通过 segment SSE 逐段推送
 	catalog := BuildCitationCatalog(planStrict)
 	citationsEnabled := opts == nil || opts.CitationsEnabled
 	reconcileSystem := buildReconcileSystemPrompt(profile, catalog, citationsEnabled)
@@ -1024,23 +1036,34 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 		log.Printf("[LLM] reconcile humanized to empty (reasoning-only?), falling back to draft")
 		out = draft
 	}
-	out = ApplyClaimGuard(message, out, facts, planStrict)
-	if citationsEnabled {
-		out = NormalizeCitationMarkers(out)
-	}
-
-	_, usedIndexes := ParseInlineCitations(out)
-	if !citationsEnabled {
-		out = StripInlineCitations(out)
-	}
-	references = BuildCitedReferences(catalog, usedIndexes, citationsEnabled)
-	if len(references) == 0 {
-		references = EnrichReferencesFromCatalog(BuildRetrievalReferences(planStrict), catalog)
-	}
+	out = ApplyClaimGuardWithPolicy(message, out, facts, planStrict, PolicyGrounded)
+	out, references = FinalizeCitedReply(ctx, client, model, out, catalog, citationsEnabled)
 	if opts != nil {
 		opts.ReplyAttribution = AttributionGrounded
+		opts.ReplyUseSegmentDelivery = true
 	}
 	return out, references, nil
+}
+
+const segmentStreamThreshold = 1
+
+// deliverFinalReply streams a single-segment reply via onChunk or flags segment delivery for multi-paragraph text.
+func deliverFinalReply(content string, references []map[string]string, onChunk func(string), opts *ChatOptions) (string, []map[string]string, error) {
+	content = strings.TrimSpace(content)
+	if content == "" {
+		return "", references, fmt.Errorf("empty reply")
+	}
+	segments := SplitReplySegments(content)
+	if len(segments) > segmentStreamThreshold {
+		if opts != nil {
+			opts.ReplyUseSegmentDelivery = true
+		}
+		return content, references, nil
+	}
+	if onChunk != nil {
+		EmitReplyChunks(content, onChunk)
+	}
+	return content, references, nil
 }
 
 // allowsGeneralKnowledge：产品默认允许通识；仅当 Mind 设置显式关闭时为 false。
@@ -1279,6 +1302,13 @@ func buildDraftKnowledgeContext(facts []StructuredFactForAI, topics []TopicSumma
 		if guidance := buildFeedbackGuidance(opts.FeedbackSignals, topics); guidance != "" {
 			sb.WriteString("【用户反馈提醒 - 之前有人指出过的问题】\n")
 			sb.WriteString(guidance)
+			sb.WriteString("\n\n")
+		}
+	}
+
+	if opts != nil && opts.AnswerPolicy != "" {
+		if g := answerPolicyGuidance(opts.AnswerPolicy); g != "" {
+			sb.WriteString(g)
 			sb.WriteString("\n\n")
 		}
 	}
