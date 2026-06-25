@@ -5,6 +5,7 @@ import type { CSSProperties } from "react";
 import { Capacitor } from "@capacitor/core";
 import {
   chatInputFooterPaddingClass,
+  detectIOSBrowser,
   detectKeyboardPlatform,
   detectKeyboardViewportEnabled,
   getMobileChatShellStyle,
@@ -12,10 +13,11 @@ import {
   type ViewportBox,
 } from "@/hooks/use-keyboard-viewport-core";
 
-export type { KeyboardPlatform, KeyboardViewportMode, ViewportBox } from "@/hooks/use-keyboard-viewport-core";
+export type { IOSBrowser, KeyboardPlatform, KeyboardViewportMode, ViewportBox } from "@/hooks/use-keyboard-viewport-core";
 export {
   CHAT_KEYBOARD_GAP,
   chatInputFooterPaddingClass,
+  detectIOSBrowser,
   detectKeyboardPlatform,
   detectKeyboardViewportEnabled,
   getMobileChatShellStyle,
@@ -106,12 +108,14 @@ export function useKeyboardViewport(mobileEnabled: boolean, options?: UseKeyboar
     }
 
     const vv = window.visualViewport;
+    const platform = detectKeyboardPlatform(navigator.userAgent, navigator.maxTouchPoints);
     const box = measureViewport({
       layoutHeight,
       visualViewport: vv ? { height: vv.height, offsetTop: vv.offsetTop } : null,
       nativeKeyboardInset: nativeInsetRef.current,
       isNativePlatform: Capacitor.isNativePlatform(),
-      platform: detectKeyboardPlatform(navigator.userAgent, navigator.maxTouchPoints),
+      platform,
+      iosBrowser: detectIOSBrowser(navigator.userAgent),
       inputFocused,
       baselineLayoutHeight: baselineLayoutHeightRef.current,
     });
@@ -192,6 +196,10 @@ export function useKeyboardViewport(mobileEnabled: boolean, options?: UseKeyboar
   const shellStyle = getMobileChatShellStyle({
     useFixedShell,
     viewportBox,
+    isNativePlatform: Capacitor.isNativePlatform(),
+    platform: typeof navigator !== "undefined"
+      ? detectKeyboardPlatform(navigator.userAgent, navigator.maxTouchPoints)
+      : undefined,
   });
 
   /** @deprecated 使用 shellStyle */

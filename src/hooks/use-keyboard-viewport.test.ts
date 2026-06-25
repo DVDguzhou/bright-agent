@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   CHAT_KEYBOARD_GAP,
+  detectIOSBrowser,
   detectKeyboardPlatform,
   detectKeyboardViewportEnabled,
   getMobileChatShellStyle,
@@ -13,7 +14,30 @@ const baseInput = {
   isNativePlatform: false,
   inputFocused: false,
   baselineLayoutHeight: 800,
+  iosBrowser: "safari" as const,
 };
+
+describe("detectIOSBrowser", () => {
+  it("detects Safari on iPhone", () => {
+    expect(
+      detectIOSBrowser(
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
+      ),
+    ).toBe("safari");
+  });
+
+  it("detects Chrome on iPhone (CriOS)", () => {
+    expect(
+      detectIOSBrowser(
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/120.0.6099.119 Mobile/15E148 Safari/604.1",
+      ),
+    ).toBe("chrome");
+  });
+
+  it("detects WeChat in-app browser", () => {
+    expect(detectIOSBrowser("Mozilla/5.0 MicroMessenger/8.0.0")).toBe("in-app");
+  });
+});
 
 describe("detectKeyboardPlatform", () => {
   it("detects Android (含搜狗等 IME 宿主)", () => {
@@ -49,15 +73,36 @@ describe("detectKeyboardViewportEnabled", () => {
 });
 
 describe("overlayOffsetTop", () => {
-  it("keeps offsetTop on iOS overlay pan", () => {
+  it("keeps offsetTop on Safari overlay pan", () => {
     expect(
-      overlayOffsetTop({ platform: "ios", vvOffsetTop: 80, layoutShrunkFromBaseline: false }),
+      overlayOffsetTop({
+        iosBrowser: "safari",
+        platform: "ios",
+        vvOffsetTop: 80,
+        layoutShrunkFromBaseline: false,
+      }),
     ).toBe(80);
+  });
+
+  it("drops spurious offsetTop on CriOS when layout did not shrink", () => {
+    expect(
+      overlayOffsetTop({
+        iosBrowser: "chrome",
+        platform: "ios",
+        vvOffsetTop: 200,
+        layoutShrunkFromBaseline: false,
+      }),
+    ).toBe(0);
   });
 
   it("drops spurious offsetTop on Android when layout did not shrink", () => {
     expect(
-      overlayOffsetTop({ platform: "android", vvOffsetTop: 200, layoutShrunkFromBaseline: false }),
+      overlayOffsetTop({
+        iosBrowser: "unknown",
+        platform: "android",
+        vvOffsetTop: 200,
+        layoutShrunkFromBaseline: false,
+      }),
     ).toBe(0);
   });
 });
@@ -85,6 +130,7 @@ describe("measureViewport", () => {
       layoutHeight: 400,
       visualViewport: { height: 398, offsetTop: 0 },
       platform: "android",
+      iosBrowser: "unknown",
     });
 
     expect(result.mode).toBe("layoutResized");
@@ -99,11 +145,41 @@ describe("measureViewport", () => {
       layoutHeight: 800,
       visualViewport: { height: 450, offsetTop: 80 },
       platform: "ios",
+      iosBrowser: "safari",
     });
 
     expect(result.mode).toBe("overlay");
     expect(result.offsetTop).toBe(80);
     expect(result.height).toBe(450 - CHAT_KEYBOARD_GAP);
+  });
+
+  it("uses overlay without spurious offsetTop on CriOS", () => {
+    const result = measureViewport({
+      ...baseInput,
+      layoutHeight: 800,
+      visualViewport: { height: 450, offsetTop: 200 },
+      platform: "ios",
+      iosBrowser: "chrome",
+    });
+
+    expect(result.mode).toBe("overlay");
+    expect(result.offsetTop).toBe(0);
+    expect(result.height).toBe(450 - CHAT_KEYBOARD_GAP - (800 - 450 - 50));
+  });
+
+  it("subtracts accessory inset on CriOS overlay", () => {
+    const result = measureViewport({
+      ...baseInput,
+      layoutHeight: 800,
+      visualViewport: { height: 450, offsetTop: 0 },
+      platform: "ios",
+      iosBrowser: "chrome",
+    });
+
+    const accessoryInset = 800 - 450 - 0 - 50;
+    expect(result.mode).toBe("overlay");
+    expect(result.offsetTop).toBe(0);
+    expect(result.height).toBe(450 - CHAT_KEYBOARD_GAP - accessoryInset);
   });
 
   it("uses overlay without spurious offsetTop on Android 搜狗类 IME", () => {
@@ -112,6 +188,7 @@ describe("measureViewport", () => {
       layoutHeight: 800,
       visualViewport: { height: 450, offsetTop: 200 },
       platform: "android",
+      iosBrowser: "unknown",
     });
 
     expect(result.mode).toBe("overlay");
@@ -127,6 +204,7 @@ describe("measureViewport", () => {
       nativeKeyboardInset: 300,
       isNativePlatform: true,
       platform: "android",
+      iosBrowser: "unknown",
     });
 
     expect(result.mode).toBe("layoutResized");
@@ -134,18 +212,33 @@ describe("measureViewport", () => {
     expect(result.height).toBe(500);
   });
 
-  it("falls back to layoutResized when inputFocused and layout shrinks >8% (iPad 浮动键盘漏判)", () => {
+  it("falls back to layoutResized when inputFocused and vv shrinks with layout (iPad 浮动键盘)", () => {
     const result = measureViewport({
       ...baseInput,
       layoutHeight: 700,
-      visualViewport: { height: 700, offsetTop: 0 },
+      visualViewport: { height: 650, offsetTop: 0 },
       inputFocused: true,
       platform: "ios",
+      iosBrowser: "safari",
     });
 
     expect(result.mode).toBe("layoutResized");
     expect(result.keyboardVisible).toBe(true);
     expect(result.offsetTop).toBe(0);
+  });
+
+  it("does not use focusShrink when iOS vv did not shrink and inset is small", () => {
+    const result = measureViewport({
+      ...baseInput,
+      layoutHeight: 700,
+      visualViewport: { height: 790, offsetTop: 0 },
+      inputFocused: true,
+      platform: "ios",
+      iosBrowser: "safari",
+    });
+
+    expect(result.keyboardVisible).toBe(false);
+    expect(result.mode).toBe("closed");
   });
 });
 
@@ -164,10 +257,35 @@ describe("getMobileChatShellStyle", () => {
     ).toBeUndefined();
   });
 
-  it("returns undefined for layoutResized (rely on fixed inset-0)", () => {
+  it("returns explicit height for iOS Web layoutResized (Safari resizes-content)", () => {
     expect(
       getMobileChatShellStyle({
         useFixedShell: true,
+        platform: "ios",
+        isNativePlatform: false,
+        viewportBox: {
+          height: 400,
+          offsetTop: 0,
+          keyboardVisible: true,
+          mode: "layoutResized",
+        },
+      }),
+    ).toEqual({
+      position: "fixed",
+      left: 0,
+      right: 0,
+      bottom: "auto",
+      height: "400px",
+      top: "0px",
+    });
+  });
+
+  it("returns undefined for layoutResized on Capacitor Native", () => {
+    expect(
+      getMobileChatShellStyle({
+        useFixedShell: true,
+        platform: "ios",
+        isNativePlatform: true,
         viewportBox: {
           height: 400,
           offsetTop: 0,

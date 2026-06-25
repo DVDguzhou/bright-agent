@@ -13,6 +13,8 @@ export type KeyboardViewportMode = "closed" | "layoutResized" | "overlay";
 
 export type KeyboardPlatform = "ios" | "android" | "unknown";
 
+export type IOSBrowser = "safari" | "chrome" | "firefox" | "in-app" | "unknown";
+
 export type ViewportBox = {
   height: number;
   offsetTop: number;
@@ -26,6 +28,7 @@ export type MeasureViewportInput = {
   nativeKeyboardInset: number;
   isNativePlatform: boolean;
   platform: KeyboardPlatform;
+  iosBrowser: IOSBrowser;
   inputFocused: boolean;
   baselineLayoutHeight: number;
 };
@@ -34,24 +37,70 @@ export type MeasureViewportInput = {
 export function detectKeyboardPlatform(userAgent = "", maxTouchPoints = 0): KeyboardPlatform {
   if (/android/i.test(userAgent)) return "android";
   if (/iphone|ipad|ipod/i.test(userAgent)) return "ios";
-  // iPadOS 13+ 可能伪装成 Mac
   if (/Macintosh/i.test(userAgent) && maxTouchPoints > 1) return "ios";
+  return "unknown";
+}
+
+/** iOS 内置浏览器细分：Safari / Chrome(CriOS) / 微信 / Firefox */
+export function detectIOSBrowser(userAgent = ""): IOSBrowser {
+  if (/MicroMessenger/i.test(userAgent)) return "in-app";
+  if (/CriOS/i.test(userAgent)) return "chrome";
+  if (/EdgiOS/i.test(userAgent)) return "chrome";
+  if (/FxiOS/i.test(userAgent)) return "firefox";
+  if (/iPhone|iPad|iPod/i.test(userAgent) && /Safari/i.test(userAgent)) return "safari";
+  if (/Macintosh/i.test(userAgent) && /Safari/i.test(userAgent)) return "safari";
   return "unknown";
 }
 
 /**
  * overlay 模式下是否采用 visualViewport.offsetTop。
- * iOS Safari 需要 offsetTop 跟随视口上推；Android / 搜狗等 IME 在 layout 未缩小时 offsetTop 常为错误滚动值。
+ * 仅 Safari 在 layout 未缩小时需要 offsetTop；CriOS / Android 等忽略虚假 offsetTop。
  */
 export function overlayOffsetTop(input: {
+  iosBrowser: IOSBrowser;
   platform: KeyboardPlatform;
   vvOffsetTop: number;
   layoutShrunkFromBaseline: boolean;
 }): number {
-  const { platform, vvOffsetTop, layoutShrunkFromBaseline } = input;
+  const { iosBrowser, platform, vvOffsetTop, layoutShrunkFromBaseline } = input;
   if (vvOffsetTop <= 0) return 0;
-  if (platform === "ios") return vvOffsetTop;
+  if (iosBrowser === "safari") return vvOffsetTop;
+  if (platform === "android") return layoutShrunkFromBaseline ? vvOffsetTop : 0;
   return layoutShrunkFromBaseline ? vvOffsetTop : 0;
+}
+
+function computeFocusShrinkFallback(input: {
+  inputFocused: boolean;
+  baselineLayoutHeight: number;
+  layoutHeight: number;
+  platform: KeyboardPlatform;
+  isNativePlatform: boolean;
+  vvHeight: number | null;
+  insetFromVv: number;
+}): boolean {
+  const layoutShrunk =
+    input.baselineLayoutHeight > 0 &&
+    input.layoutHeight < input.baselineLayoutHeight * (1 - LAYOUT_SHRINK_RATIO);
+
+  if (!input.inputFocused || !layoutShrunk) return false;
+  if (input.platform !== "ios" || input.isNativePlatform) return true;
+
+  const vvShrunk =
+    input.vvHeight !== null &&
+    input.vvHeight < input.baselineLayoutHeight * (1 - LAYOUT_SHRINK_RATIO);
+  const partialInset = input.insetFromVv >= KEYBOARD_INSET_THRESHOLD / 2;
+
+  return vvShrunk || partialInset;
+}
+
+function overlayAccessoryInset(input: {
+  iosBrowser: IOSBrowser;
+  layoutHeight: number;
+  vvHeight: number;
+  safeOffsetTop: number;
+}): number {
+  if (input.iosBrowser !== "chrome") return 0;
+  return Math.max(0, input.layoutHeight - input.vvHeight - input.safeOffsetTop - KEYBOARD_INSET_THRESHOLD);
 }
 
 export function measureViewport(input: MeasureViewportInput): ViewportBox {
@@ -61,16 +110,17 @@ export function measureViewport(input: MeasureViewportInput): ViewportBox {
     nativeKeyboardInset,
     isNativePlatform,
     platform,
+    iosBrowser,
     inputFocused,
     baselineLayoutHeight,
   } = input;
 
-  const focusShrinkFallback =
-    inputFocused &&
-    baselineLayoutHeight > 0 &&
-    layoutHeight < baselineLayoutHeight * (1 - LAYOUT_SHRINK_RATIO);
-
   if (!vv) {
+    const focusShrinkFallback =
+      inputFocused &&
+      baselineLayoutHeight > 0 &&
+      layoutHeight < baselineLayoutHeight * (1 - LAYOUT_SHRINK_RATIO);
+
     const keyboardVisible = nativeKeyboardInset > 0 || focusShrinkFallback;
     if (!keyboardVisible) {
       return { height: layoutHeight, offsetTop: 0, keyboardVisible: false, mode: "closed" };
@@ -93,6 +143,16 @@ export function measureViewport(input: MeasureViewportInput): ViewportBox {
 
   const layoutShrunkFromBaseline =
     baselineLayoutHeight > 0 && layoutHeight < baselineLayoutHeight * (1 - LAYOUT_SHRINK_RATIO);
+
+  const focusShrinkFallback = computeFocusShrinkFallback({
+    inputFocused,
+    baselineLayoutHeight,
+    layoutHeight,
+    platform,
+    isNativePlatform,
+    vvHeight,
+    insetFromVv,
+  });
 
   const layoutResizedGeometry =
     !overlayKeyboard &&
@@ -118,40 +178,63 @@ export function measureViewport(input: MeasureViewportInput): ViewportBox {
   }
 
   const safeOffsetTop = overlayOffsetTop({
+    iosBrowser,
     platform,
     vvOffsetTop,
     layoutShrunkFromBaseline,
   });
 
+  const accessoryInset = overlayAccessoryInset({
+    iosBrowser,
+    layoutHeight,
+    vvHeight,
+    safeOffsetTop,
+  });
+
   return {
-    height: Math.max(0, vvHeight - CHAT_KEYBOARD_GAP),
+    height: Math.max(0, vvHeight - CHAT_KEYBOARD_GAP - accessoryInset),
     offsetTop: safeOffsetTop,
     keyboardVisible: true,
     mode: "overlay",
   };
 }
 
-/** 移动端全屏聊天壳：layoutResized / closed 依赖 Tailwind fixed inset-0，overlay 才设 inline 高度 */
+/** 移动端全屏聊天壳：overlay / iOS Web layoutResized 设 inline 高度，Native 信任 inset-0 */
 export function getMobileChatShellStyle(options: {
-  /** 当前是否使用 max-lg fixed 全屏壳（宽屏桌面布局时不应叠加 fixed inline 样式） */
   useFixedShell: boolean;
   viewportBox: ViewportBox | null;
+  isNativePlatform?: boolean;
+  platform?: KeyboardPlatform;
 }): CSSProperties | undefined {
   if (!options.useFixedShell) return undefined;
 
   const box = options.viewportBox;
-  if (!box || box.mode !== "overlay") {
-    return undefined;
-  }
+  if (!box || !box.keyboardVisible) return undefined;
 
-  return {
+  const fixedShellBase: CSSProperties = {
     position: "fixed",
     left: 0,
     right: 0,
     bottom: "auto",
-    height: `${box.height}px`,
-    top: `${box.offsetTop}px`,
   };
+
+  if (box.mode === "overlay") {
+    return {
+      ...fixedShellBase,
+      height: `${box.height}px`,
+      top: `${box.offsetTop}px`,
+    };
+  }
+
+  if (box.mode === "layoutResized" && options.platform === "ios" && !options.isNativePlatform) {
+    return {
+      ...fixedShellBase,
+      height: `${box.height}px`,
+      top: "0px",
+    };
+  }
+
+  return undefined;
 }
 
 export function chatInputFooterPaddingClass(keyboardVisible: boolean): string {
@@ -160,7 +243,7 @@ export function chatInputFooterPaddingClass(keyboardVisible: boolean): string {
 
 /** 是否启用键盘视口监听：原生 App、窄屏、或 iPad 等触控大屏 */
 export function detectKeyboardViewportEnabled(
-  userAgent = "",
+  _userAgent = "",
   maxTouchPoints = 0,
   options?: { wideBreakpoint?: number; matchMedia?: (query: string) => MediaQueryList | null },
 ): boolean {
