@@ -109,6 +109,33 @@ func TestValidateInlineCitationsStripsIrrelevant(t *testing.T) {
 	}
 }
 
+func TestValidateInlineCitationsKeepsRelevant(t *testing.T) {
+	catalog := BuildCitationCatalog(RetrievalPlan{
+		Entries: []KnowledgeEntryForAI{
+			{ID: "e1", Title: "留学背景", Content: "温州大学 CMU 985 offer"},
+		},
+	})
+	text := "本科在温州大学，后来去了 CMU[1]。"
+	got := ValidateInlineCitations(text, catalog)
+	if !strings.Contains(got, "[1]") {
+		t.Fatalf("expected [1] kept, got %q", got)
+	}
+}
+
+func TestOverlapEnsureInlineCitations(t *testing.T) {
+	catalog := BuildCitationCatalog(RetrievalPlan{
+		Entries: []KnowledgeEntryForAI{
+			{ID: "e1", Title: "本科与留学", Content: "温州大学 计算机 CMU offer"},
+		},
+	})
+	text := "本科在温州大学读计算机，后来拿到 CMU 的 offer。"
+	got := overlapEnsureInlineCitations(text, catalog)
+	_, used := ParseInlineCitations(got)
+	if len(used) == 0 {
+		t.Fatalf("expected citation, got %q", got)
+	}
+}
+
 func TestStripInlineCitations(t *testing.T) {
 	got := StripInlineCitations("你好¹世界[2]")
 	want := "你好世界"
