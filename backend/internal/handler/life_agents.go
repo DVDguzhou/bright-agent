@@ -3455,6 +3455,19 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 			assistantMsgIDs[i] = models.GenID()
 		}
 
+		segRefsMaps := make([][]map[string]interface{}, len(replySegments))
+		for i, seg := range replySegments {
+			segRefs := lifeagent.FilterReferencesByContent(seg, refs)
+			segRefsMap := make([]map[string]interface{}, len(segRefs))
+			for j, r := range segRefs {
+				segRefsMap[j] = make(map[string]interface{})
+				for k, v := range r {
+					segRefsMap[j][k] = v
+				}
+			}
+			segRefsMaps[i] = segRefsMap
+		}
+
 		// SSE: 逐段推送（reconcile / 多段回复）；单段且已流式推送则跳过
 		if sseWriter != nil {
 			useSegmentSSE := chatOpts.ReplyUseSegmentDelivery || len(replySegments) > 1
@@ -3469,7 +3482,7 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 						"index":       i,
 						"total":       len(replySegments),
 						"messageId":   assistantMsgIDs[i],
-						"references":  refsMap,
+						"references":  segRefsMaps[i],
 						"attribution": attribution,
 					})
 					lifeagent.EmitReplyChunksWithDelay(seg, func(chunk string) {
@@ -3483,12 +3496,16 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 		}
 
 		for i, seg := range replySegments {
+			var segRefsAny models.JSONAny
+			for _, m := range segRefsMaps[i] {
+				segRefsAny = append(segRefsAny, m)
+			}
 			db.DB.Create(&models.LifeAgentChatMessage{
 				ID:        assistantMsgIDs[i],
 				SessionID: sessionID,
 				Role:      "assistant",
 				Content:   seg,
-				Refs:      refsAny,
+				Refs:      segRefsAny,
 			})
 		}
 		assistantMsgID := assistantMsgIDs[len(assistantMsgIDs)-1]

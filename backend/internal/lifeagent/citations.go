@@ -230,9 +230,9 @@ func StripInlineCitations(text string) string {
 	return strings.TrimSpace(b.String())
 }
 
-// BuildCitedReferences returns refs for cited indexes; falls back to all catalog items if none cited.
+// BuildCitedReferences returns refs for cited indexes only (no fallback when none cited).
 func BuildCitedReferences(catalog CitationCatalog, usedIndexes []int, citationsEnabled bool) []map[string]string {
-	if len(catalog.Items) == 0 {
+	if len(catalog.Items) == 0 || len(usedIndexes) == 0 {
 		return nil
 	}
 	byIndex := make(map[int]CitationItem, len(catalog.Items))
@@ -241,13 +241,7 @@ func BuildCitedReferences(catalog CitationCatalog, usedIndexes []int, citationsE
 	}
 
 	indexes := usedIndexes
-	if len(indexes) == 0 {
-		log.Printf("[citations] no inline markers found; falling back to full catalog (%d items)", len(catalog.Items))
-		for _, item := range catalog.Items {
-			indexes = append(indexes, item.CiteIndex)
-		}
-		sort.Ints(indexes)
-	}
+	sort.Ints(indexes)
 
 	refs := make([]map[string]string, 0, len(indexes))
 	seen := map[int]bool{}
@@ -263,6 +257,32 @@ func BuildCitedReferences(catalog CitationCatalog, usedIndexes []int, citationsE
 		refs = append(refs, citationItemToMap(item, citationsEnabled))
 	}
 	return refs
+}
+
+// FilterReferencesByContent keeps only refs whose citeIndex appears inline in content.
+func FilterReferencesByContent(content string, refs []map[string]string) []map[string]string {
+	_, used := ParseInlineCitations(content)
+	if len(used) == 0 || len(refs) == 0 {
+		return nil
+	}
+	usedSet := make(map[int]bool, len(used))
+	for _, n := range used {
+		usedSet[n] = true
+	}
+	out := make([]map[string]string, 0, len(used))
+	for _, ref := range refs {
+		n, err := strconv.Atoi(ref["citeIndex"])
+		if err != nil || !usedSet[n] {
+			continue
+		}
+		out = append(out, ref)
+	}
+	sort.Slice(out, func(i, j int) bool {
+		ni, _ := strconv.Atoi(out[i]["citeIndex"])
+		nj, _ := strconv.Atoi(out[j]["citeIndex"])
+		return ni < nj
+	})
+	return out
 }
 
 func citationItemToMap(item CitationItem, includeCiteIndex bool) map[string]string {
@@ -364,7 +384,7 @@ func buildReconcileCitationRule(citationsEnabled bool) string {
 	if !citationsEnabled {
 		return ""
 	}
-	return "9. 【引用标注】凡句中使用了某条编号素材的具体信息，该句末尾必须有对应 [n]（如[1]、[2]，数字与素材 [n] 一致），每句最多 3 个。禁止写「根据资料」「知识库」等词；只用 [n] 标注，不要另起一行列来源；加标注时不得删改草稿语义。\n"
+	return "9. 【引用标注】仅当某句**确实使用了**对应编号素材的具体信息时才加 [n]；素材与句意无关时**禁止**标注。使用了素材的句子末尾必须有 [n]（如[1]、[2]）。每句最多 3 个。禁止写「根据资料」「知识库」等词；只用 [n] 标注。\n"
 }
 
 // EnsureInlineCitations adds [n] markers via a lightweight LLM pass when reconcile omitted them.
@@ -374,11 +394,11 @@ func EnsureInlineCitations(ctx context.Context, client *openai.Client, model, te
 		return text
 	}
 	if _, used := ParseInlineCitations(text); len(used) > 0 {
-		return text
+		return ValidateInlineCitations(NormalizeCitationMarkers(text), catalog)
 	}
 
 	system := "你是引用标注助手。任务：在正文每句使用了下方编号素材信息的句末添加 [n] 标注，n 与素材编号一致。\n" +
-		"规则：不要改正文措辞、不要删字、不要加解释、不要 Markdown；只输出标注后的正文。"
+		"规则：素材与句意无关时禁止加标注；不要改正文措辞、不要删字、不要加解释、不要 Markdown；只输出标注后的正文。"
 	user := "【编号素材】\n" + buildReconcileCatalogPrompt(catalog) +
 		"\n【待标注正文】\n" + text +
 		"\n\n请输出加了 [n] 标注的正文（仅此一段）："
@@ -402,17 +422,17 @@ func EnsureInlineCitations(ctx context.Context, client *openai.Client, model, te
 	if out == "" {
 		return text
 	}
-	return NormalizeCitationMarkers(out)
+	return ValidateInlineCitations(NormalizeCitationMarkers(out), catalog)
 }
 
-// HeuristicEnsureInlineCitations appends [n] at paragraph ends when LLM omitted markers.
+// HeuristicEnsureInlineCitations adds [n] only when paragraph content matches catalog item semantics.
 func HeuristicEnsureInlineCitations(text string, catalog CitationCatalog) string {
 	text = strings.TrimSpace(text)
 	if text == "" || len(catalog.Items) == 0 {
 		return text
 	}
 	if _, used := ParseInlineCitations(text); len(used) > 0 {
-		return text
+		return ValidateInlineCitations(text, catalog)
 	}
 	paras := splitParagraphs(text)
 	if len(paras) == 0 {
@@ -420,17 +440,15 @@ func HeuristicEnsureInlineCitations(text string, catalog CitationCatalog) string
 	}
 	changed := false
 	for i := range paras {
-		if i >= len(catalog.Items) {
-			break
-		}
 		p := strings.TrimSpace(joinLinesInParagraph(paras[i]))
-		if p == "" {
+		if p == "" || citeBracketRe.MatchString(p) {
 			continue
 		}
-		if citeBracketRe.MatchString(p) {
+		item, score := bestCatalogMatchForParagraph(p, catalog)
+		if item == nil || score < citationMinMatchScore {
 			continue
 		}
-		paras[i] = appendCitationMarker(p, catalog.Items[i].CiteIndex)
+		paras[i] = appendCitationMarker(p, item.CiteIndex)
 		changed = true
 	}
 	if !changed {
@@ -439,7 +457,126 @@ func HeuristicEnsureInlineCitations(text string, catalog CitationCatalog) string
 	for i, para := range paras {
 		paras[i] = joinLinesInParagraph(para)
 	}
-	return strings.Join(paras, "\n\n")
+	return ValidateInlineCitations(strings.Join(paras, "\n\n"), catalog)
+}
+
+const citationMinMatchScore = 4
+
+func bestCatalogMatchForParagraph(para string, catalog CitationCatalog) (*CitationItem, int) {
+	bestScore := 0
+	var best *CitationItem
+	for i := range catalog.Items {
+		item := &catalog.Items[i]
+		score := scoreParagraphForCitationItem(para, *item)
+		if score > bestScore {
+			bestScore = score
+			best = item
+		}
+	}
+	return best, bestScore
+}
+
+func scoreParagraphForCitationItem(para string, item CitationItem) int {
+	norm := normalize(para)
+	score := 0
+	for _, kw := range citationKeywords(item) {
+		if len([]rune(kw)) < 2 {
+			continue
+		}
+		if strings.Contains(norm, normalize(kw)) {
+			score += 2
+		}
+	}
+	title := normalize(item.Title)
+	switch {
+	case strings.Contains(title, "恋爱") || strings.Contains(title, "感情"):
+		if containsAnyNormalized(norm, []string{"恋爱", "谈朋友", "对象", "分手", "感情", "喜欢", "封心", "谈了"}) {
+			score += 5
+		} else {
+			score -= 3
+		}
+	case strings.Contains(title, "实习"):
+		if containsAnyNormalized(norm, []string{"实习", "暑期", "实践"}) {
+			score += 4
+		}
+	case strings.Contains(title, "留学") || strings.Contains(title, "美国") || strings.Contains(title, "cmu"):
+		if containsAnyNormalized(norm, []string{"留学", "美国", "cmu", "申请", "托福", "gre", "课业", "课程", "计算机", "硬核", "作业"}) {
+			score += 4
+		}
+	case strings.Contains(title, "大一") || strings.Contains(title, "大二") || strings.Contains(title, "大三"):
+		if containsAnyNormalized(norm, []string{"大一", "大二", "大三", "大四"}) {
+			score += 3
+		}
+	}
+	return score
+}
+
+func citationKeywords(item CitationItem) []string {
+	var kws []string
+	for _, part := range []string{item.Title, firstSentence(item.FullContent, 80)} {
+		part = strings.TrimSpace(part)
+		if part == "" {
+			continue
+		}
+		for _, seg := range strings.FieldsFunc(part, func(r rune) bool {
+			return r == '，' || r == '。' || r == '、' || r == '；' || r == ' ' || r == ':' || r == '：'
+		}) {
+			seg = strings.TrimSpace(seg)
+			if len([]rune(seg)) >= 2 {
+				kws = append(kws, seg)
+			}
+		}
+	}
+	return kws
+}
+
+// ValidateInlineCitations strips [n] markers that don't match paragraph semantics.
+func ValidateInlineCitations(text string, catalog CitationCatalog) string {
+	if text == "" || len(catalog.Items) == 0 {
+		return text
+	}
+	byIndex := make(map[int]CitationItem, len(catalog.Items))
+	for _, item := range catalog.Items {
+		byIndex[item.CiteIndex] = item
+	}
+	paras := splitParagraphs(text)
+	changed := false
+	for i, para := range paras {
+		joined := joinLinesInParagraph(para)
+		cleaned := stripInvalidCitationMarkers(joined, byIndex)
+		if cleaned != joined {
+			changed = true
+			paras[i] = cleaned
+		}
+	}
+	if !changed {
+		return text
+	}
+	out := make([]string, len(paras))
+	for i, para := range paras {
+		out[i] = joinLinesInParagraph(para)
+	}
+	return strings.Join(out, "\n\n")
+}
+
+func stripInvalidCitationMarkers(para string, byIndex map[int]CitationItem) string {
+	matches := citeBracketRe.FindAllStringSubmatchIndex(para, -1)
+	if len(matches) == 0 {
+		return para
+	}
+	var b strings.Builder
+	last := 0
+	for _, m := range matches {
+		b.WriteString(para[last:m[0]])
+		n, _ := strconv.Atoi(para[m[2]:m[3]])
+		item, ok := byIndex[n]
+		if ok && scoreParagraphForCitationItem(para, item) >= citationMinMatchScore {
+			b.WriteString(para[m[0]:m[1]])
+		}
+		last = m[1]
+	}
+	b.WriteString(para[last:])
+	return b.String()
 }
 
 func appendCitationMarker(s string, n int) string {
@@ -475,10 +612,9 @@ func FinalizeCitedReply(ctx context.Context, client *openai.Client, model, out s
 	if !citationsEnabled {
 		return out, nil
 	}
+	out = ValidateInlineCitations(out, catalog)
+	_, usedIndexes = ParseInlineCitations(out)
 	refs := BuildCitedReferences(catalog, usedIndexes, citationsEnabled)
-	if len(refs) == 0 {
-		refs = EnrichReferencesFromCatalog(BuildRetrievalReferences(catalogToPlan(catalog)), catalog)
-	}
 	return out, refs
 }
 

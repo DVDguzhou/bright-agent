@@ -30,7 +30,7 @@ export function CitedMessageContent({
             <button
               type="button"
               onClick={() => onCiteClick?.(part.citeIndex)}
-              className={`inline text-[0.65em] font-semibold leading-none underline-offset-2 transition ${
+              className={`inline text-[0.82em] font-semibold leading-none underline-offset-2 transition ${
                 isActive
                   ? "text-signal-700 underline"
                   : "text-signal-600/90 hover:text-signal-800 hover:underline"

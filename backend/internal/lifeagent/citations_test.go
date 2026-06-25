@@ -1,6 +1,9 @@
 package lifeagent
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 func TestParseInlineCitationsSuperscript(t *testing.T) {
 	text := "我当年考研时挺拼的¹，后来去了 CMU²。"
@@ -81,15 +84,28 @@ func TestNormalizeCitationMarkers(t *testing.T) {
 func TestHeuristicEnsureInlineCitations(t *testing.T) {
 	catalog := BuildCitationCatalog(RetrievalPlan{
 		Entries: []KnowledgeEntryForAI{
-			{ID: "e1", Title: "大一", Content: "探索"},
-			{ID: "e2", Title: "大二", Content: "恋爱"},
+			{ID: "e1", Title: "留学准备与大二实习", Content: "留学要早准备，大二实习很重要"},
+			{ID: "e2", Title: "大二恋爱经历", Content: "大二谈过恋爱"},
 		},
 	})
-	text := "大一是探索期。\n\n大二是恋爱期。"
+	text := "大一是探索期，可以多试。\n\n大二要定方向加实习。"
 	got := HeuristicEnsureInlineCitations(text, catalog)
-	_, used := ParseInlineCitations(got)
-	if len(used) < 2 {
-		t.Fatalf("expected 2 cites, got %v text=%q", used, got)
+	if strings.Contains(got, "[2]") {
+		t.Fatalf("should not cite 恋爱 on roadmap paragraph, got %q", got)
+	}
+}
+
+func TestValidateInlineCitationsStripsIrrelevant(t *testing.T) {
+	catalog := BuildCitationCatalog(RetrievalPlan{
+		Entries: []KnowledgeEntryForAI{
+			{ID: "e1", Title: "留学准备", Content: "留学"},
+			{ID: "e2", Title: "大二恋爱经历", Content: "恋爱"},
+		},
+	})
+	text := "大一大胆试，大二定方向[2]。"
+	got := ValidateInlineCitations(text, catalog)
+	if strings.Contains(got, "[2]") {
+		t.Fatalf("expected [2] removed, got %q", got)
 	}
 }
 

@@ -796,9 +796,9 @@
   display: inline;
   margin: 0 2rpx;
   padding: 0;
-  color: rgba(74, 90, 47, 0.85);
-  font-size: 20rpx;
-  font-weight: 600;
+  color: rgba(74, 90, 47, 0.9);
+  font-size: 24rpx;
+  font-weight: 700;
   vertical-align: super;
   text-decoration: underline;
   text-underline-offset: 2rpx;
