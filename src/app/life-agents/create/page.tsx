@@ -28,7 +28,9 @@ import {
 } from "@/lib/life-agent-create-recall";
 import {
   clearLifeAgentCreateDraft,
+  LIFE_AGENT_CREATE_STEP_SCHEMA,
   loadLifeAgentCreateDraft,
+  resolveLifeAgentCreateDraftStep,
   saveLifeAgentCreateDraft,
   type LifeAgentCreateDraftV1,
 } from "@/lib/life-agent-create-draft";
@@ -459,6 +461,7 @@ export default function CreateLifeAgentPage() {
   const [templatePicked, setTemplatePicked] = useState(false);
   const [draftDrawerOpen, setDraftDrawerOpen] = useState(false);
   const [draftDrawerExpanded, setDraftDrawerExpanded] = useState(false);
+  const [resumeHint, setResumeHint] = useState<string | null>(null);
   /** 为 true 表示已尝试从 localStorage 恢复草稿，避免与「空聊天自动插入首条」冲突 */
   const [draftReady, setDraftReady] = useState(false);
   const saveDraftTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -474,13 +477,12 @@ export default function CreateLifeAgentPage() {
     }
     const draft = loadLifeAgentCreateDraft(user.id);
     if (draft) {
-      // Compatibility: old drafts used 5 steps, new uses 6 (expertise selector inserted between profile and experience)
-      const rawStep = Math.floor(Number(draft.step)) || 1;
-      const migratedStep = rawStep <= 1 ? rawStep : rawStep + 1;
-      const stepClamped = Math.max(1, Math.min(6, migratedStep));
+      const stepClamped = resolveLifeAgentCreateDraftStep(draft);
       const maxField = PROFILE_CHAT_FIELDS.length - 1;
       const idx = Math.max(0, Math.min(maxField, Math.floor(Number(draft.chatFieldIndex)) || 0));
       setStep(stepClamped);
+      const visual = stepClamped >= 6 ? stepClamped - 1 : stepClamped;
+      setResumeHint(`已恢复上次进度（${visual}/5）`);
       setForm({ ...DEFAULT_FORM, ...draft.form });
       setNotSuitableFor(draft.notSuitableFor);
       setKnowledgeEntries(
@@ -519,15 +521,34 @@ export default function CreateLifeAgentPage() {
       setCoverImageUrl(draft.coverImageUrl);
       setTemplatePicked(true);
       setError("");
+      if (draft.stepSchema !== LIFE_AGENT_CREATE_STEP_SCHEMA) {
+        try {
+          saveLifeAgentCreateDraft(user.id, {
+            ...draft,
+            step: stepClamped,
+            stepSchema: LIFE_AGENT_CREATE_STEP_SCHEMA,
+            savedAt: Date.now(),
+          });
+        } catch {
+          // ignore
+        }
+      }
     }
     setDraftReady(true);
   }, [user?.id]);
+
+  useEffect(() => {
+    if (!resumeHint) return;
+    const t = window.setTimeout(() => setResumeHint(null), 5000);
+    return () => window.clearTimeout(t);
+  }, [resumeHint]);
 
   const buildDraftSnapshot = useCallback((): LifeAgentCreateDraftV1 => {
     return {
       v: 1,
       savedAt: Date.now(),
       step,
+      stepSchema: LIFE_AGENT_CREATE_STEP_SCHEMA,
       form: { ...form },
       notSuitableFor,
       knowledgeEntries,
@@ -865,6 +886,7 @@ export default function CreateLifeAgentPage() {
 
   const restartProfileChat = () => {
     if (user?.id) clearLifeAgentCreateDraft(user.id);
+    setResumeHint(null);
     setForm({ ...DEFAULT_FORM });
     setKnowledgeEntries([]);
     setStructuredFacts([]);
@@ -1871,6 +1893,9 @@ export default function CreateLifeAgentPage() {
             ))}
           </div>
         </div>
+        {resumeHint ? (
+          <p className="mx-auto mt-2 max-w-5xl text-center text-xs text-signal-700">{resumeHint}</p>
+        ) : null}
       </header>
 
       {step === 1 && !templatePicked && draftReady && (
@@ -2627,10 +2652,7 @@ export default function CreateLifeAgentPage() {
             <div className="mx-auto flex max-w-4xl flex-col gap-3 sm:flex-row sm:justify-between">
               <button
                 type="button"
-                onClick={() => {
-                  setStep(3);
-                  setError("");
-                }}
+                onClick={() => goToStep(3)}
                 className="btn-secondary min-h-[44px]"
               >
                 上一步

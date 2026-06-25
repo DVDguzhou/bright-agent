@@ -4,6 +4,8 @@
  */
 const STORAGE_PREFIX = "brightagent:life-agent-create-draft:";
 export const LIFE_AGENT_CREATE_DRAFT_VERSION = 1 as const;
+/** 当前创建流程内部步数（展示为 5 步时 step 6 映射为 5/5） */
+export const LIFE_AGENT_CREATE_STEP_SCHEMA = 6 as const;
 
 export type LifeAgentCreateDraftChatMessage = {
   role: "assistant" | "user";
@@ -33,6 +35,8 @@ export type LifeAgentCreateDraftV1 = {
   v: typeof LIFE_AGENT_CREATE_DRAFT_VERSION;
   savedAt: number;
   step: number;
+  /** 6 = 当前 6 步流程；缺省表示旧版 5 步草稿，加载时需 +1 迁移 */
+  stepSchema?: number;
   form: LifeAgentCreateDraftForm;
   notSuitableFor: string;
   knowledgeEntries: LifeAgentCreateDraftKnowledgeEntry[];
@@ -109,6 +113,7 @@ export function parseLifeAgentCreateDraft(raw: string): LifeAgentCreateDraftV1 |
       v: LIFE_AGENT_CREATE_DRAFT_VERSION,
       savedAt: typeof o.savedAt === "number" ? o.savedAt : Date.now(),
       step: o.step,
+      stepSchema: typeof o.stepSchema === "number" ? o.stepSchema : undefined,
       form: o.form as LifeAgentCreateDraftForm,
       notSuitableFor: typeof o.notSuitableFor === "string" ? o.notSuitableFor : "",
       knowledgeEntries,
@@ -135,6 +140,16 @@ export function parseLifeAgentCreateDraft(raw: string): LifeAgentCreateDraftV1 |
   } catch {
     return null;
   }
+}
+
+export function resolveLifeAgentCreateDraftStep(draft: Pick<LifeAgentCreateDraftV1, "step" | "stepSchema">): number {
+  const raw = Math.max(1, Math.floor(Number(draft.step)) || 1);
+  if (draft.stepSchema === LIFE_AGENT_CREATE_STEP_SCHEMA) {
+    return Math.min(LIFE_AGENT_CREATE_STEP_SCHEMA, raw);
+  }
+  // 旧版 5 步草稿：step≥2 时映射到新流程 +1
+  const migrated = raw <= 1 ? raw : raw + 1;
+  return Math.min(LIFE_AGENT_CREATE_STEP_SCHEMA, migrated);
 }
 
 export function loadLifeAgentCreateDraft(userId: string): LifeAgentCreateDraftV1 | null {
