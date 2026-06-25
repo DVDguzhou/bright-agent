@@ -17,7 +17,7 @@ import {
   CHAT_SCROLL_SURFACE_CLASSNAME,
   getChatBubbleClassName,
 } from "@/lib/chat-glass";
-import { useIsDesktop, useKeyboardViewport, chatInputFooterPaddingClass } from "@/hooks/use-keyboard-viewport";
+import { useIsDesktop, useKeyboardViewport, useKeyboardViewportEnabled, chatInputFooterPaddingClass } from "@/hooks/use-keyboard-viewport";
 import { LIFE_AGENT_UNLIMITED_CHAT, lifeAgentShowsPurchaseUi } from "@/lib/life-agent-commerce";
 import {
   buildGrowthQuestion,
@@ -171,7 +171,12 @@ export default function LifeAgentChatPage() {
   const [useVoiceReply, setUseVoiceReply] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
   const isDesktop = useIsDesktop();
-  const { viewportBox, keyboardVisible } = useKeyboardViewport(!isDesktop);
+  const keyboardViewportEnabled = useKeyboardViewportEnabled();
+  const [composerFocused, setComposerFocused] = useState(false);
+  const { viewportBox, shellStyle, keyboardVisible } = useKeyboardViewport(keyboardViewportEnabled, {
+    inputFocused: composerFocused,
+    useFixedShell: !isDesktop,
+  });
   const chatEndRef = useRef<HTMLDivElement | null>(null);
   const sendingRef = useRef(false);
 
@@ -675,6 +680,7 @@ export default function LifeAgentChatPage() {
     )}
     <div
       className={`flex min-h-0 flex-col lg:-mx-4 lg:-mt-3 lg:-mb-8 lg:h-[calc(100dvh-5rem)] lg:max-h-[calc(100dvh-5rem)] max-lg:fixed max-lg:inset-0 max-lg:z-[50] max-lg:overflow-hidden ${CHAT_PAGE_BACKGROUND_CLASSNAME}`}
+      style={shellStyle}
     >
       <AnimatePresence>
         {menuOpen && (
@@ -1191,7 +1197,9 @@ export default function LifeAgentChatPage() {
           </div>
         )}
 
-        <div className={`shrink-0 border-t border-hairline bg-paper px-3 pt-2 sm:px-4 ${chatInputFooterPaddingClass(keyboardVisible)}`}>
+        <div
+          className={`shrink-0 border-t border-hairline bg-paper px-3 pt-2 sm:px-4 ${chatInputFooterPaddingClass(keyboardVisible)}`}
+        >
           <div className="mx-auto max-w-3xl">
             <LifeAgentMessageComposer
               value={input}
@@ -1200,6 +1208,7 @@ export default function LifeAgentChatPage() {
               disabled={loading || sessionLoading}
               placeholder="发消息..."
               onTextareaFocus={() => {
+                setComposerFocused(true);
                 window.setTimeout(() => scrollToLastMessage(), 120);
                 window.setTimeout(() => scrollToLastMessage(), 320);
               }}

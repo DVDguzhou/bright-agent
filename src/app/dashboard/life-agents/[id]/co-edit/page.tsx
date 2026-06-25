@@ -30,7 +30,7 @@ import {
   nextLifeAgentCoverFallbackSrc,
   resolveLifeAgentCoverUrl,
 } from "@/lib/life-agent-covers";
-import { useIsDesktop, useKeyboardViewport, chatInputFooterPaddingClass } from "@/hooks/use-keyboard-viewport";
+import { useIsDesktop, useKeyboardViewport, useKeyboardViewportEnabled, chatInputFooterPaddingClass } from "@/hooks/use-keyboard-viewport";
 
 type CoEditEventStatus = "pending" | "processed" | "failed";
 type CoEditEventPayload = {
@@ -229,12 +229,25 @@ export default function LifeAgentCoEditPage() {
   const chatHistoryRef = useRef<ChatRow[]>([]);
   const chatHistoryHydratedForRef = useRef<string | null>(null);
   const pendingVoicePromptRef = useRef<string | null>(null);
+  const chatViewportRef = useRef<HTMLDivElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const dismissedSuggestionRuleIdsRef = useRef<Set<string>>(new Set());
   const isDesktop = useIsDesktop();
-  const { containerStyle: mobileContainerStyle, keyboardVisible } = useKeyboardViewport(!isDesktop);
+  const keyboardViewportEnabled = useKeyboardViewportEnabled();
+  const [composerFocused, setComposerFocused] = useState(false);
+  const { shellStyle, keyboardVisible } = useKeyboardViewport(keyboardViewportEnabled, {
+    inputFocused: composerFocused,
+    useFixedShell: !isDesktop,
+  });
+
+  const scrollChatToEnd = () => {
+    const scroller = chatViewportRef.current;
+    if (scroller) {
+      scroller.scrollTo({ top: scroller.scrollHeight, behavior: "smooth" });
+    }
+  };
 
   const setNextSuggestionFiltered = useCallback((suggestion: NextSuggestion | null) => {
     if (suggestion && dismissedSuggestionRuleIdsRef.current.has(suggestion.ruleId)) {
@@ -851,7 +864,7 @@ export default function LifeAgentCoEditPage() {
         `max-lg:fixed max-lg:inset-x-0 max-lg:top-0 max-lg:z-30 max-lg:m-0 max-lg:w-full max-lg:min-h-0 max-lg:overflow-hidden ${CHAT_PAGE_BACKGROUND_CLASSNAME} ` +
         "lg:relative lg:z-auto lg:-mx-4 lg:-mt-8 lg:-mb-8 lg:overflow-visible max-lg:min-h-0"
       }
-      style={isDesktop ? undefined : mobileContainerStyle}
+      style={shellStyle}
     >
       <header className="z-40 shrink-0 border-b border-hairline/30 bg-paper/[0.91] px-4 pb-1 pt-[max(0.25rem,env(safe-area-inset-top))] shadow-[0_4px_28px_-10px_rgba(26,23,20,0.07)] backdrop-blur-xl sm:px-4 lg:sticky lg:top-0">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-2">
@@ -1116,6 +1129,7 @@ export default function LifeAgentCoEditPage() {
         </div>
 
         <div
+          ref={chatViewportRef}
           className={`max-lg:min-h-0 max-lg:flex-1 max-lg:overflow-y-auto max-lg:overscroll-contain px-3 sm:px-4 ${CHAT_SCROLL_SURFACE_CLASSNAME}`}
           onClick={dismissKeyboard}
           onTouchStart={dismissKeyboard}
@@ -1254,8 +1268,9 @@ export default function LifeAgentCoEditPage() {
               disabled={modifyLoading}
               placeholder={modifyLoading ? "AI 正在处理这次修改…" : "例如：把擅长标签改成考研、转行、找工作"}
               onTextareaFocus={() => {
-                setTimeout(() => endRef.current?.scrollIntoView({ behavior: "smooth" }), 280);
-                setTimeout(() => endRef.current?.scrollIntoView({ behavior: "smooth" }), 520);
+                setComposerFocused(true);
+                setTimeout(scrollChatToEnd, 280);
+                setTimeout(scrollChatToEnd, 520);
               }}
               moreOpen={moreOpen}
               onMoreClick={() => setMoreOpen((o) => !o)}

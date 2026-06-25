@@ -41,7 +41,7 @@ import {
   CHAT_SCROLL_SURFACE_CLASSNAME,
   getChatBubbleClassName,
 } from "@/lib/chat-glass";
-import { useIsDesktop, useKeyboardViewport, chatInputFooterPaddingClass } from "@/hooks/use-keyboard-viewport";
+import { useIsDesktop, useKeyboardViewport, useKeyboardViewportEnabled, chatInputFooterPaddingClass } from "@/hooks/use-keyboard-viewport";
 
 type KnowledgeEntry = {
   category: string;
@@ -415,6 +415,8 @@ function RecallIconButton({ onClick }: { onClick: () => void }) {
 
 export default function CreateLifeAgentPage() {
   const router = useRouter();
+  const profileChatViewportRef = useRef<HTMLDivElement>(null);
+  const experienceChatViewportRef = useRef<HTMLDivElement>(null);
   const profileChatEndRef = useRef<HTMLDivElement>(null);
   const experienceChatEndRef = useRef<HTMLDivElement>(null);
   const profileFormRef = useRef<HTMLFormElement>(null);
@@ -468,7 +470,26 @@ export default function CreateLifeAgentPage() {
   const experienceResumeRef = useRef(false);
   const latestDraftSnapshotRef = useRef<LifeAgentCreateDraftV1 | null>(null);
   const isDesktop = useIsDesktop();
-  const { containerStyle: mobileContainerStyle, keyboardVisible } = useKeyboardViewport(!isDesktop);
+  const keyboardViewportEnabled = useKeyboardViewportEnabled();
+  const [composerFocused, setComposerFocused] = useState(false);
+  const { shellStyle, keyboardVisible } = useKeyboardViewport(keyboardViewportEnabled, {
+    inputFocused: composerFocused,
+    useFixedShell: !isDesktop,
+  });
+
+  const scrollToLastMessage = useCallback(() => {
+    const scroller = profileChatViewportRef.current;
+    if (scroller) {
+      scroller.scrollTo({ top: scroller.scrollHeight, behavior: "smooth" });
+    }
+  }, []);
+
+  const scrollToLastExperienceMessage = useCallback(() => {
+    const scroller = experienceChatViewportRef.current;
+    if (scroller) {
+      scroller.scrollTo({ top: scroller.scrollHeight, behavior: "smooth" });
+    }
+  }, []);
 
   useLayoutEffect(() => {
     if (!user?.id) {
@@ -788,12 +809,12 @@ export default function CreateLifeAgentPage() {
   }, [user?.id]);
 
   useEffect(() => {
-    profileChatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [chatHistory, sampleQuestionsHistory]);
+    scrollToLastMessage();
+  }, [chatHistory, sampleQuestionsHistory, scrollToLastMessage]);
 
   useEffect(() => {
-    experienceChatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [experienceHistory]);
+    scrollToLastExperienceMessage();
+  }, [experienceHistory, scrollToLastExperienceMessage]);
 
   useEffect(() => {
     if (!draftReady) return;
@@ -1534,7 +1555,7 @@ export default function CreateLifeAgentPage() {
       setExperienceInput("");
       setExperienceLoading(false);
       setError("");
-      setTimeout(() => experienceChatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" }), 100);
+      setTimeout(scrollToLastExperienceMessage, 100);
     },
     [knowledgeEntries],
   );
@@ -1558,7 +1579,7 @@ export default function CreateLifeAgentPage() {
       setForm((prev) => clearFormFromField(prev, fieldIdx));
       setChatInput(msg.content);
       setError("");
-      setTimeout(() => profileChatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" }), 100);
+      setTimeout(scrollToLastMessage, 100);
     },
     [chatDone, chatLoading, chatHistory],
   );
@@ -1577,7 +1598,7 @@ export default function CreateLifeAgentPage() {
       setSampleQuestionsList((prev) => prev.slice(0, qIdx));
       setSampleQuestionsInput(msg.content);
       setError("");
-      setTimeout(() => profileChatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" }), 100);
+      setTimeout(scrollToLastMessage, 100);
     },
     [chatDone, sampleQuestionsDone, sampleQuestionsLoading, sampleQuestionsHistory],
   );
@@ -1599,7 +1620,7 @@ export default function CreateLifeAgentPage() {
         setExperienceInput("");
         setExperienceDone(false);
         setError("");
-        setTimeout(() => experienceChatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" }), 100);
+        setTimeout(scrollToLastExperienceMessage, 100);
         return;
       }
 
@@ -1620,7 +1641,7 @@ export default function CreateLifeAgentPage() {
       setExperienceInput(recalledText);
       setExperienceDone(false);
       setError("");
-      setTimeout(() => experienceChatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" }), 100);
+      setTimeout(scrollToLastExperienceMessage, 100);
     },
     [experienceDone, experienceLoading, experienceHistory],
   );
@@ -1802,14 +1823,6 @@ export default function CreateLifeAgentPage() {
     );
   }
 
-  const scrollToLastMessage = () => {
-    profileChatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-  };
-
-  const scrollToLastExperienceMessage = () => {
-    experienceChatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-  };
-
   const chatUserAvatarUrl =
     user.avatarUrl && !isDefaultAvatarUrl(user.avatarUrl) ? user.avatarUrl : null;
 
@@ -1854,7 +1867,7 @@ export default function CreateLifeAgentPage() {
         /* 宽屏：薰衣草顶到底部留白 */
         "lg:relative lg:z-auto lg:-mt-8 lg:-mb-8 lg:min-h-[calc(100dvh-4rem)] max-lg:min-h-0"
       }
-      style={isDesktop ? undefined : mobileContainerStyle}
+      style={shellStyle}
     >
       {/* 顶替全局顶栏：窄屏随全屏容器固定；宽屏 sticky 防止长表单滚动时丢失上下文 */}
       <header className="z-40 shrink-0 border-b border-hairline/30 bg-paper px-3 pb-2 pt-[max(0.5rem,env(safe-area-inset-top))] max-lg:relative sm:px-6 sm:pb-3 sm:pt-[max(0.75rem,env(safe-area-inset-top))] lg:sticky lg:top-0">
@@ -1939,6 +1952,7 @@ export default function CreateLifeAgentPage() {
 
           {/* 聊天区域 - 点击/触摸空白处收起键盘（和微信一样） */}
           <div
+            ref={profileChatViewportRef}
             className={`flex-1 overflow-y-auto overscroll-contain px-3 sm:px-4 ${CHAT_SCROLL_SURFACE_CLASSNAME}`}
             onClick={dismissKeyboard}
             onTouchStart={dismissKeyboard}
@@ -2111,6 +2125,7 @@ export default function CreateLifeAgentPage() {
                   placeholder={sampleQuestionsLoading ? "AI 正在整理…" : "输入一个问题，或说「没有了」结束"}
                   required={false}
                   onTextareaFocus={() => {
+                    setComposerFocused(true);
                     setTimeout(scrollToLastMessage, 280);
                     setTimeout(scrollToLastMessage, 520);
                   }}
@@ -2149,6 +2164,7 @@ export default function CreateLifeAgentPage() {
                   placeholder={chatLoading ? "AI 正在整理资料…" : currentChatField.placeholder}
                   required={Boolean(currentChatField.required)}
                   onTextareaFocus={() => {
+                    setComposerFocused(true);
                     setTimeout(scrollToLastMessage, 280);
                     setTimeout(scrollToLastMessage, 520);
                   }}
@@ -2267,6 +2283,7 @@ export default function CreateLifeAgentPage() {
 
           {/* 聊天区域 - 点击/触摸空白处收起键盘（和微信一样） */}
           <div
+            ref={experienceChatViewportRef}
             className={`flex-1 overflow-y-auto overscroll-contain px-3 sm:px-4 ${CHAT_SCROLL_SURFACE_CLASSNAME}`}
             onClick={dismissKeyboard}
             onTouchStart={dismissKeyboard}
@@ -2424,6 +2441,7 @@ export default function CreateLifeAgentPage() {
                   placeholder={experienceLoading ? "AI 正在思考下一问…" : "说出你需要分享的经验和信息"}
                   required
                   onTextareaFocus={() => {
+                    setComposerFocused(true);
                     setTimeout(scrollToLastExperienceMessage, 280);
                     setTimeout(scrollToLastExperienceMessage, 520);
                   }}

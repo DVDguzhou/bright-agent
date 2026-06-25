@@ -3,76 +3,33 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { Capacitor } from "@capacitor/core";
+import {
+  chatInputFooterPaddingClass,
+  detectKeyboardPlatform,
+  detectKeyboardViewportEnabled,
+  getMobileChatShellStyle,
+  measureViewport,
+  type ViewportBox,
+} from "@/hooks/use-keyboard-viewport-core";
 
-export type ViewportBox = {
-  height: number;
-  offsetTop: number;
-  keyboardVisible: boolean;
+export type { KeyboardPlatform, KeyboardViewportMode, ViewportBox } from "@/hooks/use-keyboard-viewport-core";
+export {
+  CHAT_KEYBOARD_GAP,
+  chatInputFooterPaddingClass,
+  detectKeyboardPlatform,
+  detectKeyboardViewportEnabled,
+  getMobileChatShellStyle,
+  measureViewport,
+  overlayOffsetTop,
+} from "@/hooks/use-keyboard-viewport-core";
+
+export type UseKeyboardViewportOptions = {
+  inputFocused?: boolean;
+  /** 页面是否处于 max-lg fixed 全屏壳；宽屏 lg 布局时不应用 overlay fixed 样式 */
+  useFixedShell?: boolean;
 };
 
-/** 键盘占用超过此阈值（px）才认为 visualViewport 已正确反映键盘高度 */
-const KEYBOARD_INSET_THRESHOLD = 50;
-
-/** 输入栏与键盘顶部的间距（px），与小程序 chat 页 KEYBOARD_GAP 对齐 */
-export const CHAT_KEYBOARD_GAP = 28;
-
-function applyKeyboardGap(height: number, keyboardVisible: boolean): number {
-  if (!keyboardVisible) return height;
-  return Math.max(0, height - CHAT_KEYBOARD_GAP);
-}
-
-function measureViewport(nativeKeyboardInset: number): ViewportBox {
-  if (typeof window === "undefined") {
-    return { height: 0, offsetTop: 0, keyboardVisible: false };
-  }
-
-  const layoutHeight = window.innerHeight;
-  const vv = window.visualViewport;
-
-  if (!vv) {
-    const keyboardVisible = nativeKeyboardInset > 0;
-    const height = keyboardVisible
-      ? applyKeyboardGap(Math.max(0, layoutHeight - nativeKeyboardInset), true)
-      : layoutHeight;
-    return { height, offsetTop: 0, keyboardVisible };
-  }
-
-  const vvHeight = Math.max(0, vv.height);
-  const vvOffsetTop = Math.max(0, vv.offsetTop);
-  const insetFromVv = Math.max(0, layoutHeight - vvHeight - vvOffsetTop);
-  const keyboardVisible = nativeKeyboardInset > 0 || insetFromVv >= KEYBOARD_INSET_THRESHOLD;
-
-  if (!keyboardVisible) {
-    return { height: layoutHeight, offsetTop: 0, keyboardVisible: false };
-  }
-
-  // interactiveWidget: resizes-content 已缩小 layout viewport 时，不要再叠 vv.offsetTop，
-  // 否则 Android / 第三方输入法（搜狗等）常出现「头顶空白、聊天区消失」。
-  const layoutTracksKeyboard =
-    insetFromVv < KEYBOARD_INSET_THRESHOLD || Math.abs(vvHeight - layoutHeight) <= 48;
-
-  if (layoutTracksKeyboard) {
-    return {
-      height: applyKeyboardGap(layoutHeight, true),
-      offsetTop: 0,
-      keyboardVisible: true,
-    };
-  }
-
-  // 旧版 overlay 键盘：按 visualViewport 切片定位
-  return {
-    height: applyKeyboardGap(vvHeight, true),
-    offsetTop: vvOffsetTop,
-    keyboardVisible: true,
-  };
-}
-
-/** 聊天输入栏底边距：键盘弹起时保留少量内边距；未弹起时用 safe-area */
-export function chatInputFooterPaddingClass(keyboardVisible: boolean): string {
-  return keyboardVisible ? "pb-2" : "pb-[max(0.75rem,env(safe-area-inset-bottom))]";
-}
-
-/** 是否桌面宽屏（默认 lg ≥1024px），用于关闭移动端键盘视口逻辑 */
+/** 是否桌面宽屏（默认 lg ≥1024px），用于布局断点 */
 export function useIsDesktop(breakpoint = 1024) {
   const [isDesktop, setIsDesktop] = useState(() => {
     if (typeof window === "undefined") return false;
@@ -91,17 +48,80 @@ export function useIsDesktop(breakpoint = 1024) {
   return isDesktop;
 }
 
+/** 是否启用键盘视口逻辑：含 iPhone / iPad / Android App / 触控平板 / 窄屏浏览器 */
+export function useKeyboardViewportEnabled(breakpoint = 1024) {
+  const [enabled, setEnabled] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const apply = () => {
+      if (Capacitor.isNativePlatform()) {
+        setEnabled(true);
+        return;
+      }
+      setEnabled(
+        detectKeyboardViewportEnabled(navigator.userAgent, navigator.maxTouchPoints, {
+          wideBreakpoint: breakpoint,
+        }),
+      );
+    };
+
+    apply();
+
+    const queries = [
+      window.matchMedia(`(max-width: ${breakpoint - 1}px)`),
+      window.matchMedia("(hover: none) and (pointer: coarse)"),
+      window.matchMedia("(hover: none)"),
+    ];
+    queries.forEach((mql) => mql.addEventListener("change", apply));
+    window.addEventListener("orientationchange", apply);
+
+    return () => {
+      queries.forEach((mql) => mql.removeEventListener("change", apply));
+      window.removeEventListener("orientationchange", apply);
+    };
+  }, [breakpoint]);
+
+  return enabled;
+}
+
 /**
  * 移动端聊天页键盘适配：visualViewport + Capacitor Keyboard 双通道。
- * 部分 iOS/Android WebView 键盘弹起时不触发 visualViewport，需原生 keyboardHeight 兜底。
+ * 按 iOS / Android / Native 分流，兼容不同 IME（搜狗、系统键盘、微信内置浏览器等）。
  */
-export function useKeyboardViewport(mobileEnabled: boolean) {
+export function useKeyboardViewport(mobileEnabled: boolean, options?: UseKeyboardViewportOptions) {
   const [viewportBox, setViewportBox] = useState<ViewportBox | null>(null);
   const nativeInsetRef = useRef(0);
+  const baselineLayoutHeightRef = useRef(0);
+  const inputFocused = options?.inputFocused ?? false;
+  const useFixedShell = options?.useFixedShell ?? true;
 
   const update = useCallback(() => {
-    setViewportBox(measureViewport(nativeInsetRef.current));
-  }, []);
+    if (typeof window === "undefined") return;
+
+    const layoutHeight = window.innerHeight;
+    if (baselineLayoutHeightRef.current <= 0) {
+      baselineLayoutHeightRef.current = layoutHeight;
+    }
+
+    const vv = window.visualViewport;
+    const box = measureViewport({
+      layoutHeight,
+      visualViewport: vv ? { height: vv.height, offsetTop: vv.offsetTop } : null,
+      nativeKeyboardInset: nativeInsetRef.current,
+      isNativePlatform: Capacitor.isNativePlatform(),
+      platform: detectKeyboardPlatform(navigator.userAgent, navigator.maxTouchPoints),
+      inputFocused,
+      baselineLayoutHeight: baselineLayoutHeightRef.current,
+    });
+
+    if (box.mode === "closed") {
+      baselineLayoutHeightRef.current = layoutHeight;
+    }
+
+    setViewportBox(box);
+  }, [inputFocused]);
 
   useEffect(() => {
     if (!mobileEnabled || typeof window === "undefined") return;
@@ -112,6 +132,7 @@ export function useKeyboardViewport(mobileEnabled: boolean) {
     vv?.addEventListener("resize", update);
     vv?.addEventListener("scroll", update);
     window.addEventListener("resize", update);
+    window.addEventListener("orientationchange", update);
 
     let cancelled = false;
     const removeKeyboardListeners: Array<() => void> = [];
@@ -123,7 +144,7 @@ export function useKeyboardViewport(mobileEnabled: boolean) {
 
           const platform = Capacitor.getPlatform();
           const attachShow = (info: { keyboardHeight: number }) => {
-            nativeInsetRef.current = info.keyboardHeight;
+            nativeInsetRef.current = Math.max(0, info.keyboardHeight);
             update();
           };
           const attachHide = () => {
@@ -131,18 +152,22 @@ export function useKeyboardViewport(mobileEnabled: boolean) {
             update();
           };
 
-          if (platform === "ios") {
-            void Keyboard.addListener("keyboardWillShow", attachShow).then((handle) => {
+          const showEvents =
+            platform === "ios"
+              ? (["keyboardWillShow", "keyboardDidShow"] as const)
+              : (["keyboardDidShow"] as const);
+          const hideEvents =
+            platform === "ios"
+              ? (["keyboardWillHide", "keyboardDidHide"] as const)
+              : (["keyboardDidHide"] as const);
+
+          for (const event of showEvents) {
+            void Keyboard.addListener(event, attachShow).then((handle) => {
               removeKeyboardListeners.push(() => void handle.remove());
             });
-            void Keyboard.addListener("keyboardWillHide", attachHide).then((handle) => {
-              removeKeyboardListeners.push(() => void handle.remove());
-            });
-          } else {
-            void Keyboard.addListener("keyboardDidShow", attachShow).then((handle) => {
-              removeKeyboardListeners.push(() => void handle.remove());
-            });
-            void Keyboard.addListener("keyboardDidHide", attachHide).then((handle) => {
+          }
+          for (const event of hideEvents) {
+            void Keyboard.addListener(event, attachHide).then((handle) => {
               removeKeyboardListeners.push(() => void handle.remove());
             });
           }
@@ -157,15 +182,24 @@ export function useKeyboardViewport(mobileEnabled: boolean) {
       vv?.removeEventListener("resize", update);
       vv?.removeEventListener("scroll", update);
       window.removeEventListener("resize", update);
+      window.removeEventListener("orientationchange", update);
       removeKeyboardListeners.forEach((remove) => remove());
     };
   }, [mobileEnabled, update]);
 
-  const containerStyle: CSSProperties | undefined = mobileEnabled
-    ? viewportBox
-      ? { height: `${viewportBox.height}px`, top: `${viewportBox.offsetTop}px` }
-      : { height: "100dvh" }
-    : undefined;
+  const shellStyle = getMobileChatShellStyle({
+    useFixedShell,
+    viewportBox,
+  });
 
-  return { viewportBox, containerStyle, keyboardVisible: viewportBox?.keyboardVisible ?? false };
+  /** @deprecated 使用 shellStyle */
+  const containerStyle: CSSProperties | undefined = shellStyle;
+
+  return {
+    viewportBox,
+    shellStyle,
+    containerStyle,
+    keyboardVisible: viewportBox?.keyboardVisible ?? false,
+    mode: viewportBox?.mode ?? "closed",
+  };
 }
