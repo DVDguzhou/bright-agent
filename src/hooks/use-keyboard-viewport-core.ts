@@ -170,7 +170,7 @@ export function detectKeyboardViewportEnabled(
 
   const narrow = mql(`(max-width: ${breakpoint - 1}px)`)?.matches ?? false;
   const touchPrimary = mql("(hover: none) and (pointer: coarse)")?.matches ?? false;
-  const tabletLike = maxTouchPoints > 1 && mql("(hover: none)")?.matches;
+  const tabletLike = maxTouchPoints > 1 && (mql("(hover: none)")?.matches ?? false);
 
   return narrow || touchPrimary || tabletLike;
 }

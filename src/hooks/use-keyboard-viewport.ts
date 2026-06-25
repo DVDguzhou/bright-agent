@@ -152,22 +152,24 @@ export function useKeyboardViewport(mobileEnabled: boolean, options?: UseKeyboar
             update();
           };
 
-          const showEvents =
-            platform === "ios"
-              ? (["keyboardWillShow", "keyboardDidShow"] as const)
-              : (["keyboardDidShow"] as const);
-          const hideEvents =
-            platform === "ios"
-              ? (["keyboardWillHide", "keyboardDidHide"] as const)
-              : (["keyboardDidHide"] as const);
-
-          for (const event of showEvents) {
-            void Keyboard.addListener(event, attachShow).then((handle) => {
+          if (platform === "ios") {
+            void Keyboard.addListener("keyboardWillShow", attachShow).then((handle) => {
               removeKeyboardListeners.push(() => void handle.remove());
             });
-          }
-          for (const event of hideEvents) {
-            void Keyboard.addListener(event, attachHide).then((handle) => {
+            void Keyboard.addListener("keyboardDidShow", attachShow).then((handle) => {
+              removeKeyboardListeners.push(() => void handle.remove());
+            });
+            void Keyboard.addListener("keyboardWillHide", attachHide).then((handle) => {
+              removeKeyboardListeners.push(() => void handle.remove());
+            });
+            void Keyboard.addListener("keyboardDidHide", attachHide).then((handle) => {
+              removeKeyboardListeners.push(() => void handle.remove());
+            });
+          } else {
+            void Keyboard.addListener("keyboardDidShow", attachShow).then((handle) => {
+              removeKeyboardListeners.push(() => void handle.remove());
+            });
+            void Keyboard.addListener("keyboardDidHide", attachHide).then((handle) => {
               removeKeyboardListeners.push(() => void handle.remove());
             });
           }
