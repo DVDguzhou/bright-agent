@@ -3459,19 +3459,25 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 		if sseWriter != nil {
 			useSegmentSSE := chatOpts.ReplyUseSegmentDelivery || len(replySegments) > 1
 			if useSegmentSSE {
-				const segmentDelay = 350 * time.Millisecond
+				const betweenSegmentPause = 400 * time.Millisecond
+				const chunkDelay = 28 * time.Millisecond
 				for i, seg := range replySegments {
 					if i > 0 {
-						time.Sleep(segmentDelay)
+						time.Sleep(betweenSegmentPause)
 					}
-					sseWriter("segment", gin.H{
+					sseWriter("segment_start", gin.H{
 						"index":       i,
 						"total":       len(replySegments),
-						"content":     seg,
 						"messageId":   assistantMsgIDs[i],
 						"references":  refsMap,
 						"attribution": attribution,
 					})
+					lifeagent.EmitReplyChunksWithDelay(seg, func(chunk string) {
+						sseWriter("content", gin.H{
+							"segmentIndex": i,
+							"content":      chunk,
+						})
+					}, chunkDelay)
 				}
 			}
 		}

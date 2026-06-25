@@ -112,10 +112,15 @@ func BuildReplyWithLLM(ctx context.Context, apiKey, model, baseURL string, enabl
 
 // EmitReplyChunks 将完整正文按小块顺序回调，便于 SSE 等与主对话一致的「逐段出现」效果。
 func EmitReplyChunks(content string, onChunk func(chunk string)) {
+	EmitReplyChunksWithDelay(content, onChunk, 0)
+}
+
+// EmitReplyChunksWithDelay 同上，chunk 之间可选 sleep 模拟打字。
+func EmitReplyChunksWithDelay(content string, onChunk func(chunk string), delay time.Duration) {
 	if onChunk == nil || content == "" {
 		return
 	}
-	const chunkRunes = 10
+	const chunkRunes = 4
 	runes := []rune(content)
 	for i := 0; i < len(runes); i += chunkRunes {
 		end := i + chunkRunes
@@ -123,6 +128,9 @@ func EmitReplyChunks(content string, onChunk func(chunk string)) {
 			end = len(runes)
 		}
 		onChunk(string(runes[i:end]))
+		if delay > 0 && end < len(runes) {
+			time.Sleep(delay)
+		}
 	}
 }
 

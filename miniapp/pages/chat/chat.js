@@ -469,7 +469,9 @@ Page({
         const ids = data.messageIds || [];
         const refs = data.references || [];
         const attribution = data.attribution || "";
-        const SEGMENT_DELAY_MS = 350;
+        const SEGMENT_DELAY_MS = 400;
+        const CHUNK_RUNES = 4;
+        const CHUNK_DELAY_MS = 28;
 
         function finishPatch() {
           const patch = {
@@ -494,33 +496,59 @@ Page({
           page.refreshSessionsList(data);
         }
 
-        function appendSegment(i) {
-          next.push(
-            normalizeMessage(
-              {
-                role: "assistant",
-                content: segments[i],
-                messageId: ids[i] || (i === segments.length - 1 ? data.messageId : undefined),
-                references: refs,
-                attribution: attribution,
-              },
-              sessionId
-            )
+        function streamSegmentChars(segIndex, charOffset) {
+          const text = segments[segIndex] || "";
+          const runes = Array.from(text);
+          if (charOffset === 0) {
+            next.push(
+              normalizeMessage(
+                {
+                  role: "assistant",
+                  content: "",
+                  messageId:
+                    ids[segIndex] ||
+                    (segIndex === segments.length - 1 ? data.messageId : undefined),
+                  references: refs,
+                  attribution: attribution,
+                },
+                sessionId
+              )
+            );
+          }
+          const end = Math.min(charOffset + CHUNK_RUNES, runes.length);
+          const chunk = runes.slice(charOffset, end).join("");
+          const lastIdx = next.length - 1;
+          const base = next[lastIdx];
+          next[lastIdx] = normalizeMessage(
+            {
+              role: "assistant",
+              content: (base.content || "") + chunk,
+              messageId: base.messageId,
+              references: refs,
+              attribution: attribution,
+            },
+            sessionId
           );
           page.setData({
             messages: finalizeAssistantMessages(next),
-            scrollTo: "msg-" + (next.length - 1),
+            scrollTo: "msg-" + lastIdx,
           });
-          if (i + 1 < segments.length) {
+          if (end < runes.length) {
             setTimeout(function () {
-              appendSegment(i + 1);
+              streamSegmentChars(segIndex, end);
+            }, CHUNK_DELAY_MS);
+            return;
+          }
+          if (segIndex + 1 < segments.length) {
+            setTimeout(function () {
+              streamSegmentChars(segIndex + 1, 0);
             }, SEGMENT_DELAY_MS);
           } else {
             finishPatch();
           }
         }
 
-        appendSegment(0);
+        streamSegmentChars(0, 0);
       })
       .catch((err) => {
         const next = this.data.messages.filter(function (m) {

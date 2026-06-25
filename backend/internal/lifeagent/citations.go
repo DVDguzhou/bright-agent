@@ -405,6 +405,56 @@ func EnsureInlineCitations(ctx context.Context, client *openai.Client, model, te
 	return NormalizeCitationMarkers(out)
 }
 
+// HeuristicEnsureInlineCitations appends [n] at paragraph ends when LLM omitted markers.
+func HeuristicEnsureInlineCitations(text string, catalog CitationCatalog) string {
+	text = strings.TrimSpace(text)
+	if text == "" || len(catalog.Items) == 0 {
+		return text
+	}
+	if _, used := ParseInlineCitations(text); len(used) > 0 {
+		return text
+	}
+	paras := splitParagraphs(text)
+	if len(paras) == 0 {
+		return text
+	}
+	changed := false
+	for i := range paras {
+		if i >= len(catalog.Items) {
+			break
+		}
+		p := strings.TrimSpace(joinLinesInParagraph(paras[i]))
+		if p == "" {
+			continue
+		}
+		if citeBracketRe.MatchString(p) {
+			continue
+		}
+		paras[i] = appendCitationMarker(p, catalog.Items[i].CiteIndex)
+		changed = true
+	}
+	if !changed {
+		return text
+	}
+	for i, para := range paras {
+		paras[i] = joinLinesInParagraph(para)
+	}
+	return strings.Join(paras, "\n\n")
+}
+
+func appendCitationMarker(s string, n int) string {
+	mark := fmt.Sprintf("[%d]", n)
+	if strings.Contains(s, mark) {
+		return s
+	}
+	for _, end := range []string{"。", "！", "？", "…", ".", "!", "?"} {
+		if strings.HasSuffix(s, end) {
+			return strings.TrimSuffix(s, end) + mark + end
+		}
+	}
+	return s + mark
+}
+
 // FinalizeCitedReply normalizes markers, ensures inline cites when enabled, and builds references.
 func FinalizeCitedReply(ctx context.Context, client *openai.Client, model, out string, catalog CitationCatalog, citationsEnabled bool) (string, []map[string]string) {
 	if citationsEnabled {
@@ -412,6 +462,10 @@ func FinalizeCitedReply(ctx context.Context, client *openai.Client, model, out s
 		_, usedIndexes := ParseInlineCitations(out)
 		if len(catalog.Items) > 0 && len(usedIndexes) == 0 {
 			out = EnsureInlineCitations(ctx, client, model, out, catalog)
+		}
+		_, usedIndexes = ParseInlineCitations(out)
+		if len(catalog.Items) > 0 && len(usedIndexes) == 0 {
+			out = HeuristicEnsureInlineCitations(out, catalog)
 		}
 	} else {
 		out = StripInlineCitations(out)

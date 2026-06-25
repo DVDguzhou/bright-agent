@@ -18,17 +18,15 @@ func ClassifyAnswerPolicy(message string, plan RetrievalPlan, opts *ChatOptions)
 	if opts != nil && !allowsGeneralKnowledge(opts) && !hasTargets {
 		return PolicyHardFallback
 	}
-	if hasTargets && asksPersonalExperience(message) {
+	// 有素材时优先 grounded + reconcile（含引用），不因「怎么规划/建议」类问法降级为通识
+	if hasTargets {
 		return PolicyGrounded
 	}
-	if asksPersonalExperience(message) && !hasTargets {
+	if asksPersonalExperience(message) {
 		return PolicySoftPersonal
 	}
 	if isAdvisoryQuestion(message) {
 		return PolicyAdvisory
-	}
-	if hasTargets {
-		return PolicyGrounded
 	}
 	if opts != nil && !allowsGeneralKnowledge(opts) {
 		return PolicyHardFallback

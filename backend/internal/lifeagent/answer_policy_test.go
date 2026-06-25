@@ -22,6 +22,17 @@ func TestClassifyAnswerPolicyAdvisory(t *testing.T) {
 	}
 }
 
+func TestClassifyAnswerPolicyGroundedWhenHasTargets(t *testing.T) {
+	plan := RetrievalPlan{
+		Entries: []KnowledgeEntryForAI{{ID: "e1", Title: "路线", Content: "..."}},
+	}
+	opts := &ChatOptions{AllowGeneralKnowledge: true}
+	got := ClassifyAnswerPolicy("大学路线怎么规划？", plan, opts)
+	if got != PolicyGrounded {
+		t.Fatalf("got %q want grounded when knowledge hits exist", got)
+	}
+}
+
 func TestClassifyAnswerPolicySoftPersonal(t *testing.T) {
 	plan := RetrievalPlan{}
 	opts := &ChatOptions{AllowGeneralKnowledge: true}

@@ -78,6 +78,21 @@ func TestNormalizeCitationMarkers(t *testing.T) {
 	}
 }
 
+func TestHeuristicEnsureInlineCitations(t *testing.T) {
+	catalog := BuildCitationCatalog(RetrievalPlan{
+		Entries: []KnowledgeEntryForAI{
+			{ID: "e1", Title: "大一", Content: "探索"},
+			{ID: "e2", Title: "大二", Content: "恋爱"},
+		},
+	})
+	text := "大一是探索期。\n\n大二是恋爱期。"
+	got := HeuristicEnsureInlineCitations(text, catalog)
+	_, used := ParseInlineCitations(got)
+	if len(used) < 2 {
+		t.Fatalf("expected 2 cites, got %v text=%q", used, got)
+	}
+}
+
 func TestStripInlineCitations(t *testing.T) {
 	got := StripInlineCitations("你好¹世界[2]")
 	want := "你好世界"

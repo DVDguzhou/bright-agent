@@ -150,6 +150,45 @@ function shouldShowAssistantAvatar(messages: ChatMessage[], index: number) {
   return index === 0 || messages[index - 1]?.role !== "assistant";
 }
 
+function applySegmentStart(
+  prev: ChatMessage[],
+  assistantIdx: number,
+  segment: {
+    index: number;
+    messageId?: string;
+    references?: CitationReference[];
+    attribution?: ReplyAttribution;
+  },
+  sessionId?: string
+): ChatMessage[] {
+  const msg: ChatMessage = {
+    role: "assistant",
+    content: "",
+    messageId: segment.messageId,
+    sessionId,
+    references: segment.references,
+    attribution: segment.attribution,
+    pending: false,
+  };
+  if (segment.index === 0) {
+    return prev.map((m, i) => (i === assistantIdx ? msg : m));
+  }
+  const insertAt = assistantIdx + segment.index;
+  return [...prev.slice(0, insertAt), msg, ...prev.slice(insertAt)];
+}
+
+function appendSegmentContent(
+  prev: ChatMessage[],
+  assistantIdx: number,
+  segmentIndex: number,
+  chunk: string
+): ChatMessage[] {
+  const targetIdx = assistantIdx + segmentIndex;
+  return prev.map((m, i) =>
+    i === targetIdx ? { ...m, content: m.content + chunk, pending: false } : m
+  );
+}
+
 function applySegmentMessage(
   prev: ChatMessage[],
   assistantIdx: number,
@@ -558,8 +597,16 @@ export default function LifeAgentChatPage() {
               const parsed = JSON.parse(eventData);
 
               if (eventType === "content" && parsed.content) {
-                setMessages((prev) =>
-                  prev.map((m, i) =>
+                const segIdx =
+                  typeof parsed.segmentIndex === "number" ? parsed.segmentIndex : 0;
+                if (typeof parsed.segmentIndex === "number") {
+                  segmentsStreamed.current = true;
+                }
+                setMessages((prev) => {
+                  if (typeof parsed.segmentIndex === "number") {
+                    return appendSegmentContent(prev, assistantIdx.current, segIdx, parsed.content);
+                  }
+                  return prev.map((m, i) =>
                     i === assistantIdx.current
                       ? {
                           ...m,
@@ -567,6 +614,21 @@ export default function LifeAgentChatPage() {
                           pending: false,
                         }
                       : m
+                  );
+                });
+              } else if (eventType === "segment_start") {
+                segmentsStreamed.current = true;
+                setMessages((prev) =>
+                  applySegmentStart(
+                    prev,
+                    assistantIdx.current,
+                    {
+                      index: parsed.index ?? 0,
+                      messageId: parsed.messageId,
+                      references: parsed.references,
+                      attribution: parsed.attribution,
+                    },
+                    parsed.sessionId
                   )
                 );
               } else if (eventType === "segment" && parsed.content != null) {
