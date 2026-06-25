@@ -746,9 +746,9 @@ export default function LifeAgentCoEditPage() {
   return (
     <div
       className={
-        "flex min-w-0 flex-col overflow-hidden " +
+        "flex min-w-0 flex-col " +
         `max-lg:fixed max-lg:inset-x-0 max-lg:top-0 max-lg:z-30 max-lg:m-0 max-lg:w-full max-lg:min-h-0 max-lg:overflow-hidden ${CHAT_PAGE_BACKGROUND_CLASSNAME} ` +
-        "lg:relative lg:z-auto lg:-mx-4 lg:-mt-8 lg:-mb-8 lg:min-h-[calc(100dvh-4rem)] max-lg:min-h-0"
+        "lg:relative lg:z-auto lg:-mx-4 lg:-mt-8 lg:-mb-8 lg:overflow-visible max-lg:min-h-0"
       }
       style={isDesktop ? undefined : mobileContainerStyle}
     >
@@ -777,7 +777,7 @@ export default function LifeAgentCoEditPage() {
         </div>
       </header>
 
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+      <div className="flex min-h-0 max-lg:flex-1 flex-col max-lg:overflow-hidden">
         <div className="shrink-0 px-3 py-1.5 text-xs text-ink-400/50 sm:px-4">
           <div className="mx-auto flex max-w-3xl items-center justify-between gap-2">
             <span>像聊天一样改资料，发送后会自动同步当前 Agent 状态。</span>
@@ -1015,7 +1015,7 @@ export default function LifeAgentCoEditPage() {
         </div>
 
         <div
-          className={`flex-1 overflow-y-auto overscroll-contain px-3 sm:px-4 ${CHAT_SCROLL_SURFACE_CLASSNAME}`}
+          className={`max-lg:min-h-0 max-lg:flex-1 max-lg:overflow-y-auto max-lg:overscroll-contain px-3 sm:px-4 ${CHAT_SCROLL_SURFACE_CLASSNAME}`}
           onClick={dismissKeyboard}
           onTouchStart={dismissKeyboard}
           role="presentation"
