@@ -499,6 +499,9 @@ export default function CreateLifeAgentPage() {
       setExperienceHistory(draft.experienceHistory);
       setExperienceInput(draft.experienceInput);
       setExperienceDone(draft.experienceDone);
+      if (!draft.experienceDone && countValidKnowledgeEntries(draft.knowledgeEntries) >= 2) {
+        setExperienceDone(true);
+      }
       setShowAdvanced(draft.showAdvanced);
       setSampleQuestionsList(draft.sampleQuestionsList);
       setSampleQuestionsDraft(draft.sampleQuestionsDraft);
@@ -626,11 +629,11 @@ export default function CreateLifeAgentPage() {
   }, [form.expertiseTags]);
 
   const validateStep3ForNext = useCallback((): string | null => {
-    if (!experienceDone) return "请先完成经验补充对话";
-    const validEntries = knowledgeEntries.filter((e) => e.content.trim().length >= 1);
-    if (validEntries.length < 2) return "至少需要记录 2 条有效经验，请继续补充";
+    if (countValidKnowledgeEntries(knowledgeEntries) < 2) {
+      return "至少需要记录 2 条有效经验，请继续补充";
+    }
     return null;
-  }, [experienceDone, knowledgeEntries]);
+  }, [knowledgeEntries]);
 
   const validateStep4ForNext = useCallback((): string | null => {
     if (!form.personaArchetype.trim() || !form.toneStyle.trim() || !form.responseStyle.trim()) {
@@ -1341,17 +1344,16 @@ export default function CreateLifeAgentPage() {
       return;
     }
 
-    if (!experienceDone) {
-      setError("请先完成经验信息整理");
-      setLoading(false);
-      return;
-    }
-
     const validEntries = knowledgeEntries.filter((e) => e.content.trim().length >= 1);
     if (validEntries.length < 2) {
       setError("至少需要记录 2 条有效经验，请回到第 3 步补充");
       setLoading(false);
       return;
+    }
+
+    if (!experienceDone) {
+      // 已有足够经验条目时视为整理完成（常见于点过「继续回答」后误触发布）
+      setExperienceDone(true);
     }
 
     const expertiseTagsArr = form.expertiseTags
