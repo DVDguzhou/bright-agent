@@ -6,6 +6,7 @@ import (
 
 	"github.com/agent-marketplace/backend/internal/config"
 	"github.com/agent-marketplace/backend/internal/db"
+	"github.com/agent-marketplace/backend/internal/handler"
 	"github.com/agent-marketplace/backend/internal/netutil"
 	"github.com/agent-marketplace/backend/internal/router"
 	"github.com/agent-marketplace/backend/internal/wechatpay"
@@ -27,6 +28,7 @@ func main() {
 	if err := wechatpay.Init(cfg); err != nil {
 		log.Fatal("wechat pay init:", err)
 	}
+	handler.ResumePendingCoEditEvents(cfg)
 	r := router.Setup(cfg)
 	addr := os.Getenv("PORT")
 	if addr == "" {

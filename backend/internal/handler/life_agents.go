@@ -16,6 +16,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/agent-marketplace/backend/internal/category"
@@ -2021,7 +2022,7 @@ func LifeAgentsModifyViaChat(cfg *config.Config) gin.HandlerFunc {
 
 		// ② 后台理解：完全脱离客户端的 request ctx，自带超时；不阻塞 HTTP 响应。
 		chatHistory := append([]lifeagent.ChatMessageForAI(nil), body.ChatHistory...)
-		go processCoEditEvent(cfg, event.ID, id, user.ID, body.Message, chatHistory)
+		startCoEditProcessing(cfg, event, chatHistory)
 
 		// ③ 立刻回包，前端切到"已记录，正在理解中…"占位。
 		c.JSON(http.StatusAccepted, gin.H{
@@ -2030,6 +2031,70 @@ func LifeAgentsModifyViaChat(cfg *config.Config) gin.HandlerFunc {
 			"message":   "已记录，正在理解中…",
 			"createdAt": event.CreatedAt.Format(time.RFC3339),
 		})
+	}
+}
+
+const (
+	coEditStaleRetryAfter = 90 * time.Second
+	coEditStaleFailAfter  = 8 * time.Minute
+)
+
+var coEditInFlight sync.Map
+
+// ResumePendingCoEditEvents 服务启动时恢复因部署/重启中断的 pending 调教任务。
+func ResumePendingCoEditEvents(cfg *config.Config) {
+	var events []models.LifeAgentCoEditEvent
+	if err := db.DB.Where("status = ?", "pending").Order("created_at ASC").Limit(100).Find(&events).Error; err != nil {
+		log.Printf("co-edit: list pending events failed: %v", err)
+		return
+	}
+	resumed := 0
+	for i := range events {
+		if startCoEditProcessing(cfg, events[i], nil) {
+			resumed++
+		}
+	}
+	if resumed > 0 {
+		log.Printf("co-edit: resumed %d pending event(s)", resumed)
+	}
+}
+
+func startCoEditProcessing(cfg *config.Config, event models.LifeAgentCoEditEvent, chatHistory []lifeagent.ChatMessageForAI) bool {
+	if _, loaded := coEditInFlight.LoadOrStore(event.ID, true); loaded {
+		return false
+	}
+	go func(ev models.LifeAgentCoEditEvent, history []lifeagent.ChatMessageForAI) {
+		defer coEditInFlight.Delete(ev.ID)
+		processCoEditEvent(cfg, ev.ID, ev.ProfileID, ev.UserID, ev.RawMessage, history)
+	}(event, chatHistory)
+	return true
+}
+
+func failStaleCoEditEventsForProfile(profileID string) {
+	cutoff := time.Now().UTC().Add(-coEditStaleFailAfter)
+	if err := db.DB.Model(&models.LifeAgentCoEditEvent{}).
+		Where("profile_id = ? AND status = ? AND created_at < ?", profileID, "pending", cutoff).
+		Updates(map[string]interface{}{
+			"status":       "failed",
+			"error_detail": "处理超时（可能因服务重启中断），请重新发送。",
+			"processed_at": time.Now().UTC(),
+		}).Error; err != nil {
+		log.Printf("co-edit: fail stale events profile=%s: %v", profileID, err)
+	}
+}
+
+func resumeStaleCoEditEventsForProfile(cfg *config.Config, profileID string) {
+	retryCutoff := time.Now().UTC().Add(-coEditStaleRetryAfter)
+	failCutoff := time.Now().UTC().Add(-coEditStaleFailAfter)
+	var events []models.LifeAgentCoEditEvent
+	if err := db.DB.Where(
+		"profile_id = ? AND status = ? AND created_at < ? AND created_at >= ?",
+		profileID, "pending", retryCutoff, failCutoff,
+	).Order("created_at ASC").Limit(20).Find(&events).Error; err != nil {
+		return
+	}
+	for i := range events {
+		startCoEditProcessing(cfg, events[i], nil)
 	}
 }
 
@@ -2042,6 +2107,14 @@ func processCoEditEvent(cfg *config.Config, eventID, profileID, userID, userMess
 			finalizeCoEditEventFailed(eventID, fmt.Sprintf("内部错误：%v", r))
 		}
 	}()
+
+	var current models.LifeAgentCoEditEvent
+	if err := db.DB.Where("id = ?", eventID).First(&current).Error; err != nil {
+		return
+	}
+	if current.Status != "pending" {
+		return
+	}
 
 	var p models.LifeAgentProfile
 	if err := db.DB.Where("id = ?", profileID).First(&p).Error; err != nil {
@@ -2350,6 +2423,8 @@ func LifeAgentsCoEditEvents(cfg *config.Config) gin.HandlerFunc {
 			c.JSON(http.StatusForbidden, gin.H{"error": "FORBIDDEN"})
 			return
 		}
+		failStaleCoEditEventsForProfile(id)
+		resumeStaleCoEditEventsForProfile(cfg, id)
 		limit := 50
 		if n := c.Query("limit"); n != "" {
 			if parsed, err := strconv.Atoi(n); err == nil && parsed > 0 && parsed <= 200 {

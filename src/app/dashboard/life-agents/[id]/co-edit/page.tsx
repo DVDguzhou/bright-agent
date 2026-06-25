@@ -33,6 +33,14 @@ import {
 import { useIsDesktop, useKeyboardViewport, chatInputFooterPaddingClass } from "@/hooks/use-keyboard-viewport";
 
 type CoEditEventStatus = "pending" | "processed" | "failed";
+type CoEditEventPayload = {
+  id: string;
+  status: CoEditEventStatus;
+  assistantMessage?: string;
+  changesSummary?: string;
+  errorDetail?: string;
+  rawMessage?: string;
+};
 type ChatRow = {
   role: "user" | "assistant";
   content: string;
@@ -67,6 +75,92 @@ function pickCoEditChatHistory(serverH: ChatRow[], localH: ChatRow[]): ChatRow[]
 
 function pendingVoicePromptKey(id: string) {
   return `${CO_EDIT_PENDING_VOICE_STORAGE_PREFIX}${id}`;
+}
+
+function buildProcessedAssistantContent(ev: CoEditEventPayload): string {
+  const base = ev.assistantMessage?.trim() || "好的，我已经理解了。";
+  const summary = ev.changesSummary?.trim();
+  return summary ? `${base}\n\n（已自动应用：${summary}）` : base;
+}
+
+function buildFailedAssistantContent(ev: CoEditEventPayload): string {
+  const detail = ev.errorDetail?.trim() || "AI 暂时未响应";
+  return `（理解未完成：${detail}）\n原话已保存为记忆，稍后可在 Topic 管理里查看。`;
+}
+
+function applyCoEditEventToAssistantRow(row: ChatRow, ev: CoEditEventPayload): ChatRow | null {
+  if (row.role !== "assistant") return null;
+  if (row.eventId && row.eventId !== ev.id) return null;
+  if (ev.status === "processed") {
+    return {
+      ...row,
+      eventId: ev.id,
+      content: buildProcessedAssistantContent(ev),
+      status: "processed",
+      changesSummary: ev.changesSummary?.trim(),
+    };
+  }
+  if (ev.status === "failed") {
+    return {
+      ...row,
+      eventId: ev.id,
+      content: buildFailedAssistantContent(ev),
+      status: "failed",
+    };
+  }
+  if (ev.status === "pending" && !row.eventId) {
+    return {
+      ...row,
+      eventId: ev.id,
+      status: "pending",
+      content: row.content || "已记录，正在理解中…",
+    };
+  }
+  return null;
+}
+
+function reconcileChatHistoryWithEvents(history: ChatRow[], events: CoEditEventPayload[]): ChatRow[] {
+  if (events.length === 0) return history;
+  const eventMap = new Map(events.map((ev) => [ev.id, ev]));
+  const latestByRaw = new Map<string, CoEditEventPayload>();
+  for (const ev of events) {
+    const raw = ev.rawMessage?.trim();
+    if (raw) latestByRaw.set(raw, ev);
+  }
+
+  let changed = false;
+  const next = history.map((row, index, arr) => {
+    if (row.role !== "assistant") return row;
+
+    let ev = row.eventId ? eventMap.get(row.eventId) : undefined;
+    if (!ev && (row.status === "pending" || row.content.includes("正在理解"))) {
+      const userRow = arr[index - 1];
+      if (userRow?.role === "user") {
+        ev = latestByRaw.get(userRow.content.trim());
+      }
+    }
+    if (!ev) return row;
+
+    const updated = applyCoEditEventToAssistantRow(row, ev);
+    if (!updated || updated === row) return row;
+    changed = true;
+    return updated;
+  });
+  return changed ? next : history;
+}
+
+function markTimedOutPendingRows(history: ChatRow[]): ChatRow[] {
+  let changed = false;
+  const next = history.map((row) => {
+    if (row.role !== "assistant" || row.status !== "pending") return row;
+    changed = true;
+    return {
+      ...row,
+      content: "（理解超时，可能因服务重启中断）\n请重新发送上一条内容。",
+      status: "failed" as const,
+    };
+  });
+  return changed ? next : history;
 }
 
 function dismissKeyboard() {
@@ -138,8 +232,24 @@ export default function LifeAgentCoEditPage() {
   const endRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const dismissedSuggestionRuleIdsRef = useRef<Set<string>>(new Set());
   const isDesktop = useIsDesktop();
   const { containerStyle: mobileContainerStyle, keyboardVisible } = useKeyboardViewport(!isDesktop);
+
+  const setNextSuggestionFiltered = useCallback((suggestion: NextSuggestion | null) => {
+    if (suggestion && dismissedSuggestionRuleIdsRef.current.has(suggestion.ruleId)) {
+      setNextSuggestion(null);
+      return;
+    }
+    setNextSuggestion(suggestion);
+  }, []);
+
+  const dismissNextSuggestion = useCallback(() => {
+    if (nextSuggestion?.ruleId) {
+      dismissedSuggestionRuleIdsRef.current.add(nextSuggestion.ruleId);
+    }
+    setNextSuggestion(null);
+  }, [nextSuggestion]);
 
   useEffect(() => {
     chatHistoryRef.current = chatHistory;
@@ -149,6 +259,7 @@ export default function LifeAgentCoEditPage() {
     setCoEditReady(false);
     setChatHistory([]);
     setLastChange(null);
+    dismissedSuggestionRuleIdsRef.current.clear();
     chatHistoryHydratedForRef.current = null;
     pendingVoicePromptRef.current = null;
     try {
@@ -179,7 +290,7 @@ export default function LifeAgentCoEditPage() {
   useEffect(() => {
     if (!data) return;
     if (data.mindScore) setMindScore(data.mindScore);
-    if (data.nextSuggestion) setNextSuggestion(data.nextSuggestion);
+    if (data.nextSuggestion) setNextSuggestionFiltered(data.nextSuggestion);
   }, [data]);
 
   useEffect(() => {
@@ -241,7 +352,20 @@ export default function LifeAgentCoEditPage() {
           }
         }
       } finally {
-        if (!cancelled) setCoEditReady(true);
+        if (!cancelled) {
+          setCoEditReady(true);
+          try {
+            const eventsRes = await fetch(`/api/life-agents/${id}/co-edit-events?limit=50`, {
+              credentials: "include",
+            });
+            if (eventsRes.ok) {
+              const eventsPayload = (await eventsRes.json()) as { events?: CoEditEventPayload[] };
+              setChatHistory((prev) => reconcileChatHistoryWithEvents(prev, eventsPayload.events ?? []));
+            }
+          } catch {
+            // ignore reconcile errors; poll will retry later
+          }
+        }
       }
     })();
     return () => {
@@ -301,7 +425,7 @@ export default function LifeAgentCoEditPage() {
         return;
       }
       setData((prev) => (prev ? { ...prev, profile: mergeManageProfile(prev.profile, next) } : prev));
-      applyMindScoreUpdate(next, setMindScore, setNextSuggestion, setScoreFlash);
+      applyMindScoreUpdate(next, setMindScore, setNextSuggestionFiltered, setScoreFlash);
       setBanner("资料已保存");
     } catch {
       setBanner("资料保存失败，请检查网络后重试");
@@ -393,10 +517,7 @@ export default function LifeAgentCoEditPage() {
 
   // 是否还有 pending 的 assistant 气泡：作为是否启动轮询的开关。
   const hasPendingEvent = useMemo(
-    () =>
-      chatHistory.some(
-        (row) => row.role === "assistant" && row.status === "pending" && Boolean(row.eventId),
-      ),
+    () => chatHistory.some((row) => row.role === "assistant" && row.status === "pending"),
     [chatHistory],
   );
 
@@ -408,9 +529,7 @@ export default function LifeAgentCoEditPage() {
     let timer: number | null = null;
 
     const stillHasPending = () =>
-      chatHistoryRef.current.some(
-        (row) => row.role === "assistant" && row.status === "pending" && Boolean(row.eventId),
-      );
+      chatHistoryRef.current.some((row) => row.role === "assistant" && row.status === "pending");
 
     const tick = async () => {
       if (cancelled) return;
@@ -420,17 +539,8 @@ export default function LifeAgentCoEditPage() {
           credentials: "include",
         });
         if (!res.ok) throw new Error(`events HTTP ${res.status}`);
-        const payload = (await res.json()) as {
-          events?: Array<{
-            id: string;
-            status: CoEditEventStatus;
-            assistantMessage?: string;
-            changesSummary?: string;
-            errorDetail?: string;
-            rawMessage?: string;
-          }>;
-        };
-        const eventMap = new Map<string, NonNullable<typeof payload.events>[number]>();
+        const payload = (await res.json()) as { events?: CoEditEventPayload[] };
+        const eventMap = new Map<string, CoEditEventPayload>();
         for (const ev of payload.events ?? []) {
           if (ev?.id) eventMap.set(ev.id, ev);
         }
@@ -439,42 +549,28 @@ export default function LifeAgentCoEditPage() {
         let lastProcessedMessage = "";
         setChatHistory((prev) => {
           let mutated = false;
-          const next = prev.map((row) => {
-            if (
-              row.role !== "assistant" ||
-              row.status !== "pending" ||
-              !row.eventId
-            ) {
-              return row;
+          const next = prev.map((row, index, arr) => {
+            if (row.role !== "assistant") return row;
+
+            let ev = row.eventId ? eventMap.get(row.eventId) : undefined;
+            if (!ev && row.status === "pending") {
+              const userRow = arr[index - 1];
+              if (userRow?.role === "user") {
+                ev = (payload.events ?? []).find(
+                  (item) => item.rawMessage?.trim() === userRow.content.trim(),
+                );
+              }
             }
-            const ev = eventMap.get(row.eventId);
             if (!ev) return row;
+
+            const updated = applyCoEditEventToAssistantRow(row, ev);
+            if (!updated || updated === row) return row;
+            mutated = true;
             if (ev.status === "processed") {
-              mutated = true;
               anyProcessed = true;
               if (ev.rawMessage) lastProcessedMessage = ev.rawMessage;
-              const base = ev.assistantMessage?.trim() || "好的，我已经理解了。";
-              const summary = ev.changesSummary?.trim();
-              const content = summary ? `${base}\n\n（已自动应用：${summary}）` : base;
-              const updated: ChatRow = {
-                ...row,
-                content,
-                status: "processed",
-                changesSummary: summary,
-              };
-              return updated;
             }
-            if (ev.status === "failed") {
-              mutated = true;
-              const detail = ev.errorDetail?.trim() || "AI 暂时未响应";
-              const updated: ChatRow = {
-                ...row,
-                content: `（理解未完成：${detail}）\n原话已保存为记忆，稍后可在 Topic 管理里查看。`,
-                status: "failed",
-              };
-              return updated;
-            }
-            return row;
+            return updated;
           });
           return mutated ? next : prev;
         });
@@ -502,7 +598,7 @@ export default function LifeAgentCoEditPage() {
                 nextSuggestion: refresh.data.nextSuggestion ?? null,
               },
               setMindScore,
-              setNextSuggestion,
+              setNextSuggestionFiltered,
               setScoreFlash,
             );
           }
@@ -510,7 +606,12 @@ export default function LifeAgentCoEditPage() {
       } catch (err) {
         console.warn("[co-edit] poll error", err);
       }
-      if (cancelled || !stillHasPending()) return;
+      if (cancelled) return;
+      if (attempts >= 120) {
+        setChatHistory((prev) => markTimedOutPendingRows(prev));
+        return;
+      }
+      if (!stillHasPending()) return;
       const delay = attempts > 20 ? 6000 : attempts > 10 ? 4000 : 2000;
       timer = window.setTimeout(tick, delay);
     };
@@ -1105,14 +1206,24 @@ export default function LifeAgentCoEditPage() {
               <div className="mb-2 rounded border border-hairline/30 bg-paper-50 px-3 py-3">
                 <p className="text-sm font-semibold text-ink">{nextSuggestion.title}</p>
                 <p className="mt-1 text-xs leading-5 text-ink-500">{nextSuggestion.reason}</p>
-                <button
-                  type="button"
-                  onClick={() => postNextSuggestionQuestion()}
-                  disabled={modifyLoading || importLoading}
-                  className="mt-2 rounded-full bg-oxblood px-4 py-1.5 text-xs font-semibold text-paper disabled:opacity-50"
-                >
-                  继续调教
-                </button>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => postNextSuggestionQuestion()}
+                    disabled={modifyLoading || importLoading}
+                    className="rounded-full bg-oxblood px-4 py-1.5 text-xs font-semibold text-paper disabled:opacity-50"
+                  >
+                    继续调教
+                  </button>
+                  <button
+                    type="button"
+                    onClick={dismissNextSuggestion}
+                    disabled={modifyLoading || importLoading}
+                    className="btn-secondary rounded-full px-4 py-1.5 text-xs font-semibold disabled:opacity-50"
+                  >
+                    取消
+                  </button>
+                </div>
               </div>
             ) : null}
             <LifeAgentMessageComposer

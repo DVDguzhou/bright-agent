@@ -16,7 +16,17 @@ function parseChatHistory(raw: unknown): Prisma.InputJsonValue {
     const content = o.content;
     if (role !== "user" && role !== "assistant") continue;
     if (typeof content !== "string") continue;
-    out.push({ role, content: content.slice(0, MAX_CONTENT) });
+    const row: Prisma.JsonObject = { role, content: content.slice(0, MAX_CONTENT) };
+    if (typeof o.eventId === "string" && o.eventId.trim()) {
+      row.eventId = o.eventId.trim().slice(0, 64);
+    }
+    if (o.status === "pending" || o.status === "processed" || o.status === "failed") {
+      row.status = o.status;
+    }
+    if (typeof o.changesSummary === "string" && o.changesSummary.trim()) {
+      row.changesSummary = o.changesSummary.trim().slice(0, MAX_CONTENT);
+    }
+    out.push(row);
   }
   return out;
 }
