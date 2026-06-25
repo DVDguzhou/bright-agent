@@ -1207,7 +1207,6 @@ export default function LifeAgentChatPage() {
               onSubmit={sendMessage}
               disabled={loading || sessionLoading}
               placeholder="发消息..."
-              onMoreClick={openMenu}
             />
           </div>
         </div>
