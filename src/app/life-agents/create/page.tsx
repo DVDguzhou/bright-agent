@@ -19,18 +19,19 @@ import { AgentTypingIndicator } from "@/components/AgentTypingIndicator";
 import { UserAvatar } from "@/components/UserAvatar";
 import { getDisplayAvatar } from "@/lib/avatar";
 import {
+  canCompleteExperiencePhase,
   confirmRecallMessage,
   countUserAnswersBefore,
-  countValidKnowledgeEntries,
   isDefaultAvatarUrl,
   isExperienceSkipIntent,
   isRecalledMessage,
+  mergeKnowledgeAdds,
 } from "@/lib/life-agent-create-recall";
 import {
   clearLifeAgentCreateDraft,
   LIFE_AGENT_CREATE_STEP_SCHEMA,
   loadLifeAgentCreateDraft,
-  resolveLifeAgentCreateDraftStep,
+  resolveLifeAgentCreateDraftResume,
   saveLifeAgentCreateDraft,
   type LifeAgentCreateDraftV1,
 } from "@/lib/life-agent-create-draft";
@@ -498,12 +499,12 @@ export default function CreateLifeAgentPage() {
     }
     const draft = loadLifeAgentCreateDraft(user.id);
     if (draft) {
-      const stepClamped = resolveLifeAgentCreateDraftStep(draft);
+      const resume = resolveLifeAgentCreateDraftResume(draft);
+      const stepClamped = resume.step;
       const maxField = PROFILE_CHAT_FIELDS.length - 1;
       const idx = Math.max(0, Math.min(maxField, Math.floor(Number(draft.chatFieldIndex)) || 0));
       setStep(stepClamped);
-      const visual = stepClamped >= 6 ? stepClamped - 1 : stepClamped;
-      setResumeHint(`已恢复上次进度（${visual}/5）`);
+      setResumeHint(resume.resumeHint);
       setForm({ ...DEFAULT_FORM, ...draft.form });
       setNotSuitableFor(draft.notSuitableFor);
       setKnowledgeEntries(
@@ -521,10 +522,7 @@ export default function CreateLifeAgentPage() {
       setChatFieldIndex(idx);
       setExperienceHistory(draft.experienceHistory);
       setExperienceInput(draft.experienceInput);
-      setExperienceDone(draft.experienceDone);
-      if (!draft.experienceDone && countValidKnowledgeEntries(draft.knowledgeEntries) >= 2) {
-        setExperienceDone(true);
-      }
+      setExperienceDone(resume.experienceDone);
       setShowAdvanced(draft.showAdvanced);
       setSampleQuestionsList(draft.sampleQuestionsList);
       setSampleQuestionsDraft(draft.sampleQuestionsDraft);
@@ -542,12 +540,17 @@ export default function CreateLifeAgentPage() {
       setCoverImageUrl(draft.coverImageUrl);
       setTemplatePicked(true);
       setError("");
-      if (draft.stepSchema !== LIFE_AGENT_CREATE_STEP_SCHEMA) {
+      const needsDraftRepair =
+        resume.step !== draft.step ||
+        resume.experienceDone !== draft.experienceDone ||
+        draft.stepSchema !== LIFE_AGENT_CREATE_STEP_SCHEMA;
+      if (needsDraftRepair) {
         try {
           saveLifeAgentCreateDraft(user.id, {
             ...draft,
             step: stepClamped,
             stepSchema: LIFE_AGENT_CREATE_STEP_SCHEMA,
+            experienceDone: resume.experienceDone,
             savedAt: Date.now(),
           });
         } catch {
@@ -580,7 +583,7 @@ export default function CreateLifeAgentPage() {
       chatFieldIndex,
       experienceHistory,
       experienceInput,
-      experienceDone,
+      experienceDone: experienceDone && canCompleteExperiencePhase(knowledgeEntries),
       showAdvanced,
       sampleQuestionsList,
       sampleQuestionsDraft,
@@ -671,11 +674,12 @@ export default function CreateLifeAgentPage() {
   }, [form.expertiseTags]);
 
   const validateStep3ForNext = useCallback((): string | null => {
-    if (countValidKnowledgeEntries(knowledgeEntries) < 2) {
+    if (!experienceDone) return "请先完成经验补充对话";
+    if (!canCompleteExperiencePhase(knowledgeEntries)) {
       return "至少需要记录 2 条有效经验，请继续补充";
     }
     return null;
-  }, [knowledgeEntries]);
+  }, [experienceDone, knowledgeEntries]);
 
   const validateStep4ForNext = useCallback((): string | null => {
     if (!form.personaArchetype.trim() || !form.toneStyle.trim() || !form.responseStyle.trim()) {
@@ -708,6 +712,9 @@ export default function CreateLifeAgentPage() {
         const validationError = validateBeforeLeaveStep(step);
         if (validationError) {
           setError(validationError);
+          if (step === 3) {
+            setExperienceDone(false);
+          }
           return;
         }
       }
@@ -752,6 +759,10 @@ export default function CreateLifeAgentPage() {
     showAdvanced,
     sampleQuestionsList,
     sampleQuestionsDraft,
+    sampleQuestionsHistory,
+    sampleQuestionsInput,
+    sampleQuestionsDone,
+    selectedTopic,
     voiceSkipped,
     coverImageUrl,
   ]);
@@ -1238,21 +1249,19 @@ export default function CreateLifeAgentPage() {
           return { ...prev, expertiseTags: merged.join(", ") };
         });
       }
-      if (data.knowledgeAdd?.length) {
-        setKnowledgeEntries((prev) => {
-          const existing = prev.map((entry) => entry.content);
-          const knowledgeAdd = data.knowledgeAdd ?? [];
-          const added = knowledgeAdd.filter((item: { content: string }) => item.content && !existing.includes(item.content));
-          return [
-            ...prev,
-            ...added.map((item: { category: string; title: string; content: string; tags?: string[] }) => ({
-              category: item.category || "经验",
-              title: item.title || item.content.slice(0, 20),
-              content: item.content,
-              tags: item.tags?.length ? item.tags : [item.category || "经验"],
-            })),
-          ];
-        });
+      const finalEntries = mergeKnowledgeAdds(
+        updatedEntries,
+        data.knowledgeAdd as Array<{ category: string; title: string; content: string; tags?: string[] }> | undefined,
+      );
+      if (finalEntries.length !== updatedEntries.length) {
+        setKnowledgeEntries(
+          finalEntries.map((item) => ({
+            category: item.category || "经验",
+            title: item.title || item.content.slice(0, 20),
+            content: item.content,
+            tags: item.tags?.length ? item.tags : [item.category || "经验"],
+          })),
+        );
       }
       if (data.factCandidates?.length) {
         setStructuredFacts((prev) => {
@@ -1269,16 +1278,23 @@ export default function CreateLifeAgentPage() {
       }
 
       if (data.done && !isContinuingExperience && !experienceResumeRef.current) {
-        replaceAssistantMessage(
-          data.summaryMessage || "很好！你的经验已经记录下来，可以继续下一步设置 Agent 的回答风格。"
-        );
-        setExperienceDone(true);
+        if (canCompleteExperiencePhase(finalEntries)) {
+          replaceAssistantMessage(
+            data.summaryMessage || "很好！你的经验已经记录下来，可以继续下一步设置 Agent 的回答风格。",
+          );
+          setExperienceDone(true);
+        } else {
+          replaceAssistantMessage(
+            "还差一些具体经历。请再补充至少 2 条真实经历或踩坑总结，说完后可以说「没有了」结束。",
+          );
+          setExperienceDone(false);
+        }
       } else {
         replaceAssistantMessage(
           data.nextQuestion ||
             (data.done
               ? "还想补充什么吗？可以说说具体经历，或回复「没有了」结束。"
-              : "还能补充一些具体经历吗？")
+              : "还能补充一些具体经历吗？"),
         );
       }
       if (isContinuingExperience) {
@@ -1535,8 +1551,8 @@ export default function CreateLifeAgentPage() {
     (fromSkipIntent = false) => {
       setIsContinuingExperience(false);
       experienceResumeRef.current = false;
-      const validCount = countValidKnowledgeEntries(knowledgeEntries);
-      if (validCount < 2) {
+      const validCount = canCompleteExperiencePhase(knowledgeEntries);
+      if (!validCount) {
         setError(
           fromSkipIntent
             ? "至少需要记录 2 条有效经验才能结束，请再补充一些具体经历"
@@ -2362,6 +2378,9 @@ export default function CreateLifeAgentPage() {
                   <div className="border border-hairline/30 bg-paper-50 px-4 py-3 text-sm text-ink-800">
                     经验记录得差不多了，可以进入下一步设置回答风格。也可以继续补充更多信息～
                   </div>
+                  {error ? (
+                    <p className="text-sm text-oxblood-600">{error}</p>
+                  ) : null}
                   <div className="flex flex-col gap-2 sm:flex-row">
                     <button
                       type="button"

@@ -113,6 +113,33 @@ function countValidKnowledgeEntries(entries) {
   }).length;
 }
 
+function canCompleteExperiencePhase(entries) {
+  return countValidKnowledgeEntries(entries) >= 2;
+}
+
+function mergeKnowledgeAdds(entries, additions) {
+  if (!additions || !additions.length) return entries;
+  const existing = {};
+  entries.forEach(function (e) {
+    const c = (e.content || "").trim();
+    if (c) existing[c] = true;
+  });
+  const next = entries.slice();
+  additions.forEach(function (item) {
+    if (!item || !item.content) return;
+    const content = String(item.content).trim();
+    if (!content || existing[content]) return;
+    existing[content] = true;
+    next.push({
+      category: item.category || "经验",
+      title: item.title || content.slice(0, 20),
+      content: content,
+      tags: item.tags || [item.category || "经验"],
+    });
+  });
+  return next;
+}
+
 function userInitial(user) {
   if (!user) return "我";
   const name = user.name || user.email || "";
@@ -712,28 +739,52 @@ Page({
     let nextHistory = history.slice();
     const shouldEnd = data.done && !this.isContinuingExperience && !this.experienceResumeMode;
     if (shouldEnd) {
-      nextHistory[assistantIndex] = {
-        role: "assistant",
-        content:
-          data.summaryMessage ||
-          "很好！你的经验已经记录下来，可以继续下一步设置 Agent 的回答风格。",
-      };
-      this.setData({
-        experienceHistory: nextHistory,
-        experienceDone: true,
-        experienceLoading: false,
-        showExperienceNext: true,
-        form: form,
-        knowledgePreview: that.knowledgeEntries.slice(0, 5),
-        experienceRoundCount: nextHistory.filter(function (m) {
-          return m.role === "user";
-        }).length,
-        personaIndex: indexOfOption(PERSONA_OPTIONS, form.personaArchetype),
-        toneIndex: indexOfOption(TONE_OPTIONS, form.toneStyle),
-        responseIndex: indexOfOption(RESPONSE_STYLE_OPTIONS, form.responseStyle),
-      }, function () {
-        that.scrollExperienceToBottom();
-      });
+      if (canCompleteExperiencePhase(this.knowledgeEntries)) {
+        nextHistory[assistantIndex] = {
+          role: "assistant",
+          content:
+            data.summaryMessage ||
+            "很好！你的经验已经记录下来，可以继续下一步设置 Agent 的回答风格。",
+        };
+        this.setData({
+          experienceHistory: nextHistory,
+          experienceDone: true,
+          experienceLoading: false,
+          showExperienceNext: true,
+          form: form,
+          knowledgePreview: that.knowledgeEntries.slice(0, 5),
+          experienceRoundCount: nextHistory.filter(function (m) {
+            return m.role === "user";
+          }).length,
+          personaIndex: indexOfOption(PERSONA_OPTIONS, form.personaArchetype),
+          toneIndex: indexOfOption(TONE_OPTIONS, form.toneStyle),
+          responseIndex: indexOfOption(RESPONSE_STYLE_OPTIONS, form.responseStyle),
+        }, function () {
+          that.scrollExperienceToBottom();
+        });
+      } else {
+        nextHistory[assistantIndex] = {
+          role: "assistant",
+          content:
+            "还差一些具体经历。请再补充至少 2 条真实经历或踩坑总结，说完后可以说「没有了」结束。",
+        };
+        this.setData({
+          experienceHistory: nextHistory,
+          experienceDone: false,
+          experienceLoading: false,
+          showExperienceNext: false,
+          form: form,
+          knowledgePreview: that.knowledgeEntries.slice(0, 5),
+          experienceRoundCount: nextHistory.filter(function (m) {
+            return m.role === "user";
+          }).length,
+          personaIndex: indexOfOption(PERSONA_OPTIONS, form.personaArchetype),
+          toneIndex: indexOfOption(TONE_OPTIONS, form.toneStyle),
+          responseIndex: indexOfOption(RESPONSE_STYLE_OPTIONS, form.responseStyle),
+        }, function () {
+          that.scrollExperienceToBottom();
+        });
+      }
       if (this.isContinuingExperience) {
         this.isContinuingExperience = false;
       }
@@ -836,15 +887,16 @@ Page({
   },
 
   goStep4() {
-    const valid = this.knowledgeEntries.filter(function (e) {
-      return (e.content || "").trim().length >= 1;
-    });
     if (!this.data.experienceDone) {
       this.setData({ error: "请先完成经验补充对话" });
       return;
     }
-    if (valid.length < 2) {
-      this.setData({ error: "至少需要记录 2 条有效经验，请继续补充" });
+    if (!canCompleteExperiencePhase(this.knowledgeEntries)) {
+      this.setData({
+        error: "至少需要记录 2 条有效经验，请继续补充",
+        experienceDone: false,
+        showExperienceNext: false,
+      });
       return;
     }
     this.experienceResumeMode = false;
@@ -904,8 +956,8 @@ Page({
     const skipMsg = fromSkipIntent === true;
     this.isContinuingExperience = false;
     this.experienceResumeMode = false;
-    const validCount = countValidKnowledgeEntries(this.knowledgeEntries);
-    if (validCount < 2) {
+    const validCount = canCompleteExperiencePhase(this.knowledgeEntries);
+    if (!validCount) {
       this.setData({
         error: skipMsg
           ? "至少需要记录 2 条有效经验才能结束，请再补充一些具体经历"

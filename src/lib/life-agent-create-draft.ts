@@ -2,6 +2,8 @@
  * 创建人生 Agent 流程本地草稿（按用户 id 分 key）。
  * 不含录音 Base64，避免超出 localStorage 配额；离开页面后若停在采集音色步需重新录制。
  */
+import { canCompleteExperiencePhase } from "@/lib/life-agent-create-recall";
+
 const STORAGE_PREFIX = "brightagent:life-agent-create-draft:";
 export const LIFE_AGENT_CREATE_DRAFT_VERSION = 1 as const;
 /** 当前创建流程内部步数（展示为 5 步时 step 6 映射为 5/5） */
@@ -150,6 +152,62 @@ export function resolveLifeAgentCreateDraftStep(draft: Pick<LifeAgentCreateDraft
   // 旧版 5 步草稿：step≥2 时映射到新流程 +1
   const migrated = raw <= 1 ? raw : raw + 1;
   return Math.min(LIFE_AGENT_CREATE_STEP_SCHEMA, migrated);
+}
+
+const EXPERIENCE_PHASE_COMPLETE_HINT = "可以继续下一步设置 Agent 的回答风格";
+
+function hasExperienceCompletionMessage(
+  history: LifeAgentCreateDraftChatMessage[] | undefined,
+): boolean {
+  return (history ?? []).some(
+    (m) => m.role === "assistant" && m.content.includes(EXPERIENCE_PHASE_COMPLETE_HINT),
+  );
+}
+
+/** 恢复草稿时校准 step / experienceDone，并生成可读的恢复提示 */
+export function resolveLifeAgentCreateDraftResume(draft: LifeAgentCreateDraftV1): {
+  step: number;
+  experienceDone: boolean;
+  resumeHint: string;
+} {
+  let step = resolveLifeAgentCreateDraftStep(draft);
+  const entries = draft.knowledgeEntries ?? [];
+  const enoughExperience = canCompleteExperiencePhase(entries);
+
+  let experienceDone =
+    draft.experienceDone && enoughExperience;
+
+  if (
+    !experienceDone &&
+    enoughExperience &&
+    hasExperienceCompletionMessage(draft.experienceHistory)
+  ) {
+    experienceDone = true;
+  }
+
+  // 经验不足时不允许停在第 4 步及之后，回退到经验补充
+  if (step >= 4 && !enoughExperience) {
+    step = 3;
+    experienceDone = false;
+  }
+
+  const visual = step >= 6 ? step - 1 : step;
+  let suffix = "";
+  if (step === 3) {
+    if (experienceDone) {
+      suffix = "，经验已够，可点下一步";
+    } else if (enoughExperience) {
+      suffix = "，可说「没有了」结束经验补充";
+    } else {
+      suffix = "，继续补充至少 2 条经历";
+    }
+  }
+
+  return {
+    step,
+    experienceDone,
+    resumeHint: `已恢复上次进度（${visual}/5）${suffix}`,
+  };
 }
 
 export function loadLifeAgentCreateDraft(userId: string): LifeAgentCreateDraftV1 | null {
