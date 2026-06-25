@@ -499,7 +499,7 @@ func BuildRetrievalReferences(plan RetrievalPlan) []map[string]string {
 			"confidence": fact.Confidence,
 		})
 	}
-	for _, topic := range plan.Topics {
+	for _, topic := range topicsForCitationDisplay(plan) {
 		excerpt := normalizeSnippet(firstSentence(topic.Summary, 80))
 		if excerpt == "" {
 			excerpt = "基于该主题经验生成的摘要。"

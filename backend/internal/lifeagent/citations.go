@@ -67,6 +67,42 @@ func SourceTypeLabel(sourceType string) string {
 	}
 }
 
+func normalizeCitationTitle(title string) string {
+	return strings.ToLower(strings.TrimSpace(title))
+}
+
+// topicRedundantWithEntries：Topic 摘要往往由知识条目聚合而来；同一轮检索已命中条目时不再重复展示 Topic。
+func topicRedundantWithEntries(topic TopicSummaryForAI, entries []KnowledgeEntryForAI) bool {
+	if len(entries) == 0 {
+		return false
+	}
+	label := normalizeCitationTitle(topic.TopicLabel)
+	for _, e := range entries {
+		if normalizeCitationTitle(e.Title) == label {
+			return true
+		}
+		for _, id := range topic.SourceEntryIDs {
+			if id == e.ID {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func topicsForCitationDisplay(plan RetrievalPlan) []TopicSummaryForAI {
+	if len(plan.Topics) == 0 {
+		return nil
+	}
+	out := make([]TopicSummaryForAI, 0, len(plan.Topics))
+	for _, t := range plan.Topics {
+		if !topicRedundantWithEntries(t, plan.Entries) {
+			out = append(out, t)
+		}
+	}
+	return out
+}
+
 // BuildCitationCatalog builds a unified 1-based index over retrieval plan hits.
 func BuildCitationCatalog(plan RetrievalPlan) CitationCatalog {
 	items := make([]CitationItem, 0, len(plan.Facts)+len(plan.Topics)+len(plan.Entries)+len(plan.LiveUpdates))
@@ -88,7 +124,7 @@ func BuildCitationCatalog(plan RetrievalPlan) CitationCatalog {
 		})
 		idx++
 	}
-	for _, topic := range plan.Topics {
+	for _, topic := range topicsForCitationDisplay(plan) {
 		excerpt := normalizeSnippet(firstSentence(topic.Summary, 80))
 		if excerpt == "" {
 			excerpt = "基于该主题经验生成的摘要。"

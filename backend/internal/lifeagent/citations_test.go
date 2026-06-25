@@ -44,6 +44,32 @@ func TestBuildCitedReferencesFiltersUsed(t *testing.T) {
 	}
 }
 
+func TestTopicRedundantWithEntries(t *testing.T) {
+	topic := TopicSummaryForAI{
+		ID:         "t1",
+		TopicLabel: "大二恋爱经历",
+		SourceEntryIDs: []string{"e1"},
+	}
+	entries := []KnowledgeEntryForAI{{ID: "e1", Title: "大二恋爱经历"}}
+	if !topicRedundantWithEntries(topic, entries) {
+		t.Fatal("expected redundant when entry id matches topic source")
+	}
+	entries2 := []KnowledgeEntryForAI{{ID: "e2", Title: "大二恋爱经历"}}
+	if !topicRedundantWithEntries(topic, entries2) {
+		t.Fatal("expected redundant when titles match")
+	}
+	catalog := BuildCitationCatalog(RetrievalPlan{
+		Topics:  []TopicSummaryForAI{topic},
+		Entries: entries,
+	})
+	if len(catalog.Items) != 1 {
+		t.Fatalf("catalog len = %d, want 1 (entry only)", len(catalog.Items))
+	}
+	if catalog.Items[0].SourceType != "knowledge" {
+		t.Fatalf("sourceType = %q", catalog.Items[0].SourceType)
+	}
+}
+
 func TestStripInlineCitations(t *testing.T) {
 	got := StripInlineCitations("你好¹世界[2]")
 	want := "你好世界"
