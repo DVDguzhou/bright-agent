@@ -47,10 +47,36 @@ func TestBuildCitedReferencesFiltersUsed(t *testing.T) {
 	}
 }
 
+func TestRenumberReplySegmentCitationsAnswerLevel(t *testing.T) {
+	segments := []string{
+		"大二那会儿先把方向定下来[3]。",
+		"后面实习也挺关键[5]，但别重复讲[3]。",
+	}
+	refs := []map[string]string{
+		{"id": "unused", "sourceType": "knowledge", "title": "未使用", "excerpt": "unused", "citeIndex": "1"},
+		{"id": "entry-a", "sourceType": "knowledge", "title": "方向", "excerpt": "direction", "citeIndex": "3"},
+		{"id": "entry-b", "sourceType": "knowledge", "title": "实习", "excerpt": "internship", "citeIndex": "5"},
+	}
+
+	gotSegments, gotSegRefs, gotRefs := RenumberReplySegmentCitations(segments, refs)
+	if gotSegments[0] != "大二那会儿先把方向定下来[1]。" {
+		t.Fatalf("segment 0 = %q", gotSegments[0])
+	}
+	if gotSegments[1] != "后面实习也挺关键[2]，但别重复讲[1]。" {
+		t.Fatalf("segment 1 = %q", gotSegments[1])
+	}
+	if len(gotRefs) != 2 || gotRefs[0]["id"] != "entry-a" || gotRefs[0]["citeIndex"] != "1" || gotRefs[1]["id"] != "entry-b" || gotRefs[1]["citeIndex"] != "2" {
+		t.Fatalf("refs = %#v", gotRefs)
+	}
+	if len(gotSegRefs) != 2 || len(gotSegRefs[0]) != 1 || gotSegRefs[0][0]["citeIndex"] != "1" || len(gotSegRefs[1]) != 2 {
+		t.Fatalf("segment refs = %#v", gotSegRefs)
+	}
+}
+
 func TestTopicRedundantWithEntries(t *testing.T) {
 	topic := TopicSummaryForAI{
-		ID:         "t1",
-		TopicLabel: "大二恋爱经历",
+		ID:             "t1",
+		TopicLabel:     "大二恋爱经历",
 		SourceEntryIDs: []string{"e1"},
 	}
 	entries := []KnowledgeEntryForAI{{ID: "e1", Title: "大二恋爱经历"}}

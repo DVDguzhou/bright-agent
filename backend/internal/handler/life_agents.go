@@ -1072,37 +1072,37 @@ func LifeAgentsCreate(cfg *config.Config) gin.HandlerFunc {
 			}
 		}
 		p := models.LifeAgentProfile{
-			ID:                 profileID,
-			UserID:             user.ID,
-			DisplayName:        body.DisplayName,
-			Headline:           body.Headline,
-			ShortBio:           body.ShortBio,
-			LongBio:            body.LongBio,
-			Audience:           body.Audience,
-			WelcomeMessage:     body.WelcomeMessage,
-			PricePerQuestion:   body.PricePerQuestion,
-			ExpertiseTags:      models.JSONArray(category.ExpandTagsByCategory(body.ExpertiseTags)),
-			SampleQuestions:    models.JSONArray(body.SampleQuestions),
-			Education:          strOpt(body.Education),
-			Income:             strOpt(body.Income),
-			Job:                strOpt(body.Job),
-			School:             strOpt(body.School),
-			Country:            strOpt(body.Country),
-			Province:           strOpt(body.Province),
-			City:               strOpt(body.City),
-			County:             strOpt(body.County),
-			Regions:            models.JSONArray(body.Regions),
-			MBTI:               strOpt(body.MBTI),
-			PersonaArchetype:   strOpt(body.PersonaArchetype),
-			ToneStyle:          strOpt(body.ToneStyle),
-			ResponseStyle:      strOpt(body.ResponseStyle),
-			ForbiddenPhrases:   models.JSONArray(body.ForbiddenPhrases),
-			ExampleReplies:     models.JSONArray(body.ExampleReplies),
-			NotSuitableFor:     strOpt(body.NotSuitableFor),
-			VerificationStatus: coalesceVerificationStatus(body.VerificationStatus),
-			VoiceCloneID:       voiceClonePtr,
-			CoverImageURL:      coverImgPtr,
-			CoverPresetKey:     coverPresetPtr,
+			ID:                    profileID,
+			UserID:                user.ID,
+			DisplayName:           body.DisplayName,
+			Headline:              body.Headline,
+			ShortBio:              body.ShortBio,
+			LongBio:               body.LongBio,
+			Audience:              body.Audience,
+			WelcomeMessage:        body.WelcomeMessage,
+			PricePerQuestion:      body.PricePerQuestion,
+			ExpertiseTags:         models.JSONArray(category.ExpandTagsByCategory(body.ExpertiseTags)),
+			SampleQuestions:       models.JSONArray(body.SampleQuestions),
+			Education:             strOpt(body.Education),
+			Income:                strOpt(body.Income),
+			Job:                   strOpt(body.Job),
+			School:                strOpt(body.School),
+			Country:               strOpt(body.Country),
+			Province:              strOpt(body.Province),
+			City:                  strOpt(body.City),
+			County:                strOpt(body.County),
+			Regions:               models.JSONArray(body.Regions),
+			MBTI:                  strOpt(body.MBTI),
+			PersonaArchetype:      strOpt(body.PersonaArchetype),
+			ToneStyle:             strOpt(body.ToneStyle),
+			ResponseStyle:         strOpt(body.ResponseStyle),
+			ForbiddenPhrases:      models.JSONArray(body.ForbiddenPhrases),
+			ExampleReplies:        models.JSONArray(body.ExampleReplies),
+			NotSuitableFor:        strOpt(body.NotSuitableFor),
+			VerificationStatus:    coalesceVerificationStatus(body.VerificationStatus),
+			VoiceCloneID:          voiceClonePtr,
+			CoverImageURL:         coverImgPtr,
+			CoverPresetKey:        coverPresetPtr,
 			Published:             true,
 			AllowGeneralKnowledge: true,
 			CitationsEnabled:      true,
@@ -3434,6 +3434,13 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 		if attribution == "" && chatOpts.ReplyAttribution != "" {
 			attribution = chatOpts.ReplyAttribution
 		}
+		db.DB.Create(&models.LifeAgentChatMessage{ID: models.GenID(), SessionID: sessionID, Role: "user", Content: body.Message})
+		replySegments := lifeagent.SplitReplySegments(content)
+		if len(replySegments) == 0 {
+			replySegments = []string{content}
+		}
+		replySegments, segRefs, refs := lifeagent.RenumberReplySegmentCitations(replySegments, refs)
+		content = strings.Join(replySegments, "\n\n")
 		refsMap := make([]map[string]interface{}, len(refs))
 		for i, r := range refs {
 			refsMap[i] = make(map[string]interface{})
@@ -3441,25 +3448,15 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 				refsMap[i][k] = v
 			}
 		}
-		var refsAny models.JSONAny
-		for _, m := range refsMap {
-			refsAny = append(refsAny, m)
-		}
-		db.DB.Create(&models.LifeAgentChatMessage{ID: models.GenID(), SessionID: sessionID, Role: "user", Content: body.Message})
-		replySegments := lifeagent.SplitReplySegments(content)
-		if len(replySegments) == 0 {
-			replySegments = []string{content}
-		}
 		assistantMsgIDs := make([]string, len(replySegments))
 		for i := range replySegments {
 			assistantMsgIDs[i] = models.GenID()
 		}
 
 		segRefsMaps := make([][]map[string]interface{}, len(replySegments))
-		for i, seg := range replySegments {
-			segRefs := lifeagent.FilterReferencesByContent(seg, refs)
-			segRefsMap := make([]map[string]interface{}, len(segRefs))
-			for j, r := range segRefs {
+		for i := range replySegments {
+			segRefsMap := make([]map[string]interface{}, len(segRefs[i]))
+			for j, r := range segRefs[i] {
 				segRefsMap[j] = make(map[string]interface{})
 				for k, v := range r {
 					segRefsMap[j][k] = v

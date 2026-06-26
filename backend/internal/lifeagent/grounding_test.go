@@ -1,6 +1,9 @@
 package lifeagent
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 func TestDetectFactIntent_allowsExperienceQuestions(t *testing.T) {
 	cases := []string{
@@ -56,7 +59,10 @@ func TestResolveGroundedFactReply_directFactStillAnswers(t *testing.T) {
 	if reply == "" || !containsAny(reply, "大四赚20万") {
 		t.Fatalf("expected income in reply, got %q", reply)
 	}
-	if len(refs) != 1 || refs[0]["factKey"] != "income" {
+	if !strings.Contains(reply, "[1]") {
+		t.Fatalf("expected inline citation in reply, got %q", reply)
+	}
+	if len(refs) != 1 || refs[0]["factKey"] != "income" || refs[0]["citeIndex"] != "1" {
 		t.Fatalf("expected income reference, got %v", refs)
 	}
 }

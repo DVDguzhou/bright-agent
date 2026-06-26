@@ -3,6 +3,7 @@ package lifeagent
 import (
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -355,14 +356,19 @@ func ResolveGroundedFactReply(profile ProfileForAI, facts []StructuredFactForAI,
 	}
 	reply := buildFactReply(intent.Key, matched)
 	refs := make([]map[string]string, 0, len(matched))
-	for _, fact := range matched {
+	for i, fact := range matched {
+		citeIndex := i + 1
+		reply = appendCitationMarker(reply, citeIndex)
 		refs = append(refs, map[string]string{
-			"id":         fact.ID,
-			"sourceType": "fact",
-			"factKey":    fact.FactKey,
-			"title":      factLabel(fact.FactKey),
-			"excerpt":    fact.FactValue,
-			"confidence": fact.Confidence,
+			"id":              fact.ID,
+			"sourceType":      "fact",
+			"sourceTypeLabel": SourceTypeLabel("fact"),
+			"factKey":         fact.FactKey,
+			"title":           factLabel(fact.FactKey),
+			"excerpt":         fact.FactValue,
+			"fullContent":     fact.FactValue,
+			"citeIndex":       strconv.Itoa(citeIndex),
+			"confidence":      fact.Confidence,
 		})
 	}
 	return reply, refs, true
@@ -471,10 +477,10 @@ func BuildRetrievalReferences(plan RetrievalPlan) []map[string]string {
 			"sourceType":      "fact",
 			"sourceTypeLabel": SourceTypeLabel("fact"),
 			"route":           string(plan.Route),
-			"factKey":    fact.FactKey,
-			"title":      factLabel(fact.FactKey),
-			"excerpt":    fact.FactValue,
-			"confidence": fact.Confidence,
+			"factKey":         fact.FactKey,
+			"title":           factLabel(fact.FactKey),
+			"excerpt":         fact.FactValue,
+			"confidence":      fact.Confidence,
 		})
 	}
 	for _, topic := range topicsForCitationDisplay(plan) {
@@ -486,12 +492,12 @@ func BuildRetrievalReferences(plan RetrievalPlan) []map[string]string {
 			"id":              topic.ID,
 			"sourceType":      "topic",
 			"sourceTypeLabel": SourceTypeLabel("topic"),
-			"route":      string(plan.Route),
-			"topicGroup": topic.TopicGroup,
-			"topicKey":   topic.TopicKey,
-			"title":      topic.TopicLabel,
-			"excerpt":    excerpt,
-			"confidence": topic.Confidence,
+			"route":           string(plan.Route),
+			"topicGroup":      topic.TopicGroup,
+			"topicKey":        topic.TopicKey,
+			"title":           topic.TopicLabel,
+			"excerpt":         excerpt,
+			"confidence":      topic.Confidence,
 		})
 	}
 	for _, entry := range plan.Entries {
@@ -503,12 +509,12 @@ func BuildRetrievalReferences(plan RetrievalPlan) []map[string]string {
 			"id":              entry.ID,
 			"sourceType":      "knowledge",
 			"sourceTypeLabel": SourceTypeLabel("knowledge"),
-			"route":      string(plan.Route),
-			"category":   entry.Category,
-			"title":      entry.Title,
-			"excerpt":    excerpt,
-			"confidence": plan.Confidence,
-			"facets":     FacetSummary(entry.Facets),
+			"route":           string(plan.Route),
+			"category":        entry.Category,
+			"title":           entry.Title,
+			"excerpt":         excerpt,
+			"confidence":      plan.Confidence,
+			"facets":          FacetSummary(entry.Facets),
 		})
 	}
 	for _, lu := range plan.LiveUpdates {
@@ -520,11 +526,11 @@ func BuildRetrievalReferences(plan RetrievalPlan) []map[string]string {
 			"id":              lu.ID,
 			"sourceType":      "liveUpdate",
 			"sourceTypeLabel": SourceTypeLabel("liveUpdate"),
-			"route":      string(plan.Route),
-			"category":   lu.Category,
-			"title":      "最近动态",
-			"excerpt":    excerpt,
-			"createdAt":  lu.CreatedAt,
+			"route":           string(plan.Route),
+			"category":        lu.Category,
+			"title":           "最近动态",
+			"excerpt":         excerpt,
+			"createdAt":       lu.CreatedAt,
 		})
 	}
 	return refs

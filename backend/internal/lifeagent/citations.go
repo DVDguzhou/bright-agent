@@ -44,7 +44,7 @@ type CitationCatalog struct {
 }
 
 var (
-	citeBracketRe  = regexp.MustCompile(`\[(\d{1,2})\]`)
+	citeBracketRe   = regexp.MustCompile(`\[(\d{1,2})\]`)
 	citeSuperscript = map[rune]int{
 		'¹': 1, '²': 2, '³': 3, '⁴': 4, '⁵': 5, '⁶': 6, '⁷': 7, '⁸': 8, '⁹': 9,
 		'⁰': 0,
@@ -282,6 +282,92 @@ func FilterReferencesByContent(content string, refs []map[string]string) []map[s
 		nj, _ := strconv.Atoi(out[j]["citeIndex"])
 		return ni < nj
 	})
+	return out
+}
+
+func RenumberReplySegmentCitations(segments []string, refs []map[string]string) ([]string, [][]map[string]string, []map[string]string) {
+	outSegments := make([]string, len(segments))
+	for i, seg := range segments {
+		outSegments[i] = NormalizeCitationMarkers(seg)
+	}
+	if len(outSegments) == 0 || len(refs) == 0 {
+		return outSegments, make([][]map[string]string, len(outSegments)), nil
+	}
+
+	refsByOldIndex := make(map[int]map[string]string, len(refs))
+	for _, ref := range refs {
+		n, err := strconv.Atoi(ref["citeIndex"])
+		if err != nil || n <= 0 {
+			continue
+		}
+		if _, exists := refsByOldIndex[n]; !exists {
+			refsByOldIndex[n] = ref
+		}
+	}
+	if len(refsByOldIndex) == 0 {
+		return outSegments, make([][]map[string]string, len(outSegments)), nil
+	}
+
+	oldToNew := map[int]int{}
+	orderedOld := make([]int, 0, len(refsByOldIndex))
+	for _, seg := range outSegments {
+		for _, m := range citeBracketRe.FindAllStringSubmatch(seg, -1) {
+			old, err := strconv.Atoi(m[1])
+			if err != nil || old <= 0 {
+				continue
+			}
+			if _, ok := refsByOldIndex[old]; !ok {
+				continue
+			}
+			if _, exists := oldToNew[old]; exists {
+				continue
+			}
+			oldToNew[old] = len(oldToNew) + 1
+			orderedOld = append(orderedOld, old)
+		}
+	}
+	if len(oldToNew) == 0 {
+		return outSegments, make([][]map[string]string, len(outSegments)), nil
+	}
+
+	answerRefs := make([]map[string]string, 0, len(orderedOld))
+	for _, old := range orderedOld {
+		answerRefs = append(answerRefs, renumberReference(refsByOldIndex[old], oldToNew[old]))
+	}
+
+	for i, seg := range outSegments {
+		outSegments[i] = citeBracketRe.ReplaceAllStringFunc(seg, func(marker string) string {
+			matches := citeBracketRe.FindStringSubmatch(marker)
+			if len(matches) != 2 {
+				return ""
+			}
+			old, err := strconv.Atoi(matches[1])
+			if err != nil {
+				return ""
+			}
+			if next, ok := oldToNew[old]; ok {
+				return fmt.Sprintf("[%d]", next)
+			}
+			return ""
+		})
+	}
+
+	segmentRefs := make([][]map[string]string, len(outSegments))
+	for i, seg := range outSegments {
+		segmentRefs[i] = FilterReferencesByContent(seg, answerRefs)
+	}
+	return outSegments, segmentRefs, answerRefs
+}
+
+func renumberReference(ref map[string]string, citeIndex int) map[string]string {
+	out := make(map[string]string, len(ref)+1)
+	for k, v := range ref {
+		out[k] = v
+	}
+	out["citeIndex"] = strconv.Itoa(citeIndex)
+	if out["sourceTypeLabel"] == "" {
+		out["sourceTypeLabel"] = SourceTypeLabel(out["sourceType"])
+	}
 	return out
 }
 
