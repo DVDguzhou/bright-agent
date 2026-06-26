@@ -3458,6 +3458,7 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 		if len(replySegments) == 0 {
 			replySegments = []string{content}
 		}
+		replySegments, segmentBackfilled := lifeagent.BackfillSegmentCitationsFromReferences(replySegments, refs)
 		replySegments, segRefs, refs := lifeagent.RenumberReplySegmentCitations(replySegments, refs)
 		content = strings.Join(replySegments, "\n\n")
 		_, finalInlineIndexes := lifeagent.ParseInlineCitations(content)
@@ -3465,7 +3466,7 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 		for _, list := range segRefs {
 			segRefsCount += len(list)
 		}
-		log.Printf("[citations] profile=%s session=%s attribution=%s raw_refs=%d raw_inline=%d final_inline=%d answer_refs=%d segment_refs=%d", id, sessionID, attribution, rawRefsCount, len(rawInlineIndexes), len(finalInlineIndexes), len(refs), segRefsCount)
+		log.Printf("[citations] profile=%s session=%s attribution=%s raw_refs=%d raw_inline=%d final_inline=%d answer_refs=%d segment_refs=%d segment_backfilled=%d", id, sessionID, attribution, rawRefsCount, len(rawInlineIndexes), len(finalInlineIndexes), len(refs), segRefsCount, segmentBackfilled)
 		refsMap := make([]map[string]interface{}, len(refs))
 		for i, r := range refs {
 			refsMap[i] = make(map[string]interface{})

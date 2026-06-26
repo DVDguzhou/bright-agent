@@ -650,6 +650,168 @@ func RenumberReplySegmentCitations(segments []string, refs []map[string]string) 
 	return outSegments, segmentRefs, answerRefs
 }
 
+func BackfillSegmentCitationsFromReferences(segments []string, refs []map[string]string) ([]string, int) {
+	out := make([]string, len(segments))
+	copy(out, segments)
+	if len(out) == 0 || len(refs) == 0 {
+		return out, 0
+	}
+	backfilled := 0
+	for i, seg := range out {
+		seg = strings.TrimSpace(NormalizeCitationMarkers(seg))
+		out[i] = seg
+		if seg == "" {
+			continue
+		}
+		if _, used := ParseInlineCitations(seg); len(used) > 0 {
+			continue
+		}
+		if sentenceIsCitationExempt(seg) {
+			continue
+		}
+		best, second := bestTwoReferenceScores(seg, refs)
+		if best.ref == nil || !shouldBackfillReferenceCitation(seg, best, second) {
+			continue
+		}
+		n, err := strconv.Atoi((*best.ref)["citeIndex"])
+		if err != nil || n <= 0 {
+			continue
+		}
+		out[i] = appendCitationMarker(seg, n)
+		backfilled++
+	}
+	return out, backfilled
+}
+
+type scoredCitationReference struct {
+	ref        *map[string]string
+	score      int
+	anchorHits int
+	longHit    bool
+}
+
+func bestTwoReferenceScores(seg string, refs []map[string]string) (best, second scoredCitationReference) {
+	for i := range refs {
+		ref := &refs[i]
+		if _, err := strconv.Atoi((*ref)["citeIndex"]); err != nil {
+			continue
+		}
+		score, anchorHits, longHit := segmentReferenceScore(seg, *ref)
+		candidate := scoredCitationReference{ref: ref, score: score, anchorHits: anchorHits, longHit: longHit}
+		if candidate.score > best.score {
+			second = best
+			best = candidate
+		} else if candidate.score > second.score {
+			second = candidate
+		}
+	}
+	return best, second
+}
+
+func shouldBackfillReferenceCitation(seg string, best, second scoredCitationReference) bool {
+	if best.score < 9 || best.anchorHits < 2 {
+		return false
+	}
+	if !best.longHit && best.score < 12 {
+		return false
+	}
+	if best.score-second.score < 3 {
+		return false
+	}
+	item := citationItemFromReference(*best.ref)
+	if citationShouldStrip(seg, item) {
+		return false
+	}
+	return true
+}
+
+func citationItemFromReference(ref map[string]string) CitationItem {
+	return CitationItem{
+		ID:          ref["id"],
+		SourceType:  ref["sourceType"],
+		Title:       ref["title"],
+		Excerpt:     ref["excerpt"],
+		FullContent: firstNonEmpty(ref["fullContent"], ref["excerpt"], ref["displayExcerpt"], ref["title"]),
+		Category:    ref["category"],
+		FactKey:     ref["factKey"],
+		TopicGroup:  ref["topicGroup"],
+		TopicKey:    ref["topicKey"],
+	}
+}
+
+func segmentReferenceScore(seg string, ref map[string]string) (int, int, bool) {
+	normSeg := normalize(seg)
+	score := 0
+	anchorHits := 0
+	longHit := false
+	seen := map[string]bool{}
+	addField := func(text string, weight int) {
+		for _, term := range referenceMatchTerms(text) {
+			normTerm := normalize(term)
+			if normTerm == "" || seen[normTerm] || !strings.Contains(normSeg, normTerm) {
+				continue
+			}
+			seen[normTerm] = true
+			anchorHits++
+			termLen := len([]rune(normTerm))
+			points := weight
+			if termLen >= 4 {
+				points += weight
+				longHit = true
+			}
+			if termLen >= 7 {
+				points += weight
+			}
+			score += points
+		}
+	}
+	addField(ref["title"], 4)
+	addField(ref["displayExcerpt"], 4)
+	addField(ref["excerpt"], 3)
+	addField(ref["fullContent"], 2)
+	return score, anchorHits, longHit
+}
+
+func referenceMatchTerms(text string) []string {
+	text = strings.TrimSpace(text)
+	if text == "" {
+		return nil
+	}
+	seen := map[string]bool{}
+	terms := make([]string, 0)
+	add := func(term string) {
+		term = strings.TrimSpace(term)
+		if len([]rune(term)) < 2 || isCitationStopWord(term) || isReferenceBackfillGenericTerm(term) {
+			return
+		}
+		norm := normalize(term)
+		if norm == "" || seen[norm] {
+			return
+		}
+		seen[norm] = true
+		terms = append(terms, term)
+	}
+	for _, term := range extractSignificantTerms(text) {
+		add(term)
+	}
+	sample := text
+	if len([]rune(sample)) > 160 {
+		sample = string([]rune(sample)[:160])
+	}
+	for _, term := range citationTitleNGrams(sample) {
+		add(term)
+	}
+	return terms
+}
+
+func isReferenceBackfillGenericTerm(term string) bool {
+	switch normalize(term) {
+	case "经历", "背景", "本人", "建议", "摘要", "动态", "事实", "主题", "内容", "相关", "个人", "一般", "具体", "项目", "系统", "事情", "时候", "感觉", "真的", "那段", "这段":
+		return true
+	}
+	return false
+}
+
 func renumberReference(ref map[string]string, citeIndex int) map[string]string {
 	out := make(map[string]string, len(ref)+1)
 	for k, v := range ref {

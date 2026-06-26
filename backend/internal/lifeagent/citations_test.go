@@ -73,6 +73,66 @@ func TestRenumberReplySegmentCitationsAnswerLevel(t *testing.T) {
 	}
 }
 
+func TestBackfillSegmentCitationsFromReferencesMatchesRelevantSegment(t *testing.T) {
+	segments := []string{
+		"我当时做了个挺疯狂的决定——考研、留学、创业、找工作四条线同时走[1]。",
+		"考研那边在准备，留学这边也在申，同时还在搞创业项目。还做了个毕业设计游戏化激励系统，竟然有人感兴趣想投资。最离谱的是还抽空去做了趟实习，UE开发相关的。",
+	}
+	refs := []map[string]string{
+		{
+			"id":             "entry-game",
+			"sourceType":     "knowledge",
+			"title":          "擅长与适用人群",
+			"excerpt":        "考研、留学、创业、找工作四线并行，也做过毕业设计游戏化激励系统。",
+			"displayExcerpt": "提到毕业设计游戏化激励系统、投资人和 UE 开发实习",
+			"fullContent":    "本科阶段考研、留学、创业、找工作四条线同时推进。毕业设计做了游戏化激励系统，有投资人感兴趣想投钱，还做过 UE开发 相关实习。",
+			"citeIndex":      "1",
+		},
+	}
+
+	gotSegments, backfilled := BackfillSegmentCitationsFromReferences(segments, refs)
+	if backfilled != 1 {
+		t.Fatalf("backfilled = %d, want 1; segments=%#v", backfilled, gotSegments)
+	}
+	if !strings.Contains(gotSegments[1], "[1]") {
+		t.Fatalf("expected second segment to get citation, got %#v", gotSegments)
+	}
+	gotSegments, gotSegRefs, gotRefs := RenumberReplySegmentCitations(gotSegments, refs)
+	if !strings.Contains(gotSegments[1], "[1]") {
+		t.Fatalf("expected renumbered second segment citation, got %#v", gotSegments)
+	}
+	if len(gotRefs) != 1 || gotRefs[0]["id"] != "entry-game" {
+		t.Fatalf("refs = %#v", gotRefs)
+	}
+	if len(gotSegRefs) != 2 || len(gotSegRefs[1]) != 1 || gotSegRefs[1][0]["id"] != "entry-game" {
+		t.Fatalf("segment refs = %#v", gotSegRefs)
+	}
+}
+
+func TestBackfillSegmentCitationsFromReferencesDoesNotAttachUnrelatedPhysics(t *testing.T) {
+	segments := []string{
+		"毕设做了个游戏化激励系统，投资人感兴趣但最后没成。",
+	}
+	refs := []map[string]string{
+		{
+			"id":          "physics",
+			"sourceType":  "knowledge",
+			"title":       "童年物理兴趣与自学经历",
+			"excerpt":     "小学自学量子力学和相对论。",
+			"fullContent": "小时候对物理感兴趣，小学自学量子力学和相对论，也看过时间简史。",
+			"citeIndex":   "1",
+		},
+	}
+
+	gotSegments, backfilled := BackfillSegmentCitationsFromReferences(segments, refs)
+	if backfilled != 0 {
+		t.Fatalf("backfilled = %d, want 0; segments=%#v", backfilled, gotSegments)
+	}
+	if strings.Contains(gotSegments[0], "[1]") {
+		t.Fatalf("expected no physics cite on thesis segment, got %#v", gotSegments)
+	}
+}
+
 func TestTopicRedundantWithEntries(t *testing.T) {
 	topic := TopicSummaryForAI{
 		ID:             "t1",
