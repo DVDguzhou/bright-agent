@@ -45,13 +45,14 @@ type WorkingState struct {
 // PerceptionSnapshot 对"当前用户状态"的一次性刻画。
 // 所有字段都允许零值（未检测到即空），不拿 enum 是为了 JSON 往 trace 表写更直白。
 type PerceptionSnapshot struct {
-	Emotion    emotionalTone    // 复用 llm.go 中既有类型
-	Intent     chatIntentType   // 复用 llm.go 中既有类型
-	LengthPref LengthPreference // 用户是否显式/近期表达过长度诉求
-	MetaInstr  MetaInstruction  // 元指令（要求详细 / 别说教 / 换话题 等）
-	TopicFocus []string         // 本轮识别到的话题关键词（用于 topic 检索 & trace）
-	Arc        EmotionArc       // 跨轮情绪走向
-	RawMessage string           // 本轮用户原话，用于 Strategy 识别"求经验型提问"等表层模式
+	Emotion     emotionalTone    // 复用 llm.go 中既有类型
+	Intent      chatIntentType   // 复用 llm.go 中既有类型
+	LengthPref  LengthPreference // 用户是否显式/近期表达过长度诉求
+	MetaInstr   MetaInstruction  // 元指令（要求详细 / 别说教 / 换话题 等）
+	IntroIntent IntroIntent      // 自我介绍 / 背景介绍意图
+	TopicFocus  []string         // 本轮识别到的话题关键词（用于 topic 检索 & trace）
+	Arc         EmotionArc       // 跨轮情绪走向
+	RawMessage  string           // 本轮用户原话，用于 Strategy 识别"求经验型提问"等表层模式
 }
 
 // LengthPreference 用户期望的回答长度。

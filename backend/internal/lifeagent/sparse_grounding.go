@@ -86,8 +86,11 @@ func wantsElaboration(p PerceptionSnapshot) bool {
 }
 
 // ApplySparseStrategyOverride clamps elaborate targets when catalog is sparse.
-func ApplySparseStrategyOverride(s *Strategy, sparsity CatalogSparsity, perc PerceptionSnapshot) {
+func ApplySparseStrategyOverride(s *Strategy, sparsity CatalogSparsity, perc PerceptionSnapshot, plan RetrievalPlan) {
 	if s == nil || !sparsity.IsSparse || !wantsElaboration(perc) {
+		return
+	}
+	if hasIntroBackgroundMaterial(perc.IntroIntent, plan) {
 		return
 	}
 	lt := sparseLengthTarget()

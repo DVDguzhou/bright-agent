@@ -358,11 +358,6 @@ func LifeAgentsChatAPI(cfg *config.Config) gin.HandlerFunc {
 			lifeagent.EmitReplyChunks(content, func(chunk string) {
 				writeSSE("content", gin.H{"content": chunk})
 			})
-		} else if lifeagent.ClassifyQuestionIntent(body.Message) {
-			content = lifeagent.BuildIdentityReply(profileForAI)
-			lifeagent.EmitReplyChunks(content, func(chunk string) {
-				writeSSE("content", gin.H{"content": chunk})
-			})
 		} else {
 			content, refs, _ = lifeagent.BuildReplyWithLLMStream(
 				c.Request.Context(),

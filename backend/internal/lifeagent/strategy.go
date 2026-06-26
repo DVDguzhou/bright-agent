@@ -81,6 +81,16 @@ func resolveRegister(p PerceptionSnapshot) string {
 //   5. profile.ResponseStyle 有"短句"倾向 → 在同级里偏短；但不低于场景的最小锚（即不能让 deep_consult 退化成一两句）
 
 func resolveLengthTarget(p PerceptionSnapshot, profile ProfileForAI) LengthTarget {
+	// 0) Intro / background narrative
+	if p.IntroIntent.Present {
+		switch p.IntroIntent.Kind {
+		case IntroIntentElaborate, IntroIntentContinuedElaborate:
+			return LengthTarget{Label: "intro_elaborate", MinChars: 280, MaxChars: 600, MinParas: 3, MaxParas: 4}
+		case IntroIntentBrief:
+			return LengthTarget{Label: "intro_brief", MinChars: 30, MaxChars: 80, MinParas: 1, MaxParas: 1}
+		}
+	}
+
 	// 1) MetaInstruction 强信号
 	if p.MetaInstr.Present {
 		switch p.MetaInstr.Type {
@@ -269,6 +279,20 @@ func buildFormatRules(p PerceptionSnapshot, length LengthTarget, empathy string,
 
 	// elaborate 模式下，还要防"每句一行"的短消息风格，并且必须明确对抗
 	// 系统提示里"宁可说少一点"的底层默认——否则这类"怎么准备"的问题会被压成一段话。
+	if length.Label == "intro_elaborate" {
+		rules = append(rules,
+			"这是自我介绍/背景介绍：讲学历路径、关键转折、现在在帮谁做什么；禁止逐字复述人设里的「一句话」「短介绍」。",
+			"除非对方明确问近况，否则不要讲最近在琢磨什么、最近动态。",
+			"写 3–4 段连贯叙述，每段两三句，用口语串起来，不要列标签分点。",
+		)
+	}
+
+	if length.Label == "intro_brief" {
+		rules = append(rules,
+			"对方只问名字或称呼：一两句口语回答即可，不要展开成长篇，也不要复读 headline。",
+		)
+	}
+
 	if length.Label == "sparse_elaborate" {
 		rules = append(rules,
 			"素材只有一两句：详细=口语重述事实+模糊感受，大约 80–160 字、1–2 段。禁止补地点、人物、过程、原因链、对话场景。",
@@ -348,6 +372,11 @@ func lengthPromptHint(target LengthTarget, pref LengthPreference, register strin
 	}
 
 	switch target.Label {
+	case "intro_elaborate":
+		return "对方想了解你的背景履历，用口语讲学历路径、关键转折、现在在帮谁做什么，" +
+			charRange(target) + "，写 3–4 段连贯叙述；禁止复读 headline/短介绍原文，不要讲最近在琢磨什么。"
+	case "intro_brief":
+		return "对方只问名字或称呼，" + charRange(target) + "，口语化回答即可，不要展开成长篇。"
 	case "elaborate":
 		return "这轮把你最相关的经历完整讲一讲，" +
 			charRange(target) +

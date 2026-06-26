@@ -110,9 +110,37 @@ func StrictFromPlan(full RetrievalPlan, message string, entries []KnowledgeEntry
 	cfg := retrievalConfigForRoute(full.Route, false)
 	if cfg.entryLimit > 0 {
 		strictEntries, _ := selectEntriesWithScores(full.Query, entries, full.Topics, full.Route, cfg)
-		strict.Entries = strictEntries
+		strict.Entries = mergePreservedPlanEntries(strictEntries, full.Entries)
 	}
 	return strict
+}
+
+// mergePreservedPlanEntries keeps high-priority entries from the hybrid plan that strict scoring may drop.
+func mergePreservedPlanEntries(strict, preserved []KnowledgeEntryForAI) []KnowledgeEntryForAI {
+	if len(preserved) == 0 {
+		return strict
+	}
+	seen := map[string]bool{}
+	var merged []KnowledgeEntryForAI
+	add := func(e KnowledgeEntryForAI) {
+		if e.ID == "" || seen[e.ID] {
+			return
+		}
+		seen[e.ID] = true
+		merged = append(merged, e)
+	}
+	for _, e := range preserved {
+		if e.ID == ProfileLongBioEntryID || IsIntroKnowledgeEntry(e) {
+			add(e)
+		}
+	}
+	for _, e := range strict {
+		add(e)
+	}
+	for _, e := range preserved {
+		add(e)
+	}
+	return merged
 }
 
 func buildRetrievalPlan(message string, history []ChatMessageForAI, facts []StructuredFactForAI, topics []TopicSummaryForAI, entries []KnowledgeEntryForAI, entryFallback bool) RetrievalPlan {
@@ -185,7 +213,15 @@ func DeweightRecentlyUsedEntries(plan *RetrievalPlan, recentIDs []string) {
 // AttachLiveUpdates 将实时动态注入 RetrievalPlan，根据 query 关键词筛选相关的动态。
 // 无匹配时若 pinned 存在则仍注入（pinned 始终可见）。
 func AttachLiveUpdates(plan *RetrievalPlan, updates []LiveUpdateForAI) {
+	AttachLiveUpdatesFiltered(plan, updates, IntroIntent{}, "")
+}
+
+// AttachLiveUpdatesFiltered injects live updates; skips all injection when intro asks for background.
+func AttachLiveUpdatesFiltered(plan *RetrievalPlan, updates []LiveUpdateForAI, intro IntroIntent, message string) {
 	if len(updates) == 0 {
+		return
+	}
+	if WantsBackgroundNotRecency(message, intro) {
 		return
 	}
 	query := plan.Query

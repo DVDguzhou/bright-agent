@@ -470,8 +470,9 @@ func buildReconcileCitationRule(citationsEnabled bool) string {
 	if !citationsEnabled {
 		return ""
 	}
-	return "9. 【引用标注】每条编号素材 [n] 整段回复最多出现 1 次，只在直接转述该素材事实的那一句末尾标注。" +
-		"模糊感受、态度、反问句禁止加 [n]。素材与句意无关时禁止标注。禁止写「根据资料」「知识库」；只用 [n]。\n"
+	return "9. 【引用标注 - 硬约束】凡转述了编号素材中的具体事实（时间、学校、考试、做法、数字等），对应那句末尾必须标 [n]。" +
+		"多段回复时：每个用到不同素材的段落至少标 1 次；每条素材整段回复最多 1 次。" +
+		"模糊感受、态度、反问句禁止加 [n]。禁止写「根据资料」「知识库」；只用 [n]。\n"
 }
 
 // EnsureInlineCitations adds [n] markers via a lightweight LLM pass when reconcile omitted them.
@@ -519,14 +520,16 @@ func HeuristicEnsureInlineCitations(text string, catalog CitationCatalog) string
 	if text == "" || len(catalog.Items) == 0 {
 		return text
 	}
-	if _, used := ParseInlineCitations(text); len(used) > 0 {
-		return ValidateInlineCitations(text, catalog)
-	}
 	paras := splitParagraphs(text)
 	if len(paras) == 0 {
 		return text
 	}
 	changed := false
+	usedItems := map[int]bool{}
+	_, existing := ParseInlineCitations(text)
+	for _, n := range existing {
+		usedItems[n] = true
+	}
 	for i := range paras {
 		p := strings.TrimSpace(joinLinesInParagraph(paras[i]))
 		if p == "" || citeBracketRe.MatchString(p) {
@@ -536,7 +539,11 @@ func HeuristicEnsureInlineCitations(text string, catalog CitationCatalog) string
 		if item == nil || score < citationMinMatchScore || citationShouldStrip(p, *item) {
 			continue
 		}
+		if usedItems[item.CiteIndex] {
+			continue
+		}
 		paras[i] = appendCitationMarker(p, item.CiteIndex)
+		usedItems[item.CiteIndex] = true
 		changed = true
 	}
 	if !changed {
@@ -548,21 +555,25 @@ func HeuristicEnsureInlineCitations(text string, catalog CitationCatalog) string
 	return ValidateInlineCitations(strings.Join(paras, "\n\n"), catalog)
 }
 
-// overlapEnsureInlineCitations is a last resort: cite best-matching catalog item per paragraph.
+// overlapEnsureInlineCitations adds [n] to paragraphs that lack citations when content matches catalog.
 func overlapEnsureInlineCitations(text string, catalog CitationCatalog) string {
 	text = strings.TrimSpace(text)
 	if text == "" || len(catalog.Items) == 0 {
 		return text
 	}
-	if _, used := ParseInlineCitations(text); len(used) > 0 {
-		return text
-	}
 	paras := splitParagraphs(text)
 	changed := false
 	usedItems := map[int]bool{}
+	_, existing := ParseInlineCitations(text)
+	for _, n := range existing {
+		usedItems[n] = true
+	}
 	for i := range paras {
 		p := strings.TrimSpace(joinLinesInParagraph(paras[i]))
 		if p == "" || len([]rune(p)) < 12 {
+			continue
+		}
+		if citeBracketRe.MatchString(p) {
 			continue
 		}
 		item, score := bestCatalogMatchForParagraph(p, catalog)
@@ -629,8 +640,16 @@ func scoreParagraphForCitationItem(para string, item CitationItem) int {
 		if containsAnyNormalized(norm, []string{
 			"留学", "美国", "cmu", "卡内基", "申请", "托福", "gre", "课业", "课程", "计算机",
 			"温州", "温大", "985", "211", "考研", "保研", "offer", "硕士", "本科", "创业", "research",
+			"雅思", "绩点", "四六级", "六级", "四级", "背单词", "标准化", "双线", "一亩三分地",
 		}) {
 			score += 4
+		}
+	case strings.Contains(title, "考研") || strings.Contains(title, "规划"):
+		if containsAnyNormalized(norm, []string{
+			"考研", "雅思", "绩点", "四六级", "六级", "四级", "背单词", "留学", "双线", "申请",
+			"大二", "大三", "大一", "选修", "excel", "一亩三分地",
+		}) {
+			score += 5
 		}
 	case strings.Contains(title, "大一") || strings.Contains(title, "大二") || strings.Contains(title, "大三"):
 		if containsAnyNormalized(norm, []string{"大一", "大二", "大三", "大四"}) {
@@ -832,12 +851,6 @@ func capCitationMarkersInParagraph(para string, byIndex map[int]CitationItem, se
 		item, ok := byIndex[n]
 		keep := ok && keptInPara == 0 && !seenIndex[n] && !citationShouldStrip(para, item)
 		if keep {
-			sentence := sentenceAroundMarker(para, m[0], m[1])
-			if contentOverlapScore(sentence, item.FullContent) < citationMinMatchScore {
-				keep = false
-			}
-		}
-		if keep {
 			b.WriteString(para[m[0]:m[1]])
 			seenIndex[n] = true
 			keptInPara++
@@ -885,9 +898,11 @@ func FinalizeCitedReply(ctx context.Context, client *openai.Client, model, out s
 			out = HeuristicEnsureInlineCitations(out, catalog)
 		}
 		_, usedIndexes = ParseInlineCitations(out)
-		if !sparse && len(catalog.Items) > 0 && len(usedIndexes) == 0 {
+		// Always try to fill uncited paragraphs (multi-bubble replies often had only partial cites).
+		if len(catalog.Items) > 0 {
 			out = overlapEnsureInlineCitations(out, catalog)
 		}
+		_ = sparse // sparse affects reconcile wording, not whether grounded replies get cites
 	} else {
 		out = StripInlineCitations(out)
 	}

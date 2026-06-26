@@ -3374,8 +3374,6 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 				content = reply
 				refs = replyRefs
 				attribution = lifeagent.AttributionGrounded
-			} else if lifeagent.ClassifyQuestionIntent(body.Message) {
-				content = lifeagent.BuildIdentityReply(profileForAI)
 			} else {
 				content, refs, _ = lifeagent.BuildReplyWithLLM(
 					c.Request.Context(),
@@ -3409,11 +3407,6 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 				content = reply
 				refs = replyRefs
 				attribution = lifeagent.AttributionGrounded
-				lifeagent.EmitReplyChunks(content, func(chunk string) {
-					writeSSE("content", gin.H{"content": chunk})
-				})
-			} else if lifeagent.ClassifyQuestionIntent(body.Message) {
-				content = lifeagent.BuildIdentityReply(profileForAI)
 				lifeagent.EmitReplyChunks(content, func(chunk string) {
 					writeSSE("content", gin.H{"content": chunk})
 				})

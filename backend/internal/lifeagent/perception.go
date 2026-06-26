@@ -84,13 +84,14 @@ func BuildPerceptionSnapshot(message string, history []ChatMessageForAI, traces 
 	arc := BuildEmotionArc(traces, emotion.Type)
 
 	return PerceptionSnapshot{
-		Emotion:    emotion,
-		Intent:     intent,
-		LengthPref: lengthPref,
-		MetaInstr:  meta,
-		TopicFocus: focus,
-		Arc:        arc,
-		RawMessage: message,
+		Emotion:     emotion,
+		Intent:      intent,
+		LengthPref:  lengthPref,
+		MetaInstr:   meta,
+		IntroIntent: DetectIntroIntent(message, history),
+		TopicFocus:  focus,
+		Arc:         arc,
+		RawMessage:  message,
 	}
 }
 

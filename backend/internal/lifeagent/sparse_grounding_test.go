@@ -38,7 +38,7 @@ func TestApplySparseStrategyOverride(t *testing.T) {
 		},
 	}
 	s := DeriveStrategy(ws, ProfileForAI{})
-	ApplySparseStrategyOverride(&s, CatalogSparsity{IsSparse: true}, ws.Perception)
+	ApplySparseStrategyOverride(&s, CatalogSparsity{IsSparse: true}, ws.Perception, RetrievalPlan{})
 	if s.LengthTarget.Label != "sparse_elaborate" {
 		t.Fatalf("label = %q, want sparse_elaborate", s.LengthTarget.Label)
 	}

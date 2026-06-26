@@ -162,6 +162,24 @@ func TestOverlapEnsureInlineCitations(t *testing.T) {
 	}
 }
 
+func TestOverlapEnsureFillsUncitedParagraphsWhenSomeExist(t *testing.T) {
+	catalog := BuildCitationCatalog(RetrievalPlan{
+		Entries: []KnowledgeEntryForAI{
+			{ID: "e1", Title: "考研双线规划", Content: "大二下开始准备雅思和考研英语，绩点选修课策略"},
+			{ID: "e2", Title: "留学申请", Content: "一亩三分地查项目要求，半DIY中介"},
+		},
+	})
+	text := "行，那我细说说那段日子。\n\n" +
+		"大二下册开始琢磨考研和留学双线，绩点压力也很大[1]。\n\n" +
+		"早上听雅思，晚上背考研英语单词，天天如此。\n\n" +
+		"我还去一亩三分地查项目要求，后来找了半DIY中介。"
+	got := overlapEnsureInlineCitations(text, catalog)
+	_, used := ParseInlineCitations(got)
+	if len(used) < 2 {
+		t.Fatalf("expected cites on multiple paragraphs, got %v in %q", used, got)
+	}
+}
+
 func TestStripInlineCitations(t *testing.T) {
 	got := StripInlineCitations("你好¹世界[2]")
 	want := "你好世界"

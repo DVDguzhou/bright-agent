@@ -74,7 +74,14 @@ func BuildReplyWithLLM(ctx context.Context, apiKey, model, baseURL string, enabl
 	if enableWebSearch && isDashScope(baseURL) {
 		plan := BuildRetrievalPlan(message, history, facts, topics, entries)
 		if opts != nil && len(opts.LiveUpdates) > 0 {
-			AttachLiveUpdates(&plan, opts.LiveUpdates)
+			intro := IntroIntent{}
+			if opts.WorkingState != nil {
+				intro = opts.WorkingState.Perception.IntroIntent
+			} else {
+				intro = DetectIntroIntent(message, history)
+			}
+			AttachLiveUpdatesFiltered(&plan, opts.LiveUpdates, intro, message)
+			BoostIntroRetrieval(&plan, entries, profile, intro)
 		}
 		if opts != nil && len(opts.RecentlyUsedEntryIDs) > 0 {
 			DeweightRecentlyUsedEntries(&plan, opts.RecentlyUsedEntryIDs)
@@ -614,7 +621,8 @@ func IsIdentityQuestion(msg string) bool {
 	return false
 }
 
-// BuildIdentityReply 对身份类问题直接返回 profile 信息，不走 LLM，保证零幻觉
+// BuildIdentityReply 对身份类问题直接返回 profile 信息，不走 LLM。
+// Deprecated: 主链路已统一走 LLM；保留仅供无 API 时的极端降级参考。
 func BuildIdentityReply(profile ProfileForAI) string {
 	var parts []string
 	if profile.DisplayName != "" {
@@ -834,6 +842,11 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 	if ws.Perception.Intent == "" && ws.Perception.Emotion.Type == "" {
 		ws.Perception = BuildPerceptionSnapshot(message, history, nil)
 	}
+	introIntent := ws.Perception.IntroIntent
+	if !introIntent.Present {
+		introIntent = DetectIntroIntent(message, history)
+		ws.Perception.IntroIntent = introIntent
+	}
 
 	// ─── 语义层：Hybrid Retrieval（lexical + vector + 启发式 rerank） ───
 	var recentlyUsed []string
@@ -843,6 +856,7 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 	fullPlan, semHits := RunHybridRetrieval(
 		ctx, opts.Embedder, message, history,
 		facts, topics, entries, luSlice, recentlyUsed,
+		profile, introIntent, message,
 	)
 	ws.Retrieved.Plan = fullPlan
 	ws.Retrieved.Semantic = semHits
@@ -868,8 +882,9 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 	if chatIntent != chatIntentSmallTalk {
 		planStrict = StrictFromPlan(fullPlan, message, entries)
 		if opts != nil && len(opts.LiveUpdates) > 0 {
-			AttachLiveUpdates(&planStrict, opts.LiveUpdates)
+			AttachLiveUpdatesFiltered(&planStrict, opts.LiveUpdates, introIntent, message)
 		}
+		BoostIntroRetrieval(&planStrict, entries, profile, introIntent)
 		if opts != nil && len(opts.RecentlyUsedEntryIDs) > 0 {
 			DeweightRecentlyUsedEntries(&planStrict, opts.RecentlyUsedEntryIDs)
 		}
@@ -902,7 +917,7 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 		strategy = DeriveStrategy(ws, profile)
 	}
 	if opts != nil && opts.CatalogSparsity.IsSparse {
-		ApplySparseStrategyOverride(&strategy, opts.CatalogSparsity, ws.Perception)
+		ApplySparseStrategyOverride(&strategy, opts.CatalogSparsity, ws.Perception, planStrict)
 	}
 	// 把 ws 回写 opts，确保 buildDraftKnowledgeContext 能读到 Perception / Episodes
 	opts.WorkingState = ws
@@ -916,9 +931,14 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 		entryHints = append(entryHints, hint)
 	}
 
+	liveForDraft := luSlice
+	if WantsBackgroundNotRecency(message, introIntent) {
+		liveForDraft = nil
+	}
+
 	// Intent-based routing: 闲聊/打招呼直接走 Draft，跳过 Reconcile
-	draftSystem := buildDraftSystemPrompt(profile, facts, topics, luSlice, &strategy)
-	knowledgeCtx := buildDraftKnowledgeContext(facts, topics, luSlice, entryHints, message, history, opts)
+	draftSystem := buildDraftSystemPrompt(profile, facts, topics, liveForDraft, &strategy, introIntent)
+	knowledgeCtx := buildDraftKnowledgeContext(facts, topics, liveForDraft, entryHints, message, history, opts)
 	opts.KnowledgeContext = knowledgeCtx
 	log.Printf("[LLM-strategy] %s", strategy.Debug)
 	draftMsgs := buildMessages(draftSystem, profile.DisplayName, history, message, opts)
@@ -1017,6 +1037,19 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 			}
 		}
 		draft = ApplyClaimGuardWithPolicy(message, draft, facts, fullPlan, answerPolicy)
+		citationsEnabled := opts == nil || opts.CitationsEnabled
+		if citationsEnabled && PlanHasArbitrationTargets(fullPlan) &&
+			(answerPolicy == PolicyGrounded || answerPolicy == PolicySparseGrounded) {
+			catalog := BuildCitationCatalog(fullPlan)
+			sparse := opts != nil && opts.CatalogSparsity.IsSparse
+			var refs []map[string]string
+			draft, refs = FinalizeCitedReply(ctx, client, model, draft, catalog, citationsEnabled, sparse)
+			if opts != nil && len(refs) > 0 {
+				opts.ReplyAttribution = AttributionGrounded
+				opts.ReplyUseSegmentDelivery = true
+			}
+			return deliverFinalReply(draft, refs, onChunk, opts)
+		}
 		return deliverFinalReply(draft, nil, onChunk, opts)
 	}
 
@@ -1092,7 +1125,7 @@ func allowsGeneralKnowledge(opts *ChatOptions) bool {
 // buildDraftSystemPrompt 构建 Layer 1-2 的 system prompt。
 // strategy 为指针，允许 nil：nil 时走旧行为（randomLengthHint），有值时把
 // Strategy.PromptLengthHint 与 Strategy.FormatRules 注入，实现"感知/策略驱动的长度与格式"。
-func buildDraftSystemPrompt(profile ProfileForAI, facts []StructuredFactForAI, topics []TopicSummaryForAI, liveUpdates []LiveUpdateForAI, strategy *Strategy, entryHints ...[]string) string {
+func buildDraftSystemPrompt(profile ProfileForAI, facts []StructuredFactForAI, topics []TopicSummaryForAI, liveUpdates []LiveUpdateForAI, strategy *Strategy, intro IntroIntent) string {
 	var sb strings.Builder
 
 	// ═══ Layer 0: Current Time ═══
@@ -1114,7 +1147,14 @@ func buildDraftSystemPrompt(profile ProfileForAI, facts []StructuredFactForAI, t
 	sb.WriteString("同一个事实在不同对话里必须始终一致：你不能这次说自己研一、下次说已经毕业。拿不准就保持模糊，不要前后改口。\n\n")
 	sb.WriteString("【口吻】\n")
 	sb.WriteString("像微信消息：禁止 Markdown（不要 # 标题、不要 - 列表、不要 ** 加粗、不要数字分点）。别起承转合写太长。\n")
-	sb.WriteString("真人聊天不会每次都面面俱到。有时候一句话就够了，有时候多说几句。不要每次都把所有相关的点全讲完——挑你最有感触的那一个点说透就好，对方想知道更多自然会追问。\n")
+	if intro.Present && (intro.Kind == IntroIntentElaborate || intro.Kind == IntroIntentContinuedElaborate) {
+		sb.WriteString("这轮对方要了解你的背景履历，可以写完整一些，把学历路径和关键转折讲清楚。\n")
+	} else {
+		sb.WriteString("真人聊天不会每次都面面俱到。有时候一句话就够了，有时候多说几句。不要每次都把所有相关的点全讲完——挑你最有感触的那一个点说透就好，对方想知道更多自然会追问。\n")
+	}
+	if g := introSystemPromptGuidance(intro); g != "" {
+		sb.WriteString(g)
+	}
 	// 长度锚：Strategy 提供时用 PromptLengthHint（根据用户诉求/情绪/场景推导的确定性提示），
 	// 否则降级回 randomLengthHint 随机策略，保证老调用方向后兼容。
 	if strategy != nil && strings.TrimSpace(strategy.PromptLengthHint) != "" {
@@ -1332,6 +1372,16 @@ func buildDraftKnowledgeContext(facts []StructuredFactForAI, topics []TopicSumma
 		sb.WriteString(sparseDraftKnowledgeGuidance())
 	}
 
+	var intro IntroIntent
+	if opts != nil && opts.WorkingState != nil {
+		intro = opts.WorkingState.Perception.IntroIntent
+	} else {
+		intro = DetectIntroIntent(message, history)
+	}
+	if g := introDraftKnowledgeGuidance(intro); g != "" {
+		sb.WriteString(g)
+	}
+
 	if confirmedFacts := filterConfirmedFacts(facts); len(confirmedFacts) > 0 {
 		sb.WriteString("【我的基本信息 - 这些是你的真实情况】\n")
 		for _, f := range confirmedFacts {
@@ -1359,12 +1409,17 @@ func buildDraftKnowledgeContext(facts []StructuredFactForAI, topics []TopicSumma
 		}
 	}
 	if len(liveUpdates) > 0 {
-		sb.WriteString("\n【最近动态 - 你本人最近分享的实时信息，优先引用】\n")
+		sb.WriteString("\n【最近动态 - 你本人最近分享的实时信息】\n")
 		sb.WriteString("使用规则：\n")
-		sb.WriteString("- 用户问「最近」「现在」「目前」等时效性话题时→优先用这些内容回答\n")
+		sb.WriteString("- 用户问「最近」「现在」「目前」「近况」等时效性话题时→优先用这些内容回答\n")
 		sb.WriteString("- 用户问「你那边」「当地」等或提到具体地名时→优先用带位置标签的动态回答\n")
 		sb.WriteString("- 用户问「最近更新」「近况」「这条更新」时→以上即你刚分享的新鲜信息；不要说没发过、没有更新，像跟朋友讲近况一样自然展开\n")
-		sb.WriteString("- 回答时自然融入，像跟朋友说近况，不要说「根据我的动态」\n\n")
+		if WantsBackgroundNotRecency(message, intro) {
+			sb.WriteString("- 自我介绍/讲背景时不要主动引用这些动态，除非用户明确问近况\n")
+		} else {
+			sb.WriteString("- 回答时自然融入，像跟朋友说近况，不要说「根据我的动态」\n")
+		}
+		sb.WriteString("\n")
 		for _, u := range liveUpdates {
 			fresh := "刚刚"
 			if u.FreshDays > 0 {
@@ -1608,17 +1663,22 @@ func buildContextQuery(message string, history []ChatMessageForAI) string {
 	var parts []string
 
 	needsExpansion := isAnaphoricMessage(message)
+	intro := DetectIntroIntent(message, history)
+	continuedIntro := intro.Kind == IntroIntentContinuedElaborate
 
 	userCount := 0
 	for i := len(history) - 1; i >= 0 && userCount < 3; i-- {
 		if history[i].Role == "user" {
 			parts = append([]string{history[i].Content}, parts...)
 			userCount++
-		} else if history[i].Role == "assistant" && needsExpansion && userCount == 0 {
-			// 指代消解：把最近一条 assistant 回复的前 200 字也拼进去
+		} else if history[i].Role == "assistant" && (needsExpansion || continuedIntro) && userCount == 0 {
 			assistContent := history[i].Content
-			if len([]rune(assistContent)) > 200 {
-				assistContent = string([]rune(assistContent)[:200])
+			limit := 200
+			if continuedIntro {
+				limit = 300
+			}
+			if len([]rune(assistContent)) > limit {
+				assistContent = string([]rune(assistContent)[:limit])
 			}
 			parts = append([]string{assistContent}, parts...)
 		}
@@ -1634,6 +1694,9 @@ func isAnaphoricMessage(msg string) bool {
 	if len(runes) > 25 {
 		return false
 	}
+	if isFollowUpElaboration(msg) {
+		return true
+	}
 	anaphoricTokens := []string{
 		"那", "呢", "这个", "这", "它", "上面", "刚才", "前面",
 		"也是", "还有", "另外", "同样", "怎么样", "如何",
@@ -1642,6 +1705,24 @@ func isAnaphoricMessage(msg string) bool {
 	lower := strings.ToLower(msg)
 	for _, tok := range anaphoricTokens {
 		if strings.Contains(lower, tok) {
+			return true
+		}
+	}
+	return false
+}
+
+func isFollowUpElaboration(msg string) bool {
+	runes := []rune(strings.TrimSpace(msg))
+	if len(runes) > 20 {
+		return false
+	}
+	cues := []string{
+		"详细点", "具体点", "展开说", "展开讲", "多说点", "再说说", "再讲讲",
+		"讲详细", "说详细", "细说", "多说说",
+	}
+	lower := strings.ToLower(msg)
+	for _, c := range cues {
+		if strings.Contains(lower, c) {
 			return true
 		}
 	}

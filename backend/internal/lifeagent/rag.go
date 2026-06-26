@@ -50,9 +50,13 @@ func RunHybridRetrieval(
 	entries []KnowledgeEntryForAI,
 	live []LiveUpdateForAI,
 	recentlyUsed []string,
+	profile ProfileForAI,
+	intro IntroIntent,
+	message string,
 ) (RetrievalPlan, []SemanticHit) {
 	plan := BuildRetrievalPlan(query, history, facts, topics, entries)
-	AttachLiveUpdates(&plan, live)
+	AttachLiveUpdatesFiltered(&plan, live, intro, message)
+	BoostIntroRetrieval(&plan, entries, profile, intro)
 	DeweightRecentlyUsedEntries(&plan, recentlyUsed)
 
 	hits := seedHitsFromPlan(plan)
