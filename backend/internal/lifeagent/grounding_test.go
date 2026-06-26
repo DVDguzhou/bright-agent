@@ -73,3 +73,40 @@ func TestResolveGroundedFactReply_highRiskStillBlocks(t *testing.T) {
 		t.Fatalf("expected high-risk question blocked, got ok=%v reply=%q", ok, reply)
 	}
 }
+
+func TestBuildRetrievalPlanShortInternshipQueryRecallsUEEntry(t *testing.T) {
+	entries := []KnowledgeEntryForAI{
+		{
+			ID:       "ue-internship",
+			Title:    "UE开发实习经历",
+			Category: "实习",
+			Content:  "当时在一个做 VR+教育的初创团队，主要做 UE4 的开发，一边上班一边写 BP，还跟客户需求和产品沟通。",
+		},
+		{
+			ID:      "physics",
+			Title:   "童年物理兴趣",
+			Content: "小时候对量子力学和相对论很感兴趣。",
+		},
+	}
+	plan := BuildRetrievalPlanStrict("介绍一下实习", nil, nil, nil, entries)
+	if len(plan.Entries) == 0 {
+		t.Fatalf("expected internship query to recall UE entry, got none")
+	}
+	if plan.Entries[0].ID != "ue-internship" {
+		t.Fatalf("top entry = %q, want ue-internship; entries=%#v", plan.Entries[0].ID, plan.Entries)
+	}
+}
+
+func TestBuildRetrievalPlanUEQueryUsesEntryRoute(t *testing.T) {
+	plan := BuildRetrievalPlanStrict("UE这一块讲讲", nil, nil, nil, []KnowledgeEntryForAI{{
+		ID:      "ue-internship",
+		Title:   "UE开发实习经历",
+		Content: "UE开发 BP 客户需求 产品",
+	}})
+	if plan.Route != RetrievalRouteEntry {
+		t.Fatalf("route = %q, want %q", plan.Route, RetrievalRouteEntry)
+	}
+	if len(plan.Entries) == 0 || plan.Entries[0].ID != "ue-internship" {
+		t.Fatalf("expected UE entry recalled, got %#v", plan.Entries)
+	}
+}

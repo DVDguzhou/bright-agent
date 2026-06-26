@@ -330,6 +330,23 @@ func scoreEntry(message string, entry KnowledgeEntryForAI, route RetrievalRoute,
 			}
 		}
 	}
+	for _, term := range matchedDomainQueryTerms(message) {
+		if strings.Contains(normTitle, term) {
+			score += 6
+		}
+		if strings.Contains(normCategory, term) {
+			score += 4
+		}
+		if strings.Contains(normContent, term) {
+			score += 5
+		}
+		for _, tag := range normTags {
+			if strings.Contains(tag, term) {
+				score += 5
+				break
+			}
+		}
+	}
 	if facetScore := ScoreFacetMatch(ParseQueryFacet(message), entry.Facets); facetScore > 0 {
 		score += facetScore
 	}
@@ -372,12 +389,44 @@ func tokenize(s string) []string {
 	parts := re.Split(norm, -1)
 	seen := make(map[string]bool)
 	var out []string
-	for _, p := range parts {
+	add := func(p string) {
 		p = strings.TrimSpace(p)
-		if len(p) >= 2 && !seen[p] {
+		if len([]rune(p)) >= 2 && !seen[p] {
 			seen[p] = true
 			out = append(out, p)
 		}
 	}
+	for _, p := range parts {
+		add(p)
+	}
+	for _, term := range domainQueryTerms() {
+		if strings.Contains(norm, normalize(term)) {
+			add(normalize(term))
+		}
+	}
 	return out
+}
+
+func matchedDomainQueryTerms(s string) []string {
+	norm := normalize(s)
+	out := make([]string, 0)
+	seen := map[string]bool{}
+	for _, term := range domainQueryTerms() {
+		term = normalize(term)
+		if term != "" && strings.Contains(norm, term) && !seen[term] {
+			seen[term] = true
+			out = append(out, term)
+		}
+	}
+	return out
+}
+
+func domainQueryTerms() []string {
+	return []string{
+		"实习", "暑期实习", "工作", "求职", "秋招", "春招", "面试", "简历",
+		"ue", "ue开发", "unreal", "虚幻", "开发", "代码", "程序",
+		"项目", "创业", "创业项目", "bp", "产品", "客户", "客户需求", "投资", "投资人",
+		"毕设", "毕业设计", "游戏化", "激励系统", "游戏化激励系统",
+		"考研", "留学", "申请", "雅思", "托福", "gre", "绩点",
+	}
 }

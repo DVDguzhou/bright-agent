@@ -568,6 +568,7 @@ func classifyRetrievalRoute(message string) RetrievalRoute {
 	norm := normalize(message)
 	if containsAnyNormalized(norm, []string{
 		"具体", "细节", "案例", "例子", "原话", "复盘", "项目", "比赛", "面试", "简历", "offer", "当时",
+		"ue", "ue开发", "unreal", "虚幻", "开发", "代码", "毕设", "毕业设计", "游戏化",
 	}) {
 		return RetrievalRouteEntry
 	}
