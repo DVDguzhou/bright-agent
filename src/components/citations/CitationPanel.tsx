@@ -142,7 +142,7 @@ export function CitationSourceChips({
                 : "border-hairline bg-paper-50 text-ink-500 hover:border-ink-300 hover:text-ink-700"
             }`}
           >
-            {ref.title}
+            {idx ? `来源 ${idx} · ${ref.title}` : ref.title}
           </button>
         );
       })}

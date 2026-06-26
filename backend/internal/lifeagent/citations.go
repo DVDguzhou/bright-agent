@@ -62,15 +62,15 @@ var (
 func SourceTypeLabel(sourceType string) string {
 	switch sourceType {
 	case "fact":
-		return "结构化事实"
+		return "确认信息"
 	case "topic":
-		return "主题摘要"
+		return "经历摘要"
 	case "knowledge":
-		return "知识库原文"
+		return "经历片段"
 	case "liveUpdate":
 		return "最近动态"
 	case "profile":
-		return "人设资料"
+		return "个人资料"
 	default:
 		return "来源"
 	}
@@ -392,7 +392,7 @@ func BuildCitationCatalog(plan RetrievalPlan) CitationCatalog {
 		for _, chunk := range chunks {
 			excerpt := normalizeSnippet(firstSentence(chunk.Text, 120))
 			if excerpt == "" {
-				excerpt = "基于已有知识库原文的一段证据。"
+				excerpt = "与本次回答相关的一段经历。"
 			}
 			id := chunk.ID
 			if id == "" {
@@ -442,7 +442,7 @@ func BuildCitationCatalog(plan RetrievalPlan) CitationCatalog {
 	for _, topic := range topicsForCitationDisplay(plan) {
 		excerpt := normalizeSnippet(firstSentence(topic.Summary, 80))
 		if excerpt == "" {
-			excerpt = "基于该主题经验生成的摘要。"
+			excerpt = "与本次回答相关的一段经历摘要。"
 		}
 		items = append(items, CitationItem{
 			CiteIndex:   idx,
@@ -601,7 +601,24 @@ func RenumberReplySegmentCitations(segments []string, refs []map[string]string) 
 		}
 	}
 	if len(oldToNew) == 0 {
-		return outSegments, make([][]map[string]string, len(outSegments)), nil
+		answerRefs := make([]map[string]string, 0, len(refs))
+		seen := map[string]bool{}
+		for _, ref := range refs {
+			key := ref["sourceType"] + ":" + ref["id"]
+			if key == ":" {
+				key = ref["title"]
+			}
+			if seen[key] {
+				continue
+			}
+			seen[key] = true
+			answerRefs = append(answerRefs, renumberReference(ref, len(answerRefs)+1))
+		}
+		segmentRefs := make([][]map[string]string, len(outSegments))
+		if len(segmentRefs) > 0 {
+			segmentRefs[0] = answerRefs
+		}
+		return outSegments, segmentRefs, answerRefs
 	}
 
 	answerRefs := make([]map[string]string, 0, len(orderedOld))
@@ -645,6 +662,14 @@ func renumberReference(ref map[string]string, citeIndex int) map[string]string {
 	return out
 }
 
+func displayExcerptForCitation(item CitationItem) string {
+	text := normalizeSnippet(firstSentence(firstNonEmpty(item.Excerpt, item.FullContent, item.Title), 40))
+	if text == "" {
+		return "与本次回答相关的经历片段"
+	}
+	return text
+}
+
 func citationItemToMap(item CitationItem, includeCiteIndex bool) map[string]string {
 	m := map[string]string{
 		"id":              item.ID,
@@ -652,6 +677,7 @@ func citationItemToMap(item CitationItem, includeCiteIndex bool) map[string]stri
 		"sourceTypeLabel": SourceTypeLabel(item.SourceType),
 		"title":           item.Title,
 		"excerpt":         item.Excerpt,
+		"displayExcerpt":  displayExcerptForCitation(item),
 		"fullContent":     item.FullContent,
 		"route":           item.Route,
 		"confidence":      item.Confidence,
@@ -713,6 +739,7 @@ func EnrichReferencesFromCatalog(refs []map[string]string, catalog CitationCatal
 		id := ref["id"]
 		if item, ok := byID[st+":"+id]; ok {
 			cp["citeIndex"] = strconv.Itoa(item.CiteIndex)
+			cp["displayExcerpt"] = displayExcerptForCitation(item)
 			cp["fullContent"] = item.FullContent
 			cp["sourceTypeLabel"] = SourceTypeLabel(item.SourceType)
 		} else if cp["sourceTypeLabel"] == "" {

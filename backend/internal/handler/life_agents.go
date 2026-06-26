@@ -579,9 +579,16 @@ func buildLifeAgentChatReferences(refs models.JSONAny) []gin.H {
 			"category":        refMap["category"],
 			"title":           refMap["title"],
 			"excerpt":         refMap["excerpt"],
+			"displayExcerpt":  refMap["displayExcerpt"],
 			"fullContent":     refMap["fullContent"],
 			"citeIndex":       refMap["citeIndex"],
 			"confidence":      refMap["confidence"],
+			"parentId":        refMap["parentId"],
+			"parentTitle":     refMap["parentTitle"],
+			"chunkIndex":      refMap["chunkIndex"],
+			"charStart":       refMap["charStart"],
+			"charEnd":         refMap["charEnd"],
+			"evidenceKind":    refMap["evidenceKind"],
 		})
 	}
 	return list
@@ -3445,12 +3452,20 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 			attribution = chatOpts.ReplyAttribution
 		}
 		db.DB.Create(&models.LifeAgentChatMessage{ID: models.GenID(), SessionID: sessionID, Role: "user", Content: body.Message})
+		rawRefsCount := len(refs)
+		_, rawInlineIndexes := lifeagent.ParseInlineCitations(content)
 		replySegments := lifeagent.SplitReplySegments(content)
 		if len(replySegments) == 0 {
 			replySegments = []string{content}
 		}
 		replySegments, segRefs, refs := lifeagent.RenumberReplySegmentCitations(replySegments, refs)
 		content = strings.Join(replySegments, "\n\n")
+		_, finalInlineIndexes := lifeagent.ParseInlineCitations(content)
+		segRefsCount := 0
+		for _, list := range segRefs {
+			segRefsCount += len(list)
+		}
+		log.Printf("[citations] profile=%s session=%s attribution=%s raw_refs=%d raw_inline=%d final_inline=%d answer_refs=%d segment_refs=%d", id, sessionID, attribution, rawRefsCount, len(rawInlineIndexes), len(finalInlineIndexes), len(refs), segRefsCount)
 		refsMap := make([]map[string]interface{}, len(refs))
 		for i, r := range refs {
 			refsMap[i] = make(map[string]interface{})

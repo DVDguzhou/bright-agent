@@ -386,7 +386,7 @@ func ResolveGroundedFactReply(profile ProfileForAI, facts []StructuredFactForAI,
 	}
 	if len(matched) == 0 {
 		if intent.Key == "display_name" && profile.DisplayName != "" {
-			return "我是" + profile.DisplayName + "。", []map[string]string{{"sourceType": "profile", "factKey": "display_name", "title": "名字", "excerpt": profile.DisplayName}}, true
+			return "我是" + profile.DisplayName + "。", []map[string]string{{"sourceType": "profile", "factKey": "display_name", "title": "名字", "excerpt": profile.DisplayName, "displayExcerpt": profile.DisplayName}}, true
 		}
 		return "", nil, false
 	}
@@ -402,6 +402,7 @@ func ResolveGroundedFactReply(profile ProfileForAI, facts []StructuredFactForAI,
 			"factKey":         fact.FactKey,
 			"title":           factLabel(fact.FactKey),
 			"excerpt":         fact.FactValue,
+			"displayExcerpt":  normalizeSnippet(firstSentence(fact.FactValue, 40)),
 			"fullContent":     fact.FactValue,
 			"citeIndex":       strconv.Itoa(citeIndex),
 			"confidence":      fact.Confidence,

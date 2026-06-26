@@ -28,7 +28,7 @@ import {
   type LifeAgentGrowthEvent,
 } from "@/lib/life-agent-growth";
 import { CitedMessageContent } from "@/components/citations/CitedMessageContent";
-import { CitationPanel } from "@/components/citations/CitationPanel";
+import { CitationPanel, CitationSourceChips } from "@/components/citations/CitationPanel";
 import {
   attributionHint,
   parseCiteIndex,
@@ -1312,6 +1312,24 @@ export default function LifeAgentChatPage() {
                                 : undefined
                             }
                           />
+                          {message.role === "assistant" && message.references?.length ? (
+                            <CitationSourceChips
+                              references={message.references}
+                              activeCiteIndex={
+                                activeCitation?.messageKey ===
+                                (message.messageId ?? message.content.slice(0, 24))
+                                  ? activeCitation.citeIndex
+                                  : null
+                              }
+                              onOpen={(idx) =>
+                                openCitations(
+                                  message.references!,
+                                  message.messageId ?? message.content.slice(0, 24),
+                                  idx ?? null
+                                )
+                              }
+                            />
+                          ) : null}
                           {attributionHint(message.attribution) && (
                             <p className="text-[11px] text-ink-400">{attributionHint(message.attribution)}</p>
                           )}

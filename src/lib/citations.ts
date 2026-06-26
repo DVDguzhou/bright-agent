@@ -6,6 +6,7 @@ export type CitationReference = {
   category?: string;
   title: string;
   excerpt: string;
+  displayExcerpt?: string;
   fullContent?: string;
   citeIndex?: number | string;
   confidence?: string;
@@ -74,15 +75,15 @@ export function sourceTypeLabel(sourceType?: string, label?: string): string {
   if (label) return label;
   switch (sourceType) {
     case "fact":
-      return "结构化事实";
+      return "确认信息";
     case "topic":
-      return "主题摘要";
+      return "经历摘要";
     case "knowledge":
-      return "知识库原文";
+      return "经历片段";
     case "liveUpdate":
       return "最近动态";
     case "profile":
-      return "人设资料";
+      return "个人资料";
     default:
       return "来源";
   }
