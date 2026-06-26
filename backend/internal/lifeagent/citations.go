@@ -36,9 +36,14 @@ type CitationItem struct {
 	Route       string
 	CreatedAt   string
 	Facets      string
+	ParentID    string
+	ParentTitle string
+	ChunkIndex  int
+	CharStart   int
+	CharEnd     int
 }
 
-// CitationCatalog ordered sources for reconcile prompt numbering (facts → topics → entries → live).
+// CitationCatalog ordered sources for reconcile prompt numbering (facts → entry chunks → live → topics).
 type CitationCatalog struct {
 	Items []CitationItem
 }
@@ -61,7 +66,7 @@ func SourceTypeLabel(sourceType string) string {
 	case "topic":
 		return "主题摘要"
 	case "knowledge":
-		return "本人经历"
+		return "知识库原文"
 	case "liveUpdate":
 		return "最近动态"
 	case "profile":
@@ -107,6 +112,253 @@ func topicsForCitationDisplay(plan RetrievalPlan) []TopicSummaryForAI {
 	return out
 }
 
+type citationTextChunk struct {
+	ID        string
+	Index     int
+	Text      string
+	CharStart int
+	CharEnd   int
+}
+
+const (
+	citationChunkTargetRunes  = 260
+	citationChunkMaxRunes     = 420
+	citationChunkMinRunes     = 80
+	citationMaxChunksPerEntry = 4
+)
+
+func splitKnowledgeEntryForCitations(entry KnowledgeEntryForAI) []citationTextChunk {
+	content := strings.TrimSpace(entry.Content)
+	if content == "" {
+		return nil
+	}
+	runes := []rune(entry.Content)
+	if len([]rune(content)) <= citationChunkMaxRunes {
+		start, end := trimmedRuneBounds(runes, 0, len(runes))
+		return []citationTextChunk{{Index: 1, Text: strings.TrimSpace(string(runes[start:end])), CharStart: start, CharEnd: end}}
+	}
+
+	segments := splitCitationTextSegments(entry.Content)
+	if len(segments) == 0 {
+		return splitLongCitationWindow(runes, 0)
+	}
+
+	var chunks []citationTextChunk
+	var cur strings.Builder
+	curStart, curEnd := -1, -1
+	flush := func() {
+		if cur.Len() == 0 || curStart < 0 || curEnd <= curStart {
+			return
+		}
+		text := strings.TrimSpace(cur.String())
+		if text == "" {
+			cur.Reset()
+			curStart, curEnd = -1, -1
+			return
+		}
+		chunks = append(chunks, citationTextChunk{
+			Index:     len(chunks) + 1,
+			Text:      text,
+			CharStart: curStart,
+			CharEnd:   curEnd,
+		})
+		cur.Reset()
+		curStart, curEnd = -1, -1
+	}
+
+	for _, seg := range segments {
+		segRunes := []rune(seg.Text)
+		if len(segRunes) > citationChunkMaxRunes {
+			flush()
+			for _, w := range splitLongCitationWindow(segRunes, seg.CharStart) {
+				w.Index = len(chunks) + 1
+				chunks = append(chunks, w)
+			}
+			continue
+		}
+		curLen := len([]rune(cur.String()))
+		nextLen := curLen + len(segRunes)
+		if curLen > 0 && nextLen > citationChunkMaxRunes && curLen >= citationChunkMinRunes {
+			flush()
+		}
+		if cur.Len() > 0 {
+			cur.WriteString("\n")
+		}
+		if curStart < 0 {
+			curStart = seg.CharStart
+		}
+		cur.WriteString(seg.Text)
+		curEnd = seg.CharEnd
+		if len([]rune(cur.String())) >= citationChunkTargetRunes {
+			flush()
+		}
+	}
+	flush()
+	if len(chunks) == 0 {
+		start, end := trimmedRuneBounds(runes, 0, len(runes))
+		return []citationTextChunk{{Index: 1, Text: strings.TrimSpace(string(runes[start:end])), CharStart: start, CharEnd: end}}
+	}
+	return chunks
+}
+
+func selectKnowledgeCitationChunks(entry KnowledgeEntryForAI, query string) []citationTextChunk {
+	chunks := citationChunksFromEntry(entry)
+	if len(chunks) <= citationMaxChunksPerEntry {
+		return chunks
+	}
+	type scoredChunk struct {
+		chunk citationTextChunk
+		score int
+	}
+	scored := make([]scoredChunk, 0, len(chunks))
+	for _, chunk := range chunks {
+		scored = append(scored, scoredChunk{chunk: chunk, score: scoreCitationChunk(query, entry, chunk)})
+	}
+	sort.SliceStable(scored, func(i, j int) bool {
+		if scored[i].score == scored[j].score {
+			return scored[i].chunk.Index < scored[j].chunk.Index
+		}
+		return scored[i].score > scored[j].score
+	})
+	selected := make([]citationTextChunk, 0, citationMaxChunksPerEntry)
+	for i := 0; i < len(scored) && i < citationMaxChunksPerEntry; i++ {
+		selected = append(selected, scored[i].chunk)
+	}
+	sort.SliceStable(selected, func(i, j int) bool {
+		return selected[i].Index < selected[j].Index
+	})
+	return selected
+}
+
+func citationChunksFromEntry(entry KnowledgeEntryForAI) []citationTextChunk {
+	if len(entry.CitationChunks) == 0 {
+		return splitKnowledgeEntryForCitations(entry)
+	}
+	chunks := make([]citationTextChunk, 0, len(entry.CitationChunks))
+	for _, row := range entry.CitationChunks {
+		text := strings.TrimSpace(row.Content)
+		if text == "" {
+			continue
+		}
+		idx := row.ChunkIndex
+		if idx <= 0 {
+			idx = len(chunks) + 1
+		}
+		chunks = append(chunks, citationTextChunk{
+			ID:        row.ID,
+			Index:     idx,
+			Text:      text,
+			CharStart: row.CharStart,
+			CharEnd:   row.CharEnd,
+		})
+	}
+	sort.SliceStable(chunks, func(i, j int) bool {
+		return chunks[i].Index < chunks[j].Index
+	})
+	return chunks
+}
+
+func scoreCitationChunk(query string, entry KnowledgeEntryForAI, chunk citationTextChunk) int {
+	query = strings.TrimSpace(query)
+	if query == "" {
+		return citationMaxChunksPerEntry - minInt(chunk.Index, citationMaxChunksPerEntry)
+	}
+	normChunk := normalize(chunk.Text + " " + entry.Title + " " + entry.Category + " " + strings.Join(entry.Tags, " "))
+	score := 0
+	for _, tok := range tokenize(query) {
+		if strings.Contains(normChunk, tok) {
+			score += 3
+		}
+	}
+	if facetScore := ScoreFacetMatch(ParseQueryFacet(query), entry.Facets); facetScore > 0 {
+		score += facetScore
+	}
+	return score
+}
+
+func minInt(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
+func splitCitationTextSegments(content string) []citationTextChunk {
+	runes := []rune(content)
+	var segments []citationTextChunk
+	start := 0
+	flush := func(end int) {
+		s, e := trimmedRuneBounds(runes, start, end)
+		if e > s {
+			segments = append(segments, citationTextChunk{
+				Index:     len(segments) + 1,
+				Text:      strings.TrimSpace(string(runes[s:e])),
+				CharStart: s,
+				CharEnd:   e,
+			})
+		}
+		start = end
+	}
+	for i, r := range runes {
+		if isCitationSegmentBoundary(r) {
+			flush(i + 1)
+		}
+	}
+	if start < len(runes) {
+		flush(len(runes))
+	}
+	return segments
+}
+
+func isCitationSegmentBoundary(r rune) bool {
+	switch r {
+	case '。', '！', '？', '；', '\n', '.', '!', '?', ';':
+		return true
+	default:
+		return false
+	}
+}
+
+func trimmedRuneBounds(runes []rune, start, end int) (int, int) {
+	if start < 0 {
+		start = 0
+	}
+	if end > len(runes) {
+		end = len(runes)
+	}
+	for start < end && strings.TrimSpace(string(runes[start])) == "" {
+		start++
+	}
+	for end > start && strings.TrimSpace(string(runes[end-1])) == "" {
+		end--
+	}
+	return start, end
+}
+
+func splitLongCitationWindow(runes []rune, baseStart int) []citationTextChunk {
+	if len(runes) == 0 {
+		return nil
+	}
+	var chunks []citationTextChunk
+	for start := 0; start < len(runes); start += citationChunkTargetRunes {
+		end := start + citationChunkTargetRunes
+		if end > len(runes) {
+			end = len(runes)
+		}
+		s, e := trimmedRuneBounds(runes, start, end)
+		if e <= s {
+			continue
+		}
+		chunks = append(chunks, citationTextChunk{
+			Index:     len(chunks) + 1,
+			Text:      strings.TrimSpace(string(runes[s:e])),
+			CharStart: baseStart + s,
+			CharEnd:   baseStart + e,
+		})
+	}
+	return chunks
+}
+
 // BuildCitationCatalog builds a unified 1-based index over retrieval plan hits.
 func BuildCitationCatalog(plan RetrievalPlan) CitationCatalog {
 	items := make([]CitationItem, 0, len(plan.Facts)+len(plan.Topics)+len(plan.Entries)+len(plan.LiveUpdates))
@@ -128,43 +380,46 @@ func BuildCitationCatalog(plan RetrievalPlan) CitationCatalog {
 		})
 		idx++
 	}
-	for _, topic := range topicsForCitationDisplay(plan) {
-		excerpt := normalizeSnippet(firstSentence(topic.Summary, 80))
-		if excerpt == "" {
-			excerpt = "基于该主题经验生成的摘要。"
-		}
-		items = append(items, CitationItem{
-			CiteIndex:   idx,
-			ID:          topic.ID,
-			SourceType:  "topic",
-			Title:       topic.TopicLabel,
-			Excerpt:     excerpt,
-			FullContent: topic.Summary,
-			Confidence:  topic.Confidence,
-			TopicGroup:  topic.TopicGroup,
-			TopicKey:    topic.TopicKey,
-			Route:       route,
-		})
-		idx++
-	}
 	for _, entry := range plan.Entries {
-		excerpt := normalizeSnippet(firstSentence(entry.Content, 80))
-		if excerpt == "" {
-			excerpt = "基于已有经历给到的一条可执行建议。"
+		chunks := selectKnowledgeCitationChunks(entry, plan.Query)
+		if len(chunks) == 0 {
+			fallbackText := strings.TrimSpace(firstNonEmpty(entry.Content, entry.Title, entry.Category))
+			if fallbackText == "" {
+				continue
+			}
+			chunks = []citationTextChunk{{Index: 1, Text: fallbackText}}
 		}
-		items = append(items, CitationItem{
-			CiteIndex:   idx,
-			ID:          entry.ID,
-			SourceType:  "knowledge",
-			Title:       entry.Title,
-			Excerpt:     excerpt,
-			FullContent: entry.Content,
-			Category:    entry.Category,
-			Confidence:  conf,
-			Route:       route,
-			Facets:      FacetSummary(entry.Facets),
-		})
-		idx++
+		for _, chunk := range chunks {
+			excerpt := normalizeSnippet(firstSentence(chunk.Text, 120))
+			if excerpt == "" {
+				excerpt = "基于已有知识库原文的一段证据。"
+			}
+			id := chunk.ID
+			if id == "" {
+				id = entry.ID
+			}
+			if chunk.ID == "" && len(chunks) > 1 {
+				id = fmt.Sprintf("%s#chunk-%d", entry.ID, chunk.Index)
+			}
+			items = append(items, CitationItem{
+				CiteIndex:   idx,
+				ID:          id,
+				SourceType:  "knowledge",
+				Title:       entry.Title,
+				Excerpt:     excerpt,
+				FullContent: chunk.Text,
+				Category:    entry.Category,
+				Confidence:  conf,
+				Route:       route,
+				Facets:      FacetSummary(entry.Facets),
+				ParentID:    entry.ID,
+				ParentTitle: entry.Title,
+				ChunkIndex:  chunk.Index,
+				CharStart:   chunk.CharStart,
+				CharEnd:     chunk.CharEnd,
+			})
+			idx++
+		}
 	}
 	for _, lu := range plan.LiveUpdates {
 		excerpt := normalizeSnippet(firstSentence(lu.Content, 80))
@@ -181,6 +436,25 @@ func BuildCitationCatalog(plan RetrievalPlan) CitationCatalog {
 			Category:    lu.Category,
 			Route:       route,
 			CreatedAt:   lu.CreatedAt,
+		})
+		idx++
+	}
+	for _, topic := range topicsForCitationDisplay(plan) {
+		excerpt := normalizeSnippet(firstSentence(topic.Summary, 80))
+		if excerpt == "" {
+			excerpt = "基于该主题经验生成的摘要。"
+		}
+		items = append(items, CitationItem{
+			CiteIndex:   idx,
+			ID:          topic.ID,
+			SourceType:  "topic",
+			Title:       topic.TopicLabel,
+			Excerpt:     excerpt,
+			FullContent: topic.Summary,
+			Confidence:  topic.Confidence,
+			TopicGroup:  topic.TopicGroup,
+			TopicKey:    topic.TopicKey,
+			Route:       route,
 		})
 		idx++
 	}
@@ -403,6 +677,20 @@ func citationItemToMap(item CitationItem, includeCiteIndex bool) map[string]stri
 	if item.CreatedAt != "" {
 		m["createdAt"] = item.CreatedAt
 	}
+	if item.ParentID != "" {
+		m["parentId"] = item.ParentID
+	}
+	if item.ParentTitle != "" {
+		m["parentTitle"] = item.ParentTitle
+	}
+	if item.ChunkIndex > 0 {
+		m["chunkIndex"] = strconv.Itoa(item.ChunkIndex)
+		m["evidenceKind"] = "chunk"
+	}
+	if item.CharStart > 0 || item.CharEnd > 0 {
+		m["charStart"] = strconv.Itoa(item.CharStart)
+		m["charEnd"] = strconv.Itoa(item.CharEnd)
+	}
 	return m
 }
 
@@ -442,6 +730,9 @@ func buildReconcileCatalogPrompt(catalog CitationCatalog) string {
 	var sb strings.Builder
 	for _, item := range catalog.Items {
 		sb.WriteString(fmt.Sprintf("[%d] %s（%s）\n", item.CiteIndex, item.Title, SourceTypeLabel(item.SourceType)))
+		if item.ParentTitle != "" && item.ChunkIndex > 0 {
+			sb.WriteString(fmt.Sprintf("原条目：%s；片段：%d\n", item.ParentTitle, item.ChunkIndex))
+		}
 		if item.Facets != "" {
 			sb.WriteString("分面：")
 			sb.WriteString(item.Facets)
@@ -472,6 +763,7 @@ func buildReconcileCitationRule(citationsEnabled bool) string {
 	}
 	return "9. 【引用标注 - 硬约束】凡转述了编号素材中的具体事实（时间、学校、考试、做法、数字等），对应那句末尾必须标 [n]。" +
 		"同一条气泡内若多句转述不同素材，每句句末分别标 [n]；每条素材整段回复最多 1 次。" +
+		"[n] 必须标在转述了编号 n 那条素材事实的句末，禁止按句子顺序或「第几句」填号。" +
 		"模糊感受、态度、反问句禁止加 [n]。禁止写「根据资料」「知识库」；只用 [n]。\n"
 }
 
@@ -619,15 +911,15 @@ func fillSentenceCitationsInParagraph(para string, catalog CitationCatalog, used
 		if sentenceIsCitationExempt(sent) {
 			continue
 		}
-		item, score := bestCatalogMatchForParagraph(sent, catalog)
-		if item == nil || score < citationMinMatchScore || citationShouldStripContext(sent, para, *item) {
+		best, _ := bestTwoCatalogScores(sent, catalog)
+		if best.item == nil || usedItems[best.item.CiteIndex] {
 			continue
 		}
-		if usedItems[item.CiteIndex] {
+		if !shouldKeepCitation(sent, para, *best.item, catalog) {
 			continue
 		}
-		sentences[j] = appendCitationMarker(sent, item.CiteIndex)
-		usedItems[item.CiteIndex] = true
+		sentences[j] = appendCitationMarker(sent, best.item.CiteIndex)
+		usedItems[best.item.CiteIndex] = true
 		changed = true
 	}
 	if !changed {
@@ -636,23 +928,37 @@ func fillSentenceCitationsInParagraph(para string, catalog CitationCatalog, used
 	return strings.Join(sentences, ""), true
 }
 
-const citationMinMatchScore = 3
+const (
+	citationAbsMinScore = 6
+	citationScoreMargin = 2
+)
 
-func bestCatalogMatchForParagraph(para string, catalog CitationCatalog) (*CitationItem, int) {
-	bestScore := 0
-	var best *CitationItem
-	for i := range catalog.Items {
-		item := &catalog.Items[i]
-		score := scoreParagraphForCitationItem(para, *item)
-		if score > bestScore {
-			bestScore = score
-			best = item
-		}
-	}
-	return best, bestScore
+type scoredCitationItem struct {
+	item  *CitationItem
+	score int
 }
 
-func scoreParagraphForCitationItem(para string, item CitationItem) int {
+func bestTwoCatalogScores(sent string, catalog CitationCatalog) (best, second scoredCitationItem) {
+	for i := range catalog.Items {
+		item := &catalog.Items[i]
+		score := sentenceItemGroundingScore(sent, *item)
+		if score > best.score {
+			second = best
+			best = scoredCitationItem{item: item, score: score}
+		} else if score > second.score {
+			second = scoredCitationItem{item: item, score: score}
+		}
+	}
+	return best, second
+}
+
+func bestCatalogMatchForParagraph(para string, catalog CitationCatalog) (*CitationItem, int) {
+	best, _ := bestTwoCatalogScores(para, catalog)
+	return best.item, best.score
+}
+
+// sentenceItemGroundingScore estimates how well a sentence is grounded in one catalog item.
+func sentenceItemGroundingScore(para string, item CitationItem) int {
 	norm := normalize(para)
 	score := contentOverlapScore(para, item.FullContent)
 	for _, kw := range citationKeywords(item) {
@@ -715,6 +1021,127 @@ func scoreParagraphForCitationItem(para string, item CitationItem) int {
 		score -= 10
 	}
 	return score
+}
+
+func citationAnchorTerms(item CitationItem) []string {
+	seen := map[string]bool{}
+	var terms []string
+	add := func(raw string) {
+		for _, seg := range strings.FieldsFunc(raw, func(r rune) bool {
+			return r == '，' || r == '。' || r == '、' || r == '；' || r == ' ' || r == ':' || r == '：' ||
+				r == '\n' || r == '/' || r == '|'
+		}) {
+			seg = strings.TrimSpace(seg)
+			if len([]rune(seg)) < 2 || isCitationStopWord(seg) || isCitationGenericAnchor(seg) {
+				continue
+			}
+			if seen[seg] {
+				continue
+			}
+			seen[seg] = true
+			terms = append(terms, seg)
+		}
+		for _, ngram := range citationTitleNGrams(raw) {
+			if seen[ngram] || isCitationStopWord(ngram) || isCitationGenericAnchor(ngram) {
+				continue
+			}
+			seen[ngram] = true
+			terms = append(terms, ngram)
+		}
+	}
+	add(item.Title)
+	add(item.Facets)
+	contentSample := item.FullContent
+	if len([]rune(contentSample)) > 200 {
+		contentSample = string([]rune(contentSample)[:200])
+	}
+	for _, term := range extractSignificantTerms(contentSample) {
+		if isCitationGenericAnchor(term) || seen[term] {
+			continue
+		}
+		seen[term] = true
+		terms = append(terms, term)
+	}
+	for _, kw := range citationKeywords(item) {
+		if len([]rune(kw)) < 2 || isCitationStopWord(kw) || isCitationGenericAnchor(kw) || seen[kw] {
+			continue
+		}
+		seen[kw] = true
+		terms = append(terms, kw)
+	}
+	return terms
+}
+
+func citationTitleNGrams(text string) []string {
+	runes := []rune(strings.TrimSpace(text))
+	if len(runes) < 2 {
+		return nil
+	}
+	var terms []string
+	for i := 0; i < len(runes); i++ {
+		for l := 2; l <= 3 && i+l <= len(runes); l++ {
+			terms = append(terms, string(runes[i:i+l]))
+		}
+	}
+	return terms
+}
+
+func isCitationGenericAnchor(term string) bool {
+	switch term {
+	case "经历", "背景", "本人", "建议", "摘要", "动态", "事实", "主题", "内容", "相关", "个人", "一般", "具体":
+		return true
+	}
+	return false
+}
+
+func citationAnchorHits(sent string, item CitationItem) int {
+	norm := normalize(sent)
+	hits := 0
+	for _, term := range citationAnchorTerms(item) {
+		if strings.Contains(norm, normalize(term)) {
+			hits++
+		}
+	}
+	return hits
+}
+
+// citationGroundingValid requires absolute score, competitive best match, and anchor overlap.
+func citationGroundingValid(sent string, item CitationItem, catalog CitationCatalog) bool {
+	if citationShouldStrip(sent, item) {
+		return false
+	}
+	score := sentenceItemGroundingScore(sent, item)
+	minScore := citationAbsMinScore
+	if citationAnchorHits(sent, item) >= 2 {
+		minScore = citationAbsMinScore - 1
+	}
+	if score < minScore {
+		return false
+	}
+	if citationAnchorHits(sent, item) < 1 {
+		return false
+	}
+	best, second := bestTwoCatalogScores(sent, catalog)
+	if best.item == nil || best.item.CiteIndex != item.CiteIndex {
+		return false
+	}
+	if len(catalog.Items) > 1 {
+		margin := citationScoreMargin
+		if citationAnchorHits(sent, *best.item) >= 2 {
+			margin = 1
+		}
+		if best.score-second.score < margin {
+			return false
+		}
+	}
+	return true
+}
+
+func shouldKeepCitation(sent, para string, item CitationItem, catalog CitationCatalog) bool {
+	if citationShouldStripContext(sent, para, item) {
+		return false
+	}
+	return citationGroundingValid(sent, item, catalog)
 }
 
 func contentOverlapScore(para, catalogContent string) int {
@@ -850,20 +1277,16 @@ func citationKeywords(item CitationItem) []string {
 	return kws
 }
 
-// ValidateInlineCitations strips only clearly conflicting [n] markers (keeps reconcile-added cites).
+// ValidateInlineCitations strips [n] markers that fail competitive grounding validation.
 func ValidateInlineCitations(text string, catalog CitationCatalog) string {
 	if text == "" || len(catalog.Items) == 0 {
 		return text
-	}
-	byIndex := make(map[int]CitationItem, len(catalog.Items))
-	for _, item := range catalog.Items {
-		byIndex[item.CiteIndex] = item
 	}
 	paras := splitParagraphs(text)
 	changed := false
 	for i, para := range paras {
 		joined := joinLinesInParagraph(para)
-		cleaned := stripInvalidCitationMarkers(joined, byIndex)
+		cleaned := stripInvalidCitationMarkers(joined, catalog)
 		if cleaned != joined {
 			changed = true
 			paras[i] = cleaned
@@ -893,7 +1316,11 @@ func citationShouldStripContext(sent, para string, item CitationItem) bool {
 	return true
 }
 
-func stripInvalidCitationMarkers(para string, byIndex map[int]CitationItem) string {
+func stripInvalidCitationMarkers(para string, catalog CitationCatalog) string {
+	byIndex := make(map[int]CitationItem, len(catalog.Items))
+	for _, item := range catalog.Items {
+		byIndex[item.CiteIndex] = item
+	}
 	matches := citeBracketRe.FindAllStringSubmatchIndex(para, -1)
 	if len(matches) == 0 {
 		return para
@@ -904,8 +1331,8 @@ func stripInvalidCitationMarkers(para string, byIndex map[int]CitationItem) stri
 		b.WriteString(para[last:m[0]])
 		n, _ := strconv.Atoi(para[m[2]:m[3]])
 		item, ok := byIndex[n]
-		sent := sentenceAroundMarker(para, m[0], m[1])
-		if ok && !citationShouldStripContext(sent, para, item) {
+		sent := citationClauseAroundMarker(para, m[0], m[1])
+		if ok && shouldKeepCitation(sent, para, item, catalog) {
 			b.WriteString(para[m[0]:m[1]])
 		}
 		last = m[1]
@@ -933,16 +1360,12 @@ func CapCitationMarkers(text string, catalog CitationCatalog) string {
 	if text == "" || len(catalog.Items) == 0 {
 		return text
 	}
-	byIndex := make(map[int]CitationItem, len(catalog.Items))
-	for _, item := range catalog.Items {
-		byIndex[item.CiteIndex] = item
-	}
 	seenIndex := map[int]bool{}
 	paras := splitParagraphs(text)
 	changed := false
 	for i, para := range paras {
 		joined := joinLinesInParagraph(para)
-		capped := capCitationMarkersInParagraph(joined, byIndex, seenIndex)
+		capped := capCitationMarkersInParagraph(joined, catalog, seenIndex)
 		if capped != joined {
 			changed = true
 			paras[i] = capped
@@ -958,7 +1381,11 @@ func CapCitationMarkers(text string, catalog CitationCatalog) string {
 	return strings.Join(out, "\n\n")
 }
 
-func capCitationMarkersInParagraph(para string, byIndex map[int]CitationItem, seenIndex map[int]bool) string {
+func capCitationMarkersInParagraph(para string, catalog CitationCatalog, seenIndex map[int]bool) string {
+	byIndex := make(map[int]CitationItem, len(catalog.Items))
+	for _, item := range catalog.Items {
+		byIndex[item.CiteIndex] = item
+	}
 	matches := citeBracketRe.FindAllStringSubmatchIndex(para, -1)
 	if len(matches) == 0 {
 		return para
@@ -969,8 +1396,8 @@ func capCitationMarkersInParagraph(para string, byIndex map[int]CitationItem, se
 		b.WriteString(para[last:m[0]])
 		n, _ := strconv.Atoi(para[m[2]:m[3]])
 		item, ok := byIndex[n]
-		sent := sentenceAroundMarker(para, m[0], m[1])
-		keep := ok && !seenIndex[n] && !citationShouldStripContext(sent, para, item)
+		sent := citationClauseAroundMarker(para, m[0], m[1])
+		keep := ok && !seenIndex[n] && shouldKeepCitation(sent, para, item, catalog)
 		if keep {
 			b.WriteString(para[m[0]:m[1]])
 			seenIndex[n] = true
@@ -979,6 +1406,58 @@ func capCitationMarkersInParagraph(para string, byIndex map[int]CitationItem, se
 	}
 	b.WriteString(para[last:])
 	return b.String()
+}
+
+// citationClauseAroundMarker bounds the cited clause by punctuation and adjacent citation markers.
+func citationClauseAroundMarker(para string, start, end int) string {
+	before := para[:start]
+	after := para[end:]
+	sentStart := 0
+	for _, sep := range []string{"。", "！", "？", "\n", ".", "!", "?"} {
+		if i := strings.LastIndex(before, sep); i >= 0 {
+			candidate := i + len(sep)
+			if candidate > sentStart {
+				sentStart = candidate
+			}
+		}
+	}
+	if i := lastCitationMarkerEnd(before); i > sentStart {
+		sentStart = i
+	}
+	sentEnd := len(para)
+	for _, sep := range []string{"。", "！", "？", "\n", ".", "!", "?"} {
+		if i := strings.Index(after, sep); i >= 0 {
+			candidate := end + i + len(sep)
+			if candidate < sentEnd {
+				sentEnd = candidate
+			}
+		}
+	}
+	if i := nextCitationMarkerStart(after); i >= 0 {
+		candidate := end + i
+		if candidate < sentEnd {
+			sentEnd = candidate
+		}
+	}
+	clause := strings.TrimSpace(para[sentStart:sentEnd])
+	clause = citeBracketRe.ReplaceAllString(clause, "")
+	return strings.TrimSpace(clause)
+}
+
+func lastCitationMarkerEnd(before string) int {
+	matches := citeBracketRe.FindAllStringSubmatchIndex(before, -1)
+	if len(matches) == 0 {
+		return 0
+	}
+	return matches[len(matches)-1][1]
+}
+
+func nextCitationMarkerStart(after string) int {
+	loc := citeBracketRe.FindStringIndex(after)
+	if loc == nil {
+		return -1
+	}
+	return loc[0]
 }
 
 func sentenceAroundMarker(para string, start, end int) string {
@@ -1052,7 +1531,7 @@ func catalogToPlan(catalog CitationCatalog) RetrievalPlan {
 			})
 		case "knowledge":
 			plan.Entries = append(plan.Entries, KnowledgeEntryForAI{
-				ID: item.ID, Title: item.Title, Content: item.FullContent, Category: item.Category,
+				ID: firstNonEmpty(item.ParentID, item.ID), Title: item.Title, Content: item.FullContent, Category: item.Category,
 			})
 		case "liveUpdate":
 			plan.LiveUpdates = append(plan.LiveUpdates, LiveUpdateForAI{

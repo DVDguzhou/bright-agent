@@ -148,51 +148,51 @@ type Dispute struct {
 func (Dispute) TableName() string { return "disputes" }
 
 type LifeAgentProfile struct {
-	ID                   string    `gorm:"primaryKey;size:36"`
-	UserID               string    `gorm:"column:user_id;size:36;not null;index"`
-	DisplayName          string    `gorm:"column:display_name;size:255;not null"`
-	Headline             string    `gorm:"size:512;not null"`
-	ShortBio             string    `gorm:"column:short_bio;size:500;not null"`
-	LongBio              string    `gorm:"column:long_bio;type:text;not null"`
-	Audience             string    `gorm:"type:text;not null"`
-	WelcomeMessage       string    `gorm:"column:welcome_message;type:text;not null"`
-	PricePerQuestion     int       `gorm:"column:price_per_question;default:990"`
-	ExpertiseTags        JSONArray `gorm:"column:expertise_tags;type:json"`
-	SampleQuestions      JSONArray `gorm:"column:sample_questions;type:json"`
-	Education            *string   `gorm:"column:education;size:128"`         // 学历
-	Income               *string   `gorm:"column:income;size:64"`             // 收入
-	Job                  *string   `gorm:"column:job;size:255"`               // 工作
-	School               *string   `gorm:"column:school;size:255"`            // 学校
-	OriginalAuthor       *string   `gorm:"column:original_author;size:128"`   // 原作者真实姓名/笔名
-	Source               *string   `gorm:"column:source;size:255"`            // 内容来源
-	IsGenerated          bool      `gorm:"column:is_generated;default:false"` // 是否自动生成
-	Country              *string   `gorm:"column:country;size:64"`
-	Province             *string   `gorm:"column:province;size:64"`
-	City                 *string   `gorm:"column:city;size:64"`
-	County               *string   `gorm:"column:county;size:64"`
-	Regions              JSONArray `gorm:"column:regions;type:json"`
-	MBTI                 *string   `gorm:"column:mbti;size:8"`
-	PersonaArchetype     *string   `gorm:"column:persona_archetype;size:64"`
-	ToneStyle            *string   `gorm:"column:tone_style;size:64"`
-	ResponseStyle        *string   `gorm:"column:response_style;size:64"`
-	ForbiddenPhrases     JSONArray `gorm:"column:forbidden_phrases;type:json"`
-	ExampleReplies       JSONArray `gorm:"column:example_replies;type:json"`
-	NotSuitableFor       *string   `gorm:"column:not_suitable_for;type:text"`               // 不能/不想回答的问题
-	VerificationStatus   string    `gorm:"column:verification_status;size:32;default:none"` // none=未申请, pending=申请待认证, verified=已认证
-	VoiceCloneID         *string   `gorm:"column:voice_clone_id;size:128"`                  // 百炼系统音色名或声音复刻返回的 voice id
-	CoverImageURL        *string   `gorm:"column:cover_image_url;size:512"`                 // 用户上传，站内相对路径如 /uploads/...
-	CoverPresetKey       *string   `gorm:"column:cover_preset_key;size:64"`                 // 预设键，如 01-student-panda；与 cover_image_url 二选一优先 URL
-	Published            bool      `gorm:"default:true;index"`                              // 列表筛选 published=true 时用
-	FeaturedRank         *int      `gorm:"column:featured_rank;index"`                      // 精选排序：越小越靠前；nil=不精选
-	FeaturedCollection   *string   `gorm:"column:featured_collection;size:64;index"`        // 专题/校园合集 key（如 kaoyan/liuxue/qiuzhi）；nil=不属于任何合集
-	ApiInvokeEnabled     bool      `gorm:"column:api_invoke_enabled;default:false"`
-	ApiPricePerCallCents *int      `gorm:"column:api_price_per_call_cents"` // nil 表示与单次咨询同价（price_per_question）
-	ApiTotalCalls        int       `gorm:"column:api_total_calls;default:0"`
-	AllowGeneralKnowledge    bool   `gorm:"column:allow_general_knowledge;default:true"`
-	KnowledgeFallbackMessage string `gorm:"column:knowledge_fallback_message;type:text"`
-	CitationsEnabled         bool   `gorm:"column:citations_enabled;default:true"`
-	CreatedAt            time.Time `gorm:"column:created_at"`
-	UpdatedAt            time.Time `gorm:"column:updated_at"`
+	ID                       string    `gorm:"primaryKey;size:36"`
+	UserID                   string    `gorm:"column:user_id;size:36;not null;index"`
+	DisplayName              string    `gorm:"column:display_name;size:255;not null"`
+	Headline                 string    `gorm:"size:512;not null"`
+	ShortBio                 string    `gorm:"column:short_bio;size:500;not null"`
+	LongBio                  string    `gorm:"column:long_bio;type:text;not null"`
+	Audience                 string    `gorm:"type:text;not null"`
+	WelcomeMessage           string    `gorm:"column:welcome_message;type:text;not null"`
+	PricePerQuestion         int       `gorm:"column:price_per_question;default:990"`
+	ExpertiseTags            JSONArray `gorm:"column:expertise_tags;type:json"`
+	SampleQuestions          JSONArray `gorm:"column:sample_questions;type:json"`
+	Education                *string   `gorm:"column:education;size:128"`         // 学历
+	Income                   *string   `gorm:"column:income;size:64"`             // 收入
+	Job                      *string   `gorm:"column:job;size:255"`               // 工作
+	School                   *string   `gorm:"column:school;size:255"`            // 学校
+	OriginalAuthor           *string   `gorm:"column:original_author;size:128"`   // 原作者真实姓名/笔名
+	Source                   *string   `gorm:"column:source;size:255"`            // 内容来源
+	IsGenerated              bool      `gorm:"column:is_generated;default:false"` // 是否自动生成
+	Country                  *string   `gorm:"column:country;size:64"`
+	Province                 *string   `gorm:"column:province;size:64"`
+	City                     *string   `gorm:"column:city;size:64"`
+	County                   *string   `gorm:"column:county;size:64"`
+	Regions                  JSONArray `gorm:"column:regions;type:json"`
+	MBTI                     *string   `gorm:"column:mbti;size:8"`
+	PersonaArchetype         *string   `gorm:"column:persona_archetype;size:64"`
+	ToneStyle                *string   `gorm:"column:tone_style;size:64"`
+	ResponseStyle            *string   `gorm:"column:response_style;size:64"`
+	ForbiddenPhrases         JSONArray `gorm:"column:forbidden_phrases;type:json"`
+	ExampleReplies           JSONArray `gorm:"column:example_replies;type:json"`
+	NotSuitableFor           *string   `gorm:"column:not_suitable_for;type:text"`               // 不能/不想回答的问题
+	VerificationStatus       string    `gorm:"column:verification_status;size:32;default:none"` // none=未申请, pending=申请待认证, verified=已认证
+	VoiceCloneID             *string   `gorm:"column:voice_clone_id;size:128"`                  // 百炼系统音色名或声音复刻返回的 voice id
+	CoverImageURL            *string   `gorm:"column:cover_image_url;size:512"`                 // 用户上传，站内相对路径如 /uploads/...
+	CoverPresetKey           *string   `gorm:"column:cover_preset_key;size:64"`                 // 预设键，如 01-student-panda；与 cover_image_url 二选一优先 URL
+	Published                bool      `gorm:"default:true;index"`                              // 列表筛选 published=true 时用
+	FeaturedRank             *int      `gorm:"column:featured_rank;index"`                      // 精选排序：越小越靠前；nil=不精选
+	FeaturedCollection       *string   `gorm:"column:featured_collection;size:64;index"`        // 专题/校园合集 key（如 kaoyan/liuxue/qiuzhi）；nil=不属于任何合集
+	ApiInvokeEnabled         bool      `gorm:"column:api_invoke_enabled;default:false"`
+	ApiPricePerCallCents     *int      `gorm:"column:api_price_per_call_cents"` // nil 表示与单次咨询同价（price_per_question）
+	ApiTotalCalls            int       `gorm:"column:api_total_calls;default:0"`
+	AllowGeneralKnowledge    bool      `gorm:"column:allow_general_knowledge;default:true"`
+	KnowledgeFallbackMessage string    `gorm:"column:knowledge_fallback_message;type:text"`
+	CitationsEnabled         bool      `gorm:"column:citations_enabled;default:true"`
+	CreatedAt                time.Time `gorm:"column:created_at"`
+	UpdatedAt                time.Time `gorm:"column:updated_at"`
 }
 
 func (LifeAgentProfile) TableName() string { return "life_agent_profiles" }
@@ -258,6 +258,24 @@ type LifeAgentKnowledgeEntry struct {
 }
 
 func (LifeAgentKnowledgeEntry) TableName() string { return "life_agent_knowledge_entries" }
+
+type LifeAgentKnowledgeChunk struct {
+	ID            string     `gorm:"primaryKey;size:36" json:"id"`
+	ProfileID     string     `gorm:"column:profile_id;size:36;not null;index" json:"profileId"`
+	EntryID       string     `gorm:"column:entry_id;size:36;not null;index;uniqueIndex:idx_life_agent_chunk_entry_index" json:"entryId"`
+	EntryRevision int        `gorm:"column:entry_revision;not null;default:1" json:"entryRevision"`
+	ChunkIndex    int        `gorm:"column:chunk_index;not null;uniqueIndex:idx_life_agent_chunk_entry_index" json:"chunkIndex"`
+	Content       string     `gorm:"type:text;not null" json:"content"`
+	CharStart     int        `gorm:"column:char_start;not null;default:0" json:"charStart"`
+	CharEnd       int        `gorm:"column:char_end;not null;default:0" json:"charEnd"`
+	Embedding     []byte     `gorm:"column:embedding;type:mediumblob" json:"-"`
+	EmbedModel    *string    `gorm:"column:embed_model;size:64" json:"-"`
+	EmbedAt       *time.Time `gorm:"column:embed_at" json:"-"`
+	CreatedAt     time.Time  `gorm:"column:created_at" json:"createdAt"`
+	UpdatedAt     time.Time  `gorm:"column:updated_at" json:"updatedAt"`
+}
+
+func (LifeAgentKnowledgeChunk) TableName() string { return "life_agent_knowledge_chunks" }
 
 type LifeAgentTimelineEvent struct {
 	ID                    string    `gorm:"primaryKey;size:36" json:"id"`

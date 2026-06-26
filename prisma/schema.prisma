@@ -364,10 +364,34 @@ model LifeAgentKnowledgeEntry {
   updatedAt       DateTime @updatedAt @map("updated_at")
 
   profile LifeAgentProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  chunks  LifeAgentKnowledgeChunk[]
 
   @@index([sourceEventId])
   @@index([sourceSessionId])
   @@map("life_agent_knowledge_entries")
+}
+
+model LifeAgentKnowledgeChunk {
+  id            String    @id @default(uuid())
+  profileId     String    @map("profile_id")
+  entryId       String    @map("entry_id")
+  entryRevision Int       @default(1) @map("entry_revision")
+  chunkIndex    Int       @map("chunk_index")
+  content       String    @db.Text
+  charStart     Int       @default(0) @map("char_start")
+  charEnd       Int       @default(0) @map("char_end")
+  embedding     Bytes?    @db.MediumBlob
+  embedModel    String?   @map("embed_model") @db.VarChar(64)
+  embedAt       DateTime? @map("embed_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  entry LifeAgentKnowledgeEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+
+  @@unique([entryId, chunkIndex])
+  @@index([profileId])
+  @@index([entryId])
+  @@map("life_agent_knowledge_chunks")
 }
 
 model LifeAgentTimelineEvent {

@@ -9,6 +9,12 @@ export type CitationReference = {
   fullContent?: string;
   citeIndex?: number | string;
   confidence?: string;
+  parentId?: string;
+  parentTitle?: string;
+  chunkIndex?: number | string;
+  charStart?: number | string;
+  charEnd?: number | string;
+  evidenceKind?: string;
 };
 
 export type ReplyAttribution = "grounded" | "general" | "fallback" | "";
@@ -72,7 +78,7 @@ export function sourceTypeLabel(sourceType?: string, label?: string): string {
     case "topic":
       return "主题摘要";
     case "knowledge":
-      return "本人经历";
+      return "知识库原文";
     case "liveUpdate":
       return "最近动态";
     case "profile":

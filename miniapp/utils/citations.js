@@ -44,7 +44,7 @@ function sourceTypeLabel(sourceType, label) {
   const map = {
     fact: "结构化事实",
     topic: "主题摘要",
-    knowledge: "本人经历",
+    knowledge: "知识库原文",
     liveUpdate: "最近动态",
     profile: "人设资料",
   };

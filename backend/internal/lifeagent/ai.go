@@ -64,14 +64,26 @@ type ProfileForAI struct {
 }
 
 type KnowledgeEntryForAI struct {
-	ID       string
-	Category string
-	Title    string
-	Content  string
-	Tags     []string
-	Facets   KnowledgeFacetTags
+	ID             string
+	Category       string
+	Title          string
+	Content        string
+	Tags           []string
+	Facets         KnowledgeFacetTags
+	CitationChunks []KnowledgeChunkForAI
 	// Embedding 可选：存在则参与 hybrid RAG 的向量召回；为 nil 时自动退化为纯词法。
 	Embedding []float32
+}
+
+type KnowledgeChunkForAI struct {
+	ID            string
+	EntryID       string
+	EntryRevision int
+	ChunkIndex    int
+	Content       string
+	CharStart     int
+	CharEnd       int
+	Embedding     []float32
 }
 
 type ChatMessageForAI struct {

@@ -148,6 +148,7 @@ func Init(dsn string) error {
 		&models.LifeAgentFavorite{},
 		&models.LifeAgentGrowthEvent{},
 		&models.LifeAgentKnowledgeEntry{},
+		&models.LifeAgentKnowledgeChunk{},
 		&models.LifeAgentTimelineEvent{},
 		&models.LifeAgentStructuredFact{},
 		&models.LifeAgentTopicSummary{},

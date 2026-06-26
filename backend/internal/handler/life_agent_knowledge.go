@@ -7,6 +7,7 @@ import (
 
 	"github.com/agent-marketplace/backend/internal/config"
 	"github.com/agent-marketplace/backend/internal/db"
+	"github.com/agent-marketplace/backend/internal/lifeagent"
 	"github.com/agent-marketplace/backend/internal/middleware"
 	"github.com/agent-marketplace/backend/internal/models"
 	"github.com/gin-gonic/gin"
@@ -44,9 +45,9 @@ func LifeAgentsKnowledgeCreate(cfg *config.Config) gin.HandlerFunc {
 			return
 		}
 		var body struct {
-			Category string `json:"category" binding:"required"`
-			Title    string `json:"title" binding:"required"`
-			Content  string `json:"content" binding:"required"`
+			Category string   `json:"category" binding:"required"`
+			Title    string   `json:"title" binding:"required"`
+			Content  string   `json:"content" binding:"required"`
 			Tags     []string `json:"tags"`
 		}
 		if err := c.ShouldBindJSON(&body); err != nil {
@@ -56,18 +57,22 @@ func LifeAgentsKnowledgeCreate(cfg *config.Config) gin.HandlerFunc {
 		var maxOrder int
 		db.DB.Model(&models.LifeAgentKnowledgeEntry{}).Where("profile_id = ?", id).Select("COALESCE(MAX(sort_order), 0)").Scan(&maxOrder)
 		k := models.LifeAgentKnowledgeEntry{
-			ID:        models.GenID(),
-			ProfileID: id,
-			Category:  strings.TrimSpace(body.Category),
-			Title:     strings.TrimSpace(body.Title),
-			Content:   strings.TrimSpace(body.Content),
-			Tags:      models.JSONArray(body.Tags),
+			ID:         models.GenID(),
+			ProfileID:  id,
+			Category:   strings.TrimSpace(body.Category),
+			Title:      strings.TrimSpace(body.Title),
+			Content:    strings.TrimSpace(body.Content),
+			Tags:       models.JSONArray(body.Tags),
 			SourceType: "manual_update",
-			SortOrder: maxOrder + 1,
+			SortOrder:  maxOrder + 1,
 		}
 		analysis := prepareLifeAgentKnowledgeEntry(&k, "manual_update", nil, nil, nil, "knowledge_hub_create")
 		if err := db.DB.Create(&k).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "CREATE_FAILED"})
+			return
+		}
+		if err := lifeagent.SyncKnowledgeEntryChunks(db.DB, k); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "CHUNK_SYNC_FAILED"})
 			return
 		}
 		if err := createTimelineEventForKnowledge(db.DB, k, analysis); err != nil {
@@ -130,6 +135,10 @@ func LifeAgentsKnowledgeUpdate(cfg *config.Config) gin.HandlerFunc {
 			return
 		}
 		db.DB.Where("id = ?", entryID).First(&k)
+		if err := lifeagent.SyncKnowledgeEntryChunks(db.DB, k); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "CHUNK_SYNC_FAILED"})
+			return
+		}
 		c.JSON(http.StatusOK, buildKnowledgeEntryResponse(k))
 	}
 }
@@ -148,6 +157,7 @@ func LifeAgentsKnowledgeDelete(cfg *config.Config) gin.HandlerFunc {
 			c.JSON(http.StatusNotFound, gin.H{"error": "PROFILE_NOT_FOUND"})
 			return
 		}
+		_ = lifeagent.DeleteKnowledgeEntryChunks(db.DB, entryID)
 		res := db.DB.Where("id = ? AND profile_id = ?", entryID, id).Delete(&models.LifeAgentKnowledgeEntry{})
 		if res.Error != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "DELETE_FAILED"})
@@ -194,19 +204,19 @@ func buildKnowledgeEntryResponse(e models.LifeAgentKnowledgeEntry) gin.H {
 	wordCount := utf8.RuneCountInString(e.Content)
 	hasEmbedding := len(e.Embedding) > 0
 	return gin.H{
-		"id":             e.ID,
-		"category":       e.Category,
-		"title":          e.Title,
-		"content":        e.Content,
-		"tags":           e.Tags,
-		"facetTags":      e.FacetTags,
-		"sourceType":     e.SourceType,
+		"id":              e.ID,
+		"category":        e.Category,
+		"title":           e.Title,
+		"content":         e.Content,
+		"tags":            e.Tags,
+		"facetTags":       e.FacetTags,
+		"sourceType":      e.SourceType,
 		"sourceTypeLabel": knowledgeSourceTypeLabel(e.SourceType),
-		"timelineStatus": e.TimelineStatus,
-		"wordCount":      wordCount,
-		"hasEmbedding":   hasEmbedding,
-		"revision":       e.Revision,
-		"createdAt":      e.CreatedAt,
-		"updatedAt":      e.UpdatedAt,
+		"timelineStatus":  e.TimelineStatus,
+		"wordCount":       wordCount,
+		"hasEmbedding":    hasEmbedding,
+		"revision":        e.Revision,
+		"createdAt":       e.CreatedAt,
+		"updatedAt":       e.UpdatedAt,
 	}
 }

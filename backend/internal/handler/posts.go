@@ -1000,6 +1000,7 @@ func generateAgentReply(cfg *config.Config, profile models.LifeAgentProfile, rep
 
 	// 转换为AI格式
 	entriesForAI := lifeagent.BuildKnowledgeEntriesForAI(entries)
+	lifeagent.LoadAndAttachKnowledgeChunksForAI(db.DB, entriesForAI)
 
 	factsForAI := lifeagent.BuildStructuredFactsForAI(facts)
 	topicsForAI := lifeagent.BuildTopicSummariesForAI(topics)

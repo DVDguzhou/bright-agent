@@ -297,6 +297,7 @@ func LifeAgentsChatAPI(cfg *config.Config) gin.HandlerFunc {
 			hist = append(hist, lifeagent.ChatMessageForAI{Role: m.Role, Content: m.Content})
 		}
 		entriesForAI := lifeagent.BuildKnowledgeEntriesForAI(entries)
+		lifeagent.LoadAndAttachKnowledgeChunksForAI(db.DB, entriesForAI)
 		factsForAI := lifeagent.BuildStructuredFactsForAI(facts)
 		topicsForAI := lifeagent.BuildTopicSummariesForAI(topics)
 

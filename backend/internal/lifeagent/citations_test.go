@@ -234,6 +234,154 @@ func TestCapCitationMarkersOnePerParagraph(t *testing.T) {
 	}
 }
 
+func TestValidateInlineCitationsStripsPhysicsOnThesisSentence(t *testing.T) {
+	catalog := BuildCitationCatalog(RetrievalPlan{
+		Topics: []TopicSummaryForAI{{
+			ID:         "t1",
+			TopicLabel: "本科背景与多元经历",
+			Summary:    "温州大学 计算机 双非 考研 留学 创业 找工作",
+		}},
+		Entries: []KnowledgeEntryForAI{{
+			ID:      "e1",
+			Title:   "童年物理兴趣与自学经历",
+			Content: "小学自学量子力学和相对论 小时候对物理感兴趣",
+		}},
+	})
+	text := "本科在温州大学读计算机，学习氛围一般[2]。" +
+		"毕设做了个游戏化激励系统，投资人感兴趣但最后没成[1]。"
+	got := ValidateInlineCitations(text, catalog)
+	if !strings.Contains(got, "[2]") {
+		t.Fatalf("expected background topic cite kept, got %q", got)
+	}
+	if strings.Contains(got, "[1]") {
+		t.Fatalf("expected physics cite stripped from thesis sentence, got %q", got)
+	}
+}
+
+func TestFillSentenceCitationsNoPhysicsOnThesisSentence(t *testing.T) {
+	catalog := BuildCitationCatalog(RetrievalPlan{
+		Topics: []TopicSummaryForAI{{
+			ID:         "t1",
+			TopicLabel: "本科背景与多元经历",
+			Summary:    "温州大学 计算机 双非 考研 留学 创业 找工作",
+		}},
+		Entries: []KnowledgeEntryForAI{{
+			ID:      "e1",
+			Title:   "童年物理兴趣与自学经历",
+			Content: "小学自学量子力学和相对论 小时候对物理感兴趣",
+		}},
+	})
+	text := "本科在温州大学读计算机，学习氛围一般[2]。" +
+		"毕设做了个游戏化激励系统，投资人感兴趣但最后没成。"
+	got := fillSentenceCitations(text, catalog)
+	if strings.Contains(got, "[1]") {
+		t.Fatalf("expected no physics cite on thesis sentence, got %q", got)
+	}
+}
+
+func TestCitationGroundingValidTable(t *testing.T) {
+	cases := []struct {
+		name   string
+		plan   RetrievalPlan
+		sent   string
+		index  int
+		expect bool
+	}{
+		{
+			name: "physics item on thesis sentence",
+			plan: RetrievalPlan{
+				Topics: []TopicSummaryForAI{{
+					TopicLabel: "本科背景与多元经历",
+					Summary:    "温州大学 计算机 双非",
+				}},
+				Entries: []KnowledgeEntryForAI{{
+					Title: "童年物理兴趣", Content: "小学自学量子力学和相对论",
+				}},
+			},
+			sent:   "毕设做了个游戏化激励系统，投资人感兴趣但最后没成。",
+			index:  1,
+			expect: false,
+		},
+		{
+			name: "physics item on physics sentence",
+			plan: RetrievalPlan{
+				Entries: []KnowledgeEntryForAI{{
+					Title: "童年物理兴趣", Content: "小学自学量子力学和相对论",
+				}},
+			},
+			sent:   "小时候就对物理特别感兴趣，小学就开始自学量子力学和相对论。",
+			index:  1,
+			expect: true,
+		},
+		{
+			name: "love item on roadmap sentence",
+			plan: RetrievalPlan{
+				Entries: []KnowledgeEntryForAI{
+					{Title: "留学准备", Content: "留学 申请"},
+					{Title: "大二恋爱经历", Content: "大二谈过恋爱"},
+				},
+			},
+			sent:   "大一大胆试，大二定方向。",
+			index:  2,
+			expect: false,
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			catalog := BuildCitationCatalog(tc.plan)
+			item := catalog.Items[tc.index-1]
+			got := citationGroundingValid(tc.sent, item, catalog)
+			if got != tc.expect {
+				t.Fatalf("citationGroundingValid = %v, want %v (item=%q sent=%q)", got, tc.expect, item.Title, tc.sent)
+			}
+		})
+	}
+}
+
+func TestKnowledgeEntryCitationChunks(t *testing.T) {
+	long := strings.Repeat("第一段讲考研和留学准备，包含雅思、绩点和项目筛选。", 16) +
+		strings.Repeat("第二段讲实习和求职准备，包含简历、面试和暑期实践。", 16)
+	catalog := BuildCitationCatalog(RetrievalPlan{
+		Entries: []KnowledgeEntryForAI{{
+			ID: "entry-1", Title: "规划经历", Category: "经历", Content: long,
+		}},
+	})
+	if len(catalog.Items) < 2 {
+		t.Fatalf("expected long entry split into chunks, got %d", len(catalog.Items))
+	}
+	if catalog.Items[0].ParentID != "entry-1" || catalog.Items[0].ChunkIndex != 1 {
+		t.Fatalf("chunk metadata missing: %#v", catalog.Items[0])
+	}
+	refs := BuildCitedReferences(catalog, []int{1}, true)
+	if len(refs) != 1 {
+		t.Fatalf("refs len = %d", len(refs))
+	}
+	if refs[0]["parentId"] != "entry-1" || refs[0]["evidenceKind"] != "chunk" || refs[0]["charEnd"] == "" {
+		t.Fatalf("chunk ref metadata missing: %#v", refs[0])
+	}
+	if refs[0]["fullContent"] == long {
+		t.Fatalf("expected cited fullContent to be a chunk, not the whole entry")
+	}
+}
+
+func TestBuildCitationCatalogUsesPersistentChunks(t *testing.T) {
+	catalog := BuildCitationCatalog(RetrievalPlan{
+		Entries: []KnowledgeEntryForAI{{
+			ID: "entry-1", Title: "规划经历", Category: "经历", Content: strings.Repeat("整条原文很长。", 80),
+			CitationChunks: []KnowledgeChunkForAI{
+				{ID: "chunk-a", EntryID: "entry-1", ChunkIndex: 1, Content: "考研和留学准备片段。", CharStart: 0, CharEnd: 10},
+				{ID: "chunk-b", EntryID: "entry-1", ChunkIndex: 2, Content: "实习和求职准备片段。", CharStart: 10, CharEnd: 20},
+			},
+		}},
+	})
+	if len(catalog.Items) != 2 {
+		t.Fatalf("catalog len = %d, want 2 persistent chunks", len(catalog.Items))
+	}
+	if catalog.Items[0].ID != "chunk-a" || catalog.Items[0].ParentID != "entry-1" || catalog.Items[0].FullContent != "考研和留学准备片段。" {
+		t.Fatalf("first chunk = %#v", catalog.Items[0])
+	}
+}
+
 func TestSentenceLevelCitationsMultiSourceInOneBubble(t *testing.T) {
 	catalog := BuildCitationCatalog(RetrievalPlan{
 		Entries: []KnowledgeEntryForAI{

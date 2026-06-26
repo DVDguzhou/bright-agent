@@ -16,6 +16,10 @@ export function CitationSourceCard({
   const [expanded, setExpanded] = useState(false);
   const body = citation.fullContent || citation.excerpt;
   const preview = citation.excerpt || body.slice(0, 160);
+  const chunkIndex =
+    citation.chunkIndex == null || citation.chunkIndex === ""
+      ? null
+      : Number.parseInt(String(citation.chunkIndex), 10);
 
   return (
     <button
@@ -34,6 +38,14 @@ export function CitationSourceCard({
         <SourceTypeBadge sourceType={citation.sourceType} label={citation.sourceTypeLabel} />
       </div>
       <p className="mt-1.5 text-sm font-medium text-ink">{citation.title}</p>
+      {(citation.parentTitle || chunkIndex) && (
+        <p className="mt-0.5 text-[11px] leading-4 text-ink-400">
+          {citation.parentTitle && citation.parentTitle !== citation.title
+            ? `来自：${citation.parentTitle}`
+            : "来自知识库条目"}
+          {chunkIndex ? ` · 片段 ${chunkIndex}` : ""}
+        </p>
+      )}
       <p className="mt-1 whitespace-pre-wrap text-xs leading-5 text-ink-500">
         {expanded ? body : preview}
       </p>

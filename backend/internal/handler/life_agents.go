@@ -1139,6 +1139,9 @@ func LifeAgentsCreate(cfg *config.Config) gin.HandlerFunc {
 				if err := tx.Create(&k).Error; err != nil {
 					return err
 				}
+				if err := lifeagent.SyncKnowledgeEntryChunksTx(tx, k); err != nil {
+					return err
+				}
 				if err := createTimelineEventForKnowledge(tx, k, analysis); err != nil {
 					return err
 				}
@@ -1856,6 +1859,9 @@ func LifeAgentsUpdate(cfg *config.Config) gin.HandlerFunc {
 		}
 		if body.KnowledgeEntries != nil {
 			if err := db.DB.Transaction(func(tx *gorm.DB) error {
+				if err := tx.Where("profile_id = ?", id).Delete(&models.LifeAgentKnowledgeChunk{}).Error; err != nil {
+					return err
+				}
 				if err := tx.Where("profile_id = ?", id).Delete(&models.LifeAgentKnowledgeEntry{}).Error; err != nil {
 					return err
 				}
@@ -1874,6 +1880,9 @@ func LifeAgentsUpdate(cfg *config.Config) gin.HandlerFunc {
 					}
 					analysis := prepareLifeAgentKnowledgeEntry(&k, "manual_update", nil, nil, nil, "replace_knowledge_entries")
 					if err := tx.Create(&k).Error; err != nil {
+						return err
+					}
+					if err := lifeagent.SyncKnowledgeEntryChunksTx(tx, k); err != nil {
 						return err
 					}
 					if err := createTimelineEventForKnowledge(tx, k, analysis); err != nil {
@@ -2392,6 +2401,9 @@ func applyModifyIntentChanges(p *models.LifeAgentProfile, entries *[]models.Life
 		}
 		analysis := prepareLifeAgentKnowledgeEntry(&k, "chat_training", strOpt(eventID), nil, recordedAt, "co_edit_chat")
 		if err := db.DB.Create(&k).Error; err == nil {
+			if err := lifeagent.SyncKnowledgeEntryChunks(db.DB, k); err != nil {
+				log.Printf("life-agents modify: sync chunks failed entry=%s: %v", k.ID, err)
+			}
 			if err := createTimelineEventForKnowledge(db.DB, k, analysis); err != nil {
 				log.Printf("life-agents modify: create timeline event failed entry=%s: %v", k.ID, err)
 			}
@@ -3262,7 +3274,11 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 			if m.Role == "assistant" && len(m.Refs) > 0 {
 				for _, r := range m.Refs {
 					if rm, ok := r.(map[string]interface{}); ok {
-						if rid, _ := rm["id"].(string); rid != "" && !recentUsedSet[rid] {
+						rid, _ := rm["parentId"].(string)
+						if rid == "" {
+							rid, _ = rm["id"].(string)
+						}
+						if rid != "" && !recentUsedSet[rid] {
 							recentUsedSet[rid] = true
 							recentlyUsedEntryIDs = append(recentlyUsedEntryIDs, rid)
 						}
@@ -3271,6 +3287,7 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 			}
 		}
 		entriesForAI := lifeagent.BuildKnowledgeEntriesForAI(entries)
+		lifeagent.LoadAndAttachKnowledgeChunksForAI(db.DB, entriesForAI)
 		// 加载实时动态（未过期）
 		var liveUpdateRows []models.LifeAgentLiveUpdate
 		db.DB.Where("profile_id = ? AND (expires_at IS NULL OR expires_at > ?)", id, time.Now()).
@@ -4058,6 +4075,9 @@ func LifeAgentsImportChat(cfg *config.Config) gin.HandlerFunc {
 			}
 			analysis := prepareLifeAgentKnowledgeEntry(&k, "chat_import", nil, nil, nil, "chat_import")
 			db.DB.Create(&k)
+			if err := lifeagent.SyncKnowledgeEntryChunks(db.DB, k); err != nil {
+				log.Printf("life-agents import chat: sync chunks failed entry=%s: %v", k.ID, err)
+			}
 			if err := createTimelineEventForKnowledge(db.DB, k, analysis); err != nil {
 				log.Printf("life-agents import chat: create timeline event failed entry=%s: %v", k.ID, err)
 			}

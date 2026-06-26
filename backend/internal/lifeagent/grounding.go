@@ -506,68 +506,10 @@ func splitSentences(text string) []string {
 }
 
 func BuildRetrievalReferences(plan RetrievalPlan) []map[string]string {
-	refs := make([]map[string]string, 0, len(plan.Facts)+len(plan.Topics)+len(plan.Entries)+len(plan.LiveUpdates))
-	for _, fact := range plan.Facts {
-		refs = append(refs, map[string]string{
-			"id":              fact.ID,
-			"sourceType":      "fact",
-			"sourceTypeLabel": SourceTypeLabel("fact"),
-			"route":           string(plan.Route),
-			"factKey":         fact.FactKey,
-			"title":           factLabel(fact.FactKey),
-			"excerpt":         fact.FactValue,
-			"confidence":      fact.Confidence,
-		})
-	}
-	for _, topic := range topicsForCitationDisplay(plan) {
-		excerpt := normalizeSnippet(firstSentence(topic.Summary, 80))
-		if excerpt == "" {
-			excerpt = "基于该主题经验生成的摘要。"
-		}
-		refs = append(refs, map[string]string{
-			"id":              topic.ID,
-			"sourceType":      "topic",
-			"sourceTypeLabel": SourceTypeLabel("topic"),
-			"route":           string(plan.Route),
-			"topicGroup":      topic.TopicGroup,
-			"topicKey":        topic.TopicKey,
-			"title":           topic.TopicLabel,
-			"excerpt":         excerpt,
-			"confidence":      topic.Confidence,
-		})
-	}
-	for _, entry := range plan.Entries {
-		excerpt := normalizeSnippet(firstSentence(entry.Content, 80))
-		if excerpt == "" {
-			excerpt = "基于已有经历给到的一条可执行建议。"
-		}
-		refs = append(refs, map[string]string{
-			"id":              entry.ID,
-			"sourceType":      "knowledge",
-			"sourceTypeLabel": SourceTypeLabel("knowledge"),
-			"route":           string(plan.Route),
-			"category":        entry.Category,
-			"title":           entry.Title,
-			"excerpt":         excerpt,
-			"confidence":      plan.Confidence,
-			"facets":          FacetSummary(entry.Facets),
-		})
-	}
-	for _, lu := range plan.LiveUpdates {
-		excerpt := normalizeSnippet(firstSentence(lu.Content, 80))
-		if excerpt == "" {
-			excerpt = "实时动态"
-		}
-		refs = append(refs, map[string]string{
-			"id":              lu.ID,
-			"sourceType":      "liveUpdate",
-			"sourceTypeLabel": SourceTypeLabel("liveUpdate"),
-			"route":           string(plan.Route),
-			"category":        lu.Category,
-			"title":           "最近动态",
-			"excerpt":         excerpt,
-			"createdAt":       lu.CreatedAt,
-		})
+	catalog := BuildCitationCatalog(plan)
+	refs := make([]map[string]string, 0, len(catalog.Items))
+	for _, item := range catalog.Items {
+		refs = append(refs, citationItemToMap(item, false))
 	}
 	return refs
 }

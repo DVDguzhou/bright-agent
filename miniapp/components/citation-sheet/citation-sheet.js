@@ -1,5 +1,11 @@
 const { sourceTypeLabel } = require("../../utils/citations");
 
+function chunkLabel(ref) {
+  const chunkIndex = parseInt(ref && ref.chunkIndex, 10);
+  if (!chunkIndex) return "";
+  return `来自知识库条目 · 片段 ${chunkIndex}`;
+}
+
 Component({
   properties: {
     open: { type: Boolean, value: false },
@@ -32,11 +38,13 @@ Component({
       }).map(function (r) {
         return Object.assign({}, r, {
           typeLabel: sourceTypeLabel(r.sourceType, r.sourceTypeLabel),
+          chunkLabel: chunkLabel(r),
         });
       });
       this.setData({
         primary: Object.assign({}, active, {
           typeLabel: sourceTypeLabel(active.sourceType, active.sourceTypeLabel),
+          chunkLabel: chunkLabel(active),
         }),
         others,
       });

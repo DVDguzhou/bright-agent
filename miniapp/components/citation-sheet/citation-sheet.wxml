@@ -15,6 +15,7 @@
             <text class="type-badge">{{primary.typeLabel}}</text>
           </view>
           <text class="source-title">{{primary.title}}</text>
+          <text wx:if="{{primary.chunkLabel}}" class="source-excerpt">{{primary.chunkLabel}}</text>
           <text class="source-excerpt">{{primary.fullContent || primary.excerpt}}</text>
         </view>
       </view>
@@ -31,6 +32,7 @@
             <text class="type-badge">{{item.typeLabel}}</text>
           </view>
           <text class="source-title">{{item.title}}</text>
+          <text wx:if="{{item.chunkLabel}}" class="source-excerpt">{{item.chunkLabel}}</text>
           <text class="source-excerpt">{{item.fullContent || item.excerpt}}</text>
         </view>
       </view>

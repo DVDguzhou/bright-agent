@@ -339,6 +339,10 @@ func LifeAgentsTimelineEventDelete(cfg *config.Config) gin.HandlerFunc {
 		}
 		if err := db.DB.Transaction(func(tx *gorm.DB) error {
 			if len(entryIDs) > 0 {
+				if err := tx.Where("profile_id = ? AND entry_id IN ?", id, entryIDs).
+					Delete(&models.LifeAgentKnowledgeChunk{}).Error; err != nil {
+					return err
+				}
 				if err := tx.Where("profile_id = ? AND id IN ?", id, entryIDs).
 					Delete(&models.LifeAgentKnowledgeEntry{}).Error; err != nil {
 					return err
