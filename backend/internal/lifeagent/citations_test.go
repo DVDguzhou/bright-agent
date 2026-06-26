@@ -135,6 +135,37 @@ func TestValidateInlineCitationsStripsIrrelevant(t *testing.T) {
 	}
 }
 
+func TestValidateInlineCitationsStripsPhysicsOnBackgroundTopic(t *testing.T) {
+	catalog := BuildCitationCatalog(RetrievalPlan{
+		Topics: []TopicSummaryForAI{{
+			ID:         "t1",
+			TopicLabel: "本科背景与多元经历",
+			Summary:    "本科毕业于温州大学，同时经历了考研、留学、创业和找工作",
+		}},
+	})
+	text := "当时就是看那种科普书，《时间简史》之类的，觉得挺酷的，什么时间膨胀啊尺缩效应啊，也就知道个概念。后来上了大学选了计算机，就没再深入搞物理了[1]。"
+	got := ValidateInlineCitations(text, catalog)
+	if strings.Contains(got, "[1]") {
+		t.Fatalf("expected wrong background topic cite stripped, got %q", got)
+	}
+}
+
+func TestFillSentenceCitationsSkipsBackgroundOnRelativityTalk(t *testing.T) {
+	catalog := BuildCitationCatalog(RetrievalPlan{
+		Topics: []TopicSummaryForAI{{
+			ID:         "t1",
+			TopicLabel: "本科背景与多元经历",
+			Summary:    "本科毕业于温州大学，同时经历了考研、留学、创业和找工作",
+		}},
+	})
+	text := "当时就是看那种科普书，《时间简史》之类的，觉得挺酷的，什么时间膨胀啊尺缩效应啊，也就知道个概念。后来上了大学选了计算机，就没再深入搞物理了。"
+	got := fillSentenceCitations(text, catalog)
+	_, used := ParseInlineCitations(got)
+	if len(used) != 0 {
+		t.Fatalf("expected no cite on relativity talk with only background topic, got %v in %q", used, got)
+	}
+}
+
 func TestValidateInlineCitationsKeepsRelevant(t *testing.T) {
 	catalog := BuildCitationCatalog(RetrievalPlan{
 		Entries: []KnowledgeEntryForAI{
@@ -198,7 +229,35 @@ func TestCapCitationMarkersOnePerParagraph(t *testing.T) {
 	text := "本科温州大学 CMU[1] 大二实习[2]。"
 	got := CapCitationMarkers(text, catalog)
 	_, used := ParseInlineCitations(got)
-	if len(used) > 2 {
-		t.Fatalf("too many cites: %v in %q", used, got)
+	if len(used) != 2 {
+		t.Fatalf("expected both cites kept, got %v in %q", used, got)
+	}
+}
+
+func TestSentenceLevelCitationsMultiSourceInOneBubble(t *testing.T) {
+	catalog := BuildCitationCatalog(RetrievalPlan{
+		Entries: []KnowledgeEntryForAI{
+			{
+				ID:      "e1",
+				Title:   "本科背景与四条路",
+				Content: "温州大学 计算机 双非 考研 留学 创业 找工作",
+			},
+			{
+				ID:      "e2",
+				Title:   "童年物理兴趣",
+				Content: "小时候对物理感兴趣 小学自学量子力学和相对论",
+			},
+		},
+	})
+	text := "本科在温州大学读计算机，双非。大学那会儿同时经历了考研、留学、创业和找工作四条路，说实话挺折腾的[1]。" +
+		"另外小时候就对物理特别感兴趣，小学就开始自学量子力学和相对论。"
+	got := fillSentenceCitations(text, catalog)
+	_, used := ParseInlineCitations(got)
+	if len(used) < 2 {
+		t.Fatalf("expected cites on both topic sentences, got %v in %q", used, got)
+	}
+	refs := BuildCitedReferences(catalog, used, true)
+	if len(refs) < 2 {
+		t.Fatalf("expected 2 refs, got %d", len(refs))
 	}
 }

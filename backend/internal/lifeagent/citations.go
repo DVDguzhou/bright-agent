@@ -471,7 +471,7 @@ func buildReconcileCitationRule(citationsEnabled bool) string {
 		return ""
 	}
 	return "9. 【引用标注 - 硬约束】凡转述了编号素材中的具体事实（时间、学校、考试、做法、数字等），对应那句末尾必须标 [n]。" +
-		"多段回复时：每个用到不同素材的段落至少标 1 次；每条素材整段回复最多 1 次。" +
+		"同一条气泡内若多句转述不同素材，每句句末分别标 [n]；每条素材整段回复最多 1 次。" +
 		"模糊感受、态度、反问句禁止加 [n]。禁止写「根据资料」「知识库」；只用 [n]。\n"
 }
 
@@ -514,78 +514,80 @@ func EnsureInlineCitations(ctx context.Context, client *openai.Client, model, te
 	return ValidateInlineCitations(NormalizeCitationMarkers(out), catalog)
 }
 
-// HeuristicEnsureInlineCitations adds [n] only when paragraph content matches catalog item semantics.
+// HeuristicEnsureInlineCitations adds [n] when sentence content matches catalog item semantics.
 func HeuristicEnsureInlineCitations(text string, catalog CitationCatalog) string {
-	text = strings.TrimSpace(text)
-	if text == "" || len(catalog.Items) == 0 {
-		return text
-	}
-	paras := splitParagraphs(text)
-	if len(paras) == 0 {
-		return text
-	}
-	changed := false
-	usedItems := map[int]bool{}
-	_, existing := ParseInlineCitations(text)
-	for _, n := range existing {
-		usedItems[n] = true
-	}
-	for i := range paras {
-		p := strings.TrimSpace(joinLinesInParagraph(paras[i]))
-		if p == "" || citeBracketRe.MatchString(p) {
-			continue
-		}
-		item, score := bestCatalogMatchForParagraph(p, catalog)
-		if item == nil || score < citationMinMatchScore || citationShouldStrip(p, *item) {
-			continue
-		}
-		if usedItems[item.CiteIndex] {
-			continue
-		}
-		paras[i] = appendCitationMarker(p, item.CiteIndex)
-		usedItems[item.CiteIndex] = true
-		changed = true
-	}
-	if !changed {
-		return text
-	}
-	for i, para := range paras {
-		paras[i] = joinLinesInParagraph(para)
-	}
-	return ValidateInlineCitations(strings.Join(paras, "\n\n"), catalog)
+	return fillSentenceCitations(text, catalog)
 }
 
-// overlapEnsureInlineCitations adds [n] to paragraphs that lack citations when content matches catalog.
+// overlapEnsureInlineCitations adds [n] to uncited sentences when content matches catalog.
 func overlapEnsureInlineCitations(text string, catalog CitationCatalog) string {
+	return fillSentenceCitations(text, catalog)
+}
+
+// splitCitationSentences splits a paragraph into Chinese sentences, keeping terminal punctuation.
+func splitCitationSentences(para string) []string {
+	para = strings.TrimSpace(para)
+	if para == "" {
+		return nil
+	}
+	var sentences []string
+	var buf strings.Builder
+	for _, r := range para {
+		buf.WriteRune(r)
+		if r == '。' || r == '！' || r == '？' {
+			s := strings.TrimSpace(buf.String())
+			if s != "" {
+				sentences = append(sentences, s)
+			}
+			buf.Reset()
+		}
+	}
+	if tail := strings.TrimSpace(buf.String()); tail != "" {
+		sentences = append(sentences, tail)
+	}
+	return mergeShortCitationSentences(sentences)
+}
+
+func mergeShortCitationSentences(sentences []string) []string {
+	if len(sentences) <= 1 {
+		return sentences
+	}
+	out := make([]string, 0, len(sentences))
+	for i := 0; i < len(sentences); i++ {
+		s := sentences[i]
+		if len(out) > 0 && len([]rune(s)) < 10 && len(out[len(out)-1])+len([]rune(s)) < 120 {
+			out[len(out)-1] += s
+			continue
+		}
+		out = append(out, s)
+	}
+	return out
+}
+
+// fillSentenceCitations adds [n] at the end of each sentence that cites a distinct catalog item.
+func fillSentenceCitations(text string, catalog CitationCatalog) string {
 	text = strings.TrimSpace(text)
 	if text == "" || len(catalog.Items) == 0 {
 		return text
 	}
 	paras := splitParagraphs(text)
-	changed := false
 	usedItems := map[int]bool{}
-	_, existing := ParseInlineCitations(text)
-	for _, n := range existing {
-		usedItems[n] = true
+	if _, existing := ParseInlineCitations(text); len(existing) > 0 {
+		for _, n := range existing {
+			usedItems[n] = true
+		}
 	}
-	for i := range paras {
-		p := strings.TrimSpace(joinLinesInParagraph(paras[i]))
-		if p == "" || len([]rune(p)) < 12 {
+	changed := false
+	for i, para := range paras {
+		joined := strings.TrimSpace(joinLinesInParagraph(para))
+		if joined == "" {
 			continue
 		}
-		if citeBracketRe.MatchString(p) {
-			continue
+		newPara, paraChanged := fillSentenceCitationsInParagraph(joined, catalog, usedItems)
+		if paraChanged {
+			changed = true
+			paras[i] = newPara
 		}
-		item, score := bestCatalogMatchForParagraph(p, catalog)
-		if item == nil || score < citationMinMatchScore || citationShouldStrip(p, *item) {
-			continue
-		}
-		if usedItems[item.CiteIndex] {
-			continue
-		}
-		paras[i] = appendCitationMarker(p, item.CiteIndex)
-		usedItems[item.CiteIndex] = true
-		changed = true
 	}
 	if !changed {
 		return text
@@ -595,6 +597,43 @@ func overlapEnsureInlineCitations(text string, catalog CitationCatalog) string {
 		out[i] = joinLinesInParagraph(para)
 	}
 	return ValidateInlineCitations(strings.Join(out, "\n\n"), catalog)
+}
+
+func fillSentenceCitationsInParagraph(para string, catalog CitationCatalog, usedItems map[int]bool) (string, bool) {
+	sentences := splitCitationSentences(para)
+	if len(sentences) == 0 {
+		return para, false
+	}
+	changed := false
+	for j, sent := range sentences {
+		sent = strings.TrimSpace(sent)
+		if sent == "" || len([]rune(sent)) < 12 {
+			continue
+		}
+		if _, used := ParseInlineCitations(sent); len(used) > 0 {
+			for _, n := range used {
+				usedItems[n] = true
+			}
+			continue
+		}
+		if sentenceIsCitationExempt(sent) {
+			continue
+		}
+		item, score := bestCatalogMatchForParagraph(sent, catalog)
+		if item == nil || score < citationMinMatchScore || citationShouldStripContext(sent, para, *item) {
+			continue
+		}
+		if usedItems[item.CiteIndex] {
+			continue
+		}
+		sentences[j] = appendCitationMarker(sent, item.CiteIndex)
+		usedItems[item.CiteIndex] = true
+		changed = true
+	}
+	if !changed {
+		return para, false
+	}
+	return strings.Join(sentences, ""), true
 }
 
 const citationMinMatchScore = 3
@@ -637,7 +676,9 @@ func scoreParagraphForCitationItem(para string, item CitationItem) int {
 			score += 4
 		}
 	case strings.Contains(title, "留学") || strings.Contains(title, "美国") || strings.Contains(title, "cmu") || strings.Contains(title, "背景") || strings.Contains(title, "经历"):
-		if containsAnyNormalized(norm, []string{
+		if isPhysicsCosmologyTalk(norm) {
+			score -= 8
+		} else if containsAnyNormalized(norm, []string{
 			"留学", "美国", "cmu", "卡内基", "申请", "托福", "gre", "课业", "课程", "计算机",
 			"温州", "温大", "985", "211", "考研", "保研", "offer", "硕士", "本科", "创业", "research",
 			"雅思", "绩点", "四六级", "六级", "四级", "背单词", "标准化", "双线", "一亩三分地",
@@ -655,6 +696,23 @@ func scoreParagraphForCitationItem(para string, item CitationItem) int {
 		if containsAnyNormalized(norm, []string{"大一", "大二", "大三", "大四"}) {
 			score += 3
 		}
+	case strings.Contains(title, "物理") || strings.Contains(title, "量子") || strings.Contains(title, "相对论"):
+		if containsAnyNormalized(norm, []string{"物理", "量子", "相对论", "自学", "小学", "小时候"}) {
+			score += 5
+		}
+	default:
+		contentNorm := normalize(item.FullContent)
+		if strings.Contains(contentNorm, "量子力学") || strings.Contains(contentNorm, "相对论") {
+			if containsAnyNormalized(norm, []string{"物理", "量子", "相对论", "自学", "小学", "小时候"}) {
+				score += 5
+			}
+		}
+	}
+	if isPhysicsCosmologyTalk(norm) && isBackgroundSummaryItem(item) && !catalogItemMentionsPhysics(item) {
+		score -= 15
+	}
+	if isBackgroundExperienceTalk(norm) && catalogItemMentionsPhysics(item) && !isBackgroundSummaryItem(item) {
+		score -= 10
 	}
 	return score
 }
@@ -705,10 +763,17 @@ func isCitationStopWord(w string) bool {
 	return false
 }
 
-// citationShouldStrip removes only clearly wrong pairings (e.g. 恋爱 source on 规划 paragraph).
+// citationShouldStrip removes clearly wrong source–sentence pairings.
 func citationShouldStrip(para string, item CitationItem) bool {
 	norm := normalize(para)
 	title := normalize(item.Title)
+	if isPhysicsCosmologyTalk(norm) && isBackgroundSummaryItem(item) && !catalogItemMentionsPhysics(item) {
+		return true
+	}
+	if isBackgroundExperienceTalk(norm) && !isPhysicsCosmologyTalk(norm) &&
+		catalogItemMentionsPhysics(item) && !isBackgroundSummaryItem(item) {
+		return true
+	}
 	switch {
 	case strings.Contains(title, "恋爱") || strings.Contains(title, "感情"):
 		return !containsAnyNormalized(norm, []string{
@@ -719,6 +784,47 @@ func citationShouldStrip(para string, item CitationItem) bool {
 			!containsAnyNormalized(norm, []string{"实习", "暑期", "实践"})
 	}
 	return false
+}
+
+func isPhysicsCosmologyTalk(norm string) bool {
+	return containsAnyNormalized(norm, []string{
+		"相对论", "量子力学", "量子", "时间简史", "时间膨胀", "尺缩", "科普书", "霍金", "宇宙学",
+	})
+}
+
+func isBackgroundExperienceTalk(norm string) bool {
+	return containsAnyNormalized(norm, []string{
+		"温州大学", "双非", "考研", "留学", "创业", "找工作", "四条路", "多元经历",
+	})
+}
+
+func isBackgroundSummaryItem(item CitationItem) bool {
+	title := normalize(item.Title)
+	if item.SourceType == "topic" {
+		return true
+	}
+	return strings.Contains(title, "背景") || strings.Contains(title, "多元经历") ||
+		strings.Contains(title, "本科背景") || strings.Contains(title, "经历")
+}
+
+func catalogItemMentionsPhysics(item CitationItem) bool {
+	blob := normalize(item.Title + " " + item.FullContent + " " + item.Excerpt)
+	return containsAnyNormalized(blob, []string{
+		"物理", "量子", "相对论", "时间简史", "宇宙学",
+	})
+}
+
+// sentenceIsCitationExempt skips disclaimer / hedging sentences with no verifiable facts to ground.
+func sentenceIsCitationExempt(sent string) bool {
+	norm := normalize(sent)
+	if !containsAnyNormalized(norm, []string{
+		"讲不来", "讲不了", "瞎琢磨", "没系统学过", "接不住", "随便问问", "真要让我",
+	}) {
+		return false
+	}
+	return !containsAnyNormalized(norm, []string{
+		"温州大学", "考研", "留学", "创业", "找工作", "cmu", "985", "211", "双非",
+	})
 }
 
 func citationKeywords(item CitationItem) []string {
@@ -773,6 +879,20 @@ func ValidateInlineCitations(text string, catalog CitationCatalog) string {
 	return strings.Join(out, "\n\n")
 }
 
+func citationShouldStripContext(sent, para string, item CitationItem) bool {
+	if citationShouldStrip(sent, item) {
+		return true
+	}
+	if !isPhysicsCosmologyTalk(normalize(para)) || !isBackgroundSummaryItem(item) || catalogItemMentionsPhysics(item) {
+		return false
+	}
+	// Mixed bubble: keep background cites on sentences that are purely about background.
+	if isBackgroundExperienceTalk(normalize(sent)) && !isPhysicsCosmologyTalk(normalize(sent)) {
+		return false
+	}
+	return true
+}
+
 func stripInvalidCitationMarkers(para string, byIndex map[int]CitationItem) string {
 	matches := citeBracketRe.FindAllStringSubmatchIndex(para, -1)
 	if len(matches) == 0 {
@@ -784,7 +904,8 @@ func stripInvalidCitationMarkers(para string, byIndex map[int]CitationItem) stri
 		b.WriteString(para[last:m[0]])
 		n, _ := strconv.Atoi(para[m[2]:m[3]])
 		item, ok := byIndex[n]
-		if ok && !citationShouldStrip(para, item) {
+		sent := sentenceAroundMarker(para, m[0], m[1])
+		if ok && !citationShouldStripContext(sent, para, item) {
 			b.WriteString(para[m[0]:m[1]])
 		}
 		last = m[1]
@@ -806,7 +927,7 @@ func appendCitationMarker(s string, n int) string {
 	return s + mark
 }
 
-// CapCitationMarkers enforces at-most-once per source, one marker per paragraph, and overlap validation.
+// CapCitationMarkers enforces at-most-once per source across the full reply.
 func CapCitationMarkers(text string, catalog CitationCatalog) string {
 	text = strings.TrimSpace(text)
 	if text == "" || len(catalog.Items) == 0 {
@@ -844,16 +965,15 @@ func capCitationMarkersInParagraph(para string, byIndex map[int]CitationItem, se
 	}
 	var b strings.Builder
 	last := 0
-	keptInPara := 0
 	for _, m := range matches {
 		b.WriteString(para[last:m[0]])
 		n, _ := strconv.Atoi(para[m[2]:m[3]])
 		item, ok := byIndex[n]
-		keep := ok && keptInPara == 0 && !seenIndex[n] && !citationShouldStrip(para, item)
+		sent := sentenceAroundMarker(para, m[0], m[1])
+		keep := ok && !seenIndex[n] && !citationShouldStripContext(sent, para, item)
 		if keep {
 			b.WriteString(para[m[0]:m[1]])
 			seenIndex[n] = true
-			keptInPara++
 		}
 		last = m[1]
 	}
@@ -898,9 +1018,8 @@ func FinalizeCitedReply(ctx context.Context, client *openai.Client, model, out s
 			out = HeuristicEnsureInlineCitations(out, catalog)
 		}
 		_, usedIndexes = ParseInlineCitations(out)
-		// Always try to fill uncited paragraphs (multi-bubble replies often had only partial cites).
 		if len(catalog.Items) > 0 {
-			out = overlapEnsureInlineCitations(out, catalog)
+			out = fillSentenceCitations(out, catalog)
 		}
 		_ = sparse // sparse affects reconcile wording, not whether grounded replies get cites
 	} else {
