@@ -1701,8 +1701,77 @@ func FinalizeCitedReply(ctx context.Context, client *openai.Client, model, out s
 	out = ValidateInlineCitations(out, catalog)
 	out = CapCitationMarkers(out, catalog)
 	_, usedIndexes = ParseInlineCitations(out)
+	if len(usedIndexes) == 0 && len(catalog.Items) > 0 {
+		// Consistency floor: this is a grounded/sparse_grounded reply (the only callers),
+		// so the catalog is the authority. If the strict pipeline attached nothing, a
+		// genuinely KB-derived answer would ship with zero attribution — then the next
+		// answer would show one. That inconsistency erodes buyer trust more than a single
+		// well-grounded marker would. Attach exactly one marker to the best-overlapping
+		// sentence using a relaxed (non-competitive) bar; bail out cleanly if nothing
+		// truly overlaps so we never forge a citation.
+		out = ensureGroundedCitationFloor(out, catalog)
+		_, usedIndexes = ParseInlineCitations(out)
+	}
 	refs := BuildCitedReferences(catalog, usedIndexes, citationsEnabled)
 	return out, refs
+}
+
+// ensureGroundedCitationFloor attaches a single [n] to the best-overlapping sentence when a
+// grounded reply ended up with zero markers. Relaxes only the competitive-margin requirement
+// of citationGroundingValid; keeps the absolute score + anchor-overlap + context guards so a
+// citation is never forged onto an unrelated sentence.
+func ensureGroundedCitationFloor(text string, catalog CitationCatalog) string {
+	text = strings.TrimSpace(text)
+	if text == "" || len(catalog.Items) == 0 {
+		return text
+	}
+	if _, used := ParseInlineCitations(text); len(used) > 0 {
+		return text
+	}
+	paras := splitParagraphs(text)
+	paraSentences := make([][]string, len(paras))
+	bestParaIdx, bestSentIdx, bestScore := -1, -1, 0
+	var bestItem *CitationItem
+	var bestSent string
+	for i, para := range paras {
+		joined := strings.TrimSpace(joinLinesInParagraph(para))
+		if joined == "" {
+			continue
+		}
+		sentences := splitCitationSentences(joined)
+		paraSentences[i] = sentences
+		for j, sent := range sentences {
+			sent = strings.TrimSpace(sent)
+			if len([]rune(sent)) < 12 || sentenceIsCitationExempt(sent) {
+				continue
+			}
+			cand, _ := bestTwoCatalogScores(sent, catalog)
+			if cand.item == nil || cand.score < citationAbsMinScore {
+				continue
+			}
+			if citationAnchorHits(sent, *cand.item) < 1 {
+				continue
+			}
+			if citationShouldStripContext(sent, joined, *cand.item) {
+				continue
+			}
+			if cand.score > bestScore {
+				bestParaIdx, bestSentIdx, bestScore = i, j, cand.score
+				bestItem, bestSent = cand.item, sent
+			}
+		}
+	}
+	if bestItem == nil {
+		return text
+	}
+	sentences := paraSentences[bestParaIdx]
+	sentences[bestSentIdx] = appendCitationMarker(bestSent, bestItem.CiteIndex)
+	paras[bestParaIdx] = strings.Join(sentences, "")
+	out := make([]string, len(paras))
+	for i, para := range paras {
+		out[i] = joinLinesInParagraph(para)
+	}
+	return strings.Join(out, "\n\n")
 }
 
 func catalogToPlan(catalog CitationCatalog) RetrievalPlan {

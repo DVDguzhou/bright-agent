@@ -3,8 +3,10 @@ import type { CSSProperties } from "react";
 /** 键盘占用超过此阈值（px）才认为 visualViewport 已正确反映键盘高度 */
 export const KEYBOARD_INSET_THRESHOLD = 50;
 
-/** 输入栏与键盘顶部的间距（px），仅 overlay 模式使用 */
-export const CHAT_KEYBOARD_GAP = 28;
+/** 输入栏与键盘顶部的间距（px），仅 overlay 模式使用。
+ *  保留一个很小的安全间隙：太大（如 28）会在输入栏与键盘之间露出大片背景留白，
+ *  太小（0）则在部分机型上输入栏可能被键盘顶边压住。8px 是兼顾两者的折中。 */
+export const CHAT_KEYBOARD_GAP = 8;
 
 const LAYOUT_SHRINK_RATIO = 0.08;
 const HEIGHT_MATCH_TOLERANCE = 48;

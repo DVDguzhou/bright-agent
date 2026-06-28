@@ -1,0 +1,943 @@
+{"displayName":"活泼牢大","id":"10000000-0000-0000-0000-000000000002","sampleQuestions":["公开报道里常提的那套有什么实战经验？","不冒充真人私信、不编一起吃泡面看球的细节有什么实战经验？","知识库里有的方向有什么实战经验？","失败、复盘、再来一季有什么实战经验？"]}
+{"displayName":"迷茫的引路人","id":"10ff8b66-fc03-4e3f-8296-0e46c23b97e2","sampleQuestions":["易经怎么帮做职业决策？","卦对应哪些职业方向？","真太阳时怎么校准排盘？"]}
+{"displayName":"Leo_真的不熬夜","id":"28283a20-ce3c-49ce-8a03-6362d79421a0","sampleQuestions":["数学和专业课时间怎么分配？","真题阶段怎么吃透？","复试机试怎么准备？","面试有哪些考察重点？"]}
+{"displayName":"mmm红豆泥","id":"babde93c-8a71-4913-8505-d0727453fe9c","sampleQuestions":["数分和高代复习怎么安排？","考研政治英语用什么资料？","如何关注考研公众号与制定计划？"]}
+{"displayName":"西柚气泡水oO","id":"9f5c354e-5acf-4f78-9dff-c485bd026663","sampleQuestions":["扬哥强化课怎么跟进度？","英语阅读跟哪位老师比较合适？","政治需要什么时候开始背大题？"]}
+{"displayName":"油茶麻花脆","id":"4057beb4-9019-49cd-827f-f8392bfdc4bf","sampleQuestions":["复试机考怎么准备？","复试英语会问什么？","考研和保研怎么选？","考研复试比例怎么样？"]}
+{"displayName":"辰辰今天摸鱼","id":"df4e289e-c95e-41fe-ac71-17ed2e782007","sampleQuestions":["科研经历不丰富怎么弥补？","面试表现不好还能上岸吗？","本校保研录取有什么优势？","推荐信应该找谁写比较好？","评奖评优在保研中作用大吗？"]}
+{"displayName":"林林七点半","id":"b059da27-3c81-4b49-a380-235998ef63c6","sampleQuestions":["实习经历对跨保帮助大吗？","老板面谈一般问什么？","计院面试有哪些环节？","PAT 机考怎么准备？","跨保如何同时准备实习和面试？","申请 GAPS 实验室要过哪些关？"]}
+{"displayName":"路平_Ping","id":"880d8d63-c997-414f-81ca-e3d0b4df537c","sampleQuestions":["保研机试PTA怎么准备？","跨专业面试老师会为难吗？","数学背景跨保计院有哪些优势？","保研机试只有一次机会怎么办？"]}
+{"displayName":"fly飞飞不飞","id":"96befe1e-5051-462e-9765-5ba80cd970f6","sampleQuestions":["高金、泛海、光华面试各侧重什么？","金融项目实习和推荐信怎么凑？","材料邮寄踩 ddl 有什么风险？"]}
+{"displayName":"丰丰OvO","id":"a8d348d1-ec4f-4725-adbd-29de97626836","sampleQuestions":["面试常问基本定义定理怎么准备？","保研排名靠后如何选意向专业？","全国数学竞赛三等奖含金量如何？","保研前多参加比赛实习重要吗？"]}
+{"displayName":"阿亮别闹","id":"1c394379-e511-48c4-bb51-bf2b88047f56","sampleQuestions":["数院保研面试常考 Jordan 标准型吗？","辅修金融再回本院怎么权衡？","保研笔试数分高代怎么准备？"]}
+{"displayName":"澄澄子呀","id":"2ee63a7f-e5f2-4427-b978-dbf47c5896fc","sampleQuestions":["保研笔试数分高代几何考哪些技巧？","面试追问定理定义怎么准备？","WISC VISP申请需要注意什么？","推荐信找哪位老师比较合适？","GPA和加分如何决定推免资格？"]}
+{"displayName":"毅然拒绝内卷","id":"1939e953-4bd5-4641-b064-7a5592727863","sampleQuestions":["复旦数院夏令营排名大概卡多少？","六级 421 能过夏令营英语关吗？","数学保研没有论文怎么加分？"]}
+{"displayName":"ning_关关","id":"43f3bb1d-c4eb-45de-bb1c-49f026b14e08","sampleQuestions":["保本校还是冲清北直博考？","联系导师要多早？","数院接收端笔试怎么准备？"]}
+{"displayName":"昊昊不下饭","id":"c37ce991-a34e-4c83-9df8-1f1a81803f85","sampleQuestions":["做深度学习科研后怎么转回计算数学？","复旦类脑营和交大计算营 offer 冲突怎么办？","夏令营报晚了还有什么补救？"]}
+{"displayName":"铭泽MZday","id":"58782cae-bb86-4e02-8d78-ca7342b1139f","sampleQuestions":["清华叉院 IIIS 申请要提前套磁吗？","北大数院 waiting list 怎么转正？","中科院数院为什么要早联系导师？"]}
+{"displayName":"泓毅hyi","id":"40a91ad8-a531-4f70-9e89-21259a509ef7","sampleQuestions":["挂科后还能保研吗？","出国准备一半改保研怎么决策？","统计方向需要什么样的科研实习？"]}
+{"displayName":"楠楠南下中","id":"8cb3b57f-2720-45b4-a911-36976f3beb44","sampleQuestions":["北大清华统计营表刷后还能去哪？","港科大暑研和本校导师怎么衔接？","中科院数院面试要注意什么节奏？"]}
+{"displayName":"瑞瑞想当咸鱼","id":"43fc5a46-9588-466d-a161-766fc4ce853f","sampleQuestions":["人大统计营笔试面试怎么准备？","直博被刷调剂专硕是什么体验？","统计本科数理基础不够怎么补？"]}
+{"displayName":"马马马卷云","id":"abeff542-7040-4aba-a16a-2e36c7ab3b6c","sampleQuestions":["求是班和数院排名证明怎么用于申请？","清华统计营笔试和数据分析 project 怎么准备？","复旦上海数学中心提前批和正式批什么关系？"]}
+{"displayName":"忞忞很少上线","id":"2b3e58e5-d6a4-4028-a957-f7db78cfae06","sampleQuestions":["排名不到10%还能报哪些营？","上财叉院运筹方向怎么匹配？","保研面试英语和政治题怎么准备？"]}
+{"displayName":"毛毛雨别再下","id":"93670124-194b-44bb-87ba-09a255bc0ea7","sampleQuestions":["申美国 CS PhD 全拒可能和方向敏感有关吗？","暑研和推荐信怎么规划？","ETH 直博被降 MS 还要不要去？"]}
+{"displayName":"Kevin在改版","id":"d80894f1-cfac-4973-9605-d2e2ad99d49e","sampleQuestions":["AI PhD 申请背景大概怎么排序？","套磁和海外科研推荐信有多重要？","要不要找留学中介？"]}
+{"displayName":"天天想赖床","id":"618d0d5c-5af3-4bb7-8c52-178a66c47bcf","sampleQuestions":["转 CS 申研科研路线怎么铺？","托福和 GRE 要刷到多少？","交换经历对决心出国有多大帮助？"]}
+{"displayName":"璟_小灯泡","id":"932ef29d-b4d1-4873-b148-eab1398ba876","sampleQuestions":["托福不够高怎么规划申请？","硕士申请一定要套磁吗？","大三前要不要定读硕还是读博？"]}
+{"displayName":"龙腾四海小号","id":"9d30c102-b8bf-46fb-bfe2-a2676d62d5ec","sampleQuestions":["浙大与巴黎综合理工合作项目怎么考？","没有科研经历也能申欧洲名校吗？","纯数方向如何保持热情？"]}
+{"displayName":"翕跃十点半","id":"7fce5adc-1c3d-492d-aba7-1105e20016d6","sampleQuestions":["金工申请为什么强调 C++？","量化实习怎么选大私募还是小 fund？","推荐信和 GPA、实习、标化怎么排序？"]}
+{"displayName":"KJ杰哥慢走","id":"0f43c033-891e-4382-8574-5c1e60a9d136","sampleQuestions":["GPA 中游怎么定位统计/DS 硕士？","浙大四分制与 WES 认证要注意什么？","实习对统计硕士帮助有多大？"]}
+{"displayName":"万腾一根葱","id":"aa20814b-1cc3-4225-af0b-209bf51d813a","sampleQuestions":["统计 PhD 要不要申 MS 保底？","北美暑研线上体验下降怎么办？","港府奖学金 HKPFS 值不值得申？"]}
+{"displayName":"wzh昊啊昊","id":"7ecc3897-bee2-4b98-a124-4a6f845a3f1c","sampleQuestions":["威斯康星 3+1+1 和保研冲突怎么选？","数院保研接收考试没过怎么办？","港科广交叉学科面试侧重什么？"]}
+{"displayName":"暄暄别催啦","id":"6d5d0426-0efb-4e92-ab32-4a4eb59c3a1e","sampleQuestions":["大二才决定出国怎么刷绩点？","统计硕士要不要找中介？","文书怎么避免流水账？"]}
+{"displayName":"泽_ChillZ","id":"293e3d76-18c1-49dc-9f3b-911f99e5e527","sampleQuestions":["低 GPA 金工怎么选保底校？","视频面试和行为面怎么练？","QCF 双学位转码路径值不值？"]}
+{"displayName":"奚奚哈哈哈哈","id":"d7b5b0f3-c62b-4c07-8232-4eddfe5161a3","sampleQuestions":["金工申请 GPA、实习、标化、推荐信哪个更重要？","中介全包有哪些坑？","同样录取下英国和美国硕士怎么选？"]}
+{"displayName":"nk能开张吗","id":"bf5299c1-ffcc-4b19-a74b-4fb4fa67e15a","sampleQuestions":["GPA 不高能申哪些港新金科项目？","NTU FinTech 和 HKUST FinTech 怎么比？","港新申请文书重要吗？"]}
+{"displayName":"昀祥今天晴","id":"31f00847-36ca-4d63-b163-3d66cbbee8f6","sampleQuestions":["大一大二怎么规划金工申请时间线？","实习和推荐信怎么与课程并行？","只申金工不混申要注意什么？"]}
+{"displayName":"sleep华泽先","id":"51a553de-70b1-4791-9b03-3b3afb290336","sampleQuestions":["工科跨申金工托福 GRE 考很多次怎么办？","三维一般怎么靠实习和先修课补背景？","英美混申体感差异是什么？"]}
+{"displayName":"虎贲不干杯","id":"b0f396a1-aa98-4d3e-a58e-1fe9ca24d15e","sampleQuestions":["理工转金工要修多少外院系学分？","实习一定要 big name 吗？","交换推荐信怎么拿？"]}
+{"displayName":"shine昕玥","id":"1c057e0d-825a-45c4-9497-7ce8f6245d42","sampleQuestions":["Baruch 绿皮书没刷完面试会挂吗？","CMU 无面拒后心态怎么调整？","MFE 申请群和信息平台怎么用？"]}
+{"displayName":"煦华慢半拍__","id":"eb83a139-bf85-440e-bd33-f4fbd7aed836","sampleQuestions":["大一大二绩点弱还能转金工吗？","defer 一年 gap 怎么找实习？","CMU MSCF 面试和录取标准怎么看？"]}
+{"displayName":"幽灵不打烊","id":"e8dc1abe-669e-4d8c-a4c2-ab75b034f210","sampleQuestions":["北邮本科申请美国ECE方向PhD有多大把握？","要不要放弃保研名额全力准备出国？","如何选择申请的专业方向和学校？"]}
+{"displayName":"星辰大海Luo","id":"361cf9ee-9efb-4cc5-b486-b1dd3f61737f","sampleQuestions":["北邮通信专业出国是否有优势？","申请自费硕士应该如何定位？","GT考试和GPA应该如何平衡？"]}
+{"displayName":"小柯_Nap","id":"59374a72-f719-4ffb-8c83-66c58ce57be2","sampleQuestions":["数媒专业出国可以申什么方向？","HCI design和CS的HCI有什么区别？","Information Science方向怎么选？"]}
+{"displayName":"赢了别浪","id":"b5e5d67c-81b4-47d7-9ea1-7e3f1f3baa5d","sampleQuestions":["GPA不高如何申请德国留学？","APS审核怎么准备？","RWTH Aachen录取看重什么？"]}
+{"displayName":"旅人TripX","id":"bb4fdaa3-bfc6-4570-8ddb-446e3692f466","sampleQuestions":["GRE考砸了还要不要坚持出国？","申请20所学校是不是太多了？","材料准备要细致到什么程度？"]}
+{"displayName":"硬糖嘎嘣脆","id":"e938ecc0-3325-41d1-9097-af9640b3f099","sampleQuestions":["物流工程如何转申工业工程PhD？","无竞赛无paper如何申请？","IE方向美国学校怎么选？"]}
+{"displayName":"lyk_星期五","id":"67bf6cdd-a691-4962-b5de-e9f7d694b732","sampleQuestions":["出国前如何做好目标和规划？","申请金融工程FE需要什么条件？","选校时地理位置有多重要？"]}
+{"displayName":"天马行空bupt","id":"f55062a2-06f4-46e5-bc19-eacc961eabf6","sampleQuestions":["出国留学的动机应该怎么想清楚？","申请材料犯了大错怎么办？","套磁应该找什么样的教授？"]}
+{"displayName":"Func_不加班","id":"30dfd477-ccdc-4f45-a21e-11cab08a3f29","sampleQuestions":["北邮硕士申请CS PhD如何定位？","陶瓷对于申请PhD有多重要？","申请交叉方向PhD要注意什么？"]}
+{"displayName":"亚星today","id":"d8511a08-cc8c-48cd-a947-6b63a2b35fff","sampleQuestions":["如何了解教授是否在招人？","套磁时打电话和发邮件哪个更有效？","电院常见的申请方向有哪些？"]}
+{"displayName":"墨墨不上线","id":"1cea9ac9-6f4c-49b8-bc4d-7d5ca24c5ad4","sampleQuestions":["HCI的不同分支该怎么选？","数媒专业申HCI如何扬长避短？","教授反套PhD该怎么应对？"]}
+{"displayName":"教训记牢了","id":"e623d85a-3e23-4a54-b4cf-94967eb6c21b","sampleQuestions":["本科生直接申请CS PhD有多难？","UCSD的CSE PhD是什么水平？","如何在PhD和MS之间做选择？"]}
+{"displayName":"光子麦克斯","id":"f9ee3713-6c1a-48f8-9110-aa396d6e9d85","sampleQuestions":["光学/光电子方向如何选校？","美国三大光学中心是哪些？","日本光学研究有什么特点？"]}
+{"displayName":"码农阿喵","id":"9bf6d8dc-9275-4b35-b291-5b67b41ed0bf","sampleQuestions":["光电背景转申CS Master需要提前准备哪些课程？","JHU、Duke、USC等CS硕士项目各有什么特点？","转专业申请要不要找中介？"]}
+{"displayName":"柠檬不酸ya","id":"6531db75-5edc-444a-a096-1ce9cb5df92a","sampleQuestions":["没有论文和专利申请MS还有竞争力吗？","公司实习经历在MS申请中有多大作用？","文书应该自己写还是找人帮忙？"]}
+{"displayName":"扶摇九万里","id":"42d844a8-13d4-4819-adb4-c347e9226ce1","sampleQuestions":["硕博混申应该怎么分配学校？","暑研和短期交流对申请有多大帮助？","标化考试应该什么时候考完？"]}
+{"displayName":"北极星xw","id":"df3e5dab-aa12-4a15-aa75-dfb2f99633e0","sampleQuestions":["保研失败后转出国来得及吗？","欧洲硕士申请和美国有什么不同？","无GRE无推荐信怎么申请？"]}
+{"displayName":"追光Zzz","id":"670e80aa-b3a9-44e7-9dc7-4cdbbe88683c","sampleQuestions":["暑研推荐信对PhD申请有多重要？","签证被check怎么办？","如何在美国PhD和欧洲MS之间抉择？"]}
+{"displayName":"暴走萝卜丁","id":"ebd2145a-5c9b-4f4a-bd8f-2c4db155d26c","sampleQuestions":["大二才换实验室还来得及发顶会吗？","暑研对CS PhD申请起什么作用？","申请中如何和同学分享信息互助？"]}
+{"displayName":"晚风予星河","id":"92954ebf-54f6-426c-a065-5ae387654eb0","sampleQuestions":["暑研对PhD申请为什么是必须的？","自行联系暑研和项目暑研有什么区别？","半DIY和全DIY中介怎么选？"]}
+{"displayName":"阿拉蕾biu","id":"28bc202a-e360-4574-a1be-286bf7ee8717","sampleQuestions":["没有发表论文能申请到PhD吗？","UCF CREOL光学中心暑研体验如何？","PhD和MS混申如何分配精力？"]}
+{"displayName":"太阳花2号","id":"03eb0c09-04fe-4aa6-9c31-e2ed781b687f","sampleQuestions":["怎样才能申请到Stanford PhD？","UCLA CSST暑研项目如何申请？","本科阶段发一作论文需要什么条件？"]}
+{"displayName":"鹤鸣九皋","id":"82fdbbcb-f2b7-4b4e-b609-36c9fdb43150","sampleQuestions":["没有暑研和海外推荐信还能申PhD吗？","大三下才决定出国来得及吗？","套磁邮件怎么写才有针对性？"]}
+{"displayName":"微光Lab","id":"488ba6e4-6e72-432b-b3e3-792c1439222d","sampleQuestions":["3+2毕业后怎么继续申请PhD？","推荐信在PhD申请中有多关键？","PhD面试会被问什么专业课问题？"]}
+{"displayName":"蔷薇花开Lv","id":"67136808-fe09-4f71-833e-9757ce8c2938","sampleQuestions":["法国工程师学校和普通大学有什么区别？","IOGS的光学项目怎么样？","中法班面试用什么语言？"]}
+{"displayName":"甜筒翻转ss","id":"ad131a8d-18ed-4205-b8a7-7744c8ed930f","sampleQuestions":["理工科如何转申教育技术方向？","转专业文书的动机线索怎么写？","海外交流经历对跨专业申请有多大帮助？"]}
+{"displayName":"小确幸z7","id":"7640eede-d36f-4973-8be3-c263f4be34a8","sampleQuestions":["只申一所学校的策略可行吗？","CUHK夏令营面试什么流程？","保研和出国可以同时准备吗？"]}
+{"displayName":"银河冲浪手","id":"7a86c2ac-b1d3-4509-94aa-f33d2b6c2c1e","sampleQuestions":["GPA接近满分对PhD申请有多大加成？","光学方向顶尖学校有哪些？","暑研期间怎样拿到强推荐信？"]}
+{"displayName":"芯片味的茶","id":"30ea4d88-e8c2-4db7-a02a-34f153019759","sampleQuestions":["CMU的EE/ECE硕士项目怎么样？","暑研期间怎样高效产出论文？","年级第一申MS是不是有点浪费？"]}
+{"displayName":"元气弹bq","id":"c771f6e9-ebf3-4923-b8c8-8b4c0666b3ec","sampleQuestions":["没有科研和交流经历怎么申请MS？","美赛获奖对留学申请有帮助吗？","USC的EE硕士项目怎么样？"]}
+{"displayName":"解码小能手","id":"6ef76d4e-8ca5-476b-9de3-a4804c5b8d74","sampleQuestions":["GPA只有3.2左右还能申到什么学校？","推荐信怎么选2学术+1实习的组合？","Rochester的光学/EE项目值得去吗？"]}
+{"displayName":"键盘敲敲敲","id":"680fa3a9-8439-4c7b-8121-0e5753b700c3","sampleQuestions":["考研选学硕还是专硕有什么区别？","计算机考研如何择校？","南科大本科考研需要注意什么？"]}
+{"displayName":"咖啡不加冰c","id":"9a30df4c-665c-42b0-afc3-8c31d4fa3a6d","sampleQuestions":["GPA不到3.7能申到CMU吗？","托福GRE和GPA哪个更重要？","申请美国CS硕士如何选校和写文书？"]}
+{"displayName":"极客老方yd","id":"76f120b7-aa47-4c56-8240-82dc6995bf66","sampleQuestions":["GPA第一但托福口语低怎么办？","UCLA CSST暑研经历是什么样的？","文书和推荐信有多重要？"]}
+{"displayName":"鹿仔ECE冲","id":"a171d036-e045-4334-985a-7cfab39996a2","sampleQuestions":["CMU ECE硕士项目怎么样？","港新和美国硕士怎么选？","申请季焦虑怎么调节心态？"]}
+{"displayName":"医工交叉sr","id":"d9879690-f26b-4e0a-bb5f-673e1c01f2dd","sampleQuestions":["申PhD被拒后gap一年再申靠谱吗？","AI+医学交叉方向怎么准备？","推荐信和connection对PhD申请有多重要？"]}
+{"displayName":"保研小白zq","id":"6e512fc5-3b7b-497f-a268-e807813ccaee","sampleQuestions":["南科大保研流程是什么样的？","计算机系保研夏令营考什么？","保研还是出国读硕怎么选？"]}
+{"displayName":"浙软上岸ysh","id":"7a56b2fe-49a9-4635-9bba-1d0a239c250f","sampleQuestions":["南科大CS保研外校难度大吗？","保研夏令营简历怎么过筛？","为什么选择保研而不是出国？"]}
+{"displayName":"NUS打工人yl","id":"9d1c2c34-ee45-436c-b964-2e0b946121d3","sampleQuestions":["NUS MComp CS项目值得all in吗？","港新CS硕士项目怎么比较？","NUS的就读体验和就业前景如何？"]}
+{"displayName":"中科大梦yl","id":"e33931d6-0ec3-46ec-8518-e7b7333f6518","sampleQuestions":["双非保研名校需要什么条件？","保研夏令营笔试考什么内容？","GPA和科研竞赛怎么平衡？"]}
+{"displayName":"赌博少女_yt","id":"33d37db6-5326-49f4-b653-a8dd841306bc","sampleQuestions":["背景一般怎么申请CS PhD？","模板海套法是什么？","KAUST科研实习项目值得去吗？"]}
+{"displayName":"沙特体验官w","id":"caf09c83-8dfe-448f-b7a9-4b7385e4f5e0","sampleQuestions":["KAUST VSRP项目是什么？","去沙特做科研安全吗？","科研实习对申请有什么帮助？"]}
+{"displayName":"安卓小哥km","id":"fabf9e8f-5e20-49f6-ae4d-d1d8a2cb3852","sampleQuestions":["CS本科直接就业可行吗？","为什么放弃保研选择工作？","华为面试准备什么内容？"]}
+{"displayName":"腾讯刷题王yh","id":"03a0767d-dd4b-4c6d-8962-f9fdc5c800f7","sampleQuestions":["如何准备互联网大厂面试？","实习对秋招有多重要？","CS本科为什么选择就业而不是读研？"]}
+{"displayName":"Purdue宁神dn","id":"389bb331-724e-4b4a-86a0-861970232c90","sampleQuestions":["PhD面试一般会问什么问题？","SOP里应该只提一个导师的名字吗？","三月中旬后没面试还有希望吗？"]}
+{"displayName":"UCI搞基侠xy","id":"a89cb887-7e23-416d-8e50-83d9e2fd3141","sampleQuestions":["暑研对北美PhD申请有多重要？","如何培养Geeky的计算机素养？","计系暑研项目有哪些选择？"]}
+{"displayName":"暑研安利员xy2","id":"6b077e44-25c8-4596-a29f-f0a91fd9d30f","sampleQuestions":["没有暑研能申到好学校PhD吗？","推荐信的有效性怎么判断？","CSST和UCInspire暑研项目怎么选？"]}
+{"displayName":"NEU找工人whf","id":"9d91e878-245f-439c-810e-0e66006e7772","sampleQuestions":["NEU硅谷校区CS硕士值得去吗？","美国CS硕士怎么选求职导向的项目？","本科交换能解决签证check问题吗？"]}
+{"displayName":"设计转码云zx","id":"8acd7da9-3712-46a1-ba26-fca745466058","sampleQuestions":["非CS专业怎么跨申CS/ECE硕士？","DIY申请需要注意什么？","PhD和Master该怎么选？"]}
+{"displayName":"清华设计师tg","id":"e8784232-6d3a-423b-b99c-b788121c4077","sampleQuestions":["SDIM专业有哪些升学方向？","如何从设计转到工程方向深造？","清华+MIT双学位项目是什么体验？"]}
+{"displayName":"求职蚂蚁st","id":"ef3a87f6-8b63-4c56-8511-8c7d74ddeb6c","sampleQuestions":["CS本科求职如何准备简历？","面试中专业基础怎么复习？","实习对秋招有多大帮助？"]}
+{"displayName":"APS攻略xq","id":"12a379fe-0ac2-4fb4-baee-db3a94ee7636","sampleQuestions":["APS审核流程和时间线是怎样的？","南科大学生APS材料怎么准备？","欧陆CS硕士申请有什么注意事项？"]}
+{"displayName":"北大菁英st2","id":"455c443c-35ba-4d5b-81df-70c9e377cc64","sampleQuestions":["排名不高怎么保研到北大？","论文对保研面试有多大帮助？","保研夏令营面试有什么技巧？"]}
+{"displayName":"PPT选手zx","id":"c8592f5b-5e96-4658-ad9b-ee02f72b7030","sampleQuestions":["CS美国硕士申请的基本流程？","如何制作申请材料？","选校需要考虑哪些因素？"]}
+{"displayName":"系统菜狗sc","id":"af65f576-e1f8-40dc-b70b-7e6d496d3f9a","sampleQuestions":["背景一般能拿到PhD全奖吗？","System方向PhD申请有什么特点？","多个PhD offer怎么比较和选择？"]}
+{"displayName":"环保清研er","id":"700a22d3-78cc-432f-8838-1e08e8b07dfd","sampleQuestions":["保研夏令营需要准备哪些材料？","清华深研院环境工程怎么样？","保研中最看重什么条件？"]}
+{"displayName":"模拟芯人rw","id":"92284594-d643-4ada-8b87-f357de450410","sampleQuestions":["模拟IC方向保研怎么选校？","保研直博和学硕哪个更难申请？","清华集成电路夏令营面试考什么？"]}
+{"displayName":"脑机接口wy","id":"dea2d967-5e1d-4c76-aa41-3faefe4754b2","sampleQuestions":["PhD申请中connection有多重要？","如何获得有价值的科研推荐信？","跨方向申请PhD该怎么规划？"]}
+{"displayName":"航发冲天xw","id":"b5b79298-144f-4274-b2e1-02f35206db81","sampleQuestions":["航空航天专业保研有哪些好学校？","保研夏令营线上和线下面试有什么区别？","如何让导师帮你引荐保研目标校？"]}
+{"displayName":"力学小白jq","id":"1c334d3f-385f-423b-95ec-7de57cd1a42f","sampleQuestions":["力学专业保研需要什么条件？","保研评选中GPA占多大比重？","暑研期间考英语是好时机吗？"]}
+{"displayName":"光电暑研zk","id":"6c4d516a-d6c4-46ca-8b21-3c60cb127371","sampleQuestions":["MS和PhD该怎么选择？","ECE Master选校看什么因素？","暑研对Master申请有多大帮助？"]}
+{"displayName":"数字芯片yz","id":"330e01dd-6ba6-4186-8572-add36b93a59d","sampleQuestions":["微电子保研的难度排名是怎样的？","夏令营被拒后还有什么机会？","数字IC和模拟IC方向怎么选？"]}
+{"displayName":"北大IC达人yj","id":"68f573d2-bf68-442d-b437-29595bd07acf","sampleQuestions":["微电子保研有哪些值得去的学校？","北大深信工面试考什么？","想保研外校应该怎么准备？"]}
+{"displayName":"东大修士xg","id":"06885545-1f97-4db6-8324-4e38d7807f04","sampleQuestions":["NUS ECE PhD申请流程是什么？","东京大学修士怎么申请？","申请前如何跟教授搭上线？"]}
+{"displayName":"UMN力学zl","id":"f80146bc-a809-4329-9997-b40757e33ab8","sampleQuestions":["力学系申PhD可以申哪些专业？","PhD申请中套磁有多重要？","SOP什么时候开始写？"]}
+{"displayName":"圣母转码gc","id":"adafa642-c759-45e4-9820-ab1250faf46c","sampleQuestions":["微电子专业可以转申CS硕士吗？","TOEFL 112对申请有多大帮助？","为什么选择出国而不是保研？"]}
+{"displayName":"安堡微电mt","id":"f54bc5d3-70e4-4b9c-9f3a-694f00b1b846","sampleQuestions":["ECE Master申请需要多高的GPA？","语言考试什么时候准备最好？","没有暑研经历怎么申请Master？"]}
+{"displayName":"厦大环科hw","id":"e6d616ba-3d27-454b-8660-d13005cfa1fa","sampleQuestions":["环境专业保研有哪些好学校？","不同学校夏令营面试有什么区别？","提前联系导师有什么好处？"]}
+{"displayName":"代尔夫特argue姐","id":"63051ec4-0978-4edd-826c-9ecd1b4c70a2","sampleQuestions":["收到拒信后怎么argue？","TU Delft机械硕士申请难度大吗？","Argue letter怎么写？"]}
+{"displayName":"中科院IC侠wz","id":"f2e74a7d-4d29-4cfd-8a89-7f2dcff8eb20","sampleQuestions":["保研面试一般考什么内容？","不同学校面试风格差异大吗？","保研有哪三个关键时间节点？"]}
+{"displayName":"港科联培ry","id":"301ff167-0686-48c2-b35b-7fa70e9a934d","sampleQuestions":["联培PhD和自申PhD有什么区别？","暑研前应该先考出英语成绩吗？","如何向心仪教授推荐自己？"]}
+{"displayName":"北大力学ym","id":"f2f96893-95e2-43a5-aa02-3fa2998a6242","sampleQuestions":["北大工学院夏令营面试什么形式？","力学系保研外校难吗？","暑研心态不好怎么调整？"]}
+{"displayName":"哥大骑行侠wx","id":"58ee7f05-03bf-4f8a-aa7a-3a64609a86a1","sampleQuestions":["哥大LDEO暑期项目生活条件怎样？","申请J1签证需要注意什么？","暑期科研十周的日程安排是怎样的？"]}
+{"displayName":"ETH机器人yz2","id":"a2dbc60c-1344-425c-8c2a-23629e38876b","sampleQuestions":["ETH机器人硕士录取标准是什么？","机器人方向有哪些好的硕士项目？","UMich和ETH机器人硕士怎么比较？"]}
+{"displayName":"海洋博士yao","id":"92f3860a-6b69-484c-b2b9-1db537da279a","sampleQuestions":["暑研怎么通过导师关系获得？","套磁应该什么时候开始？","TOEFL刷不出分怎么办？"]}
+{"displayName":"UCI电子jd","id":"4f846164-cc67-4e6f-8f25-c47f3eb971ff","sampleQuestions":["TOEFL和GRE该怎么安排准备？","DIY申请PhD需要注意什么？","文书对录取影响大吗？"]}
+{"displayName":"UCLA机械tq","id":"f155c4c4-5712-4687-9fe4-d0940b2c4c9b","sampleQuestions":["多段暑研经历怎么规划？","ME PhD套磁有什么技巧？","申请材料的时间线怎么安排？"]}
+{"displayName":"光电科研hy","id":"8aea94ff-74a8-4ef7-9d33-5b264a466949","sampleQuestions":["大学课程该怎么高效学习？","本科生什么时候开始科研？","怎么找到合适的科研导师？"]}
+{"displayName":"感染研究喵yy","id":"eef51da9-c376-42ab-b956-ab315dffd4bc","sampleQuestions":["欧洲PhD和美国PhD申请有什么区别？","如何在欧洲找到PhD position？","美国PhD全拒后怎么调整方向？"]}
+{"displayName":"化学反应堆y","id":"b47fd788-59e4-4d0c-a516-c11a8ac01dc7","sampleQuestions":["没有论文能申到化学PhD吗？","化学PhD申请文书怎么写？","学期交流对申请有多大帮助？"]}
+{"displayName":"化工跨界人zz","id":"ba42027a-1d90-49b1-99f6-b533861ebdcd","sampleQuestions":["化学跨申化工方向可行吗？","英国硕士申请时间线是怎样的？","IC面试和ATAS审核需要注意什么？"]}
+{"displayName":"港中文化学dj","id":"2d70d76a-75e0-44e9-a74f-c78443938a22","sampleQuestions":["GPA不高能申到香港PhD吗？","香港PhD申请套磁信怎么写？","PhD面试需要准备什么？"]}
+{"displayName":"光华套利手yy","id":"d7022ae1-0ee7-46ad-b758-247230fa7874","sampleQuestions":["南科大保研商科难度有多大？","金融硕士项目怎么选择？","保研中信息差如何弥补？"]}
+{"displayName":"公共政策人lw","id":"66a6fd37-f850-4345-9cd9-8f38326cba3d","sampleQuestions":["工作后再申请研究生可行吗？","理科跨申公共政策需要什么条件？","Duke MPP项目怎么样？"]}
+{"displayName":"名古屋环境cl","id":"4c3d3409-5562-4b56-b8e3-a3ccb8150d41","sampleQuestions":["日本SGU英语项目是什么？","如何拿到日本教授的内诺？","东京大学GPES项目怎么申？"]}
+{"displayName":"延毕数学人rj","id":"460005dd-8185-4c30-9141-59e0c784fc9a","sampleQuestions":["GPA不高能申到欧洲数学硕士吗？","欧洲数学硕士项目怎么选校？","延期毕业对申请有影响吗？"]}
+{"displayName":"华威神经元ym","id":"2f9ead62-fc03-4fef-af29-fe78036788c1","sampleQuestions":["英国硕博连读项目怎么选？","申请英国大学有哪些注意事项？","数学转神经科学方向可行吗？"]}
+{"displayName":"踩坑幸存者bz","id":"4be8772f-cbec-4946-abd4-700c077dc1d6","sampleQuestions":["条件很差还能申化学PhD吗？","暑研被导师鸽了怎么办？","英语口语不达标怎么选校？"]}
+{"displayName":"怒考化学生k","id":"19c49557-3887-4036-b9a6-2c7cba28815f","sampleQuestions":["南科大化学考研难度大吗？","考研只有一个月怎么准备？","出国还是考研怎么选？"]}
+{"displayName":"北大物理一jj","id":"71880858-629d-49fb-932f-f649aea12677","sampleQuestions":["物理系保研清北需要什么条件？","清北物理夏令营怎么准备？","保研还是出国怎么选？"]}
+{"displayName":"生物交叉侠l","id":"92938717-4c32-40ca-a43e-7fa9b25bf4e5","sampleQuestions":["生物信息转CV方向PhD可行吗？","MICCAI竞赛对申请有帮助吗？","PhD申请中套磁有什么技巧？"]}
+{"displayName":"ETH地球人lu","id":"d1a5448d-43b7-4b24-8765-39f3034ada35","sampleQuestions":["ETH Earth Science硕士怎么样？","PhD申请如何做到取向狙击？","美国PhD和ETH硕士怎么选？"]}
+{"displayName":"中科大微尺度jh","id":"ac16ed9e-5a0f-4198-bbd9-cd36eb51c182","sampleQuestions":["物理系保研怎么选学校？","中科大夏令营面试考什么？","英语差选择保研还是出国？"]}
+{"displayName":"材料踩坑侠yf","id":"5443325c-cad1-4386-aea4-a3301ada2b42","sampleQuestions":["申请遇到大量拒信怎么办？","如何把AD转为PhD offer？","保底校应该怎么选？"]}
+{"displayName":"凝聚态老王yh","id":"c7c94f01-9b4d-4d6d-bc7b-3378b24c7c1e","sampleQuestions":["GRE Physics Sub怎么准备？","物理PhD申请三维门槛是多少？","凝聚态和生物物理方向怎么选？"]}
+{"displayName":"游戏规则解读yc","id":"91c96165-8be9-4ceb-b3b1-52235bbcbb4b","sampleQuestions":["PhD申请中推荐信到底有多重要？","什么叫一封好的推荐信？","如何提高GPA和英语成绩？"]}
+{"displayName":"BA转型选手zy","id":"cc087731-e273-456b-b0d3-db00b01e1afe","sampleQuestions":["商业分析硕士项目怎么选？","该不该找中介申请？","金融数学能转什么方向？"]}
+{"displayName":"PPT达人xy2","id":"9de10099-0380-4a89-9213-140927413e72","sampleQuestions":["数学系美国申请的基本流程？","选校需要考虑哪些因素？","申请材料怎么准备？"]}
+{"displayName":"东大修士sh","id":"3895150c-2ef5-4e35-add7-9e0cf45a5698","sampleQuestions":["东京大学IME项目怎么申请？","日本修士和欧美PhD有什么区别？","研究计划书怎么写？"]}
+{"displayName":"宾大生工人z","id":"7feb22d6-6ad7-44bc-ae8f-7ba6858f4db8","sampleQuestions":["生物系能申生物工程PhD吗？","没收到面试邀请怎么主动争取？","CSST暑研是什么体验？"]}
+{"displayName":"凝聚态自救xc","id":"e108778c-c249-4de1-994f-108db0533f6a","sampleQuestions":["凝聚态理论方向该出国还是国内直博？","清华高研院和北大ICQM怎么选？","南科大理论方向课程不够怎么补？"]}
+{"displayName":"传媒少女cd","id":"b6cb7550-3d71-4804-bded-02a03c0a0b6a","sampleQuestions":["跨专业保研需要怎么准备？","金融系保研夏令营面试考什么？","怎么选择保研的Target School？"]}
+{"displayName":"金融卷王xy","id":"ab0ca4ee-fc72-474e-ab84-aa83570cb373","sampleQuestions":["不是专业第一能保研北大吗？","金融保研怎么平衡学业和课外活动？","ACCA对保研有帮助吗？"]}
+{"displayName":"哥大风控达人hm","id":"c37735b9-b0b8-40de-8b6f-cc57798f4710","sampleQuestions":["GMAT不到700能申到好学校吗？","美国金融硕士如何选校？","文书怎么体现和项目的匹配度？"]}
+{"displayName":"港新混申达人bw","id":"cdac45f1-01c3-4e32-af15-3537f4a1b7ac","sampleQuestions":["港新金融硕士怎么选校？","国内读研和港新留学哪个性价比高？","GMAT和雅思分别需要考多少？"]}
+{"displayName":"CMU数据分析师zc","id":"2b7af0c0-42f3-4056-bfc4-90f6ed872d7e","sampleQuestions":["CMU MISM和BIDA有什么区别？","金融工程可以申商业分析吗？","GaTech MSA项目怎么样？"]}
+{"displayName":"PPT金工达人yl","id":"429e5b64-6fbc-4326-bd5e-06461d9d4250","sampleQuestions":["金融工程境外升学流程是什么样的？","申请金融硕士需要准备什么材料？","金融工程申请有什么注意事项？"]}
+{"displayName":"精算小达人ty","id":"4fbfdb50-39c2-4694-a7b2-a4edd6880bcb","sampleQuestions":["统计系保研北大汇丰需要什么条件？","SOA精算考试对保研有帮助吗？","保研夏令营怎么准备？"]}
+{"displayName":"量化瑞士通dy","id":"4d16bd23-5a2b-4daf-ac3d-583abd7ab3cf","sampleQuestions":["金融工程硕士怎么DIY申请？","EPFL MFE项目怎么样？","金工申请GPA有多重要？"]}
+{"displayName":"生统跨洋人ld","id":"c05f3fdb-1bd7-4111-97e0-0fff2e022222","sampleQuestions":["本科成绩一般可以先读硕再申PhD吗？","生物统计PhD就业前景怎么样？","美国统计和生物统计有什么区别？"]}
+{"displayName":"清华经管冲刺jp","id":"1d9a938f-cf80-453e-84ef-06d06e4f37e0","sampleQuestions":["保研清华经管需要什么条件？","金融保研中科研论文有多重要？","保研各项指标的重要性排序是什么？"]}
+{"displayName":"汇丰游泳健将yq","id":"bb1ca5a6-8cbd-4a1d-96f0-0b2a2dd8d0f8","sampleQuestions":["北大汇丰金融夏令营怎么准备？","金融保研的时间线是怎样的？","考证对保研有帮助吗？"]}
+{"displayName":"芝大风险管理ys","id":"15defebe-52f1-49fc-9931-8445df78e6d0","sampleQuestions":["芝加哥大学MACRM项目怎么样？","金融工程可以申经济/政策方向吗？","海外交流经历对申请有多大帮助？"]}
+{"displayName":"HEC自由灵魂yy","id":"be70484e-0459-4b98-901f-0376b03f53e5","sampleQuestions":["GPA不高能申到顶级商学院吗？","HEC Paris MiM项目怎么样？","学校合作项目怎么申请？"]}
+{"displayName":"北大工学boy","id":"7fa6ef38-d553-4b09-b1d8-68b0f195e759","sampleQuestions":["保研和出国怎么权衡？","夏令营面试需要准备什么？","材料系保研有哪些好去处？"]}
+{"displayName":"联培小火锅","id":"ea469eef-6c69-47c5-b79c-d7d2daeb473a","sampleQuestions":["联培PhD申请流程是什么样的？","第一推荐人名额有多重要？","材料系GPA不到3.8怎么办？"]}
+{"displayName":"波士顿力学girl","id":"d8e654bf-b538-4df1-b882-1eaa351d198e","sampleQuestions":["PhD申请怎么选学校和项目？","admission statistics怎么挖掘？","生医工方向申请录取难度如何？"]}
+{"displayName":"深研院材料哥","id":"6ecae6a5-991e-475a-93cd-c3b3f76052c3","sampleQuestions":["材料系保研率有多高？","夏令营、预推免和九推有什么区别？","保研什么时候该联系导师？"]}
+{"displayName":"弓箭手转科研","id":"a541e322-6763-486c-8e3e-578de9dd3021","sampleQuestions":["PhD申请选导师还是选学校重要？","套磁出了尴尬怎么补救？","托福90能申PhD吗？"]}
+{"displayName":"匹大生医girl","id":"b028e228-a495-4b07-8f24-c5527f6d9f5f","sampleQuestions":["拿到多个PhD offer怎么选？","CMU和匹大BME PhD怎么比较？","哥大学年交流对申请帮助大吗？"]}
+{"displayName":"全能申请手sr","id":"b46f5385-727a-4f7f-ab84-ec7c1073fe54","sampleQuestions":["疫情下PhD申请怎么调整策略？","BME PhD套磁前要做什么准备？","PhD选校应该参考什么排名？"]}
+{"displayName":"NUS平凡人yz","id":"7c01df53-9ab6-4b94-8715-00fb29aa3860","sampleQuestions":["一直找不到兴趣方向怎么办？","申请医学院的项目要注意什么？","PhD申请需要找中介吗？"]}
+{"displayName":"杜克逆袭侠cx","id":"4ceaa5f3-7b49-4f77-89a7-15ffdf2b69ad","sampleQuestions":["大一GPA很低还有救吗？","UCI暑研推荐信怎么拿到的？","Duke BME MS申请难度如何？"]}
+{"displayName":"ETH暑研达人sc","id":"32755ac7-facf-4ff9-a95c-8b9d2b78dff8","sampleQuestions":["怎么自申ETH暑研？","暑研怎么拿到推荐信？","文书怎么打磨提升竞争力？"]}
+{"displayName":"哥大交流生ym","id":"d6073ab6-3dd9-4cf5-b61a-138697c321b1","sampleQuestions":["GPA低怎么靠软实力弥补？","UCI 3+2项目值得去吗？","哥大BME硕士面试考什么？"]}
+{"displayName":"哈佛访学者ez","id":"78462467-d6ec-426e-a412-cfa44587c3c2","sampleQuestions":["海外科研访学有多重要？","25Fall PhD申请有多难？","申请30个PhD项目合理吗？"]}
+{"displayName":"康奈尔计算侠","id":"5a17641f-c434-4d43-a9a0-2798928e1a47","sampleQuestions":["PhD申请各要素怎么排优先级？","UCI 3+2项目对PhD申请帮助大吗？","一作论文vs多篇挂名哪个更有价值？"]}
+{"displayName":"PPT材料郎k","id":"45ae2990-325d-47d6-a7c4-fa4e9c2df14d","sampleQuestions":["材料系PhD申请基本流程是什么？","美国PhD申请需要准备哪些材料？","选校需要考虑哪些因素？"]}
+{"displayName":"沉默的橙子__","id":"95ca7abb-5baf-4ff3-af57-a33e005fe690","sampleQuestions":["四非低rk垃圾科研垃圾竞赛在保研里有多重要？","从广东工业大学到红榜）！有哪些经验？","�机相关方向升学有什么建议？","关于计算机相关保研经验有什么经验？"]}
+{"displayName":"栗子oo打工中","id":"9da5d290-a300-41be-96ad-c18326412fe7","sampleQuestions":["从广东工业大学到华南理工大学计算机科学与工程学院有哪些经验？","�与技术方向升学有什么建议？","关于计算机科学与技术保研经验有什么经验？","关于推免有什么建议？"]}
+{"displayName":"桂花__在跑步","id":"72a9a505-fb88-43ee-b406-56e1363254be","sampleQuestions":["如何准备夏令营？","从广东工业大学到湖南大学信科院专硕有哪些经验？","�与技术方向升学有什么建议？","关于计算机科学与技术保研经验有什么经验？"]}
+{"displayName":"自在的栗子z","id":"baa251f2-03a8-4bfd-8e29-8239c451d775","sampleQuestions":["保研文书有哪些技巧？","从广东工业大学到保研上岸有哪些经验？","�与技术方向升学有什么建议？","关于计算机科学与技术保研经验有什么经验？"]}
+{"displayName":"饼干喝牛奶","id":"7c15faab-7e63-43cd-b6fb-39875b4839dd","sampleQuestions":["纯种三无——四非无rk1无强竞赛无中稿论文在保研里有多重要？","套磁阶段（3-6月有哪些技巧？","如何准备夏令营（6-7月？","关于预推免（9月有什么经验？"]}
+{"displayName":"海豚_小熊","id":"f680f667-70f6-4024-84c8-6f9adfb0f3a9","sampleQuestions":["线下面试一般会问什么？","从广东工业大学到厦门大学有哪些经验？","�与技术方向升学有什么建议？","关于计算机科学与技术保研经验有什么经验？"]}
+{"displayName":"飞翔的蝴蝶7","id":"86587c0e-dbe0-4898-9d7e-54e36982194a","sampleQuestions":["从广东工业大学到深圳大学有哪些经验？","�络工程方向升学有什么建议？","关于网络工程保研经验有什么经验？","关于推免有什么建议？"]}
+{"displayName":"芋圆_松鼠","id":"089d77a0-6265-4ad9-bcf8-debddc144b2c","sampleQuestions":["如何准备夏令营与预推免情况？","如何准备夏令营情况？","关于预推免情况有什么经验？","面试情况一般会问什么？"]}
+{"displayName":"泡芙z骑单车","id":"72217679-b970-43a3-b59b-f52c3d21b4cc","sampleQuestions":["科研竞赛在保研里有多重要？","从四川师范大学到\u003e 最终录取学校：**西南大学**\u003c有哪些经验？","�历史学方向升学有什么建议？","关于历史文化与旅游学院历史学有什么经验？"]}
+{"displayName":"鸽子弹吉他","id":"9189969d-b8d3-4681-a865-259cf441c175","sampleQuestions":["从四川师范大学到暨南大学（旅游管理）**\u003cbr\u003e有哪些经验？","�游管理方向升学有什么建议？","关于历史文化与旅游学院旅游管理有什么经验？","关于旅游管理有什么建议？"]}
+{"displayName":"蜜桃煮火锅","id":"fa97e08d-3a32-44cc-a265-7a86895a0a6b","sampleQuestions":["学分绩点：89.65/100  排名：1/1对录取影响大吗？","竞赛经历：在保研里有多重要？","从四川师范大学到暨南大学产业经济研究院**\u003cbr\u003e有哪些经验？","�务管理方向升学有什么建议？"]}
+{"displayName":"板栗3读论文","id":"884b389e-137d-4fce-9e77-cb0e4722f6f6","sampleQuestions":["面试礼仪：自信+礼貌+诚实+谦虚一般会问什么？","从四川师范大学到陕西师范大学人文地理专业有哪些经验？","�理科学方向升学有什么建议？","关于地理与资源科学学院地理科学有什么经验？"]}
+{"displayName":"小熊不熬夜","id":"5932658d-f546-44a6-8611-af9aab00b521","sampleQuestions":["学科竞赛在保研里有多重要？","从四川师范大学到升学深造有哪些经验？","�息科学方向升学有什么建议？","关于地理与资源科学学院地理信息科学有什么经验？"]}
+{"displayName":"豆沙在赶DDL","id":"c0ffb0aa-7b03-4835-a271-a319ee304247","sampleQuestions":["从四川师范大学到华中师范大学有哪些经验？","�理科学方向升学有什么建议？","关于地理与资源科学学院地理科学有什么经验？"]}
+{"displayName":"柿子_鲸鱼","id":"89e4558b-dfac-4a66-bb8c-f8331e2f0679","sampleQuestions":["从四川师范大学到北京师范大学教师教育研究中心有哪些经验？","�语学院方向升学有什么建议？"]}
+{"displayName":"奶酪整理笔记","id":"c6f9f853-8f89-4068-9447-443fa72e3e82","sampleQuestions":["从四川师范大学到**上海外国语大学（语言教育）**有哪些经验？","�语学院方向升学有什么建议？"]}
+{"displayName":"橙子整理笔记","id":"c12659d1-9718-4bbd-975b-09edf1738f74","sampleQuestions":["从四川师范大学到**中山大学（外国语言文学）**有哪些经验？","�学法语方向升学有什么建议？","关于外国语学院法语有什么经验？","关于法语有什么建议？"]}
+{"displayName":"柠檬在图书馆","id":"4cd27e85-bc12-4b95-a759-37d892f348e6","sampleQuestions":["科研竞赛：在保研里有多重要？","提高自己的学分、绩点。对录取影响大吗？","从四川师范大学到**陕西师范大学-学科英语专业**有哪些经验？","�语学院方向升学有什么建议？"]}
+{"displayName":"奶酪_仓鼠","id":"5daaed63-d7d6-45f5-add4-5253643c4d6f","sampleQuestions":["科研竞赛在保研里有多重要？","在竞赛中探索快乐在保研里有多重要？","关于竞赛的心得体会在保研里有多重要？","从四川师范大学到**北京师范大学学科教学（英语）专业有哪些经验？"]}
+{"displayName":"柠檬整理笔记","id":"c2cafc09-cba7-4796-a901-81fe8be2b145","sampleQuestions":["科研竞赛在保研里有多重要？","华师的面试过程：一般会问什么？","从四川师范大学到2024年保送至华中师范大学学科教学有哪些经验？","�学英语方向升学有什么建议？"]}
+{"displayName":"水母摸鱼了","id":"df8a8ad9-0f70-4cd0-bc5c-13515f17ba5f","sampleQuestions":["从四川师范大学到暨南大学有哪些经验？","�程造价方向升学有什么建议？","关于工学院工程造价有什么经验？","关于工程造价有什么建议？"]}
+{"displayName":"桂花_可可","id":"f26ca335-f60f-4c4c-a32e-12db79e4cd64","sampleQuestions":["从四川师范大学到重庆大学（电气工程）\u003cbr\u003e有哪些经验？","�自动化方向升学有什么建议？","关于工学院电气工程及其自动化有什么经验？","关于电气工程及其自动化有什么建议？"]}
+{"displayName":"奶酪3去爬山","id":"de991fb9-06ed-42d3-82f3-69d5830a9ab6","sampleQuestions":["科研竞赛在保研里有多重要？","竞赛收获在保研里有多重要？","从四川师范大学到升学深造有哪些经验？","�视编导方向升学有什么建议？"]}
+{"displayName":"安静的柠檬oo","id":"3ff88f4c-eac6-4f39-9c54-2b43c205359d","sampleQuestions":["保研竞赛篇——阶段提升，以赛代练在保研里有多重要？","从四川师范大学到**中国传媒大学国家重点实验室**有哪些经验？","�新媒体方向升学有什么建议？","关于影视与传媒学院网络与新媒体有什么经验？"]}
+{"displayName":"薄荷修电脑","id":"39f9bdb3-060f-4b49-95ac-391593532840","sampleQuestions":["从四川师范大学到华东师范大学**有哪些经验？","�心理学方向升学有什么建议？","关于心理学院心理学有什么经验？","关于心理学有什么建议？"]}
+{"displayName":"蚂蚁_海星","id":"ec2ed957-7240-4a33-81ab-646279699e6d","sampleQuestions":["从四川师范大学到升学深造有哪些经验？","�用数学方向升学有什么建议？","关于数学科学学院数学与应用数学有什么经验？","关于数学与应用数学有什么建议？"]}
+{"displayName":"抹茶晒太阳","id":"843a61ad-5370-4977-bd1a-183dade0f587","sampleQuestions":["从四川师范大学到2020年保研东华大学/2023届K有哪些经验？","�饰设计方向升学有什么建议？","关于服装与设计艺术学院服装与服饰设计有什么经验？","关于服装与服饰设计有什么建议？"]}
+{"displayName":"苹果逛公园","id":"7dafb2f9-3453-49d1-8263-071a42eb2c51","sampleQuestions":["科研竞赛：在保研里有多重要？","从四川师范大学到苏州大学有哪些经验？","�饰设计方向升学有什么建议？","关于服装与设计艺术学院服装与服饰设计有什么经验？"]}
+{"displayName":"兔兔__在图书馆","id":"37a140cc-23df-4ce3-816a-e53929d06eb1","sampleQuestions":["学习与竞赛在保研里有多重要？","从四川师范大学到的要求与文件有哪些经验？","�品设计方向升学有什么建议？","关于服装与设计艺术学院产品设计有什么经验？"]}
+{"displayName":"杨梅不熬夜","id":"36ca49cf-0922-41ca-9aef-ca651254f8ef","sampleQuestions":["大一要做科研竞赛吗？在保研里有多重要？","专业课学习、科研竞赛、学生活动如何平衡？在保研里有多重要？","从四川师范大学到: 北京师范大学-凝聚态物理专业**有哪些经验？","�物理学方向升学有什么建议？"]}
+{"displayName":"豆包_饼干","id":"5f2d8513-81b3-448d-a9b0-bf92fe9ff10c","sampleQuestions":["竞赛经历：在保研里有多重要？","从四川师范大学到**最终录取学校：西安电子科技大学-有哪些经验？","�息工程方向升学有什么建议？","关于物理与电子工程学院电子信息工程有什么经验？"]}
+{"displayName":"荔枝ii看电影","id":"ff602a8e-7c56-4c78-8f2c-04d9790d784e","sampleQuestions":["从四川师范大学到**电子科技大学-电子信息**有哪些经验？","�子信息方向升学有什么建议？","关于物理与电子工程学院电子信息有什么经验？"]}
+{"displayName":"河马zzz爱吃辣","id":"eef709e0-90c4-4ce9-9df3-630c93d67a0d","sampleQuestions":["保研面试一般会问什么？","从四川师范大学到**北京邮电大学-电子信息专业-集成有哪些经验？","�子信息方向升学有什么建议？","关于物理与电子工程学院电子信息有什么经验？"]}
+{"displayName":"自在的饺子9","id":"a02af958-c25e-4801-b10c-97e80e13094c","sampleQuestions":["从四川师范大学到**最终录取学校：电子科技大学-电子有哪些经验？","�子信息方向升学有什么建议？","关于物理与电子工程学院电子信息有什么经验？"]}
+{"displayName":"蓝莓想放假","id":"e67c2820-6a83-4a16-9c95-1911fff8f555","sampleQuestions":["从四川师范大学到北京邮电大学有哪些经验？","�子信息方向升学有什么建议？","关于物理与电子工程学院电子信息有什么经验？"]}
+{"displayName":"银杏煮火锅","id":"db3624cc-c5c1-4c88-ab25-b3bab776ee41","sampleQuestions":["面试被刷一般会问什么？","未参与面试一般会问什么？","面试情况一般会问什么？","竞赛经历：在保研里有多重要？"]}
+{"displayName":"泡芙er不熬夜","id":"2d291cda-1025-4f2f-ba93-12eebb59fefe","sampleQuestions":["面试准备：策略性投递与精准突破一般会问什么？","面试实战：从容应对，真诚沟通一般会问什么？","从四川师范大学到**最终录取学校：电子科技大学-电子有哪些经验？","�子信息方向升学有什么建议？"]}
+{"displayName":"抹茶不吃宵夜","id":"873128be-33dc-429b-b17c-2f0ce08b8a1e","sampleQuestions":["第三部分：面试攻坚一般会问什么？","从四川师范大学到电子科大的学姐请教有哪些经验？","�信工程方向升学有什么建议？","关于物理与电子工程学院通信工程有什么经验？"]}
+{"displayName":"豆沙喝牛奶","id":"5b7de159-9d8e-4e71-87fd-c8d49465e88e","sampleQuestions":["竞赛经历：在保研里有多重要？","获得面试机会后放弃:一般会问什么？","面试攻坚：把“不确定”变成“可掌控”一般会问什么？","从四川师范大学到北邮有哪些经验？"]}
+{"displayName":"布丁_蘑菇","id":"c2cfe10d-4f6c-4233-b326-a0c6c476b0e2","sampleQuestions":["获得面试机会后放弃:一般会问什么？","精雕细琢：面试准备是保研的“核心战场”一般会问什么？","从四川师范大学到**电子科技大学-电子信息专业**有哪些经验？","�信工程方向升学有什么建议？"]}
+{"displayName":"龙眼_奶酪","id":"f4b2d8d4-1853-448c-8429-e81c026eb21b","sampleQuestions":["竞赛经历：在保研里有多重要？","面试被刷:一般会问什么？","从四川师范大学到**西北大学-信息与通信工程-机器学有哪些经验？","�信工程方向升学有什么建议？"]}
+{"displayName":"奶酪_麦芽","id":"0d398c58-c4c5-40c9-95f2-86ec624dcde1","sampleQuestions":["获得面试机会后放弃:一般会问什么？","从四川师范大学到**电子科技大学-电子信息专业-深度有哪些经验？","�信工程方向升学有什么建议？","关于物理与电子工程学院通信工程有什么经验？"]}
+{"displayName":"可可骑单车","id":"1b4e4476-18c8-4fbe-871c-c078de7d41f9","sampleQuestions":["从四川师范大学到升学深造有哪些经验？","�业管理方向升学有什么建议？","关于经济与管理学院公共事业管理有什么经验？","关于公共事业管理有什么建议？"]}
+{"displayName":"瓢虫画画中","id":"696e69a3-f726-40f5-922c-723fb9bd0e9e","sampleQuestions":["学科竞赛在保研里有多重要？","从四川师范大学到西南交通大学-经济管理学院-企业管理有哪些经验？","�商管理方向升学有什么建议？","关于经济与管理学院工商管理有什么经验？"]}
+{"displayName":"石榴鸭写代码","id":"bb0d4e78-baab-4f78-ae0b-b6589f2be5d6","sampleQuestions":["拼竞赛，依靠奋发起飞在保研里有多重要？","从四川师范大学到云南大学**有哪些经验？","�学绘画方向升学有什么建议？","关于美术学院_书法学院绘画有什么经验？"]}
+{"displayName":"抹茶_鸽子","id":"9dbfaaba-b62c-4d33-add2-2444e39a8950","sampleQuestions":["从四川师范大学到成都体育学院有哪些经验？","�蹈表演方向升学有什么建议？","关于舞蹈学院舞蹈表演有什么经验？","关于舞蹈表演有什么建议？"]}
+{"displayName":"薯片_v去散步","id":"bad2548c-e66f-439a-9187-45e14ed9b940","sampleQuestions":["从四川师范大学到升学深造有哪些经验？","�技术学方向升学有什么建议？","关于计算机科学学院教育技术学有什么经验？","关于教育技术学有什么建议？"]}
+{"displayName":"花生_章鱼","id":"3a3e7880-b886-4371-a0a6-9b36f6824911","sampleQuestions":["如何取得高绩点？对录取影响大吗？","从四川师范大学到华东师范大学**有哪些经验？","�治教育方向升学有什么建议？","关于马克思主义学院思想政治教育有什么经验？"]}
+{"displayName":"草莓修电脑","id":"cfcf20cf-2525-424a-9cb2-8491e50cfcf3","sampleQuestions":["学科竞赛方面在保研里有多重要？","从四川师范大学到升学深造有哪些经验？","�治教育方向升学有什么建议？","关于马克思主义学院思想政治教育有什么经验？"]}
+{"displayName":"红薯_可可","id":"33b19fe8-ef21-43a3-b1ca-ee3a58e60c4a","sampleQuestions":["安大保研到985的难度大吗？","夏令营和预推免哪个更容易？","211背景如何选择目标院校？"]}
+{"displayName":"核桃_咖啡","id":"0dcda02b-fa90-42fc-bd75-d5d8021adb40","sampleQuestions":["关于升学就业其他有什么经验？","关于其他有什么建议？"]}
+{"displayName":"沉默的山楂9","id":"fd3e247e-6436-4e75-b421-95ee11471ab2","sampleQuestions":["安大保研到985的难度大吗？","夏令营和预推免哪个更容易？","211背景如何选择目标院校？"]}
+{"displayName":"桃子修电脑","id":"379eb675-a2e6-4cb0-a1a3-baed52eed0e4","sampleQuestions":["安大保研到985的难度大吗？","夏令营和预推免哪个更容易？","211背景如何选择目标院校？"]}
+{"displayName":"瓢虫爱吃辣","id":"4c19f2b0-285c-4276-b6d9-5db02740a95d","sampleQuestions":["安大保研到985的难度大吗？","夏令营和预推免哪个更容易？","211背景如何选择目标院校？"]}
+{"displayName":"快乐的企鹅er","id":"5487708f-b6c9-45bd-bfb7-0bd56a96b089","sampleQuestions":["如何准备夏令营？","关于预推免有什么经验？","从安徽大学保研到南京理工大学要注意什么？","南京理工大学保研有哪些关键准备？"]}
+{"displayName":"薯条ya今天早睡","id":"292aaeb6-a0fa-48a5-b34e-85fecca572a8","sampleQuestions":["面试PPT准备一般会问什么？","面试经历一般会问什么？","从安徽大学保研到中国科学技术大学要注意什么？","中国科学技术大学保研有哪些关键准备？"]}
+{"displayName":"桃子x喝绿茶","id":"df42bead-4ae0-4a25-ad82-5260af05e0c8","sampleQuestions":["从安徽大学保研到中国科学技术大学要注意什么？","中国科学技术大学保研有哪些关键准备？","�院化工方向升学有什么建议？"]}
+{"displayName":"桃子大王写代码","id":"8ad8a06c-66a0-4720-8122-6bd4b8c0e8f6","sampleQuestions":["从安徽大学保研到华东理工大学要注意什么？","华东理工大学保研有哪些关键准备？","�院化工方向升学有什么建议？"]}
+{"displayName":"牛轧糖下象棋","id":"cb614872-06e3-447d-af0a-f909899f283b","sampleQuestions":["从安徽大学保研到中国科学技术大学要注意什么？","中国科学技术大学保研有哪些关键准备？","�院化学方向升学有什么建议？","关于化学有什么建议？"]}
+{"displayName":"飞翔的荔枝ya","id":"c87b596e-9c76-46dc-acb4-f5d7c0d9d46d","sampleQuestions":["从安徽大学保研到中国科学技术大学要注意什么？","中国科学技术大学保研有哪些关键准备？","�院应化方向升学有什么建议？","关于应化有什么建议？"]}
+{"displayName":"猫头鹰在学习","id":"2e0c9143-b316-4867-9369-3b31560bc0d6","sampleQuestions":["如何准备推免经验分享-夏令营经历？","从安徽大学保研到中国科学技术大学要注意什么？","中国科学技术大学保研有哪些关键准备？","�院应化方向升学有什么建议？"]}
+{"displayName":"巧克力捏泥巴","id":"1c756029-2165-467e-8c7e-a26e450413bb","sampleQuestions":["从安徽大学保研到上海大学要注意什么？","上海大学保研有哪些关键准备？","�新能源方向升学有什么建议？","关于化学化工学院新能源有什么经验？"]}
+{"displayName":"慵懒的猫头鹰大王","id":"4ad25220-d178-4d26-a770-07b32b7c7103","sampleQuestions":["如何准备3）关于夏令营？","从安徽大学保研到西北工业大学要注意什么？","西北工业大学保研有哪些关键准备？","�高分子方向升学有什么建议？"]}
+{"displayName":"章鱼骑单车","id":"2ec89a63-0e96-4e52-ba59-548f4a427801","sampleQuestions":["获得面试机会后放弃:一般会问什么？","从安徽大学保研到南京大学要注意什么？","南京大学保研有哪些关键准备？","�院历史方向升学有什么建议？"]}
+{"displayName":"温柔的兔兔ya","id":"56becad3-31ae-429e-9ff5-4ffc318bffee","sampleQuestions":["从安徽大学保研到中国社会科学院大学要注意什么？","中国社会科学院大学保研有哪些关键准备？","�院历史方向升学有什么建议？","关于历史学院历史有什么经验？"]}
+{"displayName":"菠萝练瑜伽","id":"fa55c60c-f07f-413b-b46b-d36621163854","sampleQuestions":["如何准备未参加夏令营？","关于预推免offer:有什么经验？","选择院校（地域、985、211、专业排名对录取影响大吗？","参加面试一般会问什么？"]}
+{"displayName":"奔跑的薯片鸭","id":"49fff967-1a9c-4869-b4a6-2da734160ccf","sampleQuestions":["如何准备夏令营获得offer:？","关于预推免获得offer:有什么经验？","从安徽大学保研到华中科技大学要注意什么？","华中科技大学保研有哪些关键准备？"]}
+{"displayName":"薄荷_荔枝","id":"11c3d01f-7100-4eb2-92ed-41e56d7fecac","sampleQuestions":["关于商学院人力有什么经验？","关于人力有什么建议？"]}
+{"displayName":"板栗搬砖中","id":"add5862f-b864-45cb-98ed-271dcbdf8579","sampleQuestions":["如何准备夏令营入营情况？","关于预推免入营情况有什么经验？","面试经历一般会问什么？","从安徽大学保研到南开大学要注意什么？"]}
+{"displayName":"红豆3学画画","id":"0615ccce-0657-498e-a53e-5f453ef2e967","sampleQuestions":["获得面试机会后放弃一般会问什么？","从安徽大学保研到华中科技大学要注意什么？","华中科技大学保研有哪些关键准备？","�流管理方向升学有什么建议？"]}
+{"displayName":"安静的酸奶君","id":"644f78ad-f282-4095-b649-146c1845c773","sampleQuestions":["从安徽大学保研到厦门大学要注意什么？","厦门大学保研有哪些关键准备？","�院英语方向升学有什么建议？","关于外语学院英语有什么经验？"]}
+{"displayName":"樱桃3画画中","id":"4114ca88-b448-4b2f-b3a3-82cdf8bcedd2","sampleQuestions":["从安徽大学保研到浙江大学要注意什么？","浙江大学保研有哪些关键准备？","�院英语方向升学有什么建议？","关于外语学院英语有什么经验？"]}
+{"displayName":"豆奶zzz去爬山","id":"59aa6615-dcba-4c3a-9417-6145e3fa9fdb","sampleQuestions":["从安徽大学保研到中国科学技术大学要注意什么？","中国科学技术大学保研有哪些关键准备？","�院应统方向升学有什么建议？","关于数学科学学院应统有什么经验？"]}
+{"displayName":"锦鲤_0做饭中","id":"29c6a00d-3bd6-45b8-929e-b16d85909277","sampleQuestions":["如何准备夏令营入营情况（没有备注学科的均为数学？","关于预推免入营情况有什么经验？","如何准备夏令营面试？","从安徽大学保研到中国科学院大学精密测量研究院要注意什么？"]}
+{"displayName":"芒果zzz逛公园","id":"bebf92a0-c5c5-4ee5-8bcc-1ffea2fad61f","sampleQuestions":["获得面试机会后放弃:一般会问什么？","关于数学方向推免小结有什么经验？","从安徽大学保研到中科院信工所要注意什么？","中科院信工所保研有哪些关键准备？"]}
+{"displayName":"柚子吖读论文","id":"e2aaa8cb-14d2-4412-84e5-5e4c30b953a5","sampleQuestions":["如何准备夏令营入营：？","关于预推免入选学校:有什么经验？","从安徽大学保研到西北工业大学要注意什么？","西北工业大学保研有哪些关键准备？"]}
+{"displayName":"火龙果君泡咖啡","id":"72d50682-246d-4363-b404-43a86fbb311b","sampleQuestions":["如何准备夏令营入营高校：？","关于预推免入营高校：有什么经验？","从安徽大学保研到南京大学要注意什么？","南京大学保研有哪些关键准备？"]}
+{"displayName":"芒果哈考试周","id":"6d928bf7-9e0e-412d-b57d-dc860c57c2c5","sampleQuestions":["关于获得Offer(均在预推免阶段获得):有什么经验？","获得面试机会后放弃:一般会问什么？","如何准备被刷(均在夏令营阶段？","从安徽大学保研到厦门大学要注意什么？"]}
+{"displayName":"龙眼_柚子","id":"50a2d09b-166a-4674-82a7-702500c48afa","sampleQuestions":["撰写简历怎么写更有竞争力？","面向岗位描述写简历怎么写更有竞争力？","面向简历筛选写简历怎么写更有竞争力？","投递简历怎么写更有竞争力？"]}
+{"displayName":"核桃下象棋","id":"0597b518-b06b-45a0-9278-b4c4e7208386","sampleQuestions":["如何准备夏令营获入营资格:？","关于预推免有什么经验？","如何准备什么是夏令营、预推免、九推？","如何准备夏令营？"]}
+{"displayName":"寿司哈听播客","id":"cd95ea08-05e1-406d-93fd-37de5b65e74e","sampleQuestions":["从安徽大学保研到玛氏要注意什么？","玛氏保研有哪些关键准备？","�院广告方向升学有什么建议？","关于广告有什么建议？"]}
+{"displayName":"拉面z逛公园","id":"b4c93610-e1ca-49c5-80ec-e52cb7f1d182","sampleQuestions":["从安徽大学保研到玛氏要注意什么？","玛氏保研有哪些关键准备？","�院广告方向升学有什么建议？","关于广告有什么建议？"]}
+{"displayName":"鲸鱼煮火锅","id":"c21f186c-9f0a-44d7-8750-22c912fcfa4e","sampleQuestions":["绩点排名。**看排名而不是绩点。怎么提高绩点对录取影响大吗？","如何准备夏令营入营学校:？","关于预推免报名学校:有什么经验？","如何准备五六月份投递夏令营阶段？"]}
+{"displayName":"山楂君在跑步","id":"964be776-eaa7-4a41-978f-1c3d84c93a76","sampleQuestions":["从安徽大学保研到北京体育大学要注意什么？","北京体育大学保研有哪些关键准备？","�院新闻方向升学有什么建议？"]}
+{"displayName":"杨梅打篮球","id":"fb45b221-41b5-4b73-b9a9-4c98c333a9f2","sampleQuestions":["如何准备夏令营阶段：？","关于预推免阶段：有什么经验？","从安徽大学保研到暨南大学要注意什么？","暨南大学保研有哪些关键准备？"]}
+{"displayName":"麻雀写代码","id":"3b1964d9-328e-4ac0-b7f8-608f55703d9b","sampleQuestions":["如何准备夏令营获得Offer:？","关于推免获得Offer:有什么经验？","什么重要——成绩排名？(内含部分“黑幕”对录取影响大吗？","未知的情况——线上面试一般会问什么？"]}
+{"displayName":"沉默的柚子_v","id":"7b701f92-512d-4047-98d2-cfe021df8166","sampleQuestions":["如何准备夏令营优秀营员:？","关于预推免offer:有什么经验？","如何准备四川大学夏令营？","如何准备中南大学夏令营？"]}
+{"displayName":"安静的椰子君","id":"8f3918c7-998d-4da8-a7f1-9f8b56229e28","sampleQuestions":["网申与面试一般会问什么？","从安徽大学保研到伦敦大学学院要注意什么？","伦敦大学学院保研有哪些关键准备？","�院广告方向升学有什么建议？"]}
+{"displayName":"淡定的咖啡oo","id":"2da32f79-8b3b-448a-8d83-665a6aae2bfa","sampleQuestions":["从安徽大学保研到南京大学要注意什么？","南京大学保研有哪些关键准备？","�院广电方向升学有什么建议？","关于广电有什么建议？"]}
+{"displayName":"芒果_蜻蜓","id":"c8aef9ba-a698-41f9-beff-6377fb22a0f8","sampleQuestions":["如何准备夏令营参营/offer？","关于预推免参营/offer有什么经验？","面试篇一般会问什么？","从安徽大学保研到中国传媒大学要注意什么？"]}
+{"displayName":"芒果7逛公园","id":"bfaf4871-3649-40c8-a965-3a68de2ea0ef","sampleQuestions":["从安徽大学保研到国家广电总局要注意什么？","国家广电总局保研有哪些关键准备？","�院广电方向升学有什么建议？","关于广电有什么建议？"]}
+{"displayName":"元气的薯条大王","id":"7b4d44cc-1af9-4aa5-89c2-0308a40fc88b","sampleQuestions":["从安徽大学保研到中国传媒大学要注意什么？","中国传媒大学保研有哪些关键准备？","�院广电方向升学有什么建议？","关于广电有什么建议？"]}
+{"displayName":"柚子z听播客","id":"f69a73e6-9be4-4064-87d6-afe891cea0d7","sampleQuestions":["安大保研到985的难度大吗？","夏令营和预推免哪个更容易？","211背景如何选择目标院校？"]}
+{"displayName":"布丁_薄荷","id":"2ec27049-0d54-49dc-8594-179a91fd4ddf","sampleQuestions":["从安徽大学保研到湖南大学要注意什么？","湖南大学保研有哪些关键准备？","�院广电方向升学有什么建议？","关于广电有什么建议？"]}
+{"displayName":"荔枝泡咖啡","id":"75f4b6ff-657b-4f64-ac48-ac433352982c","sampleQuestions":["二） 绩点排名对录取影响大吗？","二） 英语面试一般会问什么？","从安徽大学保研到中国人民大学要注意什么？","中国人民大学保研有哪些关键准备？"]}
+{"displayName":"海星_草莓","id":"1a9f7435-0bf0-45b6-9440-71205b700530","sampleQuestions":["获得面试机会后放弃:一般会问什么？","从安徽大学保研到华东师范大学要注意什么？","华东师范大学保研有哪些关键准备？","�院新闻方向升学有什么建议？"]}
+{"displayName":"沉默的奶酪zzz","id":"e4622509-8aa4-49f5-a5bf-7250cb4f3515","sampleQuestions":["关于推免篇有什么经验？","从安徽大学保研到中国人民大学要注意什么？","中国人民大学保研有哪些关键准备？","�院网媒方向升学有什么建议？"]}
+{"displayName":"奔跑的香蕉呀","id":"de4b049d-7e8e-4be9-a358-5a4655487f98","sampleQuestions":["获得面试机会后放弃：一般会问什么？","从安徽大学保研到华东政法大学要注意什么？","华东政法大学保研有哪些关键准备？","�院知产方向升学有什么建议？"]}
+{"displayName":"沉默的栗子_0","id":"ea130c0b-d4f1-4ecd-bbce-a325720304f2","sampleQuestions":["从安徽大学保研到电子科技大学要注意什么？","电子科技大学保研有哪些关键准备？","�院应物方向升学有什么建议？","关于物理与光电工程学院应物有什么经验？"]}
+{"displayName":"核桃鸭摸鱼了","id":"5897b15e-7372-4d37-a3ae-5652ee3f3478","sampleQuestions":["如何准备“保研论坛”、“后保研HBY”、“保研夏令营？","关于推免方式有什么经验？","面试经验一般会问什么？","从安徽大学保研到复旦大学要注意什么？"]}
+{"displayName":"仓鼠刷题中","id":"e704bbe4-8cf5-4b04-933c-145b7589de9f","sampleQuestions":["获得面试机会后放弃:一般会问什么？","关于推免方式有什么经验？","从安徽大学保研到同济大学要注意什么？","同济大学保研有哪些关键准备？"]}
+{"displayName":"麦芽_v煮火锅","id":"cef94f72-4fea-40af-a8df-d9d85f2492c4","sampleQuestions":["从安徽大学保研到北京大学要注意什么？","北京大学保研有哪些关键准备？","�院电子方向升学有什么建议？","关于电子信息工程学院电子有什么经验？"]}
+{"displayName":"板栗做饭中","id":"3dc35bd5-6022-4458-8382-a627c3842cc8","sampleQuestions":["获得面试机会后放弃:一般会问什么？","如何准备保研夏令营？","从安徽大学保研到中国科学院微小卫星创新研究院要注意什么？","中国科学院微小卫星创新研究院保研有哪些关键准备？"]}
+{"displayName":"冰淇淋_薯条","id":"c0b7c6e4-5c1a-4cf9-b47a-68b26551de2d","sampleQuestions":["复试面试一般会问什么？","从安徽大学保研到中国科学院大学微电子学院要注意什么？","中国科学院大学微电子学院保研有哪些关键准备？","�微电子方向升学有什么建议？"]}
+{"displayName":"仓鼠哈喝牛奶","id":"3b29e04a-24ef-4332-8b76-c3a624c0702a","sampleQuestions":["如何准备夏令营？","从安徽大学保研到中国科学院上海微系统所要注意什么？","中国科学院上海微系统所保研有哪些关键准备？","�微电子方向升学有什么建议？"]}
+{"displayName":"咖啡做饭中","id":"3b2bf121-e867-4f7a-b58e-7490c8e22f73","sampleQuestions":["获得面试机会后放弃:一般会问什么？","关于推免方面有什么经验？","从安徽大学保研到中国科学技术大学要注意什么？","中国科学技术大学保研有哪些关键准备？"]}
+{"displayName":"牛轧糖_芒果","id":"2f53b1b0-46c4-4c3e-9872-67c22291775a","sampleQuestions":["获得面试机会后放弃:一般会问什么？","学校报名/邮件简历怎么写更有竞争力？","从安徽大学保研到中国科学技术大学要注意什么？","中国科学技术大学保研有哪些关键准备？"]}
+{"displayName":"热可可哈的碎碎念","id":"2f19a054-cfda-43ad-a103-9e4d9e72bf1f","sampleQuestions":["获得面试机会后放弃:一般会问什么？","从安徽大学保研到华南理工大学要注意什么？","华南理工大学保研有哪些关键准备？","�院电子方向升学有什么建议？"]}
+{"displayName":"刺猬_猫头鹰","id":"2dbf8718-8e04-4f0f-8f66-e73de0a0a87e","sampleQuestions":["获得面试机会后放弃:一般会问什么？","如何准备夏令营面试最看重的内容？","从安徽大学保研到东南大学要注意什么？","东南大学保研有哪些关键准备？"]}
+{"displayName":"海豚君下象棋","id":"d8a96244-3fa3-46f7-a1cb-1fc8e7de5f7c","sampleQuestions":["获得面试机会后放弃:一般会问什么？","从安徽大学保研到中国科学技术大学要注意什么？","中国科学技术大学保研有哪些关键准备？","�院电子方向升学有什么建议？"]}
+{"displayName":"核桃_太妃糖","id":"d0ed01f4-6cb9-413d-b256-c6bf203a1e8e","sampleQuestions":["获得面试机会后放弃:一般会问什么？","关于保研心得-我的半年推免时光有什么经验？","从安徽大学保研到中国科学院声学研究所要注意什么？","中国科学院声学研究所保研有哪些关键准备？"]}
+{"displayName":"抹茶君下象棋","id":"accf14e7-b21d-4a17-87c6-198cd6ea60b8","sampleQuestions":["从安徽大学保研到科大讯飞测试岗实习生要注意什么？","科大讯飞测试岗实习生保研有哪些关键准备？","�院电子方向升学有什么建议？","关于电子信息工程学院电子有什么经验？"]}
+{"displayName":"安静的蘑菇大王","id":"f0542e88-634d-41e7-96ca-e52b922731ad","sampleQuestions":["从安徽大学保研到北京邮电大学要注意什么？","北京邮电大学保研有哪些关键准备？","�院电子方向升学有什么建议？","关于电子信息工程学院电子有什么经验？"]}
+{"displayName":"寿司_v晒太阳","id":"3e7f114e-ccc9-4050-803f-af01364c3660","sampleQuestions":["获得面试机会后放弃:一般会问什么？","从安徽大学保研到浙江大学要注意什么？","浙江大学保研有哪些关键准备？","�院通信方向升学有什么建议？"]}
+{"displayName":"阳光的桂花__","id":"ee514bc1-2c08-4f5b-8839-beb06331c0c9","sampleQuestions":["从安徽大学保研到中国科学技术大学要注意什么？","中国科学技术大学保研有哪些关键准备？","�院通信方向升学有什么建议？","关于电子信息工程学院通信有什么经验？"]}
+{"displayName":"椰子爱吃辣","id":"748782bb-be48-480b-8391-2d6679ba8bbb","sampleQuestions":["从安徽大学保研到南京大学要注意什么？","南京大学保研有哪些关键准备？","�院电子方向升学有什么建议？","关于电子信息工程学院电子有什么经验？"]}
+{"displayName":"认真的香蕉呀","id":"db7a3ce7-aa69-4c6a-b69f-f76aa683cdb6","sampleQuestions":["如何准备保研夏令营第二站？","如何准备获得Offer（均在夏令营期间）:？","获得面试机会后放弃:一般会问什么？","如何准备保研夏令营？"]}
+{"displayName":"瓢虫逛公园","id":"a5b57174-e29d-4b61-859a-35ec57b76616","sampleQuestions":["获得面试机会后放弃:一般会问什么？","面试经历：一般会问什么？","从安徽大学保研到中国科学技术大学要注意什么？","中国科学技术大学保研有哪些关键准备？"]}
+{"displayName":"瓢虫写代码","id":"05bd9cc7-44e8-4612-bba9-2d52ce9a831d","sampleQuestions":["保研的基础——绩点对录取影响大吗？","除了绩点我们还能做些什么对录取影响大吗？","从安徽大学保研到中科院声学所要注意什么？","中科院声学所保研有哪些关键准备？"]}
+{"displayName":"蓝莓酱_红豆","id":"3ca20c2d-e2e9-4000-b0c6-389e296738f5","sampleQuestions":["获得面试机会后放弃:一般会问什么？","第一次面试：一般会问什么？","第二次面试：一般会问什么？","第三次面试一般会问什么？"]}
+{"displayName":"小熊在跑步","id":"a4626885-81fe-40b0-9a7b-8d7895daaa0c","sampleQuestions":["获得面试机会后放弃:一般会问什么？","科研/竞赛**篇在保研里有多重要？","绩点/英语篇对录取影响大吗？","从安徽大学保研到北京理工大学要注意什么？"]}
+{"displayName":"板栗酱打工中","id":"1b25328b-8412-4181-91f6-1f3937379e32","sampleQuestions":["如何准备夏令营被刷：？","如何准备夏令营及预推免面试？","如何准备中科大（7月下旬夏令营面试？","从安徽大学保研到电子科技大学要注意什么？"]}
+{"displayName":"红豆不吃宵夜","id":"148fbb64-e4ca-4dab-8ab4-01855aed2db1","sampleQuestions":["获得面试机会后放弃:一般会问什么？","如何准备夏令营？","关于预推免有什么经验？","关于面试一般会问什么？"]}
+{"displayName":"可可er画画中","id":"11da5675-f97b-444c-8929-da6c2ddb9913","sampleQuestions":["获得面试机会后放弃:一般会问什么？","如何准备夏令营：？","关于预推免：有什么经验？","面试总结：一般会问什么？"]}
+{"displayName":"豆沙_梨子","id":"bbe8caef-51ec-4ffd-9e39-748cd16055dd","sampleQuestions":["获得面试机会后放弃:一般会问什么？","如何准备夏令营的选择：？","关于面试：一般会问什么？","从安徽大学保研到东南大学要注意什么？"]}
+{"displayName":"布丁在发呆","id":"dd64df33-d604-40a5-8951-158519dd0bbf","sampleQuestions":["简历：怎么写更有竞争力？","从安徽大学保研到哈尔滨工业大学(深圳)要注意什么？","哈尔滨工业大学(深圳)保研有哪些关键准备？","�院通信方向升学有什么建议？"]}
+{"displayName":"花生_龙眼","id":"76f8295d-08c2-43f1-8782-84c2cdb66dfb","sampleQuestions":["获得面试机会后放弃:一般会问什么？","如何准备夏令营？","如何准备夏令营相关面试？","关于预推免有什么经验？"]}
+{"displayName":"努力的火龙果zzz","id":"4e487aa9-f27e-4d93-83e0-764c262c10e7","sampleQuestions":["面试部分一般会问什么？","从安徽大学保研到国防科技大学要注意什么？","国防科技大学保研有哪些关键准备？","�院电子方向升学有什么建议？"]}
+{"displayName":"豆奶_荔枝","id":"91460ced-51b0-4569-b9f1-62d6bb6c605c","sampleQuestions":["未参加面试：一般会问什么？","面试未通过：一般会问什么？","从安徽大学保研到华东师范大学要注意什么？","华东师范大学保研有哪些关键准备？"]}
+{"displayName":"饺子_西瓜","id":"21db24c1-b70a-409c-b59a-8941b9ee5f04","sampleQuestions":["关于推免前准备流程有什么经验？","面试经历一般会问什么？","从安徽大学保研到中国科学技术大学要注意什么？","中国科学技术大学保研有哪些关键准备？"]}
+{"displayName":"自在的芒果干呀","id":"c59029fb-f09b-41b4-94c4-8f1f35365013","sampleQuestions":["如何准备夏令营面试被刷：？","如何准备夏令营相关面试？","南京大学+导师面试（6月初一般会问什么？","如何准备夏令营总结？"]}
+{"displayName":"蝴蝶_拉面","id":"7854ce9c-13d8-4f6f-a029-86692ee3c07f","sampleQuestions":["面试经验一般会问什么？","从安徽大学保研到复旦大学要注意什么？","复旦大学保研有哪些关键准备？","�院电子方向升学有什么建议？"]}
+{"displayName":"章鱼_0骑单车","id":"a6cb64ef-3b57-470e-bd77-d7815ac2d4d2","sampleQuestions":["如何准备被刷（仅夏令营阶段？","如何准备夏令营经历？","从安徽大学保研到东南大学要注意什么？","东南大学保研有哪些关键准备？"]}
+{"displayName":"龙眼鸭泡咖啡","id":"32e6ccac-2491-4156-b2ea-3f6fb76be3f5","sampleQuestions":["如何准备夏令营面试经验？","关于预推免有什么经验？","从安徽大学保研到中国科学技术大学要注意什么？","中国科学技术大学保研有哪些关键准备？"]}
+{"displayName":"龙眼_鹿茸","id":"0f9cc7a5-4963-44c4-9e74-d4a0bfa06455","sampleQuestions":["获得面试机会后放弃:一般会问什么？","如何准备夏令营？","关于预推免有什么经验？","从安徽大学保研到南京大学要注意什么？"]}
+{"displayName":"板栗_椰果","id":"b8bf3b38-f082-414a-a510-d17cac8b49cf","sampleQuestions":["获得面试机会后放弃:一般会问什么？","如何准备夏令营简历被刷:？","关于预推免被刷:有什么经验？","如何准备夏令营？"]}
+{"displayName":"牛轧糖哈喝绿茶","id":"cdc0e55d-5d4e-4bc2-9979-f05714a47cac","sampleQuestions":["从安徽大学保研到清华大学电子系智慧天网团队要注意什么？","清华大学电子系智慧天网团队保研有哪些关键准备？","�息工程方向升学有什么建议？","关于电子信息工程学院电子信息工程有什么经验？"]}
+{"displayName":"温柔的蜜桃ya","id":"b1d69b34-fd91-4536-b6fb-3e9ce2582152","sampleQuestions":["获得面试机会后放弃:一般会问什么？","如何准备夏令营情况？","关于预推免有什么经验？","面试准备什么一般会问什么？"]}
+{"displayName":"龙眼骑单车","id":"76313771-bf5b-46f4-b37c-4770d0eac75a","sampleQuestions":["关于推免经历有什么经验？","关于推免干货有什么经验？","如何准备一些学校的夏令营or预推免流程？","从安徽大学保研到复旦大学要注意什么？"]}
+{"displayName":"布丁搬砖中","id":"891070a3-b72c-41ef-a0f9-fc93e8679555","sampleQuestions":["如何准备各校夏令营tips？","从安徽大学保研到中山大学要注意什么？","中山大学保研有哪些关键准备？","�院机械方向升学有什么建议？"]}
+{"displayName":"薯条ii要毕业了","id":"29141729-c386-458d-a5bc-ff7f7bea9695","sampleQuestions":["获得面试机会后放弃:一般会问什么？","关于推免方式：有什么经验？","面试准备一般会问什么？","从安徽大学保研到中国科学技术大学要注意什么？"]}
+{"displayName":"核桃_锦鲤","id":"e640fef0-e219-4239-ae7e-db9bb5a494bf","sampleQuestions":["获得面试机会后放弃:一般会问什么？","从安徽大学保研到南京航空航天大学要注意什么？","南京航空航天大学保研有哪些关键准备？","�院机械方向升学有什么建议？"]}
+{"displayName":"豆包追番中","id":"5c1ec281-ea53-4432-93ae-6000cadd4b6a","sampleQuestions":["从安徽大学保研到中国科学技术大学科学岛分院（跨考计算要注意什么？","中国科学技术大学科学岛分院（跨考计算保研有哪些关键准备？","�院电气方向升学有什么建议？","关于电气工程与自动化学院电气有什么经验？"]}
+{"displayName":"燕麦弹吉他","id":"087d7dd5-815d-4cd3-861c-3e51fcb3d111","sampleQuestions":["获得面试机会后放弃:一般会问什么？","面试经历一般会问什么？","从安徽大学保研到西安电子科技大学要注意什么？","西安电子科技大学保研有哪些关键准备？"]}
+{"displayName":"仓鼠_咖啡","id":"c4fc62bb-e2e6-4a08-84e7-342a68a97318","sampleQuestions":["获得面试机会后放弃:一般会问什么？","如何准备夏令营和预推免择校？","面试经验一般会问什么？","从安徽大学保研到湖南大学要注意什么？"]}
+{"displayName":"迷路的饼干_0","id":"bc70801b-c38e-4f66-8a04-1d2fdc07e023","sampleQuestions":["获得面试机会后放弃:一般会问什么？","如何准备夏令营？","关于预推免有什么经验？","从安徽大学保研到北京理工大学要注意什么？"]}
+{"displayName":"酸奶鸭搬砖中","id":"d7dcc106-7822-4748-b73e-8f73048f9a10","sampleQuestions":["获得面试机会后放弃:一般会问什么？","如何准备夏令营主要流程？","如何准备四川大学南亚研究所夏令营？","如何准备外交学院外交学系夏令营？"]}
+{"displayName":"柠檬在赶DDL","id":"3b39f981-2b17-4c51-b5ac-7eb762e12124","sampleQuestions":["如何准备夏令营入营：？","关于预推免＆十推：有什么经验？","如何准备一是夏令营？","关于二是预推免有什么经验？"]}
+{"displayName":"阳光的豆沙7","id":"f426ecee-2578-4ce2-9ee5-daba29288c56","sampleQuestions":["从安徽大学保研到中国人民大学要注意什么？","中国人民大学保研有哪些关键准备？","�院社工方向升学有什么建议？","关于社会与政治学院社工有什么经验？"]}
+{"displayName":"努力的龙眼9","id":"959907bf-21a0-4f4f-b0a1-c9d17649ef97","sampleQuestions":["如何准备夏令营获得offer:？","关于推免获得offer:有什么经验？","从安徽大学保研到四川大学要注意什么？","四川大学保研有哪些关键准备？"]}
+{"displayName":"冰淇淋3画画中","id":"508ae0e6-cb8f-419c-a09e-b4b685d94d11","sampleQuestions":["参加面试学校:一般会问什么？","如何准备夏令营获得offer:？","关于未参加预推免有什么经验？","国家级竞赛在保研里有多重要？"]}
+{"displayName":"奔跑的冰淇淋_0","id":"2524af02-5e33-49d4-9cc3-cbb9d738362f","sampleQuestions":["从安徽大学保研到中央财经大学要注意什么？","中央财经大学保研有哪些关键准备？","�院经院方向升学有什么建议？","关于经济学院经院有什么经验？"]}
+{"displayName":"薯片喝绿茶","id":"44d3ace4-dab1-4938-aa85-39e20147d022","sampleQuestions":["关于经济学院经济有什么经验？","关于经济有什么建议？"]}
+{"displayName":"热可可_薯条","id":"036def5c-9ede-4920-b7d1-f37ce4d9f95c","sampleQuestions":["从安徽大学保研到河南大学新闻与传播学院广播电视编导专要注意什么？","河南大学新闻与传播学院广播电视编导专保研有哪些关键准备？","�院王欣方向升学有什么建议？","关于艺术学院王欣有什么经验？"]}
+{"displayName":"锦鲤君听播客","id":"806b47d7-7003-4b38-859d-a3e6682f60d0","sampleQuestions":["如何准备夏令营入营：？","如何准备夏令营参营：？","关于预推免：有什么经验？","从安徽大学保研到上海交通大学要注意什么？"]}
+{"displayName":"芒果干_寿司","id":"b25fdbab-aa37-47e9-853b-610144eae9aa","sampleQuestions":["获得面试机会后放弃:一般会问什么？","如何提交简历怎么写更有竞争力？","从安徽大学保研到西北工业大学要注意什么？","西北工业大学保研有哪些关键准备？"]}
+{"displayName":"海豚zzz在图书馆","id":"a86f4d2c-38d6-410e-9cd3-07070d9cbccd","sampleQuestions":["获得面试机会后放弃:一般会问什么？","绩点排名很重要对录取影响大吗？","从安徽大学保研到中国科学技术大学要注意什么？","中国科学技术大学保研有哪些关键准备？"]}
+{"displayName":"奶茶z听播客","id":"a18d8a61-ff27-4fea-b79f-e8b8ad12d22e","sampleQuestions":["获得面试机会后放弃:一般会问什么？","如何准备夏令营？","从安徽大学保研到武汉大学要注意什么？","武汉大学保研有哪些关键准备？"]}
+{"displayName":"机灵的薯片oo","id":"0b8f4e5b-6b38-47e3-99b0-e55c22691ddf","sampleQuestions":["如何准备夏令营入营：？","从安徽大学保研到浙大软件学院要注意什么？","浙大软件学院保研有哪些关键准备？","�术学院方向升学有什么建议？"]}
+{"displayName":"慵懒的拿铁ii","id":"e742b784-20ed-4aee-898a-5a834468fe34","sampleQuestions":["上海大学申请UNC-Chapel Hill有哪些经验？","�数学系方向升学有什么建议？","关于数学系留学经验有什么经验？"]}
+{"displayName":"布丁z写代码","id":"87003e4e-2211-48e8-998d-75e71a902644","sampleQuestions":["从上海大学保研到Northeastern Unive要注意什么？","Northeastern Unive保研有哪些关键准备？","��大学CS方向升学有什么建议？","关于CS保研经验有什么经验？"]}
+{"displayName":"栗子学画画","id":"9a520bda-3804-4ea6-9ff4-3b99092c916a","sampleQuestions":["院校介绍及笔试面试经验一般会问什么？","关于leeds留学经验有什么经验？","关于leeds有什么建议？"]}
+{"displayName":"椰果煮火锅","id":"418bfa6b-8219-40d1-b106-23b9da233bfe","sampleQuestions":["从上海大学到就业有哪些经验？","�自动化方向升学有什么建议？","关于机械工程及其自动化就业经验有什么经验？","关于机械工程及其自动化有什么建议？"]}
+{"displayName":"薯片_河马","id":"6d48d42b-0af0-49eb-bbd8-9cbf2b5d1d00","sampleQuestions":["上大保研需要什么条件？","考研和保研怎么选择？","如何平衡学业和实习？"]}
+{"displayName":"栗子_抹茶","id":"00b3a659-8453-4841-a814-91268fd5abdf","sampleQuestions":["上大保研需要什么条件？","考研和保研怎么选择？","如何平衡学业和实习？"]}
+{"displayName":"红豆oo背单词","id":"89a520a9-b553-43fb-95a8-181f5760bab6","sampleQuestions":["本科绩点对录取影响大吗？","如何准备夏令营？","关于推免系统有什么经验？","从上海大学保研到中南大学要注意什么？"]}
+{"displayName":"快乐的柿子z","id":"a5c25101-7e0c-489a-90e6-cd79288c7b86","sampleQuestions":["切记在面试中不能情绪失控，展现出低抗压能力一般会问什么？","如何准备夏令营？","保研面试一般会问什么？","从上海大学保研到同济大学要注意什么？"]}
+{"displayName":"柠檬_黑芝麻","id":"aa586c43-7993-4964-a9f2-991e6725dfb4","sampleQuestions":["上海大学考清华大学经管学院管理（MiM）硕士项难吗？","清华大学经管学院管理（MiM）硕士项考研复试有什么经验？","�信学院方向升学有什么建议？"]}
+{"displayName":"百香果酱的碎碎念","id":"f2514956-a9bc-4e07-a3d3-ddc82def538f","sampleQuestions":["上海大学申请New York Universit有哪些经验？","��大学CS方向升学有什么建议？","关于CS留学经验有什么经验？","关于CS有什么建议？"]}
+{"displayName":"温柔的蝴蝶大王","id":"321ef82d-8d38-4a3e-ba03-f52c8af201ca","sampleQuestions":["关于工商管理留学经验有什么经验？","关于工商管理有什么建议？"]}
+{"displayName":"柠檬_桂花","id":"b83e33e3-0ea9-4f12-bd4c-3d2ad1ecd1fd","sampleQuestions":["推荐信怎么准备？","关于数学系留学经验有什么经验？"]}
+{"displayName":"河马刷题中","id":"27fb67c6-3149-4450-b4fb-dbd1c25eb583","sampleQuestions":["📑简历：简明扼要，突出重点怎么写更有竞争力？","👋面试：万事开头难一般会问什么？","从上海大学保研到中国航天某所要注意什么？","中国航天某所保研有哪些关键准备？"]}
+{"displayName":"巧克力_栗子","id":"11a72437-7db0-4be9-91a3-aa1e050b2639","sampleQuestions":["如何准备夏令营情况？","关于预推免情况有什么经验？","大二：学习+竞赛在保研里有多重要？","从上海大学保研到清华大学软件学院要注意什么？"]}
+{"displayName":"快乐的蜻蜓大王","id":"f8938382-5a04-4140-8758-2265b018c377","sampleQuestions":["竞赛：数学竞赛国三+市三 荣誉在保研里有多重要？","从上海大学保研到金融监管部门公务员要注意什么？","金融监管部门公务员保研有哪些关键准备？","�用数学方向升学有什么建议？"]}
+{"displayName":"豆包oo听播客","id":"90749259-0e07-4043-9a25-ccbb3c8de278","sampleQuestions":["关于pm的打怪升级之路留学经验有什么经验？","关于pm的打怪升级之路有什么建议？"]}
+{"displayName":"蘑菇不熬夜","id":"ff3b1ec6-d184-4f18-8c30-143fc667484a","sampleQuestions":["从上海大学保研到复旦大学直博要注意什么？","复旦大学直博保研有哪些关键准备？","�物理系方向升学有什么建议？","关于物理系保研经验有什么经验？"]}
+{"displayName":"花卷打工中","id":"22e2bfbb-b4ec-4f32-9b63-78d706dcd493","sampleQuestions":["如何准备夏令营？","从上海大学保研到上海交通大学-数学科学学院-应用统计要注意什么？","上海交通大学-数学科学学院-应用统计保研有哪些关键准备？","�算科学方向升学有什么建议？"]}
+{"displayName":"慵懒的蓝莓酱7","id":"d96f28d7-6a43-411d-b092-e89e285372e1","sampleQuestions":["关于SOAS留学经验有什么经验？","关于SOAS有什么建议？"]}
+{"displayName":"元气的蝴蝶君","id":"d4c5c1d8-39e0-4d59-9b52-8249eb860fa1","sampleQuestions":["上大保研需要什么条件？","考研和保研怎么选择？","如何平衡学业和实习？"]}
+{"displayName":"雪糕骑单车","id":"160c68d0-9332-48f8-aaa4-91c90e604d29","sampleQuestions":["上大保研需要什么条件？","考研和保研怎么选择？","如何平衡学业和实习？"]}
+{"displayName":"淡定的牛轧糖oo","id":"8c4c2efe-4c1a-4d96-baed-49a3210acbf9","sampleQuestions":["专业排名对录取影响大吗？","项目和竞赛在保研里有多重要？","关于推免心得有什么经验？","从上海大学保研到南京大学工程管理学院工业工程与管理专要注意什么？"]}
+{"displayName":"红豆_桂花","id":"d319e3ab-1db8-4b38-9a2d-17eb2fe947dd","sampleQuestions":["补一个弱背景（大陆本科、无海外推荐信、绩点极怎么准备？","关于找导师这一大事和套磁这一可大可小的事有哪些技巧？","是否套磁一事，以及可能产生的非正式面试一般会问什么？","上海大学申请上海交通大学有哪些经验？"]}
+{"displayName":"元气的银杏__","id":"0fe99651-8b49-4f48-af2d-bc29d67dc258","sampleQuestions":["从上海大学保研到清华大学深圳国际研究生院+物流工程与要注意什么？","清华大学深圳国际研究生院+物流工程与保研有哪些关键准备？","�用数学方向升学有什么建议？","关于数学与应用数学保研经验有什么经验？"]}
+{"displayName":"荔枝7泡咖啡","id":"8f515126-a3bb-426c-aac7-0da6ca44d045","sampleQuestions":["申请文书有哪些技巧？","面试意外一般会问什么？","关于国际经济与贸易留学经验有什么经验？","关于国际经济与贸易有什么建议？"]}
+{"displayName":"猫头鹰_桂花","id":"236a3030-df8e-4988-945f-7dfe11afc58b","sampleQuestions":["面试情况一般会问什么？","从上海大学保研到大连理工大学要注意什么？","大连理工大学保研有哪些关键准备？","�用力学方向升学有什么建议？"]}
+{"displayName":"椰果_鸽子","id":"e9bb5147-b042-497b-9994-ac61311b7a55","sampleQuestions":["数学竞赛备考经验在保研里有多重要？","从上海大学保研到复旦大学要注意什么？","复旦大学保研有哪些关键准备？","�数学系方向升学有什么建议？"]}
+{"displayName":"芒果干吃早餐","id":"a27b57f7-952c-4267-aefe-8c35561c816d","sampleQuestions":["上海大学申请NEU MSIS有哪些经验？","��大学CS方向升学有什么建议？","关于CS留学经验有什么经验？","关于CS有什么建议？"]}
+{"displayName":"萤火虫er练瑜伽","id":"ec1c5c35-2b09-4b33-b89a-336333f6168a","sampleQuestions":["上海大学申请Johns Hopkins Univ有哪些经验？","��大学CS方向升学有什么建议？","关于CS留学经验有什么经验？","关于CS有什么建议？"]}
+{"displayName":"桃子_0听播客","id":"87a6417c-783a-470f-9975-2d359cfe9d06","sampleQuestions":["上大保研需要什么条件？","考研和保研怎么选择？","如何平衡学业和实习？"]}
+{"displayName":"青蛙3煮火锅","id":"1e54194c-297e-4a0d-8bc6-359396e18c40","sampleQuestions":["四学年对应排名对录取影响大吗？","关于数学系留学经验有什么经验？"]}
+{"displayName":"淡定的苹果ya","id":"329b2de4-7df1-404b-a8ac-47ae9f0a3f78","sampleQuestions":["上海大学申请University of Sout有哪些经验？","�数学系方向升学有什么建议？","关于数学系留学经验有什么经验？"]}
+{"displayName":"薯条喝绿茶","id":"4706fc28-6186-479f-9b92-cac94abdb6ed","sampleQuestions":["选校，面试经验一般会问什么？","关于经济学院留学经验有什么经验？"]}
+{"displayName":"蜜桃_桂花","id":"bc97f07e-ef0c-42b7-a961-db01eccc5f5e","sampleQuestions":["关于信息管理与信息系统留学经验有什么经验？","关于信息管理与信息系统有什么建议？"]}
+{"displayName":"努力的麻雀x","id":"6d8e36f6-e07f-4a6d-9fb3-74c907b562a8","sampleQuestions":["专业排名对录取影响大吗？","关于推免心得有什么经验？","从上海大学保研到西安交通大学应用统计要注意什么？","西安交通大学应用统计保研有哪些关键准备？"]}
+{"displayName":"柚子_豆包","id":"7d635d5c-ab4e-4c6e-9646-05992464430f","sampleQuestions":["上海大学申请USC Annenberg - MS有哪些经验？","�大学usc方向升学有什么建议？","关于usc留学经验有什么经验？","关于usc有什么建议？"]}
+{"displayName":"鹿茸搬砖中","id":"5e72d427-c876-4b69-8c58-02a8f42ead9c","sampleQuestions":["上大保研需要什么条件？","考研和保研怎么选择？","如何平衡学业和实习？"]}
+{"displayName":"蜻蜓在图书馆","id":"2fdedb84-0954-4a05-8bdf-d86d080185f1","sampleQuestions":["上海大学考北京大学软件与微电子学院软件工程专硕难吗？","北京大学软件与微电子学院软件工程专硕考研复试有什么经验？","�数学系方向升学有什么建议？","关于数学系考研经验有什么经验？"]}
+{"displayName":"饼干下象棋","id":"0a90c615-739c-48c9-99bd-baec4cfbd06e","sampleQuestions":["绩点排名靠后对录取影响大吗？","从上海大学保研到上海财经大学要注意什么？","上海财经大学保研有哪些关键准备？","�用数学方向升学有什么建议？"]}
+{"displayName":"咖啡er在图书馆","id":"da2dc64f-2417-4968-8eb9-61cbfc1a8fd8","sampleQuestions":["专业排名对录取影响大吗？","17级和18级智科都是位列分流排名之首对录取影响大吗？","上海大学考上海大学难吗？","上海大学考研复试有什么经验？"]}
+{"displayName":"雪糕oo在发呆","id":"37ed15f1-ed0d-4186-ba31-e2ff5e41a3a5","sampleQuestions":["上海大学考上海大学难吗？","上海大学考研复试有什么经验？","�子工程方向升学有什么建议？","关于机械电子工程考研经验有什么经验？"]}
+{"displayName":"蔓越莓_桂花","id":"bb313787-ac76-4dbf-b84b-eaf49c5b4737","sampleQuestions":["上海大学申请School of Computer有哪些经验？","��大学CS方向升学有什么建议？","关于CS留学经验有什么经验？","关于CS有什么建议？"]}
+{"displayName":"栗子oo不吃宵夜","id":"4c3775b5-d228-4312-ad2d-7923d4d7fa7d","sampleQuestions":["关于CS留学经验有什么经验？","关于CS有什么建议？"]}
+{"displayName":"安静的瓢虫_v","id":"f9c15fa8-9f7a-4f22-98e4-ee3a44278066","sampleQuestions":["上海大学申请\u003cu\u003e南洋理工大学-计算机控制与自动有哪些经验？","��大学CS方向升学有什么建议？","关于CS留学经验有什么经验？","关于CS有什么建议？"]}
+{"displayName":"认真的可可ya","id":"6726571e-e458-4b35-914d-e8ad2776296a","sampleQuestions":["上海大学申请- CUHK-IE有哪些经验？","��大学CS方向升学有什么建议？","关于CS留学经验有什么经验？","关于CS有什么建议？"]}
+{"displayName":"薯条_杨梅","id":"43d01b35-b3b6-4f06-8b92-bbdb348f8956","sampleQuestions":["从上海大学到就业有哪些经验？","��大学CS方向升学有什么建议？","关于CS就业经验有什么经验？","关于CS有什么建议？"]}
+{"displayName":"果冻大王的碎碎念","id":"52f77966-39d9-403a-a0e5-a0ed95745e87","sampleQuestions":["上大保研需要什么条件？","考研和保研怎么选择？","如何平衡学业和实习？"]}
+{"displayName":"勤劳的核桃酱","id":"c390bad4-674a-459f-8141-b7917d8d06f0","sampleQuestions":["专业排名第一对录取影响大吗？","从上海大学到复旦大学有哪些经验？","�大学fdu方向升学有什么建议？","关于fdu插班生经验有什么经验？"]}
+{"displayName":"飞翔的柠檬ii","id":"7fe94a26-50e3-4e43-ac0e-1fe15e92a8a4","sampleQuestions":["绩点排名对录取影响大吗？","推荐信怎么准备？","面试准备一般会问什么？","如何准备夏令营情况？"]}
+{"displayName":"鲸鱼下象棋","id":"feeac12a-f4e7-482f-8c02-e2d95e5c177d","sampleQuestions":["本科院校背景\u003e专业GPA排名\u003e英语成绩\u003e科研对录取影响大吗？","从上海大学保研到西南财经大学要注意什么？","西南财经大学保研有哪些关键准备？","�理学院方向升学有什么建议？"]}
+{"displayName":"黑芝麻要毕业了","id":"bd5b94db-ee79-4be2-8686-4aa2a728aa7e","sampleQuestions":["上大保研需要什么条件？","考研和保研怎么选择？","如何平衡学业和实习？"]}
+{"displayName":"豆包_桂花","id":"ab836247-2caf-4035-b4e9-0c5789aca7c7","sampleQuestions":["如何准备19-豆包_桂花-EEI-夏令营保研-HUS？","如何准备夏令营申报？","如何准备华中科技大学夏令营？","从上海大学保研到保研要注意什么？"]}
+{"displayName":"可可oo修电脑","id":"33d32ce3-8bb7-4dce-bd91-7473f20646df","sampleQuestions":["只有面试一般会问什么？","如何准备夏令营情况？","关于预推免有什么经验？","从上海大学保研到中央财经大学要注意什么？"]}
+{"displayName":"巧克力_饼干","id":"e8a69da2-5289-423f-af1d-6a7f092c44bf","sampleQuestions":["如何准备夏令营（仅供参考？","关于预推免（仅供参考有什么经验？","从上海大学保研到上海交通大学要注意什么？","上海交通大学保研有哪些关键准备？"]}
+{"displayName":"水母修电脑","id":"92e157ba-b058-42e3-80ef-c4d4b5c363d2","sampleQuestions":["如何准备夏令营过程与结果？","从上海大学保研到华中科技大学数学与统计学院-应用数学要注意什么？","华中科技大学数学与统计学院-应用数学保研有哪些关键准备？","�数学系方向升学有什么建议？"]}
+{"displayName":"可可小号画画中","id":"45dfb44e-9cfa-42b3-9bbe-a314c44f5020","sampleQuestions":["科研/竞赛在保研里有多重要？","科研竞赛在保研里有多重要？","关于预推免有什么经验？","从上海大学保研到上海交通大学-医学院-基础医学部直博要注意什么？"]}
+{"displayName":"阿狸去散步","id":"4565c87a-0971-4087-9e12-3d1b329dc89a","sampleQuestions":["从上海大学到就业有哪些经验？","�造工程方向升学有什么建议？","关于智能制造工程就业经验有什么经验？"]}
+{"displayName":"迷路的海豚大王","id":"a7cec3dc-1171-43a4-9936-e645e3cc3e29","sampleQuestions":["从上海大学到复旦大学有哪些经验？","�插班生方向升学有什么建议？","关于插班生插班生经验有什么经验？","关于插班生有什么建议？"]}
+{"displayName":"苹果的碎碎念","id":"4668cac7-e08f-4ccf-b713-031815602bf3","sampleQuestions":["如何准备夏令营经验？","从上海大学保研到保研要注意什么？","保研保研有哪些关键准备？","�物理学方向升学有什么建议？"]}
+{"displayName":"努力的柚子3","id":"2ac24517-ed01-4171-a19b-0f0c8027b1fc","sampleQuestions":["竞赛、科研、奖项情况在保研里有多重要？","如何准备夏令营情况？","如何准备夏令营？","如何准备夏令营经历？"]}
+{"displayName":"板栗呀的碎碎念","id":"e4d0b949-f8d8-4e2e-ac24-4536c7ef5985","sampleQuestions":["如何准备19-洪浩天-BME-夏令营保研-Shang？","如何准备保研：仅夏令营？","从上海大学保研到保研要注意什么？","保研保研有哪些关键准备？"]}
+{"displayName":"蜗牛_寿司","id":"c3e15f73-5f7a-4af1-8ae0-d02568cdb682","sampleQuestions":["从上海大学到转专业有哪些经验？","�大学转方向升学有什么建议？","关于转专业转专业经验有什么经验？","关于211有什么建议？"]}
+{"displayName":"勤劳的萤火虫小号","id":"2921b50b-c35b-4971-851f-deab97cecb88","sampleQuestions":["关于MSc\u0026Phd留学经验有什么经验？","关于MSc\u0026Phd有什么建议？"]}
+{"displayName":"蜻蜓哈去散步","id":"b0b3fecf-0447-4ab6-a30e-a3f812ef08b3","sampleQuestions":["关于是否有把握获得推免资格有什么经验？","从上海大学保研到中国科学技术大学近代力学系要注意什么？","中国科学技术大学近代力学系保研有哪些关键准备？","�术大学方向升学有什么建议？"]}
+{"displayName":"章鱼ya喝牛奶","id":"37873220-db34-4fe2-aa05-959598d9c35b","sampleQuestions":["绩点排名对录取影响大吗？","如何准备夏令营？","关于预推免有什么经验？","从上海大学保研到南京师范大学-教师教育学院-学科教学要注意什么？"]}
+{"displayName":"菠萝小号刷题中","id":"6e1bd781-5840-4b13-99e7-6a79d9a84fc4","sampleQuestions":["绩点排名对录取影响大吗？","个人简历怎么写更有竞争力？","专家推荐信怎么准备？","简历内容一定要真实怎么写更有竞争力？"]}
+{"displayName":"棉花糖君在赶DDL","id":"cf361da2-4d41-4d8a-849b-ed8db62a3281","sampleQuestions":["竞赛经历在保研里有多重要？","如何准备夏令营？","关于预推免有什么经验？","从上海大学保研到浙江大学要注意什么？"]}
+{"displayName":"青蛙x在学习","id":"c55ec303-9163-4505-809b-fbacec08763f","sampleQuestions":["如何准备夏令营申请和考核介绍？","从上海大学保研到上海财经大学要注意什么？","上海财经大学保研有哪些关键准备？","�济学院方向升学有什么建议？"]}
+{"displayName":"勤劳的寿司z","id":"7660cb44-c923-4346-8fd7-6d14bf8407f9","sampleQuestions":["关于在预推免时应当报本校的保研，并且拿到offe有什么经验？","专业排名对录取影响大吗？","如何准备夏令营？","从上海大学保研到上海科技大学生物医学工程学院要注意什么？"]}
+{"displayName":"萤火虫_鲸鱼","id":"719e06be-c3a2-40aa-9057-969e8a4a5f78","sampleQuestions":["推荐信怎么准备？","面试经历\u0026同学分享经验（分学校陈述一般会问什么？","从上海大学保研到中国科学技术大学要注意什么？","中国科学技术大学保研有哪些关键准备？"]}
+{"displayName":"栗子煮火锅","id":"60446afc-d41f-49df-9147-8d3ad8315a99","sampleQuestions":["奖励证书与竞赛在保研里有多重要？","从上海大学保研到对外经济贸易大学全球价值链研究院要注意什么？","对外经济贸易大学全球价值链研究院保研有哪些关键准备？","�济学院方向升学有什么建议？"]}
+{"displayName":"沉默的蚂蚁9","id":"69feb612-e848-4c52-b188-d3e84f80f5a8","sampleQuestions":["本科绩点对录取影响大吗？","简历背景怎么写更有竞争力？","A公司的面试流程：一般会问什么？","M公司技术面试一般会问什么？"]}
+{"displayName":"薄荷今天早睡","id":"08f3d8c0-73a8-4f8f-84bc-acd140d4d2ec","sampleQuestions":["本科绩点对录取影响大吗？","美国大学生数学建模竞赛在保研里有多重要？","从上海大学到竞赛有哪些经验？","�学建模方向升学有什么建议？"]}
+{"displayName":"西瓜_橙子","id":"3ed222ee-e717-4618-b31f-478e2a60ee5e","sampleQuestions":["关于EE留学经验有什么经验？","关于EE有什么建议？"]}
+{"displayName":"淡定的巧克力er","id":"d02c5542-a387-49b4-948f-990167caa509","sampleQuestions":["从上海大学到分流有哪些经验？","�学树莓方向升学有什么建议？","关于树莓分流经验有什么经验？","关于树莓有什么建议？"]}
+{"displayName":"板栗_v今天早睡","id":"2504868c-ef83-4f59-9a4e-7a1b6a89dfb2","sampleQuestions":["专业排名对录取影响大吗？","如何准备夏令营参营？","关于预推免参加有什么经验？","从上海大学保研到中国科学院大学数学科学学院要注意什么？"]}
+{"displayName":"兔兔_仓鼠","id":"570bf5e3-a943-4ff3-8c6c-f84eb1594654","sampleQuestions":["学分成绩及其排名对录取影响大吗？","分流成绩及其排名对录取影响大吗？","从上海大学到分流有哪些经验？","�信学院方向升学有什么建议？"]}
+{"displayName":"蜜桃_核桃","id":"c3ba5041-bca9-47c1-ab1b-2df01f93373a","sampleQuestions":["从上海大学到分流有哪些经验？","�学应数方向升学有什么建议？","关于应数分流经验有什么经验？","关于应数有什么建议？"]}
+{"displayName":"机灵的猫头鹰吖","id":"0f9a4c39-de41-4fa5-b22d-c2388e722c32","sampleQuestions":["各类竞赛在保研里有多重要？","从上海大学到分流有哪些经验？","�造工程方向升学有什么建议？","关于智能制造工程分流经验有什么经验？"]}
+{"displayName":"柠檬背单词","id":"5d0ee4de-55d7-45fc-a803-f11a05269644","sampleQuestions":["学分成绩及其排名对录取影响大吗？","分流成绩及其排名对录取影响大吗？","从上海大学到分流有哪些经验？","�信学院方向升学有什么建议？"]}
+{"displayName":"椰子在图书馆","id":"8551b4c9-cda0-4e7a-92b9-102aa04a8281","sampleQuestions":["从上海大学到暑校有哪些经验？","�数学系方向升学有什么建议？","关于数学系暑校经验有什么经验？"]}
+{"displayName":"芋圆_饼干","id":"9a7304a8-3a02-4f00-b0c9-b96ec11294e5","sampleQuestions":["学分成绩及其排名对录取影响大吗？","从上海大学到分流有哪些经验？","�用化学方向升学有什么建议？","关于应用化学分流经验有什么经验？"]}
+{"displayName":"蔓越莓_抹茶","id":"8c039a96-e2c7-4220-8222-f4e971bb5de1","sampleQuestions":["当时绩点对录取影响大吗？","竞赛经历在保研里有多重要？","转专业面试内容一般会问什么？","面试形式一般会问什么？"]}
+{"displayName":"燕麦_棉花糖","id":"fc4f06cf-13cf-4827-a732-d3d90076d6bb","sampleQuestions":["分流综测排名对录取影响大吗？","从上海大学到转专业有哪些经验？","�大学转方向升学有什么建议？","关于转专业转专业经验有什么经验？"]}
+{"displayName":"葡萄_0下象棋","id":"90f3fccd-b2fe-4451-b3ae-1c41627eb105","sampleQuestions":["从上海大学到上海交通大学有哪些经验？","��大学CS方向升学有什么建议？","关于CS辅修经验有什么经验？","关于CS有什么建议？"]}
+{"displayName":"荔枝er喝绿茶","id":"1d733ec2-f42a-4ccf-9e73-774e54f42f42","sampleQuestions":["推荐信怎么准备？","关于Art留学经验有什么经验？","关于Art有什么建议？"]}
+{"displayName":"桃子_水母","id":"781d6644-6be5-44b2-bc4a-85b654b61616","sampleQuestions":["前提：绩点拿稳对录取影响大吗？","从上海大学到分流有哪些经验？","�数学系方向升学有什么建议？","关于数学系分流经验有什么经验？"]}
+{"displayName":"飞翔的棉花糖zzz","id":"24f1bf28-d6a3-4a25-9ad6-28f928610972","sampleQuestions":["从上海大学到分流有哪些经验？","��大学CS方向升学有什么建议？","关于CS分流经验有什么经验？","关于CS有什么建议？"]}
+{"displayName":"可可ya背单词","id":"189a7246-4252-4c47-b448-de92e682fe58","sampleQuestions":["大一的绩点对录取影响大吗？","从上海大学到分流有哪些经验？","��大学CS方向升学有什么建议？","关于CS分流经验有什么经验？"]}
+{"displayName":"萤火虫__喝牛奶","id":"23d487a4-cb74-4a19-a76c-114012c0b6e0","sampleQuestions":["本科生如何向外校导师套磁做科研有哪些技巧？","从上海大学保研到保研要注意什么？","保研保研有哪些关键准备？","�海大学方向升学有什么建议？"]}
+{"displayName":"蝴蝶ya搬砖中","id":"827d3ea0-becc-4328-af9f-0a50c2196b0a","sampleQuestions":["从上海大学到竞赛有哪些经验？","�海大学方向升学有什么建议？","关于竞赛经验有什么经验？","关于211有什么建议？"]}
+{"displayName":"迷路的酸奶吖","id":"1c423722-06e9-49f5-97d1-372bdd81bc9a","sampleQuestions":["从上海大学到知识区有哪些经验？","�海大学方向升学有什么建议？","关于知识区经验有什么经验？","关于211有什么建议？"]}
+{"displayName":"板栗小号听播客","id":"31a1621b-abd1-4242-8629-36e4b5b6c616","sampleQuestions":["从上海大学到知识区有哪些经验？","�海大学方向升学有什么建议？","关于知识区经验有什么经验？","关于211有什么建议？"]}
+{"displayName":"抹茶做饭中","id":"f8f71c47-f3af-4105-8cb2-1d6871ae6db1","sampleQuestions":["从上海大学到知识区有哪些经验？","�海大学方向升学有什么建议？","关于知识区经验有什么经验？","关于211有什么建议？"]}
+{"displayName":"快乐的薯条大王","id":"76fcf42c-e52d-484b-8e05-11a52cdb834a","sampleQuestions":["从上海大学到知识区有哪些经验？","�海大学方向升学有什么建议？","关于知识区经验有什么经验？","关于211有什么建议？"]}
+{"displayName":"企鹅_蝴蝶","id":"f5527e4f-2456-4ed3-b75d-992e3613ae8a","sampleQuestions":["GPA：3.83，专业排名对录取影响大吗？","从上海大学保研到保研要注意什么？","保研保研有哪些关键准备？","��大学CS方向升学有什么建议？"]}
+{"displayName":"海豚_0看日落","id":"22e2f555-8d4f-44fd-bcfc-5b86cc9667e5","sampleQuestions":["三封推荐信怎么准备？","关于211有什么建议？"]}
+{"displayName":"鹿茸鸭背单词","id":"cae9ff2d-04ea-427b-a75e-8cdee0ad152c","sampleQuestions":["关于海南大学计算机与网络空间安全学院推免资格有什么经验？","如何准备夏令营和预推免基本介绍？","如何准备我的夏令营经历？","从海南大学保研到厦门大学要注意什么？"]}
+{"displayName":"饼干_0打工中","id":"49c8c33b-3f05-42a9-b3ac-208053f5bb84","sampleQuestions":["竞赛经历在保研里有多重要？","从海南大学保研到UCAS要注意什么？","UCAS保研有哪些关键准备？","�络工程方向升学有什么建议？"]}
+{"displayName":"梨子7要毕业了","id":"06aa7148-746e-43c6-98c2-5cc70cd6cc5a","sampleQuestions":["如何准备🏫夏令营？","关于🚩预推免有什么经验？","从海南大学保研到IIE(CAS)要注意什么？","IIE(CAS)保研有哪些关键准备？"]}
+{"displayName":"迷路的香蕉z","id":"d48f43c2-1560-4483-9e0a-81c74a2b13e1","sampleQuestions":["竞赛经历在保研里有多重要？","如何准备夏令营情况？","关于预推免有什么经验？","从海南大学保研到USTC要注意什么？"]}
+{"displayName":"柠檬_棉花糖","id":"11c0dcb5-ccb5-4f99-b079-7300eb28525c","sampleQuestions":["竞赛经历在保研里有多重要？","如何准备夏令营情况？","如何准备夏令营总结？","关于预推免情况有什么经验？"]}
+{"displayName":"瓢虫er要毕业了","id":"792d9ff9-33f9-49fb-9db6-9928bb66aa03","sampleQuestions":["竞赛经历在保研里有多重要？","如何准备夏令营？","关于预推免有什么经验？","从海南大学保研到SEU要注意什么？"]}
+{"displayName":"蜗牛的碎碎念","id":"b6adc491-eb40-417c-8489-d06f9fbe7174","sampleQuestions":["绩点排名对录取影响大吗？","科研竞赛在保研里有多重要？","从海南大学保研到天津大学要注意什么？","天津大学保研有哪些关键准备？"]}
+{"displayName":"果冻_咖啡","id":"1e8b6247-3e5c-48ee-8502-7db375ec4aee","sampleQuestions":["从海南大学保研到ALIBABAUESTC要注意什么？","ALIBABAUESTC保研有哪些关键准备？","�学计科方向升学有什么建议？","关于计科找工作和保研有什么经验？"]}
+{"displayName":"橙子吖做饭中","id":"c23fd0bf-f482-4096-b01f-b3fa9ed0d19f","sampleQuestions":["竞赛(都是一些比较水的竞赛，主要为了拿到学校在保研里有多重要？","如何准备夏令营前期（0 offer？","如何准备夏令营后期（西电CS√，南理CS√？","关于预推免（唯一的offer：中山AI有什么经验？"]}
+{"displayName":"蜗牛骑单车","id":"681d1188-9a50-43b2-939c-bb86f9990c52","sampleQuestions":["成绩排名对录取影响大吗？","竞赛经历在保研里有多重要？","如何准备夏令营情况？","关于预推免情况有什么经验？"]}
+{"displayName":"迷路的猫头鹰酱","id":"2793df71-94a5-4621-8507-b6408fa25f1b","sampleQuestions":["算法：[可以考虑使用针对面试出现频率高的算法一般会问什么？","简历最重要怎么写更有竞争力？","面试经历一般会问什么？","面试准备一般会问什么？"]}
+{"displayName":"柿子_蓝莓酱","id":"48525282-67a6-43f0-a858-c8a14d3d25d8","sampleQuestions":["绩点排名对录取影响大吗？","竞赛经历在保研里有多重要？","从海南大学保研到SEU要注意什么？","SEU保研有哪些关键准备？"]}
+{"displayName":"阿狸3遛弯了","id":"4e49e2c0-3d92-454f-9240-1aa5b9134850","sampleQuestions":["绩点排名对录取影响大吗？","综合排名对录取影响大吗？","如何准备夏令营情况？","关于预推免有什么经验？"]}
+{"displayName":"麦芽_银杏","id":"adeda800-ad07-43fc-ad94-4a15c7921759","sampleQuestions":["海南大学考SCU难吗？","SCU考研复试有什么经验？","�方向）方向升学有什么建议？","关于信息安全（密码学方向）考研有什么经验？"]}
+{"displayName":"青蛙_椰子","id":"0afdd810-412e-47c8-8181-de6b1e708c6e","sampleQuestions":["从海南大学保研到SZU要注意什么？","SZU保研有哪些关键准备？","�息安全方向升学有什么建议？","关于信息安全保研有什么经验？"]}
+{"displayName":"椰果_葡萄","id":"a761a86f-cf21-448d-b2cb-e0db270ee045","sampleQuestions":["海大保研到985难度大吗？","如何准备夏令营面试？","211背景怎么提升竞争力？"]}
+{"displayName":"布丁_0骑单车","id":"b2a6098c-0e46-42a7-b9e8-4916fb780436","sampleQuestions":["海南大学考中国社会科学院大学难吗？","中国社会科学院大学考研复试有什么经验？","�政管理方向升学有什么建议？","关于行政管理考研有什么经验？"]}
+{"displayName":"果冻下象棋","id":"d157ec92-7f5c-459d-b9e4-b2199269634c","sampleQuestions":["从海南大学到ALIBABA有哪些经验？","�徐知鱼方向升学有什么建议？","关于徐知鱼@Alibaba有什么经验？","关于徐知鱼有什么建议？"]}
+{"displayName":"泡芙鸭不熬夜","id":"8a71c12c-59d3-4436-8572-ddea64767fe3","sampleQuestions":["个人简历怎么写更有竞争力？","如何准备夏令营？","关于预推免有什么经验？","从海南大学保研到对外经济贸易大学要注意什么？"]}
+{"displayName":"板栗_花卷","id":"79a81453-e9c5-4208-9492-ff7f8471a623","sampleQuestions":["二）保研简历投递过程中高校\u003cmark\u003e最看重怎么写更有竞争力？","四）保研笔面试中要注意些什么？一般会问什么？","从海南大学到西南政法有哪些经验？","�学金融方向升学有什么建议？"]}
+{"displayName":"银杏大王摸鱼了","id":"4b12317f-223b-4221-a632-10cbe394912c","sampleQuestions":["绩点总体事项对录取影响大吗？","平均绩点的构成与成本权衡对录取影响大吗？","从海南大学保研到人民大学要注意什么？","人民大学保研有哪些关键准备？"]}
+{"displayName":"薄荷_蔓越莓","id":"fbb1c0f5-54d7-49f7-9f39-8605cb795848","sampleQuestions":["从海南大学到FNU有哪些经验？","�算科学方向升学有什么建议？","关于信息与计算科学跨考应用统计专业有什么经验？"]}
+{"displayName":"快乐的板栗zzz","id":"37fbbe91-4147-4d1c-a543-5ff246646d56","sampleQuestions":["从海南大学保研到中科院长春应化所要注意什么？","中科院长春应化所保研有哪些关键准备？","�用化学方向升学有什么建议？","关于应用化学保研有什么经验？"]}
+{"displayName":"柿子_0学画画","id":"9acbfc1a-87de-47f5-918a-a7ba234ff6e5","sampleQuestions":["3面试一般会问什么？","从海南大学到（中国科学院大学+省考第二）有哪些经验？","�用数学方向升学有什么建议？","关于数学与应用数学@（中国科学院大学+省考第二）有什么经验？"]}
+{"displayName":"豆沙_绿豆","id":"4c633825-56ed-4ca0-a0fd-36bd27f2e824","sampleQuestions":["从海南大学到SCU有哪些经验？","�学英语方向升学有什么建议？","关于英语跨考现当代文学有什么经验？","关于英语有什么建议？"]}
+{"displayName":"芒果干ii修电脑","id":"3f198b11-7072-4c74-9367-a400fe1f2af5","sampleQuestions":["海南大学考上海交通大学难吗？","上海交通大学考研复试有什么经验？","�学农学方向升学有什么建议？","关于农学考研有什么经验？"]}
+{"displayName":"河马大王煮火锅","id":"cd09c8ff-22e5-4eb1-8c42-c809bb4e789b","sampleQuestions":["从海南大学保研到中国海洋大学要注意什么？","中国海洋大学保研有哪些关键准备？","�与工程方向升学有什么建议？","关于食品科学与工程保研有什么经验？"]}
+{"displayName":"苹果_蜗牛","id":"e7f820d6-b6cd-45c5-a340-5b80addfd267","sampleQuestions":["如何准备夏令营情况？","如何准备夏令营申请情况？","如何准备夏令营面试经验？","从海南大学保研到上海交通大学要注意什么？"]}
+{"displayName":"迷路的蜻蜓er","id":"533efd90-c3d6-48f9-bc9c-8787007ecc7c","sampleQuestions":["成绩排名对录取影响大吗？","科研竞赛在保研里有多重要？","关于预推免有什么经验？","从海南大学保研到浙江大学要注意什么？"]}
+{"displayName":"桂花整理笔记","id":"5a998fca-9aed-4e36-9d5a-9ca32b657be1","sampleQuestions":["从海南大学保研到USTC要注意什么？","USTC保研有哪些关键准备？","�信工程方向升学有什么建议？"]}
+{"displayName":"牛轧糖_芋圆","id":"a397c49f-95f7-4f73-98e8-eee43556704d","sampleQuestions":["海南大学申请UNC有哪些经验？","�境学院方向升学有什么建议？","关于生态与环境学院留学有什么经验？"]}
+{"displayName":"棉花糖_麻雀","id":"60cea14e-c068-453a-9dc5-5fb4e16ef239","sampleQuestions":["排名：7/163；6/163对录取影响大吗？","竞赛：外研社杯阅读省二，写作省一在保研里有多重要？","如何准备夏令营？","关于预推免有什么经验？"]}
+{"displayName":"阿狸_红豆","id":"90a11281-0578-4183-8e6d-5fa866bed1d5","sampleQuestions":["从上海交通大学到Boston University有哪些经验？","关于Biomedical Engineering有什么经验？"]}
+{"displayName":"奔跑的海星_0","id":"44c9f74e-87e9-4f52-84f0-66530b8029a4","sampleQuestions":["关于文书有哪些技巧？","关于面试：一般会问什么？","从上海交通大学到Rice University有哪些经验？","关于Chemistry Rice Univers有什么经验？"]}
+{"displayName":"猫头鹰9修电脑","id":"e070878f-ebc7-434b-aa62-2844075de953","sampleQuestions":["交大申请北美PhD需要什么条件？","如何准备套磁和文书？","985背景如何选择目标学校？"]}
+{"displayName":"蜻蜓_鸽子","id":"61456dfb-6a20-497b-976a-5662b9e642dd","sampleQuestions":["交大申请北美PhD需要什么条件？","如何准备套磁和文书？","985背景如何选择目标学校？"]}
+{"displayName":"鹿茸哈画画中","id":"e7c0af1e-a7e8-40a6-ac09-d2c75865d198","sampleQuestions":["交大申请北美PhD需要什么条件？","如何准备套磁和文书？","985背景如何选择目标学校？"]}
+{"displayName":"巧克力7在赶DDL","id":"10c80444-8ce4-43f2-97de-3bbb6f015f3e","sampleQuestions":["十所学校都给了我面试邀请，我是怎样用最短的时一般会问什么？","关于Electronic Information有什么经验？"]}
+{"displayName":"仓鼠下象棋","id":"17af2492-dd72-464e-bacc-b2ef3012f737","sampleQuestions":["从上海交通大学到MSCS@UCLA有哪些经验？","关于Electronic Information有什么经验？"]}
+{"displayName":"饺子修电脑","id":"5c3e784b-bb18-4e59-bc6d-25fa5287ba50","sampleQuestions":["华为面试经验（经验只适用于材料结构工程师岗位一般会问什么？","从上海交通大学到Cornell （含PhD申请心得及有哪些经验？","关于Materials Science And 有什么经验？","在华为工作/实习是什么体验？"]}
+{"displayName":"饼干_百香果","id":"55f84259-11f6-4744-8991-321cf6259beb","sampleQuestions":["从上海交通大学到ETH Zurich有哪些经验？","关于Mechanical And Energy 有什么经验？"]}
+{"displayName":"板栗_燕麦","id":"a500814c-8306-4994-808e-96bf4ef28e3a","sampleQuestions":["从上海交通大学到GaTech有哪些经验？","关于Mechanical And Energy 有什么经验？"]}
+{"displayName":"椰子练瑜伽","id":"c76326a0-9d2d-4622-bd0b-1ca400f3691b","sampleQuestions":["从上海交通大学到UPenn有哪些经验？","关于Mechanical And Energy 有什么经验？"]}
+{"displayName":"冰淇淋写代码","id":"85badef3-3535-4172-80c7-08f8caf737fd","sampleQuestions":["交大申请北美PhD需要什么条件？","如何准备套磁和文书？","985背景如何选择目标学校？"]}
+{"displayName":"薯片的碎碎念","id":"ab332f84-2e63-4264-be67-2926f6977a63","sampleQuestions":["交大申请北美PhD需要什么条件？","如何准备套磁和文书？","985背景如何选择目标学校？"]}
+{"displayName":"牛轧糖7学画画","id":"a5cc966c-5a22-423d-ba20-8e90bec6ce0a","sampleQuestions":["山大申请海外PhD需要什么条件？","如何准备GRE和托福？","985背景如何定位选校？"]}
+{"displayName":"巧克力吖在赶DDL","id":"24ab66a1-ee03-44c9-8b1a-ca791c7e5866","sampleQuestions":["从山东大学到The Hong Kong Poly有哪些经验？","关于Intelligent Engineerin有什么经验？"]}
+{"displayName":"杨梅_水母","id":"1c3e8951-bbac-4749-9007-75100fee78df","sampleQuestions":["山大申请海外PhD需要什么条件？","如何准备GRE和托福？","985背景如何定位选校？"]}
+{"displayName":"瓢虫_瓢虫","id":"623dab4b-769c-4cd2-887e-08b3cbf8d2c6","sampleQuestions":["山大申请海外PhD需要什么条件？","如何准备GRE和托福？","985背景如何定位选校？"]}
+{"displayName":"芋圆_梨子","id":"95903037-911a-44e4-92c6-6e240b32cf3e","sampleQuestions":["竞赛:在保研里有多重要？","从深圳大学保研到深大VCC优青组@CS要注意什么？","深大VCC优青组@CS保研有哪些关键准备？","关于CompSci 保研有什么经验？"]}
+{"displayName":"酸奶_企鹅","id":"82a77abc-9671-48de-95f1-05cf4b311dd4","sampleQuestions":["竞赛:在保研里有多重要？","从深圳大学保研到厦大MAC实验室@CS要注意什么？","厦大MAC实验室@CS保研有哪些关键准备？","关于CompSci 保研有什么经验？"]}
+{"displayName":"花卷打工中","id":"c1f9f598-24e2-4d4c-b4ca-8450f9aa4ce9","sampleQuestions":["竞赛:在保研里有多重要？","从深圳大学保研到北邮@CS要注意什么？","北邮@CS保研有哪些关键准备？","关于CompSci 保研有什么经验？"]}
+{"displayName":"猫头鹰遛弯了","id":"7f396bf8-4458-4d4b-965f-44af2e5eb3f4","sampleQuestions":["竞赛:在保研里有多重要？","从深圳大学保研到南开大学媒体计算实验室要注意什么？","南开大学媒体计算实验室保研有哪些关键准备？","关于CompSci 保研有什么经验？"]}
+{"displayName":"奔跑的兔兔ya","id":"038fa23f-75e9-403c-a9bc-06805d982ba0","sampleQuestions":["竞赛:在保研里有多重要？","如何准备人大信院-夏令营？","如何准备中大AI-夏令营？","关于中大系统-预推免有什么经验？"]}
+{"displayName":"机灵的华夫饼酱","id":"cdc270c8-76f1-4536-9317-ea1219284a3a","sampleQuestions":["竞赛:在保研里有多重要？","从深圳大学保研到清华深圳@CS要注意什么？","清华深圳@CS保研有哪些关键准备？","关于CompSci 保研有什么经验？"]}
+{"displayName":"沉默的桃子_0","id":"d50a4092-165b-4da9-8967-eddb5da08a8a","sampleQuestions":["如何准备由于浙大计院夏令营是跟着导师做项目，所以时间？","竞赛:在保研里有多重要？","从深圳大学保研到浙大PhD@CS要注意什么？","浙大PhD@CS保研有哪些关键准备？"]}
+{"displayName":"苹果吖看星星","id":"69d14aa7-8d92-45e7-aa8e-a356fdc77e56","sampleQuestions":["竞赛:在保研里有多重要？","从深圳大学保研到北大深圳@IC要注意什么？","北大深圳@IC保研有哪些关键准备？","关于CompSci 保研有什么经验？"]}
+{"displayName":"阳光的果冻哈","id":"a0c97f06-96a2-4a99-b178-ecc94c90dfef","sampleQuestions":["竞赛:在保研里有多重要？","从深圳大学保研到南开程明明组@CS要注意什么？","南开程明明组@CS保研有哪些关键准备？","关于CompSci 保研有什么经验？"]}
+{"displayName":"樱桃_0的碎碎念","id":"0420fa3c-1d90-403a-8429-67e7b51a942f","sampleQuestions":["竞赛:在保研里有多重要？","从深圳大学保研到南科大@Math要注意什么？","南科大@Math保研有哪些关键准备？","关于CompSci 保研有什么经验？"]}
+{"displayName":"蔓越莓7打篮球","id":"2a2147cb-616b-422c-8b3a-21e4dd7f3740","sampleQuestions":["竞赛:在保研里有多重要？","从深圳大学保研到北大PhD@Matl要注意什么？","北大PhD@Matl保研有哪些关键准备？","关于CompSci 保研有什么经验？"]}
+{"displayName":"自在的橙子呀","id":"41ec4809-2edb-4a4a-86da-11a81841c9eb","sampleQuestions":["竞赛:在保研里有多重要？","从深圳大学保研到华南理工PhD@CS要注意什么？","华南理工PhD@CS保研有哪些关键准备？","关于CompSci 保研有什么经验？"]}
+{"displayName":"奶茶_杨梅","id":"a22d2a70-c1f5-4d18-b1b9-985dbfb80b41","sampleQuestions":["竞赛:在保研里有多重要？","笔面试流程分享一般会问什么？","从深圳大学保研到北理工@CS要注意什么？","北理工@CS保研有哪些关键准备？"]}
+{"displayName":"牛轧糖在赶DDL","id":"e16435e2-ca67-420e-8a91-233e3ed3aaa9","sampleQuestions":["竞赛:在保研里有多重要？","从深圳大学保研到上科大@CS要注意什么？","上科大@CS保研有哪些关键准备？","关于CompSci 保研有什么经验？"]}
+{"displayName":"年糕_0修电脑","id":"38a5b710-a26c-488e-99ba-ce89d54c680d","sampleQuestions":["竞赛:在保研里有多重要？","关于慎填中大预推免系统有什么经验？","从深圳大学保研到东南@CS要注意什么？","东南@CS保研有哪些关键准备？"]}
+{"displayName":"樱桃遛弯了","id":"bf28bf2c-1583-4375-92a6-c75e37773bf2","sampleQuestions":["竞赛:在保研里有多重要？","从深圳大学保研到成电@CS要注意什么？","成电@CS保研有哪些关键准备？","关于CompSci 保研有什么经验？"]}
+{"displayName":"快乐的豆腐z","id":"74557761-d160-4588-b084-b68086c152ca","sampleQuestions":["从深圳大学保研到中科院细胞生物学要注意什么？","中科院细胞生物学保研有哪些关键准备？","关于GradStudies 保研有什么经验？","关于生物有什么建议？"]}
+{"displayName":"桂花酱吹口琴","id":"e15c1165-069f-4873-9978-406507c6a8d2","sampleQuestions":["竞赛:在保研里有多重要？","从深圳大学保研到北理 青椒组PhD@ICE要注意什么？","北理 青椒组PhD@ICE保研有哪些关键准备？","关于Physics 保研有什么经验？"]}
+{"displayName":"迷路的蜻蜓9","id":"12953bed-2308-410c-a7ae-c8cc19c74b67","sampleQuestions":["深圳大学考清华大学环境工程专业难吗？","清华大学环境工程专业考研复试有什么经验？","关于ChemEnv 考研有什么经验？","关于化学有什么建议？"]}
+{"displayName":"红薯_0写代码","id":"5c6baf66-d386-47e7-9e56-30d435f5d2d3","sampleQuestions":["深圳大学考上海交通大学电子与信息工程专业难吗？","上海交通大学电子与信息工程专业考研复试有什么经验？","关于InfoTech 考研有什么经验？","关于电子有什么建议？"]}
+{"displayName":"迷路的可可小号","id":"630025d0-da4f-47a8-b013-a9dc4c65f6bf","sampleQuestions":["深圳大学考武汉大学民商法专业难吗？","武汉大学民商法专业考研复试有什么经验？","关于Law 考研有什么经验？"]}
+{"displayName":"蜜桃追番中","id":"b38469bd-b73a-48a7-8f70-dbc34c936b58","sampleQuestions":["深圳大学考中山大学哲学系科学技术哲学专业难吗？","中山大学哲学系科学技术哲学专业考研复试有什么经验？","关于Philosophy 考研有什么经验？","关于双非有什么建议？"]}
+{"displayName":"麻雀钓鱼中","id":"fb2ae277-a51a-4886-b307-94cc9a4ae6f4","sampleQuestions":["深圳大学考浙江大学社会学专业难吗？","浙江大学社会学专业考研复试有什么经验？","关于Sociology 考研有什么经验？","关于生物有什么建议？"]}
+{"displayName":"飞翔的蓝莓x","id":"2559864d-d872-4c8d-bb1c-d3c1cb4a77a3","sampleQuestions":["竞赛:在保研里有多重要？","深圳大学申请澳门大学 数据科学有哪些经验？","关于CompSci 留学有什么经验？","关于数学有什么建议？"]}
+{"displayName":"太妃糖今天早睡","id":"c1bf0e75-ddbb-408a-964e-1d55b05d2a1c","sampleQuestions":["竞赛:在保研里有多重要？","深圳大学申请HKU MSc@CS有哪些经验？","关于CompSci 留学有什么经验？","关于计软有什么建议？"]}
+{"displayName":"酸奶写代码","id":"c722363e-1fc3-465c-a1a8-c6992a0e80c3","sampleQuestions":["竞赛:在保研里有多重要？","深圳大学申请香港大学MMLab直博@CS有哪些经验？","关于CompSci 留学有什么经验？","关于计软有什么建议？"]}
+{"displayName":"梨子er逛公园","id":"784b325c-34da-4abf-b295-4fe3edac5291","sampleQuestions":["竞赛:在保研里有多重要？","深圳大学申请香港大学MMLab直博@CS有哪些经验？","关于CompSci 留学有什么经验？","关于计软有什么建议？"]}
+{"displayName":"温柔的咖啡_0","id":"075e5f65-9a22-473b-be01-f0faae84332f","sampleQuestions":["竞赛:在保研里有多重要？","从深圳大学到深信服（已离职）有哪些经验？","关于CompSci 就业有什么经验？","关于计软有什么建议？"]}
+{"displayName":"蓝莓酱_草莓","id":"ff4465cc-f890-438b-beb6-7447f9885ce8","sampleQuestions":["竞赛:在保研里有多重要？","从深圳大学到腾讯实习转正有哪些经验？","关于CompSci 就业有什么经验？","关于计软有什么建议？"]}
+{"displayName":"梨子oo泡咖啡","id":"05a14cb4-2dec-4cbb-bb35-1c34a6091fc3","sampleQuestions":["竞赛:在保研里有多重要？","从深圳大学到腾讯实习有哪些经验？","关于CompSci 就业有什么经验？","关于计软有什么建议？"]}
+{"displayName":"汤圆_章鱼","id":"e25b70f6-5d10-4a64-9ba1-ec19d7f565ee","sampleQuestions":["竞赛:在保研里有多重要？","从深圳大学到量化交易员有哪些经验？","关于CompSci 就业有什么经验？","关于计软有什么建议？"]}
+{"displayName":"豆包钓鱼中","id":"ee5a59e7-1a97-4945-9bb4-47377e6ac137","sampleQuestions":["笔试算法/面试手撕/`leetcode`刷题一般会问什么？","竞赛:在保研里有多重要？","从深圳大学到腾讯实习有哪些经验？","关于CompSci 就业有什么经验？"]}
+{"displayName":"梨子听播客","id":"c7e8c348-3c8b-4a62-ad46-51cf0a5a23c6","sampleQuestions":["竞赛:在保研里有多重要？","从深圳大学到腾讯实习转正有哪些经验？","关于CompSci 就业有什么经验？","关于计软有什么建议？"]}
+{"displayName":"兔兔_海星","id":"7239777c-40b3-4ffa-9d7d-3b7d46e17c66","sampleQuestions":["简历:怎么写更有竞争力？","从深圳大学到Karma数据库实习有哪些经验？","关于CompSci 就业有什么经验？","关于计软有什么建议？"]}
+{"displayName":"奶酪_铜锣烧","id":"79c33262-38af-4521-9017-22b20b83319c","sampleQuestions":["从深圳大学到字节有哪些经验？","关于InfoTech 就业有什么经验？","关于电子有什么建议？"]}
+{"displayName":"泡芙_薯片","id":"cf997ce0-c796-4a6f-991d-926f4158294e","sampleQuestions":["排名2%对录取影响大吗？","西交利物浦大学申请US有哪些经验？","关于Economics US有什么经验？"]}
+{"displayName":"奶酪_果冻","id":"125c7ab7-de17-4970-8984-8e506a2d6907","sampleQuestions":["关于文书有哪些技巧？","西交利物浦大学申请UK有哪些经验？","关于Computer Science Techn有什么经验？"]}
+{"displayName":"元气的阿狸_v","id":"1b114bb6-e417-4723-993d-2adbc61349b0","sampleQuestions":["XJTLU申请海外名校需要什么条件？","2+2和4+X怎么选？","如何准备GMAT/GRE？"]}
+{"displayName":"努力的杨梅鸭","id":"cb6167b1-ae68-4ffa-ae45-055bf1b20525","sampleQuestions":["华东理工大学申请WUSTL有哪些经验？","关于商学院 留学有什么经验？","关于MSBA有什么建议？"]}
+{"displayName":"自在的年糕_v","id":"7ff0a886-965d-4793-ae93-b5d00a1a7453","sampleQuestions":["华东理工大学申请HKUST有哪些经验？","关于商学院 留学有什么经验？"]}
+{"displayName":"蔓越莓刷题中","id":"45b93b50-ff61-4dfa-9acf-7d819588b4e8","sampleQuestions":["华东理工大学申请NUS有哪些经验？","关于商学院 留学有什么经验？","关于Industry 4.0有什么建议？"]}
+{"displayName":"烧饼__做饭中","id":"1e6d65fd-18d2-4c0d-ba29-a74c5fe9280f","sampleQuestions":["从华东理工大学保研到浙江大学要注意什么？","浙江大学保研有哪些关键准备？","关于商学院 保研有什么经验？","关于国际组织与国际交流有什么建议？"]}
+{"displayName":"河马酱整理笔记","id":"7f8ad8f5-791f-40c2-a065-0d5c00271b56","sampleQuestions":["华东理工大学考清华五道口难吗？","清华五道口考研复试有什么经验？","关于商学院 考研有什么经验？"]}
+{"displayName":"淡定的蜗牛er","id":"ff43d1fb-4173-4bb9-a790-b02106e1f81a","sampleQuestions":["如何准备夏令营？","竞赛经历在保研里有多重要？","从华东理工大学保研到中国科学院过程工程研究所要注意什么？","中国科学院过程工程研究所保研有哪些关键准备？"]}
+{"displayName":"豆沙ii写代码","id":"d55b7aff-879a-44d3-b940-ce7958d9809f","sampleQuestions":["从华东理工大学到Goldman Sachs Hong有哪些经验？","关于211有什么建议？"]}
+{"displayName":"石榴__不吃宵夜","id":"4b8709c5-f636-4400-865e-5594fa004ed6","sampleQuestions":["从华东理工大学保研到北京大学要注意什么？","北京大学保研有哪些关键准备？","关于化学与分子工程学院 保研有什么经验？","关于化学有什么建议？"]}
+{"displayName":"银杏小号泡咖啡","id":"a59a12d4-1c66-4481-8430-ba61186a9f33","sampleQuestions":["竞赛经历在保研里有多重要？","华东理工大学申请CMU有哪些经验？","关于信息科学与工程学院 留学有什么经验？","关于M.S. in ECE有什么建议？"]}
+{"displayName":"兔兔_银杏","id":"d863d73d-666b-44a3-86e3-20a86da7cba6","sampleQuestions":["如何准备夏令营？","关于预推免有什么经验？","竞赛经历在保研里有多重要？","从华东理工大学保研到复旦大学要注意什么？"]}
+{"displayName":"企鹅9追番中","id":"8a07d015-6948-4a26-93f8-56c182c10fed","sampleQuestions":["竞赛经历在保研里有多重要？","从华东理工大学到第四范式有哪些经验？","关于信息科学与工程学院 就业有什么经验？","关于RD有什么建议？"]}
+{"displayName":"果冻煮火锅","id":"edcc5440-64fa-4f49-aff1-95abe3bdc9ef","sampleQuestions":["竞赛经历在保研里有多重要？","从华东理工大学到DarkLin (2020研究生入学有哪些经验？","关于信息科学与工程学院 就业有什么经验？"]}
+{"displayName":"温柔的草莓_0","id":"22c71f32-c21c-4022-8d34-8dd91762a4f7","sampleQuestions":["关于推免生具体要求如下：有什么经验？","从华东理工大学保研到南京大学要注意什么？","南京大学保研有哪些关键准备？","关于外语学院 保研有什么经验？"]}
+{"displayName":"元气的河马9","id":"749c3f4e-9d9a-4e17-9c45-51f0d0c87fc7","sampleQuestions":["如何准备夏令营？","从华东理工大学保研到复旦大学要注意什么？","复旦大学保研有哪些关键准备？","关于高分子科学系 直博有什么建议？"]}
+{"displayName":"麻雀_蔓越莓","id":"c7d10971-4602-49eb-a865-24fce92e3884","sampleQuestions":["如何准备夏令营？","从华东理工大学保研到浙江大学要注意什么？","浙江大学保研有哪些关键准备？","关于化工（高分子方向）有什么建议？"]}
+{"displayName":"芋圆君学画画","id":"c64371cb-6e02-413c-bb5b-b89cc7fac602","sampleQuestions":["竞赛经历在保研里有多重要？","华东理工大学申请Yale有哪些经验？","关于数学学院 留学有什么经验？","关于211有什么建议？"]}
+{"displayName":"铜锣烧ya看星星","id":"3991dac5-0cb3-4303-ba9e-48602b3cae08","sampleQuestions":["华东理工大学申请ITMO_University有哪些经验？","关于数学学院 留学有什么经验？","关于Robotics有什么建议？"]}
+{"displayName":"蜻蜓_青蛙","id":"9d1d9d0b-ac26-4fde-8449-f0b8281a9d8d","sampleQuestions":["从华东理工大学保研到复旦大学要注意什么？","复旦大学保研有哪些关键准备？","关于数学学院 保研有什么经验？","关于基础数学有什么建议？"]}
+{"displayName":"海豚大王听播客","id":"90f84f0d-b024-4a03-9a29-8a4ef5adc468","sampleQuestions":["从华东理工大学保研到同济大学要注意什么？","同济大学保研有哪些关键准备？","关于数学学院 保研有什么经验？","关于应用数学有什么建议？"]}
+{"displayName":"小熊今天早睡","id":"a7117058-79a2-40c8-98ec-fbe73389f1b4","sampleQuestions":["如何准备夏令营？","关于预推免有什么经验？","从华东理工大学保研到复旦大学要注意什么？","复旦大学保研有哪些关键准备？"]}
+{"displayName":"安静的猫头鹰er","id":"ed89eebf-37b1-426e-94d8-10aba8f0fd81","sampleQuestions":["笔试/面试过程一般会问什么？","从华东理工大学保研到华东师范大学要注意什么？","华东师范大学保研有哪些关键准备？","关于数学学院 保研有什么经验？"]}
+{"displayName":"阳光的青蛙z","id":"4d03da77-32d9-42fa-a31b-23bb4614a2dd","sampleQuestions":["竞赛经历在保研里有多重要？","华东理工大学申请UC Berkeley有哪些经验？","关于机械与动力工程学院 留学有什么经验？","关于M.Eng in ME有什么建议？"]}
+{"displayName":"机灵的豆奶__","id":"e5dbd38d-d253-4f08-b074-6989a70b8a0a","sampleQuestions":["从华东理工大学保研到上海药物所要注意什么？","上海药物所保研有哪些关键准备？","关于药学院 保研有什么经验？","关于药物化学有什么建议？"]}
+{"displayName":"荔枝练瑜伽","id":"c9093af1-8f27-4e08-ae11-59b4beb42d43","sampleQuestions":["华东理工大学考上海大学难吗？","上海大学考研复试有什么经验？","关于药学院 考研有什么经验？"]}
+{"displayName":"迷路的奶茶吖","id":"bda4d4ae-0214-46a9-b253-fd55c1a2f2ac","sampleQuestions":["从华东理工大学保研到清华大学要注意什么？","清华大学保研有哪些关键准备？","关于物理学院 保研有什么经验？"]}
+{"displayName":"快乐的柠檬鸭","id":"ccdee85a-d14f-4ae8-9d06-aeecfac1315f","sampleQuestions":["从华东理工大学保研到清华大学要注意什么？","清华大学保研有哪些关键准备？","关于资源与环境工程学院 保研有什么经验？"]}
+{"displayName":"酸奶_豆沙","id":"838702de-28ff-4599-ba9d-ae9cb19a97c4","sampleQuestions":["华东理工大学申请The University of 有哪些经验？","关于社会与公共管理学院 留学有什么经验？","关于211有什么建议？"]}
+{"displayName":"芒果9去散步","id":"674fb0ae-d58f-478c-8005-2b3d51425b08","sampleQuestions":["如何准备夏令营？","关于九月推免有什么经验？","如何准备夏令营准备小技巧？","如何准备夏令营其他注意事项？"]}
+{"displayName":"认真的柿子3","id":"82e5f7ce-d4bf-4bfe-b880-94915693bfa6","sampleQuestions":["从华东理工大学保研到南京大学要注意什么？","南京大学保研有哪些关键准备？","关于社会与公共管理学院 保研有什么经验？","关于社会工作有什么建议？"]}
+{"displayName":"奶茶3打篮球","id":"0b212ec4-656c-4df8-9d00-74b217fc8427","sampleQuestions":["从华东理工大学保研到上海大学要注意什么？","上海大学保研有哪些关键准备？","关于社会与公共管理学院 保研有什么经验？"]}
+{"displayName":"阳光的椰果oo","id":"efad736d-45d7-4c64-a8ab-19147e4a59aa","sampleQuestions":["华东理工大学考山东大学难吗？","山东大学考研复试有什么经验？","关于社会与公共管理学院 考研有什么经验？","关于法硕（非法学）有什么建议？"]}
+{"displayName":"西瓜x写代码","id":"0a622b38-52f2-48c3-96a6-27dbda0e3ea6","sampleQuestions":["华东理工大学考上财难吗？","上财考研复试有什么经验？","关于社会与公共管理学院 考研有什么经验？"]}
+{"displayName":"勤劳的石榴大王","id":"3e30ee92-b9fd-4794-bbc7-dfce755b3377","sampleQuestions":["从华东理工大学到UNESCAP有哪些经验？","关于社会与公共管理学院 就业有什么经验？","关于Intern有什么建议？"]}
+{"displayName":"披萨_兔兔","id":"02a9793f-9b2c-4732-9050-c9ad1e96ff6e","sampleQuestions":["个人简历一份怎么写更有竞争力？","推荐信两份怎么准备？","保研线外，竞赛破格保研（一个国一或两个国二在保研里有多重要？","信安、计科普通班，保研线内 + 竞赛国三在保研里有多重要？"]}
+{"displayName":"松鼠君跳绳中","id":"9f6c6b6e-eee2-42db-8ed6-9786ef92321d","sampleQuestions":["如何准备夏令营情况？","保研至北京航空航天大学有哪些经验可以分享？","从福州大学保研到北京航空航天大学要注意什么？","从福州大学保研到保研至北京航空航天大学要注意什么？"]}
+{"displayName":"椰子oo学画画","id":"3d46d409-4869-4eb6-ae34-e141ae1f7211","sampleQuestions":["考研至复旦大学有哪些经验可以分享？","福州大学考复旦大学难吗？","福州大学考考研至复旦大学难吗？","考研至复旦大学考研复试有什么经验？"]}
+{"displayName":"豆奶_猫头鹰","id":"d4aa0770-cc31-4866-acbe-a5a6a44c2d3f","sampleQuestions":["考研至福州大学有哪些经验可以分享？","福州大学考考研至福州大学难吗？","考研至福州大学考研复试有什么经验？","关于211有什么建议？"]}
+{"displayName":"核桃x修电脑","id":"7a1b6280-e892-4df5-b5da-2827529335dc","sampleQuestions":["考研至福州大学有哪些经验可以分享？","福州大学考考研至福州大学难吗？","考研至福州大学考研复试有什么经验？","关于211有什么建议？"]}
+{"displayName":"迷路的麻雀z","id":"d012094b-2a73-4282-9e44-b7e0f4132024","sampleQuestions":["湖大预推面试流程一般会问什么？","如何准备夏令营、预推免笔试复习内容推荐？","保研至湖南大学有哪些经验可以分享？","从福州大学保研到湖南大学要注意什么？"]}
+{"displayName":"元气的西瓜鸭","id":"bdf6deb1-a3d7-4978-9ad1-fd349c2dee0f","sampleQuestions":["考研至北京大学有哪些经验可以分享？","福州大学考北京大学难吗？","福州大学考考研至北京大学难吗？","考研至北京大学考研复试有什么经验？"]}
+{"displayName":"牛轧糖_河马","id":"6c20b16d-29e3-4b8c-abb4-139b0985c5db","sampleQuestions":["考研至北京大学有哪些经验可以分享？","福州大学考北京大学难吗？","福州大学考考研至北京大学难吗？","考研至北京大学考研复试有什么经验？"]}
+{"displayName":"蛋挞小号读论文","id":"44aac8ea-d3b8-490f-beb9-c84386a1b287","sampleQuestions":["保研至清华大学有哪些经验可以分享？","从福州大学保研到清华大学要注意什么？","从福州大学保研到保研至清华大学要注意什么？","保研至清华大学保研有哪些关键准备？"]}
+{"displayName":"元气的河马er","id":"d673439b-5ebd-4378-bd7f-9d4e232b39ea","sampleQuestions":["如何准备夏令营投递情况？","如何准备夏令营参加情况？","保研至同济大学有哪些经验可以分享？","从福州大学保研到同济大学要注意什么？"]}
+{"displayName":"年糕做蛋糕","id":"32f96cd9-d2b4-4861-9834-50f75a59d190","sampleQuestions":["考研至中国科学技术大学有哪些经验可以分享？","福州大学考中国科学技术大学难吗？","福州大学考考研至中国科学技术大学难吗？","考研至中国科学技术大学考研复试有什么经验？"]}
+{"displayName":"机灵的橙子鸭","id":"7f3b43a7-36f1-4c90-854e-ba8858c12747","sampleQuestions":["保研至厦门大学有哪些经验可以分享？","从福州大学保研到厦门大学要注意什么？","从福州大学保研到保研至厦门大学要注意什么？","保研至厦门大学保研有哪些关键准备？"]}
+{"displayName":"淡定的年糕鸭","id":"6bb07a69-810c-4ab0-bb34-4b9ea5b0f988","sampleQuestions":["取决于绩点排名对录取影响大吗？","综合成绩排名，得到正式拥有资格的同学对录取影响大吗？","四六级、学科竞赛、论文在保研里有多重要？","如何准备保研流程（即夏令营、预推免等？"]}
+{"displayName":"仓鼠_橙子","id":"7ca807d4-c47d-4110-8e40-1dc8dbbc5c40","sampleQuestions":["考研至厦门大学有哪些经验可以分享？","福州大学考厦门大学难吗？","福州大学考考研至厦门大学难吗？","考研至厦门大学考研复试有什么经验？"]}
+{"displayName":"麻薯看漫画","id":"deaf515f-cb52-4782-85c5-e2962a089348","sampleQuestions":["每个学院准备五份简历怎么写更有竞争力？","文书材料有哪些技巧？","关于推免专业课复习有什么经验？","关于推免经验有什么经验？"]}
+{"displayName":"肉松er整理笔记","id":"95c74b2d-0bf5-4116-bf7c-124cc38f2442","sampleQuestions":["绩点排名对录取影响大吗？","保研至厦门大学有哪些经验可以分享？","从福州大学保研到厦门大学要注意什么？","从福州大学保研到保研至厦门大学要注意什么？"]}
+{"displayName":"迷路的章鱼7","id":"10bdd8ef-eb86-437d-8a03-6c663068290e","sampleQuestions":["考研至厦门大学有哪些经验可以分享？","福州大学考厦门大学难吗？","福州大学考考研至厦门大学难吗？","考研至厦门大学考研复试有什么经验？"]}
+{"displayName":"认真的猫头鹰3","id":"30140ba4-ff7b-4591-b790-3f5aebe94878","sampleQuestions":["转专业到化学要补哪些先修课？","跨考到化学最难的一步是什么？","转专业至化学有哪些经验可以分享？","从福州大学转专业到化学要补哪些课？"]}
+{"displayName":"咖啡下象棋","id":"02b53ee2-eb6e-4840-a99b-aa1dd9aa75ce","sampleQuestions":["转专业到中文要补哪些先修课？","跨考到中文最难的一步是什么？","转专业至中文有哪些经验可以分享？","从福州大学转专业到中文要补哪些课？"]}
+{"displayName":"烧饼_蜜桃","id":"5b5da133-d10d-4608-a88e-e0b59f9d6817","sampleQuestions":["转专业到中文要补哪些先修课？","跨考到中文最难的一步是什么？","转专业至中文有哪些经验可以分享？","从福州大学转专业到中文要补哪些课？"]}
+{"displayName":"栗子_0骑单车","id":"f74c4d8d-616f-4548-91e1-0d5f0d7256c6","sampleQuestions":["转专业到中文要补哪些先修课？","跨考到中文最难的一步是什么？","转专业至中文有哪些经验可以分享？","从福州大学转专业到中文要补哪些课？"]}
+{"displayName":"阳光的蜗牛呀","id":"e941318f-7d8c-4d6c-b42e-fa4db74d2783","sampleQuestions":["转专业到计算机要补哪些先修课？","跨考到计算机最难的一步是什么？","面试问啥一般会问什么？","转专业至计算机有哪些经验可以分享？"]}
+{"displayName":"元气的萤火虫君","id":"f87382df-9bbe-48ae-8b30-fe7b00005bdb","sampleQuestions":["转专业到计算机要补哪些先修课？","跨考到计算机最难的一步是什么？","机试语言怎么练？","转专业至计算机有哪些经验可以分享？"]}
+{"displayName":"阳光的粽子_v","id":"41380268-41e2-4fb6-9eeb-aeccc8812059","sampleQuestions":["转专业到计算机要补哪些先修课？","跨考到计算机最难的一步是什么？","转专业至计算机有哪些经验可以分享？","从福州大学转专业到计算机要补哪些课？"]}
+{"displayName":"温柔的麻雀酱","id":"97397b24-bfef-437c-b777-b8439510d83c","sampleQuestions":["转专业到计算机要补哪些先修课？","跨考到计算机最难的一步是什么？","转专业至计算机有哪些经验可以分享？","从福州大学转专业到计算机要补哪些课？"]}
+{"displayName":"迷路的奶茶z","id":"72c6c2e0-1ca3-46c5-8c71-c09fc5b62661","sampleQuestions":["转专业到计算机要补哪些先修课？","跨考到计算机最难的一步是什么？","面试时的问题一般会问什么？","转专业至计算机有哪些经验可以分享？"]}
+{"displayName":"菠萝_麦芽","id":"068e6bfd-3831-4104-bc12-dc6eb0d48187","sampleQuestions":["转专业到计算机要补哪些先修课？","跨考到计算机最难的一步是什么？","转专业至计算机有哪些经验可以分享？","从福州大学转专业到计算机要补哪些课？"]}
+{"displayName":"汉堡_蜜桃","id":"0d989a04-a029-4da6-92ed-772a5b51c5b1","sampleQuestions":["转专业到计算机要补哪些先修课？","跨考到计算机最难的一步是什么？","面试规划一般会问什么？","转专业至计算机有哪些经验可以分享？"]}
+{"displayName":"安静的鸡蛋仔3","id":"4cb53fa7-1c0b-412d-941d-cf48fc2222b9","sampleQuestions":["转专业到计算机要补哪些先修课？","跨考到计算机最难的一步是什么？","转专业至计算机有哪些经验可以分享？","从福州大学转专业到计算机要补哪些课？"]}
+{"displayName":"温柔的柚子zzz","id":"f27fc111-d7da-496d-8535-b3aa77d7da57","sampleQuestions":["转专业到计算机要补哪些先修课？","跨考到计算机最难的一步是什么？","线上面试一般会问什么？","转专业至计算机有哪些经验可以分享？"]}
+{"displayName":"努力的月饼3","id":"b353e3f8-ea5f-44a5-934e-172106e2c91c","sampleQuestions":["转专业到计算机要补哪些先修课？","跨考到计算机最难的一步是什么？","转专业至计算机有哪些经验可以分享？","从福州大学转专业到计算机要补哪些课？"]}
+{"displayName":"企鹅小号逛公园","id":"219807c8-d62d-4d5b-939d-6c5830b0aed2","sampleQuestions":["转专业到计算机要补哪些先修课？","跨考到计算机最难的一步是什么？","转专业至计算机有哪些经验可以分享？","从福州大学转专业到计算机要补哪些课？"]}
+{"displayName":"鸡蛋仔_蓝莓","id":"ed3d1d80-bbd6-4afd-8503-ed41c8bebad3","sampleQuestions":["转专业到计算机要补哪些先修课？","跨考到计算机最难的一步是什么？","转专业至计算机有哪些经验可以分享？","从福州大学转专业到计算机要补哪些课？"]}
+{"displayName":"松鼠z跳绳中","id":"6a17f44e-881e-45fa-bf20-dcdba3c4d1ff","sampleQuestions":["转专业到计算机要补哪些先修课？","跨考到计算机最难的一步是什么？","转专业至计算机有哪些经验可以分享？","从福州大学转专业到计算机要补哪些课？"]}
+{"displayName":"可颂_绿豆","id":"931f8169-d101-49a3-8e94-e1bafcb81ab8","sampleQuestions":["转专业到计算机要补哪些先修课？","跨考到计算机最难的一步是什么？","转专业至计算机有哪些经验可以分享？","从福州大学转专业到计算机要补哪些课？"]}
+{"displayName":"勤劳的菠萝ii","id":"1637f1de-2b80-4ed7-8405-e03ecd94dda1","sampleQuestions":["转专业到计算机要补哪些先修课？","跨考到计算机最难的一步是什么？","面试**（40%）**内容一般会问什么？","转专业至计算机有哪些经验可以分享？"]}
+{"displayName":"咖啡z今天早睡","id":"3d627d3d-1867-41ca-9fd2-951470ddc5c1","sampleQuestions":["转专业到计算机要补哪些先修课？","跨考到计算机最难的一步是什么？","转专业至计算机有哪些经验可以分享？","从福州大学转专业到计算机要补哪些课？"]}
+{"displayName":"仓鼠煮火锅","id":"f391f7d5-f7e7-467c-83d8-d1db44e595bd","sampleQuestions":["转专业到计算机要补哪些先修课？","跨考到计算机最难的一步是什么？","转专业至计算机有哪些经验可以分享？","从福州大学转专业到计算机要补哪些课？"]}
+{"displayName":"拉面吖喝绿茶","id":"5526785b-eea0-4e1f-86a2-59de6edc1f66","sampleQuestions":["转专业到计算机要补哪些先修课？","跨考到计算机最难的一步是什么？","面试记录一般会问什么？","转专业至计算机有哪些经验可以分享？"]}
+{"displayName":"披萨_阿狸","id":"3d8e0bc5-6040-4364-87da-9b30481b342e","sampleQuestions":["转专业到计算机要补哪些先修课？","跨考到计算机最难的一步是什么？","转专业至计算机有哪些经验可以分享？","从福州大学转专业到计算机要补哪些课？"]}
+{"displayName":"勤劳的铜锣烧zzz","id":"1235e6b8-9a39-4c8a-b381-7bbc5f6472e5","sampleQuestions":["转专业到计算机要补哪些先修课？","跨考到计算机最难的一步是什么？","面试准备一般会问什么？","转专业至计算机有哪些经验可以分享？"]}
+{"displayName":"铜锣烧_豆腐","id":"9657970a-174a-47f4-a97b-62477cd63ce7","sampleQuestions":["转专业到计算机要补哪些先修课？","跨考到计算机最难的一步是什么？","转专业至计算机有哪些经验可以分享？","从福州大学转专业到计算机要补哪些课？"]}
+{"displayName":"芝士_青蛙","id":"f759c14a-c336-47b8-82a9-0f8cf4e9294a","sampleQuestions":["转专业到计算机要补哪些先修课？","跨考到计算机最难的一步是什么？","面试问题一般会问什么？","转专业至计算机有哪些经验可以分享？"]}
+{"displayName":"泡芙听雨声","id":"ef6d6576-54cb-4e66-9d94-afa2f1ee10da","sampleQuestions":["转专业到计算机要补哪些先修课？","跨考到计算机最难的一步是什么？","0x02 面试一般会问什么？","转专业至计算机有哪些经验可以分享？"]}
+{"displayName":"芒果干x种花中","id":"fdee806c-872d-4255-ae51-404f6f82d573","sampleQuestions":["转专业到计算机要补哪些先修课？","跨考到计算机最难的一步是什么？","面试问题一般会问什么？","转专业至计算机有哪些经验可以分享？"]}
+{"displayName":"核桃_海星","id":"45565349-3c25-4446-a14b-67342734f159","sampleQuestions":["转专业到计算机要补哪些先修课？","跨考到计算机最难的一步是什么？","转专业至计算机有哪些经验可以分享？","从福州大学转专业到计算机要补哪些课？"]}
+{"displayName":"热可可搬砖中","id":"710cc9f8-7cf5-473e-bec8-33db494dc6a3","sampleQuestions":["转专业到计算机要补哪些先修课？","跨考到计算机最难的一步是什么？","面试一定要带申请表和证件（学生证/身份证）！一般会问什么？","转专业至计算机有哪些经验可以分享？"]}
+{"displayName":"薄荷看漫画","id":"687873b0-0f73-4132-99a6-18060b980be8","sampleQuestions":["转专业到计算机要补哪些先修课？","跨考到计算机最难的一步是什么？","机试备考以及一些建议怎么练？","关于面试一般会问什么？"]}
+{"displayName":"沉默的铜锣烧__","id":"9426da1d-2429-45de-baa3-07528de18a71","sampleQuestions":["转专业到计算机要补哪些先修课？","跨考到计算机最难的一步是什么？","转专业至计算机有哪些经验可以分享？","从福州大学转专业到计算机要补哪些课？"]}
+{"displayName":"锦鲤_菠萝","id":"6155f48a-1f22-497b-aaf6-4a50a2aebe7b","sampleQuestions":["转专业到计算机要补哪些先修课？","跨考到计算机最难的一步是什么？","面试情况以及录取情况一般会问什么？","转专业至计算机有哪些经验可以分享？"]}
+{"displayName":"麻雀今天早睡","id":"12ef84e5-d1bb-416a-9986-35930eec9d52","sampleQuestions":["转专业到计算机要补哪些先修课？","跨考到计算机最难的一步是什么？","备考机试的阶段怎么练？","机试前怎么练？"]}
+{"displayName":"芋圆捏泥巴","id":"b9ebf229-f429-4409-85de-c61c4cd9721a","sampleQuestions":["转专业到计算机要补哪些先修课？","跨考到计算机最难的一步是什么？","转专业至计算机有哪些经验可以分享？","从福州大学转专业到计算机要补哪些课？"]}
+{"displayName":"认真的龙眼z","id":"efe0e8c3-8c40-4c85-a30c-090e1f70c7df","sampleQuestions":["转专业到计算机要补哪些先修课？","跨考到计算机最难的一步是什么？","机试1v1怎么练？","机试背景怎么练？"]}
+{"displayName":"安静的蜻蜓__","id":"086ddd91-ce5d-4e1b-a145-afd969ee5535","sampleQuestions":["转专业到计算机要补哪些先修课？","跨考到计算机最难的一步是什么？","转专业至计算机有哪些经验可以分享？","从福州大学转专业到计算机要补哪些课？"]}
+{"displayName":"热可可喝绿茶","id":"d29f84c0-150f-44a6-81c5-c8615697f6cd","sampleQuestions":["转专业到计算机要补哪些先修课？","跨考到计算机最难的一步是什么？","转专业至计算机有哪些经验可以分享？","从福州大学转专业到计算机要补哪些课？"]}
+{"displayName":"果冻oo在学习","id":"898f40d5-154d-43af-bbd9-68d4f91d0364","sampleQuestions":["转专业到计算机要补哪些先修课？","跨考到计算机最难的一步是什么？","转专业至计算机有哪些经验可以分享？","从福州大学转专业到计算机要补哪些课？"]}
+{"displayName":"机灵的汉堡_0","id":"51e02b49-0891-49d6-bbbe-4c150419a459","sampleQuestions":["转专业到计算机要补哪些先修课？","跨考到计算机最难的一步是什么？","转专业至计算机有哪些经验可以分享？","从福州大学转专业到计算机要补哪些课？"]}
+{"displayName":"牛轧糖ya想放假","id":"cfb3278a-8147-49bf-a16d-d645937e29db","sampleQuestions":["转专业到计算机要补哪些先修课？","跨考到计算机最难的一步是什么？","关于机考与面试一般会问什么？","转专业至计算机有哪些经验可以分享？"]}
+{"displayName":"奔跑的栗子酱","id":"7f9cf48e-c61a-46ff-a27b-87fd411250fa","sampleQuestions":["转专业到计算机要补哪些先修课？","跨考到计算机最难的一步是什么？","12月4日下午2点：于旗山校区参加面试。一般会问什么？","机试过程怎么练？"]}
+{"displayName":"阳光的抹茶哈","id":"1065b50c-0e33-4abc-856c-5191d678de54","sampleQuestions":["转专业到计算机要补哪些先修课？","跨考到计算机最难的一步是什么？","A:高中有无竞赛经验?Q在保研里有多重要？","面试 12.5 33分一般会问什么？"]}
+{"displayName":"果冻呀弹吉他","id":"b071f95b-186e-4c32-9290-c2fed654f658","sampleQuestions":["转专业到计算机要补哪些先修课？","跨考到计算机最难的一步是什么？","机试结果通知和面试通知时间一般会问什么？","面试时间一般会问什么？"]}
+{"displayName":"淡定的蛋挞大王","id":"183793f7-db55-4986-9e3e-ab665b4436c2","sampleQuestions":["转专业到经济要补哪些先修课？","跨考到经济最难的一步是什么？","转专业至经济有哪些经验可以分享？","从福州大学转专业到经济要补哪些课？"]}
+{"displayName":"寿司今天早睡","id":"23a8e671-3c3b-4278-9bdf-f69b574c3bf0","sampleQuestions":["转专业到经济要补哪些先修课？","跨考到经济最难的一步是什么？","面试经验和技巧一般会问什么？","转专业至经济有哪些经验可以分享？"]}
+{"displayName":"百香果遛弯了","id":"37264bfc-a677-45ec-9126-b47748126867","sampleQuestions":["转专业到经济要补哪些先修课？","跨考到经济最难的一步是什么？","转专业至经济有哪些经验可以分享？","从福州大学转专业到经济要补哪些课？"]}
+{"displayName":"快乐的阿狸ya","id":"bbe9028d-c820-4c7a-9c77-fc366e126682","sampleQuestions":["转专业到经济要补哪些先修课？","跨考到经济最难的一步是什么？","第三个阶段(面试一般会问什么？","转专业至经济有哪些经验可以分享？"]}
+{"displayName":"华夫饼_咖啡","id":"331c7aee-14f0-45c2-b4b3-46078cc51f1e","sampleQuestions":["转专业到经济要补哪些先修课？","跨考到经济最难的一步是什么？","面试：一般会问什么？","转专业至经济有哪些经验可以分享？"]}
+{"displayName":"蓝莓_寿司","id":"01b6bf02-91a2-4ce6-8bd2-90cf74d1a2e3","sampleQuestions":["转专业到经济要补哪些先修课？","跨考到经济最难的一步是什么？","转专业至经济有哪些经验可以分享？","从福州大学转专业到经济要补哪些课？"]}
+{"displayName":"拉面酱种花中","id":"f6c8256f-6fb5-4f11-a9ce-2c64f6444538","sampleQuestions":["转专业到经济要补哪些先修课？","跨考到经济最难的一步是什么？","转专业至经济有哪些经验可以分享？","从福州大学转专业到经济要补哪些课？"]}
+{"displayName":"苹果_葡萄","id":"afb6752e-7bbf-4adb-9080-d3982b08eaad","sampleQuestions":["转专业到电气要补哪些先修课？","跨考到电气最难的一步是什么？","面试经验一般会问什么？","转专业至电气有哪些经验可以分享？"]}
+{"displayName":"蛋挞小号晒太阳","id":"56ca4560-fb11-4df6-8416-11501b4a52af","sampleQuestions":["转专业到电气要补哪些先修课？","跨考到电气最难的一步是什么？","面试准备(可能会被问到的问题一般会问什么？","转专业至电气有哪些经验可以分享？"]}
+{"displayName":"勤劳的奶茶z","id":"2e26ba1c-9e2d-458a-b80e-5c15f8012434","sampleQuestions":["转专业到电气要补哪些先修课？","跨考到电气最难的一步是什么？","转专业至电气有哪些经验可以分享？","从福州大学转专业到电气要补哪些课？"]}
+{"displayName":"蔓越莓的碎碎念","id":"a9607e10-545c-485b-b2f4-3d8b41df291f","sampleQuestions":["转专业到电气要补哪些先修课？","跨考到电气最难的一步是什么？","转专业至电气有哪些经验可以分享？","从福州大学转专业到电气要补哪些课？"]}
+{"displayName":"蛋挞鸭折纸鹤","id":"11796367-3d74-4a4f-ba1a-e3172e520c4b","sampleQuestions":["转专业到电气要补哪些先修课？","跨考到电气最难的一步是什么？","面试（30%一般会问什么？","转专业至电气有哪些经验可以分享？"]}
+{"displayName":"荔枝煮火锅","id":"7b509884-1f1c-4d56-8520-31c80dbedff9","sampleQuestions":["转专业到电气要补哪些先修课？","跨考到电气最难的一步是什么？","转专业至电气有哪些经验可以分享？","从福州大学转专业到电气要补哪些课？"]}
+{"displayName":"贝果修电脑","id":"63c0abc4-1362-4a7b-a7b0-9ce79ac7c325","sampleQuestions":["转专业到电气要补哪些先修课？","跨考到电气最难的一步是什么？","~~一战面试腐乳、出列~~一般会问什么？","转专业至电气有哪些经验可以分享？"]}
+{"displayName":"绿豆考试周","id":"c6cddf00-6cc2-4bab-8ab7-aa839156e2ed","sampleQuestions":["转专业到电气要补哪些先修课？","跨考到电气最难的一步是什么？","面试（占比30％一般会问什么？","转专业至电气有哪些经验可以分享？"]}
+{"displayName":"海苔__织毛衣","id":"e42ea14d-aa88-4ca2-9daa-4d654711187e","sampleQuestions":["转专业到电气要补哪些先修课？","跨考到电气最难的一步是什么？","转专业至电气有哪些经验可以分享？","从福州大学转专业到电气要补哪些课？"]}
+{"displayName":"馄饨去爬山","id":"39fcfdca-f8a2-4277-bded-1d2348b1d960","sampleQuestions":["转专业到电气要补哪些先修课？","跨考到电气最难的一步是什么？","面试（占30％一般会问什么？","转专业至电气有哪些经验可以分享？"]}
+{"displayName":"酸奶_太妃糖","id":"1af17272-b54a-48c0-bcd6-28315f6896e0","sampleQuestions":["转专业到电气要补哪些先修课？","跨考到电气最难的一步是什么？","转专业至电气有哪些经验可以分享？","从福州大学转专业到电气要补哪些课？"]}
+{"displayName":"肉松7刷题中","id":"2fe63077-29e6-4201-b0e4-f6c6eca33eb2","sampleQuestions":["转专业到外语要补哪些先修课？","跨考到外语最难的一步是什么？","转专业至外语有哪些经验可以分享？","从福州大学转专业到外语要补哪些课？"]}
+{"displayName":"汤圆_肉松","id":"b43d4cbb-7de4-4585-9f39-15e8ca54d427","sampleQuestions":["转专业到法学要补哪些先修课？","跨考到法学最难的一步是什么？","转专业至法学有哪些经验可以分享？","从福州大学转专业到法学要补哪些课？"]}
+{"displayName":"豆包小号泡咖啡","id":"d16ac226-466e-472e-adc2-f93f7b4aed38","sampleQuestions":["转专业到法学要补哪些先修课？","跨考到法学最难的一步是什么？","转专业至法学有哪些经验可以分享？","从福州大学转专业到法学要补哪些课？"]}
+{"displayName":"年糕_柠檬","id":"41a66331-d34f-48ed-966f-917185e851d7","sampleQuestions":["转专业到数学要补哪些先修课？","跨考到数学最难的一步是什么？","转专业至数学有哪些经验可以分享？","从福州大学转专业到数学要补哪些课？"]}
+{"displayName":"阳光的拿铁ya","id":"df2f68ba-43e4-403a-b3a7-d24aaf162017","sampleQuestions":["转专业到数学要补哪些先修课？","跨考到数学最难的一步是什么？","转专业至数学有哪些经验可以分享？","从福州大学转专业到数学要补哪些课？"]}
+{"displayName":"布丁_桂花","id":"088c55a7-2d77-4c08-b075-6fecd833916d","sampleQuestions":["转专业到机械要补哪些先修课？","跨考到机械最难的一步是什么？","面试（重点一般会问什么？","转专业至机械有哪些经验可以分享？"]}
+{"displayName":"可可画画中","id":"6d57b5b9-f84c-4500-a276-1a55bd80f70c","sampleQuestions":["转专业到机械要补哪些先修课？","跨考到机械最难的一步是什么？","转专业至机械有哪些经验可以分享？","从福州大学转专业到机械要补哪些课？"]}
+{"displayName":"糯米7考试周","id":"f3a495ef-4bf0-4a05-aff4-14c032d500f4","sampleQuestions":["转专业到机械要补哪些先修课？","跨考到机械最难的一步是什么？","转专业至机械有哪些经验可以分享？","从福州大学转专业到机械要补哪些课？"]}
+{"displayName":"蜜桃追番中","id":"539113cb-8a55-4897-9cfa-7bed4be0200b","sampleQuestions":["转专业到物理要补哪些先修课？","跨考到物理最难的一步是什么？","面试问啥一般会问什么？","转专业至物理有哪些经验可以分享？"]}
+{"displayName":"寿司_山楂","id":"da06c535-9801-4b2f-99c0-b1f252f67bab","sampleQuestions":["转专业到物理要补哪些先修课？","跨考到物理最难的一步是什么？","转专业至物理有哪些经验可以分享？","从福州大学转专业到物理要补哪些课？"]}
+{"displayName":"飞翔的燕麦9","id":"f3a10d08-ca71-42a5-b108-da63f3fd36cd","sampleQuestions":["转专业到物理要补哪些先修课？","跨考到物理最难的一步是什么？","收到面试通知，开始准备就行一般会问什么？","面试(面试算注意点一般会问什么？"]}
+{"displayName":"汤圆_薯条","id":"f479500b-0f97-4a5b-a88e-27a869947ee2","sampleQuestions":["转专业到物理要补哪些先修课？","跨考到物理最难的一步是什么？","转专业至物理有哪些经验可以分享？","从福州大学转专业到物理要补哪些课？"]}
+{"displayName":"贝果不熬夜","id":"7a379269-2ca6-4062-877c-bb7de7166046","sampleQuestions":["转专业到物理要补哪些先修课？","跨考到物理最难的一步是什么？","面试问啥一般会问什么？","转专业至物理有哪些经验可以分享？"]}
+{"displayName":"松鼠_雪糕","id":"cb2066d6-7f72-4dd6-90db-be137673352b","sampleQuestions":["转专业到物理要补哪些先修课？","跨考到物理最难的一步是什么？","转专业至物理有哪些经验可以分享？","从福州大学转专业到物理要补哪些课？"]}
+{"displayName":"认真的寿司小号","id":"2508d8bc-7ae7-4799-bf36-0352e5ba3545","sampleQuestions":["转专业到物理要补哪些先修课？","跨考到物理最难的一步是什么？","关于面试一般会问什么？","转专业至物理有哪些经验可以分享？"]}
+{"displayName":"飞翔的咖啡_0","id":"4ca0fdcd-d0c4-4ba0-ae8d-4e180339f5c6","sampleQuestions":["转专业到物理要补哪些先修课？","跨考到物理最难的一步是什么？","转专业至物理有哪些经验可以分享？","从福州大学转专业到物理要补哪些课？"]}
+{"displayName":"烧饼9逛超市","id":"8a36250f-d5a1-4276-95b8-71318ab09938","sampleQuestions":["转专业到物理要补哪些先修课？","跨考到物理最难的一步是什么？","转专业至物理有哪些经验可以分享？","从福州大学转专业到物理要补哪些课？"]}
+{"displayName":"章鱼看日落","id":"fef04aa7-e6bb-4145-a1e9-36c13e2ddfbd","sampleQuestions":["转专业到物理要补哪些先修课？","跨考到物理最难的一步是什么？","面试名单和面试时间也要自己去学院官网看一般会问什么？","面试的重要性一般会问什么？"]}
+{"displayName":"荔枝画画中","id":"523cf2ed-6f77-406c-b151-3b4ccc93a0a4","sampleQuestions":["转专业到物理要补哪些先修课？","跨考到物理最难的一步是什么？","关于面试一般会问什么？","转专业至物理有哪些经验可以分享？"]}
+{"displayName":"仓鼠晒太阳","id":"6b8f2193-4ab4-43b6-9ec7-35abf53e6f52","sampleQuestions":["转专业到物理要补哪些先修课？","跨考到物理最难的一步是什么？","关于面试一般会问什么？","转专业至物理有哪些经验可以分享？"]}
+{"displayName":"刺猬_麻薯","id":"0c1826cc-df2f-4dd2-8016-da5b91d36b7c","sampleQuestions":["转专业到物理要补哪些先修课？","跨考到物理最难的一步是什么？","关于面试一般会问什么？","转专业至物理有哪些经验可以分享？"]}
+{"displayName":"瓢虫拼拼图","id":"173f28f2-503d-46ae-9c11-3062733e782b","sampleQuestions":["转专业到物理要补哪些先修课？","跨考到物理最难的一步是什么？","关于面试一般会问什么？","转专业至物理有哪些经验可以分享？"]}
+{"displayName":"薯条骑单车","id":"90bb82c9-9193-4fdb-b2d6-c28e1700c611","sampleQuestions":["转专业到物理要补哪些先修课？","跨考到物理最难的一步是什么？","关于面试一般会问什么？","转专业至物理有哪些经验可以分享？"]}
+{"displayName":"月饼_汉堡","id":"88bcd773-cffa-4f42-a0ca-deca2aba9fd9","sampleQuestions":["转专业到物理要补哪些先修课？","跨考到物理最难的一步是什么？","面试相关一般会问什么？","转专业至物理有哪些经验可以分享？"]}
+{"displayName":"元气的椰子小号","id":"f21d03d7-3be1-4bc8-8b76-21c9fd0c24dc","sampleQuestions":["转专业到物理要补哪些先修课？","跨考到物理最难的一步是什么？","转专业至物理有哪些经验可以分享？","从福州大学转专业到物理要补哪些课？"]}
+{"displayName":"花卷不熬夜","id":"da0f32b7-c282-421b-afd3-185aa6ad58ca","sampleQuestions":["转专业到物理要补哪些先修课？","跨考到物理最难的一步是什么？","面试流程一般会问什么？","面试相关一般会问什么？"]}
+{"displayName":"迷路的草莓zzz","id":"222049ff-ff4d-4098-ba6f-4206e7340fb6","sampleQuestions":["转专业到物理要补哪些先修课？","跨考到物理最难的一步是什么？","笔试到面试的间隔时间一般会问什么？","面试相关一般会问什么？"]}
+{"displayName":"红豆大王看电影","id":"e172d3c3-2acb-4200-8f14-d047d2861877","sampleQuestions":["转专业到物理要补哪些先修课？","跨考到物理最难的一步是什么？","关于面试一般会问什么？","转专业至物理有哪些经验可以分享？"]}
+{"displayName":"迭代bear","id":"f60c1786-79cb-4505-a524-f065f7e2e50d","sampleQuestions":["从二本到C/C++后端方向有哪些经验？","关于二本学生实习于腾讯，头条，秋招最终拿下百度等有什么经验？","腾讯实习有哪些经验可以分享？","秋招过程中有哪些关键节点？"]}
+{"displayName":"端口看源码","id":"62bc010e-e726-4ef5-bd6b-2fb87dc2097c","sampleQuestions":["从互联网求职到拿下字节、网易、阿里等offer有哪些经验？","关于双非本科拿腾讯sp，头条ssp，网易游戏sp有什么经验？","拿腾讯 offer 的关键是什么？","秋招过程中有哪些关键节点？"]}
+{"displayName":"容器guru","id":"c6d38008-a22f-4678-b6b6-cd9d8771157b","sampleQuestions":["从双非到C/C++后端方向有哪些经验？","关于提前批斩获百度，京东，旷视等大厂offer有什么经验？","拿百度 offer 的关键是什么？","关于C/C++后端有什么建议？"]}
+{"displayName":"移动端暗物质guru","id":"bdf0f421-3376-43b1-8b41-9632e0aa2c59","sampleQuestions":["面试高频考点一般会问什么？","从二本到C/C++后端方向有哪些经验？","关于无竞赛大奖，无实习经历，拿到阿里云，百度，小有什么经验？","阿里实习有哪些经验可以分享？"]}
+{"displayName":"架构_原子","id":"19e9b8e1-b1e5-4d89-9f39-91d88116a99b","sampleQuestions":["[秋招之战，简历书写，实习不匹配，时间投递等怎么写更有竞争力？","关于写简历：怎么写更有竞争力？","从双非到C/C++后端方向有哪些经验？","关于本科二本，硕士双非，非科班秋招拿到十几个of有什么经验？"]}
+{"displayName":"云原生_麒麟","id":"ecd9a84c-384d-4fe8-b286-d41bb05fee80","sampleQuestions":["从211到C/C++后端方向有哪些经验？","关于本科学渣的秋招逆袭之路，已拿腾讯，头条，深信有什么经验？","拿腾讯 offer 的关键是什么？","秋招过程中有哪些关键节点？"]}
+{"displayName":"大数据夸克hawk","id":"af630d5e-abd3-486b-bc05-95c125c94196","sampleQuestions":["从互联网求职到拿下美团、百度、字节等offer有哪些经验？","关于给准备秋招的同学一些建议，附CPP后端学习路有什么经验？","后端方向求职要注意什么？","秋招过程中有哪些关键节点？"]}
+{"displayName":"算法链表guru","id":"f92e6774-bab1-48ce-a5b9-817ae7c4bc7a","sampleQuestions":["从双非到Java后端方向有哪些经验？","关于700天之前，我决定做一名程序媛有什么经验？","算法方向求职要注意什么？","关于Java后端有什么建议？"]}
+{"displayName":"图论投简历","id":"2f13a3cd-9394-4ff4-a558-0cec1f211c35","sampleQuestions":["从985到Java后端方向有哪些经验？","关于七面百度，二战字节，提前批拿下头条offer有什么经验？","拿字节 offer 的关键是什么？","秋招过程中有哪些关键节点？"]}
+{"displayName":"算法_拓扑","id":"0796c11a-1bd1-433e-823f-a31f0f386642","sampleQuestions":["从二本到Java后端方向有哪些经验？","关于专科学生拿腾讯，字节暑期实习offer有什么经验？","腾讯实习有哪些经验可以分享？","算法方向求职要注意什么？"]}
+{"displayName":"底层网关ninja","id":"785df075-2655-4b1a-9121-70ff8206d8f0","sampleQuestions":["从互联网求职到拿下快手、字节、腾讯等offer有哪些经验？","关于双非本科拿到了字节跳动的offer有什么经验？","拿字节 offer 的关键是什么？","关于Java后端有什么建议？"]}
+{"displayName":"拓扑写周报","id":"9b55f84a-8577-4c41-952a-2732870163bc","sampleQuestions":["从互联网求职到拿下美团、字节、拼多多等offer有哪些经验？","关于提前批斩获字节，拼多多，美团等大厂offer有什么经验？","拿字节 offer 的关键是什么？","关于Java后端有什么建议？"]}
+{"displayName":"协程写周报","id":"5c2ad123-a556-4d96-ae22-de61966a72d2","sampleQuestions":["从985到Java后端方向有哪些经验？","关于自学一年，秋招拿到阿里评级A的SP，今日头条有什么经验？","拿阿里 offer 的关键是什么？","Java方向求职要注意什么？"]}
+{"displayName":"深空写代码","id":"880a560c-9253-46bb-b0c3-08138a96bf16","sampleQuestions":["从双非到Java后端方向有哪些经验？","关于非科班学生转行Java，半年内拿到猫眼，海康有什么经验？","Java方向求职要注意什么？","秋招过程中有哪些关键节点？"]}
+{"displayName":"移动端_深空","id":"acd2ec54-abdd-4696-96a1-99043e2878f4","sampleQuestions":["进阶至面试（一至两年一般会问什么？","从二本到Java后端方向有哪些经验？","关于非科班转CS经验，想去腾讯工作的看过来有什么经验？","在腾讯工作/实习是什么体验？"]}
+{"displayName":"AI_协程","id":"2787c71d-c007-4ffa-8e82-8349dc227d09","sampleQuestions":["面试准备一般会问什么？","从双非到前端/测开/安卓方向有哪些经验？","关于双非非科班渣硕2019秋招总结，包括华为微软有什么经验？","拿华为 offer 的关键是什么？"]}
+{"displayName":"AI_原子","id":"16fbfd46-9908-4bfe-808a-b33618405b02","sampleQuestions":["笔试+面试小结一般会问什么？","网易云音乐面试一般会问什么？","雷火面试一般会问什么？","Hr 面试一般会问什么？"]}
+{"displayName":"安全_暗物质","id":"68f827d5-7836-4b73-b393-68925ba49914","sampleQuestions":["面试心得一般会问什么？","从双非到前端/测开/安卓方向有哪些经验？","关于零基础转行产品拿到腾讯offer，看看他的秋有什么经验？","拿腾讯 offer 的关键是什么？"]}
+{"displayName":"测试图论master","id":"f8341459-230e-4c84-9c49-a67080d1e978","sampleQuestions":["面试技巧一般会问什么？","面试真题一般会问什么？","从双非一本到算法岗方向有哪些经验？","关于想进百度，想拿算法岗offer，可以看过来了有什么经验？"]}
+{"displayName":"缓存er","id":"81cf4bbe-0bcf-41c3-8b2d-53293aa047fb","sampleQuestions":["面试字节一般会问什么？","从互联网求职到拿下字节、头条等offer有哪些经验？","关于计算机基础学习笔记，已拿字节等大厂offer有什么经验？","拿字节 offer 的关键是什么？"]}
+{"displayName":"嵌入式堆栈_dev","id":"f6780b9b-380c-44a1-908a-417d4da57f5b","sampleQuestions":["从985到算法岗方向有哪些经验？","关于跑路女孩的一年求职成长之路，算法岗有什么经验？","算法方向求职要注意什么？","关于算法岗有什么建议？"]}
+{"displayName":"后端_极光","id":"006e7c6e-bb1d-4d06-a524-0e6c88f578f4","sampleQuestions":["乔布简历怎么写更有竞争力？","从互联网求职到拿下百度等offer有哪些经验？","关于我校招面试前的一些准备有什么经验？","后端方向求职要注意什么？"]}
+{"displayName":"AI_流星","id":"9587df7c-5223-415d-ad54-c935126eb63a","sampleQuestions":["从互联网求职到拿下字节、阿里、腾讯等offer有哪些经验？","关于我的春招之路，上有什么经验？","关于C/C++后端有什么建议？","进字节有什么经验？"]}
+{"displayName":"后端_银河","id":"6bf41c44-2ad1-480b-92e8-8c064791b171","sampleQuestions":["从互联网求职到拿下头条、小米、腾讯等offer有哪些经验？","关于我的春招之路，下有什么经验？","后端方向求职要注意什么？","关于头条有什么建议？"]}
+{"displayName":"测试银河guru","id":"ac4b172a-ce47-460f-97cc-3a862528efad","sampleQuestions":["从互联网求职到拿下美团、百度、腾讯等offer有哪些经验？","关于我的秋招之路，上有什么经验？","测试方向求职要注意什么？","秋招过程中有哪些关键节点？"]}
+{"displayName":"栈溢出在摸鱼","id":"e9c76b35-0ce2-4ab2-845c-a9fd9b9f22db","sampleQuestions":["从互联网求职到拿下字节、百度、滴滴等offer有哪些经验？","关于我的秋招准备有什么经验？","秋招过程中有哪些关键节点？","关于C/C++后端有什么建议？"]}
+{"displayName":"桌面端_星辰","id":"993b4097-f307-42f6-a0a0-4caf976d5bc7","sampleQuestions":["从互联网求职到拿下美团、百度、字节等offer有哪些经验？","关于我的阿里巴巴求职之路有什么经验？","在阿里工作/实习是什么体验？","进美团有什么经验？"]}
+{"displayName":"算法量子master","id":"c181fde2-7f63-48ad-a983-6d1f25ff2eb0","sampleQuestions":["面试考察：算法+基础+项目。一般会问什么？","从互联网求职到拿下百度、网易等offer有哪些经验？","关于掌握基础，方能决胜秋招有什么经验？","算法方向求职要注意什么？"]}
+{"displayName":"安全_黑洞","id":"5ee4d85a-5db1-4c99-8b42-1fdf834d08ff","sampleQuestions":["从互联网求职到拿下美团、京东、百度等offer有哪些经验？","关于秋招玄学贴有什么经验？","秋招过程中有哪些关键节点？","进美团有什么经验？"]}
+{"displayName":"引力约HR","id":"26d65ebe-31ba-4f2b-87d0-96ea29a95a3b","sampleQuestions":["从互联网求职到拿下百度、华为、网易等offer有哪些经验？","关于2019年9月1日，2020届秋招正式打响，有什么经验？","秋招过程中有哪些关键节点？","关于Java后端有什么建议？"]}
+{"displayName":"安全_节点","id":"4121c25c-2b5a-463f-942e-fd82c19f9c5d","sampleQuestions":["从985到Java后端方向有哪些经验？","关于985学生提问，找实习还是找秋招有什么经验？","秋招过程中有哪些关键节点？","关于Java后端有什么建议？"]}
+{"displayName":"大数据端口girl","id":"78b06528-e082-4fb8-9097-0ccccc9467a5","sampleQuestions":["简历书写怎么写更有竞争力？","从互联网求职到拿下美团、头条、阿里等offer有哪些经验？","关于八月中旬，此时此刻如何应战秋招有什么经验？","秋招过程中有哪些关键节点？"]}
+{"displayName":"麒麟cat","id":"7f9ed997-c48f-4625-afe9-d1a95d02a5e6","sampleQuestions":["从互联网求职到拿下美团、京东、百度等offer有哪些经验？","关于大三，研二决战秋招前，这篇文章一定要看有什么经验？","秋招过程中有哪些关键节点？","进美团有什么经验？"]}
+{"displayName":"麒麟写博客","id":"d71d1fa4-503d-4d8a-9c07-0a6a85683adb","sampleQuestions":["从211到互联网方向有哪些经验？","关于大四，研三，九月直奔秋招还是去实习有什么经验？","秋招过程中有哪些关键节点？"]}
+{"displayName":"安全链表eagle","id":"ede0f2aa-3ca4-419c-91e0-6b192b529a50","sampleQuestions":["非技术面试一般会问什么？","HR 面试一般会问什么？","专业排名多少？为啥不读研？对录取影响大吗？","从互联网求职到拿下美团、头条、阿里等offer有哪些经验？"]}
+{"displayName":"深空学算法","id":"353ed7bc-15d6-47f9-bbb5-a75f7cc4b26d","sampleQuestions":["面试现场一般会问什么？","从985到互联网方向有哪些经验？","关于春招，秋招面试前必看一文有什么经验？","算法方向求职要注意什么？"]}
+{"displayName":"嵌入式_麒麟","id":"b017e76b-0767-4c3f-9812-44e82a2777dd","sampleQuestions":["从互联网求职到拿下美团、京东、百度等offer有哪些经验？","关于浅谈秋招有什么经验？","嵌入式方向求职要注意什么？","秋招过程中有哪些关键节点？"]}
+{"displayName":"端口boy","id":"cf6f49f8-d8ab-4b0a-8cd9-863e19c8b1fb","sampleQuestions":["从985到算法岗方向有哪些经验？","关于秋招一堆神仙打架，我该如何应战有什么经验？","秋招过程中有哪些关键节点？","关于算法岗有什么建议？"]}
+{"displayName":"移动端镜像wolf","id":"a9a6420b-f3b0-4bc7-b8ac-1c7151efb7a0","sampleQuestions":["从互联网求职到拿下美团、百度、腾讯等offer有哪些经验？","关于秋招之战，大学时代的终极之战有什么经验？","秋招过程中有哪些关键节点？","进美团有什么经验？"]}
+{"displayName":"线程pro","id":"9ada1a9d-7c86-4379-ae97-c7e429de2c48","sampleQuestions":["简历 + 自我介绍怎么写更有竞争力？","从双非到算法岗方向有哪些经验？","关于秋招之战，未来三个月的打法指南有什么经验？","秋招过程中有哪些关键节点？"]}
+{"displayName":"架构_镜像","id":"75da8def-ffa3-48a5-a4f1-05c2cd5ba29c","sampleQuestions":["简历书写怎么写更有竞争力？","从互联网求职到拿下头条、腾讯等offer有哪些经验？","关于秋招之战，简历书写，实习不匹配，时间投递等相有什么经验？","秋招过程中有哪些关键节点？"]}
+{"displayName":"快照做项目","id":"e2ca06b5-5283-4f61-9e14-bd1d352a4f0b","sampleQuestions":["从互联网求职到拿下头条、阿里等offer有哪些经验？","关于秋招笔试算法题，如何应对有什么经验？","算法方向求职要注意什么？","秋招过程中有哪些关键节点？"]}
+{"displayName":"闪电hacker","id":"3bc190bb-11a0-4b1a-a30b-e104c5f65ae7","sampleQuestions":["面试经验一般会问什么？","从互联网求职到拿下腾讯等offer有哪些经验？","关于2019年腾讯暑期实习转正，来自读者的真实经有什么经验？","腾讯实习有哪些经验可以分享？"]}
+{"displayName":"桌面端拓扑hacker","id":"a50dfc8b-30d7-4e17-9663-99ae9891da83","sampleQuestions":["从互联网求职到拿下头条、百度、阿里等offer有哪些经验？","关于2020年打响暑期实习第一枪，2020版有什么经验？","关于头条有什么建议？","进百度有什么经验？"]}
+{"displayName":"架构递归hacker","id":"e508a52f-0680-42c9-a311-ca5f14e1df68","sampleQuestions":["从985到互联网方向有哪些经验？","关于在BAT实习期间，无出其右的战略打法有什么经验？","进美团有什么经验？","进百度有什么经验？"]}
+{"displayName":"沙箱写博客","id":"ba0df486-2a77-4630-abaf-55c3f677505f","sampleQuestions":["从互联网求职到拿下小米、腾讯、百度等offer有哪些经验？","关于如何找到BAT的实习机会有什么经验？","进小米有什么经验？","进腾讯有什么经验？"]}
+{"displayName":"桌面端缓存wolf","id":"bbb12b6e-37b3-482c-a5fb-9437cde25d62","sampleQuestions":["从互联网求职到拿下百度、阿里、腾讯等offer有哪些经验？","关于实习生VS正式员工有什么经验？","关于算法岗有什么建议？","进百度有什么经验？"]}
+{"displayName":"桌面端_链表","id":"964cb126-744d-48ac-83af-1ef9de424ffb","sampleQuestions":["从互联网求职到拿下头条、小米、百度等offer有哪些经验？","关于带你深刻认知在校期间的几种实习有什么经验？","关于头条有什么建议？","进小米有什么经验？"]}
+{"displayName":"北极星去上班","id":"f7ac7d96-7487-40e0-a5a2-f5af5fff394c","sampleQuestions":["简历准备怎么写更有竞争力？","从互联网求职到拿下腾讯、百度、京东等offer有哪些经验？","关于找实习中的一些困惑，如何解决有什么经验？","进腾讯有什么经验？"]}
+{"displayName":"矩阵ninja","id":"f932d3fc-d960-4451-9255-ffd58261827b","sampleQuestions":["从互联网求职到拿下京东、百度、网易等offer有哪些经验？","关于腾讯百度实习经历有什么经验？","腾讯实习有哪些经验可以分享？","关于算法岗有什么建议？"]}
+{"displayName":"嵌入式递归boy","id":"0ca7d0ac-fd36-45f9-b24e-d4e46f0eac9d","sampleQuestions":["从互联网求职到拿下美团、百度、腾讯等offer有哪些经验？","关于谈谈自己腾讯暑期实习转正答辩有什么经验？","腾讯实习有哪些经验可以分享？","嵌入式方向求职要注意什么？"]}
+{"displayName":"安全夸克bear","id":"253ecc95-a244-4819-965a-396a72f12dbc","sampleQuestions":["从985到互联网方向有哪些经验？","关于通过暑期实习转正留用头条，大三，研二强烈建议有什么经验？","进美团有什么经验？","进华为有什么经验？"]}
+{"displayName":"线程写周报","id":"005221d2-9ab4-49aa-bb99-ab77c3c1bd88","sampleQuestions":["从互联网求职到拿下美团、京东、百度等offer有哪些经验？","关于2位读者咨询大厂offer该怎么选择有什么经验？","进美团有什么经验？","进京东有什么经验？"]}
+{"displayName":"算法闪电fox","id":"ab3348cb-853d-45ba-b96b-4cb058eda879","sampleQuestions":["从互联网求职到拿下美团、百度、网易等offer有哪些经验？","关于大公司VS小公司有什么经验？","算法方向求职要注意什么？","进美团有什么经验？"]}
+{"displayName":"云原生链表boy","id":"952a1a4e-78f8-4d9e-8a1d-57232de5f0aa","sampleQuestions":["从互联网求职到拿下美团、百度、小米等offer有哪些经验？","关于校招手握数十个offer，如何抉择有什么经验？","进美团有什么经验？","进百度有什么经验？"]}
+{"displayName":"递归ninja","id":"c7ea15e8-1d22-48a9-840b-be859eaca7fb","sampleQuestions":["从互联网求职到拿下美团、百度、字节等offer有哪些经验？","关于三个100万，中有什么经验？","进美团有什么经验？","进百度有什么经验？"]}
+{"displayName":"底层_流星","id":"df17fcdc-7835-4ad5-91b5-85c98de62be5","sampleQuestions":["从互联网求职到拿下美团、百度、字节等offer有哪些经验？","关于在腾讯连拿六个五星，下有什么经验？","在腾讯怎么拿高绩效？","进美团有什么经验？"]}
+{"displayName":"AI_二叉树","id":"f5d26095-e451-4def-bf28-fb37446f527c","sampleQuestions":["从互联网求职到拿下美团、京东、百度等offer有哪些经验？","关于谱戈毕业2年打法全揭晓，上有什么经验？","进美团有什么经验？","进京东有什么经验？"]}
+{"displayName":"架构_北极星","id":"102a7490-97be-499e-beee-f96897af9084","sampleQuestions":["从互联网求职到拿下百度、腾讯等offer有哪些经验？","关于转眼工作三年啦有什么经验？","进百度有什么经验？","进腾讯有什么经验？"]}
+{"displayName":"镜像bear","id":"80f7f8ce-3962-49c8-b952-834371a8b572","sampleQuestions":["从双非本到互联网方向有哪些经验？","关于11月中旬，大四，研三如何通过补招，春招血拼有什么经验？","进百度有什么经验？","关于滴滴有什么建议？"]}
+{"displayName":"矩阵提PR","id":"1a845223-f9c0-46b8-a0a3-7cbf241dc734","sampleQuestions":["关于秋招九月底手上0offer，10 月份该何去有什么经验？","秋招过程中有哪些关键节点？","关于C/C++后端有什么建议？"]}
+{"displayName":"图论在实习","id":"c3c9e87e-450f-4f57-bd1a-434cc32f475e","sampleQuestions":["从双非一本到算法岗方向有哪些经验？","关于全网最全计算机，软件工程考研复试经验贴有什么经验？","关于算法岗有什么建议？"]}
+{"displayName":"移动端暗物质girl","id":"f22a4c7e-7e26-4d58-9b2f-7f98084c83cc","sampleQuestions":["从互联网求职到拿下百度、阿里、腾讯等offer有哪些经验？","关于到底是我逃避就业，还是你畏惧考研有什么经验？","进百度有什么经验？","进阿里有什么经验？"]}
+{"displayName":"后端黑洞ninja","id":"c82704ec-ccd6-44e0-bab8-2d7d55bc0264","sampleQuestions":["关于工作三年VS读研三年有什么经验？","后端方向求职要注意什么？"]}
+{"displayName":"分布式_频率","id":"26463775-d162-4c22-b272-4267c0253d18","sampleQuestions":["从互联网求职到拿下腾讯等offer有哪些经验？","关于我为什么建议大家一定要考研有什么经验？","进腾讯有什么经验？"]}
+{"displayName":"蘑菇小号","id":"f208629c-0474-45d7-99ae-d33d499b7163","sampleQuestions":["从程序员转公务员到涵盖考公概述、备考方法、体制内生活等有哪些经验？","关于程序员公务员考试最佳实践有什么经验？","关于公务员考试有什么建议？","关于体制内工作有什么建议？"]}
+{"displayName":"坚定的刺猬","id":"754f65c5-4950-4998-af0a-8a62848fdffd","sampleQuestions":["从程序员转公务员到帮助了解考公和体制内的真实情况。有哪些经验？","关于D2G项目21年12月24日会议纪要有什么经验？","关于公务员考试有什么建议？","关于体制内工作有什么建议？"]}
+{"displayName":"豆沙做饭中","id":"0272a8bd-8f0d-433a-babe-8a979a02ff41","sampleQuestions":["从程序员转公务员到帮助了解考公和体制内的真实情况。有哪些经验？","关于体制内是否能够做副业有什么经验？","体制内是否能够做副业具体怎么做？","关于公务员考试有什么建议？"]}
+{"displayName":"兔兔7","id":"ebdcf43a-0659-4911-afdd-d7a56bf1f611","sampleQuestions":["从程序员转公务员到帮助了解考公和体制内的真实情况。有哪些经验？","关于体检的最佳实践、注意事项有什么经验？","关于公务员考试有什么建议？","关于体制内工作有什么建议？"]}
+{"displayName":"坚定的抹茶","id":"5a3989e5-412d-48be-92f8-4c0436d6e46a","sampleQuestions":["从程序员转公务员到帮助了解考公和体制内的真实情况。有哪些经验？","关于公务员工资福利待遇组成有什么经验？","关于公务员考试有什么建议？","关于体制内工作有什么建议？"]}
+{"displayName":"章鱼去散步","id":"f20e328d-6bfa-4656-a30e-808db4c48818","sampleQuestions":["从程序员转公务员到帮助了解考公和体制内的真实情况。有哪些经验？","关于公考概述、思想建设以及物质准备有什么经验？","关于公务员考试有什么建议？","关于体制内工作有什么建议？"]}
+{"displayName":"萤火虫7","id":"e5071f30-1f96-4ccf-99e9-e0a987d30acc","sampleQuestions":["从程序员转公务员到帮助了解考公和体制内的真实情况。有哪些经验？","关于招考岗位解读有什么经验？","关于公务员考试有什么建议？","关于体制内工作有什么建议？"]}
+{"displayName":"栗子z","id":"46d2a56c-fdab-4cbb-827f-f4d5a62e4c4a","sampleQuestions":["那你怎么克服紧张，去面试的？一般会问什么？","从程序员转公务员到帮助了解考公和体制内的真实情况。有哪些经验？","关于程序员其实挺适合进体制内的有什么经验？","关于公务员考试有什么建议？"]}
+{"displayName":"布丁君","id":"19c82611-4dbd-4ae9-9d16-26dce6d230cd","sampleQuestions":["从程序员转公务员到帮助了解考公和体制内的真实情况。有哪些经验？","关于编制概述：行政编、事业编、参公事业编、三支一有什么经验？","关于公务员考试有什么建议？","关于体制内工作有什么建议？"]}
+{"displayName":"蜗牛小号","id":"967ee4f5-4864-4430-b0f2-e403c21e8623","sampleQuestions":["从学术科研到包括研究范式、科研素养、学术规范等核有哪些经验？","关于科研认知有什么经验？","关于学术科研有什么建议？","关于职业发展有什么建议？"]}
+{"displayName":"仓鼠遛弯了","id":"3c20fd87-b58d-42a5-ad10-54b504a074c9","sampleQuestions":["从学术科研到包括科研评价体系、发表文化、学术市场有哪些经验？","关于科研现状有什么经验？","关于学术科研有什么建议？","关于职业发展有什么建议？"]}
+{"displayName":"机灵的青蛙","id":"4c51e394-6460-4013-9f44-0de3422227c1","sampleQuestions":["从学术科研到包括假设检验、实验设计、因果推断等。有哪些经验？","关于科研思维有什么经验？","关于学术科研有什么建议？","关于职业发展有什么建议？"]}
+{"displayName":"椰子读论文","id":"94c478c1-6834-4c58-ba00-1020976c25f9","sampleQuestions":["从学术科研到包括统计分析、可视化、可重复研究等。有哪些经验？","关于数据分析有什么经验？","关于学术科研有什么建议？","关于职业发展有什么建议？"]}
+{"displayName":"花卷打篮球","id":"dc41894f-7bcf-4889-a6b3-e8b7e9067426","sampleQuestions":["从学术科研到包括导师关系、时间管理、心理健康等。有哪些经验？","关于科研生活有什么经验？","关于学术科研有什么建议？","关于职业发展有什么建议？"]}
+{"displayName":"蜻蜓鸭","id":"dcbc6fb7-f359-423b-a78e-52d59e368a3b","sampleQuestions":["从学术科研到包括学术界与工业界的选择、求职策略、有哪些经验？","关于就业转行有什么经验？","转行互联网有哪些坑要避免？","关于学术科研有什么建议？"]}
+{"displayName":"光年在摸索","id":"e1c2afc6-e1e5-4398-b193-c62602ad6212","sampleQuestions":["关于从零构建软件产品或服务有什么经验？","关于独立创业有什么建议？","关于一人企业有什么建议？"]}
+{"displayName":"银河_脉冲","id":"04d9fe28-05d2-46db-a365-a33377a190af","sampleQuestions":["关于众包能力有什么经验？","关于独立创业有什么建议？","关于一人企业有什么建议？"]}
+{"displayName":"堆栈62","id":"bd4f669b-3bf9-4f0d-b800-8642c248b740","sampleQuestions":["关于一人企业的定义有什么经验？","关于独立创业有什么建议？","关于一人企业有什么建议？"]}
+{"displayName":"银河_容器","id":"dea2720f-8721-4aa3-9dfc-4b97463df76f","sampleQuestions":["从独立创业到找到差异化的生存空间。有哪些经验？","关于非竞争策略有什么经验？","关于独立创业有什么建议？","关于一人企业有什么建议？"]}
+{"displayName":"像素26","id":"6ef1a457-7857-4105-ac1a-74891d7456d5","sampleQuestions":["关于一人企业画布与报告有什么经验？","关于独立创业有什么建议？","关于一人企业有什么建议？"]}
+{"displayName":"像素_网关","id":"b35b4dd0-ca38-439b-968a-bd616ed81e52","sampleQuestions":["关于产品池与支付能力有什么经验？","关于独立创业有什么建议？","关于一人企业有什么建议？"]}
+{"displayName":"像素_量子","id":"4a49cf63-17b2-4800-9419-7176c693f188","sampleQuestions":["从独立创业到避免红海竞争有哪些经验？","关于一人企业赛道选择有什么经验？","关于独立创业有什么建议？","关于一人企业有什么建议？"]}
+{"displayName":"拓扑65","id":"920c6a9f-d56a-47f6-9161-5813c41c47e0","sampleQuestions":["关于搭建一人企业基建有什么经验？","关于独立创业有什么建议？","关于一人企业有什么建议？"]}
+{"displayName":"容器6","id":"e7cbcb9c-b469-4e3b-bb9a-e42f124df4f3","sampleQuestions":["关于滚雪球与链式传播有什么经验？","关于独立创业有什么建议？","关于一人企业有什么建议？"]}
+{"displayName":"频率做独立开发","id":"9c96adf6-6343-4fbb-8380-d2fd4c85a92b","sampleQuestions":["关于从副业开始有什么经验？","从副业开始具体怎么做？","关于独立创业有什么建议？","关于一人企业有什么建议？"]}
+{"displayName":"银河搞增长","id":"65bf7b50-e622-4942-a2f2-d78e2312ba22","sampleQuestions":["从独立创业到让一人企业拥有可持续的竞争壁垒。有哪些经验？","关于结构化优势有什么经验？","关于独立创业有什么建议？","关于一人企业有什么建议？"]}
+{"displayName":"快照做SaaS","id":"2a78beb3-8f91-4572-987e-3bea0afce0a5","sampleQuestions":["关于理想的一人企业基建有什么经验？","关于独立创业有什么建议？","关于一人企业有什么建议？"]}
+{"displayName":"频率搞自媒体","id":"0fbcebbd-f7a0-4d7d-86fa-99f3dc3765fb","sampleQuestions":["关于为什么规模化是可能的有什么经验？","关于独立创业有什么建议？","关于一人企业有什么建议？"]}
+{"displayName":"闪电搞运营","id":"7851a7b7-a334-41ce-a907-e6e8cb3c0f35","sampleQuestions":["关于为什么做大是可能的有什么经验？","关于独立创业有什么建议？","关于一人企业有什么建议？"]}
+{"displayName":"活泼的饼干","id":"f302231e-9649-43a3-9487-97fff936afbc","sampleQuestions":["guan有哪些实操建议？","关于guan yu有什么经验？"]}
+{"displayName":"安静的蓝莓","id":"a30f24e4-94a4-422d-aa68-9cffe276facb","sampleQuestions":["说明GPA，排名，英文水平等 如对录取影响大吗？","如何准备夏令营（3-8月？","关于预推免（8-9月有什么经验？","个人简历怎么写更有竞争力？"]}
+{"displayName":"奶酪可可","id":"3cbadd08-e47b-4dc2-8e83-cd1c0a9df3c7","sampleQuestions":["面试（及笔试一般会问什么？","一些你可能想要了解的稀奇古怪的面试经验一般会问什么？","面试准备一般会问什么？","华东师范大学-环境设计-19环境设计有哪些实操建议？"]}
+{"displayName":"甜甜的柿子","id":"8df63b4a-cf27-44ad-8a5e-15fec613410b","sampleQuestions":["GPA：3.9/4.0，排名对录取影响大吗？","如何准备夏令营？","华南理工大学-电子信息-19机器人邓有哪些实操建议？","关于华南理工大学-电子信息-19机器人邓婧雯有什么经验？"]}
+{"displayName":"安静的汤圆__","id":"151ee439-27cf-402c-87e6-b78c5360dc99","sampleQuestions":["华南理工大学-电子信息-19机器人工有哪些实操建议？","关于华南理工大学-电子信息-19机器人工程余绍蓉有什么经验？"]}
+{"displayName":"快乐的凉皮7","id":"5e029f5d-9bef-4fce-9f6f-304020ca668d","sampleQuestions":["华南理工大学-数学学院-19级数学类有哪些实操建议？","关于华南理工大学-数学学院-19级数学类创新班黄有什么经验？"]}
+{"displayName":"机灵的珍珠","id":"2633383b-e1ad-4ada-8c3e-c7f925a823f3","sampleQuestions":["说明GPA，排名，英文水平等 如对录取影响大吗？","如何准备个人夏令营基本情况？","如何准备夏令营（3-8月？","如何准备各重点学校夏令营和预推免考核内容？"]}
+{"displayName":"自在的马卡龙_v","id":"bf4cb234-61de-4276-b5b7-046af4f91d53","sampleQuestions":["2+2伯明翰大学-机械电子与机器人工有哪些实操建议？","关于2+2伯明翰大学-机械电子与机器人工程-21有什么经验？"]}
+{"displayName":"仓鼠学画画","id":"8347092c-f038-41c8-8fa7-c49fc0f65041","sampleQuestions":["2+2鲁汶大学-杨媚涵有哪些实操建议？","关于2+2鲁汶大学-杨媚涵有什么经验？"]}
+{"displayName":"棉花糖凉皮","id":"5c2efc14-ba19-454f-ad40-5c0c1df8a65d","sampleQuestions":["University有哪些实操建议？","关于University of Akron-3+有什么经验？"]}
+{"displayName":"荔枝银杏","id":"68a85004-1b91-4ed2-ab5a-70d3d25c7c08","sampleQuestions":["中山大学-生物医学工程学院-18级材有哪些实操建议？","关于中山大学-生物医学工程学院-18级材料学院郑有什么经验？"]}
+{"displayName":"雪花仓鼠","id":"779c9312-51ab-445c-b811-e9b1d06e31ff","sampleQuestions":["清华大学 2021 年九推机试怎么练？","清华大学有哪些实操建议？","关于清华大学 2021 年九推机试有什么经验？","关于CS有什么建议？"]}
+{"displayName":"核桃吃火锅","id":"84e593b2-a52e-450d-979f-ff4f266cc78b","sampleQuestions":["图与树有哪些实操建议？","关于图与树有什么经验？","关于CS有什么建议？","关于夏令营有什么建议？"]}
+{"displayName":"馒头在跑步","id":"47972324-e4eb-4c2f-a8bf-722964270cc0","sampleQuestions":["机试技巧与STL怎么练？","机试技巧与STL有哪些实操建议？","关于机试技巧与STL有什么经验？","关于CS有什么建议？"]}
+{"displayName":"桂花做实验","id":"69144741-bbca-4fc0-885d-45bc03be59a5","sampleQuestions":["面试必须按照报名的顺序一般会问什么？","已经面试过一般会问什么？","清华机试真题怎么练？","清华机试真题有哪些实操建议？"]}
+{"displayName":"蓝莓哈","id":"783e52be-986c-4a03-814e-bffe345c7a36","sampleQuestions":["面试必须按照报名的顺序一般会问什么？","interview有哪些实操建议？","关于interview有什么经验？","关于CS有什么建议？"]}
+{"displayName":"奔跑的花生wow","id":"e636c4d2-e0ca-404e-b95b-2e19947e7b40","sampleQuestions":["mine有哪些实操建议？","关于mine有什么经验？","关于CS有什么建议？","关于夏令营有什么建议？"]}
+{"displayName":"勤劳的蜗牛dd","id":"1ac60fbe-f652-47f8-bed9-f34aecc86e8e","sampleQuestions":["科研二三事有哪些实操建议？","关于科研二三事有什么经验？","关于CS有什么建议？","关于夏令营有什么建议？"]}
+{"displayName":"活泼的花生","id":"1a0a14f4-e447-4cb3-8350-9ac8b1d36b82","sampleQuestions":["2017年有哪些实操建议？","关于2017年有什么经验？","关于CS有什么建议？","关于夏令营有什么建议？"]}
+{"displayName":"俏皮的海星","id":"53b49358-23b9-4663-a7c1-a7d6936d2e2c","sampleQuestions":["2018年有哪些实操建议？","关于2018年有什么经验？","关于CS有什么建议？","关于夏令营有什么建议？"]}
+{"displayName":"芒果珍珠","id":"cb77c3ed-90ee-4b2d-a963-7f964eef267e","sampleQuestions":["2019年有哪些实操建议？","关于2019年有什么经验？","关于CS有什么建议？","关于夏令营有什么建议？"]}
+{"displayName":"可颂麻雀","id":"632f3f21-6ef3-4502-bfcf-d1ded6667e6c","sampleQuestions":["2021年有哪些实操建议？","关于2021年有什么经验？","关于CS有什么建议？","关于夏令营有什么建议？"]}
+{"displayName":"认真的棉花糖","id":"88752b14-77b8-41b0-ae48-1c60abae05e0","sampleQuestions":["2022年有哪些实操建议？","关于2022年有什么经验？","关于CS有什么建议？","关于夏令营有什么建议？"]}
+{"displayName":"太妃糖刷题中","id":"7a9049e3-5309-4277-9588-86b0c9622259","sampleQuestions":["2023年有哪些实操建议？","关于2023年有什么经验？","关于CS有什么建议？","关于夏令营有什么建议？"]}
+{"displayName":"芒果写代码","id":"dee2e863-6ec6-4515-b4b0-bea392dd3008","sampleQuestions":["学校相关有哪些实操建议？","关于学校相关有什么经验？","关于CS有什么建议？","关于夏令营有什么建议？"]}
+{"displayName":"豆包荔枝","id":"90c58e48-8ae0-449e-b742-4111fe73d812","sampleQuestions":["上海交通大学有哪些实操建议？","关于上海交通大学 数据驱动软件技术实验室 陈游旻有什么经验？","关于CS有什么建议？","关于夏令营有什么建议？"]}
+{"displayName":"鸽子柠檬","id":"6667aaf7-07db-4a44-a00b-a1cbc1578630","sampleQuestions":["上海Ai有哪些实操建议？","关于上海Ai Lab(openimagelab)有什么经验？","关于CS有什么建议？","关于夏令营有什么建议？"]}
+{"displayName":"河马实习中","id":"8aa3e009-7dbd-477e-a0a3-979572b6013e","sampleQuestions":["上海Ai有哪些实操建议？","关于上海Ai Lab张超有什么经验？","关于CS有什么建议？","关于夏令营有什么建议？"]}
+{"displayName":"自在的瓢虫kk","id":"7e4deb06-868f-4663-aa91-8de2cca561d3","sampleQuestions":["北京前沿交叉学科研究院张文涛有哪些实操建议？","关于北京前沿交叉学科研究院张文涛有什么经验？","关于CS有什么建议？","关于夏令营有什么建议？"]}
+{"displayName":"青蛙做PPT","id":"c37d1681-92fb-42f9-94dc-247170ccec20","sampleQuestions":["一轮面试一般会问什么？","二轮面试一般会问什么？","清华大学深研院王学谦有哪些实操建议？","关于清华大学深研院王学谦有什么经验？"]}
+{"displayName":"刺猬鸭","id":"cbe0a417-86fd-4a2c-a93f-017b3d13a52e","sampleQuestions":["清华大学深研院袁春有哪些实操建议？","关于清华大学深研院袁春有什么经验？","关于CS有什么建议？","关于夏令营有什么建议？"]}
+{"displayName":"布丁ii","id":"9c0a5b52-cc0a-418b-87a1-d6df7b850721","sampleQuestions":["西湖大学李子青有哪些实操建议？","关于西湖大学李子青有什么经验？","关于CS有什么建议？","关于夏令营有什么建议？"]}
+{"displayName":"葡萄pro","id":"3ac1a82b-5f9d-41d0-b93d-9c87f7930e4c","sampleQuestions":["四川大学保研怎么样？","川大出国容易吗？","川大就业前景如何？"]}
+{"displayName":"汤圆9","id":"8ee6aacc-d36e-44bc-ad73-63470c90c3ed","sampleQuestions":["四川大学保研怎么样？","川大出国容易吗？","川大就业前景如何？"]}
+{"displayName":"核桃拍照片","id":"74c879fe-55f6-445a-8bda-5ace513919d8","sampleQuestions":["必修均分排名：对录取影响大吗？","关于保研/留学/考研有什么建议？"]}
+{"displayName":"灵动的薯片","id":"a0d13098-92ce-4359-bfdd-b3c7f36749af","sampleQuestions":["四川大学保研怎么样？","川大出国容易吗？","川大就业前景如何？"]}
+{"displayName":"清新的核桃","id":"b2515983-40e7-44bc-9b37-8f7054c1eecb","sampleQuestions":["四川大学保研怎么样？","川大出国容易吗？","川大就业前景如何？"]}
+{"displayName":"马卡龙银杏","id":"ee955f73-b4b8-40fc-81ab-8746caa4e267","sampleQuestions":["四川大学保研怎么样？","川大出国容易吗？","川大就业前景如何？"]}
+{"displayName":"俏皮的薯片","id":"fc7b39df-0444-4bb4-b36e-b045be67fca3","sampleQuestions":["四川大学保研怎么样？","川大出国容易吗？","川大就业前景如何？"]}
+{"displayName":"荔枝练瑜伽","id":"08e1a2dd-af99-4379-87a5-7683da9782d5","sampleQuestions":["四川大学保研怎么样？","川大出国容易吗？","川大就业前景如何？"]}
+{"displayName":"热情的拿铁","id":"5b098f40-7628-426c-ba41-796fba9bda6e","sampleQuestions":["四川大学保研怎么样？","川大出国容易吗？","川大就业前景如何？"]}
+{"displayName":"灵动的饼干鸭","id":"12e60b14-0153-4fba-bd7e-24b12510cc3f","sampleQuestions":["推荐信怎么准备？","关于保研/留学/考研有什么建议？"]}
+{"displayName":"鸽子椰子","id":"a68dc396-8872-48a0-9f61-28daa9cb5e56","sampleQuestions":["四川大学保研怎么样？","川大出国容易吗？","川大就业前景如何？"]}
+{"displayName":"珍珠9","id":"12b067a7-a6ab-4cc6-814f-c45012a51cd5","sampleQuestions":["Funding有哪些实操建议？","关于Funding有什么经验？","关于PhD申请有什么建议？"]}
+{"displayName":"年糕喝牛奶","id":"d15e3d8c-adfb-421c-a21f-adc57f2894a3","sampleQuestions":["waiting有哪些实操建议？","关于waiting有什么经验？","关于PhD申请有什么建议？"]}
+{"displayName":"松鼠实习中","id":"78ddf27e-5f40-4eff-87fa-f3b922e6b343","sampleQuestions":["about有哪些实操建议？","关于about有什么经验？","关于PhD申请有什么建议？"]}
+{"displayName":"清新的冰棍酱","id":"6b8aa69a-56b3-476f-a2af-c50eb54dbd7b","sampleQuestions":["friendlink有哪些实操建议？","关于friendlink有什么经验？","关于PhD申请有什么建议？"]}
+{"displayName":"萤火虫海星","id":"48061a8e-2eb7-4afa-af57-1f7c733de8b5","sampleQuestions":["timeline有哪些实操建议？","关于timeline有什么经验？","关于PhD申请有什么建议？"]}
+{"displayName":"安静的泡芙","id":"44a762e2-8026-4ba9-a8dd-50de9556eeba","sampleQuestions":["PhD 面试经常有的一个灵魂拷问一般会问什么？","interview有哪些实操建议？","关于interview有什么经验？","关于PhD申请有什么建议？"]}
+{"displayName":"认真的包子","id":"0f6c08b8-baba-4518-a33d-2b2ec4fd98e1","sampleQuestions":["onlinesystem有哪些实操建议？","关于onlinesystem有什么经验？","关于PhD申请有什么建议？"]}
+{"displayName":"企鹅栗子","id":"75eb59e9-e375-43dc-8852-25aebc9ccec6","sampleQuestions":["推荐信怎么准备？","推荐信概述怎么准备？","推荐信结构怎么准备？","推荐信内容怎么准备？"]}
+{"displayName":"可可泡咖啡","id":"32d76a90-2778-4297-8f7c-72e0975a4a1a","sampleQuestions":["touch有哪些实操建议？","关于touch有什么经验？","关于PhD申请有什么建议？"]}
+{"displayName":"年糕奶酪","id":"1d4a0995-497d-4757-b115-d71eb3e6cb84","sampleQuestions":["Curriculum有哪些实操建议？","关于Curriculum Vitae/Resum有什么经验？","关于PhD申请有什么建议？"]}
+{"displayName":"泡芙种花中","id":"a67d8f39-e754-4b9b-a379-e1181bbcf105","sampleQuestions":["Personal有哪些实操建议？","关于Personal Statement/Sta有什么经验？","关于PhD申请有什么建议？"]}
+{"displayName":"奔跑的泡芙","id":"2f14dae6-3592-469d-bb5c-ed1a0a15cfa1","sampleQuestions":["南开计算机怎么样？","这门课难不难？","南开CS保研情况？"]}
+{"displayName":"热情的柿子x","id":"3e4a294b-1c18-4067-8625-1bf0c5a60cee","sampleQuestions":["南开计算机怎么样？","这门课难不难？","南开CS保研情况？"]}
+{"displayName":"银杏x","id":"f21cf680-988a-460d-9fa6-6d1bfa39e3aa","sampleQuestions":["南开计算机怎么样？","这门课难不难？","南开CS保研情况？"]}
+{"displayName":"章鱼zzz","id":"bb6e6ba0-0516-42bc-9470-bb21314d2e05","sampleQuestions":["南开计算机怎么样？","这门课难不难？","南开CS保研情况？"]}
+{"displayName":"灵动的奶酪","id":"3200c089-0bc4-44d4-a869-ef68f4f5a2b6","sampleQuestions":["南开计算机怎么样？","这门课难不难？","南开CS保研情况？"]}
+{"displayName":"芒果在学习","id":"4a538655-ad64-4dac-bc35-0e6d8c59bff8","sampleQuestions":["南开计算机怎么样？","这门课难不难？","南开CS保研情况？"]}
+{"displayName":"榴莲cc","id":"44455a36-3935-4c35-be99-c5d23391e36e","sampleQuestions":["阿里云2021年暑期实习经验汇总有哪些实操建议？","关于阿里云2021年暑期实习经验汇总有什么经验？","阿里实习有哪些经验可以分享？"]}
+{"displayName":"元气的豆包","id":"d0aa0346-b86a-43b6-908e-8b61b79c3bcb","sampleQuestions":["大三上实习面试经历总结一般会问什么？","careers有哪些实操建议？","关于careers 1有什么经验？"]}
+{"displayName":"牛轧糖大王","id":"87a0ba07-ba4c-4e03-87b0-510418b7d9d6","sampleQuestions":["复旦机试题不完全收录怎么练？","关于2021年预推免有什么经验？","如何准备2021年夏令营？","如何准备2020年夏令营？"]}
+{"displayName":"灵动的冰棍dd","id":"89c18c93-8912-4cdb-bec4-086f0c7fff5e","sampleQuestions":["11408初试经验有哪些实操建议？","关于11408初试经验有什么经验？"]}
+{"displayName":"勇敢的马卡龙","id":"04fcecf9-e2a0-4f72-83ac-1a7ccdc44ffe","sampleQuestions":["23年计科辅修/转专业面试经验指北一般会问什么？","trans有哪些实操建议？","关于trans 0有什么经验？"]}
+{"displayName":"草莓做面包","id":"3e9452b3-150b-4601-b587-b3eb564994bb","sampleQuestions":["考公准备，笔试和面试准备一般会问什么？","others有哪些实操建议？","关于others 0有什么经验？"]}
+{"displayName":"桂花x","id":"b4371717-9cd1-4068-b901-f7ecff383da6","sampleQuestions":["准备考试过程中可能遇到的困难和解决方有哪些实操建议？","关于准备考试过程中可能遇到的困难和解决方案 by有什么经验？","关于985高校有什么建议？"]}
+{"displayName":"珍珠桂花","id":"6108f8ff-cd8e-4823-a7af-f5079c533f55","sampleQuestions":["半diy申请能提高哪些能力锻炼有哪些实操建议？","关于半diy申请能提高哪些能力锻炼 by 韩非江有什么经验？","关于985高校有什么建议？"]}
+{"displayName":"灵动的萤火虫9","id":"ff5cbfd4-24f9-404f-95f1-17a1814b9c31","sampleQuestions":["如何提升自己申请季的运气有哪些实操建议？","关于如何提升自己申请季的运气 by 韩非江有什么经验？","关于985高校有什么建议？"]}
+{"displayName":"勇敢的拿铁","id":"df5cfa1a-808e-4f65-8f84-dceb9c3bb3cf","sampleQuestions":["如何用LLM搞定MS申请文书有哪些实操建议？","关于如何用LLM搞定MS申请文书有什么经验？","关于985高校有什么建议？"]}
+{"displayName":"煎饼蜗牛","id":"661cfdce-f72c-48de-ba93-623fe3134e78","sampleQuestions":["美国硕士基本上都没有面试一般会问什么？","国外推荐信怎么准备？","美硕申请哪些背景最重要有哪些实操建议？","关于美硕申请哪些背景最重要 by 韩非江有什么经验？"]}
+{"displayName":"包子lab","id":"cb99b505-fdaf-4a27-8f25-7afe5e88eec7","sampleQuestions":["保研怎么准备？","这所大学出国怎么样？","就业前景如何？"]}
+{"displayName":"草莓7","id":"247370b1-05b1-416e-94a8-648eb93e812e","sampleQuestions":["程序员怎么搞副业？","有什么好的赚钱方法？","副业能赚多少？"]}
+{"displayName":"温柔的草莓","id":"bfb83911-8a4e-43f2-ad34-0e9c3851119c","sampleQuestions":["程序员怎么搞副业？","有什么好的赚钱方法？","副业能赚多少？"]}
+{"displayName":"烧饼雪糕","id":"a49831eb-a4d9-421e-afed-b1de8d5da08c","sampleQuestions":["关于其二 创造资产有什么经验？","其二 创造资产具体怎么做？"]}
+{"displayName":"番茄z","id":"a7dedcc3-8502-49a9-b1e7-e3ecef9b8c69","sampleQuestions":["关于其三 资产的量化评估有什么经验？","其三 资产的量化评估具体怎么做？"]}
+{"displayName":"马卡龙打篮球","id":"702fce11-0ae0-4545-885c-bfcf33eb96e3","sampleQuestions":["程序员怎么搞副业？","有什么好的赚钱方法？","副业能赚多少？"]}
+{"displayName":"蓝莓考试周","id":"4a2efdf5-8108-4685-bfbe-fb729f8cda95","sampleQuestions":["电院IEEE试点班介绍-1有哪些实操建议？","关于电院IEEE试点班介绍-1有什么经验？","关于大学学习有什么建议？"]}
+{"displayName":"松鼠在学习","id":"9829459d-71e5-4b0e-9aaf-93d3548e385a","sampleQuestions":["人文学院同学分享有哪些实操建议？","关于人文学院同学分享有什么经验？","关于大学学习有什么建议？"]}
+{"displayName":"汤圆__","id":"cf2d439d-4cbe-4711-8277-bfea9d8c574e","sampleQuestions":["软件学院介绍有哪些实操建议？","关于大学学习有什么建议？"]}
+{"displayName":"西瓜葡萄","id":"b2d3285b-9269-43bf-baa4-301528d5a621","sampleQuestions":["分！分！学生的命根！有哪些实操建议？","关于分！分！学生的命根！有什么经验？","关于大学学习有什么建议？"]}
+{"displayName":"汤圆bb","id":"53e7e9eb-f15a-43b0-8eb3-bdd5265a291d","sampleQuestions":["上海应届毕业生落户不完整指南有哪些实操建议？","关于上海应届毕业生落户不完整指南有什么经验？","关于大学学习有什么建议？"]}
+{"displayName":"番茄鸭","id":"0334aedd-a076-4ae3-8ce3-ed5005973ace","sampleQuestions":["上海交通大学CS生存指南--番外篇1有哪些实操建议？","关于上海交通大学CS生存指南--番外篇1有什么经验？","关于大学学习有什么建议？"]}
+{"displayName":"苹果oo","id":"9c71ba9a-c06d-45bc-8ba1-48f683953baf","sampleQuestions":["衡量学术价值有哪些实操建议？","关于衡量学术价值有什么经验？","关于大学学习有什么建议？"]}
+{"displayName":"洒脱的柠檬","id":"53032bd4-3b2c-48a9-a43f-e8fe31341513","sampleQuestions":["会计学15级同学分享有哪些实操建议？","关于会计学15级同学分享有什么经验？","关于大学学习有什么建议？"]}
+{"displayName":"俏皮的板栗","id":"a5c81588-e59d-408f-ad64-3edc6003197b","sampleQuestions":["密西根学院15级ECE同学介绍有哪些实操建议？","关于密西根学院15级ECE同学介绍有什么经验？","关于大学学习有什么建议？"]}
+{"displayName":"勇敢的芋圆bb","id":"59bb73d2-feab-4767-86b6-f231eee46cca","sampleQuestions":["日语系有哪些实操建议？","关于日语系 13 级学姐分享有什么经验？","关于大学学习有什么建议？"]}
+{"displayName":"花卷养多肉","id":"8b970684-1785-49e2-93b7-48e93186df09","sampleQuestions":["19级测控技术与仪器转信息安全有哪些实操建议？","关于19级测控技术与仪器转信息安全有什么经验？","关于大学学习有什么建议？"]}
+{"displayName":"鲸鱼3","id":"c2b3c275-78c7-4919-954d-e05f208be35c","sampleQuestions":["19级测控转软件工程有哪些实操建议？","关于19级测控转软件工程有什么经验？","关于大学学习有什么建议？"]}
+{"displayName":"努力的蘑菇","id":"9db24e26-9166-4db0-b67c-e4277dfbcb1c","sampleQuestions":["上交生存有什么建议？","怎么选课比较好？","大学应该怎么规划？"]}
+{"displayName":"鸽子花卷","id":"36c94f7a-07ff-45eb-a6b0-ef385b278222","sampleQuestions":["本科生转学经验分享-新加坡有哪些实操建议？","关于本科生转学经验分享-新加坡有什么经验？","关于大学学习有什么建议？"]}
+{"displayName":"蓝莓橙子","id":"44c41c40-9cc0-4dfc-85aa-314fd97b6657","sampleQuestions":["你想要做什么有哪些实操建议？","关于你想要做什么有什么经验？","关于大学学习有什么建议？"]}
+{"displayName":"仓鼠在搬砖","id":"a67a4650-2690-4c7d-a2bf-9a1ae3b146a9","sampleQuestions":["关于反对 PUA有什么经验？","关于大学学习有什么建议？"]}
+{"displayName":"淡定的石榴ii","id":"5d2711f6-21a2-49be-a986-06bd15b4128b","sampleQuestions":["认识信息素养有哪些实操建议？","关于认识信息素养有什么经验？","关于大学学习有什么建议？"]}
+{"displayName":"太妃糖奶酪","id":"54dbc984-3e17-4929-91d8-b01b044d3e89","sampleQuestions":["交大转专业指南有哪些实操建议？","关于交大转专业指南有什么经验？","关于大学学习有什么建议？"]}
+{"displayName":"松鼠读论文","id":"f78aafca-154f-42b3-a55a-813e08ea4c46","sampleQuestions":["三天冲刺有哪些实操建议？","关于三天冲刺有什么经验？","关于大学学习有什么建议？"]}
+{"displayName":"樱桃做实验","id":"135c9c3b-94f2-4011-9bf5-34f391546f09","sampleQuestions":["风险与收益并存有哪些实操建议？","关于风险与收益并存有什么经验？","关于大学学习有什么建议？"]}
+{"displayName":"飞翔的馒头","id":"ef701e3d-bc78-4912-8e8a-c77857855abd","sampleQuestions":["从上海交通大学到合理重修。有哪些经验？","理性缓考有哪些实操建议？","关于理性缓考，合理重修有什么经验？","关于大学学习有什么建议？"]}
+{"displayName":"橙子柿子","id":"fb9a9983-11e0-4c62-b5fc-51fcee2e2c4a","sampleQuestions":["伟大的选修课有哪些实操建议？","关于伟大的选修课有什么经验？","关于大学学习有什么建议？"]}
+{"displayName":"蛋挞追番中","id":"9ec1e686-3e89-40d9-b35e-350ecec30a37","sampleQuestions":["关于过往更新有什么经验？","关于人生规划有什么建议？","关于海外生活有什么建议？"]}
+{"displayName":"坚定的牛轧糖go","id":"ed047256-cfc8-48a7-a222-ecc9eece1d70","sampleQuestions":["从思想哲学到而不是留下来。有哪些经验？","关于我究竟为什么要润，而不是留下来有什么经验？","关于人生规划有什么建议？","关于海外生活有什么建议？"]}
+{"displayName":"橙子_v","id":"6d87ea84-a8cb-46a8-aaaf-10d5cf39a27c","sampleQuestions":["关于布尔什维克有什么经验？","关于人生规划有什么建议？","关于海外生活有什么建议？"]}
+{"displayName":"蛋挞布丁","id":"4873f74d-0629-4ba4-a4cf-53b83208b7a1","sampleQuestions":["关于法家和秦制有什么经验？","关于人生规划有什么建议？","关于海外生活有什么建议？"]}
+{"displayName":"阳光的豆包9","id":"7628aded-db1b-4261-bca4-074a8711764e","sampleQuestions":["关于人生规划有什么建议？","关于海外生活有什么建议？"]}
+{"displayName":"奔跑的栗子","id":"b544d717-e9eb-45a9-9abd-3c1dd0f14e53","sampleQuestions":["关于统治的三种形态有什么经验？","关于人生规划有什么建议？","关于海外生活有什么建议？"]}
+{"displayName":"坚定的泡芙lab","id":"656416ba-60ff-4ced-8c81-1aebc2d31783","sampleQuestions":["关于“最后一代”和“润学”：中国年轻人的绝望与幻有什么经验？","关于人生规划有什么建议？","关于海外生活有什么建议？"]}
+{"displayName":"安静的海豚","id":"71a61807-ba34-49fa-914f-23b1a60ccee9","sampleQuestions":["关于下午察：如何理解网络流行语“润”？有什么经验？","关于人生规划有什么建议？","关于海外生活有什么建议？"]}
+{"displayName":"菠萝饺子","id":"c1cdbb41-bde9-4038-aa19-17d4b07ea15f","sampleQuestions":["关于浙大本科美国三本佛罗里达数据工程师有什么经验？","关于人生规划有什么建议？","关于海外生活有什么建议？"]}
+{"displayName":"淡定的春卷_v","id":"62f0f3d9-48e4-4ffe-ae17-2973ba723411","sampleQuestions":["关于硕士秋招SDE找工时间线总结有什么经验？","秋招过程中有哪些关键节点？","关于人生规划有什么建议？","关于海外生活有什么建议？"]}
+{"displayName":"安静的荔枝mm","id":"8df3e2ee-827e-4733-858a-806efafe5caf","sampleQuestions":["关于中国的性少数群体有什么经验？","关于人生规划有什么建议？","关于海外生活有什么建议？"]}
+{"displayName":"坚定的杨梅","id":"8268941a-88b0-406c-a128-b2b029e196a9","sampleQuestions":["关于戴庆成：移民海外港人为何不快乐？有什么经验？","关于人生规划有什么建议？","关于海外生活有什么建议？"]}
+{"displayName":"奔跑的奶酪","id":"52ffc616-f2fc-4851-b070-f81ad1f3750b","sampleQuestions":["关于政治体制改革总体设想有什么经验？","关于人生规划有什么建议？","关于海外生活有什么建议？"]}
+{"displayName":"淡定的雪花bb","id":"2b2467ad-99ce-4161-876b-117073429e58","sampleQuestions":["关于爱因斯坦为什么不去苏联有什么经验？","关于人生规划有什么建议？","关于海外生活有什么建议？"]}
+{"displayName":"勇敢的泡芙lab","id":"a9453bce-109f-4e28-a203-b9f916cfb9ba","sampleQuestions":["从人生感悟到辩证润。有哪些经验？","关于理性润，辩证润有什么经验？","关于人生规划有什么建议？","关于海外生活有什么建议？"]}
+{"displayName":"瓢虫河马","id":"91f9a661-8074-4e9b-8545-670fab9986c6","sampleQuestions":["关于出逃的女人——纪念张爱玲诞辰100周年有什么经验？","关于人生规划有什么建议？","关于海外生活有什么建议？"]}
+{"displayName":"温柔的西瓜君","id":"39eed014-2ffb-42cc-9003-17ece34c47a0","sampleQuestions":["关于美国人的自由到底是什么自由有什么经验？","关于人生规划有什么建议？","关于海外生活有什么建议？"]}
+{"displayName":"凉皮ya","id":"c9c5956d-f9cc-43eb-b697-db811f1d2ea4","sampleQuestions":["关于赎罪券销售中心｜聊聊 “润”有什么经验？","关于人生规划有什么建议？","关于海外生活有什么建议？"]}
+{"displayName":"石榴看电影","id":"81f53fbb-ca19-4cec-aa49-06af5f018fd6","sampleQuestions":["关于苏联是如何在意识形态领域自废武功有什么经验？","关于人生规划有什么建议？","关于海外生活有什么建议？"]}
+{"displayName":"热情的马卡龙cc","id":"02a61fd6-6c26-40d3-890a-2458687b1186","sampleQuestions":["关于西方媒体是怎样给西方人洗脑的有什么经验？","关于人生规划有什么建议？","关于海外生活有什么建议？"]}
+{"displayName":"银杏考证中","id":"6b986fde-5648-401c-ab6e-45dc740fd32b","sampleQuestions":["从人生感悟到第三集有哪些经验？","关于03, 第三集，高校里的人民战争有什么经验？","关于人生规划有什么建议？","关于海外生活有什么建议？"]}
+{"displayName":"布丁go","id":"64fe6117-30bf-4e13-8730-44074f226eac","sampleQuestions":["关于如何寻找适合自己的方案有什么经验？","关于人生规划有什么建议？","关于海外生活有什么建议？"]}
+{"displayName":"企鹅go","id":"d485cafe-41a6-404b-b0b2-c957603590f8","sampleQuestions":["关于底层鼠人逃跑指南有什么经验？","关于人生规划有什么建议？","关于海外生活有什么建议？"]}
+{"displayName":"阳光的荔枝","id":"6655e8cf-785f-40bf-b8fe-7b532bc2983f","sampleQuestions":["关于绿卡、永居、国籍的概念与区分有什么经验？","关于人生规划有什么建议？","关于海外生活有什么建议？"]}
+{"displayName":"冰棍学画画","id":"4e6740d4-b468-433f-bdac-41ab932e73b3","sampleQuestions":["关于学好英文的十个步骤有什么经验？","关于人生规划有什么建议？","关于海外生活有什么建议？"]}
+{"displayName":"馒头苹果","id":"302e2151-35dd-4223-b966-0892b0bd138d","sampleQuestions":["关于Run: CS教授的靠譜潤學有什么经验？","关于人生规划有什么建议？","关于海外生活有什么建议？"]}
+{"displayName":"淡定的布丁","id":"f2001ba6-d08c-4533-b0ed-38f99eec281f","sampleQuestions":["关于冷门美签简介有什么经验？","关于人生规划有什么建议？","关于海外生活有什么建议？"]}
+{"displayName":"安静的绿豆","id":"3823f198-5f5c-4726-b3aa-f8c9102b8d4e","sampleQuestions":["关于没抽到H1B怎么办有什么经验？","关于人生规划有什么建议？","关于海外生活有什么建议？"]}
+{"displayName":"蘑菇9","id":"2b1385f3-259d-4d90-953e-c2b8df2d22ee","sampleQuestions":["从海外生活规划到NIW与O1申请实。有哪些经验？","关于润美国网meiguo.run系列：EB1，N有什么经验？","关于人生规划有什么建议？","关于海外生活有什么建议？"]}
+{"displayName":"淡定的珍珠mm","id":"ac1326cb-a7ec-40ef-bb01-7e37317ea56f","sampleQuestions":["关于王探长系列之：H1B没抽中签如何轻松破解有什么经验？","关于人生规划有什么建议？","关于海外生活有什么建议？"]}
+{"displayName":"甜甜的橙子","id":"9da68481-049c-4191-b3d4-f1b9225a0c97","sampleQuestions":["关于美国EB-5投资移民签证实操圣经 (2022有什么经验？","关于人生规划有什么建议？","关于海外生活有什么建议？"]}
+{"displayName":"阳光的烧饼","id":"dcf74e8f-f4d2-44db-bc07-7e72d1839534","sampleQuestions":["关于北欧文化有什么经验？","关于人生规划有什么建议？","关于海外生活有什么建议？"]}
+{"displayName":"春卷吃火锅","id":"f4c2c049-4cd5-4a90-b97a-b8e30c526ae3","sampleQuestions":["关于1978年以来中国资本家地位变化有什么经验？","关于人生规划有什么建议？","关于海外生活有什么建议？"]}
+{"displayName":"鸽子逛公园","id":"5b08ff73-6ae2-4bed-9e81-09159e7b27c5","sampleQuestions":["关于社融数据有什么经验？","关于人生规划有什么建议？","关于海外生活有什么建议？"]}
+{"displayName":"樱桃oo","id":"501911b7-570d-454a-a8ef-119648521abd","sampleQuestions":["如何使用这本书有哪些实操建议？","关于如何使用这本书有什么经验？","关于课程推荐有什么建议？"]}
+{"displayName":"烧饼dd","id":"55bb0380-1b45-4fdc-81c7-2df8c9c6ea66","sampleQuestions":["计算机自学怎么入门？","有哪些好的CS公开课？","怎么系统学习计算机？","AI方向学什么课？"]}
+{"displayName":"榴莲蜻蜓","id":"03c9abf1-625b-44c5-8f98-4d652465722d","sampleQuestions":["Neural有哪些实操建议？","关于Neural Networks: Zero 有什么经验？","关于课程推荐有什么建议？"]}
+{"displayName":"安静的仓鼠3","id":"862eb9e4-227a-4896-ab11-323f02154bf3","sampleQuestions":["ETH:有哪些实操建议？","关于ETH: Computer Architec有什么经验？","关于课程推荐有什么建议？"]}
+{"displayName":"橙子在学习","id":"8e59ca51-ccaf-4555-9738-9dcce6b38753","sampleQuestions":["Digital有哪些实操建议？","关于Digital Design and Com有什么经验？","关于课程推荐有什么建议？"]}
+{"displayName":"拿铁章鱼","id":"08e62071-953a-482d-b378-376312024615","sampleQuestions":["CMake有哪些实操建议？","关于CMake有什么经验？","关于课程推荐有什么建议？"]}
+{"displayName":"企鹅种花中","id":"672c28a5-2635-4610-86e7-47da284af902","sampleQuestions":["GNU有哪些实操建议？","关于GNU Make有什么经验？","关于课程推荐有什么建议？"]}
+{"displayName":"布丁水母","id":"9499017d-e45e-4a2f-aa99-7a8afec4ce86","sampleQuestions":["Scoop有哪些实操建议？","关于Scoop有什么经验？","关于课程推荐有什么建议？"]}
+{"displayName":"珍珠在摸鱼","id":"516abebe-bbd6-4740-808a-27e9267f2729","sampleQuestions":["Vim有哪些实操建议？","关于Vim有什么经验？","关于课程推荐有什么建议？"]}
+{"displayName":"年糕烧饼","id":"dfe15eca-84d6-4519-aaee-35103965bf22","sampleQuestions":["Practical有哪些实操建议？","关于Practical Toolbox有什么经验？","关于课程推荐有什么建议？"]}
+{"displayName":"红豆喝绿茶","id":"df1fb49b-5d46-46ae-8113-c796da0b09aa","sampleQuestions":["实用工具箱有哪些实操建议？","关于实用工具箱有什么经验？","关于课程推荐有什么建议？"]}
+{"displayName":"包子鸭","id":"3d749540-f3bf-4a15-aede-fed72a36c1fb","sampleQuestions":["MIT有哪些实操建议？","关于MIT 6.S081: Operating 有什么经验？","关于课程推荐有什么建议？"]}
+{"displayName":"橙子汤圆","id":"eabf74f4-03b0-4bea-bf9d-cf15792d3db7","sampleQuestions":["MIT有哪些实操建议？","关于MIT Calculus Course有什么经验？","关于课程推荐有什么建议？"]}
+{"displayName":"泡芙薯片","id":"e7e61650-e30e-4086-99c8-067de032836d","sampleQuestions":["MIT有哪些实操建议？","关于MIT 6.042J: Mathematic有什么经验？","关于课程推荐有什么建议？"]}
+{"displayName":"飞翔的春卷","id":"7c48409b-497c-43ce-9720-b841aa5815b4","sampleQuestions":["Caltech有哪些实操建议？","关于Caltech CS 122: Databa有什么经验？","关于课程推荐有什么建议？"]}
+{"displayName":"馒头dd","id":"0cfbf022-3fd8-4407-a2c0-6b7cb59c52e8","sampleQuestions":["Stanford有哪些实操建议？","关于Stanford CS 346: Datab有什么经验？","关于课程推荐有什么建议？"]}
+{"displayName":"珍珠兔兔","id":"00412f47-f17f-4620-b83f-841f547455ae","sampleQuestions":["计算机自学怎么入门？","有哪些好的CS公开课？","怎么系统学习计算机？","AI方向学什么课？"]}
+{"displayName":"麻雀练瑜伽","id":"1fa6f7e9-7f83-4efb-9464-4a2c098cad56","sampleQuestions":["Columbia有哪些实操建议？","关于Columbia STAT 8201: De有什么经验？","关于课程推荐有什么建议？"]}
+{"displayName":"慵懒的拿铁cc","id":"1aa81499-804e-49b4-8020-1438e4b831cb","sampleQuestions":["机器学习进阶学习路线有哪些实操建议？","关于机器学习进阶学习路线有什么经验？","关于课程推荐有什么建议？"]}
+{"displayName":"麻雀瓢虫","id":"0ec21fb5-7eb7-48a8-84e9-2844fd8169f2","sampleQuestions":["Deep有哪些实操建议？","关于Deep Generative Models有什么经验？","关于课程推荐有什么建议？"]}
+{"displayName":"栗子榴莲","id":"87fb4cae-1c52-4195-81a7-991fc4140362","sampleQuestions":["计算机自学怎么入门？","有哪些好的CS公开课？","怎么系统学习计算机？","AI方向学什么课？"]}
+{"displayName":"馒头打工中","id":"3134d294-0b23-4d01-8725-f27f193f4b82","sampleQuestions":["UCB有哪些实操建议？","关于课程推荐有什么建议？"]}
+{"displayName":"奶茶在赶DDL","id":"5605b1a0-bbfd-4a1a-9335-16cb2d74c89e","sampleQuestions":["SEEDLabs有哪些实操建议？","关于SEEDLabs有什么经验？","关于课程推荐有什么建议？"]}
+{"displayName":"豆包遛弯了","id":"4507c04a-db00-4dfa-93ac-398e27c84c65","sampleQuestions":["UCB:有哪些实操建议？","关于UCB: Sysadmin DeCal有什么经验？","关于课程推荐有什么建议？"]}
+{"displayName":"俏皮的蜗牛9","id":"7099f388-77ca-4130-ba48-4dbf2b9e8221","sampleQuestions":["Haskell有哪些实操建议？","关于Haskell MOOC有什么经验？","关于课程推荐有什么建议？"]}
+{"displayName":"杨梅看星星","id":"c89e3b7e-5ca6-4aa1-be44-88eef4740d9b","sampleQuestions":["计算机自学怎么入门？","有哪些好的CS公开课？","怎么系统学习计算机？","AI方向学什么课？"]}
+{"displayName":"橙子橙子","id":"f3dc4a8e-4925-41b0-92ff-24667418f104","sampleQuestions":["计算机自学怎么入门？","有哪些好的CS公开课？","怎么系统学习计算机？","AI方向学什么课？"]}
+{"displayName":"蜗牛画水彩","id":"21ba9419-8b96-427a-93d6-c52b7e9aa7a4","sampleQuestions":["关于CS 168: Introduction t有什么经验？","关于课程推荐有什么建议？"]}
+{"displayName":"可可看日落","id":"77515566-1a29-4385-b23f-20bda1cccc08","sampleQuestions":["关于CS 168：Introduction to有什么经验？","关于课程推荐有什么建议？"]}
+{"displayName":"榴莲练瑜伽","id":"377dcb52-8d09-438a-af8f-fe797b93b816","sampleQuestions":["CMU有哪些实操建议？","关于课程推荐有什么建议？"]}
+{"displayName":"勇敢的桂花x","id":"a1f20fd3-cdac-47ae-b390-3c63ac27f07d","sampleQuestions":["MIT有哪些实操建议？","关于MIT 6.031: Software Co有什么经验？","关于课程推荐有什么建议？"]}
+{"displayName":"春卷海星","id":"d7001ff6-eedf-4b85-bf3f-b786db4d9305","sampleQuestions":["UCB有哪些实操建议？","关于课程推荐有什么建议？"]}
+{"displayName":"一楠说不要了","id":"ec75f197-0df2-4eef-81ca-e9b17e472c01","sampleQuestions":["怎么摆脱乖乖女思维？","学生思维怎么转成职场思维？","具体怎么找内心热爱？","实习只做打杂怎么破局？"]}
+{"displayName":"温特多边形","id":"d153faa1-6780-40da-946d-f05b5607ec00","sampleQuestions":["怎么成为多边形战士？","保研需要提前做什么？","大学信息差怎么补？","科研入门从哪里开始？"]}
+{"displayName":"西部小城第一","id":"366e62cd-ec12-4d12-93b7-410f185a49ac","sampleQuestions":["第一代大学生怎么突破重围？","西部小城孩子怎么找方向？","专业第一还焦虑怎么办？","高考后怎么赚到第一桶金？"]}
+{"displayName":"乡村振兴创客","id":"5c5355bc-0254-422b-95d6-2692361ed51a","sampleQuestions":["大学兼职怎么选才值得？","从校园到创业怎么过渡？","乡村振兴创业怎么做？","艺考生怎么规划变现路径？"]}
+{"displayName":"林老师聊留学","id":"52015cd8-7023-4412-be00-db0f030e8af3","sampleQuestions":["留学中介里的水有多深？","香港、英国、澳洲怎么选？","个人陈述怎么写才出彩？","没有语言成绩能申请吗？"]}
+{"displayName":"廖翔榨干复盘","id":"de8cb86d-9d87-4218-9a83-9f3573854d3d","sampleQuestions":["高考复读怎么逆袭？","榨干策略具体怎么做？","数学不好怎么翻盘？","复读期间怎么保持状态？"]}
+{"displayName":"篮球商业操盘","id":"e5e536cb-01e2-4047-a0a5-a72250fea642","sampleQuestions":["双非二本怎么申欧陆top商学院？","篮球智慧怎么用在商业上？","体育背景怎么转型商科？","申请文书怎么讲故事？"]}
+{"displayName":"创赛破局女生","id":"c62880b4-8ae3-4b6b-b423-1a1aef0ffd1d","sampleQuestions":["创赛小白怎么入门？","普通女生怎么拿市单位实习？","3年破局路线怎么规划？","竞赛奖项怎么积累？"]}
+{"displayName":"联合国开挂史","id":"0adc4477-85b3-465a-8e62-61cb6b87db80","sampleQuestions":["怎么从30+奖项到联合国offer？","竞赛和实习怎么组合？","开挂履历怎么规划？","国际组织怎么申请？"]}
+{"displayName":"阿里破局女孩","id":"12df591f-5f83-4878-b607-25e747a590ac","sampleQuestions":["小镇女孩怎么进大厂？","普通背景怎么闯阿里？","怎么打破嫁得好思维？","普通学校怎么逆袭？"]}
+{"displayName":"二本到小米","id":"de4d032a-1079-4375-875d-720759b036a7","sampleQuestions":["二本怎么进小米？","普通大学生逆袭路线图？","校招怎么准备？","简历平平怎么突出？"]}
+{"displayName":"南海到Web3","id":"33d46561-978f-4ac7-b0c8-200043336a93","sampleQuestions":["从南海舰队到Web3怎么转型？","非常规履历怎么讲故事？","Web3顾问怎么入门？","跨界转型要补什么？"]}
+{"displayName":"口吃到央视","id":"bea63dc6-f254-4951-a0cd-2af6141177ab","sampleQuestions":["口吃怎么克服上舞台？","普通人怎么上央视？","表达能力怎么训练？","内向的人怎么做主持？"]}
+{"displayName":"成都土著家居服","id":"cf7181fc-b727-4e42-8dc2-a0676079be2e","sampleQuestions":["主业B端运营怎么兼顾开家居服店？","从杭州回成都工作怎么规划？","线下店10万投入怎么快速回本？","B端和C端运营有什么区别？"]}
+{"displayName":"七年七份工作","id":"0cb1d78b-bcc5-49ff-9439-116f93c24686","sampleQuestions":["8年换7份工作正常吗？","找工作怎么避免病急乱投医？","频繁跳槽怎么讲清楚故事？","怎么判断下一份工作值不值得去？"]}
+{"displayName":"盖洛普自由职业","id":"ce240407-7c50-433a-a803-c999d8372d6a","sampleQuestions":["产品经理怎么转优势咨询？","自由职业一天工作几小时？","Gap期怎么验证自由职业方向？","盖洛普咨询怎么获客？"]}
+{"displayName":"30岁热爱生活","id":"12abfefe-602c-4f4f-9ea5-967ea4d3cd95","sampleQuestions":["30岁怎么从热爱工作转向热爱生活？","工作狂怎么学会休息？","一线城市打拼怎么兼顾生活？","怎么和伴侣规划异地和未来？"]}
+{"displayName":"运营顾问Sina","id":"57e55e27-6fe5-4684-ab44-535802a1265b","sampleQuestions":["独立运营顾问怎么接单？","怎么把热爱变成事业？","收入翻倍是怎么做到的？","自由职业者怎么自我探索？"]}
+{"displayName":"武大新闻秋招","id":"9f942fb6-ee0e-4577-b961-c0824b04d0b1","sampleQuestions":["新闻学专业秋招怎么选方向？","武大本硕校招经验是什么？","文科生怎么拿互联网offer？","秋招时间线怎么规划？"]}
+{"displayName":"产运offer五连斩","id":"07e680b7-fe93-4c20-9b25-b538c06d4562","sampleQuestions":["英本澳硕怎么拿大厂产运offer？","产运五连斩怎么做到的？","留学背景校招有什么优势？","怎么同时拿多个offer？"]}
+{"displayName":"腾讯面11次","id":"9e614879-737e-4156-b3ba-15670e7699c6","sampleQuestions":["腾讯秋招为什么能面11次？","多次面试怎么保持状态？","腾讯校招流程是怎样的？","面试挂了很多次怎么办？"]}
+{"displayName":"芯片offer收割","id":"3b4a659a-f291-4a86-8b30-eb638dec218e","sampleQuestions":["双非本硕怎么拿芯片offer？","半导体校招怎么准备？","芯片行业哪些公司在招？","工科校招怎么海投？"]}
+{"displayName":"英语本硕秋招","id":"423449b1-7d80-4e71-8210-e819b74cf974","sampleQuestions":["英语专业本硕怎么校招？","双一流英语生有哪些出路？","文科秋招怎么选行业？","英语背景能进互联网吗？"]}
+{"displayName":"博士AI收割机","id":"ff15417b-54a9-4245-b1fd-d36f10623aed","sampleQuestions":["中科院博士怎么拿AI顶级offer？","博士校招和硕士有什么不同？","AI方向博士去工业界还是学术界？","顶级offer怎么谈薪？"]}
+{"displayName":"不想成功的大人","id":"4b5dabf4-3882-4a1f-a4b7-fecab738ac66","sampleQuestions":["不想成为成功的大人是什么意思？","怎么重新定义成功？","佩轩是怎么看职场成长的？","承认不想卷需要勇气吗？"]}
+{"displayName":"KV数字游民","id":"be0a58c3-e467-46d6-b9a2-b4f6fe844340","sampleQuestions":["3个月怎么跑通一人公司？","从大厂运营到数字游民怎么过渡？","数字游民需要准备什么？","一人公司怎么选方向？"]}
+{"displayName":"AI写真被动收入","id":"44b57228-589d-4038-9162-3a708e1b6743","sampleQuestions":["不露脸怎么做AI写真副业？","布噜的被动收入怎么建立的？","AI写真需要哪些工具？","被动收入副业要持续维护吗？"]}
+{"displayName":"李学长","id":"cc9acd03-a880-4ba5-95d0-aaf6b0b82737","sampleQuestions":["非科班转产品经理可行吗？","转行需要准备多久？","降薪转行值不值得？"]}
+{"displayName":"猫头鹰x去爬山","id":"48a7f4ad-535e-4005-9593-669c17c62406","sampleQuestions":["留学生活是怎么样的","国外生活是怎么样的","怎么判断自己适不适合出国？"]}
+{"displayName":"芒果学画画","id":"759f0657-9a03-486b-81ab-fa47fc4ac3aa","sampleQuestions":["关于国际经济与贸易留学经验有什么经验？","关于国际经济与贸易有什么建议？"]}
+{"displayName":"慵懒的锦鲤7","id":"84f80df1-daac-4798-a9c8-c1268866a944","sampleQuestions":["深圳大学申请Edinburgh master@C有哪些经验？","关于CompSci 留学有什么经验？","关于计软有什么建议？"]}
+{"displayName":"从计算机转运营的红总","id":"bb9fc861-c334-44d8-8869-b91b63ce1137","sampleQuestions":["计算机怎么转运营？","第一份美团实习怎么来的？","实习和课程怎么平衡？","大厂运营压力大吗？"]}
+{"displayName":"从理想销售转招聘的Jeff","id":"580e2058-10f0-4a42-a2a5-a007ffb7eeac","sampleQuestions":["双非本硕怎么转HR？","从汽车销售转互联网可能吗？","美团HR校招怎么准备？","跨行求职怎么讲故事？"]}
