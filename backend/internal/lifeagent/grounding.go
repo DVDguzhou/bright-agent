@@ -186,7 +186,7 @@ func DeweightRecentlyUsedEntries(plan *RetrievalPlan, recentIDs []string) {
 	}
 	var fresh, reused []KnowledgeEntryForAI
 	for _, e := range plan.Entries {
-		if usedSet[e.ID] {
+		if usedSet[e.ID] || usedSet[e.SourceEntryID] {
 			reused = append(reused, e)
 		} else {
 			fresh = append(fresh, e)

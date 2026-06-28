@@ -350,9 +350,12 @@ func injectVectorHitsIntoPlan(plan *RetrievalPlan, hits []SemanticHit, allEntrie
 		minVectorOnly   = 0.65 // 只靠向量命中的最低阈值（更严格）
 	)
 	// 建立 lookup，按 ID 取回原对象
+	entriesBySourceID := make(map[string][]KnowledgeEntryForAI, len(allEntries))
 	entryByID := make(map[string]KnowledgeEntryForAI, len(allEntries))
 	for _, e := range allEntries {
 		if IsEvidenceKnowledgeEntry(e) {
+			sourceID := firstNonEmpty(e.SourceEntryID, e.ID)
+			entriesBySourceID[sourceID] = append(entriesBySourceID[sourceID], e)
 			entryByID[e.ID] = e
 		}
 	}
@@ -373,13 +376,13 @@ func injectVectorHitsIntoPlan(plan *RetrievalPlan, hits []SemanticHit, allEntrie
 	addedEntries, addedTopics := 0, 0
 	addTopicSources := func(topic TopicSummaryForAI) {
 		for _, sourceID := range topic.SourceEntryIDs {
-			if len(existingEntry) >= maxPlanEntries || addedEntries >= maxExtraEntries || existingEntry[sourceID] {
-				continue
-			}
-			if entry, exists := entryByID[sourceID]; exists {
+			for _, entry := range entriesBySourceID[sourceID] {
+				if len(existingEntry) >= maxPlanEntries || addedEntries >= maxExtraEntries || existingEntry[entry.ID] {
+					continue
+				}
 				plan.Entries = append(plan.Entries, entry)
 				plan.Reasons = append(plan.Reasons, "topic-source:entry:"+entry.Title)
-				existingEntry[sourceID] = true
+				existingEntry[entry.ID] = true
 				addedEntries++
 			}
 		}
@@ -403,7 +406,7 @@ func injectVectorHitsIntoPlan(plan *RetrievalPlan, hits []SemanticHit, allEntrie
 			if e, ok := entryByID[h.ID]; ok {
 				plan.Entries = append(plan.Entries, e)
 				plan.Reasons = append(plan.Reasons, "vector:entry:"+e.Title)
-				existingEntry[h.ID] = true
+				existingEntry[e.ID] = true
 				addedEntries++
 			}
 		case "topic":
@@ -556,11 +559,13 @@ func BackfillEmbeddingsAsync(
 // HydrateEntryEmbeddings 把 DB 行的 Embedding 字节解码到 ForAI 视图里，
 // 便于 RunHybridRetrieval 时直接用。传入两个切片必须一一对应。
 func HydrateEntryEmbeddings(rows []models.LifeAgentKnowledgeEntry, out []KnowledgeEntryForAI) {
-	if len(rows) != len(out) {
-		return
+	byID := make(map[string][]float32, len(rows))
+	for _, row := range rows {
+		byID[row.ID] = DecodeVector(row.Embedding)
 	}
-	for i := range rows {
-		out[i].Embedding = DecodeVector(rows[i].Embedding)
+	for i := range out {
+		sourceID := firstNonEmpty(out[i].SourceEntryID, out[i].ID)
+		out[i].Embedding = byID[sourceID]
 	}
 }
 

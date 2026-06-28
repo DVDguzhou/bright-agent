@@ -91,7 +91,7 @@ func topicRedundantWithEntries(topic TopicSummaryForAI, entries []KnowledgeEntry
 			return true
 		}
 		for _, id := range topic.SourceEntryIDs {
-			if id == e.ID {
+			if id == e.ID || id == e.SourceEntryID {
 				return true
 			}
 		}
@@ -415,7 +415,7 @@ func BuildCitationCatalog(plan RetrievalPlan) CitationCatalog {
 				Confidence:  conf,
 				Route:       route,
 				Facets:      FacetSummary(entry.Facets),
-				ParentID:    entry.ID,
+				ParentID:    firstNonEmpty(entry.SourceEntryID, entry.ID),
 				ParentTitle: entry.Title,
 				ChunkIndex:  chunk.Index,
 				CharStart:   chunk.CharStart,

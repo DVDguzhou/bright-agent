@@ -77,6 +77,8 @@ func InterpretModificationIntent(ctx context.Context, apiKey, model, baseURL str
 7. 若无任何变更（既无 knowledgeAdd 也无字段修改），changes 设为 null。
 8. 只输出这一个 JSON 对象，不要 markdown 代码块、不要额外说明。`
 
+	systemPrompt += "\n9. 【事件级知识拆分】一条消息包含多个可独立引用的事件或观点时，knowledgeAdd 必须拆成多条。优先按显式标题、自然段、年份、教育阶段、职业变化、项目阶段、地点/组织变化和语义主题变化划分；每条只表达一个主要事件，title 写成『时间/阶段 · 核心事件』或准确的观点名称。禁止把跨阶段、跨主题内容塞进一条并用第一段命名。不要切碎因果链：同一事件的原因、行动、结果和反思应保留在同一条。"
+
 	userContent := fmt.Sprintf("【当前 Agent 状态】\n%s\n\n【用户新消息】\n%s", currentState, userMessage)
 
 	messages := make([]openai.ChatCompletionMessage, 0, len(chatHistory)+2)

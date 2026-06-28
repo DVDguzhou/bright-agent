@@ -65,6 +65,7 @@ type ProfileForAI struct {
 
 type KnowledgeEntryForAI struct {
 	ID             string
+	SourceEntryID  string
 	Category       string
 	Title          string
 	Content        string
@@ -108,14 +109,11 @@ func BuildKnowledgeEntriesForAI(entries []models.LifeAgentKnowledgeEntry) []Know
 		if len(facets.Subjects) == 0 && len(facets.Aspects) == 0 {
 			facets = InferKnowledgeFacetTags(e.Title, e.Category, e.Content, []string(e.Tags))
 		}
-		out = append(out, KnowledgeEntryForAI{
-			ID:       e.ID,
-			Category: e.Category,
-			Title:    e.Title,
-			Content:  e.Content,
-			Tags:     []string(e.Tags),
-			Facets:   facets,
-		})
+		base := KnowledgeEntryForAI{
+			ID: e.ID, SourceEntryID: e.ID, Category: e.Category, Title: e.Title,
+			Content: e.Content, Tags: []string(e.Tags), Facets: facets,
+		}
+		out = append(out, PartitionKnowledgeEntry(base)...)
 	}
 	return out
 }

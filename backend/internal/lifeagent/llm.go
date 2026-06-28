@@ -880,6 +880,9 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 	needsReconcile := false
 	answerPolicy := PolicyAdvisory
 	if chatIntent != chatIntentSmallTalk {
+		if opts != nil {
+			AttachTimelineSourceEntries(&fullPlan, opts.TimelineEvents, entries, message)
+		}
 		planStrict = StrictFromPlan(fullPlan)
 		if opts != nil && len(opts.LiveUpdates) > 0 {
 			AttachLiveUpdatesFiltered(&planStrict, opts.LiveUpdates, introIntent, message)

@@ -134,6 +134,58 @@ func FormatTimelinePromptSection(events []TimelineEventForAI) string {
 	return sb.String()
 }
 
+// AttachTimelineSourceEntries expands broad chronology questions with the raw
+// knowledge entries behind each timeline event. Generation and citation must
+// see the same evidence set.
+func AttachTimelineSourceEntries(plan *RetrievalPlan, events []TimelineEventForAI, entries []KnowledgeEntryForAI, query string) int {
+	if plan == nil || !WantsTimelineOverview(query) {
+		return 0
+	}
+	events = filterTimelineEventsForPrompt(events)
+	if len(events) == 0 {
+		return 0
+	}
+
+	entriesBySourceID := make(map[string][]KnowledgeEntryForAI, len(entries))
+	for _, entry := range entries {
+		if IsEvidenceKnowledgeEntry(entry) {
+			sourceID := firstNonEmpty(entry.SourceEntryID, entry.ID)
+			entriesBySourceID[sourceID] = append(entriesBySourceID[sourceID], entry)
+		}
+	}
+	existing := make(map[string]bool, len(plan.Entries))
+	for _, entry := range plan.Entries {
+		existing[entry.ID] = true
+	}
+
+	added := 0
+	for _, event := range events {
+		for _, sourceID := range event.SourceEntryIDs {
+			for _, entry := range entriesBySourceID[sourceID] {
+				if existing[entry.ID] {
+					continue
+				}
+				plan.Entries = append(plan.Entries, entry)
+				plan.Reasons = append(plan.Reasons, "timeline-source:entry:"+entry.Title)
+				existing[entry.ID] = true
+				added++
+			}
+		}
+	}
+	return added
+}
+
+func WantsTimelineOverview(query string) bool {
+	norm := normalize(query)
+	if norm == "" {
+		return false
+	}
+	return containsAnyNormalized(norm, []string{
+		"大一到大四", "大一至大四", "大学四年", "大学这几年", "整个大学", "大学期间",
+		"按时间", "时间线", "从大一", "大一大二大三大四", "经历顺序", "成长经历",
+	})
+}
+
 func filterTimelineEventsForPrompt(events []TimelineEventForAI) []TimelineEventForAI {
 	out := make([]TimelineEventForAI, 0, len(events))
 	for _, e := range events {

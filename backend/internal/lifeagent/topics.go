@@ -60,22 +60,24 @@ func BuildTopicSummariesFromProfileModel(profile models.LifeAgentProfile, entrie
 	}
 	accs := map[string]*topicAccumulator{}
 	for _, entry := range entries {
-		group := inferTopicGroup(entry)
-		label := inferTopicLabel(entry)
-		key := buildTopicKey(group, label, entry)
-		acc := accs[key]
-		if acc == nil {
-			acc = &topicAccumulator{
-				group: group,
-				label: label,
-				key:   key,
+		for _, unit := range topicUnitsForKnowledgeEntry(entry) {
+			group := inferTopicGroup(unit)
+			label := inferTopicLabelForGroup(unit, group)
+			key := buildTopicKey(group, label, unit)
+			acc := accs[key]
+			if acc == nil {
+				acc = &topicAccumulator{
+					group: group,
+					label: label,
+					key:   key,
+				}
+				accs[key] = acc
 			}
-			accs[key] = acc
+			acc.aliases = append(acc.aliases, collectTopicAliases(unit)...)
+			acc.questionPats = append(acc.questionPats, buildTopicQuestionPatterns(group, label)...)
+			acc.sourceEntryIDs = append(acc.sourceEntryIDs, entry.ID)
+			acc.snippets = append(acc.snippets, strings.TrimSpace(unit.Content))
 		}
-		acc.aliases = append(acc.aliases, collectTopicAliases(entry)...)
-		acc.questionPats = append(acc.questionPats, buildTopicQuestionPatterns(group, label)...)
-		acc.sourceEntryIDs = append(acc.sourceEntryIDs, entry.ID)
-		acc.snippets = append(acc.snippets, strings.TrimSpace(entry.Content))
 	}
 	keys := make([]string, 0, len(accs))
 	for key := range accs {
@@ -127,7 +129,7 @@ func BuildTopicCandidatesFromConversationMemory(profileID, sessionID string, mem
 			Tags:     models.JSONArray{topicText},
 		}
 		group := inferTopicGroup(entry)
-		label := inferTopicLabel(entry)
+		label := inferTopicLabelForGroup(entry, group)
 		key := buildTopicKey(group, label, entry)
 		summaryParts := []string{
 			"这是从长期会话记忆里提炼出的候选话题：" + label + "。",
@@ -179,6 +181,19 @@ func BuildTopicSummariesForAI(topics []models.LifeAgentTopicSummary) []TopicSumm
 func inferTopicGroup(entry models.LifeAgentKnowledgeEntry) string {
 	candidates := []string{entry.Category, entry.Title, entry.Content, strings.Join(jsonArrayToStrings(entry.Tags), " ")}
 	norm := normalize(strings.Join(candidates, " "))
+	if hasMultipleUniversityStages(norm) || containsAnyNormalized(norm, []string{"大一", "大二", "大三", "大四", "本科", "大学四年", "大学生活", "大学期间", "校园生活"}) {
+		return "collegeLife"
+	}
+	switch {
+	case hasKnowledgeBoundaryKind(norm, "education"):
+		return "education"
+	case hasKnowledgeBoundaryKind(norm, "career"):
+		return "career"
+	case hasKnowledgeBoundaryKind(norm, "project"):
+		return "startup"
+	case hasKnowledgeBoundaryKind(norm, "location"):
+		return "cityChoice"
+	}
 	for _, rule := range topicGroupRules {
 		for _, keyword := range rule.keywords {
 			if strings.Contains(norm, normalize(keyword)) {
@@ -187,6 +202,45 @@ func inferTopicGroup(entry models.LifeAgentKnowledgeEntry) string {
 		}
 	}
 	return "other"
+}
+
+func inferTopicLabelForGroup(entry models.LifeAgentKnowledgeEntry, group string) string {
+	labels := map[string]string{
+		"collegeLife":  "大学生活",
+		"education":    "学习与升学",
+		"career":       "职业经历",
+		"industry":     "行业认知",
+		"cityChoice":   "城市与迁移",
+		"startup":      "创业与项目",
+		"money":        "收入与财务",
+		"relationship": "感情经历",
+		"family":       "家庭经历",
+		"mental":       "心态与成长",
+		"lifeChoice":   "人生选择",
+		"social":       "社交与人际",
+	}
+	if label := labels[group]; label != "" {
+		return label
+	}
+	return inferTopicLabel(entry)
+}
+
+func topicUnitsForKnowledgeEntry(entry models.LifeAgentKnowledgeEntry) []models.LifeAgentKnowledgeEntry {
+	facets := ParseKnowledgeFacetTags(entry.FacetTags)
+	base := KnowledgeEntryForAI{
+		ID: entry.ID, SourceEntryID: entry.ID, Category: entry.Category, Title: entry.Title,
+		Content: entry.Content, Tags: []string(entry.Tags), Facets: facets,
+	}
+	parts := PartitionKnowledgeEntry(base)
+	out := make([]models.LifeAgentKnowledgeEntry, 0, len(parts))
+	for _, part := range parts {
+		unit := entry
+		unit.Title = part.Title
+		unit.Content = part.Content
+		unit.Tags = models.JSONArray(part.Tags)
+		out = append(out, unit)
+	}
+	return out
 }
 
 func inferTopicLabel(entry models.LifeAgentKnowledgeEntry) string {
