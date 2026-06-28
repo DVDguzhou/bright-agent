@@ -14,7 +14,9 @@ out/
 # Production
 build
 dist
-backend/backend.exe
+backend/server
+backend/create_agent
+backend/**/*.exe
 # 误用 go build -o 路径时可能生成名为 ... 的目录，勿提交
 backend/.../
 
