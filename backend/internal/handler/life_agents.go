@@ -3460,7 +3460,8 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 		if len(generationRefs) == 0 {
 			generationRefs = refs
 		}
-		replySegments, segmentBackfilled := lifeagent.BackfillSegmentCitationsFromReferences(replySegments, generationRefs)
+		replySegments, lexicalBackfilled := lifeagent.BackfillSegmentCitationsFromReferences(replySegments, generationRefs)
+		replySegments, semanticBackfilled := lifeagent.SemanticBackfillSegmentCitations(c.Request.Context(), embedder, replySegments, generationRefs)
 		replySegments, segRefs, refs := lifeagent.RenumberReplySegmentCitations(replySegments, generationRefs)
 		internalContent := strings.Join(replySegments, "\n\n")
 		_, finalInlineIndexes := lifeagent.ParseInlineCitations(internalContent)
@@ -3472,7 +3473,7 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 		for _, list := range segRefs {
 			segRefsCount += len(list)
 		}
-		log.Printf("[citations] profile=%s session=%s attribution=%s raw_refs=%d raw_inline=%d final_inline=%d answer_refs=%d segment_refs=%d segment_backfilled=%d", id, sessionID, attribution, rawRefsCount, len(rawInlineIndexes), len(finalInlineIndexes), len(refs), segRefsCount, segmentBackfilled)
+		log.Printf("[citations] profile=%s session=%s attribution=%s raw_refs=%d raw_inline=%d final_inline=%d answer_refs=%d segment_refs=%d lexical_backfilled=%d semantic_backfilled=%d", id, sessionID, attribution, rawRefsCount, len(rawInlineIndexes), len(finalInlineIndexes), len(refs), segRefsCount, lexicalBackfilled, semanticBackfilled)
 		if generationJSON, err := json.Marshal(generationRefs); err == nil {
 			log.Printf("[citation-generation] profile=%s session=%s question=%q sources=%s", id, sessionID, body.Message, generationJSON)
 		}

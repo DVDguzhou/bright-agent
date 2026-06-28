@@ -614,24 +614,7 @@ func RenumberReplySegmentCitations(segments []string, refs []map[string]string) 
 		}
 	}
 	if len(oldToNew) == 0 {
-		answerRefs := make([]map[string]string, 0, len(refs))
-		seen := map[string]bool{}
-		for _, ref := range refs {
-			key := ref["sourceType"] + ":" + ref["id"]
-			if key == ":" {
-				key = ref["title"]
-			}
-			if seen[key] {
-				continue
-			}
-			seen[key] = true
-			answerRefs = append(answerRefs, renumberReference(ref, len(answerRefs)+1))
-		}
-		segmentRefs := make([][]map[string]string, len(outSegments))
-		if len(segmentRefs) > 0 {
-			segmentRefs[0] = answerRefs
-		}
-		return outSegments, segmentRefs, answerRefs
+		return outSegments, make([][]map[string]string, len(outSegments)), nil
 	}
 
 	answerRefs := make([]map[string]string, 0, len(orderedOld))
@@ -694,6 +677,111 @@ func BackfillSegmentCitationsFromReferences(segments []string, refs []map[string
 		backfilled++
 	}
 	return out, backfilled
+}
+
+const (
+	semanticCitationMinSimilarity = float32(0.62)
+	semanticCitationMinMargin     = float32(0.04)
+)
+
+// SemanticBackfillSegmentCitations assigns at most one source to each still-
+// uncited bubble. A weak or ambiguous match intentionally remains uncited.
+func SemanticBackfillSegmentCitations(ctx context.Context, embedder Embedder, segments []string, refs []map[string]string) ([]string, int) {
+	out := append([]string(nil), segments...)
+	if embedder == nil || len(out) == 0 || len(refs) == 0 {
+		return out, 0
+	}
+
+	type candidate struct {
+		refIndex int
+		text     string
+	}
+	candidates := make([]candidate, 0, len(refs))
+	for i, ref := range refs {
+		if !isSemanticCitationCandidate(ref) {
+			continue
+		}
+		text := strings.TrimSpace(strings.Join([]string{
+			ref["title"], ref["displayExcerpt"], ref["excerpt"], ref["fullContent"],
+		}, "\n"))
+		if text != "" {
+			candidates = append(candidates, candidate{refIndex: i, text: text})
+		}
+	}
+	if len(candidates) == 0 {
+		return out, 0
+	}
+
+	segmentIndexes := make([]int, 0, len(out))
+	inputs := make([]string, 0, len(candidates)+len(out))
+	for _, candidate := range candidates {
+		inputs = append(inputs, candidate.text)
+	}
+	for i, segment := range out {
+		segment = strings.TrimSpace(NormalizeCitationMarkers(segment))
+		out[i] = segment
+		if segment == "" || sentenceIsCitationExempt(segment) {
+			continue
+		}
+		if _, used := ParseInlineCitations(segment); len(used) > 0 {
+			continue
+		}
+		segmentIndexes = append(segmentIndexes, i)
+		inputs = append(inputs, segment)
+	}
+	if len(segmentIndexes) == 0 {
+		return out, 0
+	}
+
+	vectors, err := embedder.Embed(ctx, inputs)
+	if err != nil || len(vectors) != len(inputs) {
+		return out, 0
+	}
+
+	backfilled := 0
+	for offset, segmentIndex := range segmentIndexes {
+		segmentVector := vectors[len(candidates)+offset]
+		bestIndex := -1
+		bestScore := float32(-1)
+		secondScore := float32(-1)
+		for candidateIndex := range candidates {
+			score := CosineSim(segmentVector, vectors[candidateIndex])
+			if score > bestScore {
+				secondScore = bestScore
+				bestScore = score
+				bestIndex = candidateIndex
+			} else if score > secondScore {
+				secondScore = score
+			}
+		}
+		if bestIndex < 0 || bestScore < semanticCitationMinSimilarity {
+			continue
+		}
+		if len(candidates) > 1 && bestScore-secondScore < semanticCitationMinMargin {
+			continue
+		}
+		ref := refs[candidates[bestIndex].refIndex]
+		n, err := strconv.Atoi(ref["citeIndex"])
+		if err != nil || n <= 0 {
+			continue
+		}
+		out[segmentIndex] = appendCitationMarker(out[segmentIndex], n)
+		backfilled++
+	}
+	return out, backfilled
+}
+
+func isSemanticCitationCandidate(ref map[string]string) bool {
+	n, err := strconv.Atoi(ref["citeIndex"])
+	if err != nil || n <= 0 {
+		return false
+	}
+	switch strings.ToLower(strings.TrimSpace(ref["factKey"])) {
+	case "audience", "welcome_message", "headline":
+		return false
+	}
+	title := strings.ToLower(strings.TrimSpace(ref["title"]))
+	return !strings.Contains(title, "适用人群") && !strings.Contains(title, "擅长与适用")
 }
 
 type scoredCitationReference struct {

@@ -1,9 +1,31 @@
 package lifeagent
 
 import (
+	"context"
 	"strings"
 	"testing"
 )
+
+type citationSemanticTestEmbedder struct{}
+
+func (citationSemanticTestEmbedder) Model() string { return "test" }
+func (citationSemanticTestEmbedder) Dim() int      { return 3 }
+func (citationSemanticTestEmbedder) Embed(_ context.Context, inputs []string) ([][]float32, error) {
+	vectors := make([][]float32, len(inputs))
+	for i, input := range inputs {
+		switch {
+		case strings.Contains(input, "麻辣香锅") || strings.Contains(input, "生活费") || strings.Contains(input, "外卖"):
+			vectors[i] = []float32{1, 0, 0}
+		case strings.Contains(input, "健身") || strings.Contains(input, "私教"):
+			vectors[i] = []float32{0, 1, 0}
+		case strings.Contains(input, "舒适圈"):
+			vectors[i] = []float32{0, 0, 1}
+		default:
+			vectors[i] = []float32{0, 0, 0}
+		}
+	}
+	return vectors, nil
+}
 
 func TestParseInlineCitationsSuperscript(t *testing.T) {
 	text := "我当年考研时挺拼的¹，后来去了 CMU²。"
@@ -588,5 +610,63 @@ func TestBuildCitationCatalogReferencesIncludesGenerationContent(t *testing.T) {
 	refs := BuildCitationCatalogReferences(catalog)
 	if len(refs) != 1 || refs[0]["citeIndex"] != "1" || refs[0]["fullContent"] == "" {
 		t.Fatalf("generation refs = %#v", refs)
+	}
+}
+
+func TestRenumberReplySegmentCitationsDoesNotPutAllSourcesOnFirstBubble(t *testing.T) {
+	segments := []string{"先换个角度聊聊。", "我平时喜欢吃麻辣香锅。"}
+	refs := []map[string]string{
+		{"citeIndex": "1", "id": "food", "title": "生活费"},
+		{"citeIndex": "2", "id": "fitness", "title": "健身经历"},
+	}
+
+	gotSegments, segmentRefs, answerRefs := RenumberReplySegmentCitations(segments, refs)
+	if len(answerRefs) != 0 {
+		t.Fatalf("answer refs = %#v, want none without an explicit assignment", answerRefs)
+	}
+	for i, bubbleRefs := range segmentRefs {
+		if len(bubbleRefs) != 0 {
+			t.Fatalf("bubble %d refs = %#v, want none", i, bubbleRefs)
+		}
+	}
+	if strings.Join(gotSegments, "|") != strings.Join(segments, "|") {
+		t.Fatalf("segments changed: %#v", gotSegments)
+	}
+}
+
+func TestSemanticBackfillAssignsSourcesPerBubble(t *testing.T) {
+	segments := []string{
+		"刚讲了一版大的，我换个角度说点生活细节。",
+		"我住A区，最喜欢吃麻辣香锅，外卖基本没断过，每月生活费大概三千。",
+		"大一到大四办了健身卡，还花五千买了私教课。",
+	}
+	refs := []map[string]string{
+		{"citeIndex": "1", "id": "audience", "sourceType": "fact", "factKey": "audience", "title": "擅长与适用人群", "fullContent": "所有人"},
+		{"citeIndex": "2", "id": "comfort", "sourceType": "knowledge", "title": "突破舒适圈", "fullContent": "每个月做一件以前不敢做的事"},
+		{"citeIndex": "3", "id": "living", "sourceType": "knowledge", "title": "大学生活费与消费习惯", "fullContent": "喜欢麻辣香锅，常点外卖，每月生活费三千"},
+		{"citeIndex": "4", "id": "fitness", "sourceType": "knowledge", "title": "大学健身经历", "fullContent": "办健身卡并购买私教课"},
+	}
+
+	backfilled, count := SemanticBackfillSegmentCitations(context.Background(), citationSemanticTestEmbedder{}, segments, refs)
+	if count != 2 {
+		t.Fatalf("backfilled = %d, want 2; segments=%#v", count, backfilled)
+	}
+	if strings.Contains(backfilled[0], "[") {
+		t.Fatalf("intro bubble should remain uncited: %q", backfilled[0])
+	}
+	if !strings.Contains(backfilled[1], "[3]") || strings.Contains(backfilled[1], "[4]") {
+		t.Fatalf("living bubble assigned incorrectly: %q", backfilled[1])
+	}
+	if !strings.Contains(backfilled[2], "[4]") || strings.Contains(backfilled[2], "[3]") {
+		t.Fatalf("fitness bubble assigned incorrectly: %q", backfilled[2])
+	}
+}
+
+func TestSemanticBackfillLeavesBubblesUncitedWithoutEmbedder(t *testing.T) {
+	segments := []string{"我平时喜欢吃麻辣香锅。"}
+	refs := []map[string]string{{"citeIndex": "1", "title": "生活费", "fullContent": "麻辣香锅"}}
+	got, count := SemanticBackfillSegmentCitations(context.Background(), nil, segments, refs)
+	if count != 0 || got[0] != segments[0] {
+		t.Fatalf("unexpected fallback citation: count=%d segments=%#v", count, got)
 	}
 }
