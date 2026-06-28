@@ -804,6 +804,27 @@
   text-underline-offset: 2rpx;
 }
 
+.citation-topic-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10rpx;
+  margin-top: 8rpx;
+}
+
+.citation-topic-chip {
+  max-width: 100%;
+  padding: 4rpx 12rpx;
+  overflow: hidden;
+  border: 1rpx solid #d8d2c4;
+  border-radius: 4rpx;
+  color: #625b4f;
+  background: #fff;
+  font-size: 20rpx;
+  line-height: 1.5;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .attribution-hint {
   display: block;
   margin-top: 8rpx;

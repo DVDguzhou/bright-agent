@@ -8,7 +8,8 @@ const {
   cleanLifeAgentIntroMultiline,
 } = require("../../utils/intro-clean");
 const {
-  parseCitationSegments,
+  stripCitationMarkers,
+  citationContextLabel,
   attributionHint,
 } = require("../../utils/citations");
 const { getNavMetrics } = require("../../utils/nav-metrics");
@@ -71,9 +72,21 @@ function normalizeMessage(m, sessionId) {
     feedbackType: m.feedbackType || "",
   };
   if (m.role === "assistant" && !m.pending) {
-    out.citationSegments = parseCitationSegments(out.content);
+    out.content = stripCitationMarkers(out.content);
     out.attributionHint = attributionHint(m.attribution);
     out.hasReferences = refs.length > 0;
+    const seenReferences = {};
+    out.referenceLabels = refs.reduce(function (labels, ref) {
+      const key = `${ref.sourceType || "source"}:${ref.parentId || ref.id}`;
+      if (seenReferences[key]) return labels;
+      seenReferences[key] = true;
+      labels.push({
+        key,
+        label: citationContextLabel(ref),
+        citeIndex: parseInt(ref.citeIndex, 10) || 0,
+      });
+      return labels;
+    }, []);
   }
   return out;
 }
@@ -468,6 +481,7 @@ Page({
             : [data.reply || "（无回复）"];
         const ids = data.messageIds || [];
         const refs = data.references || [];
+        const segmentRefs = Array.isArray(data.segmentReferences) ? data.segmentReferences : [];
         const attribution = data.attribution || "";
         const SEGMENT_DELAY_MS = 400;
         const CHUNK_RUNES = 4;
@@ -508,7 +522,7 @@ Page({
                   messageId:
                     ids[segIndex] ||
                     (segIndex === segments.length - 1 ? data.messageId : undefined),
-                  references: refs,
+                  references: segmentRefs[segIndex] || refs,
                   attribution: attribution,
                 },
                 sessionId
@@ -524,7 +538,7 @@ Page({
               role: "assistant",
               content: (base.content || "") + chunk,
               messageId: base.messageId,
-              references: refs,
+              references: segmentRefs[segIndex] || refs,
               attribution: attribution,
             },
             sessionId

@@ -73,20 +73,17 @@
                 </view>
                 <text class="typing-label">思考中...</text>
               </view>
-              <view wx:elif="{{msg.citationSegments && msg.citationSegments.length}}" class="msg-rich">
-                <block wx:for="{{msg.citationSegments}}" wx:for-item="seg" wx:key="index">
-                  <text wx:if="{{seg.type == 'text'}}" user-select>{{seg.text}}</text>
-                  <text
-                    wx:else
-                    class="cite-sup"
-                    user-select
-                    data-msg-idx="{{msgIdx}}"
-                    data-cite-index="{{seg.citeIndex}}"
-                    catchtap="openCitationSheet"
-                  >{{seg.citeIndex}}</text>
-                </block>
-              </view>
               <text wx:else user-select>{{msg.content}}</text>
+            </view>
+            <view wx:if="{{msg.referenceLabels && msg.referenceLabels.length}}" class="citation-topic-list">
+              <text
+                wx:for="{{msg.referenceLabels}}"
+                wx:key="key"
+                class="citation-topic-chip"
+                data-msg-idx="{{msgIdx}}"
+                data-cite-index="{{item.citeIndex}}"
+                catchtap="openCitationSheet"
+              >{{item.label}}</text>
             </view>
             <text wx:if="{{msg.attributionHint}}" class="attribution-hint">{{msg.attributionHint}}</text>
 

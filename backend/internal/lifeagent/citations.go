@@ -536,6 +536,16 @@ func BuildCitedReferences(catalog CitationCatalog, usedIndexes []int, citationsE
 	return refs
 }
 
+// BuildCitationCatalogReferences returns every source exposed to the final
+// generation pass. Per-bubble references remain a filtered subset of this list.
+func BuildCitationCatalogReferences(catalog CitationCatalog) []map[string]string {
+	refs := make([]map[string]string, 0, len(catalog.Items))
+	for _, item := range catalog.Items {
+		refs = append(refs, citationItemToMap(item, true))
+	}
+	return refs
+}
+
 // FilterReferencesByContent keeps only refs whose citeIndex appears inline in content.
 func FilterReferencesByContent(content string, refs []map[string]string) []map[string]string {
 	_, used := ParseInlineCitations(content)
@@ -949,10 +959,10 @@ func buildReconcileCitationRule(citationsEnabled bool) string {
 	if !citationsEnabled {
 		return ""
 	}
-	return "9. 【引用标注 - 硬约束】凡转述了编号素材中的具体事实（时间、学校、考试、做法、数字等），对应那句末尾必须标 [n]。" +
-		"同一条气泡内若多句转述不同素材，每句句末分别标 [n]；每条素材在同一气泡内最多 1 次，不同气泡可以重复。" +
+	return "9. 【内部来源标注 - 硬约束】每个自然段会作为一条独立气泡发送。凡某段使用了编号素材中的事实，该段末尾必须至少标一次对应的 [n]。" +
+		"同一气泡使用多条素材时分别标 [n]；每条素材在同一气泡内最多 1 次，不同气泡必须按实际使用情况重复标注。" +
 		"[n] 必须标在转述了编号 n 那条素材事实的句末，禁止按句子顺序或「第几句」填号。" +
-		"模糊感受、态度、反问句禁止加 [n]。禁止写「根据资料」「知识库」；只用 [n]。\n"
+		"纯语气、模糊感受、态度、反问句不标。标记只供系统解析，禁止写「根据资料」「知识库」。\n"
 }
 
 // EnsureInlineCitations adds [n] markers via a lightweight LLM pass when reconcile omitted them.
@@ -961,12 +971,12 @@ func EnsureInlineCitations(ctx context.Context, client *openai.Client, model, te
 	if text == "" || len(catalog.Items) == 0 {
 		return text
 	}
-	if _, used := ParseInlineCitations(text); len(used) > 0 {
-		return ValidateInlineCitations(NormalizeCitationMarkers(text), catalog)
+	if !paragraphsNeedCitationAssignment(text) {
+		return ValidateInlineCitationIndexes(NormalizeCitationMarkers(text), catalog)
 	}
 
-	system := "你是引用标注助手。任务：仅在直接转述编号素材事实的那一句句末添加 [n] 标注，n 与素材编号一致。\n" +
-		"规则：每条素材在同一段最多 1 次 [n]，不同段可以重复；模糊感受/态度/反问禁止加标注；素材与句意无关时禁止加标注；" +
+	system := "你是来源归属助手。每个自然段都是一条独立聊天气泡。任务：在每个使用了编号素材事实的自然段末尾添加对应 [n]，n 与素材编号一致。\n" +
+		"规则：已有正确标注必须保留；同一素材在同一段最多 1 次，不同段可以重复；纯语气、感受、态度、反问不标；素材与段落事实无关时禁止标；" +
 		"不要改正文措辞、不要删字、不要加解释、不要 Markdown；只输出标注后的正文。"
 	user := "【编号素材】\n" + buildReconcileCatalogPrompt(catalog) +
 		"\n【待标注正文】\n" + text +
@@ -991,7 +1001,42 @@ func EnsureInlineCitations(ctx context.Context, client *openai.Client, model, te
 	if out == "" {
 		return text
 	}
-	return ValidateInlineCitations(NormalizeCitationMarkers(out), catalog)
+	return ValidateInlineCitationIndexes(NormalizeCitationMarkers(out), catalog)
+}
+
+func paragraphsNeedCitationAssignment(text string) bool {
+	for _, para := range splitParagraphs(text) {
+		joined := strings.TrimSpace(joinLinesInParagraph(para))
+		if joined == "" || len([]rune(StripInlineCitations(joined))) < 12 || sentenceIsCitationExempt(joined) {
+			continue
+		}
+		if _, used := ParseInlineCitations(joined); len(used) == 0 {
+			return true
+		}
+	}
+	return false
+}
+
+// ValidateInlineCitationIndexes only checks the internal marker protocol. The
+// LLM assignment pass has the full source text and performs semantic matching;
+// this layer removes hallucinated or unavailable indexes without re-judging by
+// brittle keyword overlap.
+func ValidateInlineCitationIndexes(text string, catalog CitationCatalog) string {
+	valid := make(map[int]bool, len(catalog.Items))
+	for _, item := range catalog.Items {
+		valid[item.CiteIndex] = true
+	}
+	return citeBracketRe.ReplaceAllStringFunc(text, func(marker string) string {
+		match := citeBracketRe.FindStringSubmatch(marker)
+		if len(match) != 2 {
+			return ""
+		}
+		index, err := strconv.Atoi(match[1])
+		if err != nil || !valid[index] {
+			return ""
+		}
+		return marker
+	})
 }
 
 // HeuristicEnsureInlineCitations adds [n] when sentence content matches catalog item semantics.
@@ -1595,9 +1640,8 @@ func capCitationMarkersInParagraph(para string, catalog CitationCatalog, seenInd
 	for _, m := range matches {
 		b.WriteString(para[last:m[0]])
 		n, _ := strconv.Atoi(para[m[2]:m[3]])
-		item, ok := byIndex[n]
-		sent := citationClauseAroundMarker(para, m[0], m[1])
-		keep := ok && !seenIndex[n] && shouldKeepCitation(sent, para, item, catalog)
+		_, ok := byIndex[n]
+		keep := ok && !seenIndex[n]
 		if keep {
 			b.WriteString(para[m[0]:m[1]])
 			seenIndex[n] = true
@@ -1688,11 +1732,10 @@ func sentenceAroundMarker(para string, start, end int) string {
 func FinalizeCitedReply(ctx context.Context, client *openai.Client, model, out string, catalog CitationCatalog, citationsEnabled bool, sparse bool) (string, []map[string]string) {
 	if citationsEnabled {
 		out = NormalizeCitationMarkers(out)
-		_, usedIndexes := ParseInlineCitations(out)
-		if len(catalog.Items) > 0 && len(usedIndexes) == 0 {
+		if len(catalog.Items) > 0 && paragraphsNeedCitationAssignment(out) {
 			out = EnsureInlineCitations(ctx, client, model, out, catalog)
 		}
-		_, usedIndexes = ParseInlineCitations(out)
+		_, usedIndexes := ParseInlineCitations(out)
 		if len(catalog.Items) > 0 && len(usedIndexes) == 0 {
 			out = HeuristicEnsureInlineCitations(out, catalog)
 		}
@@ -1709,7 +1752,7 @@ func FinalizeCitedReply(ctx context.Context, client *openai.Client, model, out s
 	if !citationsEnabled {
 		return out, nil
 	}
-	out = ValidateInlineCitations(out, catalog)
+	out = ValidateInlineCitationIndexes(out, catalog)
 	out = CapCitationMarkers(out, catalog)
 	_, usedIndexes = ParseInlineCitations(out)
 	refs := BuildCitedReferences(catalog, usedIndexes, citationsEnabled)

@@ -49,6 +49,10 @@ type ChatOptions struct {
 
 	// CatalogSparsity set when retrieval hits are too thin to elaborate safely.
 	CatalogSparsity CatalogSparsity
+
+	// GenerationReferences records every source exposed to the final generation
+	// pass. The handler returns and logs these separately from per-bubble refs.
+	GenerationReferences []map[string]string
 }
 
 // EpisodeCandidate 从 DB 读出来、准备参加情景层召回的候选；已做 buyer_only 过滤。

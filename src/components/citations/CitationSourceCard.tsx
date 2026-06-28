@@ -42,9 +42,6 @@ export function CitationSourceCard({
     >
       <button type="button" onClick={onClick} className="block w-full text-left">
         <div className="flex flex-wrap items-center gap-2">
-          {citation.citeIndex != null && (
-            <span className="text-[11px] font-semibold text-ink-400">[{citation.citeIndex}]</span>
-          )}
           <SourceTypeBadge sourceType={citation.sourceType} label={citation.sourceTypeLabel} />
         </div>
         <p className="mt-1.5 text-sm font-medium text-ink">{citation.title}</p>

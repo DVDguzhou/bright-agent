@@ -11,7 +11,6 @@
         <text class="sheet-label">当前来源</text>
         <view class="source-card active">
           <view class="source-meta">
-            <text wx:if="{{primary.citeIndex}}" class="cite-badge">[{{primary.citeIndex}}]</text>
             <text class="type-badge">{{primary.typeLabel}}</text>
           </view>
           <text class="source-title">{{primary.title}}</text>
@@ -28,7 +27,6 @@
           class="source-card"
         >
           <view class="source-meta">
-            <text wx:if="{{item.citeIndex}}" class="cite-badge">[{{item.citeIndex}}]</text>
             <text class="type-badge">{{item.typeLabel}}</text>
           </view>
           <text class="source-title">{{item.title}}</text>

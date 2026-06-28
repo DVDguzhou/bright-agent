@@ -554,3 +554,39 @@ func TestUniversityTimelineCitationsCoverEveryBubble(t *testing.T) {
 		}
 	}
 }
+
+func TestParagraphCitationAssignmentDetectsUncitedLaterBubble(t *testing.T) {
+	partial := "大一在温州大学读计算机[1]。\n\n大二开始做VR教育项目，也做了UE开发实习。"
+	if !paragraphsNeedCitationAssignment(partial) {
+		t.Fatal("expected uncited second bubble to trigger source assignment")
+	}
+	complete := "大一在温州大学读计算机[1]。\n\n大二开始做VR教育项目，也做了UE开发实习[2]。"
+	if paragraphsNeedCitationAssignment(complete) {
+		t.Fatal("expected every substantive bubble to be assigned")
+	}
+}
+
+func TestValidateInlineCitationIndexesPreservesSemanticAssignment(t *testing.T) {
+	catalog := BuildCitationCatalog(RetrievalPlan{
+		Topics: []TopicSummaryForAI{{
+			ID: "topic-college", TopicLabel: "大学生活", Summary: "本科四年的学习、项目和实习经历。",
+		}},
+	})
+	text := "大二做过VR教育项目[1]。大三白天实习，晚上准备考试[9]。"
+	got := ValidateInlineCitationIndexes(text, catalog)
+	if !strings.Contains(got, "[1]") || strings.Contains(got, "[9]") {
+		t.Fatalf("unexpected index validation result: %q", got)
+	}
+}
+
+func TestBuildCitationCatalogReferencesIncludesGenerationContent(t *testing.T) {
+	catalog := BuildCitationCatalog(RetrievalPlan{
+		Entries: []KnowledgeEntryForAI{{
+			ID: "college", Title: "大二项目", Content: "大二做了VR教育项目。",
+		}},
+	})
+	refs := BuildCitationCatalogReferences(catalog)
+	if len(refs) != 1 || refs[0]["citeIndex"] != "1" || refs[0]["fullContent"] == "" {
+		t.Fatalf("generation refs = %#v", refs)
+	}
+}

@@ -937,8 +937,8 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 	}
 
 	// Intent-based routing: 闲聊/打招呼直接走 Draft，跳过 Reconcile
-	draftSystem := buildDraftSystemPrompt(profile, facts, topics, liveForDraft, &strategy, introIntent)
-	knowledgeCtx := buildDraftKnowledgeContext(facts, topics, liveForDraft, entryHints, message, history, opts)
+	draftSystem := buildDraftSystemPrompt(profile, fullPlan.Facts, fullPlan.Topics, liveForDraft, &strategy, introIntent)
+	knowledgeCtx := buildDraftKnowledgeContext(fullPlan.Facts, fullPlan.Topics, liveForDraft, entryHints, message, history, opts)
 	opts.KnowledgeContext = knowledgeCtx
 	log.Printf("[LLM-strategy] %s", strategy.Debug)
 	draftMsgs := buildMessages(draftSystem, profile.DisplayName, history, message, opts)
@@ -1041,6 +1041,9 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 		if citationsEnabled && PlanHasArbitrationTargets(fullPlan) &&
 			(answerPolicy == PolicyGrounded || answerPolicy == PolicySparseGrounded) {
 			catalog := BuildCitationCatalog(fullPlan)
+			if opts != nil {
+				opts.GenerationReferences = BuildCitationCatalogReferences(catalog)
+			}
 			sparse := opts != nil && opts.CatalogSparsity.IsSparse
 			var refs []map[string]string
 			draft, refs = FinalizeCitedReply(ctx, client, model, draft, catalog, citationsEnabled, sparse)
@@ -1055,6 +1058,9 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 
 	// 仲裁阶段静默执行，完成后通过 segment SSE 逐段推送
 	catalog := BuildCitationCatalog(planStrict)
+	if opts != nil {
+		opts.GenerationReferences = BuildCitationCatalogReferences(catalog)
+	}
 	citationsEnabled := opts == nil || opts.CitationsEnabled
 	sparse := opts != nil && opts.CatalogSparsity.IsSparse
 	reconcileSystem := buildReconcileSystemPrompt(profile, catalog, citationsEnabled, sparse)
@@ -1102,6 +1108,9 @@ func deliverFinalReply(content string, references []map[string]string, onChunk f
 		return "", references, fmt.Errorf("empty reply")
 	}
 	segments := SplitReplySegments(content)
+	if opts != nil && opts.ReplyUseSegmentDelivery {
+		return content, references, nil
+	}
 	if len(segments) > segmentStreamThreshold {
 		if opts != nil {
 			opts.ReplyUseSegmentDelivery = true
@@ -1171,7 +1180,7 @@ func buildDraftSystemPrompt(profile ProfileForAI, facts []StructuredFactForAI, t
 	sb.WriteString(profile.Headline)
 	sb.WriteString("\n短介绍: ")
 	sb.WriteString(profile.ShortBio)
-	if lb := strings.TrimSpace(profile.LongBio); lb != "" {
+	if lb := strings.TrimSpace(profile.LongBio); lb != "" && intro.Present {
 		sb.WriteString("\n长介绍: ")
 		sb.WriteString(strings.TrimSpace(TruncateToRunes(lb, 2200)))
 	}

@@ -16,6 +16,9 @@ export type CitationReference = {
   charStart?: number | string;
   charEnd?: number | string;
   evidenceKind?: string;
+  facets?: string;
+  topicGroup?: string;
+  topicKey?: string;
 };
 
 export type ReplyAttribution = "grounded" | "general" | "fallback" | "";
@@ -69,6 +72,26 @@ export function splitCitationContent(content: string): CitationContentPart[] {
     i = j;
   }
   return parts;
+}
+
+export function stripCitationMarkers(content: string): string {
+  return content.replace(/\[(?:[1-9]|[1-9]\d)\]/g, "").replace(/[¹²³⁴⁵⁶⁷⁸⁹]/g, "");
+}
+
+export function citationContextLabel(reference: CitationReference): string {
+  const title = (reference.parentTitle || reference.title || "相关内容").trim();
+  switch (reference.sourceType) {
+    case "topic":
+      return `主题 · ${title}`;
+    case "knowledge":
+      return `经历 · ${title}`;
+    case "fact":
+      return `信息 · ${title}`;
+    case "liveUpdate":
+      return `动态 · ${title}`;
+    default:
+      return title;
+  }
 }
 
 export function sourceTypeLabel(sourceType?: string, label?: string): string {

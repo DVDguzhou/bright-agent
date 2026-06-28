@@ -39,6 +39,25 @@ function parseCitationSegments(content) {
   return parts.length ? parts : [{ type: "text", text: content }];
 }
 
+function stripCitationMarkers(content) {
+  return String(content || "")
+    .replace(/\[(?:[1-9]|[1-9]\d)\]/g, "")
+    .replace(/[¹²³⁴⁵⁶⁷⁸⁹]/g, "");
+}
+
+function citationContextLabel(reference) {
+  const ref = reference || {};
+  const title = String(ref.parentTitle || ref.title || "相关内容").trim();
+  const prefixes = {
+    topic: "主题",
+    knowledge: "经历",
+    fact: "信息",
+    liveUpdate: "动态",
+  };
+  const prefix = prefixes[ref.sourceType];
+  return prefix ? `${prefix} · ${title}` : title;
+}
+
 function sourceTypeLabel(sourceType, label) {
   if (label) return label;
   const map = {
@@ -58,6 +77,8 @@ function attributionHint(attribution) {
 
 module.exports = {
   parseCitationSegments,
+  stripCitationMarkers,
+  citationContextLabel,
   sourceTypeLabel,
   attributionHint,
 };

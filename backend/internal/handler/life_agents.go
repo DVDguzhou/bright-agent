@@ -3431,9 +3431,7 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 				content = reply
 				refs = replyRefs
 				attribution = lifeagent.AttributionGrounded
-				lifeagent.EmitReplyChunks(content, func(chunk string) {
-					writeSSE("content", gin.H{"content": chunk})
-				})
+				chatOpts.ReplyUseSegmentDelivery = true
 			} else {
 				content, refs, _ = lifeagent.BuildReplyWithLLMStream(
 					c.Request.Context(),
@@ -3458,20 +3456,43 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 		if len(replySegments) == 0 {
 			replySegments = []string{content}
 		}
-		replySegments, segmentBackfilled := lifeagent.BackfillSegmentCitationsFromReferences(replySegments, refs)
-		replySegments, segRefs, refs := lifeagent.RenumberReplySegmentCitations(replySegments, refs)
+		generationRefs := chatOpts.GenerationReferences
+		if len(generationRefs) == 0 {
+			generationRefs = refs
+		}
+		replySegments, segmentBackfilled := lifeagent.BackfillSegmentCitationsFromReferences(replySegments, generationRefs)
+		replySegments, segRefs, refs := lifeagent.RenumberReplySegmentCitations(replySegments, generationRefs)
+		internalContent := strings.Join(replySegments, "\n\n")
+		_, finalInlineIndexes := lifeagent.ParseInlineCitations(internalContent)
+		for i := range replySegments {
+			replySegments[i] = lifeagent.StripInlineCitations(replySegments[i])
+		}
 		content = strings.Join(replySegments, "\n\n")
-		_, finalInlineIndexes := lifeagent.ParseInlineCitations(content)
 		segRefsCount := 0
 		for _, list := range segRefs {
 			segRefsCount += len(list)
 		}
 		log.Printf("[citations] profile=%s session=%s attribution=%s raw_refs=%d raw_inline=%d final_inline=%d answer_refs=%d segment_refs=%d segment_backfilled=%d", id, sessionID, attribution, rawRefsCount, len(rawInlineIndexes), len(finalInlineIndexes), len(refs), segRefsCount, segmentBackfilled)
+		if generationJSON, err := json.Marshal(generationRefs); err == nil {
+			log.Printf("[citation-generation] profile=%s session=%s question=%q sources=%s", id, sessionID, body.Message, generationJSON)
+		}
+		for i := range replySegments {
+			if segmentJSON, err := json.Marshal(gin.H{"answer": replySegments[i], "references": segRefs[i]}); err == nil {
+				log.Printf("[citation-bubble] profile=%s session=%s bubble=%d/%d data=%s", id, sessionID, i+1, len(replySegments), segmentJSON)
+			}
+		}
 		refsMap := make([]map[string]interface{}, len(refs))
 		for i, r := range refs {
 			refsMap[i] = make(map[string]interface{})
 			for k, v := range r {
 				refsMap[i][k] = v
+			}
+		}
+		generationRefsMap := make([]map[string]interface{}, len(generationRefs))
+		for i, r := range generationRefs {
+			generationRefsMap[i] = make(map[string]interface{})
+			for k, v := range r {
+				generationRefsMap[i][k] = v
 			}
 		}
 		assistantMsgIDs := make([]string, len(replySegments))
@@ -3610,16 +3631,18 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 			remainingOut = lifeAgentUnlimitedRemainingSentinel
 		}
 		donePayload := gin.H{
-			"sessionId":          sessionID,
-			"sessionTitle":       buildLifeAgentSessionTitle(body.Message),
-			"messageId":          assistantMsgID,
-			"messageIds":         assistantMsgIDs,
-			"reply":              content,
-			"replySegments":      replySegments,
-			"references":         refsMap,
-			"attribution":        attribution,
-			"remainingQuestions": remainingOut,
-			"rating":             ratingState,
+			"sessionId":            sessionID,
+			"sessionTitle":         buildLifeAgentSessionTitle(body.Message),
+			"messageId":            assistantMsgID,
+			"messageIds":           assistantMsgIDs,
+			"reply":                content,
+			"replySegments":        replySegments,
+			"references":           refsMap,
+			"segmentReferences":    segRefsMaps,
+			"generationReferences": generationRefsMap,
+			"attribution":          attribution,
+			"remainingQuestions":   remainingOut,
+			"rating":               ratingState,
 		}
 		if isMiniAppClient(c) {
 			c.JSON(http.StatusOK, donePayload)

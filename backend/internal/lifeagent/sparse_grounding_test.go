@@ -33,7 +33,7 @@ func TestAssessCatalogSparsityLongEntry(t *testing.T) {
 func TestApplySparseStrategyOverride(t *testing.T) {
 	ws := &WorkingState{
 		Perception: PerceptionSnapshot{
-			MetaInstr: MetaInstruction{Present: true, Type: "want_detail", Raw: "详细点"},
+			MetaInstr:  MetaInstruction{Present: true, Type: "want_detail", Raw: "详细点"},
 			LengthPref: LengthPreference{Source: "explicit", Direction: "elaborate", Raw: "详细点"},
 		},
 	}
@@ -95,14 +95,14 @@ func TestCapCitationMarkersKeepsOnePerSource(t *testing.T) {
 	}
 }
 
-func TestCapCitationMarkersStripsPlanningLoveCite(t *testing.T) {
+func TestValidateInlineCitationsStripsPlanningLoveCite(t *testing.T) {
 	catalog := BuildCitationCatalog(RetrievalPlan{
 		Entries: []KnowledgeEntryForAI{
 			{ID: "e1", Title: "大二恋爱经历", Content: "大二谈过恋爱"},
 		},
 	})
 	text := "大一大胆试，大二定方向加实习[1]。"
-	got := CapCitationMarkers(text, catalog)
+	got := ValidateInlineCitations(text, catalog)
 	if strings.Contains(got, "[1]") {
 		t.Fatalf("expected [1] stripped on planning text, got %q", got)
 	}

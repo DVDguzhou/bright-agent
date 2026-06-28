@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import type { CitationReference } from "@/lib/citations";
-import { parseCiteIndex } from "@/lib/citations";
+import { citationContextLabel, parseCiteIndex } from "@/lib/citations";
 import { CitationSourceCard } from "@/components/citations/CitationSourceCard";
 
 export function CitationPanel({
@@ -126,11 +126,21 @@ export function CitationSourceChips({
   onOpen: (citeIndex?: number) => void;
 }) {
   if (references.length === 0) return null;
+  const visibleReferences = references.filter((reference, index, list) => {
+    const key = `${reference.sourceType || "source"}:${reference.parentId || reference.id}`;
+    return (
+      list.findIndex(
+        (candidate) =>
+          `${candidate.sourceType || "source"}:${candidate.parentId || candidate.id}` === key
+      ) === index
+    );
+  });
   return (
     <div className="flex flex-wrap gap-1.5 pt-1">
-      {references.map((ref) => {
+      {visibleReferences.map((ref) => {
         const idx = parseCiteIndex(ref.citeIndex);
         const active = idx != null && idx === activeCiteIndex;
+        const contextLabel = citationContextLabel(ref);
         return (
           <button
             key={`${ref.sourceType}-${ref.id}`}
@@ -141,8 +151,9 @@ export function CitationSourceChips({
                 ? "border-signal-300 bg-signal-50 text-signal-800"
                 : "border-hairline bg-paper-50 text-ink-500 hover:border-ink-300 hover:text-ink-700"
             }`}
+            title={ref.facets ? `${contextLabel} · ${ref.facets}` : contextLabel}
           >
-            {idx ? `来源 ${idx} · ${ref.title}` : ref.title}
+            {contextLabel}
           </button>
         );
       })}

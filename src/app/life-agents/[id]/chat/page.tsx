@@ -227,6 +227,8 @@ function applyDoneAssistantMessages(
     messageId?: string;
     sessionId?: string;
     references?: ChatMessage["references"];
+    segmentReferences?: Array<ChatMessage["references"]>;
+    generationReferences?: ChatMessage["references"];
     attribution?: ChatMessage["attribution"];
     audioUrl?: string;
     audioDurationSec?: number;
@@ -244,7 +246,7 @@ function applyDoneAssistantMessages(
         ...m,
         messageId: ids[segIndex] ?? m.messageId ?? data.messageId,
         sessionId: data.sessionId,
-        references: m.references ?? data.references,
+        references: m.references ?? data.segmentReferences?.[segIndex] ?? data.references,
         attribution: m.attribution ?? data.attribution,
         pending: false,
         ...(i === lastIdx
@@ -264,7 +266,7 @@ function applyDoneAssistantMessages(
             content: data.reply || m.content,
             messageId: data.messageId,
             sessionId: data.sessionId,
-            references: data.references ?? m.references,
+            references: data.segmentReferences?.[0] ?? data.references ?? m.references,
             attribution: data.attribution,
             audioUrl: data.audioUrl,
             audioDurationSec: data.audioDurationSec,
@@ -281,7 +283,7 @@ function applyDoneAssistantMessages(
     content: seg,
     messageId: ids[i] ?? (i === last ? data.messageId : undefined),
     sessionId: data.sessionId,
-    references: data.references,
+    references: data.segmentReferences?.[i] ?? data.references,
     attribution: data.attribution,
     audioUrl: i === last ? data.audioUrl : undefined,
     audioDurationSec: i === last ? data.audioDurationSec : undefined,
