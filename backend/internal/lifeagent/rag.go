@@ -68,11 +68,50 @@ func RunHybridRetrieval(
 		return plan, hits
 	}
 
-	vecs, err := embedder.Embed(ctx, []string{query})
+	type pendingVector struct {
+		kind string
+		id   string
+	}
+	const maxOnDemandCandidates = 39
+	inputs := []string{query}
+	pending := make([]pendingVector, 0, maxOnDemandCandidates)
+	for _, topic := range topics {
+		if len(topic.Embedding) > 0 || len(pending) >= maxOnDemandCandidates {
+			continue
+		}
+		if text := buildTopicEmbedTextForAI(topic); text != "" {
+			inputs = append(inputs, text)
+			pending = append(pending, pendingVector{kind: "topic", id: topic.ID})
+		}
+	}
+	for _, entry := range entries {
+		if !IsEvidenceKnowledgeEntry(entry) || len(entry.Embedding) > 0 || len(pending) >= maxOnDemandCandidates {
+			continue
+		}
+		if text := buildEntryEmbedTextForAI(entry); text != "" {
+			inputs = append(inputs, text)
+			pending = append(pending, pendingVector{kind: "entry", id: entry.ID})
+		}
+	}
+
+	vecs, err := embedder.Embed(ctx, inputs)
 	if err != nil || len(vecs) == 0 || len(vecs[0]) == 0 {
 		return plan, hits
 	}
 	qv := vecs[0]
+	onDemandEntryVectors := map[string][]float32{}
+	onDemandTopicVectors := map[string][]float32{}
+	for i, candidate := range pending {
+		vectorIndex := i + 1
+		if vectorIndex >= len(vecs) || len(vecs[vectorIndex]) == 0 {
+			continue
+		}
+		if candidate.kind == "entry" {
+			onDemandEntryVectors[candidate.id] = vecs[vectorIndex]
+		} else {
+			onDemandTopicVectors[candidate.id] = vecs[vectorIndex]
+		}
+	}
 
 	// 采集"被词法选中"的 ID，用于标记 lexical 分。
 	picked := map[string]bool{}
@@ -86,10 +125,17 @@ func RunHybridRetrieval(
 	// 全量遍历候选做 cosine；条目一般在百级内，直接 CPU 算没问题。
 	var vecEntries []SemanticHit
 	for _, e := range entries {
-		if len(e.Embedding) == 0 {
+		if !IsEvidenceKnowledgeEntry(e) {
 			continue
 		}
-		cos := CosineSim(qv, e.Embedding)
+		vector := e.Embedding
+		if len(vector) == 0 {
+			vector = onDemandEntryVectors[e.ID]
+		}
+		if len(vector) == 0 {
+			continue
+		}
+		cos := CosineSim(qv, vector)
 		if cos < 0.15 { // 阈值：低于此基本不相关，避免引入噪音
 			continue
 		}
@@ -110,10 +156,14 @@ func RunHybridRetrieval(
 
 	var vecTopics []SemanticHit
 	for _, t := range topics {
-		if len(t.Embedding) == 0 {
+		vector := t.Embedding
+		if len(vector) == 0 {
+			vector = onDemandTopicVectors[t.ID]
+		}
+		if len(vector) == 0 {
 			continue
 		}
-		cos := CosineSim(qv, t.Embedding)
+		cos := CosineSim(qv, vector)
 		if cos < 0.15 {
 			continue
 		}
@@ -146,6 +196,46 @@ func RunHybridRetrieval(
 	injectVectorHitsIntoPlan(&plan, merged, entries, topics)
 
 	return plan, merged
+}
+
+func buildEntryEmbedTextForAI(entry KnowledgeEntryForAI) string {
+	parts := make([]string, 0, 5)
+	if value := strings.TrimSpace(entry.Title); value != "" {
+		parts = append(parts, value)
+	}
+	if value := strings.TrimSpace(entry.Category); value != "" {
+		parts = append(parts, "类别："+value)
+	}
+	if len(entry.Tags) > 0 {
+		parts = append(parts, "标签："+strings.Join(entry.Tags, "、"))
+	}
+	if value := FacetSummary(entry.Facets); value != "" {
+		parts = append(parts, "分面："+value)
+	}
+	if value := strings.TrimSpace(entry.Content); value != "" {
+		parts = append(parts, value)
+	}
+	return strings.Join(parts, "\n")
+}
+
+func buildTopicEmbedTextForAI(topic TopicSummaryForAI) string {
+	parts := make([]string, 0, 5)
+	if value := strings.TrimSpace(topic.TopicLabel); value != "" {
+		parts = append(parts, value)
+	}
+	if value := strings.TrimSpace(topic.TopicGroup); value != "" {
+		parts = append(parts, "分组："+value)
+	}
+	if value := strings.TrimSpace(topic.TopicKey); value != "" {
+		parts = append(parts, "主题："+value)
+	}
+	if len(topic.Aliases) > 0 {
+		parts = append(parts, "别名："+strings.Join(topic.Aliases, "、"))
+	}
+	if value := strings.TrimSpace(topic.Summary); value != "" {
+		parts = append(parts, value)
+	}
+	return strings.Join(parts, "\n")
 }
 
 // seedHitsFromPlan 把词法 plan 里的命中项转成带分的 SemanticHit；lexical=1.0，vector=0。
@@ -254,14 +344,17 @@ func normalizeFacetScore(score int) float64 {
 // injectVectorHitsIntoPlan 把词法漏掉但向量命中的 entry / topic 追加进 plan（带最大数量与最低分门槛）。
 func injectVectorHitsIntoPlan(plan *RetrievalPlan, hits []SemanticHit, allEntries []KnowledgeEntryForAI, allTopics []TopicSummaryForAI) {
 	const (
-		maxExtraEntries = 2
+		maxExtraEntries = 6
+		maxPlanEntries  = 6
 		maxExtraTopics  = 2
 		minVectorOnly   = 0.65 // 只靠向量命中的最低阈值（更严格）
 	)
 	// 建立 lookup，按 ID 取回原对象
 	entryByID := make(map[string]KnowledgeEntryForAI, len(allEntries))
 	for _, e := range allEntries {
-		entryByID[e.ID] = e
+		if IsEvidenceKnowledgeEntry(e) {
+			entryByID[e.ID] = e
+		}
 	}
 	topicByID := make(map[string]TopicSummaryForAI, len(allTopics))
 	for _, t := range allTopics {
@@ -278,6 +371,22 @@ func injectVectorHitsIntoPlan(plan *RetrievalPlan, hits []SemanticHit, allEntrie
 	}
 
 	addedEntries, addedTopics := 0, 0
+	addTopicSources := func(topic TopicSummaryForAI) {
+		for _, sourceID := range topic.SourceEntryIDs {
+			if len(existingEntry) >= maxPlanEntries || addedEntries >= maxExtraEntries || existingEntry[sourceID] {
+				continue
+			}
+			if entry, exists := entryByID[sourceID]; exists {
+				plan.Entries = append(plan.Entries, entry)
+				plan.Reasons = append(plan.Reasons, "topic-source:entry:"+entry.Title)
+				existingEntry[sourceID] = true
+				addedEntries++
+			}
+		}
+	}
+	for _, topic := range plan.Topics {
+		addTopicSources(topic)
+	}
 	for _, h := range hits {
 		// 只考虑纯靠向量新进来的：Lexical==0
 		if h.Lexical > 0 {
@@ -288,7 +397,7 @@ func injectVectorHitsIntoPlan(plan *RetrievalPlan, hits []SemanticHit, allEntrie
 		}
 		switch h.Kind {
 		case "entry":
-			if existingEntry[h.ID] || addedEntries >= maxExtraEntries {
+			if existingEntry[h.ID] || addedEntries >= maxExtraEntries || len(existingEntry) >= maxPlanEntries {
 				continue
 			}
 			if e, ok := entryByID[h.ID]; ok {
@@ -306,6 +415,8 @@ func injectVectorHitsIntoPlan(plan *RetrievalPlan, hits []SemanticHit, allEntrie
 				plan.Reasons = append(plan.Reasons, "vector:topic:"+t.TopicLabel)
 				existingTopic[h.ID] = true
 				addedTopics++
+				// Topic summaries are retrieval bridges, not the preferred evidence.
+				addTopicSources(t)
 			}
 		}
 	}

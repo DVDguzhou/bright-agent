@@ -381,6 +381,9 @@ func BuildCitationCatalog(plan RetrievalPlan) CitationCatalog {
 		idx++
 	}
 	for _, entry := range plan.Entries {
+		if !IsEvidenceKnowledgeEntry(entry) {
+			continue
+		}
 		chunks := selectKnowledgeCitationChunks(entry, plan.Query)
 		if len(chunks) == 0 {
 			fallbackText := strings.TrimSpace(firstNonEmpty(entry.Content, entry.Title, entry.Category))
@@ -765,7 +768,6 @@ func segmentReferenceScore(seg string, ref map[string]string) (int, int, bool) {
 			score += points
 		}
 	}
-	addField(ref["title"], 4)
 	addField(ref["displayExcerpt"], 4)
 	addField(ref["excerpt"], 3)
 	addField(ref["fullContent"], 2)
@@ -797,9 +799,6 @@ func referenceMatchTerms(text string) []string {
 	sample := text
 	if len([]rune(sample)) > 160 {
 		sample = string([]rune(sample)[:160])
-	}
-	for _, term := range citationTitleNGrams(sample) {
-		add(term)
 	}
 	return terms
 }
@@ -951,7 +950,7 @@ func buildReconcileCitationRule(citationsEnabled bool) string {
 		return ""
 	}
 	return "9. 【引用标注 - 硬约束】凡转述了编号素材中的具体事实（时间、学校、考试、做法、数字等），对应那句末尾必须标 [n]。" +
-		"同一条气泡内若多句转述不同素材，每句句末分别标 [n]；每条素材整段回复最多 1 次。" +
+		"同一条气泡内若多句转述不同素材，每句句末分别标 [n]；每条素材在同一气泡内最多 1 次，不同气泡可以重复。" +
 		"[n] 必须标在转述了编号 n 那条素材事实的句末，禁止按句子顺序或「第几句」填号。" +
 		"模糊感受、态度、反问句禁止加 [n]。禁止写「根据资料」「知识库」；只用 [n]。\n"
 }
@@ -967,7 +966,7 @@ func EnsureInlineCitations(ctx context.Context, client *openai.Client, model, te
 	}
 
 	system := "你是引用标注助手。任务：仅在直接转述编号素材事实的那一句句末添加 [n] 标注，n 与素材编号一致。\n" +
-		"规则：每条素材整段回复最多 1 次 [n]；模糊感受/态度/反问禁止加标注；素材与句意无关时禁止加标注；" +
+		"规则：每条素材在同一段最多 1 次 [n]，不同段可以重复；模糊感受/态度/反问禁止加标注；素材与句意无关时禁止加标注；" +
 		"不要改正文措辞、不要删字、不要加解释、不要 Markdown；只输出标注后的正文。"
 	user := "【编号素材】\n" + buildReconcileCatalogPrompt(catalog) +
 		"\n【待标注正文】\n" + text +
@@ -1045,24 +1044,25 @@ func mergeShortCitationSentences(sentences []string) []string {
 	return out
 }
 
-// fillSentenceCitations adds [n] at the end of each sentence that cites a distinct catalog item.
+// fillSentenceCitations adds [n] to supported sentences. Paragraphs become
+// separate chat bubbles, so citation de-duplication is scoped per paragraph.
 func fillSentenceCitations(text string, catalog CitationCatalog) string {
 	text = strings.TrimSpace(text)
 	if text == "" || len(catalog.Items) == 0 {
 		return text
 	}
 	paras := splitParagraphs(text)
-	usedItems := map[int]bool{}
-	if _, existing := ParseInlineCitations(text); len(existing) > 0 {
-		for _, n := range existing {
-			usedItems[n] = true
-		}
-	}
 	changed := false
 	for i, para := range paras {
 		joined := strings.TrimSpace(joinLinesInParagraph(para))
 		if joined == "" {
 			continue
+		}
+		usedItems := map[int]bool{}
+		if _, existing := ParseInlineCitations(joined); len(existing) > 0 {
+			for _, n := range existing {
+				usedItems[n] = true
+			}
 		}
 		newPara, paraChanged := fillSentenceCitationsInParagraph(joined, catalog, usedItems)
 		if paraChanged {
@@ -1150,6 +1150,7 @@ func bestCatalogMatchForParagraph(para string, catalog CitationCatalog) (*Citati
 func sentenceItemGroundingScore(para string, item CitationItem) int {
 	norm := normalize(para)
 	score := contentOverlapScore(para, item.FullContent)
+	score += contentPhraseMatchScore(para, item.FullContent)
 	for _, kw := range citationKeywords(item) {
 		if len([]rune(kw)) < 2 {
 			continue
@@ -1212,39 +1213,44 @@ func sentenceItemGroundingScore(para string, item CitationItem) int {
 	return score
 }
 
+func contentPhraseMatchScore(sentence, evidence string) int {
+	normSentence := normalize(sentence)
+	longest := 0
+	for _, term := range citationContentNGrams(evidence) {
+		if isCitationGenericAnchor(term) || !strings.Contains(normSentence, normalize(term)) {
+			continue
+		}
+		if size := len([]rune(term)); size > longest {
+			longest = size
+		}
+	}
+	switch {
+	case longest >= 8:
+		return 6
+	case longest >= 6:
+		return 5
+	case longest >= 4:
+		return 3
+	default:
+		return 0
+	}
+}
+
 func citationAnchorTerms(item CitationItem) []string {
 	seen := map[string]bool{}
 	var terms []string
-	add := func(raw string) {
-		for _, seg := range strings.FieldsFunc(raw, func(r rune) bool {
-			return r == '，' || r == '。' || r == '、' || r == '；' || r == ' ' || r == ':' || r == '：' ||
-				r == '\n' || r == '/' || r == '|'
-		}) {
-			seg = strings.TrimSpace(seg)
-			if len([]rune(seg)) < 2 || isCitationStopWord(seg) || isCitationGenericAnchor(seg) {
-				continue
-			}
-			if seen[seg] {
-				continue
-			}
-			seen[seg] = true
-			terms = append(terms, seg)
-		}
-		for _, ngram := range citationTitleNGrams(raw) {
-			if seen[ngram] || isCitationStopWord(ngram) || isCitationGenericAnchor(ngram) {
-				continue
-			}
-			seen[ngram] = true
-			terms = append(terms, ngram)
-		}
-	}
-	add(item.Title)
-	add(item.Facets)
 	contentSample := item.FullContent
 	if len([]rune(contentSample)) > 200 {
 		contentSample = string([]rune(contentSample)[:200])
 	}
 	for _, term := range extractSignificantTerms(contentSample) {
+		if isCitationGenericAnchor(term) || seen[term] {
+			continue
+		}
+		seen[term] = true
+		terms = append(terms, term)
+	}
+	for _, term := range citationContentNGrams(contentSample) {
 		if isCitationGenericAnchor(term) || seen[term] {
 			continue
 		}
@@ -1261,15 +1267,19 @@ func citationAnchorTerms(item CitationItem) []string {
 	return terms
 }
 
-func citationTitleNGrams(text string) []string {
-	runes := []rune(strings.TrimSpace(text))
-	if len(runes) < 2 {
-		return nil
-	}
+// citationContentNGrams extracts exact phrases from evidence text only. Titles,
+// tags and facets deliberately do not participate in citation validation.
+func citationContentNGrams(text string) []string {
 	var terms []string
-	for i := 0; i < len(runes); i++ {
-		for l := 2; l <= 3 && i+l <= len(runes); l++ {
-			terms = append(terms, string(runes[i:i+l]))
+	for _, segment := range strings.FieldsFunc(normalize(text), func(r rune) bool {
+		return r == '，' || r == '。' || r == '、' || r == '；' || r == ' ' || r == ':' || r == '：' ||
+			r == '\n' || r == '/' || r == '|' || r == ',' || r == '.'
+	}) {
+		runes := []rune(strings.TrimSpace(segment))
+		for size := 4; size <= 8 && size <= len(runes); size++ {
+			for start := 0; start+size <= len(runes); start++ {
+				terms = append(terms, string(runes[start:start+size]))
+			}
 		}
 	}
 	return terms
@@ -1277,7 +1287,8 @@ func citationTitleNGrams(text string) []string {
 
 func isCitationGenericAnchor(term string) bool {
 	switch term {
-	case "经历", "背景", "本人", "建议", "摘要", "动态", "事实", "主题", "内容", "相关", "个人", "一般", "具体":
+	case "经历", "背景", "本人", "建议", "摘要", "动态", "事实", "主题", "内容", "相关", "个人", "一般", "具体",
+		"大学", "大学生活", "生活", "工作", "职场", "考研", "留学", "创业", "实习", "项目":
 		return true
 	}
 	return false
@@ -1449,7 +1460,7 @@ func citationKeywords(item CitationItem) []string {
 	if len([]rune(contentSample)) > 200 {
 		contentSample = string([]rune(contentSample)[:200])
 	}
-	for _, part := range []string{item.Title, contentSample} {
+	for _, part := range []string{contentSample} {
 		part = strings.TrimSpace(part)
 		if part == "" {
 			continue
@@ -1543,17 +1554,17 @@ func appendCitationMarker(s string, n int) string {
 	return s + mark
 }
 
-// CapCitationMarkers enforces at-most-once per source across the full reply.
+// CapCitationMarkers enforces at-most-once per source within each paragraph.
 func CapCitationMarkers(text string, catalog CitationCatalog) string {
 	text = strings.TrimSpace(text)
 	if text == "" || len(catalog.Items) == 0 {
 		return text
 	}
-	seenIndex := map[int]bool{}
 	paras := splitParagraphs(text)
 	changed := false
 	for i, para := range paras {
 		joined := joinLinesInParagraph(para)
+		seenIndex := map[int]bool{}
 		capped := capCitationMarkersInParagraph(joined, catalog, seenIndex)
 		if capped != joined {
 			changed = true
@@ -1701,77 +1712,8 @@ func FinalizeCitedReply(ctx context.Context, client *openai.Client, model, out s
 	out = ValidateInlineCitations(out, catalog)
 	out = CapCitationMarkers(out, catalog)
 	_, usedIndexes = ParseInlineCitations(out)
-	if len(usedIndexes) == 0 && len(catalog.Items) > 0 {
-		// Consistency floor: this is a grounded/sparse_grounded reply (the only callers),
-		// so the catalog is the authority. If the strict pipeline attached nothing, a
-		// genuinely KB-derived answer would ship with zero attribution — then the next
-		// answer would show one. That inconsistency erodes buyer trust more than a single
-		// well-grounded marker would. Attach exactly one marker to the best-overlapping
-		// sentence using a relaxed (non-competitive) bar; bail out cleanly if nothing
-		// truly overlaps so we never forge a citation.
-		out = ensureGroundedCitationFloor(out, catalog)
-		_, usedIndexes = ParseInlineCitations(out)
-	}
 	refs := BuildCitedReferences(catalog, usedIndexes, citationsEnabled)
 	return out, refs
-}
-
-// ensureGroundedCitationFloor attaches a single [n] to the best-overlapping sentence when a
-// grounded reply ended up with zero markers. Relaxes only the competitive-margin requirement
-// of citationGroundingValid; keeps the absolute score + anchor-overlap + context guards so a
-// citation is never forged onto an unrelated sentence.
-func ensureGroundedCitationFloor(text string, catalog CitationCatalog) string {
-	text = strings.TrimSpace(text)
-	if text == "" || len(catalog.Items) == 0 {
-		return text
-	}
-	if _, used := ParseInlineCitations(text); len(used) > 0 {
-		return text
-	}
-	paras := splitParagraphs(text)
-	paraSentences := make([][]string, len(paras))
-	bestParaIdx, bestSentIdx, bestScore := -1, -1, 0
-	var bestItem *CitationItem
-	var bestSent string
-	for i, para := range paras {
-		joined := strings.TrimSpace(joinLinesInParagraph(para))
-		if joined == "" {
-			continue
-		}
-		sentences := splitCitationSentences(joined)
-		paraSentences[i] = sentences
-		for j, sent := range sentences {
-			sent = strings.TrimSpace(sent)
-			if len([]rune(sent)) < 12 || sentenceIsCitationExempt(sent) {
-				continue
-			}
-			cand, _ := bestTwoCatalogScores(sent, catalog)
-			if cand.item == nil || cand.score < citationAbsMinScore {
-				continue
-			}
-			if citationAnchorHits(sent, *cand.item) < 1 {
-				continue
-			}
-			if citationShouldStripContext(sent, joined, *cand.item) {
-				continue
-			}
-			if cand.score > bestScore {
-				bestParaIdx, bestSentIdx, bestScore = i, j, cand.score
-				bestItem, bestSent = cand.item, sent
-			}
-		}
-	}
-	if bestItem == nil {
-		return text
-	}
-	sentences := paraSentences[bestParaIdx]
-	sentences[bestSentIdx] = appendCitationMarker(bestSent, bestItem.CiteIndex)
-	paras[bestParaIdx] = strings.Join(sentences, "")
-	out := make([]string, len(paras))
-	for i, para := range paras {
-		out[i] = joinLinesInParagraph(para)
-	}
-	return strings.Join(out, "\n\n")
 }
 
 func catalogToPlan(catalog CitationCatalog) RetrievalPlan {

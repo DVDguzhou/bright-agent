@@ -60,7 +60,6 @@ type retrievalRouteConfig struct {
 	topicMinScore      int
 	entryMinScore      int
 	scoreRelativeFloor float64
-	allowEntryFallback bool
 }
 
 var factIntentRules = []struct {
@@ -87,17 +86,18 @@ func IsLifeStageQuestion(message string) bool {
 }
 
 func BuildRetrievalPlan(message string, history []ChatMessageForAI, facts []StructuredFactForAI, topics []TopicSummaryForAI, entries []KnowledgeEntryForAI) RetrievalPlan {
-	return buildRetrievalPlan(message, history, facts, topics, entries, true)
+	return buildRetrievalPlan(message, history, facts, topics, entries)
 }
 
-// BuildRetrievalPlanStrict 仅保留关键词真正命中的知识条目，不注入「前 N 条」兜底，用于双阶段流程里判断是否要知识库仲裁。
+// BuildRetrievalPlanStrict only keeps actual lexical matches. Semantic matches are
+// injected later by RunHybridRetrieval when embeddings are available.
 func BuildRetrievalPlanStrict(message string, history []ChatMessageForAI, facts []StructuredFactForAI, topics []TopicSummaryForAI, entries []KnowledgeEntryForAI) RetrievalPlan {
-	return buildRetrievalPlan(message, history, facts, topics, entries, false)
+	return buildRetrievalPlan(message, history, facts, topics, entries)
 }
 
-// StrictFromPlan 从一个宽松检索结果派生出严格版本：移除 fallback 注入的低分 entry。
-// 用于避免同一请求中两次调用 buildRetrievalPlan 的重复计算开销。
-func StrictFromPlan(full RetrievalPlan, message string, entries []KnowledgeEntryForAI) RetrievalPlan {
+// StrictFromPlan keeps only evidence-bearing entries from the hybrid plan. The
+// hybrid plan no longer contains position-based fallback entries.
+func StrictFromPlan(full RetrievalPlan) RetrievalPlan {
 	strict := RetrievalPlan{
 		Query:      full.Query,
 		Route:      full.Route,
@@ -106,48 +106,38 @@ func StrictFromPlan(full RetrievalPlan, message string, entries []KnowledgeEntry
 		Confidence: full.Confidence,
 		Reasons:    full.Reasons,
 	}
-	// 重新用严格配置筛选 entries（不允许 fallback）
-	cfg := retrievalConfigForRoute(full.Route, false)
-	if cfg.entryLimit > 0 {
-		strictEntries, _ := selectEntriesWithScores(full.Query, entries, full.Topics, full.Route, cfg)
-		strict.Entries = mergePreservedPlanEntries(strictEntries, full.Entries)
+	for _, entry := range full.Entries {
+		if IsEvidenceKnowledgeEntry(entry) {
+			strict.Entries = append(strict.Entries, entry)
+		}
 	}
 	return strict
 }
 
-// mergePreservedPlanEntries keeps high-priority entries from the hybrid plan that strict scoring may drop.
-func mergePreservedPlanEntries(strict, preserved []KnowledgeEntryForAI) []KnowledgeEntryForAI {
-	if len(preserved) == 0 {
-		return strict
+// IsEvidenceKnowledgeEntry separates searchable profile metadata from evidence.
+// Metadata may help describe the Agent, but must never support a factual citation.
+func IsEvidenceKnowledgeEntry(entry KnowledgeEntryForAI) bool {
+	if strings.TrimSpace(entry.Content) == "" {
+		return false
 	}
-	seen := map[string]bool{}
-	var merged []KnowledgeEntryForAI
-	add := func(e KnowledgeEntryForAI) {
-		if e.ID == "" || seen[e.ID] {
-			return
-		}
-		seen[e.ID] = true
-		merged = append(merged, e)
+	category := normalize(entry.Category)
+	title := normalize(entry.Title)
+	if strings.Contains(category, "咨询方向") {
+		return false
 	}
-	for _, e := range preserved {
-		if e.ID == ProfileLongBioEntryID || IsIntroKnowledgeEntry(e) {
-			add(e)
+	for _, marker := range []string{"擅长与适用人群", "适用人群", "欢迎语"} {
+		if strings.Contains(title, normalize(marker)) {
+			return false
 		}
 	}
-	for _, e := range strict {
-		add(e)
-	}
-	for _, e := range preserved {
-		add(e)
-	}
-	return merged
+	return true
 }
 
-func buildRetrievalPlan(message string, history []ChatMessageForAI, facts []StructuredFactForAI, topics []TopicSummaryForAI, entries []KnowledgeEntryForAI, entryFallback bool) RetrievalPlan {
+func buildRetrievalPlan(message string, history []ChatMessageForAI, facts []StructuredFactForAI, topics []TopicSummaryForAI, entries []KnowledgeEntryForAI) RetrievalPlan {
 	query := buildContextQuery(message, history)
 	route := classifyRetrievalRoute(message)
 	intent, hasIntent := detectFactIntent(message)
-	cfg := retrievalConfigForRoute(route, entryFallback)
+	cfg := retrievalConfigForRoute(route)
 	var intentPtr *factIntent
 	if hasIntent {
 		intentPtr = &intent
@@ -515,7 +505,7 @@ func BuildRetrievalReferences(plan RetrievalPlan) []map[string]string {
 	return refs
 }
 
-func retrievalConfigForRoute(route RetrievalRoute, allowEntryFallback bool) retrievalRouteConfig {
+func retrievalConfigForRoute(route RetrievalRoute) retrievalRouteConfig {
 	switch route {
 	case RetrievalRouteFact:
 		return retrievalRouteConfig{
@@ -556,7 +546,6 @@ func retrievalConfigForRoute(route RetrievalRoute, allowEntryFallback bool) retr
 			topicMinScore:      4,
 			entryMinScore:      4,
 			scoreRelativeFloor: 0.5,
-			allowEntryFallback: allowEntryFallback,
 		}
 	}
 }
@@ -707,14 +696,17 @@ func selectEntriesWithScores(query string, entries []KnowledgeEntryForAI, select
 	if cfg.entryLimit <= 0 {
 		return nil, 0
 	}
-	ranked := make([]rankedEntry, len(entries))
+	ranked := make([]rankedEntry, 0, len(entries))
 	best := 0
-	for i, e := range entries {
+	for _, e := range entries {
+		if !IsEvidenceKnowledgeEntry(e) {
+			continue
+		}
 		score := scoreEntry(query, e, route, selectedTopics)
 		if score > best {
 			best = score
 		}
-		ranked[i] = rankedEntry{entry: e, score: score}
+		ranked = append(ranked, rankedEntry{entry: e, score: score})
 	}
 	for i := 0; i < len(ranked)-1; i++ {
 		for j := i + 1; j < len(ranked); j++ {
@@ -734,28 +726,7 @@ func selectEntriesWithScores(query string, entries []KnowledgeEntryForAI, select
 			break
 		}
 	}
-	// 仅对低风险开放问答启用弱兜底，避免把不相关原文强塞给事实类问题。
-	if cfg.allowEntryFallback && len(top) == 0 && len(entries) > 0 && shouldAllowEntryFallback(query, route) {
-		maxFallback := 3
-		if len(entries) < maxFallback {
-			maxFallback = len(entries)
-		}
-		for i := 0; i < maxFallback; i++ {
-			top = append(top, entries[i])
-		}
-		if best <= 0 {
-			best = 1
-		}
-	}
 	return top, best
-}
-
-func shouldAllowEntryFallback(query string, route RetrievalRoute) bool {
-	if route != RetrievalRouteGeneral {
-		return false
-	}
-	norm := normalize(query)
-	return containsAnyNormalized(norm, []string{"怎么", "怎么办", "如何", "是不是", "最近", "想", "要不要", "值不值"})
 }
 
 func detectFactIntent(message string) (factIntent, bool) {

@@ -110,3 +110,39 @@ func TestBuildRetrievalPlanUEQueryUsesEntryRoute(t *testing.T) {
 		t.Fatalf("expected UE entry recalled, got %#v", plan.Entries)
 	}
 }
+
+func TestBuildRetrievalPlanDoesNotFallbackByPosition(t *testing.T) {
+	entries := []KnowledgeEntryForAI{
+		{
+			ID:       "metadata",
+			Category: "咨询方向",
+			Title:    "擅长与适用人群",
+			Content:  "适合帮助的人群：所有人\n擅长标签：考研、留学、生活、创业、职场",
+		},
+		{
+			ID:      "unrelated",
+			Title:   "童年物理兴趣",
+			Content: "小时候自学量子力学和相对论。",
+		},
+	}
+
+	plan := BuildRetrievalPlan("讲一下你的大学生活", nil, nil, nil, entries)
+	if len(plan.Entries) != 0 {
+		t.Fatalf("expected no position-based fallback entries, got %#v", plan.Entries)
+	}
+}
+
+func TestStrictFromPlanDropsNonEvidenceMetadata(t *testing.T) {
+	full := RetrievalPlan{
+		Query: "大学生活",
+		Entries: []KnowledgeEntryForAI{
+			{ID: "metadata", Category: "咨询方向", Title: "擅长与适用人群", Content: "适合帮助的人群：所有人"},
+			{ID: "college", Category: "经验", Title: "大一探索", Content: "大一每天复盘并主动突破舒适圈。"},
+		},
+	}
+
+	strict := StrictFromPlan(full)
+	if len(strict.Entries) != 1 || strict.Entries[0].ID != "college" {
+		t.Fatalf("strict entries = %#v, want only evidence entry", strict.Entries)
+	}
+}

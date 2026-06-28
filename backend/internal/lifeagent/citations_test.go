@@ -139,11 +139,11 @@ func TestTopicRedundantWithEntries(t *testing.T) {
 		TopicLabel:     "大二恋爱经历",
 		SourceEntryIDs: []string{"e1"},
 	}
-	entries := []KnowledgeEntryForAI{{ID: "e1", Title: "大二恋爱经历"}}
+	entries := []KnowledgeEntryForAI{{ID: "e1", Title: "大二恋爱经历", Content: "大二谈过一段恋爱。"}}
 	if !topicRedundantWithEntries(topic, entries) {
 		t.Fatal("expected redundant when entry id matches topic source")
 	}
-	entries2 := []KnowledgeEntryForAI{{ID: "e2", Title: "大二恋爱经历"}}
+	entries2 := []KnowledgeEntryForAI{{ID: "e2", Title: "大二恋爱经历", Content: "大二谈过一段恋爱。"}}
 	if !topicRedundantWithEntries(topic, entries2) {
 		t.Fatal("expected redundant when titles match")
 	}
@@ -467,5 +467,90 @@ func TestSentenceLevelCitationsMultiSourceInOneBubble(t *testing.T) {
 	refs := BuildCitedReferences(catalog, used, true)
 	if len(refs) < 2 {
 		t.Fatalf("expected 2 refs, got %d", len(refs))
+	}
+}
+
+func TestBuildCitationCatalogExcludesProfileMetadata(t *testing.T) {
+	catalog := BuildCitationCatalog(RetrievalPlan{
+		Entries: []KnowledgeEntryForAI{
+			{
+				ID:       "metadata",
+				Category: "咨询方向",
+				Title:    "擅长与适用人群",
+				Content:  "适合帮助的人群：所有人\n擅长标签：考研、留学、生活、创业、职场",
+			},
+			{
+				ID:       "college",
+				Category: "经验",
+				Title:    "大一探索期",
+				Content:  "大一每天复盘，并主动突破舒适圈。",
+			},
+		},
+	})
+	if len(catalog.Items) != 1 || catalog.Items[0].ID != "college" {
+		t.Fatalf("catalog = %#v, want only evidence source", catalog.Items)
+	}
+}
+
+func TestCapCitationMarkersAllowsSameSourceAcrossBubbles(t *testing.T) {
+	catalog := BuildCitationCatalog(RetrievalPlan{
+		Entries: []KnowledgeEntryForAI{{
+			ID:      "college",
+			Title:   "大学复盘习惯",
+			Content: "大一每天复盘，主动突破舒适圈。大二每天复盘，继续主动突破舒适圈。",
+		}},
+	})
+	text := "大一每天复盘，也会主动突破舒适圈[1]。\n\n大二还是每天复盘，继续主动突破舒适圈[1]。"
+	got := CapCitationMarkers(text, catalog)
+	if strings.Count(got, "[1]") != 2 {
+		t.Fatalf("expected one citation in each bubble, got %q", got)
+	}
+}
+
+func TestUniversityTimelineCitationsCoverEveryBubble(t *testing.T) {
+	catalog := BuildCitationCatalog(RetrievalPlan{
+		Query: "讲一下你的大学生活",
+		Entries: []KnowledgeEntryForAI{
+			{
+				ID:       "metadata",
+				Category: "咨询方向",
+				Title:    "擅长与适用人群",
+				Content:  "适合帮助的人群：所有人；擅长标签：考研、留学、生活、创业、职场。",
+			},
+			{
+				ID:      "freshman",
+				Title:   "大一探索期",
+				Content: "大一每个月做一件以前不敢做的事，主动认识陌生老师和同学。",
+			},
+			{
+				ID:      "sophomore",
+				Title:   "大二项目与创业",
+				Content: "大二开始做腾讯项目，跟着老师做科创，并组建团队创业。",
+			},
+			{
+				ID:      "senior",
+				Title:   "大三大四双线准备",
+				Content: "大三大四同时准备考研和留学，白天刷题背单词，晚上做作品集和文书。毕业设计是游戏化激励系统，后来拿到投资意向。",
+			},
+		},
+	})
+	text := "大一我给自己定了规矩，每个月做一件以前不敢做的事，也会主动认识陌生老师和同学。\n\n" +
+		"大二开始做腾讯项目，跟着老师做科创，后来干脆组建团队创业。\n\n" +
+		"大三大四同时准备考研和留学，白天刷题背单词，晚上做作品集和文书；毕业设计是游戏化激励系统，后来拿到投资意向。"
+
+	got := fillSentenceCitations(text, catalog)
+	segments := splitParagraphs(got)
+	if len(segments) != 3 {
+		t.Fatalf("segments = %#v, want 3", segments)
+	}
+	for i, segment := range segments {
+		if _, used := ParseInlineCitations(segment); len(used) == 0 {
+			t.Fatalf("bubble %d has no citation: %q; full=%q", i, segment, got)
+		}
+	}
+	for _, item := range catalog.Items {
+		if item.ID == "metadata" {
+			t.Fatalf("metadata source leaked into catalog: %#v", catalog.Items)
+		}
 	}
 }
