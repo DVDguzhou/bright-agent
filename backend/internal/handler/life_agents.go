@@ -3164,6 +3164,83 @@ func LifeAgentsChatSessionDetail(cfg *config.Config) gin.HandlerFunc {
 	}
 }
 
+func LifeAgentsChatSessionDelete(cfg *config.Config) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		user := middleware.MustGetUser(c)
+		if user == nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "UNAUTHORIZED"})
+			return
+		}
+
+		profileID := c.Param("id")
+		sessionID := c.Param("sessionId")
+		var session models.LifeAgentChatSession
+		if err := db.DB.Where("id = ? AND profile_id = ? AND buyer_id = ?", sessionID, profileID, user.ID).First(&session).Error; err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "SESSION_NOT_FOUND"})
+			return
+		}
+
+		if err := db.DB.Transaction(func(tx *gorm.DB) error {
+			if err := tx.Where("session_id = ?", sessionID).Delete(&models.LifeAgentFeedback{}).Error; err != nil {
+				return err
+			}
+			if err := tx.Where("session_id = ?", sessionID).Delete(&models.LifeAgentBlindSpot{}).Error; err != nil {
+				return err
+			}
+			if err := tx.Where("session_id = ?", sessionID).Delete(&models.LifeAgentEpisode{}).Error; err != nil {
+				return err
+			}
+			if err := tx.Where("session_id = ?", sessionID).Delete(&models.LifeAgentPerceptualTrace{}).Error; err != nil {
+				return err
+			}
+			if err := tx.Where("session_id = ?", sessionID).Delete(&models.LifeAgentChatMessage{}).Error; err != nil {
+				return err
+			}
+			if err := removeDeletedSessionTopicSources(tx, profileID, sessionID); err != nil {
+				return err
+			}
+			return tx.Where("id = ? AND buyer_id = ?", sessionID, user.ID).Delete(&models.LifeAgentChatSession{}).Error
+		}); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "DELETE_FAILED"})
+			return
+		}
+
+		c.Status(http.StatusNoContent)
+	}
+}
+
+func removeDeletedSessionTopicSources(tx *gorm.DB, profileID, sessionID string) error {
+	var topics []models.LifeAgentTopicSummary
+	if err := tx.Where("profile_id = ?", profileID).Find(&topics).Error; err != nil {
+		return err
+	}
+	target := "session:" + sessionID
+	for i := range topics {
+		kept := make([]string, 0, len(topics[i].SourceEntryIDs))
+		removed := false
+		for _, sourceID := range []string(topics[i].SourceEntryIDs) {
+			if sourceID == target {
+				removed = true
+				continue
+			}
+			kept = append(kept, sourceID)
+		}
+		if !removed {
+			continue
+		}
+		if len(kept) == 0 && topics[i].Source == "memory" {
+			if err := tx.Delete(&topics[i]).Error; err != nil {
+				return err
+			}
+			continue
+		}
+		if err := tx.Model(&topics[i]).Update("source_entry_ids", models.JSONArray(kept)).Error; err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		chatStartTime := time.Now()

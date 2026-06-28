@@ -93,6 +93,7 @@ func Setup(cfg *config.Config) *gin.Engine {
 			lifeAgents.POST("/:id/purchase", middleware.RequireAuth(cfg), handler.LifeAgentsPurchase(cfg))
 			lifeAgents.GET("/:id/chat/sessions", middleware.RequireAuth(cfg), handler.LifeAgentsChatSessions(cfg))
 			lifeAgents.GET("/:id/chat/sessions/:sessionId", middleware.RequireAuth(cfg), handler.LifeAgentsChatSessionDetail(cfg))
+			lifeAgents.DELETE("/:id/chat/sessions/:sessionId", middleware.RequireAuth(cfg), handler.LifeAgentsChatSessionDelete(cfg))
 			lifeAgents.POST("/:id/chat", middleware.RequireAuth(cfg), handler.LifeAgentsChat(cfg))
 			lifeAgents.POST("/:id/chat/feedback", middleware.RequireAuth(cfg), handler.LifeAgentsChatFeedback(cfg))
 			lifeAgents.POST("/:id/rating", middleware.RequireAuth(cfg), handler.LifeAgentsRate(cfg))

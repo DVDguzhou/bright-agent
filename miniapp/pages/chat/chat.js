@@ -1,4 +1,4 @@
-const { get, post, absUrl } = require("../../utils/request");
+const { get, post, del, absUrl } = require("../../utils/request");
 const {
   resolveLifeAgentCoverDisplayUrl,
   nextCoverFallback,
@@ -123,6 +123,7 @@ Page({
     drawerOpen: false,
     sessions: [],
     sessionsLoading: false,
+    sessionDeletingId: "",
     sampleChips: [],
     remainingQ: -1,
     showPrice: false,
@@ -378,6 +379,43 @@ Page({
     const sessionId = e.currentTarget.dataset.id;
     this.setData({ drawerOpen: false });
     this.loadSessionById(sessionId);
+  },
+
+  deleteSession(e) {
+	const sessionId = e.currentTarget.dataset.id;
+	const title = e.currentTarget.dataset.title || "这条聊天";
+	if (!sessionId || this.data.sessionDeletingId) return;
+	wx.showModal({
+	  title: "删除聊天",
+	  content: `确定删除“${title}”吗？聊天正文和相关记忆会一并删除，且无法恢复。`,
+	  confirmText: "删除",
+	  confirmColor: "#9f2d2d",
+	  success: (result) => {
+		if (!result.confirm) return;
+		this.setData({ sessionDeletingId: sessionId });
+		del(`/api/life-agents/${this.data.id}/chat/sessions/${sessionId}`)
+		  .then(() => {
+			const remaining = (this.data.sessions || []).filter(function (item) {
+			  return item.id !== sessionId;
+			});
+			this.setData({ sessions: remaining, sessionDeletingId: "" });
+			if (this.data.sessionId !== sessionId) return;
+			if (remaining.length > 0) {
+			  this.loadSessionById(remaining[0].id);
+			  return;
+			}
+			this.setData({
+			  sessionId: "",
+			  messages: [normalizeMessage({ role: "assistant", content: this.data.welcomeMessage })],
+			  error: "",
+			});
+		  })
+		  .catch(() => {
+			this.setData({ sessionDeletingId: "" });
+			wx.showToast({ title: "删除失败，请重试", icon: "none" });
+		  });
+	  },
+	});
   },
 
   newSession() {

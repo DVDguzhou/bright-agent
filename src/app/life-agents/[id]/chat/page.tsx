@@ -6,6 +6,7 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { LifeAgentCoverImage } from "@/components/LifeAgentCoverImage";
 import { AnimatePresence, motion } from "framer-motion";
+import { Trash2 } from "lucide-react";
 import { VoiceMessageBubble, VoiceMessageLoadingBubble, VoiceReplyToggle } from "@/components/voice";
 import { LifeAgentMessageComposer } from "@/components/LifeAgentMessageComposer";
 import { UserAvatar } from "@/components/UserAvatar";
@@ -306,6 +307,7 @@ export default function LifeAgentChatPage() {
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
   const [sessionsLoading, setSessionsLoading] = useState(false);
   const [sessionLoading, setSessionLoading] = useState(false);
+  const [deletingSessionId, setDeletingSessionId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [recentGrowthEvents, setRecentGrowthEvents] = useState<LifeAgentGrowthEvent[]>([]);
@@ -401,6 +403,39 @@ export default function LifeAgentChatPage() {
       setSessionLoading(false);
     }
   }, [id, resetToWelcome, router]);
+
+  const deleteSession = async (target: SessionSummary) => {
+    if (deletingSessionId || loading || sessionLoading) return;
+    if (!window.confirm(`确定删除“${trimSessionTitle(target.title)}”吗？聊天正文和相关记忆会一并删除，且无法恢复。`)) return;
+
+    setDeletingSessionId(target.id);
+    setError("");
+    try {
+      const res = await fetch(`/api/life-agents/${id}/chat/sessions/${target.id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!res.ok) {
+        setError(res.status === 404 ? "这条会话已不存在。" : "删除聊天失败，请稍后重试。");
+        return;
+      }
+
+      const remaining = sessions.filter((item) => item.id !== target.id);
+      setSessions(remaining);
+      if (sessionId === target.id && profile) {
+        if (remaining.length > 0) {
+          await loadSession(remaining[0].id, profile.welcomeMessage);
+        } else {
+          resetToWelcome(profile.welcomeMessage);
+          router.replace(`/life-agents/${id}/chat`, { scroll: false });
+        }
+      }
+    } catch {
+      setError("删除聊天失败，请检查网络后重试。");
+    } finally {
+      setDeletingSessionId(null);
+    }
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -987,27 +1022,41 @@ export default function LifeAgentChatPage() {
                         <p className="text-xs text-ink-400">还没有历史会话，发出第一条消息后会自动保存。</p>
                       ) : (
                         sessions.map((session) => (
-                          <button
+                          <div
                             key={session.id}
-                            type="button"
-                            onClick={() => {
-                              loadSession(session.id, profile.welcomeMessage);
-                              closeMenu();
-                            }}
-                            className={`w-full rounded border px-3 py-3 text-left transition-colors ${
+                            className={`group flex w-full items-stretch rounded border transition-colors ${
                               session.id === sessionId
                                 ? "border-ink/40 bg-paper-200"
                                 : "border-hairline bg-paper-50 hover:border-ink-300 hover:bg-paper-100"
                             }`}
                           >
-                            <div className="flex items-center justify-between gap-3">
-                              <p className="text-sm font-medium text-ink-700">{trimSessionTitle(session.title)}</p>
-                              <span className="text-[11px] text-ink-300">{session.messageCount} 条</span>
-                            </div>
-                            <p className="mt-1 text-[11px] text-ink-400">
-                              {new Date(session.updatedAt).toLocaleString("zh-CN")}
-                            </p>
-                          </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                loadSession(session.id, profile.welcomeMessage);
+                                closeMenu();
+                              }}
+                              className="min-w-0 flex-1 px-3 py-3 text-left outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ink/40"
+                            >
+                              <div className="flex items-center justify-between gap-3">
+                                <p className="truncate text-sm font-medium text-ink-700">{trimSessionTitle(session.title)}</p>
+                                <span className="shrink-0 text-[11px] text-ink-300">{session.messageCount} 条</span>
+                              </div>
+                              <p className="mt-1 text-[11px] text-ink-400">
+                                {new Date(session.updatedAt).toLocaleString("zh-CN")}
+                              </p>
+                            </button>
+                            <button
+                              type="button"
+                              title="删除聊天"
+                              aria-label={`删除聊天：${trimSessionTitle(session.title)}`}
+                              disabled={deletingSessionId !== null || loading || sessionLoading}
+                              onClick={() => void deleteSession(session)}
+                              className="m-1.5 flex w-9 shrink-0 items-center justify-center rounded text-ink-300 opacity-100 outline-none transition hover:bg-red-50 hover:text-red-700 focus-visible:ring-2 focus-visible:ring-red-700 disabled:cursor-not-allowed disabled:opacity-40 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100"
+                            >
+                              <Trash2 className="h-4 w-4" aria-hidden />
+                            </button>
+                          </div>
                         ))
                       )}
                     </div>

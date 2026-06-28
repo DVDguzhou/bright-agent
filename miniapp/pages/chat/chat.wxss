@@ -627,6 +627,30 @@
   flex-shrink: 0;
 }
 
+.session-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  flex-shrink: 0;
+}
+
+.session-delete-btn {
+  min-width: 72rpx;
+  height: 48rpx;
+  margin: 0;
+  padding: 0 12rpx;
+  border: 0;
+  border-radius: 8rpx;
+  background: transparent;
+  color: #8f3434;
+  font-size: 22rpx;
+  line-height: 48rpx;
+}
+
+.session-delete-btn::after {
+  border: 0;
+}
+
 .session-time {
   display: block;
   margin-top: 8rpx;

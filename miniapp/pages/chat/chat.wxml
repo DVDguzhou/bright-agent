@@ -209,7 +209,17 @@
         >
           <view class="session-card-head">
             <text class="session-title">{{item.titleShort}}</text>
-            <text class="session-count text-muted">{{item.messageCount}} 条</text>
+            <view class="session-card-actions">
+              <text class="session-count text-muted">{{item.messageCount}} 条</text>
+              <button
+                class="session-delete-btn"
+                data-id="{{item.id}}"
+                data-title="{{item.titleShort}}"
+                disabled="{{sessionDeletingId}}"
+                catchtap="deleteSession"
+                aria-label="删除聊天"
+              >删除</button>
+            </view>
           </view>
           <text class="session-time text-muted">{{item.timeLabel}}</text>
         </view>
