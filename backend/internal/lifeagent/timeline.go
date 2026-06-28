@@ -186,6 +186,42 @@ func WantsTimelineOverview(query string) bool {
 	})
 }
 
+func ApplyTimelineOverviewStrategy(strategy *Strategy, query string, plan RetrievalPlan) {
+	if strategy == nil || !WantsTimelineOverview(query) {
+		return
+	}
+	stages := timelineStageLabels(plan.Entries)
+	if len(stages) < 2 {
+		return
+	}
+	strategy.PromptLengthHint = "这轮是完整时间线回答，长度由已召回阶段数量决定，不要套用简短回复限制。"
+	strategy.FormatRules = append(strategy.FormatRules,
+		"用户要求按时间讲完整经历。依次覆盖这些有证据的阶段："+strings.Join(stages, "、")+"。每个阶段单独一个自然段，不能合并阶段，不能漏掉后面的阶段；只写素材明确支持的内容。",
+	)
+}
+
+func timelineStageLabels(entries []KnowledgeEntryForAI) []string {
+	var labels []string
+	seen := map[string]bool{}
+	for _, entry := range entries {
+		for _, boundary := range detectKnowledgeBoundaries(entry.Title + "\n" + entry.Content) {
+			if boundary.kind != "education" && boundary.kind != "calendar" && boundary.kind != "career" {
+				continue
+			}
+			label := boundary.label
+			if strings.Contains(label, " · ") {
+				label = strings.Split(label, " · ")[0]
+			}
+			if label != "" && !seen[label] {
+				seen[label] = true
+				labels = append(labels, label)
+			}
+			break
+		}
+	}
+	return labels
+}
+
 func filterTimelineEventsForPrompt(events []TimelineEventForAI) []TimelineEventForAI {
 	out := make([]TimelineEventForAI, 0, len(events))
 	for _, e := range events {

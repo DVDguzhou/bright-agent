@@ -1,6 +1,9 @@
 package lifeagent
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 func TestAnalyzeKnowledgeTimeline_confirmedContentTime(t *testing.T) {
 	facets := KnowledgeFacetTags{
@@ -89,5 +92,25 @@ func TestAttachTimelineSourceEntriesDoesNotExpandUnrelatedQuestion(t *testing.T)
 	events := []TimelineEventForAI{{Status: "confirmed", SourceEntryIDs: []string{"senior"}}}
 	if added := AttachTimelineSourceEntries(&plan, events, entries, "你平时喜欢吃什么"); added != 0 || len(plan.Entries) != 0 {
 		t.Fatalf("unrelated question expanded timeline: added=%d plan=%#v", added, plan)
+	}
+}
+
+func TestApplyTimelineOverviewStrategyRequiresEveryStage(t *testing.T) {
+	strategy := Strategy{PromptLengthHint: "保持简短"}
+	plan := RetrievalPlan{Entries: []KnowledgeEntryForAI{
+		{ID: "y1", Title: "大一 · 适应校园", Content: "大一适应校园。"},
+		{ID: "y2", Title: "大二 · 项目实践", Content: "大二做项目。"},
+		{ID: "y3", Title: "大三 · 升学准备", Content: "大三准备考研。"},
+		{ID: "y4", Title: "大四 · 毕业设计", Content: "大四完成毕业设计。"},
+	}}
+	ApplyTimelineOverviewStrategy(&strategy, "说一下你大一到大四", plan)
+	joined := strings.Join(strategy.FormatRules, "\n")
+	for _, stage := range []string{"大一", "大二", "大三", "大四"} {
+		if !strings.Contains(joined, stage) {
+			t.Fatalf("rules=%q missing %s", joined, stage)
+		}
+	}
+	if strategy.PromptLengthHint == "保持简短" {
+		t.Fatalf("timeline overview kept concise hint: %q", strategy.PromptLengthHint)
 	}
 }

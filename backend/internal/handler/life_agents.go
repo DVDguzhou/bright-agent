@@ -3281,7 +3281,11 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 			if m.Role == "assistant" && len(m.Refs) > 0 {
 				for _, r := range m.Refs {
 					if rm, ok := r.(map[string]interface{}); ok {
+						evidenceKind, _ := rm["evidenceKind"].(string)
 						rid, _ := rm["parentId"].(string)
+						if evidenceKind == "event" {
+							rid, _ = rm["evidenceUnitId"].(string)
+						}
 						if rid == "" {
 							rid, _ = rm["id"].(string)
 						}

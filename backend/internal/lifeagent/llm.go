@@ -82,8 +82,9 @@ func BuildReplyWithLLM(ctx context.Context, apiKey, model, baseURL string, enabl
 			}
 			AttachLiveUpdatesFiltered(&plan, opts.LiveUpdates, intro, message)
 			BoostIntroRetrieval(&plan, entries, profile, intro)
+			AttachTimelineSourceEntries(&plan, opts.TimelineEvents, entries, message)
 		}
-		if opts != nil && len(opts.RecentlyUsedEntryIDs) > 0 {
+		if opts != nil && len(opts.RecentlyUsedEntryIDs) > 0 && !WantsTimelineOverview(message) {
 			DeweightRecentlyUsedEntries(&plan, opts.RecentlyUsedEntryIDs)
 		}
 		systemContent := buildSystemPrompt(profile, plan)
@@ -888,7 +889,7 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 			AttachLiveUpdatesFiltered(&planStrict, opts.LiveUpdates, introIntent, message)
 		}
 		BoostIntroRetrieval(&planStrict, entries, profile, introIntent)
-		if opts != nil && len(opts.RecentlyUsedEntryIDs) > 0 {
+		if opts != nil && len(opts.RecentlyUsedEntryIDs) > 0 && !WantsTimelineOverview(message) {
 			DeweightRecentlyUsedEntries(&planStrict, opts.RecentlyUsedEntryIDs)
 		}
 		answerPolicy = ClassifyAnswerPolicy(message, planStrict, opts)
@@ -922,6 +923,7 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 	if opts != nil && opts.CatalogSparsity.IsSparse {
 		ApplySparseStrategyOverride(&strategy, opts.CatalogSparsity, ws.Perception, planStrict)
 	}
+	ApplyTimelineOverviewStrategy(&strategy, message, planStrict)
 	// 把 ws 回写 opts，确保 buildDraftKnowledgeContext 能读到 Perception / Episodes
 	opts.WorkingState = ws
 
@@ -1513,6 +1515,9 @@ func buildReconcileUserMessage(userMessage, draft string, sparse bool) string {
 	sb.WriteString("\n\n下面是第一遍回复草稿（可能与上面入库内容不一致）：\n")
 	sb.WriteString(draft)
 	sb.WriteString("\n\n请输出一条最终发给用户的正文（仅此一段对话，不要前缀说明）。")
+	if WantsTimelineOverview(userMessage) {
+		sb.WriteString("\n用户明确要求完整时间线：必须覆盖编号素材里出现的每个阶段，按时间顺序每个阶段单独一个自然段；不得把多个阶段合并到同一段，也不得为了简短漏掉后面的阶段。某阶段没有素材时才可以不写，禁止编造。")
+	}
 	if sparse {
 		sb.WriteString(sparseReconcileUserSuffix())
 	}

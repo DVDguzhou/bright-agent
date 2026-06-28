@@ -112,11 +112,23 @@ func TestTopicCitationIsHiddenWhenPartitionedRawEntryExists(t *testing.T) {
 	}
 }
 
+func TestLegacyStageTopicIsHiddenBySpecificStageEvidence(t *testing.T) {
+	topic := TopicSummaryForAI{ID: "legacy-topic", TopicLabel: "大一"}
+	entry := KnowledgeEntryForAI{ID: "college#event-1", SourceEntryID: "college", Title: "大一 · 适应校园", Content: "大一适应校园。"}
+	if !topicRedundantWithEntries(topic, []KnowledgeEntryForAI{entry}) {
+		t.Fatal("legacy stage topic should be hidden when specific event evidence exists")
+	}
+}
+
 func TestPartitionedCitationKeepsOriginalParentID(t *testing.T) {
 	catalog := BuildCitationCatalog(RetrievalPlan{Entries: []KnowledgeEntryForAI{{
 		ID: "college#event-2", SourceEntryID: "college", Title: "大二 · VR项目", Content: "大二做VR项目。",
 	}}})
 	if len(catalog.Items) != 1 || catalog.Items[0].ParentID != "college" || catalog.Items[0].Title != "大二 · VR项目" {
 		t.Fatalf("catalog=%#v", catalog.Items)
+	}
+	refs := BuildCitationCatalogReferences(catalog)
+	if len(refs) != 1 || refs[0]["evidenceKind"] != "event" || refs[0]["evidenceUnitId"] != "college#event-2" {
+		t.Fatalf("refs=%#v, want child event identity", refs)
 	}
 }

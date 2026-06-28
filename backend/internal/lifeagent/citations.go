@@ -22,25 +22,27 @@ const (
 
 // CitationItem is one numbered source in the reconcile catalog.
 type CitationItem struct {
-	CiteIndex   int
-	ID          string
-	SourceType  string
-	Title       string
-	Excerpt     string
-	FullContent string
-	Category    string
-	Confidence  string
-	FactKey     string
-	TopicGroup  string
-	TopicKey    string
-	Route       string
-	CreatedAt   string
-	Facets      string
-	ParentID    string
-	ParentTitle string
-	ChunkIndex  int
-	CharStart   int
-	CharEnd     int
+	CiteIndex      int
+	ID             string
+	SourceType     string
+	Title          string
+	Excerpt        string
+	FullContent    string
+	Category       string
+	Confidence     string
+	FactKey        string
+	TopicGroup     string
+	TopicKey       string
+	Route          string
+	CreatedAt      string
+	Facets         string
+	ParentID       string
+	ParentTitle    string
+	EvidenceKind   string
+	EvidenceUnitID string
+	ChunkIndex     int
+	CharStart      int
+	CharEnd        int
 }
 
 // CitationCatalog ordered sources for reconcile prompt numbering (facts → entry chunks → live → topics).
@@ -87,7 +89,8 @@ func topicRedundantWithEntries(topic TopicSummaryForAI, entries []KnowledgeEntry
 	}
 	label := normalizeCitationTitle(topic.TopicLabel)
 	for _, e := range entries {
-		if normalizeCitationTitle(e.Title) == label {
+		entryTitle := normalizeCitationTitle(e.Title)
+		if entryTitle == label || (label != "" && strings.HasPrefix(entryTitle, label+" ·")) {
 			return true
 		}
 		for _, id := range topic.SourceEntryIDs {
@@ -405,21 +408,28 @@ func BuildCitationCatalog(plan RetrievalPlan) CitationCatalog {
 				id = fmt.Sprintf("%s#chunk-%d", entry.ID, chunk.Index)
 			}
 			items = append(items, CitationItem{
-				CiteIndex:   idx,
-				ID:          id,
-				SourceType:  "knowledge",
-				Title:       entry.Title,
-				Excerpt:     excerpt,
-				FullContent: chunk.Text,
-				Category:    entry.Category,
-				Confidence:  conf,
-				Route:       route,
-				Facets:      FacetSummary(entry.Facets),
-				ParentID:    firstNonEmpty(entry.SourceEntryID, entry.ID),
-				ParentTitle: entry.Title,
-				ChunkIndex:  chunk.Index,
-				CharStart:   chunk.CharStart,
-				CharEnd:     chunk.CharEnd,
+				CiteIndex:      idx,
+				ID:             id,
+				SourceType:     "knowledge",
+				Title:          entry.Title,
+				Excerpt:        excerpt,
+				FullContent:    chunk.Text,
+				Category:       entry.Category,
+				Confidence:     conf,
+				Route:          route,
+				Facets:         FacetSummary(entry.Facets),
+				ParentID:       firstNonEmpty(entry.SourceEntryID, entry.ID),
+				ParentTitle:    entry.Title,
+				EvidenceUnitID: entry.ID,
+				EvidenceKind: func() string {
+					if entry.SourceEntryID != "" && entry.SourceEntryID != entry.ID {
+						return "event"
+					}
+					return ""
+				}(),
+				ChunkIndex: chunk.Index,
+				CharStart:  chunk.CharStart,
+				CharEnd:    chunk.CharEnd,
 			})
 			idx++
 		}
@@ -968,9 +978,17 @@ func citationItemToMap(item CitationItem, includeCiteIndex bool) map[string]stri
 	if item.ParentTitle != "" {
 		m["parentTitle"] = item.ParentTitle
 	}
+	if item.EvidenceUnitID != "" {
+		m["evidenceUnitId"] = item.EvidenceUnitID
+	}
 	if item.ChunkIndex > 0 {
 		m["chunkIndex"] = strconv.Itoa(item.ChunkIndex)
-		m["evidenceKind"] = "chunk"
+		if item.EvidenceKind == "" {
+			m["evidenceKind"] = "chunk"
+		}
+	}
+	if item.EvidenceKind != "" {
+		m["evidenceKind"] = item.EvidenceKind
 	}
 	if item.CharStart > 0 || item.CharEnd > 0 {
 		m["charStart"] = strconv.Itoa(item.CharStart)

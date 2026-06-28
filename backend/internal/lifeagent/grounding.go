@@ -192,12 +192,9 @@ func DeweightRecentlyUsedEntries(plan *RetrievalPlan, recentIDs []string) {
 			fresh = append(fresh, e)
 		}
 	}
-	// 优先展示没用过的素材；如果全部都用过则保留（没有别的选择）
-	if len(fresh) > 0 {
-		plan.Entries = fresh
-	} else {
-		plan.Entries = reused
-	}
+	// Reuse is a ranking signal, never an evidence filter. A repeated factual
+	// question still needs the same source to remain available for grounding.
+	plan.Entries = append(fresh, reused...)
 }
 
 // AttachLiveUpdates 将实时动态注入 RetrievalPlan，根据 query 关键词筛选相关的动态。

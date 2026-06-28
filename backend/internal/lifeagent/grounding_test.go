@@ -146,3 +146,17 @@ func TestStrictFromPlanDropsNonEvidenceMetadata(t *testing.T) {
 		t.Fatalf("strict entries = %#v, want only evidence entry", strict.Entries)
 	}
 }
+
+func TestDeweightRecentlyUsedEntriesKeepsRequiredEvidence(t *testing.T) {
+	plan := RetrievalPlan{Entries: []KnowledgeEntryForAI{
+		{ID: "college#event-2", SourceEntryID: "college", Title: "大二恋爱经历", Content: "大二谈过一段恋爱。"},
+		{ID: "cmu", SourceEntryID: "cmu", Title: "CMU经历", Content: "在CMU做科研。"},
+	}}
+	DeweightRecentlyUsedEntries(&plan, []string{"college#event-2"})
+	if len(plan.Entries) != 2 {
+		t.Fatalf("entries=%#v, reused evidence must not be filtered", plan.Entries)
+	}
+	if plan.Entries[1].ID != "college#event-2" {
+		t.Fatalf("entries=%#v, reused evidence should only move behind fresh evidence", plan.Entries)
+	}
+}
