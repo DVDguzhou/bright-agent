@@ -256,11 +256,11 @@ func extractBochaWebPages(raw map[string]json.RawMessage) []bochaWebPage {
 func injectWebSearchContext(knowledgeCtx, searchResult string, searchFailed bool) string {
 	var block strings.Builder
 	if searchFailed || strings.TrimSpace(searchResult) == "" {
-		block.WriteString("【联网检索】本次未能获得可靠实时数据。必须明确告知用户需查阅省教育考试院、研招网等官方渠道核实；禁止编造分数线、位次、招生计划等具体数字，禁止假装已经搜索成功。")
+		block.WriteString("【联网检索】本次未能获得可靠实时数据。必须明确告知用户需查阅省教育考试院、研招网等官方渠道核实；禁止编造分数线、位次、招生计划等具体数字；禁止说「搜着呢」「等一下」「等结果出来」「稍后发你」等假装正在异步搜索的话术。")
 	} else {
 		block.WriteString("【联网检索结果 - 回答必须以此为准】\n")
 		block.WriteString(strings.TrimSpace(searchResult))
-		block.WriteString("\n\n规则：以上为用户问题强制检索到的公开信息。回答时优先引用其中数据并注明年份/省份；若检索结果不足以回答，说明缺口并建议查官方渠道；禁止声称「已搜索」却给出检索结果中不存在的具体数字。")
+		block.WriteString("\n\n规则：检索已在回复生成前同步完成。必须直接根据以上内容作答；禁止说「搜着呢」「等一下」「等结果出来」「稍后发你」；若检索结果不足以回答，说明缺口并建议查官方渠道；禁止编造检索结果中不存在的具体数字。")
 	}
 	if strings.TrimSpace(knowledgeCtx) == "" {
 		return block.String()
@@ -268,11 +268,14 @@ func injectWebSearchContext(knowledgeCtx, searchResult string, searchFailed bool
 	return block.String() + "\n\n" + knowledgeCtx
 }
 
-func webSearchDraftRules(forcedInjected bool) string {
-	if forcedInjected {
-		return "【实时数据约束】系统已为你注入联网检索结果（见下方知识块）。必须基于检索内容回答；检索没有的数据不要编；不得假装搜索却给出未检索到的分数线/位次。\n\n"
+func webSearchDraftRules(forcedInjected bool, searchFailed bool) string {
+	if forcedInjected && !searchFailed {
+		return "【实时数据约束】系统已在生成回复前完成联网检索（见下方知识块）。第一句就要给结论或数据，禁止「搜着呢」「等结果」「稍等」「我查完发你」等拖延话术；检索块里没有的数字不要编。\n\n"
 	}
-	return "【实时数据约束】涉及分数线、位次、招生计划、录取政策等时效性事实时，必须调用 web_search 获取最新公开信息后再回答；未调用搜索或搜索失败时，不得编造具体数字，也不得声称「我刚搜了」。\n\n"
+	if forcedInjected && searchFailed {
+		return "【实时数据约束】联网检索未拿到可靠结果。直接引导用户查省教育考试院/研招网官方渠道；禁止「搜着呢」「等一下」「稍后发你」等假装正在搜索。\n\n"
+	}
+	return "【实时数据约束】涉及分数线、位次、招生计划、录取政策等时效性事实时，必须调用 web_search 获取最新公开信息后再回答；未调用搜索或搜索失败时，不得编造具体数字，也不得声称「我刚搜了」或「搜着呢」。\n\n"
 }
 
 func truncateForLog(s string, max int) string {

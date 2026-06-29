@@ -104,20 +104,20 @@ export function VoiceMessageBubble({
     setProgress(0);
   }, []);
 
-  const barCount = Math.min(24, Math.max(5, Math.ceil(Math.max(durationSeconds, 1) / 2)));
+  const barCount = Math.min(16, Math.max(4, Math.ceil(Math.max(durationSeconds, 1) / 3)));
   const barHeights = Array.from({ length: barCount }, (_, i) => {
     const base = 0.35 + Math.sin((i / barCount) * Math.PI) * 0.65;
     return base;
   });
 
-  const minWidthPx = Math.min(220, 140 + Math.min(durationSeconds, 60) * 2);
+  const minWidthPx = Math.min(168, 88 + Math.min(durationSeconds, 60) * 1.2);
 
   return (
     <button
       type="button"
       onClick={togglePlay}
       style={{ minWidth: minWidthPx }}
-      className={`inline-flex max-w-full items-center gap-3 rounded px-3 py-2.5 text-left transition active:scale-[0.99] ${
+      className={`inline-flex h-9 max-w-full items-center gap-2 rounded-md px-2.5 py-1 text-left transition active:scale-[0.99] ${
         isFromUser
           ? "bg-ink text-paper-50"
           : `${CHAT_GLASS_PANEL_CLASSNAME} text-ink-700`
@@ -150,57 +150,51 @@ export function VoiceMessageBubble({
         onPlay={() => setIsPlaying(true)}
       />
       <span
-        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
+        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${
           isFromUser ? "bg-paper/18" : "bg-paper/72"
         }`}
         aria-hidden
       >
         {audioState === "loading" ? (
-          <span className="h-4 w-4 rounded-full border-2 border-current/25 border-t-current animate-spin" />
+          <span className="h-3.5 w-3.5 rounded-full border-2 border-current/25 border-t-current animate-spin" />
         ) : audioState === "error" ? (
-          <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+          <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M10.29 3.86l-7.5 13A1 1 0 003.65 18h16.7a1 1 0 00.86-1.5l-7.5-13a1 1 0 00-1.72 0z" />
           </svg>
         ) : isPlaying ? (
-          <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+          <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 24 24">
             <rect x="6" y="4" width="4" height="16" rx="1" />
             <rect x="14" y="4" width="4" height="16" rx="1" />
           </svg>
         ) : (
-          <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+          <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 24 24">
             <path d="M8 5v14l11-7z" />
           </svg>
         )}
       </span>
       {audioState === "loading" ? (
         <>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium text-ink-700">语音加载中...</p>
-            <p className="mt-0.5 text-xs text-ink-400">马上就能播放，先看看文字版也可以。</p>
-          </div>
-          <span className="shrink-0 text-xs font-medium tabular-nums text-ink-400/85">
+          <span className="min-w-0 flex-1 truncate text-xs text-ink-500">语音加载中</span>
+          <span className="shrink-0 text-[11px] font-medium tabular-nums text-ink-400/85">
             {formatDuration(durationSeconds)}
           </span>
         </>
       ) : audioState === "error" ? (
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-ink-700">语音暂时加载失败</p>
-          <p className="mt-0.5 text-xs text-ink-400">点一下重试，或先阅读下面的文字回复。</p>
-        </div>
+        <span className="min-w-0 flex-1 text-xs text-ink-500">加载失败，点击重试</span>
       ) : (
         <>
-          <div className="flex min-w-0 flex-1 items-center gap-1">
+          <div className="flex min-w-0 flex-1 items-center gap-0.5">
             {barHeights.map((h, i) => (
               <div
                 key={i}
                 className={`w-0.5 shrink-0 rounded-full transition-all ${
                   isFromUser ? "bg-paper/70" : "bg-paper-500/55"
                 } ${isPlaying && (i / barCount) * 100 < progress ? "opacity-100" : "opacity-40"}`}
-                style={{ height: `${10 + h * 14}px` }}
+                style={{ height: `${6 + h * 8}px` }}
               />
             ))}
           </div>
-          <span className="shrink-0 text-xs font-medium tabular-nums opacity-80">
+          <span className="shrink-0 text-[11px] font-medium tabular-nums opacity-80">
             {formatDuration(durationSeconds)}
           </span>
         </>
@@ -216,15 +210,12 @@ export function VoiceMessageLoadingBubble({
 }: VoiceLoadingBubbleProps) {
   return (
     <div
-      className={`inline-flex max-w-full items-center gap-3 rounded-[20px] px-3 py-2.5 text-left text-ink-700 ${CHAT_GLASS_PANEL_CLASSNAME} ${className}`}
+      className={`inline-flex h-9 max-w-full items-center gap-2 rounded-md px-2.5 py-1 text-left text-ink-700 ${CHAT_GLASS_PANEL_CLASSNAME} ${className}`}
     >
-      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-paper/72" aria-hidden>
-        <span className="h-4 w-4 rounded-full border-2 border-hairline/40 border-t-ink animate-spin" />
+      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-paper/72" aria-hidden>
+        <span className="h-3.5 w-3.5 rounded-full border-2 border-hairline/40 border-t-ink animate-spin" />
       </span>
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium">{label}</p>
-        <p className="mt-0.5 text-xs text-ink-400">{description}</p>
-      </div>
+      <span className="min-w-0 flex-1 truncate text-xs text-ink-500">{label}</span>
     </div>
   );
 }

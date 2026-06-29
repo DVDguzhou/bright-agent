@@ -951,14 +951,18 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 	// Intent-based routing: 闲聊/打招呼直接走 Draft，跳过 Reconcile
 	knowledgeCtx := buildDraftKnowledgeContext(fullPlan.Facts, fullPlan.Topics, liveForDraft, entryHints, message, history, opts)
 	forcedWebSearch := false
+	searchFailed := false
 	if opts != nil && opts.WebSearch != nil && opts.WebSearch.Enabled && NeedsRealtimeWebSearch(message) {
 		query := BuildWebSearchQuery(message, history)
 		log.Printf("[LLM-websearch] forced pre-search query=%q provider=%s", query, opts.WebSearch.Provider)
 		searchResult, searchErr := SearchWeb(ctx, query, *opts.WebSearch)
-		knowledgeCtx = injectWebSearchContext(knowledgeCtx, searchResult, searchErr != nil)
+		searchFailed = searchErr != nil || strings.TrimSpace(searchResult) == ""
+		knowledgeCtx = injectWebSearchContext(knowledgeCtx, searchResult, searchFailed)
 		forcedWebSearch = true
 		if searchErr != nil {
 			log.Printf("[LLM-websearch] forced search failed: %v", searchErr)
+		} else if searchFailed {
+			log.Printf("[LLM-websearch] forced search returned empty")
 		} else {
 			log.Printf("[LLM-websearch] forced search ok, %d chars", len([]rune(searchResult)))
 		}
@@ -973,7 +977,7 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 
 	draftSystem := buildDraftSystemPrompt(profile, fullPlan.Facts, fullPlan.Topics, liveForDraft, &strategy, introIntent)
 	if webSearchToolEnabled(opts, baseURL) && (forcedWebSearch || NeedsRealtimeWebSearch(message)) {
-		draftSystem = webSearchDraftRules(forcedWebSearch) + draftSystem
+		draftSystem = webSearchDraftRules(forcedWebSearch, searchFailed) + draftSystem
 	}
 	opts.KnowledgeContext = knowledgeCtx
 	log.Printf("[LLM-strategy] %s", strategy.Debug)

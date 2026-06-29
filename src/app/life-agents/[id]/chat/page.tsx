@@ -156,6 +156,20 @@ function assistantTurnLastIndex(messages: ChatMessage[], startIdx: number) {
   return last;
 }
 
+function getAssistantTurnAudio(messages: ChatMessage[], tailIndex: number) {
+  let audioUrl: string | undefined;
+  let audioDurationSec: number | undefined;
+  for (let i = tailIndex; i >= 0; i--) {
+    if (messages[i].role !== "assistant") break;
+    if (messages[i].audioUrl) {
+      audioUrl = messages[i].audioUrl;
+      audioDurationSec = messages[i].audioDurationSec;
+      break;
+    }
+  }
+  return { audioUrl, audioDurationSec };
+}
+
 function shouldShowAssistantAvatar(messages: ChatMessage[], index: number) {
   return index === 0 || messages[index - 1]?.role !== "assistant";
 }
@@ -750,15 +764,19 @@ export default function LifeAgentChatPage() {
                 const data = parsed;
                 setMessages((prev) => {
                   const targetIdx = assistantTurnLastIndex(prev, assistantIdx.current);
-                  return prev.map((m, i) =>
-                    i === targetIdx
-                      ? {
-                          ...m,
-                          audioUrl: data.audioUrl,
-                          audioDurationSec: data.audioDurationSec,
-                        }
-                      : m
-                  );
+                  return prev.map((m, i) => {
+                    if (m.role !== "assistant" || i < assistantIdx.current || i > targetIdx) {
+                      return m;
+                    }
+                    if (i === targetIdx) {
+                      return {
+                        ...m,
+                        audioUrl: data.audioUrl,
+                        audioDurationSec: data.audioDurationSec,
+                      };
+                    }
+                    return { ...m, audioUrl: undefined, audioDurationSec: undefined };
+                  });
                 });
                 setVoiceLoading(false);
               }
@@ -1290,19 +1308,15 @@ export default function LifeAgentChatPage() {
                 </div>
               ) : null}
               {messages.map((message, index) => {
-                const isVoiceLoadingForMsg =
-                  message.role === "assistant" &&
-                  index === messages.length - 1 &&
-                  voiceLoading &&
-                  !message.audioUrl;
+                const isTurnTail =
+                  message.role === "assistant" && isAssistantTurnTail(messages, index);
+                const turnAudio = isTurnTail ? getAssistantTurnAudio(messages, index) : null;
+                const showVoiceTail =
+                  isTurnTail && !!(turnAudio?.audioUrl || (voiceLoading && !turnAudio?.audioUrl));
                 const showAssistantAvatar =
                   message.role === "assistant" && shouldShowAssistantAvatar(messages, index);
-                const hasVoiceBubble = message.role === "assistant" && !!message.audioUrl;
-                const hasVoiceLoadingBubble = isVoiceLoadingForMsg;
-                const hasStandaloneVoice = hasVoiceBubble || hasVoiceLoadingBubble;
                 const showTextBubble =
                   message.role === "user" ||
-                  hasVoiceLoadingBubble ||
                   message.pending ||
                   (message.role === "assistant" && !message.content.trim() && loading) ||
                   !!message.content.trim() ||
@@ -1335,26 +1349,12 @@ export default function LifeAgentChatPage() {
 
                 return (
                 <div key={`${message.role}-${index}-${message.messageId ?? "draft"}`} className="space-y-1.5">
-                  {hasStandaloneVoice ? (
-                    <div className="flex items-end gap-2 justify-start">
-                      {showAssistantAvatar ? assistantAvatar : assistantSpacer}
-                      {hasVoiceBubble ? (
-                        <VoiceMessageBubble
-                          audioUrl={message.audioUrl!}
-                          durationSeconds={message.audioDurationSec ?? 1}
-                          isFromUser={false}
-                        />
-                      ) : (
-                        <VoiceMessageLoadingBubble />
-                      )}
-                    </div>
-                  ) : null}
                   {showTextBubble ? (
                   <div
                     className={`flex items-end gap-2 ${message.role === "user" ? "justify-end" : "justify-start"}`}
                   >
                     {message.role === "assistant"
-                      ? hasStandaloneVoice || !showAssistantAvatar
+                      ? !showAssistantAvatar
                         ? assistantSpacer
                         : assistantAvatar
                       : null}
@@ -1418,7 +1418,21 @@ export default function LifeAgentChatPage() {
                     ) : null}
                   </div>
                   ) : null}
-                  {message.role === "assistant" && message.messageId && message.sessionId && isAssistantTurnTail(messages, index) ? (
+                  {showVoiceTail ? (
+                    <div className="flex items-end gap-2 justify-start">
+                      {assistantSpacer}
+                      {turnAudio?.audioUrl ? (
+                        <VoiceMessageBubble
+                          audioUrl={turnAudio.audioUrl}
+                          durationSeconds={turnAudio.audioDurationSec ?? 1}
+                          isFromUser={false}
+                        />
+                      ) : (
+                        <VoiceMessageLoadingBubble />
+                      )}
+                    </div>
+                  ) : null}
+                  {message.role === "assistant" && message.messageId && message.sessionId && isTurnTail ? (
                     <div className="ml-10 max-w-full space-y-2">
                       <div className="flex flex-wrap gap-2 text-xs">
                         {FEEDBACK_PRIMARY.map((item) => {
