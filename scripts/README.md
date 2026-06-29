@@ -47,6 +47,7 @@ scripts/
 |------|------|
 | `life-agent/create-laoda.ts` | 创建老大 Agent |
 | `life-agent/create-laoda-2-with-voice.mjs` | 创建带语音配置的老大 Agent |
+| `life-agent/enroll-agent-voice.mjs` | 用本地音视频文件给指定 Agent 训练/替换音色（默认张雪峰） |
 | `life-agent/enroll-laoda-voice.mjs` | 为老大样本注册音色 |
 | `life-agent/create-gossip-agent.mjs` | 创建八卦 Agent |
 | `life-agent/reset-missing-cover-images.ts` | 扫描并回退已丢失上传文件的封面记录 |
