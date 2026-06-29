@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { CHAT_GLASS_PANEL_CLASSNAME } from "@/lib/chat-glass";
 
 const VOLUME_BOOST = 1.5; // 播放增益，略微提高音量
 
@@ -117,10 +116,8 @@ export function VoiceMessageBubble({
       type="button"
       onClick={togglePlay}
       style={{ minWidth: minWidthPx }}
-      className={`inline-flex h-9 max-w-full items-center gap-2 rounded-md px-2.5 py-1 text-left transition active:scale-[0.99] ${
-        isFromUser
-          ? "bg-ink text-paper-50"
-          : `${CHAT_GLASS_PANEL_CLASSNAME} text-ink-700`
+      className={`inline-flex h-8 max-w-[min(100%,14rem)] items-center gap-2 rounded-full border border-hairline/80 bg-paper-100/90 px-2.5 py-1 text-left transition active:scale-[0.99] ${
+        isFromUser ? "bg-ink text-paper-50" : "text-ink-700"
       } ${className}`}
       aria-label={
         audioState === "loading"
@@ -210,7 +207,7 @@ export function VoiceMessageLoadingBubble({
 }: VoiceLoadingBubbleProps) {
   return (
     <div
-      className={`inline-flex h-9 max-w-full items-center gap-2 rounded-md px-2.5 py-1 text-left text-ink-700 ${CHAT_GLASS_PANEL_CLASSNAME} ${className}`}
+      className={`inline-flex h-8 max-w-[min(100%,14rem)] items-center gap-2 rounded-full border border-hairline/80 bg-paper-100/90 px-2.5 py-1 text-left text-ink-700 ${className}`}
     >
       <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-paper/72" aria-hidden>
         <span className="h-3.5 w-3.5 rounded-full border-2 border-hairline/40 border-t-ink animate-spin" />

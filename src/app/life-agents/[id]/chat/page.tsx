@@ -200,40 +200,85 @@ function normalizeMessagesWithVoiceRows(messages: ChatMessage[]): ChatMessage[] 
   let i = 0;
   while (i < messages.length) {
     const message = messages[i];
-    if (message.role === "voice") {
-      i++;
-      continue;
-    }
-    if (message.role !== "assistant") {
+    if (message.role === "user") {
       out.push(message);
       i++;
       continue;
     }
-    let audioUrl: string | undefined;
-    let audioDurationSec: number | undefined;
-    let sessionId: string | undefined;
-    while (i < messages.length && messages[i].role === "assistant") {
-      const segment = messages[i];
-      if (segment.audioUrl) {
-        audioUrl = segment.audioUrl;
-        audioDurationSec = segment.audioDurationSec;
+    const assistants: ChatMessage[] = [];
+    let voice: ChatMessage | undefined;
+    while (i < messages.length && messages[i].role !== "user") {
+      const current = messages[i];
+      if (current.role === "voice") {
+        if (!voice || current.audioUrl) {
+          voice = current;
+        }
+      } else if (current.role === "assistant") {
+        if (current.audioUrl && !voice) {
+          voice = {
+            role: "voice",
+            content: "",
+            audioUrl: current.audioUrl,
+            audioDurationSec: current.audioDurationSec,
+            sessionId: current.sessionId,
+            voicePending: false,
+          };
+        }
+        assistants.push({
+          ...current,
+          audioUrl: undefined,
+          audioDurationSec: undefined,
+        });
       }
-      sessionId = segment.sessionId ?? sessionId;
-      out.push({ ...segment, audioUrl: undefined, audioDurationSec: undefined });
       i++;
     }
-    if (audioUrl) {
+    out.push(...assistants);
+    if (voice) {
       out.push({
+        ...voice,
         role: "voice",
         content: "",
-        audioUrl,
-        audioDurationSec,
-        sessionId,
-        voicePending: false,
+        audioUrl: voice.audioUrl,
+        audioDurationSec: voice.audioDurationSec,
+        sessionId: voice.sessionId ?? assistants[assistants.length - 1]?.sessionId,
+        voicePending: voice.voicePending ?? !voice.audioUrl,
       });
     }
   }
   return out;
+}
+
+function getTurnStartIndex(messages: ChatMessage[], tailIndex: number) {
+  let start = tailIndex;
+  for (let i = tailIndex - 1; i >= 0; i--) {
+    if (messages[i].role === "assistant") start = i;
+    else break;
+  }
+  return start;
+}
+
+function getTurnVoice(messages: ChatMessage[], tailIndex: number): ChatMessage | null {
+  const start = getTurnStartIndex(messages, tailIndex);
+  for (let i = start; i < messages.length; i++) {
+    if (messages[i].role === "user") break;
+    if (messages[i].role === "voice") return messages[i];
+    if (messages[i].role !== "assistant") continue;
+    if (i > tailIndex) break;
+  }
+  for (let i = start; i <= tailIndex; i++) {
+    const segment = messages[i];
+    if (segment.role === "assistant" && segment.audioUrl) {
+      return {
+        role: "voice",
+        content: "",
+        audioUrl: segment.audioUrl,
+        audioDurationSec: segment.audioDurationSec,
+        sessionId: segment.sessionId,
+        voicePending: false,
+      };
+    }
+  }
+  return null;
 }
 
 function shouldShowAssistantAvatar(messages: ChatMessage[], index: number) {
@@ -783,15 +828,19 @@ export default function LifeAgentChatPage() {
                     data,
                     segmentsStreamed.current
                   );
-                  if (!wantsVoice) return next;
+                  if (!wantsVoice) return normalizeMessagesWithVoiceRows(next);
                   if (data.audioUrl) {
-                    return ensureVoiceRowAfterTurn(next, assistantIdx.current, {
-                      audioUrl: data.audioUrl,
-                      audioDurationSec: data.audioDurationSec,
-                      pending: false,
-                    });
+                    return normalizeMessagesWithVoiceRows(
+                      ensureVoiceRowAfterTurn(next, assistantIdx.current, {
+                        audioUrl: data.audioUrl,
+                        audioDurationSec: data.audioDurationSec,
+                        pending: false,
+                      })
+                    );
                   }
-                  return ensureVoiceRowAfterTurn(next, assistantIdx.current, { pending: true });
+                  return normalizeMessagesWithVoiceRows(
+                    ensureVoiceRowAfterTurn(next, assistantIdx.current, { pending: true })
+                  );
                 });
                 setSessionId(data.sessionId);
                 setProfile((prev) =>
@@ -836,11 +885,13 @@ export default function LifeAgentChatPage() {
               } else if (eventType === "audio_ready") {
                 const data = parsed;
                 setMessages((prev) =>
-                  ensureVoiceRowAfterTurn(prev, assistantIdx.current, {
-                    audioUrl: data.audioUrl,
-                    audioDurationSec: data.audioDurationSec,
-                    pending: false,
-                  })
+                  normalizeMessagesWithVoiceRows(
+                    ensureVoiceRowAfterTurn(prev, assistantIdx.current, {
+                      audioUrl: data.audioUrl,
+                      audioDurationSec: data.audioDurationSec,
+                      pending: false,
+                    })
+                  )
                 );
               }
             } catch {
@@ -1372,6 +1423,7 @@ export default function LifeAgentChatPage() {
               {messages.map((message, index) => {
                 const isTurnTail =
                   message.role === "assistant" && isAssistantTurnTail(messages, index);
+                const turnVoice = isTurnTail ? getTurnVoice(messages, index) : null;
                 const showAssistantAvatar =
                   message.role === "assistant" && shouldShowAssistantAvatar(messages, index);
                 const showTextBubble =
@@ -1407,23 +1459,7 @@ export default function LifeAgentChatPage() {
                 const assistantSpacer = <span className="h-8 w-8 shrink-0" aria-hidden />;
 
                 if (message.role === "voice") {
-                  return (
-                    <div
-                      key={`voice-${index}-${message.audioUrl ?? "pending"}`}
-                      className="flex items-end gap-2 justify-start"
-                    >
-                      {assistantSpacer}
-                      {message.audioUrl && !message.voicePending ? (
-                        <VoiceMessageBubble
-                          audioUrl={message.audioUrl}
-                          durationSeconds={message.audioDurationSec ?? 1}
-                          isFromUser={false}
-                        />
-                      ) : (
-                        <VoiceMessageLoadingBubble />
-                      )}
-                    </div>
-                  );
+                  return null;
                 }
 
                 return (
@@ -1496,6 +1532,23 @@ export default function LifeAgentChatPage() {
                       />
                     ) : null}
                   </div>
+                  ) : null}
+                  {turnVoice ? (
+                    <div
+                      key={`voice-after-${index}-${turnVoice.audioUrl ?? "pending"}`}
+                      className="flex items-end gap-2 justify-start"
+                    >
+                      {assistantSpacer}
+                      {turnVoice.audioUrl && !turnVoice.voicePending ? (
+                        <VoiceMessageBubble
+                          audioUrl={turnVoice.audioUrl}
+                          durationSeconds={turnVoice.audioDurationSec ?? 1}
+                          isFromUser={false}
+                        />
+                      ) : (
+                        <VoiceMessageLoadingBubble label="语音生成中..." />
+                      )}
+                    </div>
                   ) : null}
                   {message.role === "assistant" && message.messageId && message.sessionId && isTurnTail ? (
                     <div className="ml-10 max-w-full space-y-2">
