@@ -6,7 +6,7 @@ import (
 )
 
 var realtimeWebSearchRe = regexp.MustCompile(`(?i)` +
-	`分数线|录取线|投档线|省控线|本科线|专科线|一本线|二本线|特控线|最低分|最高分|位次|一分一段|招生计划|招生人数|录取人数|录取率|` +
+	`分数线|录取线|投档线|省控线|本科线|专科线|一本线|二本线|特控线|最低分|最高分|多少分|第一名|状元|位次|一分一段|招生计划|招生人数|录取人数|录取率|` +
 	`研招|调剂信息|报志愿|志愿填报|高考政策|考研国家线|校线|复试线|提档线|批次线|投档分|录取分`)
 
 // NeedsRealtimeWebSearch detects questions that require up-to-date public data before answering.

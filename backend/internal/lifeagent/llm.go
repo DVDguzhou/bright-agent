@@ -999,15 +999,16 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 	setMaxTokens(&draftReq, model, draftMaxTokens)
 
 	// Function Calling: 让模型自主判断是否需要实时信息（日期、天气、新闻等）
-	if webSearchToolEnabled(opts, baseURL) {
+	if shouldAttachWebSearchTool(opts, baseURL) {
 		draftReq.Tools = chatTools
 	} else {
-		draftReq.Tools = chatTools[:1] // 无联网配置时只提供 get_current_datetime
+		draftReq.Tools = chatTools[:1] // 无联网工具时只提供 get_current_datetime
 	}
 
 	// Draft 生成阶段不向客户端推 token；最终按单段流式或多段 segment 事件交付。
 	filter := newReasoningStreamFilter(nil)
 	draftResult := streamWithDetails(ctx, client, draftReq, filter.write)
+	absorbDSMLToolCalls(&draftResult)
 
 	// ── Function Calling: 模型请求了工具 → 执行 → 把结果喂回去 → 流式输出最终回复 ──
 	if draftResult.FinishReason == openai.FinishReasonToolCalls && len(draftResult.ToolCalls) > 0 {
@@ -1044,7 +1045,7 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 		draftResult = streamWithDetails(ctx, client, followupReq, filter2.write)
 	}
 
-	draft := strings.TrimSpace(draftResult.Content)
+	draft := strings.TrimSpace(stripDSMLMarkup(draftResult.Content))
 	if draft == "" {
 		return "", nil, fmt.Errorf("draft: empty content")
 	}
@@ -2019,6 +2020,7 @@ func isWordRune(r rune) bool {
 //  2. 行内标记 *Refining:* 等：截断标记及之后的全部内容
 func stripReasoningMarkers(content string) string {
 	original := content
+	content = stripDSMLMarkup(content)
 
 	// Phase 1: 删除闭合的 <think>...</think> 块（可能有多个）
 	content = thinkBlockRe.ReplaceAllString(content, "")

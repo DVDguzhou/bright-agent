@@ -16,6 +16,7 @@ func TestNeedsRealtimeWebSearch(t *testing.T) {
 		{"考研该怎么准备", false},
 		{"帮我查一下今年江苏物理类本科线", true},
 		{"对啊，所以让你查", true},
+		{"第一名是多少分", true},
 		{"你去网上搜一下", true},
 		{"", false},
 	}
