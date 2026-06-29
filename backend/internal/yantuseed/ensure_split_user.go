@@ -2,6 +2,7 @@ package yantuseed
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/agent-marketplace/backend/internal/db"
 	"github.com/agent-marketplace/backend/internal/models"
@@ -43,4 +44,21 @@ func EnsureAgentUser(email, displayName, password string) (*models.User, error) 
 		return nil, err
 	}
 	return &u, nil
+}
+
+// SetAgentUserPassword updates the bcrypt hash for an existing Agent owner account.
+func SetAgentUserPassword(email, password string) error {
+	email = strings.TrimSpace(email)
+	if email == "" || password == "" {
+		return fmt.Errorf("email and password required")
+	}
+	var u models.User
+	if err := db.DB.Where("email = ?", email).First(&u).Error; err != nil {
+		return fmt.Errorf("user %q not found: %w", email, err)
+	}
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), 12)
+	if err != nil {
+		return err
+	}
+	return db.DB.Model(&u).Update("password", string(hash)).Error
 }
