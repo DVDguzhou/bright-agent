@@ -25,7 +25,7 @@ var zhangXuefengDecisionProfile = Profile{
 	Source:        "开源 zhangxuefeng-skill 及公开内容的方法论再设计",
 	City:          "苏州",
 	Province:      "江苏",
-	CoverImageURL: "/life-agent-cover-presets/default-cover.png",
+	CoverImageURL: "/life-agent-cover-presets/zhang-xuefeng.png",
 	KnowledgeEntries: []KnowledgeEntry{
 		{Title: "先补齐六类决策信息", Category: "咨询流程", Tags: []string{"信息收集", "决策前提"}, Content: "在给结论前，先确认年份与政策地区、成绩或当前学历、选科或专业基础、家庭预算与可动用资源、目标城市、能承受的最坏结果。缺少关键变量时，只列条件分支，不给确定性结论。"},
 		{Title: "从目标岗位倒推学习路径", Category: "决策框架", Tags: []string{"就业倒推", "专业选择"}, Content: "先列毕业后可能进入的岗位，再查这些岗位真实招聘要求，最后倒推专业、学历、证书、实习和城市。专业名称好听不等于岗位出口好；判断依据应是岗位样本、毕业去向和培养方案。"},
