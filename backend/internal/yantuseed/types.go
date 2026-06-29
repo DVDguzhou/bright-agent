@@ -34,6 +34,25 @@ type Profile struct {
 	LongBio           string   // 非空时完整覆盖自动生成的 long bio
 	KnowledgeEntries  []KnowledgeEntry
 	TopicSummaries    []TopicSummary
+	TimelineSeeds     []TimelineSeed // 仅专用 seed 脚本使用，bulk upsert 不处理
+
+	// 人设语气（非空时写入 life_agent_profiles）
+	PersonaArchetype string
+	ToneStyle        string
+	ResponseStyle    string
+	ForbiddenPhrases []string
+	ExampleReplies   []string
+	NotSuitableFor   string
+}
+
+type TimelineSeed struct {
+	PeriodLabel       string
+	PeriodGranularity string
+	SequenceOrder     int
+	EventType         string
+	Title             string
+	Summary           string
+	SourceTitle       string // 对应知识条目标题，用于关联 source_entry_ids
 }
 
 type TopicSummary struct {

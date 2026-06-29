@@ -56,5 +56,12 @@ func main() {
 	if err := yantuseed.UpsertProfile(owner.ID, "", profile); err != nil {
 		log.Fatal("upsert profile: ", err)
 	}
+	var saved models.LifeAgentProfile
+	if err := db.DB.Where("user_id = ? AND display_name = ?", owner.ID, profile.DisplayName).First(&saved).Error; err != nil {
+		log.Fatal("load profile: ", err)
+	}
+	if err := yantuseed.FinalizeZhangXuefengProfile(saved.ID, profile); err != nil {
+		log.Fatal("finalize profile: ", err)
+	}
 	log.Printf("seeded only %q under %s (login password: %s)", profile.DisplayName, ownerEmail, password)
 }

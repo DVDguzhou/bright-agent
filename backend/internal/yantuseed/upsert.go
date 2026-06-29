@@ -285,6 +285,7 @@ func UpsertProfile(userID, coverPreset string, p Profile) error {
 		if strings.TrimSpace(p.Source) != "" {
 			updates["source"] = strOrNil(p.Source)
 		}
+		applyPersonaFieldsToUpdates(updates, p)
 		updates["is_generated"] = true
 		if city != "" {
 			updates["city"] = city
@@ -355,6 +356,7 @@ func UpsertProfile(userID, coverPreset string, p Profile) error {
 			CoverPresetKey:   presetKey,
 			Published:        true,
 		}
+		applyPersonaFieldsToProfile(&profile, p)
 		if err := db.DB.Create(&profile).Error; err != nil {
 			return err
 		}
@@ -428,6 +430,48 @@ func UpsertProfile(userID, coverPreset string, p Profile) error {
 		}
 	}
 	return nil
+}
+
+func applyPersonaFieldsToUpdates(updates map[string]interface{}, p Profile) {
+	if strings.TrimSpace(p.PersonaArchetype) != "" {
+		updates["persona_archetype"] = strOrNil(p.PersonaArchetype)
+	}
+	if strings.TrimSpace(p.ToneStyle) != "" {
+		updates["tone_style"] = strOrNil(p.ToneStyle)
+	}
+	if strings.TrimSpace(p.ResponseStyle) != "" {
+		updates["response_style"] = strOrNil(p.ResponseStyle)
+	}
+	if len(p.ForbiddenPhrases) > 0 {
+		updates["forbidden_phrases"] = models.JSONArray(p.ForbiddenPhrases)
+	}
+	if len(p.ExampleReplies) > 0 {
+		updates["example_replies"] = models.JSONArray(p.ExampleReplies)
+	}
+	if strings.TrimSpace(p.NotSuitableFor) != "" {
+		updates["not_suitable_for"] = strOrNil(p.NotSuitableFor)
+	}
+}
+
+func applyPersonaFieldsToProfile(profile *models.LifeAgentProfile, p Profile) {
+	if strings.TrimSpace(p.PersonaArchetype) != "" {
+		profile.PersonaArchetype = strOrNil(p.PersonaArchetype)
+	}
+	if strings.TrimSpace(p.ToneStyle) != "" {
+		profile.ToneStyle = strOrNil(p.ToneStyle)
+	}
+	if strings.TrimSpace(p.ResponseStyle) != "" {
+		profile.ResponseStyle = strOrNil(p.ResponseStyle)
+	}
+	if len(p.ForbiddenPhrases) > 0 {
+		profile.ForbiddenPhrases = models.JSONArray(p.ForbiddenPhrases)
+	}
+	if len(p.ExampleReplies) > 0 {
+		profile.ExampleReplies = models.JSONArray(p.ExampleReplies)
+	}
+	if strings.TrimSpace(p.NotSuitableFor) != "" {
+		profile.NotSuitableFor = strOrNil(p.NotSuitableFor)
+	}
 }
 
 // Profiles 为当前仓库内置的榜样正文：

@@ -1230,6 +1230,10 @@ func buildDraftSystemPrompt(profile ProfileForAI, facts []StructuredFactForAI, t
 		sb.WriteString("\n【禁止使用这些套话】\n")
 		appendArrayLines(&sb, profile.ForbiddenPhrases)
 	}
+	if block := ZhangXuefengSkillPromptBlock(profile.DisplayName); block != "" {
+		sb.WriteString("\n")
+		sb.WriteString(block)
+	}
 
 	sb.WriteString("\n【打招呼 / 闲聊 - 特别注意】\n")
 	sb.WriteString("对方打招呼时，用你这个角色的方式随口回应，保持人设内的语感。\n")

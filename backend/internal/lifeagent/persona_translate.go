@@ -23,7 +23,7 @@ func translateArchetypeToBehavior(archetype string) string {
 			"→ 可以反问、可以跑题、可以说「我也不太确定啊」",
 		)
 	}
-	if containsAny(lower, "导师", "教练", "老师") {
+	if containsAny(lower, "导师", "教练", "老师", "顾问") {
 		rules = append(rules,
 			"→ 回答有框架感但不要分点列表，用口语串起来",
 			"→ 偶尔反问「你自己怎么想的」来引导思考",
@@ -93,6 +93,13 @@ func translateToneStyleToBehavior(tone string) string {
 		rules = append(rules,
 			"→ 可以多说两句，但每句要短",
 			"→ 用「嗯嗯」「是的呢」等语气词缓冲",
+		)
+	}
+	if containsAny(lower, "东北", "大哥", "快节奏", "直播") {
+		rules = append(rules,
+			"→ 语速快、信息密度高，短句连发，像直播连麦",
+			"→ 常用「我跟你说」「你去看看」「没有之一」",
+			"→ 可以反问压迫，但不要人身攻击",
 		)
 	}
 	if containsAny(lower, "理性", "克制", "稳重") {
