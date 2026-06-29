@@ -64,10 +64,7 @@ async function req(method, reqPath, body, cookie = "") {
 
 function ensureFfmpeg() {
   const check = spawnSync("ffmpeg", ["-version"], { encoding: "utf8" });
-  if (check.status !== 0) {
-    console.error("ffmpeg not found. Please install ffmpeg on the machine running this script.");
-    process.exit(1);
-  }
+  return check.status === 0;
 }
 
 function isMp3File(inputFile) {
@@ -129,7 +126,25 @@ async function main() {
     process.exit(1);
   }
 
-  const mp3File = isMp3File(MEDIA_FILE) ? MEDIA_FILE : (ensureFfmpeg(), transcodeToMp3(MEDIA_FILE));
+  const hasFfmpeg = ensureFfmpeg();
+  const wantsTrim = AUDIO_SECONDS > 0;
+  let mp3File = MEDIA_FILE;
+
+  if (isMp3File(MEDIA_FILE)) {
+    if (wantsTrim && hasFfmpeg) {
+      mp3File = transcodeToMp3(MEDIA_FILE);
+    } else if (wantsTrim && !hasFfmpeg) {
+      console.error("ffmpeg not found, so an existing MP3 cannot be trimmed on this machine.");
+      console.error("Please upload a pre-trimmed MP3, or install ffmpeg first.");
+      process.exit(1);
+    }
+  } else {
+    if (!hasFfmpeg) {
+      console.error("ffmpeg not found. Please install ffmpeg, or upload a pre-trimmed MP3 instead.");
+      process.exit(1);
+    }
+    mp3File = transcodeToMp3(MEDIA_FILE);
+  }
   const { bytes, payload } = buildAudioPayload(mp3File);
   console.log("Prepared sample:", mp3File, `(${(bytes / 1024).toFixed(1)} KB, ${AUDIO_SECONDS}s max)`);
 
