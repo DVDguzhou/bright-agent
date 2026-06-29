@@ -70,6 +70,11 @@ function ensureFfmpeg() {
   }
 }
 
+function isMp3File(inputFile) {
+  const ext = path.extname(inputFile).toLowerCase();
+  return ext === ".mp3";
+}
+
 function transcodeToMp3(inputFile) {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "agent-voice-"));
   const outFile = path.join(tmpDir, "sample.mp3");
@@ -124,8 +129,7 @@ async function main() {
     process.exit(1);
   }
 
-  ensureFfmpeg();
-  const mp3File = transcodeToMp3(MEDIA_FILE);
+  const mp3File = isMp3File(MEDIA_FILE) ? MEDIA_FILE : (ensureFfmpeg(), transcodeToMp3(MEDIA_FILE));
   const { bytes, payload } = buildAudioPayload(mp3File);
   console.log("Prepared sample:", mp3File, `(${(bytes / 1024).toFixed(1)} KB, ${AUDIO_SECONDS}s max)`);
 
