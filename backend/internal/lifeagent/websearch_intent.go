@@ -18,10 +18,59 @@ func NeedsRealtimeWebSearch(message string) bool {
 	if realtimeWebSearchRe.MatchString(msg) {
 		return true
 	}
+	if wantsExplicitWebLookup(msg) {
+		return true
+	}
 	// Explicit user request to look up live data
 	lookup := []string{"搜一下", "查一下", "帮我查", "联网", "最新", "今年", "2024", "2025", "2026"}
 	for _, kw := range lookup {
 		if strings.Contains(msg, kw) && (strings.Contains(msg, "分") || strings.Contains(msg, "录取") || strings.Contains(msg, "招生") || strings.Contains(msg, "政策")) {
+			return true
+		}
+	}
+	return false
+}
+
+// NeedsRealtimeWebSearchForTurn also considers follow-ups like「对啊，所以让你查」after a score-line question.
+func NeedsRealtimeWebSearchForTurn(message string, history []ChatMessageForAI) bool {
+	if NeedsRealtimeWebSearch(message) {
+		return true
+	}
+	if wantsExplicitWebLookup(message) && historyHasRealtimeTopic(history) {
+		return true
+	}
+	return false
+}
+
+func wantsExplicitWebLookup(message string) bool {
+	msg := strings.TrimSpace(message)
+	if msg == "" {
+		return false
+	}
+	for _, phrase := range []string{
+		"让你查", "让你搜", "去查", "去搜", "帮我查", "帮我搜", "再搜", "再查",
+		"网上查", "联网查", "搜一下", "查一下", "你去查", "你去搜",
+	} {
+		if strings.Contains(msg, phrase) {
+			return true
+		}
+	}
+	if strings.Contains(msg, "让你") && (strings.Contains(msg, "查") || strings.Contains(msg, "搜")) {
+		return true
+	}
+	return false
+}
+
+func historyHasRealtimeTopic(history []ChatMessageForAI) bool {
+	start := len(history) - 8
+	if start < 0 {
+		start = 0
+	}
+	for i := len(history) - 1; i >= start; i-- {
+		if history[i].Role != "user" {
+			continue
+		}
+		if NeedsRealtimeWebSearch(history[i].Content) || realtimeWebSearchRe.MatchString(history[i].Content) {
 			return true
 		}
 	}

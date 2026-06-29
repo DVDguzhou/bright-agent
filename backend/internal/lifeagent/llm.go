@@ -952,7 +952,7 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 	knowledgeCtx := buildDraftKnowledgeContext(fullPlan.Facts, fullPlan.Topics, liveForDraft, entryHints, message, history, opts)
 	forcedWebSearch := false
 	searchFailed := false
-	if opts != nil && opts.WebSearch != nil && opts.WebSearch.Enabled && NeedsRealtimeWebSearch(message) {
+	if opts != nil && opts.WebSearch != nil && opts.WebSearch.Enabled && NeedsRealtimeWebSearchForTurn(message, history) {
 		query := BuildWebSearchQuery(message, history)
 		log.Printf("[LLM-websearch] forced pre-search query=%q provider=%s", query, opts.WebSearch.Provider)
 		searchResult, searchErr := SearchWeb(ctx, query, *opts.WebSearch)
@@ -968,7 +968,7 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 		}
 	}
 	skipKnowledgeCitations := forcedWebSearch
-	if !skipKnowledgeCitations && opts != nil && opts.WebSearch != nil && opts.WebSearch.Enabled && NeedsRealtimeWebSearch(message) {
+	if !skipKnowledgeCitations && opts != nil && opts.WebSearch != nil && opts.WebSearch.Enabled && NeedsRealtimeWebSearchForTurn(message, history) {
 		skipKnowledgeCitations = true
 	}
 	if skipKnowledgeCitations {
@@ -976,7 +976,7 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 	}
 
 	draftSystem := buildDraftSystemPrompt(profile, fullPlan.Facts, fullPlan.Topics, liveForDraft, &strategy, introIntent)
-	if webSearchToolEnabled(opts, baseURL) && (forcedWebSearch || NeedsRealtimeWebSearch(message)) {
+	if webSearchToolEnabled(opts, baseURL) && (forcedWebSearch || NeedsRealtimeWebSearchForTurn(message, history)) {
 		draftSystem = webSearchDraftRules(forcedWebSearch, searchFailed) + draftSystem
 	}
 	opts.KnowledgeContext = knowledgeCtx

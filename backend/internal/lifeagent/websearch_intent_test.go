@@ -15,6 +15,8 @@ func TestNeedsRealtimeWebSearch(t *testing.T) {
 		{"你好呀", false},
 		{"考研该怎么准备", false},
 		{"帮我查一下今年江苏物理类本科线", true},
+		{"对啊，所以让你查", true},
+		{"你去网上搜一下", true},
 		{"", false},
 	}
 	for _, tc := range cases {
@@ -22,6 +24,19 @@ func TestNeedsRealtimeWebSearch(t *testing.T) {
 		if got != tc.want {
 			t.Errorf("NeedsRealtimeWebSearch(%q) = %v, want %v", tc.msg, got, tc.want)
 		}
+	}
+}
+
+func TestNeedsRealtimeWebSearchForTurn(t *testing.T) {
+	hist := []ChatMessageForAI{
+		{Role: "user", Content: "浙江2026高考本科分数线出来了吗"},
+		{Role: "assistant", Content: "这个我还得核实"},
+	}
+	if !NeedsRealtimeWebSearchForTurn("对啊，所以让你查", hist) {
+		t.Fatal("expected follow-up search request to trigger with score-line history")
+	}
+	if NeedsRealtimeWebSearchForTurn("好啊", hist) {
+		t.Fatal("generic ack should not trigger search")
 	}
 }
 

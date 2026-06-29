@@ -63,7 +63,7 @@ type Profile = {
 };
 
 type ChatMessage = {
-  role: "assistant" | "user";
+  role: "assistant" | "user" | "voice";
   content: string;
   messageId?: string;
   sessionId?: string;
@@ -72,6 +72,7 @@ type ChatMessage = {
   references?: CitationReference[];
   attribution?: ReplyAttribution;
   pending?: boolean;
+  voicePending?: boolean;
 };
 
 type SessionSummary = {
@@ -144,7 +145,10 @@ function feedbackOptionalComment(feedbackType: string) {
 function isAssistantTurnTail(messages: ChatMessage[], index: number) {
   const message = messages[index];
   if (message.role !== "assistant") return false;
-  return index + 1 >= messages.length || messages[index + 1].role !== "assistant";
+  const next = messages[index + 1];
+  if (!next) return true;
+  if (next.role === "voice") return true;
+  return next.role !== "assistant";
 }
 
 function assistantTurnLastIndex(messages: ChatMessage[], startIdx: number) {
@@ -156,18 +160,80 @@ function assistantTurnLastIndex(messages: ChatMessage[], startIdx: number) {
   return last;
 }
 
-function getAssistantTurnAudio(messages: ChatMessage[], tailIndex: number) {
-  let audioUrl: string | undefined;
-  let audioDurationSec: number | undefined;
-  for (let i = tailIndex; i >= 0; i--) {
-    if (messages[i].role !== "assistant") break;
-    if (messages[i].audioUrl) {
-      audioUrl = messages[i].audioUrl;
-      audioDurationSec = messages[i].audioDurationSec;
-      break;
+function stripTurnAssistantAudio(messages: ChatMessage[], startIdx: number): ChatMessage[] {
+  return messages.map((m, i) => {
+    if (i >= startIdx && m.role === "assistant") {
+      return { ...m, audioUrl: undefined, audioDurationSec: undefined };
+    }
+    return m;
+  });
+}
+
+function removeVoiceRowAfterTurn(messages: ChatMessage[], startIdx: number): ChatMessage[] {
+  const tail = assistantTurnLastIndex(messages, startIdx);
+  if (messages[tail + 1]?.role === "voice") {
+    return [...messages.slice(0, tail + 1), ...messages.slice(tail + 2)];
+  }
+  return messages;
+}
+
+function ensureVoiceRowAfterTurn(
+  messages: ChatMessage[],
+  startIdx: number,
+  options: { audioUrl?: string; audioDurationSec?: number; pending?: boolean }
+): ChatMessage[] {
+  const stripped = stripTurnAssistantAudio(removeVoiceRowAfterTurn(messages, startIdx), startIdx);
+  const tail = assistantTurnLastIndex(stripped, startIdx);
+  const voiceMsg: ChatMessage = {
+    role: "voice",
+    content: "",
+    sessionId: stripped[tail]?.sessionId,
+    audioUrl: options.audioUrl,
+    audioDurationSec: options.audioDurationSec,
+    voicePending: options.pending ?? !options.audioUrl,
+  };
+  return [...stripped.slice(0, tail + 1), voiceMsg, ...stripped.slice(tail + 1)];
+}
+
+function normalizeMessagesWithVoiceRows(messages: ChatMessage[]): ChatMessage[] {
+  const out: ChatMessage[] = [];
+  let i = 0;
+  while (i < messages.length) {
+    const message = messages[i];
+    if (message.role === "voice") {
+      i++;
+      continue;
+    }
+    if (message.role !== "assistant") {
+      out.push(message);
+      i++;
+      continue;
+    }
+    let audioUrl: string | undefined;
+    let audioDurationSec: number | undefined;
+    let sessionId: string | undefined;
+    while (i < messages.length && messages[i].role === "assistant") {
+      const segment = messages[i];
+      if (segment.audioUrl) {
+        audioUrl = segment.audioUrl;
+        audioDurationSec = segment.audioDurationSec;
+      }
+      sessionId = segment.sessionId ?? sessionId;
+      out.push({ ...segment, audioUrl: undefined, audioDurationSec: undefined });
+      i++;
+    }
+    if (audioUrl) {
+      out.push({
+        role: "voice",
+        content: "",
+        audioUrl,
+        audioDurationSec,
+        sessionId,
+        voicePending: false,
+      });
     }
   }
-  return { audioUrl, audioDurationSec };
+  return out;
 }
 
 function shouldShowAssistantAvatar(messages: ChatMessage[], index: number) {
@@ -261,7 +327,11 @@ function applyDoneAssistantMessages(
 ): ChatMessage[] {
   if (segmentsAlreadyStreamed) {
     const ids = data.messageIds ?? [];
-    const segCount = Math.max(ids.length, 1);
+    let segCount = 0;
+    for (let i = assistantIdx; i < prev.length && prev[i].role === "assistant"; i++) {
+      segCount++;
+    }
+    if (segCount === 0) segCount = Math.max(ids.length, 1);
     const lastIdx = assistantIdx + segCount - 1;
     return prev.map((m, i) => {
       if (i < assistantIdx || i > lastIdx || m.role !== "assistant") return m;
@@ -273,9 +343,8 @@ function applyDoneAssistantMessages(
         references: m.references ?? data.segmentReferences?.[segIndex] ?? data.references,
         attribution: m.attribution ?? data.attribution,
         pending: false,
-        ...(i === lastIdx
-          ? { audioUrl: data.audioUrl, audioDurationSec: data.audioDurationSec }
-          : {}),
+        audioUrl: undefined,
+        audioDurationSec: undefined,
       };
     });
   }
@@ -292,8 +361,6 @@ function applyDoneAssistantMessages(
             sessionId: data.sessionId,
             references: data.segmentReferences?.[0] ?? data.references ?? m.references,
             attribution: data.attribution,
-            audioUrl: data.audioUrl,
-            audioDurationSec: data.audioDurationSec,
             pending: false,
           }
         : m
@@ -309,8 +376,6 @@ function applyDoneAssistantMessages(
     sessionId: data.sessionId,
     references: data.segmentReferences?.[i] ?? data.references,
     attribution: data.attribution,
-    audioUrl: i === last ? data.audioUrl : undefined,
-    audioDurationSec: i === last ? data.audioDurationSec : undefined,
     pending: false,
   }));
   return [...before, ...segMessages];
@@ -335,7 +400,6 @@ export default function LifeAgentChatPage() {
   const [input, setInput] = useState("");
   const [recentGrowthEvents, setRecentGrowthEvents] = useState<LifeAgentGrowthEvent[]>([]);
   const [loading, setLoading] = useState(false);
-  const [voiceLoading, setVoiceLoading] = useState(false);
   const [error, setError] = useState("");
   const [ratingScore, setRatingScore] = useState(5);
   const [ratingComment, setRatingComment] = useState("");
@@ -408,15 +472,17 @@ export default function LifeAgentChatPage() {
       router.replace(`/life-agents/${id}/chat?sessionId=${targetSessionId}`, { scroll: false });
       setMessages(
         Array.isArray(data.messages) && data.messages.length > 0
-          ? data.messages.map((message: any) => ({
-              role: message.role,
-              content: message.content,
-              messageId: message.role === "assistant" ? message.id : undefined,
-              sessionId: targetSessionId,
-              audioUrl: message.audioUrl,
-              audioDurationSec: message.audioDurationSec,
-              references: Array.isArray(message.references) ? message.references : undefined,
-            }))
+          ? normalizeMessagesWithVoiceRows(
+              data.messages.map((message: any) => ({
+                role: message.role,
+                content: message.content,
+                messageId: message.role === "assistant" ? message.id : undefined,
+                sessionId: targetSessionId,
+                audioUrl: message.audioUrl,
+                audioDurationSec: message.audioDurationSec,
+                references: Array.isArray(message.references) ? message.references : undefined,
+              }))
+            )
           : [buildWelcomeMessage(welcomeMessage)]
       );
     } catch {
@@ -709,19 +775,24 @@ export default function LifeAgentChatPage() {
                 );
               } else if (eventType === "done") {
                 const data = parsed;
-                setMessages((prev) =>
-                  applyDoneAssistantMessages(
+                const wantsVoice = useVoiceReply && profile?.hasVoiceClone;
+                setMessages((prev) => {
+                  let next = applyDoneAssistantMessages(
                     prev,
                     assistantIdx.current,
                     data,
                     segmentsStreamed.current
-                  )
-                );
-                setLoading(false);
-                sendingRef.current = false;
-                if (useVoiceReply && profile?.hasVoiceClone && !parsed.audioUrl) {
-                  setVoiceLoading(true);
-                }
+                  );
+                  if (!wantsVoice) return next;
+                  if (data.audioUrl) {
+                    return ensureVoiceRowAfterTurn(next, assistantIdx.current, {
+                      audioUrl: data.audioUrl,
+                      audioDurationSec: data.audioDurationSec,
+                      pending: false,
+                    });
+                  }
+                  return ensureVoiceRowAfterTurn(next, assistantIdx.current, { pending: true });
+                });
                 setSessionId(data.sessionId);
                 setProfile((prev) =>
                   prev
@@ -760,25 +831,17 @@ export default function LifeAgentChatPage() {
                   ];
                 });
                 syncRatingForm(data.rating);
+                setLoading(false);
+                sendingRef.current = false;
               } else if (eventType === "audio_ready") {
                 const data = parsed;
-                setMessages((prev) => {
-                  const targetIdx = assistantTurnLastIndex(prev, assistantIdx.current);
-                  return prev.map((m, i) => {
-                    if (m.role !== "assistant" || i < assistantIdx.current || i > targetIdx) {
-                      return m;
-                    }
-                    if (i === targetIdx) {
-                      return {
-                        ...m,
-                        audioUrl: data.audioUrl,
-                        audioDurationSec: data.audioDurationSec,
-                      };
-                    }
-                    return { ...m, audioUrl: undefined, audioDurationSec: undefined };
-                  });
-                });
-                setVoiceLoading(false);
+                setMessages((prev) =>
+                  ensureVoiceRowAfterTurn(prev, assistantIdx.current, {
+                    audioUrl: data.audioUrl,
+                    audioDurationSec: data.audioDurationSec,
+                    pending: false,
+                  })
+                );
               }
             } catch {
               // ignore malformed SSE data
@@ -802,7 +865,6 @@ export default function LifeAgentChatPage() {
       } finally {
         sendingRef.current = false;
         setLoading(false);
-        setVoiceLoading(false);
       }
     },
     [id, profile, sessionId, sessionLoading, useVoiceReply]
@@ -1310,9 +1372,6 @@ export default function LifeAgentChatPage() {
               {messages.map((message, index) => {
                 const isTurnTail =
                   message.role === "assistant" && isAssistantTurnTail(messages, index);
-                const turnAudio = isTurnTail ? getAssistantTurnAudio(messages, index) : null;
-                const showVoiceTail =
-                  isTurnTail && !!(turnAudio?.audioUrl || (voiceLoading && !turnAudio?.audioUrl));
                 const showAssistantAvatar =
                   message.role === "assistant" && shouldShowAssistantAvatar(messages, index);
                 const showTextBubble =
@@ -1346,6 +1405,26 @@ export default function LifeAgentChatPage() {
                   </Link>
                 );
                 const assistantSpacer = <span className="h-8 w-8 shrink-0" aria-hidden />;
+
+                if (message.role === "voice") {
+                  return (
+                    <div
+                      key={`voice-${index}-${message.audioUrl ?? "pending"}`}
+                      className="flex items-end gap-2 justify-start"
+                    >
+                      {assistantSpacer}
+                      {message.audioUrl && !message.voicePending ? (
+                        <VoiceMessageBubble
+                          audioUrl={message.audioUrl}
+                          durationSeconds={message.audioDurationSec ?? 1}
+                          isFromUser={false}
+                        />
+                      ) : (
+                        <VoiceMessageLoadingBubble />
+                      )}
+                    </div>
+                  );
+                }
 
                 return (
                 <div key={`${message.role}-${index}-${message.messageId ?? "draft"}`} className="space-y-1.5">
@@ -1417,20 +1496,6 @@ export default function LifeAgentChatPage() {
                       />
                     ) : null}
                   </div>
-                  ) : null}
-                  {showVoiceTail ? (
-                    <div className="flex items-end gap-2 justify-start">
-                      {assistantSpacer}
-                      {turnAudio?.audioUrl ? (
-                        <VoiceMessageBubble
-                          audioUrl={turnAudio.audioUrl}
-                          durationSeconds={turnAudio.audioDurationSec ?? 1}
-                          isFromUser={false}
-                        />
-                      ) : (
-                        <VoiceMessageLoadingBubble />
-                      )}
-                    </div>
                   ) : null}
                   {message.role === "assistant" && message.messageId && message.sessionId && isTurnTail ? (
                     <div className="ml-10 max-w-full space-y-2">
