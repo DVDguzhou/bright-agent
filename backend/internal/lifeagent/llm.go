@@ -56,6 +56,13 @@ var (
 		`很高兴(认识你|见到你|为你服务)[。！]?`)
 )
 
+func webSearchToolEnabled(opts *ChatOptions, baseURL string) bool {
+	if opts != nil && opts.WebSearch != nil && opts.WebSearch.Enabled {
+		return true
+	}
+	return isDashScope(baseURL)
+}
+
 // BuildReplyWithLLM 在有 API 配置时调用 LLM 生成回复，否则回退到模板回复
 // baseURL 可选：Ollama 用 http://localhost:11434/v1，通义千问用 https://dashscope.aliyuncs.com/compatible-mode/v1
 // enableWebSearch：为 true 且 baseURL 为 DashScope 时启用联网搜索
@@ -942,8 +949,25 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 	}
 
 	// Intent-based routing: 闲聊/打招呼直接走 Draft，跳过 Reconcile
-	draftSystem := buildDraftSystemPrompt(profile, fullPlan.Facts, fullPlan.Topics, liveForDraft, &strategy, introIntent)
 	knowledgeCtx := buildDraftKnowledgeContext(fullPlan.Facts, fullPlan.Topics, liveForDraft, entryHints, message, history, opts)
+	forcedWebSearch := false
+	if opts != nil && opts.WebSearch != nil && opts.WebSearch.Enabled && NeedsRealtimeWebSearch(message) {
+		query := BuildWebSearchQuery(message, history)
+		log.Printf("[LLM-websearch] forced pre-search query=%q provider=%s", query, opts.WebSearch.Provider)
+		searchResult, searchErr := SearchWeb(ctx, query, *opts.WebSearch)
+		knowledgeCtx = injectWebSearchContext(knowledgeCtx, searchResult, searchErr != nil)
+		forcedWebSearch = true
+		if searchErr != nil {
+			log.Printf("[LLM-websearch] forced search failed: %v", searchErr)
+		} else {
+			log.Printf("[LLM-websearch] forced search ok, %d chars", len([]rune(searchResult)))
+		}
+	}
+
+	draftSystem := buildDraftSystemPrompt(profile, fullPlan.Facts, fullPlan.Topics, liveForDraft, &strategy, introIntent)
+	if webSearchToolEnabled(opts, baseURL) && (forcedWebSearch || NeedsRealtimeWebSearch(message)) {
+		draftSystem = webSearchDraftRules(forcedWebSearch) + draftSystem
+	}
 	opts.KnowledgeContext = knowledgeCtx
 	log.Printf("[LLM-strategy] %s", strategy.Debug)
 	draftMsgs := buildMessages(draftSystem, profile.DisplayName, history, message, opts)
@@ -964,10 +988,10 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 	setMaxTokens(&draftReq, model, draftMaxTokens)
 
 	// Function Calling: 让模型自主判断是否需要实时信息（日期、天气、新闻等）
-	if isDashScope(baseURL) {
+	if webSearchToolEnabled(opts, baseURL) {
 		draftReq.Tools = chatTools
 	} else {
-		draftReq.Tools = chatTools[:1] // 非 DashScope 只提供 get_current_datetime
+		draftReq.Tools = chatTools[:1] // 无联网配置时只提供 get_current_datetime
 	}
 
 	// Draft 生成阶段不向客户端推 token；最终按单段流式或多段 segment 事件交付。
@@ -978,6 +1002,9 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 	if draftResult.FinishReason == openai.FinishReasonToolCalls && len(draftResult.ToolCalls) > 0 {
 		log.Printf("[LLM-tools] model requested %d tool call(s)", len(draftResult.ToolCalls))
 		tctx := toolContext{APIKey: apiKey, BaseURL: baseURL, Model: model}
+		if opts != nil {
+			tctx.WebSearch = opts.WebSearch
+		}
 
 		toolMessages := make([]openai.ChatCompletionMessage, len(draftMsgs))
 		copy(toolMessages, draftMsgs)

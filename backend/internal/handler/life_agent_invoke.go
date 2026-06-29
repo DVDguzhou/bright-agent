@@ -378,6 +378,7 @@ func LifeAgentsChatAPI(cfg *config.Config) gin.HandlerFunc {
 					Embedder:             embedder,
 					Episodes:             episodes,
 					TurnIndex:            userTurns,
+					WebSearch:            webSearchFromConfig(cfg),
 				},
 			)
 		}

@@ -1012,6 +1012,7 @@ func generateAgentReply(cfg *config.Config, profile models.LifeAgentProfile, rep
 	message := lifeagent.BuildPostReplyMessage(replyCtx)
 	opts := &lifeagent.ChatOptions{
 		TimelineEvents: lifeagent.BuildTimelineEventsForAI(timelineRows),
+		WebSearch:      webSearchFromConfig(cfg),
 		WorkingState: &lifeagent.WorkingState{
 			Strategy: lifeagent.Strategy{
 				PromptLengthHint: lifeagent.PostReplyLengthHint(replyCtx.Tier),

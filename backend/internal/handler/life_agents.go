@@ -3468,6 +3468,7 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 			AllowGeneralKnowledge:    p.AllowGeneralKnowledge,
 			KnowledgeFallbackMessage: p.KnowledgeFallbackMessage,
 			CitationsEnabled:         p.CitationsEnabled,
+			WebSearch:                webSearchFromConfig(cfg),
 		}
 
 		var content string

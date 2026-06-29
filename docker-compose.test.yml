@@ -45,6 +45,11 @@ services:
       OPENAI_MODEL: ${OPENAI_MODEL:-qwen-plus}
       OPENAI_BASE_URL: ${OPENAI_BASE_URL:-https://dashscope.aliyuncs.com/compatible-mode/v1}
       LLM_ENABLE_WEB_SEARCH: ${LLM_ENABLE_WEB_SEARCH:-}
+      WEB_SEARCH_PROVIDER: ${WEB_SEARCH_PROVIDER:-dashscope}
+      BOCHA_API_KEY: ${BOCHA_API_KEY:-}
+      WEB_SEARCH_API_KEY: ${WEB_SEARCH_API_KEY:-}
+      WEB_SEARCH_MODEL: ${WEB_SEARCH_MODEL:-qwen-plus}
+      WEB_SEARCH_BASE_URL: ${WEB_SEARCH_BASE_URL:-https://dashscope.aliyuncs.com/compatible-mode/v1}
       TTS_PROVIDER: ${TTS_PROVIDER:-}
       DASHSCOPE_API_KEY: ${DASHSCOPE_API_KEY:-}
       DASHSCOPE_TTS_URL: ${DASHSCOPE_TTS_URL:-}

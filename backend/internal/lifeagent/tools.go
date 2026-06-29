@@ -52,9 +52,10 @@ var chatTools = []openai.Tool{
 // ──────────────────────────────────────────────
 
 type toolContext struct {
-	APIKey  string
-	BaseURL string
-	Model   string
+	APIKey    string
+	BaseURL   string
+	Model     string
+	WebSearch *WebSearchSettings
 }
 
 func executeToolCall(ctx context.Context, tc openai.ToolCall, tctx toolContext) string {
@@ -85,25 +86,35 @@ func executeWebSearch(ctx context.Context, argsJSON string, tctx toolContext) st
 	}
 	log.Printf("[tool-web_search] query=%q", args.Query)
 
-	if !isDashScope(tctx.BaseURL) {
-		return "当前 API 不支持联网搜索"
+	if tctx.WebSearch != nil && tctx.WebSearch.Enabled {
+		result, err := SearchWeb(ctx, args.Query, *tctx.WebSearch)
+		if err != nil {
+			log.Printf("[tool-web_search] search failed (%s): %v", tctx.WebSearch.Provider, err)
+			return "联网搜索失败，请引导用户查阅教育考试院、研招网等官方渠道，勿编造具体分数线或位次。"
+		}
+		log.Printf("[tool-web_search] result length=%d chars via %s", len([]rune(result)), tctx.WebSearch.Provider)
+		return result
 	}
 
-	messages := []openai.ChatCompletionMessage{
-		{Role: openai.ChatMessageRoleSystem, Content: "你是一个搜索助手。根据用户的问题搜索最新信息，返回简洁的事实性结果。只返回关键数据，不要加入个人观点。"},
-		{Role: openai.ChatMessageRoleUser, Content: args.Query},
+	if isDashScope(tctx.BaseURL) {
+		messages := []openai.ChatCompletionMessage{
+			{Role: openai.ChatMessageRoleSystem, Content: "你是一个搜索助手。根据用户的问题搜索最新信息，返回简洁的事实性结果。只返回关键数据，不要加入个人观点。"},
+			{Role: openai.ChatMessageRoleUser, Content: args.Query},
+		}
+		resp, err := chatCompletionWithWebSearch(ctx, tctx.APIKey, tctx.Model, tctx.BaseURL, messages)
+		if err != nil {
+			log.Printf("[tool-web_search] dashscope search failed: %v", err)
+			return "搜索失败，请稍后再试"
+		}
+		if len(resp.Choices) == 0 || resp.Choices[0].Message.Content == "" {
+			return "未找到相关结果"
+		}
+		result := strings.TrimSpace(resp.Choices[0].Message.Content)
+		log.Printf("[tool-web_search] result length=%d chars", len([]rune(result)))
+		return result
 	}
-	resp, err := chatCompletionWithWebSearch(ctx, tctx.APIKey, tctx.Model, tctx.BaseURL, messages)
-	if err != nil {
-		log.Printf("[tool-web_search] search failed: %v", err)
-		return "搜索失败，请稍后再试"
-	}
-	if len(resp.Choices) == 0 || resp.Choices[0].Message.Content == "" {
-		return "未找到相关结果"
-	}
-	result := strings.TrimSpace(resp.Choices[0].Message.Content)
-	log.Printf("[tool-web_search] result length=%d chars", len([]rune(result)))
-	return result
+
+	return "联网搜索未配置，涉及实时数据时请明确告知用户需查阅官方渠道，勿编造具体数字。"
 }
 
 // ──────────────────────────────────────────────

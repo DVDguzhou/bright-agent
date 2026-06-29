@@ -19,7 +19,12 @@ type Config struct {
 	OpenAIApiKey       string
 	OpenAIModel        string
 	OpenAIBaseURL      string   // 可选，如 Ollama http://localhost:11434/v1 或 DashScope https://dashscope.aliyuncs.com/compatible-mode/v1
-	LLMEnableWebSearch bool     // 通义千问等 DashScope 联网搜索，仅 baseURL 为 dashscope 时生效
+	LLMEnableWebSearch bool     // 通义千问 DashScope 整段 enable_search（仅 baseURL 为 dashscope 时走单阶段）
+	WebSearchProvider  string   // auto | bocha | dashscope | off
+	BochaAPIKey        string   // 博查 Web Search API Key
+	WebSearchAPIKey    string   // 专用搜索 Key（如通义 sk），聊天用 DeepSeek 时可单独配置
+	WebSearchModel     string   // DashScope 搜索用模型，默认 qwen-plus
+	WebSearchBaseURL   string   // DashScope 搜索 endpoint
 	// 向量检索（语义层 RAG + 情景记忆召回）
 	EmbeddingModel   string // 默认 text-embedding-v3
 	EmbeddingBaseURL string // 默认 https://dashscope.aliyuncs.com/compatible-mode/v1
@@ -96,6 +101,11 @@ func Load() *Config {
 		OpenAIModel:        stripOuterQuotes(getEnv("OPENAI_MODEL", "gpt-4o-mini")),
 		OpenAIBaseURL:      stripOuterQuotes(getEnv("OPENAI_BASE_URL", "")),
 		LLMEnableWebSearch: getEnv("LLM_ENABLE_WEB_SEARCH", "") == "true" || getEnv("LLM_ENABLE_WEB_SEARCH", "") == "1",
+		WebSearchProvider:  stripOuterQuotes(getEnv("WEB_SEARCH_PROVIDER", "dashscope")),
+		BochaAPIKey:        stripOuterQuotes(getEnv("BOCHA_API_KEY", "")),
+		WebSearchAPIKey:    stripOuterQuotes(getEnv("WEB_SEARCH_API_KEY", "")),
+		WebSearchModel:     stripOuterQuotes(getEnv("WEB_SEARCH_MODEL", "qwen-plus")),
+		WebSearchBaseURL:   stripOuterQuotes(getEnv("WEB_SEARCH_BASE_URL", "https://dashscope.aliyuncs.com/compatible-mode/v1")),
 		EmbeddingModel:     stripOuterQuotes(getEnv("EMBEDDING_MODEL", "text-embedding-v3")),
 		EmbeddingBaseURL:   stripOuterQuotes(getEnv("EMBEDDING_BASE_URL", "https://dashscope.aliyuncs.com/compatible-mode/v1")),
 		EmbeddingAPIKey:    stripOuterQuotes(getEnv("EMBEDDING_API_KEY", "")),

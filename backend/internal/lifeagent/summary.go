@@ -53,6 +53,9 @@ type ChatOptions struct {
 	// GenerationReferences records every source exposed to the final generation
 	// pass. The handler returns and logs these separately from per-bubble refs.
 	GenerationReferences []map[string]string
+
+	// WebSearch: external search backend (Bocha / DashScope) when chat LLM is not DashScope.
+	WebSearch *WebSearchSettings
 }
 
 // EpisodeCandidate 从 DB 读出来、准备参加情景层召回的候选；已做 buyer_only 过滤。
