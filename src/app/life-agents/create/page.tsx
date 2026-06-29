@@ -461,6 +461,7 @@ export default function CreateLifeAgentPage() {
   const [voiceSampleBase64, setVoiceSampleBase64] = useState<string | null>(null);
   const [coverImageUrl, setCoverImageUrl] = useState("");
   const [voiceSkipped, setVoiceSkipped] = useState(false);
+  const [voicePanelOpen, setVoicePanelOpen] = useState(false);
   const [templatePicked, setTemplatePicked] = useState(false);
   const [draftDrawerOpen, setDraftDrawerOpen] = useState(false);
   const [draftDrawerExpanded, setDraftDrawerExpanded] = useState(false);
@@ -2733,6 +2734,72 @@ export default function CreateLifeAgentPage() {
             </div>
           </section>
           */}
+
+          <section className="py-6">
+            <h2 className="font-serif text-xl font-medium text-ink">语音回复音色（推荐）</h2>
+            <p className="mt-2 text-sm leading-6 text-ink-500">
+              录一段你的声音，访客聊天时可听到用你的音色生成的语音回复。需服务端配置通义百炼 TTS（TTS_PROVIDER=dashscope）。
+            </p>
+            {voiceSampleBase64 ? (
+              <p className="mt-3 text-sm text-olive-600">已录制音色样本，发布时会一并上传训练。</p>
+            ) : voiceSkipped ? (
+              <p className="mt-3 text-sm text-ink-400">已选择跳过，可稍后在管理后台补录。</p>
+            ) : null}
+            {!voicePanelOpen ? (
+              <div className="mt-4 flex flex-wrap gap-2">
+                <button type="button" className="btn-secondary" onClick={() => setVoicePanelOpen(true)}>
+                  录制音色样本
+                </button>
+                {!voiceSkipped && !voiceSampleBase64 ? (
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={() => {
+                      setVoiceSkipped(true);
+                      setVoiceSampleBase64(null);
+                    }}
+                  >
+                    暂时跳过
+                  </button>
+                ) : null}
+                {voiceSkipped ? (
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={() => {
+                      setVoiceSkipped(false);
+                      setVoicePanelOpen(true);
+                    }}
+                  >
+                    重新录制
+                  </button>
+                ) : null}
+              </div>
+            ) : (
+              <div className="mt-4 space-y-4">
+                <VoiceRecordPanel
+                  onComplete={(blob) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                      const base64 = (reader.result as string).split(",")[1];
+                      setVoiceSampleBase64(base64 ?? null);
+                      setVoiceSkipped(false);
+                      setVoicePanelOpen(false);
+                    };
+                    reader.readAsDataURL(blob);
+                  }}
+                  onSkip={() => {
+                    setVoiceSkipped(true);
+                    setVoiceSampleBase64(null);
+                    setVoicePanelOpen(false);
+                  }}
+                />
+                <button type="button" className="btn-secondary" onClick={() => setVoicePanelOpen(false)}>
+                  取消
+                </button>
+              </div>
+            )}
+          </section>
 
           <section className="py-6">
             <h2 className="font-serif text-xl font-medium text-ink">申请官方认证</h2>

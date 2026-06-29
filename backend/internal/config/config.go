@@ -259,6 +259,8 @@ func (c *Config) ResolveTTSProvider() string {
 		if c.DashScopeTTSEffectiveKey() != "" {
 			return "dashscope"
 		}
+	case "none", "off", "false", "0":
+		return ""
 	case "openai":
 		if c.TTSEffectiveAPIKey() != "" {
 			return "openai"
@@ -266,6 +268,9 @@ func (c *Config) ResolveTTSProvider() string {
 	case "auto", "":
 		fallthrough
 	default:
+		if strings.TrimSpace(c.DashScopeAPIKey) != "" && c.DashScopeTTSEffectiveKey() != "" {
+			return "dashscope"
+		}
 		if c.LikelyDashScopeLLM() && c.DashScopeTTSEffectiveKey() != "" {
 			return "dashscope"
 		}
@@ -298,6 +303,18 @@ func (c *Config) DashScopeTTSEffectiveKey() string {
 		return k
 	}
 	return strings.TrimSpace(c.OpenAIApiKey)
+}
+
+// DashScopeVoiceEnrollEnabled 是否可向百炼注册声音复刻（需通义 Key 且未显式关闭 TTS）。
+func (c *Config) DashScopeVoiceEnrollEnabled() bool {
+	if strings.TrimSpace(c.DashScopeTTSEffectiveKey()) == "" {
+		return false
+	}
+	switch strings.ToLower(strings.TrimSpace(c.TTSProvider)) {
+	case "none", "off", "false", "0":
+		return false
+	}
+	return c.ResolveTTSProvider() == "dashscope"
 }
 
 // VoiceReplyConfigured 是否可对访客展示「语音回复」开关（含仅填了 voice_clone_id 预留字段的情况）。

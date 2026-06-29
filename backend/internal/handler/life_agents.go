@@ -1029,7 +1029,7 @@ func LifeAgentsCreate(cfg *config.Config) gin.HandlerFunc {
 		var voiceClonePtr *string
 		if body.VoiceSampleBase64 != "" {
 			_, _ = tts.SaveVoiceSample(profileID, body.VoiceSampleBase64)
-			if cfg.ResolveTTSProvider() == "dashscope" {
+			if cfg.DashScopeVoiceEnrollEnabled() {
 				raw, mime, derr := tts.DecodeBase64AudioPayload(body.VoiceSampleBase64)
 				if derr != nil {
 					log.Printf("life-agents create: voice sample decode: %v", derr)
@@ -1907,7 +1907,7 @@ func LifeAgentsUpdate(cfg *config.Config) gin.HandlerFunc {
 		if body.VoiceSampleBase64 != nil && strings.TrimSpace(*body.VoiceSampleBase64) != "" {
 			s := strings.TrimSpace(*body.VoiceSampleBase64)
 			_, _ = tts.SaveVoiceSample(p.ID, s)
-			if cfg.ResolveTTSProvider() == "dashscope" {
+			if cfg.DashScopeVoiceEnrollEnabled() {
 				raw, mime, derr := tts.DecodeBase64AudioPayload(s)
 				if derr != nil {
 					log.Printf("life-agents update: voice decode: %v", derr)
