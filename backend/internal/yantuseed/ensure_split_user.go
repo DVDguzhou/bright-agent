@@ -21,20 +21,22 @@ func EnsureSplitUserForIndex(i int, password string) (*models.User, error) {
 	email := SplitAccountEmails[i]
 	displayName := profiles[i].DisplayName
 
+	return EnsureAgentUser(email, displayName, password)
+}
+
+// EnsureAgentUser creates one isolated Agent owner without depending on the
+// bulk yantuseed profile/account index.
+func EnsureAgentUser(email, displayName, password string) (*models.User, error) {
 	var u models.User
 	if db.DB.Where("email = ?", email).First(&u).Error == nil {
 		return &u, nil
 	}
-
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), 12)
 	if err != nil {
 		return nil, err
 	}
 	u = models.User{
-		ID:        models.GenID(),
-		Email:     email,
-		Password:  string(hash),
-		Name:      strPtr(displayName),
+		ID: models.GenID(), Email: email, Password: string(hash), Name: strPtr(displayName),
 		RoleFlags: models.JSONMap{"is_buyer": true, "is_seller": false},
 	}
 	if err := db.DB.Create(&u).Error; err != nil {

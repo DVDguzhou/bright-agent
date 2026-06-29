@@ -416,7 +416,7 @@ func UpsertProfile(userID, coverPreset string, p Profile) error {
 // + 中南/电子科大 10 人 + 副业 10 人 + 上交生存 56 人 + 人生规划 106 人
 // + 不止大学播客 23 人 + 我下班了播客 15 人 + 校招飞播客 9 人 + 迷你退休播客 12 人 = 1668 人
 func Profiles() []Profile {
-	n := 4 + len(zjuFeyue2021Profiles) + len(zjuFeyue2021ProfilesMore) + len(zjuFeyue2021ProfilesAbroad) +
+	n := 3 + len(zjuFeyue2021Profiles) + len(zjuFeyue2021ProfilesMore) + len(zjuFeyue2021ProfilesAbroad) +
 		len(zjuFeyue2021ProfilesDomesticRemain1) + len(zjuFeyue2021ProfilesDomesticRemain2) + len(zjuFeyue2021ProfilesAbroadMore) +
 		len(buptFeyueProfiles) + len(hustFeyueProfiles) +
 		len(sustechFeyueCSProfiles) + len(sustechFeyueENGProfiles) + len(sustechFeyueSCIProfiles) +
@@ -439,7 +439,7 @@ func Profiles() []Profile {
 		len(howtoMoneyProfiles) + len(surviveSjtuProfiles) + len(runPhilProfiles) +
 		len(csslProfiles1) + len(csslProfiles2) + len(buzhiPodcastProfiles) + len(xiabanlePodcastProfiles) + len(xiaozhaofeiPodcastProfiles) + len(minituixiuPodcastProfiles)
 	out := make([]Profile, 0, n)
-	out = append(out, yaoShengJie, zhangGuiShuo, yangChenYang, zhangXuefengDecisionProfile)
+	out = append(out, yaoShengJie, zhangGuiShuo, yangChenYang)
 	out = append(out, zjuFeyue2021Profiles...)
 	out = append(out, zjuFeyue2021ProfilesMore...)
 	out = append(out, zjuFeyue2021ProfilesDomesticRemain1...)

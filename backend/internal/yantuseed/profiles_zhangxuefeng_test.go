@@ -26,11 +26,12 @@ func TestZhangXuefengDecisionProfileIsTransparentAndAtomic(t *testing.T) {
 }
 
 func TestZhangXuefengDecisionProfileAccountMapping(t *testing.T) {
-	profiles := Profiles()
-	if len(profiles) != len(SplitAccountEmails) {
-		t.Fatalf("profiles and owner accounts differ: %d != %d", len(profiles), len(SplitAccountEmails))
+	for _, profile := range Profiles() {
+		if profile.DisplayName == zhangXuefengDecisionProfile.DisplayName {
+			t.Fatal("dedicated profile must not be part of the legacy bulk seed")
+		}
 	}
-	if profiles[3].DisplayName != zhangXuefengDecisionProfile.DisplayName || SplitAccountEmails[3] != "agent_zxf_decision@163.com" {
-		t.Fatal("distilled profile and owner account must stay aligned at index 3")
+	if len(Profiles()) != len(SplitAccountEmails) {
+		t.Fatalf("legacy profiles and owner accounts differ: %d != %d", len(Profiles()), len(SplitAccountEmails))
 	}
 }

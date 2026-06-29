@@ -6,7 +6,6 @@ var SplitAccountEmails = []string{
 	"nightowl_7zq@163.com",
 	"caffe4012@163.com",
 	"citrus_moon@163.com",
-	"agent_zxf_decision@163.com",
 	"adzuki_mm@163.com",
 	"rnd_id_9k@163.com",
 	"fizz_bubble8@163.com",

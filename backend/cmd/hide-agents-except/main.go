@@ -4,6 +4,7 @@
 //
 //	go run ./cmd/hide-agents-except                          # dry-run
 //	go run ./cmd/hide-agents-except -name "阿青学长3.0"       # 指定保留名称
+//	go run ./cmd/hide-agents-except -names "小清学长,张雪峰" # 保留多个名称
 //	go run ./cmd/hide-agents-except -apply                   # 写库
 //	go run ./cmd/hide-agents-except -restore hidden-xxx.txt -apply  # 回滚上架
 package main
@@ -25,6 +26,7 @@ import (
 func main() {
 	apply := flag.Bool("apply", false, "写库（缺省 dry-run）")
 	name := flag.String("name", "阿青学长3.0", "保留可见（published=true）的 Agent display_name")
+	names := flag.String("names", "", "保留多个 Agent，逗号分隔；设置后覆盖 -name")
 	restore := flag.String("restore", "", "回滚：读入 id 清单，把这些 Agent 重新 published=true")
 	limit := flag.Int("limit", 40, "dry-run 明细最多打印多少条（0=全部）")
 	flag.Parse()
@@ -45,25 +47,37 @@ func main() {
 		return
 	}
 
-	keepName := strings.TrimSpace(*name)
-	if keepName == "" {
-		log.Fatal("name 不能为空")
+	keepNames := []string{strings.TrimSpace(*name)}
+	if strings.TrimSpace(*names) != "" {
+		keepNames = nil
+		for _, value := range strings.Split(*names, ",") {
+			if value = strings.TrimSpace(value); value != "" {
+				keepNames = append(keepNames, value)
+			}
+		}
+	}
+	if len(keepNames) == 0 || keepNames[0] == "" {
+		log.Fatal("name/names 不能为空")
 	}
 
 	var keep []models.LifeAgentProfile
-	if err := db.DB.Where("display_name = ?", keepName).Find(&keep).Error; err != nil {
+	if err := db.DB.Where("display_name IN ?", keepNames).Find(&keep).Error; err != nil {
 		log.Fatalf("query keep agent failed: %v", err)
 	}
-	if len(keep) == 0 {
-		log.Fatalf("未找到 display_name=%q 的 Agent，请确认名称或先用 export-life-agents 查看", keepName)
+	byName := make(map[string]int, len(keepNames))
+	keepIDs := make([]string, 0, len(keep))
+	for _, profile := range keep {
+		byName[profile.DisplayName]++
+		keepIDs = append(keepIDs, profile.ID)
 	}
-	if len(keep) > 1 {
-		log.Fatalf("display_name=%q 匹配到 %d 个 Agent，请先 dedupe 或改用唯一名称", keepName, len(keep))
+	for _, keepName := range keepNames {
+		if byName[keepName] != 1 {
+			log.Fatalf("display_name=%q 匹配到 %d 个 Agent，必须恰好为 1 个", keepName, byName[keepName])
+		}
 	}
-	keepAgent := keep[0]
 
 	var toHide []models.LifeAgentProfile
-	if err := db.DB.Where("id <> ?", keepAgent.ID).Find(&toHide).Error; err != nil {
+	if err := db.DB.Where("id NOT IN ?", keepIDs).Find(&toHide).Error; err != nil {
 		log.Fatalf("query agents failed: %v", err)
 	}
 
@@ -77,7 +91,9 @@ func main() {
 	}
 
 	fmt.Printf("=== 隐藏 Agent（published=false，不删数据）===\n")
-	fmt.Printf("保留可见: [%s] %s (id=%s, published=%v)\n", keepAgent.DisplayName, keepAgent.Headline, keepAgent.ID, keepAgent.Published)
+	for _, profile := range keep {
+		fmt.Printf("保留可见: [%s] %s (id=%s, published=%v)\n", profile.DisplayName, profile.Headline, profile.ID, profile.Published)
+	}
 	fmt.Printf("将隐藏: 共 %d 个（其中当前 published=true 的有 %d 个）\n", len(hideIDs), publishedBefore)
 
 	shown := 0
@@ -108,11 +124,11 @@ func main() {
 	w := bufio.NewWriter(f)
 
 	tx := db.DB.Begin()
-	if err := tx.Model(&models.LifeAgentProfile{}).Where("id <> ?", keepAgent.ID).Update("published", false).Error; err != nil {
+	if err := tx.Model(&models.LifeAgentProfile{}).Where("id NOT IN ?", keepIDs).Update("published", false).Error; err != nil {
 		tx.Rollback()
 		log.Fatalf("批量隐藏失败: %v", err)
 	}
-	if err := tx.Model(&models.LifeAgentProfile{}).Where("id = ?", keepAgent.ID).Update("published", true).Error; err != nil {
+	if err := tx.Model(&models.LifeAgentProfile{}).Where("id IN ?", keepIDs).Update("published", true).Error; err != nil {
 		tx.Rollback()
 		log.Fatalf("保留 Agent 上架失败: %v", err)
 	}
@@ -125,7 +141,7 @@ func main() {
 	}
 	w.Flush()
 
-	fmt.Printf("\n✓ 已隐藏 %d 个 Agent，仅保留 %q 可见。\n", len(hideIDs), keepAgent.DisplayName)
+	fmt.Printf("\n✓ 已隐藏 %d 个 Agent，仅保留 %s 可见。\n", len(hideIDs), strings.Join(keepNames, "、"))
 	fmt.Printf("  回滚清单：backend/%s\n", fname)
 	fmt.Printf("  回滚：go run ./cmd/hide-agents-except -restore %s -apply\n", fname)
 }
