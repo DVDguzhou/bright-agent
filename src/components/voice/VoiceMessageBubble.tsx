@@ -167,11 +167,7 @@ export function VoiceMessageBubble({
             <rect x="14" y="4" width="4" height="16" rx="1" />
           </svg>
         ) : (
-          <svg
-            className={`h-4 w-4 ${isFromUser ? "" : "scale-x-[-1]"}`}
-            fill="currentColor"
-            viewBox="0 0 24 24"
-          >
+          <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
             <path d="M8 5v14l11-7z" />
           </svg>
         )}

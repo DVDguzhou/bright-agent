@@ -963,6 +963,13 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 			log.Printf("[LLM-websearch] forced search ok, %d chars", len([]rune(searchResult)))
 		}
 	}
+	skipKnowledgeCitations := forcedWebSearch
+	if !skipKnowledgeCitations && opts != nil && opts.WebSearch != nil && opts.WebSearch.Enabled && NeedsRealtimeWebSearch(message) {
+		skipKnowledgeCitations = true
+	}
+	if skipKnowledgeCitations {
+		needsReconcile = false
+	}
 
 	draftSystem := buildDraftSystemPrompt(profile, fullPlan.Facts, fullPlan.Topics, liveForDraft, &strategy, introIntent)
 	if webSearchToolEnabled(opts, baseURL) && (forcedWebSearch || NeedsRealtimeWebSearch(message)) {
@@ -1070,7 +1077,7 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 		}
 		draft = ApplyClaimGuardWithPolicy(message, draft, facts, fullPlan, answerPolicy)
 		citationsEnabled := opts == nil || opts.CitationsEnabled
-		if citationsEnabled && PlanHasArbitrationTargets(fullPlan) &&
+		if citationsEnabled && !skipKnowledgeCitations && PlanHasArbitrationTargets(fullPlan) &&
 			(answerPolicy == PolicyGrounded || answerPolicy == PolicySparseGrounded) {
 			catalog := BuildCitationCatalog(fullPlan)
 			if opts != nil {
@@ -1084,6 +1091,9 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 				opts.ReplyUseSegmentDelivery = true
 			}
 			return deliverFinalReply(draft, refs, onChunk, opts)
+		}
+		if skipKnowledgeCitations && opts != nil {
+			opts.ReplyAttribution = AttributionGeneral
 		}
 		return deliverFinalReply(draft, nil, onChunk, opts)
 	}
@@ -1123,6 +1133,13 @@ func twoPhaseLifeAgentReply(ctx context.Context, client *openai.Client, model st
 		out = draft
 	}
 	out = ApplyClaimGuardWithPolicy(message, out, facts, planStrict, answerPolicy)
+	if skipKnowledgeCitations {
+		out = StripInlineCitations(out)
+		if opts != nil {
+			opts.ReplyAttribution = AttributionGeneral
+		}
+		return deliverFinalReply(out, nil, onChunk, opts)
+	}
 	out, references = FinalizeCitedReply(ctx, client, model, out, catalog, citationsEnabled, sparse)
 	if opts != nil {
 		opts.ReplyAttribution = AttributionGrounded

@@ -1099,8 +1099,8 @@ func EnsureInlineCitations(ctx context.Context, client *openai.Client, model, te
 	setMaxTokens(&req, model, estimateReconcileTokenBudget(text))
 	result := streamWithDetails(ctx, client, req, nil)
 	out := strings.TrimSpace(result.Content)
-	if out == "" {
-		log.Printf("[citations] ensureInlineCitations returned empty, keeping original")
+	if out == "" || citationAssignOutputRejected(out, text) {
+		log.Printf("[citations] ensureInlineCitations rejected output, keeping original")
 		return text
 	}
 	out = humanizeReply(out)
@@ -1108,6 +1108,27 @@ func EnsureInlineCitations(ctx context.Context, client *openai.Client, model, te
 		return text
 	}
 	return ValidateInlineCitationIndexes(NormalizeCitationMarkers(out), catalog)
+}
+
+// citationAssignOutputRejected detects when the citation LLM echoes prompt instructions instead of annotated text.
+func citationAssignOutputRejected(output, original string) bool {
+	o := strings.TrimSpace(output)
+	if o == "" {
+		return true
+	}
+	for _, marker := range []string{
+		"请输出加了", "待标注正文", "编号素材", "来源归属助手", "不要加解释", "不要 Markdown",
+	} {
+		if strings.Contains(o, marker) {
+			return true
+		}
+	}
+	origRunes := len([]rune(StripInlineCitations(strings.TrimSpace(original))))
+	outRunes := len([]rune(StripInlineCitations(o)))
+	if origRunes >= 16 && outRunes < origRunes/3 {
+		return true
+	}
+	return false
 }
 
 func paragraphsNeedCitationAssignment(text string) bool {

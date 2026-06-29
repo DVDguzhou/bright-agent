@@ -261,6 +261,17 @@ func TestValidateInlineCitationsKeepsRelevant(t *testing.T) {
 	}
 }
 
+func TestCitationAssignOutputRejected(t *testing.T) {
+	orig := "浙江2026年本科线预计六月公布，建议关注教育考试院官网。"
+	leak := "请输出加了 [n] 标注的正文（仅此一段）："
+	if !citationAssignOutputRejected(leak, orig) {
+		t.Fatal("expected leak detection")
+	}
+	if citationAssignOutputRejected(orig+"[1]", orig) {
+		t.Fatal("valid annotated text should not be rejected")
+	}
+}
+
 func TestOverlapEnsureInlineCitations(t *testing.T) {
 	catalog := BuildCitationCatalog(RetrievalPlan{
 		Entries: []KnowledgeEntryForAI{

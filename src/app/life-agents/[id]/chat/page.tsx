@@ -147,6 +147,15 @@ function isAssistantTurnTail(messages: ChatMessage[], index: number) {
   return index + 1 >= messages.length || messages[index + 1].role !== "assistant";
 }
 
+function assistantTurnLastIndex(messages: ChatMessage[], startIdx: number) {
+  let last = startIdx;
+  for (let i = startIdx + 1; i < messages.length; i++) {
+    if (messages[i].role === "assistant") last = i;
+    else break;
+  }
+  return last;
+}
+
 function shouldShowAssistantAvatar(messages: ChatMessage[], index: number) {
   return index === 0 || messages[index - 1]?.role !== "assistant";
 }
@@ -739,17 +748,18 @@ export default function LifeAgentChatPage() {
                 syncRatingForm(data.rating);
               } else if (eventType === "audio_ready") {
                 const data = parsed;
-                setMessages((prev) =>
-                  prev.map((m, i) =>
-                    i === assistantIdx.current
+                setMessages((prev) => {
+                  const targetIdx = assistantTurnLastIndex(prev, assistantIdx.current);
+                  return prev.map((m, i) =>
+                    i === targetIdx
                       ? {
                           ...m,
                           audioUrl: data.audioUrl,
                           audioDurationSec: data.audioDurationSec,
                         }
                       : m
-                  )
-                );
+                  );
+                });
                 setVoiceLoading(false);
               }
             } catch {
@@ -1285,60 +1295,71 @@ export default function LifeAgentChatPage() {
                   index === messages.length - 1 &&
                   voiceLoading &&
                   !message.audioUrl;
+                const showAssistantAvatar =
+                  message.role === "assistant" && shouldShowAssistantAvatar(messages, index);
+                const hasVoiceBubble = message.role === "assistant" && !!message.audioUrl;
+                const hasVoiceLoadingBubble = isVoiceLoadingForMsg;
+                const hasStandaloneVoice = hasVoiceBubble || hasVoiceLoadingBubble;
+                const showTextBubble =
+                  message.role === "user" ||
+                  hasVoiceLoadingBubble ||
+                  message.pending ||
+                  (message.role === "assistant" && !message.content.trim() && loading) ||
+                  !!message.content.trim() ||
+                  (message.references?.length ?? 0) > 0;
+
+                const assistantAvatar = (
+                  <Link
+                    href={`/life-agents/${id}`}
+                    onClick={(e) => e.stopPropagation()}
+                    className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full bg-paper-200/60 ring-1 ring-hairline/25 transition hover:ring-hairline/45"
+                    aria-label={`查看 ${profile.displayName} 的资料`}
+                  >
+                    {agentCoverUrl ? (
+                      <LifeAgentCoverImage
+                        src={agentCoverUrl}
+                        alt=""
+                        fill
+                        compact
+                        className="object-cover"
+                        sizes="32px"
+                      />
+                    ) : (
+                      <span className="flex h-full w-full items-center justify-center text-[10px] font-bold text-ink-400">
+                        {profile.displayName.slice(0, 1)}
+                      </span>
+                    )}
+                  </Link>
+                );
+                const assistantSpacer = <span className="h-8 w-8 shrink-0" aria-hidden />;
 
                 return (
-                <div key={`${message.role}-${index}-${message.messageId ?? "draft"}`} className="space-y-1">
+                <div key={`${message.role}-${index}-${message.messageId ?? "draft"}`} className="space-y-1.5">
+                  {hasStandaloneVoice ? (
+                    <div className="flex items-end gap-2 justify-start">
+                      {showAssistantAvatar ? assistantAvatar : assistantSpacer}
+                      {hasVoiceBubble ? (
+                        <VoiceMessageBubble
+                          audioUrl={message.audioUrl!}
+                          durationSeconds={message.audioDurationSec ?? 1}
+                          isFromUser={false}
+                        />
+                      ) : (
+                        <VoiceMessageLoadingBubble />
+                      )}
+                    </div>
+                  ) : null}
+                  {showTextBubble ? (
                   <div
                     className={`flex items-end gap-2 ${message.role === "user" ? "justify-end" : "justify-start"}`}
                   >
-                    {message.role === "assistant" && shouldShowAssistantAvatar(messages, index) ? (
-                      <Link
-                        href={`/life-agents/${id}`}
-                        onClick={(e) => e.stopPropagation()}
-                        className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full bg-paper-200/60 ring-1 ring-hairline/25 transition hover:ring-hairline/45"
-                        aria-label={`查看 ${profile.displayName} 的资料`}
-                      >
-                        {agentCoverUrl ? (
-                          <LifeAgentCoverImage
-                            src={agentCoverUrl}
-                            alt=""
-                            fill
-                            compact
-                            className="object-cover"
-                            sizes="32px"
-                          />
-                        ) : (
-                          <span className="flex h-full w-full items-center justify-center text-[10px] font-bold text-ink-400">
-                            {profile.displayName.slice(0, 1)}
-                          </span>
-                        )}
-                      </Link>
-                    ) : message.role === "assistant" ? (
-                      <span className="h-8 w-8 shrink-0" aria-hidden />
-                    ) : null}
+                    {message.role === "assistant"
+                      ? hasStandaloneVoice || !showAssistantAvatar
+                        ? assistantSpacer
+                        : assistantAvatar
+                      : null}
                     <div className={getChatBubbleClassName(message.role)}>
-                      {message.role === "assistant" && message.audioUrl ? (
-                        <div className="space-y-3">
-                          <VoiceMessageBubble
-                            audioUrl={message.audioUrl}
-                            durationSeconds={message.audioDurationSec ?? 1}
-                            isFromUser={false}
-                          />
-                          {message.content && (
-                            <p className="mt-2 border-t border-hairline/60 pt-2 text-[13px] leading-6 text-ink-500">
-                              {message.content}
-                            </p>
-                          )}
-                        </div>
-                      ) : isVoiceLoadingForMsg ? (
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2 rounded bg-paper-50 px-2.5 py-1.5">
-                            <span className="h-3 w-3 shrink-0 rounded-full border-[1.5px] border-hairline/40 border-t-ink animate-spin" />
-                            <span className="text-xs text-ink-600/80">语音生成中…</span>
-                          </div>
-                          <p className="whitespace-pre-wrap">{message.content || ""}</p>
-                        </div>
-                      ) : message.role === "assistant" && (message.pending || (!message.content.trim() && loading)) ? (
+                      {message.role === "assistant" && (message.pending || (!message.content.trim() && loading)) ? (
                         <AgentTypingIndicator />
                       ) : (
                         <div className="space-y-2">
@@ -1396,6 +1417,7 @@ export default function LifeAgentChatPage() {
                       />
                     ) : null}
                   </div>
+                  ) : null}
                   {message.role === "assistant" && message.messageId && message.sessionId && isAssistantTurnTail(messages, index) ? (
                     <div className="ml-10 max-w-full space-y-2">
                       <div className="flex flex-wrap gap-2 text-xs">
