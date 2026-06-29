@@ -46,4 +46,9 @@ var zhangXuefengDecisionProfile = Profile{
 
 // ZhangXuefengDecisionProfile is intentionally excluded from Profiles(),
 // which is the legacy bulk seed set. Seed it only through its dedicated script.
-func ZhangXuefengDecisionProfile() Profile { return zhangXuefengDecisionProfile }
+func ZhangXuefengDecisionProfile() Profile {
+	p := zhangXuefengDecisionProfile
+	p.KnowledgeEntries = append(append([]KnowledgeEntry{}, p.KnowledgeEntries...), zhangXuefengResearchEntries...)
+	p.TopicSummaries = append([]TopicSummary{}, zhangXuefengTopicSummaries...)
+	return p
+}

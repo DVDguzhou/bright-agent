@@ -377,6 +377,7 @@ func UpsertProfile(userID, coverPreset string, p Profile) error {
 	if len(entries) == 0 {
 		entries = []KnowledgeEntry{{Title: kTitle, Category: kCategory, Content: p.KnowledgeBody, Tags: []string(kTags)}}
 	}
+	entryIDsByTitle := make(map[string]string, len(entries))
 	for i, item := range entries {
 		itemTitle := strings.TrimSpace(item.Title)
 		if itemTitle == "" {
@@ -401,7 +402,30 @@ func UpsertProfile(userID, coverPreset string, p Profile) error {
 		if err := db.DB.Create(&entry).Error; err != nil {
 			return err
 		}
+		entryIDsByTitle[itemTitle] = entry.ID
 		fmt.Println("  knowledge entry", entry.Title)
+	}
+	if len(p.TopicSummaries) > 0 {
+		if err := db.DB.Where("profile_id = ?", profile.ID).Delete(&models.LifeAgentTopicSummary{}).Error; err != nil {
+			return err
+		}
+		for _, item := range p.TopicSummaries {
+			sourceIDs := make([]string, 0, len(item.SourceTitles))
+			for _, sourceTitle := range item.SourceTitles {
+				if id := entryIDsByTitle[sourceTitle]; id != "" {
+					sourceIDs = append(sourceIDs, id)
+				}
+			}
+			topic := models.LifeAgentTopicSummary{
+				ID: models.GenID(), ProfileID: profile.ID, TopicGroup: item.Group,
+				TopicKey: item.Key, TopicLabel: item.Label, Summary: item.Summary,
+				Aliases: models.JSONArray(item.Aliases), QuestionPatterns: models.JSONArray(item.QuestionPatterns),
+				SourceEntryIDs: models.JSONArray(sourceIDs), Source: "knowledge", Confidence: "high", Status: "active",
+			}
+			if err := db.DB.Create(&topic).Error; err != nil {
+				return err
+			}
+		}
 	}
 	return nil
 }

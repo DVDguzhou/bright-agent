@@ -33,6 +33,17 @@ type Profile struct {
 	CoverImageURL     string   // 非空时直接写入 cover_image_url
 	LongBio           string   // 非空时完整覆盖自动生成的 long bio
 	KnowledgeEntries  []KnowledgeEntry
+	TopicSummaries    []TopicSummary
+}
+
+type TopicSummary struct {
+	Group            string
+	Key              string
+	Label            string
+	Summary          string
+	Aliases          []string
+	QuestionPatterns []string
+	SourceTitles     []string
 }
 
 // KnowledgeEntry is one independently retrievable fact or decision framework.
