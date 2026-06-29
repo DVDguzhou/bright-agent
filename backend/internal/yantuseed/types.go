@@ -31,4 +31,15 @@ type Profile struct {
 	City              string   // 非空时直接写入 city 字段；为空则从 School 自动推导
 	Province          string   // 非空时直接写入 province 字段
 	CoverImageURL     string   // 非空时直接写入 cover_image_url
+	LongBio           string   // 非空时完整覆盖自动生成的 long bio
+	KnowledgeEntries  []KnowledgeEntry
+}
+
+// KnowledgeEntry is one independently retrievable fact or decision framework.
+// Keeping entries narrow improves topic labels and bubble-level citations.
+type KnowledgeEntry struct {
+	Title    string
+	Category string
+	Content  string
+	Tags     []string
 }

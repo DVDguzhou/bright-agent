@@ -208,7 +208,7 @@ func firstSentence(s string) string {
 // UpsertProfile 按 display_name + user_id 幂等写入/更新档案与一条知识库。
 // coverPreset 非空时写入 cover_preset_key；为空时为该昵称分配稳定 Unsplash 封面 URL（见 YantuCoverPhotoURLs）。
 func UpsertProfile(userID, coverPreset string, p Profile) error {
-	if strings.TrimSpace(p.KnowledgeBody) == "" {
+	if strings.TrimSpace(p.KnowledgeBody) == "" && len(p.KnowledgeEntries) == 0 {
 		return fmt.Errorf("empty knowledge for %q", p.DisplayName)
 	}
 	title := strings.TrimSpace(p.ArticleTitle)
@@ -223,6 +223,9 @@ func UpsertProfile(userID, coverPreset string, p Profile) error {
 		longBio = strings.TrimSpace(p.LongBioPrefix) + " 收录篇目：" + title + "。" + firstSentence(p.KnowledgeBody)
 	} else {
 		longBio = fmt.Sprintf("本文来自温州大学计算机与人工智能学院微信公众号「研途榜样」系列（%s）。%s", title, firstSentence(p.KnowledgeBody))
+	}
+	if strings.TrimSpace(p.LongBio) != "" {
+		longBio = strings.TrimSpace(p.LongBio)
 	}
 	majorLabel := "考研专业"
 	if strings.TrimSpace(p.MajorLabel) != "" {
@@ -370,19 +373,36 @@ func UpsertProfile(userID, coverPreset string, p Profile) error {
 	if len(p.KnowledgeTags) > 0 {
 		kTags = models.JSONArray(p.KnowledgeTags)
 	}
-	entry := models.LifeAgentKnowledgeEntry{
-		ID:        models.GenID(),
-		ProfileID: profile.ID,
-		Category:  kCategory,
-		Title:     wechathtml.TrimRunes(kTitle, 255),
-		Content:   p.KnowledgeBody,
-		Tags:      kTags,
-		SortOrder: 0,
+	entries := p.KnowledgeEntries
+	if len(entries) == 0 {
+		entries = []KnowledgeEntry{{Title: kTitle, Category: kCategory, Content: p.KnowledgeBody, Tags: []string(kTags)}}
 	}
-	if err := db.DB.Create(&entry).Error; err != nil {
-		return err
+	for i, item := range entries {
+		itemTitle := strings.TrimSpace(item.Title)
+		if itemTitle == "" {
+			itemTitle = kTitle
+		}
+		itemCategory := strings.TrimSpace(item.Category)
+		if itemCategory == "" {
+			itemCategory = kCategory
+		}
+		itemTags := item.Tags
+		if len(itemTags) == 0 {
+			itemTags = []string(kTags)
+		}
+		entry := models.LifeAgentKnowledgeEntry{
+			ID: models.GenID(), ProfileID: profile.ID, Category: itemCategory,
+			Title: wechathtml.TrimRunes(itemTitle, 255), Content: strings.TrimSpace(item.Content),
+			Tags: models.JSONArray(itemTags), SortOrder: i,
+		}
+		if entry.Content == "" {
+			return fmt.Errorf("empty knowledge entry %d for %q", i, p.DisplayName)
+		}
+		if err := db.DB.Create(&entry).Error; err != nil {
+			return err
+		}
+		fmt.Println("  knowledge entry", entry.Title)
 	}
-	fmt.Println("  knowledge entry", entry.Title)
 	return nil
 }
 
@@ -396,7 +416,7 @@ func UpsertProfile(userID, coverPreset string, p Profile) error {
 // + 中南/电子科大 10 人 + 副业 10 人 + 上交生存 56 人 + 人生规划 106 人
 // + 不止大学播客 23 人 + 我下班了播客 15 人 + 校招飞播客 9 人 + 迷你退休播客 12 人 = 1668 人
 func Profiles() []Profile {
-	n := 3 + len(zjuFeyue2021Profiles) + len(zjuFeyue2021ProfilesMore) + len(zjuFeyue2021ProfilesAbroad) +
+	n := 4 + len(zjuFeyue2021Profiles) + len(zjuFeyue2021ProfilesMore) + len(zjuFeyue2021ProfilesAbroad) +
 		len(zjuFeyue2021ProfilesDomesticRemain1) + len(zjuFeyue2021ProfilesDomesticRemain2) + len(zjuFeyue2021ProfilesAbroadMore) +
 		len(buptFeyueProfiles) + len(hustFeyueProfiles) +
 		len(sustechFeyueCSProfiles) + len(sustechFeyueENGProfiles) + len(sustechFeyueSCIProfiles) +
@@ -419,7 +439,7 @@ func Profiles() []Profile {
 		len(howtoMoneyProfiles) + len(surviveSjtuProfiles) + len(runPhilProfiles) +
 		len(csslProfiles1) + len(csslProfiles2) + len(buzhiPodcastProfiles) + len(xiabanlePodcastProfiles) + len(xiaozhaofeiPodcastProfiles) + len(minituixiuPodcastProfiles)
 	out := make([]Profile, 0, n)
-	out = append(out, yaoShengJie, zhangGuiShuo, yangChenYang)
+	out = append(out, yaoShengJie, zhangGuiShuo, yangChenYang, zhangXuefengDecisionProfile)
 	out = append(out, zjuFeyue2021Profiles...)
 	out = append(out, zjuFeyue2021ProfilesMore...)
 	out = append(out, zjuFeyue2021ProfilesDomesticRemain1...)
