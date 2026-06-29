@@ -5,6 +5,7 @@
 //	go run ./cmd/hide-agents-except                          # dry-run
 //	go run ./cmd/hide-agents-except -name "阿青学长3.0"       # 指定保留名称
 //	go run ./cmd/hide-agents-except -names "小清学长,张雪峰" # 保留多个名称
+//	go run ./cmd/hide-agents-except -names "小清学长|836444684@qq.com,张雪峰" # 同名时用归属邮箱区分
 //	go run ./cmd/hide-agents-except -apply                   # 写库
 //	go run ./cmd/hide-agents-except -restore hidden-xxx.txt -apply  # 回滚上架
 package main
@@ -22,6 +23,62 @@ import (
 	"github.com/agent-marketplace/backend/internal/models"
 	"github.com/joho/godotenv"
 )
+
+type keepSpec struct {
+	displayName string
+	ownerEmail  string
+}
+
+func parseKeepSpecs(rawNames []string) []keepSpec {
+	specs := make([]keepSpec, 0, len(rawNames))
+	for _, raw := range rawNames {
+		displayName, ownerEmail, _ := strings.Cut(raw, "|")
+		specs = append(specs, keepSpec{
+			displayName: strings.TrimSpace(displayName),
+			ownerEmail:  strings.TrimSpace(ownerEmail),
+		})
+	}
+	return specs
+}
+
+func resolveKeepAgents(specs []keepSpec) ([]models.LifeAgentProfile, error) {
+	keep := make([]models.LifeAgentProfile, 0, len(specs))
+	for _, spec := range specs {
+		if spec.displayName == "" {
+			continue
+		}
+		if spec.ownerEmail != "" {
+			var profile models.LifeAgentProfile
+			err := db.DB.Joins("JOIN users ON users.id = life_agent_profiles.user_id").
+				Where("life_agent_profiles.display_name = ? AND users.email = ?", spec.displayName, spec.ownerEmail).
+				First(&profile).Error
+			if err != nil {
+				var count int64
+				_ = db.DB.Model(&models.LifeAgentProfile{}).Where("display_name = ?", spec.displayName).Count(&count).Error
+				if count > 1 {
+					return nil, fmt.Errorf("display_name=%q owner_email=%q 未匹配到 Agent（同名共有 %d 个，请核对邮箱）", spec.displayName, spec.ownerEmail, count)
+				}
+				return nil, fmt.Errorf("display_name=%q owner_email=%q 未匹配到 Agent", spec.displayName, spec.ownerEmail)
+			}
+			keep = append(keep, profile)
+			continue
+		}
+
+		var matches []models.LifeAgentProfile
+		if err := db.DB.Where("display_name = ?", spec.displayName).Find(&matches).Error; err != nil {
+			return nil, fmt.Errorf("query keep agent %q failed: %w", spec.displayName, err)
+		}
+		if len(matches) != 1 {
+			hint := ""
+			if len(matches) > 1 {
+				hint = "；可用 名称|归属邮箱 区分，例如 小清学长|836444684@qq.com"
+			}
+			return nil, fmt.Errorf("display_name=%q 匹配到 %d 个 Agent，必须恰好为 1 个%s", spec.displayName, len(matches), hint)
+		}
+		keep = append(keep, matches[0])
+	}
+	return keep, nil
+}
 
 func main() {
 	apply := flag.Bool("apply", false, "写库（缺省 dry-run）")
@@ -60,20 +117,19 @@ func main() {
 		log.Fatal("name/names 不能为空")
 	}
 
-	var keep []models.LifeAgentProfile
-	if err := db.DB.Where("display_name IN ?", keepNames).Find(&keep).Error; err != nil {
-		log.Fatalf("query keep agent failed: %v", err)
+	keepSpecs := parseKeepSpecs(keepNames)
+	keep, err := resolveKeepAgents(keepSpecs)
+	if err != nil {
+		log.Fatal(err)
 	}
-	byName := make(map[string]int, len(keepNames))
 	keepIDs := make([]string, 0, len(keep))
+	seen := make(map[string]struct{}, len(keep))
 	for _, profile := range keep {
-		byName[profile.DisplayName]++
-		keepIDs = append(keepIDs, profile.ID)
-	}
-	for _, keepName := range keepNames {
-		if byName[keepName] != 1 {
-			log.Fatalf("display_name=%q 匹配到 %d 个 Agent，必须恰好为 1 个", keepName, byName[keepName])
+		if _, ok := seen[profile.ID]; ok {
+			continue
 		}
+		seen[profile.ID] = struct{}{}
+		keepIDs = append(keepIDs, profile.ID)
 	}
 
 	var toHide []models.LifeAgentProfile

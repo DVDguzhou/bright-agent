@@ -24,6 +24,8 @@ for (let i = 0; i < args.length; i++) {
     goArgs.push("-apply");
   } else if (a === "--name" && args[i + 1]) {
     goArgs.push("-name", args[++i]);
+  } else if (a === "--names" && args[i + 1]) {
+    goArgs.push("-names", args[++i]);
   } else if (a === "--restore" && args[i + 1]) {
     goArgs.push("-restore", args[++i]);
   } else if (a === "--limit" && args[i + 1]) {
