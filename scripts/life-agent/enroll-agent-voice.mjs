@@ -16,7 +16,7 @@
  *   AGENT_OWNER_PASSWORD  Owner account password (required)
  *   AGENT_DISPLAY_NAME    Agent display name, default 张雪峰
  *   AGENT_MEDIA_FILE      Source audio/video file path (required)
- *   AGENT_AUDIO_SECONDS   Clip length in seconds, default 90
+ *   AGENT_AUDIO_SECONDS   Clip length in seconds, default 30
  */
 import fs from "fs";
 import os from "os";
@@ -28,7 +28,7 @@ const OWNER_EMAIL = process.env.AGENT_OWNER_EMAIL || "agent_zxf_decision@163.com
 const OWNER_PASSWORD = process.env.AGENT_OWNER_PASSWORD || process.env.ZHANGXUEFENG_AGENT_PASSWORD || "";
 const DISPLAY_NAME = process.env.AGENT_DISPLAY_NAME || "张雪峰";
 const MEDIA_FILE = process.env.AGENT_MEDIA_FILE || "";
-const AUDIO_SECONDS = Math.max(10, Number.parseInt(process.env.AGENT_AUDIO_SECONDS || "90", 10) || 90);
+const AUDIO_SECONDS = Math.max(10, Number.parseInt(process.env.AGENT_AUDIO_SECONDS || "30", 10) || 30);
 
 function parseCookie(setCookie) {
   if (!setCookie) return "";
