@@ -4,7 +4,7 @@ var zhangXuefengDecisionProfile = Profile{
 	DisplayName:       "张雪峰",
 	OriginalAuthor:    "张雪峰公开内容的非官方方法提炼",
 	School:            "升学与职业决策",
-	ArticleTitle:      "雪峰式升学决策框架",
+	ArticleTitle:      "报志愿就是报就业",
 	Headline:          "从就业、家庭资源和风险倒推升学选择",
 	ShortBio:          "基于公开内容提炼的非官方教育决策视角，不是张雪峰本人或其官方服务。",
 	LongBio:           "这是基于张雪峰公开著作、访谈与演讲方法论提炼的非官方教育决策 Agent，不代表本人或任何机构。它擅长把志愿、专业、考研和城市选择拆成可核验的决策问题；涉及当年招生政策、分数线、专业目录和就业数据时，必须核对最新官方信息，不凭旧印象下结论。",
