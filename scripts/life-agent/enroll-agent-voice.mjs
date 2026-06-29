@@ -16,7 +16,7 @@
  *   AGENT_OWNER_PASSWORD  Owner account password (required)
  *   AGENT_DISPLAY_NAME    Agent display name, default 张雪峰
  *   AGENT_MEDIA_FILE      Source audio/video file path (required)
- *   AGENT_AUDIO_SECONDS   Clip length in seconds, default 30
+ *   AGENT_AUDIO_SECONDS   Optional clip length in seconds; when omitted, pre-trimmed MP3 files are used as-is
  */
 import fs from "fs";
 import os from "os";
@@ -28,7 +28,10 @@ const OWNER_EMAIL = process.env.AGENT_OWNER_EMAIL || "agent_zxf_decision@163.com
 const OWNER_PASSWORD = process.env.AGENT_OWNER_PASSWORD || process.env.ZHANGXUEFENG_AGENT_PASSWORD || "";
 const DISPLAY_NAME = process.env.AGENT_DISPLAY_NAME || "张雪峰";
 const MEDIA_FILE = process.env.AGENT_MEDIA_FILE || "";
-const AUDIO_SECONDS = Math.max(10, Number.parseInt(process.env.AGENT_AUDIO_SECONDS || "30", 10) || 30);
+const RAW_AUDIO_SECONDS = (process.env.AGENT_AUDIO_SECONDS || "").trim();
+const AUDIO_SECONDS = RAW_AUDIO_SECONDS
+  ? Math.max(10, Number.parseInt(RAW_AUDIO_SECONDS, 10) || 30)
+  : null;
 
 function parseCookie(setCookie) {
   if (!setCookie) return "";
@@ -127,7 +130,7 @@ async function main() {
   }
 
   const hasFfmpeg = ensureFfmpeg();
-  const wantsTrim = AUDIO_SECONDS > 0;
+  const wantsTrim = AUDIO_SECONDS !== null;
   let mp3File = MEDIA_FILE;
 
   if (isMp3File(MEDIA_FILE)) {
@@ -146,7 +149,8 @@ async function main() {
     mp3File = transcodeToMp3(MEDIA_FILE);
   }
   const { bytes, payload } = buildAudioPayload(mp3File);
-  console.log("Prepared sample:", mp3File, `(${(bytes / 1024).toFixed(1)} KB, ${AUDIO_SECONDS}s max)`);
+  const trimLabel = AUDIO_SECONDS === null ? "as-is" : `${AUDIO_SECONDS}s max`;
+  console.log("Prepared sample:", mp3File, `(${(bytes / 1024).toFixed(1)} KB, ${trimLabel})`);
 
   const loginRes = await req("POST", "/api/auth/login", {
     email: OWNER_EMAIL,
