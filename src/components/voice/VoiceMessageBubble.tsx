@@ -103,21 +103,20 @@ export function VoiceMessageBubble({
     setProgress(0);
   }, []);
 
-  const barCount = Math.min(16, Math.max(4, Math.ceil(Math.max(durationSeconds, 1) / 3)));
+  const barCount = 24;
   const barHeights = Array.from({ length: barCount }, (_, i) => {
     const base = 0.35 + Math.sin((i / barCount) * Math.PI) * 0.65;
     return base;
   });
 
-  const minWidthPx = Math.min(168, 88 + Math.min(durationSeconds, 60) * 1.2);
-
   return (
     <button
       type="button"
       onClick={togglePlay}
-      style={{ minWidth: minWidthPx }}
-      className={`inline-flex h-8 max-w-[min(100%,14rem)] items-center gap-2 rounded-full border border-hairline/80 bg-paper-100/90 px-2.5 py-1 text-left transition active:scale-[0.99] ${
-        isFromUser ? "bg-ink text-paper-50" : "text-ink-700"
+      className={`inline-flex h-12 w-64 max-w-[calc(100vw-5rem)] items-center gap-3 rounded-lg border px-2.5 py-1.5 text-left shadow-glow-sm transition duration-200 hover:border-signal-300 hover:shadow-glow active:scale-[0.99] sm:w-72 ${
+        isFromUser
+          ? "border-ink-700 bg-ink text-paper-50"
+          : "border-hairline bg-paper-50 text-ink-700"
       } ${className}`}
       aria-label={
         audioState === "loading"
@@ -147,51 +146,57 @@ export function VoiceMessageBubble({
         onPlay={() => setIsPlaying(true)}
       />
       <span
-        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${
-          isFromUser ? "bg-paper/18" : "bg-paper/72"
+        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
+          isFromUser ? "bg-paper/15 text-paper-50" : "bg-ink text-paper-50"
         }`}
         aria-hidden
       >
         {audioState === "loading" ? (
-          <span className="h-3.5 w-3.5 rounded-full border-2 border-current/25 border-t-current animate-spin" />
+          <span className="h-4 w-4 animate-spin rounded-full border-2 border-current/25 border-t-current" />
         ) : audioState === "error" ? (
-          <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M10.29 3.86l-7.5 13A1 1 0 003.65 18h16.7a1 1 0 00.86-1.5l-7.5-13a1 1 0 00-1.72 0z" />
           </svg>
         ) : isPlaying ? (
-          <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 24 24">
+          <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
             <rect x="6" y="4" width="4" height="16" rx="1" />
             <rect x="14" y="4" width="4" height="16" rx="1" />
           </svg>
         ) : (
-          <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 24 24">
+          <svg className="h-4 w-4 translate-x-px" fill="currentColor" viewBox="0 0 24 24">
             <path d="M8 5v14l11-7z" />
           </svg>
         )}
       </span>
       {audioState === "loading" ? (
         <>
-          <span className="min-w-0 flex-1 truncate text-xs text-ink-500">语音加载中</span>
-          <span className="shrink-0 text-[11px] font-medium tabular-nums text-ink-400/85">
+          <span className="min-w-0 flex-1 truncate text-sm text-ink-500">语音加载中</span>
+          <span className="shrink-0 text-xs font-medium tabular-nums text-ink-400">
             {formatDuration(durationSeconds)}
           </span>
         </>
       ) : audioState === "error" ? (
-        <span className="min-w-0 flex-1 text-xs text-ink-500">加载失败，点击重试</span>
+        <span className="min-w-0 flex-1 text-sm text-ink-500">加载失败，点击重试</span>
       ) : (
         <>
-          <div className="flex min-w-0 flex-1 items-center gap-0.5">
+          <div className="flex min-w-0 flex-1 items-center justify-between gap-px" aria-hidden>
             {barHeights.map((h, i) => (
               <div
                 key={i}
-                className={`w-0.5 shrink-0 rounded-full transition-all ${
-                  isFromUser ? "bg-paper/70" : "bg-paper-500/55"
-                } ${isPlaying && (i / barCount) * 100 < progress ? "opacity-100" : "opacity-40"}`}
-                style={{ height: `${6 + h * 8}px` }}
+                className={`w-0.5 shrink-0 rounded-full transition-colors duration-200 ${
+                  (i / barCount) * 100 < progress
+                    ? isFromUser
+                      ? "bg-paper-50"
+                      : "bg-signal-500"
+                    : isFromUser
+                      ? "bg-paper-50/45"
+                      : "bg-ink-300/55"
+                }`}
+                style={{ height: `${8 + h * 13}px` }}
               />
             ))}
           </div>
-          <span className="shrink-0 text-[11px] font-medium tabular-nums opacity-80">
+          <span className="min-w-8 shrink-0 text-right text-xs font-medium tabular-nums opacity-80">
             {formatDuration(durationSeconds)}
           </span>
         </>
@@ -207,12 +212,24 @@ export function VoiceMessageLoadingBubble({
 }: VoiceLoadingBubbleProps) {
   return (
     <div
-      className={`inline-flex h-8 max-w-[min(100%,14rem)] items-center gap-2 rounded-full border border-hairline/80 bg-paper-100/90 px-2.5 py-1 text-left text-ink-700 ${className}`}
+      className={`inline-flex h-12 w-64 max-w-[calc(100vw-5rem)] items-center gap-3 rounded-lg border border-hairline bg-paper-50 px-2.5 py-1.5 text-left text-ink-700 shadow-glow-sm sm:w-72 ${className}`}
+      role="status"
+      aria-live="polite"
+      aria-label={description}
     >
-      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-paper/72" aria-hidden>
-        <span className="h-3.5 w-3.5 rounded-full border-2 border-hairline/40 border-t-ink animate-spin" />
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-ink text-paper-50" aria-hidden>
+        <span className="h-4 w-4 animate-spin rounded-full border-2 border-paper-50/30 border-t-paper-50" />
       </span>
-      <span className="min-w-0 flex-1 truncate text-xs text-ink-500">{label}</span>
+      <span className="min-w-0 flex-1 truncate text-sm text-ink-500">{label}</span>
+      <span className="flex h-5 items-center gap-0.5" aria-hidden>
+        {[0, 1, 2, 3].map((index) => (
+          <span
+            key={index}
+            className="w-0.5 animate-pulse rounded-full bg-ink-300/45"
+            style={{ height: `${8 + index * 3}px`, animationDelay: `${index * 120}ms` }}
+          />
+        ))}
+      </span>
     </div>
   );
 }
