@@ -29,6 +29,7 @@ func main() {
 		log.Fatal("wechat pay init:", err)
 	}
 	handler.ResumePendingCoEditEvents(cfg)
+	handler.StartLifeAgentTTSWorker(cfg)
 	r := router.Setup(cfg)
 	addr := os.Getenv("PORT")
 	if addr == "" {

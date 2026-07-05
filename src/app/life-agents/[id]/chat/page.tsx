@@ -83,6 +83,69 @@ type SessionSummary = {
   updatedAt: string;
 };
 
+type GeneratedVoiceResult =
+  | { status: "ready"; audioUrl: string; audioDurationSec?: number }
+  | { status: "failed" | "timeout" };
+
+const VOICE_STATUS_POLL_DELAYS_MS = [1500, 2500, ...Array(96).fill(5000)];
+
+function waitForVoicePollDelay(delay: number, signal: AbortSignal): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (signal.aborted) {
+      reject(new DOMException("Aborted", "AbortError"));
+      return;
+    }
+    const onAbort = () => {
+      window.clearTimeout(timer);
+      reject(new DOMException("Aborted", "AbortError"));
+    };
+    const timer = window.setTimeout(() => {
+      signal.removeEventListener("abort", onAbort);
+      resolve();
+    }, delay);
+    signal.addEventListener("abort", onAbort, { once: true });
+  });
+}
+
+async function waitForGeneratedVoice(
+  agentId: string,
+  targetSessionId: string,
+  messageId: string,
+  signal: AbortSignal
+): Promise<GeneratedVoiceResult> {
+  for (const delay of VOICE_STATUS_POLL_DELAYS_MS) {
+    await waitForVoicePollDelay(delay, signal);
+
+    try {
+      const res = await fetch(`/api/life-agents/${agentId}/chat/sessions/${targetSessionId}`, {
+        credentials: "include",
+        cache: "no-store",
+        signal,
+      });
+      if (!res.ok) continue;
+      const data = await res.json();
+      const message = Array.isArray(data.messages)
+        ? data.messages.find((item: any) => item.id === messageId)
+        : null;
+      if (typeof message?.audioUrl === "string" && message.audioUrl) {
+        return {
+          status: "ready",
+          audioUrl: message.audioUrl,
+          audioDurationSec:
+            typeof message.audioDurationSec === "number" ? message.audioDurationSec : undefined,
+        };
+      }
+      if (message?.audioStatus === "failed") {
+        return { status: "failed" };
+      }
+    } catch (err) {
+      if (err instanceof Error && err.name === "AbortError") throw err;
+      // Weak mobile connections are expected here; keep polling until timeout.
+    }
+  }
+  return { status: "timeout" };
+}
+
 function buildWelcomeMessage(welcomeMessage: string): ChatMessage {
   return {
     role: "assistant",
@@ -187,6 +250,7 @@ function ensureVoiceRowAfterTurn(
   const voiceMsg: ChatMessage = {
     role: "voice",
     content: "",
+    messageId: stripped[tail]?.messageId,
     sessionId: stripped[tail]?.sessionId,
     audioUrl: options.audioUrl,
     audioDurationSec: options.audioDurationSec,
@@ -214,14 +278,15 @@ function normalizeMessagesWithVoiceRows(messages: ChatMessage[]): ChatMessage[] 
           voice = current;
         }
       } else if (current.role === "assistant") {
-        if (current.audioUrl && !voice) {
+        if ((current.audioUrl || current.voicePending) && !voice) {
           voice = {
             role: "voice",
             content: "",
+            messageId: current.messageId,
             audioUrl: current.audioUrl,
             audioDurationSec: current.audioDurationSec,
             sessionId: current.sessionId,
-            voicePending: false,
+            voicePending: current.voicePending ?? !current.audioUrl,
           };
         }
         assistants.push({
@@ -240,6 +305,7 @@ function normalizeMessagesWithVoiceRows(messages: ChatMessage[]): ChatMessage[] 
         content: "",
         audioUrl: voice.audioUrl,
         audioDurationSec: voice.audioDurationSec,
+        messageId: voice.messageId ?? assistants[assistants.length - 1]?.messageId,
         sessionId: voice.sessionId ?? assistants[assistants.length - 1]?.sessionId,
         voicePending: voice.voicePending ?? !voice.audioUrl,
       });
@@ -279,6 +345,16 @@ function getTurnVoice(messages: ChatMessage[], tailIndex: number): ChatMessage |
     }
   }
   return null;
+}
+
+function removePendingVoiceForMessage(messages: ChatMessage[], messageId: string): ChatMessage[] {
+  const tailIndex = messages.findIndex((message) => message.messageId === messageId);
+  if (tailIndex < 0) return messages;
+  const voice = getTurnVoice(messages, tailIndex);
+  if (!voice || voice.audioUrl) return messages;
+  return normalizeMessagesWithVoiceRows(
+    removeVoiceRowAfterTurn(messages, getTurnStartIndex(messages, tailIndex))
+  );
 }
 
 function shouldShowAssistantAvatar(messages: ChatMessage[], index: number) {
@@ -473,6 +549,64 @@ export default function LifeAgentChatPage() {
   });
   const chatEndRef = useRef<HTMLDivElement | null>(null);
   const sendingRef = useRef(false);
+  const voiceRecoveryControllersRef = useRef<Map<string, AbortController>>(new Map());
+
+  useEffect(() => {
+    const controllers = voiceRecoveryControllersRef.current;
+    return () => {
+      controllers.forEach((controller) => controller.abort());
+      controllers.clear();
+    };
+  }, []);
+
+  useEffect(() => {
+    const pendingVoices = messages.filter(
+      (message) =>
+        message.role === "voice" &&
+        message.voicePending &&
+        message.messageId &&
+        message.sessionId
+    );
+    for (const pendingVoice of pendingVoices) {
+      const messageId = pendingVoice.messageId!;
+      const targetSessionId = pendingVoice.sessionId!;
+      if (voiceRecoveryControllersRef.current.has(messageId)) continue;
+      const controller = new AbortController();
+      voiceRecoveryControllersRef.current.set(messageId, controller);
+      void waitForGeneratedVoice(id, targetSessionId, messageId, controller.signal)
+        .then((result) => {
+          if (result.status === "ready") {
+            setMessages((prev) => {
+              const tailIndex = prev.findIndex((message) => message.messageId === messageId);
+              if (tailIndex < 0) return prev;
+              return normalizeMessagesWithVoiceRows(
+                ensureVoiceRowAfterTurn(prev, getTurnStartIndex(prev, tailIndex), {
+                  audioUrl: result.audioUrl,
+                  audioDurationSec: result.audioDurationSec,
+                  pending: false,
+                })
+              );
+            });
+            return;
+          }
+          setMessages((prev) => removePendingVoiceForMessage(prev, messageId));
+          setError((prev) =>
+            prev ||
+            (result.status === "failed"
+              ? "语音生成失败，文字回复仍可正常查看。"
+              : "语音仍在后台处理中，稍后重新进入聊天即可查看。")
+          );
+        })
+        .catch((err) => {
+          if (!(err instanceof Error && err.name === "AbortError")) {
+            setMessages((prev) => removePendingVoiceForMessage(prev, messageId));
+          }
+        })
+        .finally(() => {
+          voiceRecoveryControllersRef.current.delete(messageId);
+        });
+    }
+  }, [id, messages]);
 
   const scrollToLastMessage = () => {
     const scroller = viewportRef.current;
@@ -525,6 +659,7 @@ export default function LifeAgentChatPage() {
                 sessionId: targetSessionId,
                 audioUrl: message.audioUrl,
                 audioDurationSec: message.audioDurationSec,
+                voicePending: message.role === "assistant" && message.audioStatus === "pending",
                 references: Array.isArray(message.references) ? message.references : undefined,
               }))
             )
@@ -882,6 +1017,7 @@ export default function LifeAgentChatPage() {
                 syncRatingForm(data.rating);
                 setLoading(false);
                 sendingRef.current = false;
+
               } else if (eventType === "audio_ready") {
                 const data = parsed;
                 setMessages((prev) =>
@@ -893,6 +1029,12 @@ export default function LifeAgentChatPage() {
                     })
                   )
                 );
+              } else if (eventType === "audio_failed") {
+                const data = parsed;
+                voiceRecoveryControllersRef.current.get(data.messageId)?.abort();
+                voiceRecoveryControllersRef.current.delete(data.messageId);
+                setMessages((prev) => removePendingVoiceForMessage(prev, data.messageId));
+                setError((prev) => prev || "语音生成失败，文字回复仍可正常查看。");
               }
             } catch {
               // ignore malformed SSE data
@@ -1546,7 +1688,10 @@ export default function LifeAgentChatPage() {
                           isFromUser={false}
                         />
                       ) : (
-                        <VoiceMessageLoadingBubble label="语音生成中..." />
+                        <VoiceMessageLoadingBubble
+                          label="语音正在后台生成..."
+                          description="可以离开此页面，完成后会保存在聊天记录中。"
+                        />
                       )}
                     </div>
                   ) : null}

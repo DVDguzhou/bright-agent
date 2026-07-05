@@ -3130,6 +3130,20 @@ func LifeAgentsChatSessionDetail(cfg *config.Config) gin.HandlerFunc {
 			Where("session_id = ?", sessionID).
 			Order("created_at ASC").
 			Find(&msgs)
+		messageIDs := make([]string, 0, len(msgs))
+		for i := range msgs {
+			if msgs[i].Role == "assistant" {
+				messageIDs = append(messageIDs, msgs[i].ID)
+			}
+		}
+		jobStatusByMessage := map[string]string{}
+		if len(messageIDs) > 0 {
+			var jobs []models.LifeAgentTTSJob
+			db.DB.Select("message_id", "status").Where("message_id IN ?", messageIDs).Find(&jobs)
+			for i := range jobs {
+				jobStatusByMessage[jobs[i].MessageID] = jobs[i].Status
+			}
+		}
 
 		messages := make([]gin.H, 0, len(msgs))
 		for _, msg := range msgs {
@@ -3143,6 +3157,11 @@ func LifeAgentsChatSessionDetail(cfg *config.Config) gin.HandlerFunc {
 				item["references"] = buildLifeAgentChatReferences(msg.Refs)
 				if audioURL := buildStoredAudioURL(&msg); audioURL != "" {
 					item["audioUrl"] = audioURL
+					item["audioStatus"] = "ready"
+				} else if status := jobStatusByMessage[msg.ID]; status == "pending" || status == "processing" {
+					item["audioStatus"] = "pending"
+				} else if status == "failed" {
+					item["audioStatus"] = "failed"
 				}
 				if msg.AudioDurationSec != nil {
 					item["audioDurationSec"] = *msg.AudioDurationSec
@@ -3727,42 +3746,30 @@ func LifeAgentsChat(cfg *config.Config) gin.HandlerFunc {
 			"remainingQuestions":   remainingOut,
 			"rating":               ratingState,
 		}
+		voiceRequested := body.UseVoiceReply && content != ""
+		var voiceEnqueueErr error
+		if voiceRequested {
+			// Persist before telling the client the text turn is done. Once done is
+			// visible, closing the app can no longer cancel voice generation.
+			voiceEnqueueErr = EnqueueLifeAgentTTSJob(id, assistantMsgID, content)
+			if voiceEnqueueErr != nil {
+				donePayload["audioStatus"] = "failed"
+			} else {
+				donePayload["audioStatus"] = "pending"
+			}
+		}
 		if isMiniAppClient(c) {
 			c.JSON(http.StatusOK, donePayload)
 			return
 		}
 		writeSSE(c, "done", donePayload)
 
-		// TTS 在 done 之后执行，不阻塞文本展示；完成后发 audio_ready 事件
-		resolvedTTS := cfg.ResolveTTSProvider()
-		voiceCloneID := ptrStr(p.VoiceCloneID)
-		if body.UseVoiceReply && content != "" && (voiceCloneID != "" || resolvedTTS != "") {
-			ttsProvider := tts.NewProviderFromConfig(cfg)
-			audioB64, dur, err := ttsProvider.Synthesize(voiceCloneID, content)
-			if err != nil {
-				log.Printf("life-agents chat: TTS failed (provider=%q): %v", resolvedTTS, err)
-			}
-			if err == nil && audioB64 != "" {
-				decoded, decodeErr := base64.StdEncoding.DecodeString(audioB64)
-				if decodeErr != nil {
-					log.Printf("life-agents chat: decode TTS audio: %v", decodeErr)
-				} else if len(decoded) > 0 {
-					format := strings.TrimSpace(ttsProvider.MediaFormat())
-					if format == "" {
-						format = "mp3"
-					}
-					url := "/api/audio/" + assistantMsgID + "." + format
-					db.DB.Model(&models.LifeAgentChatMessage{}).Where("id = ?", assistantMsgID).Updates(map[string]interface{}{
-						"audio_url":          url,
-						"audio_format":       format,
-						"audio_data":         decoded,
-						"audio_duration_sec": dur,
-					})
-					writeSSE(c, "audio_ready", gin.H{
-						"audioUrl":         url,
-						"audioDurationSec": dur,
-					})
-				}
+		if voiceRequested {
+			if voiceEnqueueErr != nil {
+				log.Printf("life-agents chat: enqueue TTS message=%s: %v", assistantMsgID, voiceEnqueueErr)
+				writeSSE(c, "audio_failed", gin.H{"messageId": assistantMsgID})
+			} else {
+				writeSSE(c, "audio_queued", gin.H{"messageId": assistantMsgID})
 			}
 		}
 	}

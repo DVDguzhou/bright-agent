@@ -154,6 +154,7 @@ func Init(dsn string) error {
 		&models.LifeAgentTopicSummary{},
 		&models.LifeAgentChatSession{},
 		&models.LifeAgentChatMessage{},
+		&models.LifeAgentTTSJob{},
 		&models.LifeAgentCoEditState{},
 		&models.LifeAgentCoEditEvent{},
 		&models.LifeAgentQuestionPack{},

@@ -373,6 +373,26 @@ type LifeAgentChatMessage struct {
 
 func (LifeAgentChatMessage) TableName() string { return "life_agent_chat_messages" }
 
+// LifeAgentTTSJob persists voice generation independently from the chat HTTP
+// connection. A worker can resume pending jobs after a client disconnect or a
+// server restart.
+type LifeAgentTTSJob struct {
+	ID            string     `gorm:"primaryKey;size:36"`
+	MessageID     string     `gorm:"column:message_id;size:36;not null;uniqueIndex"`
+	ProfileID     string     `gorm:"column:profile_id;size:36;not null;index"`
+	Text          string     `gorm:"type:text;not null"`
+	Status        string     `gorm:"size:16;not null;default:pending;index"`
+	Attempts      int        `gorm:"not null;default:0"`
+	LastError     *string    `gorm:"column:last_error;type:text"`
+	NextAttemptAt *time.Time `gorm:"column:next_attempt_at;index"`
+	LockedAt      *time.Time `gorm:"column:locked_at;index"`
+	CompletedAt   *time.Time `gorm:"column:completed_at"`
+	CreatedAt     time.Time  `gorm:"column:created_at"`
+	UpdatedAt     time.Time  `gorm:"column:updated_at"`
+}
+
+func (LifeAgentTTSJob) TableName() string { return "life_agent_tts_jobs" }
+
 // LifeAgentCoEditState 创建者在「对话调教」页的对话与上次变更快照（与买家咨询会话 life_agent_chat_sessions 分离）
 type LifeAgentCoEditState struct {
 	ID          string    `gorm:"primaryKey;size:36"`
