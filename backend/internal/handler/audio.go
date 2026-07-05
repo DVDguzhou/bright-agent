@@ -1,9 +1,11 @@
 package handler
 
 import (
+	"bytes"
 	"net/http"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/agent-marketplace/backend/internal/db"
 	"github.com/agent-marketplace/backend/internal/models"
@@ -27,9 +29,7 @@ func ServeAudio(c *gin.Context) {
 				format = strings.TrimPrefix(strings.ToLower(filepath.Ext(filename)), ".")
 			}
 			contentType := audioContentType(format)
-			c.Header("Content-Type", contentType)
-			c.Header("Cache-Control", "private, max-age=31536000, immutable")
-			c.Data(http.StatusOK, contentType, msg.AudioData)
+			serveAudioData(c, filename, contentType, msg.AudioData)
 			return
 		}
 	}
@@ -40,6 +40,16 @@ func ServeAudio(c *gin.Context) {
 	}
 	c.Header("Content-Type", audioContentType(strings.TrimPrefix(strings.ToLower(filepath.Ext(filename)), ".")))
 	c.File(fpath)
+}
+
+// serveAudioData uses net/http's range-aware media response handling. Mobile
+// browsers commonly request only a byte range while loading audio metadata;
+// returning the whole blob with 200 makes those requests fail in WebViews and
+// some Chrome builds.
+func serveAudioData(c *gin.Context, filename string, contentType string, data []byte) {
+	c.Header("Content-Type", contentType)
+	c.Header("Cache-Control", "private, max-age=31536000, immutable")
+	http.ServeContent(c.Writer, c.Request, filename, time.Time{}, bytes.NewReader(data))
 }
 
 func audioContentType(format string) string {
