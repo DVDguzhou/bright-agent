@@ -132,11 +132,29 @@ export function useKeyboardViewport(mobileEnabled: boolean, options?: UseKeyboar
 
     update();
 
+    // iOS occasionally reports keyboardWillHide before visualViewport and
+    // innerHeight have returned to their final values, then omits the last
+    // resize event. Re-measure across the settling window so a stale shortened
+    // fixed shell cannot remain after the keyboard disappears.
+    const reconcileTimers: number[] = [];
+    const scheduleViewportReconcile = () => {
+      update();
+      for (const delay of [60, 180, 420]) {
+        reconcileTimers.push(window.setTimeout(update, delay));
+      }
+    };
+
     const vv = window.visualViewport;
     vv?.addEventListener("resize", update);
     vv?.addEventListener("scroll", update);
     window.addEventListener("resize", update);
     window.addEventListener("orientationchange", update);
+    window.addEventListener("focusout", scheduleViewportReconcile);
+    window.addEventListener("pageshow", scheduleViewportReconcile);
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") scheduleViewportReconcile();
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
 
     let cancelled = false;
     const removeKeyboardListeners: Array<() => void> = [];
@@ -153,7 +171,7 @@ export function useKeyboardViewport(mobileEnabled: boolean, options?: UseKeyboar
           };
           const attachHide = () => {
             nativeInsetRef.current = 0;
-            update();
+            scheduleViewportReconcile();
           };
 
           if (platform === "ios") {
@@ -189,6 +207,10 @@ export function useKeyboardViewport(mobileEnabled: boolean, options?: UseKeyboar
       vv?.removeEventListener("scroll", update);
       window.removeEventListener("resize", update);
       window.removeEventListener("orientationchange", update);
+      window.removeEventListener("focusout", scheduleViewportReconcile);
+      window.removeEventListener("pageshow", scheduleViewportReconcile);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      reconcileTimers.forEach((timer) => window.clearTimeout(timer));
       removeKeyboardListeners.forEach((remove) => remove());
     };
   }, [mobileEnabled, update]);

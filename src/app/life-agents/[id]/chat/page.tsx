@@ -7,6 +7,7 @@ import Link from "next/link";
 import { LifeAgentCoverImage } from "@/components/LifeAgentCoverImage";
 import { AnimatePresence, motion } from "framer-motion";
 import { Trash2 } from "lucide-react";
+import { Capacitor } from "@capacitor/core";
 import { VoiceMessageBubble, VoiceMessageLoadingBubble, VoiceReplyToggle } from "@/components/voice";
 import { LifeAgentMessageComposer } from "@/components/LifeAgentMessageComposer";
 import { UserAvatar } from "@/components/UserAvatar";
@@ -541,6 +542,7 @@ export default function LifeAgentChatPage() {
     references: CitationReference[];
   } | null>(null);
   const isDesktop = useIsDesktop();
+  const isNativeIOS = Capacitor.isNativePlatform() && Capacitor.getPlatform() === "ios";
   const keyboardViewportEnabled = useKeyboardViewportEnabled();
   const [composerFocused, setComposerFocused] = useState(false);
   const { viewportBox, shellStyle, keyboardVisible } = useKeyboardViewport(keyboardViewportEnabled, {
@@ -1467,7 +1469,14 @@ export default function LifeAgentChatPage() {
 
       <div className="flex min-h-0 flex-1 overflow-hidden">
       <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-none border-0 border-hairline bg-paper sm:rounded sm:border lg:rounded max-lg:flex-1">
-        <header className="z-20 flex shrink-0 items-center gap-2 border-b border-hairline bg-paper px-1 py-2 pt-[env(safe-area-inset-top)] sm:px-3">
+        <header
+          className="z-20 flex shrink-0 items-center gap-2 border-b border-hairline bg-paper px-1 pb-2 sm:px-3"
+          style={{
+            paddingTop: isNativeIOS
+              ? "max(0.75rem, env(safe-area-inset-top), 3.25rem)"
+              : "max(0.75rem, env(safe-area-inset-top))",
+          }}
+        >
           <button
             type="button"
             onClick={() => {
@@ -1689,7 +1698,7 @@ export default function LifeAgentChatPage() {
                         />
                       ) : (
                         <VoiceMessageLoadingBubble
-                          label="语音正在后台生成..."
+                          label="语音正在生成..."
                           description="可以离开此页面，完成后会保存在聊天记录中。"
                         />
                       )}
