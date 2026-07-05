@@ -84,7 +84,7 @@ describe("overlayOffsetTop", () => {
     ).toBe(80);
   });
 
-  it("drops spurious offsetTop on CriOS when layout did not shrink", () => {
+  it("keeps the real visual viewport offset on CriOS", () => {
     expect(
       overlayOffsetTop({
         iosBrowser: "chrome",
@@ -92,7 +92,7 @@ describe("overlayOffsetTop", () => {
         vvOffsetTop: 200,
         layoutShrunkFromBaseline: false,
       }),
-    ).toBe(0);
+    ).toBe(200);
   });
 
   it("drops spurious offsetTop on Android when layout did not shrink", () => {
@@ -153,7 +153,7 @@ describe("measureViewport", () => {
     expect(result.height).toBe(450 - CHAT_KEYBOARD_GAP);
   });
 
-  it("uses overlay without spurious offsetTop on CriOS", () => {
+  it("uses the visible overlay slice on CriOS", () => {
     const result = measureViewport({
       ...baseInput,
       layoutHeight: 800,
@@ -163,11 +163,11 @@ describe("measureViewport", () => {
     });
 
     expect(result.mode).toBe("overlay");
-    expect(result.offsetTop).toBe(0);
-    expect(result.height).toBe(450 - CHAT_KEYBOARD_GAP - (800 - 450 - 50));
+    expect(result.offsetTop).toBe(200);
+    expect(result.height).toBe(450 - CHAT_KEYBOARD_GAP);
   });
 
-  it("subtracts accessory inset on CriOS overlay", () => {
+  it("does not subtract the keyboard twice on CriOS overlay", () => {
     const result = measureViewport({
       ...baseInput,
       layoutHeight: 800,
@@ -176,10 +176,9 @@ describe("measureViewport", () => {
       iosBrowser: "chrome",
     });
 
-    const accessoryInset = 800 - 450 - 0 - 50;
     expect(result.mode).toBe("overlay");
     expect(result.offsetTop).toBe(0);
-    expect(result.height).toBe(450 - CHAT_KEYBOARD_GAP - accessoryInset);
+    expect(result.height).toBe(450 - CHAT_KEYBOARD_GAP);
   });
 
   it("uses overlay without spurious offsetTop on Android 搜狗类 IME", () => {

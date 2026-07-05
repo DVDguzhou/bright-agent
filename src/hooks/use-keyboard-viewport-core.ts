@@ -56,7 +56,8 @@ export function detectIOSBrowser(userAgent = ""): IOSBrowser {
 
 /**
  * overlay 模式下是否采用 visualViewport.offsetTop。
- * 仅 Safari 在 layout 未缩小时需要 offsetTop；CriOS / Android 等忽略虚假 offsetTop。
+ * iOS 上所有浏览器和 Capacitor WebView 都基于 WebKit；键盘自动平移
+ * visual viewport 时 offsetTop 是真实可视区域起点，不能只对 Safari 保留。
  */
 export function overlayOffsetTop(input: {
   iosBrowser: IOSBrowser;
@@ -64,9 +65,9 @@ export function overlayOffsetTop(input: {
   vvOffsetTop: number;
   layoutShrunkFromBaseline: boolean;
 }): number {
-  const { iosBrowser, platform, vvOffsetTop, layoutShrunkFromBaseline } = input;
+  const { platform, vvOffsetTop, layoutShrunkFromBaseline } = input;
   if (vvOffsetTop <= 0) return 0;
-  if (iosBrowser === "safari") return vvOffsetTop;
+  if (platform === "ios") return vvOffsetTop;
   if (platform === "android") return layoutShrunkFromBaseline ? vvOffsetTop : 0;
   return layoutShrunkFromBaseline ? vvOffsetTop : 0;
 }
@@ -93,16 +94,6 @@ function computeFocusShrinkFallback(input: {
   const partialInset = input.insetFromVv >= KEYBOARD_INSET_THRESHOLD / 2;
 
   return vvShrunk || partialInset;
-}
-
-function overlayAccessoryInset(input: {
-  iosBrowser: IOSBrowser;
-  layoutHeight: number;
-  vvHeight: number;
-  safeOffsetTop: number;
-}): number {
-  if (input.iosBrowser !== "chrome") return 0;
-  return Math.max(0, input.layoutHeight - input.vvHeight - input.safeOffsetTop - KEYBOARD_INSET_THRESHOLD);
 }
 
 export function measureViewport(input: MeasureViewportInput): ViewportBox {
@@ -186,15 +177,11 @@ export function measureViewport(input: MeasureViewportInput): ViewportBox {
     layoutShrunkFromBaseline,
   });
 
-  const accessoryInset = overlayAccessoryInset({
-    iosBrowser,
-    layoutHeight,
-    vvHeight,
-    safeOffsetTop,
-  });
-
   return {
-    height: Math.max(0, vvHeight - CHAT_KEYBOARD_GAP - accessoryInset),
+    // visualViewport.height already excludes the on-screen keyboard. Subtracting
+    // layoutHeight - vvHeight again double-counts the keyboard and leaves a
+    // large blank area above it on iOS Chrome/WebView.
+    height: Math.max(0, vvHeight - CHAT_KEYBOARD_GAP),
     offsetTop: safeOffsetTop,
     keyboardVisible: true,
     mode: "overlay",
