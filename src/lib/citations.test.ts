@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { citationContextLabel, stripCitationMarkers } from "@/lib/citations";
+import { attributionHint, citationContextLabel, stripCitationMarkers } from "@/lib/citations";
 
 describe("citation display", () => {
   it("removes internal citation markers from message text", () => {
@@ -30,5 +30,9 @@ describe("citation display", () => {
         excerpt: "",
       })
     ).toBe("经历 · 大二项目经历");
+  });
+
+  it("does not show a general-advice attribution hint", () => {
+    expect(attributionHint("general")).toBeNull();
   });
 });

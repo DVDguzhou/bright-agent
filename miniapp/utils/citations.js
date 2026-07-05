@@ -70,8 +70,7 @@ function sourceTypeLabel(sourceType, label) {
   return map[sourceType] || "来源";
 }
 
-function attributionHint(attribution) {
-  if (attribution === "general") return "基于通识建议，非本人亲身经历";
+function attributionHint(_attribution) {
   return "";
 }
 

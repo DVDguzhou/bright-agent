@@ -112,7 +112,6 @@ export function sourceTypeLabel(sourceType?: string, label?: string): string {
   }
 }
 
-export function attributionHint(attribution?: ReplyAttribution): string | null {
-  if (attribution === "general") return "基于通识建议，非本人亲身经历";
+export function attributionHint(_attribution?: ReplyAttribution): string | null {
   return null;
 }
