@@ -41,10 +41,15 @@ export function MobileSwipeShell({ children }: { children: ReactNode }) {
 
   return (
     <div
-      className="relative z-40 min-h-[100dvh] bg-[#f2f1ed] will-change-transform"
+      className="relative z-40 min-h-[100dvh] bg-[#f2f1ed]"
       style={{
         transform: shift !== 0 ? `translateX(${shift}px)` : undefined,
         transition,
+        // A permanent will-change: transform creates a containing block for
+        // fixed descendants on WebKit. Then focusing an input scrolls this
+        // ancestor and drags the full-screen chat shell upward. Only promote
+        // the layer while an edge gesture is actually moving/animating.
+        willChange: shift !== 0 || gesture.transitioning ? "transform" : "auto",
         boxShadow: shellShadow(shift, drawerWidth),
         zIndex: shift !== 0 ? 189 : undefined,
       }}
