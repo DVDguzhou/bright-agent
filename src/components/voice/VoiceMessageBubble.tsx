@@ -35,12 +35,12 @@ export function VoiceMessageBubble({
   const ctxRef = useRef<AudioContext | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [audioState, setAudioState] = useState<"loading" | "ready" | "error">("loading");
+  const [audioState, setAudioState] = useState<"idle" | "loading" | "ready" | "error">("idle");
 
   useEffect(() => {
     setIsPlaying(false);
     setProgress(0);
-    setAudioState("loading");
+    setAudioState("idle");
   }, [audioUrl]);
 
   useEffect(() => {
@@ -69,26 +69,26 @@ export function VoiceMessageBubble({
     const audio = audioRef.current;
     if (!audio) return;
 
-    if (audioState === "loading") return;
-    if (audioState === "error") {
-      setAudioState("loading");
-      audio.load();
-      return;
-    }
-
     if (isPlaying) {
       audio.pause();
-      setIsPlaying(false);
       return;
     }
 
-    const play = async () => {
-      const ctx = ctxRef.current;
-      if (ctx?.state === "suspended") await ctx.resume();
-      await audio.play();
-    };
-    void play().catch(() => setIsPlaying(false));
-    setIsPlaying(true);
+    // Mobile browsers may ignore preload until a user gesture. Always let the
+    // first tap initiate loading and playback instead of waiting for canplay.
+    if (audioState === "idle" || audioState === "error") {
+      setAudioState("loading");
+      audio.load();
+    }
+    const ctx = ctxRef.current;
+    const resumePromise = ctx?.state === "suspended" ? ctx.resume() : Promise.resolve();
+    // Keep play() synchronous inside the click handler so mobile autoplay
+    // policies recognize this as a user-initiated action.
+    const playPromise = audio.play();
+    void Promise.all([resumePromise, playPromise]).catch(() => {
+      setIsPlaying(false);
+      if (audio.error) setAudioState("error");
+    });
   }, [audioState, isPlaying]);
 
   const handleTimeUpdate = useCallback(() => {
@@ -134,6 +134,7 @@ export function VoiceMessageBubble({
         preload="metadata"
         playsInline
         onLoadStart={() => setAudioState("loading")}
+        onLoadedMetadata={() => setAudioState("ready")}
         onLoadedData={() => setAudioState("ready")}
         onCanPlay={() => setAudioState("ready")}
         onError={() => {
